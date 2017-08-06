@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_browse_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.main.MainActivity"
+    tools:deviceIds="tv"
+    tools:ignore="MergeRootFrame">
+
+    <com.phlox.tvwebbrowser.activity.main.view.CursorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/flWebViewContainer" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/llActionBar"
+        android:orientation="horizontal"
+        android:background="#fff"
+        android:visibility="visible"
+        android:gravity="center_vertical">
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ibMenu"
+            android:src="@drawable/ic_close_grey_900_36dp"
+            android:nextFocusRight="@+id/ibVoiceSearch"
+            android:background="@drawable/button_bg_selector"
+            android:layout_margin="5dp" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ibVoiceSearch"
+            android:src="@drawable/ic_mic_none_grey_900_36dp"
+            android:nextFocusRight="@+id/etUrl"
+            android:background="@drawable/button_bg_selector"
+            android:layout_marginRight="5dp" />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/etUrl"
+            android:iconifiedByDefault="false"
+            android:textCursorDrawable="@null"
+            android:textColor="#000"
+
+            android:imeOptions="actionSearch"
+            android:hint="@string/url_prompt"
+            android:inputType="textFilter|textNoSuggestions"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/llMenuOverlay"
+        android:layout_below="@+id/llActionBar">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/llMenu"
+            android:orientation="vertical"
+            android:background="#fff"
+            android:visibility="visible">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibBack"
+                    android:src="@drawable/back_icon_selector"
+                    android:background="@drawable/button_bg_selector"
+                    android:layout_margin="3dp" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibForward"
+                    android:src="@drawable/forward_icon_selector"
+                    android:background="@drawable/button_bg_selector"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginRight="3dp" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibRefresh"
+                    android:src="@drawable/ic_refresh_grey_900_24dp"
+                    android:background="@drawable/button_bg_selector"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginRight="3dp" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibDownloads"
+                    android:src="@drawable/ic_file_download_grey_900_24dp"
+                    android:background="@drawable/button_bg_selector"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginRight="3dp" />
+
+                <ImageButton
+                    android:src="@drawable/ic_more_vert_grey_900_24dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibMore"
+                    android:background="@drawable/button_bg_selector"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginBottom="3dp"
+                    android:layout_marginRight="3dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imageButton4"
+                    android:src="@drawable/ic_history_grey_900_24dp"
+                    android:background="@drawable/button_bg_selector"
+                    android:layout_margin="3dp" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imageButton2"
+                    android:src="@drawable/ic_file_download_grey_900_24dp"
+                    android:background="@drawable/button_bg_selector"
+                    android:layout_margin="3dp" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imageButton3"
+                    android:src="@drawable/ic_settings_grey_900_24dp"
+                    android:background="@drawable/button_bg_selector"
+                    android:layout_margin="3dp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#aaa" />
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/open_new_tab"
+                android:id="@+id/btnNewTab"
+                android:background="@drawable/button_bg_selector"
+                android:layout_margin="3dp"
+                android:textColor="#000" />
+
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/lvTabs" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:clickable="true"
+            android:id="@+id/flMenuRightContainer"></FrameLayout>
+
+    </LinearLayout>
+
+    <ProgressBar
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:id="@+id/progressBar"
+        android:visibility="visible"
+        android:layout_below="@+id/llActionBar"
+        android:layout_alignWithParentIfMissing="true"/>
+
+    <com.phlox.tvwebbrowser.activity.main.view.CursorLayout
+        android:id="@+id/fullscreen_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"/>
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBarGeneric"
+        android:layout_centerInParent="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+</RelativeLayout>

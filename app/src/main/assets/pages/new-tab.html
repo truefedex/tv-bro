@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TV Bro: new tab</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="assets/w3.css">
+    <style>
+        body {
+            color:#000;
+            background-color:#a1d9ef;
+        }
+        .sugg {
+            background-color: #f8fcfe;
+            margin: 5px;
+            padding: 5px;
+            white-space: nowrap;
+        }
+        .sugg:active {
+            background-color: rgba(220, 220, 255, 0);
+        }
+        .ellipsize, .sugg-title, .sugg-desk{
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .sugg-title {
+            font-size: 1.4em;
+        }
+        .sugg-desk {
+            color: #888;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+<div class="w3-container" style="height: 100%; width: 100%; position: fixed; left: 0; top: 0; overflow-x: hidden;">
+    <div class="w3-center" style="width: 75%; margin: auto;">
+        <img class="" src="assets/ic_launcher.png" style="width: 50%; margin: 20px 0 0"/>
+        <input id="iSearch" class="w3-input w3-border" placeholder="Input search query or URL" style="margin: 30px 0 40px;"/>
+    </div>
+    <div id="suggestions" style="width:75%; margin: auto;">
+
+    </div>
+</div>
+<script>
+document.getElementById('iSearch').onkeypress = function(e){
+    if (!e) e = window.event;
+    var keyCode = e.keyCode || e.which;
+    if (keyCode == '13'){
+        TVBro.search(e.target.value);
+        return false;
+    }
+}
+
+function onSuggestionClicked(index) {
+    TVBro.navigate(suggs[index].url);
+}
+
+var suggs = undefined;
+function renderSuggestions() {
+    if (suggs) return;
+    var suggsStr = TVBro.suggestions();
+    suggs = JSON.parse(suggsStr);
+    var container = document.getElementById('suggestions');
+    var html = "";
+    for (var i = 0; i < suggs.length; i++) {
+        html += '<div class="w3-row">';
+        html += '<div class="w3-half" onclick="onSuggestionClicked(' + i + ');"><div class="w3-card-4 sugg" style="margin-left: 0;"><div class="sugg-title">' +
+            suggs[i].title + '</div><div class="sugg-desk">' + suggs[i].url + '</div></div></div>';
+        if (i < (suggs.length - 1)) {
+            i++;
+            html += '<div class="w3-half" onclick="onSuggestionClicked(' + i + ');"><div class="w3-card-4 sugg" style="margin-right: 0;"><div class="sugg-title">' +
+                suggs[i].title + '</div><div class="sugg-desk">' + suggs[i].url + '</div></div></div>';
+        }
+        html += '</div>';
+    }
+    container.innerHTML = html;
+}
+</script>
+</body>
+</html>

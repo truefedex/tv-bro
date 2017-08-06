@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical">
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ibDelete"
+        android:src="@drawable/ic_delete_grey_400_24dp"
+        android:minHeight="50dp"
+        android:minWidth="50dp" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:padding="6dp"
+        android:gravity="center_vertical"
+        android:layout_weight="1"
+        android:id="@+id/llContent"
+        android:background="@drawable/favorite_item_view_bg_selector">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/tvTitle"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:lines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/tvUrl"
+            android:textSize="14sp"
+            android:lines="1"
+            android:ellipsize="end" />
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ivArrow"
+        android:src="@drawable/ic_keyboard_arrow_right_grey_900_18dp" />
+</LinearLayout>
