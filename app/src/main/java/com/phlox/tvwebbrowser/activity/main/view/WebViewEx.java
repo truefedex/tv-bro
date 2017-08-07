@@ -60,6 +60,7 @@ public class WebViewEx extends WebView {
     private int lastTouchX;
     private int lastTouchY;
     public static String defaultUAString;
+    public String uaString;
 
     public interface Listener {
         void onThumbnailReady(Bitmap thumbnail);
@@ -88,7 +89,7 @@ public class WebViewEx extends WebView {
             defaultUAString = "TV Bro/1.0 " + browserSettings.getUserAgentString().replace("Mobile Safari", "Safari");
         }
         SharedPreferences prefs = getContext().getSharedPreferences(MainActivity.MAIN_PREFS_NAME, Context.MODE_PRIVATE);
-        String uaString = prefs.getString(MainActivity.USER_AGENT_PREF_KEY, "");
+        uaString = prefs.getString(MainActivity.USER_AGENT_PREF_KEY, "");
         if ("".equals(uaString)) {
             uaString = defaultUAString;
         }

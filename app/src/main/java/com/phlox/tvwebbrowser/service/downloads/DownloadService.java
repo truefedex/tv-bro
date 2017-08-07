@@ -54,19 +54,18 @@ public class DownloadService extends Service {
         return binder;
     }
 
-    public void startDownloading(String url, String fullDestFilePath, String fileName) {
+    public void startDownloading(String url, String fullDestFilePath, String fileName, String userAgent) {
         final Download download = new Download();
         download.url = url;
         download.filename = fileName;
         download.filepath = fullDestFilePath;
         download.time = new Date().getTime();
-        asql.save(download, new ASQL.ResultCallback<Long>() {
-            @Override
-            public void onDone(Long result, Exception exception) {
-
-            }
-        });
-        DownloadTask downloadTask = new DownloadTask(download, downloadTasksListener);
+        try {
+            asql.save(download);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        DownloadTask downloadTask = new DownloadTask(download, userAgent, downloadTasksListener);
         activeDownloads.add(downloadTask);
         executor.execute(downloadTask);
         startService(new Intent(this, DownloadService.class));

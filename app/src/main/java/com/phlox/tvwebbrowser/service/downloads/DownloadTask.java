@@ -17,6 +17,7 @@ import java.net.URL;
  */
 
 public class DownloadTask implements Runnable {
+    private final String userAgent;
     public Download downloadInfo;
     public Callback callback;
 
@@ -26,8 +27,9 @@ public class DownloadTask implements Runnable {
         void onDone(DownloadTask task);
     }
 
-    public DownloadTask(Download downloadInfo, Callback callback) {
+    public DownloadTask(Download downloadInfo, String userAgent, Callback callback) {
         this.downloadInfo = downloadInfo;
+        this.userAgent = userAgent;
         this.callback = callback;
     }
 
@@ -39,6 +41,10 @@ public class DownloadTask implements Runnable {
         try {
             URL url = new URL(downloadInfo.url);
             connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("User-Agent",userAgent);
+            connection.setUseCaches(false);
+            String cookie = CookieManager.getInstance().getCookie(url.toString());
+            if (cookie != null) connection.setRequestProperty("cookie", cookie);
             connection.connect();
 
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {

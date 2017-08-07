@@ -35,11 +35,11 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.ConsoleMessage;
+import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JsResult;
@@ -70,7 +70,6 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.UserAgentConfigDialogFactory
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout;
 import com.phlox.tvwebbrowser.activity.main.view.WebTabItemView;
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx;
-import com.phlox.tvwebbrowser.activity.singleton.shortcuts.Shortcut;
 import com.phlox.tvwebbrowser.activity.singleton.shortcuts.ShortcutMgr;
 import com.phlox.tvwebbrowser.model.AndroidJSInterface;
 import com.phlox.tvwebbrowser.model.Download;
@@ -124,6 +123,7 @@ public class MainActivity extends Activity {
     private boolean running;
     private String urlToDownload = null;
     private String originalDownloadFileName;
+    private String userAgentForDownload;
     private ValueCallback<Uri[]> pickFileCallback;
     private AndroidJSInterface jsInterface = new AndroidJSInterface();
     private ASQL asql;
@@ -522,7 +522,7 @@ public class MainActivity extends Activity {
             @Override
             public void onDownloadRequested(String url) {
                 String fileName = Uri.parse(url).getLastPathSegment();
-                MainActivity.this.onDownloadRequested(url, fileName != null ? fileName : "url.html");
+                MainActivity.this.onDownloadRequested(url, fileName != null ? fileName : "url.html", tab.webView.uaString);
             }
         });
 
@@ -772,21 +772,21 @@ public class MainActivity extends Activity {
             public void onDownloadStart(String url, String userAgent,
                                         String contentDisposition, String mimetype,
                                         long contentLength) {
-
-                onDownloadRequested(url, URLUtil.guessFileName(url, contentDisposition, mimetype));
+                onDownloadRequested(url, URLUtil.guessFileName(url, contentDisposition, mimetype), userAgent != null ? userAgent : tab.webView.uaString);
             }
         });
     }
 
-    private void onDownloadRequested(String url, String originalDownloadFileName) {
+    private void onDownloadRequested(String url, String originalDownloadFileName, String userAgent) {
         this.urlToDownload = url;
         this.originalDownloadFileName = originalDownloadFileName;
+        this.userAgentForDownload = userAgent;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
         } else {
-            startDownload(url, originalDownloadFileName);
+            startDownload(url, originalDownloadFileName, userAgent);
         }
     }
 
@@ -817,7 +817,7 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void startDownload(String url, String originalFileName) {
+    private void startDownload(String url, String originalFileName, String userAgent) {
         int extPos = originalFileName.lastIndexOf(".");
         boolean hasExt = extPos != -1;
         String ext = null;
@@ -838,7 +838,7 @@ public class MainActivity extends Activity {
         }
 
         String fullDestFilePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + File.separator + fileName;
-        downloadsService.startDownloading(url, fullDestFilePath, fileName);
+        downloadsService.startDownloading(url, fullDestFilePath, fileName, userAgent);
 
         Utils.showToast(this, getString(R.string.download_started,
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + File.separator + fileName));
@@ -911,7 +911,7 @@ public class MainActivity extends Activity {
             }
             case MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED && urlToDownload != null) {
-                    startDownload(urlToDownload, originalDownloadFileName);
+                    startDownload(urlToDownload, originalDownloadFileName, userAgentForDownload);
                 }
             }
         }
