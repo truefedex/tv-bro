@@ -8,14 +8,14 @@ android {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 13
-        versionName "1.2.2"
+        versionCode 15
+        versionName "1.2.3"
     }
 
     buildTypes {
         release {
             debuggable false
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -26,8 +26,4 @@ dependencies {
     compile 'com.github.truefedex:ASQL:ca6071b7cb'
     compile 'de.halfbit:pinned-section-listview:1.0.0'
     compile 'com.android.support:support-v4:26.0.0-alpha1'
-    compile 'com.google.firebase:firebase-crash:10.0.1'
 }
-
-
-apply plugin: 'com.google.gms.google-services'

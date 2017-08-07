@@ -55,7 +55,7 @@
     <string name="set_key_for_action">Установить клавишу для действия</string>
     <string name="settings">Настройки</string>
     <string name="shortcut">\"Быстрая\" клавиша</string>
-    <string name="shortcuts">\"Быстрые\" клавиша</string>
+    <string name="shortcuts">\"Быстрые\" клавиши</string>
     <string name="toggle_main_menu">Отобразить меню</string>
     <string name="voice_search">Голосовой поиск</string>
 </resources>

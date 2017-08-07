@@ -448,6 +448,9 @@ public class MainActivity extends Activity {
     }
 
     private void openInNewTab(String url) {
+        if (url == null) {
+            return;
+        }
         WebTabState tab = new WebTabState();
         tab.currentOriginalUrl = url;
         createWebView(tab);
@@ -714,18 +717,29 @@ public class MainActivity extends Activity {
                 super.onPageStarted(view, url, favicon);
                 ibBack.setEnabled(tab.webView.canGoBack());
                 ibForward.setEnabled(tab.webView.canGoForward());
-                tab.currentOriginalUrl = tab.webView.getUrl();
+                if (tab.webView.getUrl() != null) {
+                    tab.currentOriginalUrl = tab.webView.getUrl();
+                } else if (url != null) {
+                    tab.currentOriginalUrl = url;
+                }
                 etUrl.setText(tab.currentOriginalUrl);
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                if (tab.webView == null || currentTab == null || view == null) {
+                    return;
+                }
                 ibBack.setEnabled(tab.webView.canGoBack());
                 ibForward.setEnabled(tab.webView.canGoForward());
                 tab.webView.setNeedThumbnail(thumbnailesSize);
                 tab.webView.postInvalidate();
-                tab.currentOriginalUrl = tab.webView.getUrl();
+                if (tab.webView.getUrl() != null) {
+                    tab.currentOriginalUrl = tab.webView.getUrl();
+                } else if (url != null) {
+                    tab.currentOriginalUrl = url;
+                }
                 etUrl.setText(tab.currentOriginalUrl);
 
                 String INITIAL_SCRIPT = "window.addEventListener(\"touchstart\", function(e) {\n" +
