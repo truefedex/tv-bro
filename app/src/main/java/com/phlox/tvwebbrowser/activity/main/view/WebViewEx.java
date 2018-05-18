@@ -100,6 +100,7 @@ public class WebViewEx extends WebView {
         browserSettings.setUseWideViewPort(true);
         browserSettings.setSaveFormData(true);
         browserSettings.setSupportZoom(true);
+        browserSettings.setDomStorageEnabled(true);
         browserSettings.setMediaPlaybackRequiresUserGesture(false);
 
         setOnLongClickListener(new OnLongClickListener() {
