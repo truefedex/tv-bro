@@ -98,10 +98,19 @@ public class WebViewEx extends WebView {
         browserSettings.setJavaScriptEnabled(true);
         browserSettings.setDatabaseEnabled(true);
         browserSettings.setUseWideViewPort(true);
+        /*browserSettings.setSupportZoom(true);
+        browserSettings.setBuiltInZoomControls(true);
+        browserSettings.setDisplayZoomControls(false);*/
         browserSettings.setSaveFormData(true);
         browserSettings.setSupportZoom(true);
         browserSettings.setDomStorageEnabled(true);
+        browserSettings.setAllowContentAccess(false);
+        browserSettings.setAppCachePath(getContext().getCacheDir().getAbsolutePath());
+        browserSettings.setAppCacheEnabled(true);
+        browserSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         browserSettings.setMediaPlaybackRequiresUserGesture(false);
+        browserSettings.setGeolocationEnabled(true);
+        //browserSettings.setJavaScriptCanOpenWindowsAutomatically();
 
         setOnLongClickListener(new OnLongClickListener() {
             @SuppressLint("DefaultLocale")
