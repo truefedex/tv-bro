@@ -98,7 +98,7 @@ public class UserAgentConfigDialogFactory {
                     public void onClick(DialogInterface dialog, int which) {
                         final String userAgent = etUAString.getText().toString().trim();
                         if ("".equals(userAgent)) {
-                            callback.onDone(WebViewEx.defaultUAString);
+                            callback.onDone(WebViewEx.Companion.getDefaultUAString());
                         } else {
                             callback.onDone(userAgent);
                         }

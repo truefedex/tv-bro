@@ -522,7 +522,7 @@ public class MainActivity extends Activity {
             @Override
             public void onDownloadRequested(String url) {
                 String fileName = Uri.parse(url).getLastPathSegment();
-                MainActivity.this.onDownloadRequested(url, fileName != null ? fileName : "url.html", tab.webView.uaString);
+                MainActivity.this.onDownloadRequested(url, fileName != null ? fileName : "url.html", tab.webView.getUaString());
             }
         });
 
@@ -772,7 +772,7 @@ public class MainActivity extends Activity {
             public void onDownloadStart(String url, String userAgent,
                                         String contentDisposition, String mimetype,
                                         long contentLength) {
-                onDownloadRequested(url, URLUtil.guessFileName(url, contentDisposition, mimetype), userAgent != null ? userAgent : tab.webView.uaString);
+                onDownloadRequested(url, URLUtil.guessFileName(url, contentDisposition, mimetype), userAgent != null ? userAgent : tab.webView.getUaString());
             }
         });
     }
@@ -1160,7 +1160,7 @@ public class MainActivity extends Activity {
                         return true;
                     }
                     String uaString = currentTab.webView.getSettings().getUserAgentString();
-                    if (WebViewEx.defaultUAString.equals(uaString)) {
+                    if (WebViewEx.Companion.getDefaultUAString().equals(uaString)) {
                         uaString = "";
                     }
                     UserAgentConfigDialogFactory.show(MainActivity.this, uaString, new UserAgentConfigDialogFactory.Callback() {
