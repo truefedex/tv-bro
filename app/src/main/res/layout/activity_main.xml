@@ -38,7 +38,7 @@
             android:src="@drawable/ic_mic_none_grey_900_36dp"
             android:nextFocusRight="@+id/etUrl"
             android:background="@drawable/button_bg_selector"
-            android:layout_marginRight="5dp" />
+            android:layout_marginEnd="5dp" />
 
         <EditText
             android:layout_width="match_parent"
@@ -91,7 +91,7 @@
                     android:background="@drawable/button_bg_selector"
                     android:layout_marginTop="3dp"
                     android:layout_marginBottom="3dp"
-                    android:layout_marginRight="3dp" />
+                    android:layout_marginEnd="3dp" />
 
                 <ImageButton
                     android:layout_width="wrap_content"
@@ -101,7 +101,7 @@
                     android:background="@drawable/button_bg_selector"
                     android:layout_marginTop="3dp"
                     android:layout_marginBottom="3dp"
-                    android:layout_marginRight="3dp" />
+                    android:layout_marginEnd="3dp" />
 
                 <ImageButton
                     android:layout_width="wrap_content"
@@ -111,7 +111,7 @@
                     android:background="@drawable/button_bg_selector"
                     android:layout_marginTop="3dp"
                     android:layout_marginBottom="3dp"
-                    android:layout_marginRight="3dp" />
+                    android:layout_marginEnd="3dp" />
 
                 <ImageButton
                     android:src="@drawable/ic_more_vert_grey_900_24dp"
@@ -121,7 +121,7 @@
                     android:background="@drawable/button_bg_selector"
                     android:layout_marginTop="3dp"
                     android:layout_marginBottom="3dp"
-                    android:layout_marginRight="3dp" />
+                    android:layout_marginEnd="3dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -181,7 +181,7 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:clickable="true"
-            android:id="@+id/flMenuRightContainer"></FrameLayout>
+            android:id="@+id/flMenuRightContainer" />
 
     </LinearLayout>
 
@@ -198,6 +198,7 @@
         android:id="@+id/fullscreen_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:keepScreenOn="true"
         android:visibility="gone"/>
 
     <ProgressBar
