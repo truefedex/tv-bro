@@ -59,4 +59,9 @@
     <string name="set_key_for_action">Set key for action</string>
     <string name="press_eny_key">Press any key...</string>
     <string name="clear">Clear</string>
+    <string name="install">Install</string>
+    <string name="turn_on_unknown_sources">Please turn on "Unknown sources" system setting</string>
+    <string name="storage_not_mounted">Storage not mounted</string>
+    <string name="can_not_create_downloads">Can not create downloads dir</string>
+    <string name="voice_search_not_found">Voice search not found</string>
 </resources>

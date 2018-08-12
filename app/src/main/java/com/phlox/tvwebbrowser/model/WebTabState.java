@@ -110,7 +110,7 @@ public class WebTabState {
     public void restoreWebView() {
         if (savedState != null) {
             webView.restoreState(savedState);
-        } else {
+        } else if (currentOriginalUrl != null) {
             webView.loadUrl(currentOriginalUrl);
         }
     }

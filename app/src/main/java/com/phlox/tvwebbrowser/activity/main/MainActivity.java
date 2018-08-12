@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.speech.RecognizerIntent;
 import android.text.TextUtils;
 import android.util.Log;
@@ -47,6 +48,7 @@ import android.webkit.PermissionRequest;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -57,6 +59,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.phlox.asql.ASQL;
 import com.phlox.tvwebbrowser.R;
@@ -68,6 +71,7 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFact
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutDialog;
 import com.phlox.tvwebbrowser.activity.main.dialogs.UserAgentConfigDialogFactory;
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout;
+import com.phlox.tvwebbrowser.activity.main.view.Scripts;
 import com.phlox.tvwebbrowser.activity.main.view.WebTabItemView;
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx;
 import com.phlox.tvwebbrowser.activity.singleton.shortcuts.ShortcutMgr;
@@ -109,6 +113,7 @@ public class MainActivity extends Activity {
     public static final String SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url";
     public static final String USER_AGENT_PREF_KEY = "user_agent";
     public static final String MAIN_PREFS_NAME = "main.xml";
+    public static final String SCHEME_NEWTAB = "newtab:";
     private Handler handler;
     private WebTabState currentTab;
     private List<WebTabState> tabsStates = new ArrayList<>();
@@ -708,9 +713,36 @@ public class MainActivity extends Activity {
                 }
                 return true;
             }
+
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                WebTabState tab = new WebTabState();
+                //tab.currentOriginalUrl = url;
+                createWebView(tab);
+                int index = currentTab == null ? 0 : tabsStates.indexOf(currentTab);
+                tabsStates.add(index, tab);
+                changeTab(tab);
+                ((WebView.WebViewTransport)resultMsg.obj).setWebView(tab.webView);
+                resultMsg.sendToTarget();
+                return true;
+            }
+
+            @Override
+            public void onCloseWindow(WebView window) {
+                for (WebTabState tab : tabsStates) {
+                    if (tab.webView == window) {
+                        closeTab(tab);
+                        break;
+                    }
+                }
+            }
         });
 
         tab.webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return super.shouldOverrideUrlLoading(view, url);
+            }
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -742,10 +774,7 @@ public class MainActivity extends Activity {
                 }
                 etUrl.setText(tab.currentOriginalUrl);
 
-                String INITIAL_SCRIPT = "window.addEventListener(\"touchstart\", function(e) {\n" +
-                        "        window.TVBRO_activeElement = e.target;\n" +
-                        "});";
-                tab.webView.evaluateJavascript(INITIAL_SCRIPT, null);
+                tab.webView.evaluateJavascript(Scripts.INSTANCE.getINITIAL_SCRIPT(), null);
                 currentTab.webPageInteractionDetected = false;
                 if (HOME_URL.equals(url)) {
                     view.loadUrl("javascript:renderSuggestions()");
@@ -837,7 +866,16 @@ public class MainActivity extends Activity {
             }
         }
 
-        String fullDestFilePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + File.separator + fileName;
+        if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            Toast.makeText(this, R.string.storage_not_mounted, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        if ((!downloadsDir.exists()) && !downloadsDir.mkdirs()) {
+            Toast.makeText(this, R.string.can_not_create_downloads, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String fullDestFilePath = downloadsDir + File.separator + fileName;
         downloadsService.startDownloading(url, fullDestFilePath, fileName, userAgent);
 
         Utils.showToast(this, getString(R.string.download_started,
@@ -864,7 +902,11 @@ public class MainActivity extends Activity {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.speak));
-        startActivityForResult(intent, VOICE_SEARCH_REQUEST_CODE);
+        try {
+            startActivityForResult(intent, VOICE_SEARCH_REQUEST_CODE);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, R.string.voice_search_not_found, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

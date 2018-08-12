@@ -1,6 +1,11 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
 object Scripts {
+    val INITIAL_SCRIPT = """
+window.addEventListener("touchstart", function(e) {
+    window.TVBRO_activeElement = e.target;
+});"""
+
     val LONG_PRESS_SCRIPT = """
 var element = window.TVBRO_activeElement;
 if (element != null) {
