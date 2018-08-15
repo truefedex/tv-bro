@@ -80,7 +80,7 @@ public class ShortcutMgr {
                 mainActivity.navigateBack();
                 return true;
             case NAVIGATE_HOME:
-                mainActivity.navigate(MainActivity.HOME_URL);
+                mainActivity.navigate(MainActivity.Companion.getHOME_URL());
                 return true;
             case REFRESH_PAGE:
                 mainActivity.refresh();

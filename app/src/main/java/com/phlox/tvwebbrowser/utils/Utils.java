@@ -63,9 +63,9 @@ public class Utils {
         Toast.makeText(context, context.getString(resourceId), Toast.LENGTH_LONG).show();
     }
 
-    public static int convertDpToPixel(Context ctx, int dp) {
+    public static float D2P(Context ctx, float dp) {
         float density = ctx.getResources().getDisplayMetrics().density;
-        return Math.round((float) dp * density);
+        return dp * density;
     }
 
     /**

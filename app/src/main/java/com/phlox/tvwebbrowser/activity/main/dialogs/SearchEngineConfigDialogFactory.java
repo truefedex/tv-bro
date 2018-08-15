@@ -91,7 +91,7 @@ public final class SearchEngineConfigDialogFactory {
                     public void onClick(DialogInterface dialog, int which) {
                         String url = etUrl.getText().toString();
                         SharedPreferences.Editor editor = prefs.edit();
-                        editor.putString(MainActivity.SEARCH_ENGINE_URL_PREF_KEY, url);
+                        editor.putString(MainActivity.Companion.getSEARCH_ENGINE_URL_PREF_KEY(), url);
                         editor.apply();
                         callback.onDone(url);
                     }

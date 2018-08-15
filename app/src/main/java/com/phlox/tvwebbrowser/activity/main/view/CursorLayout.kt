@@ -12,24 +12,22 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.FrameLayout
+import com.phlox.tvwebbrowser.utils.Utils
 
 
 /**
  * Created by PDT on 25.08.2016.
  */
 class CursorLayout : FrameLayout {
-    companion object {
-        var CURSOR_RADIUS: Int = 0
-        var MAX_CURSOR_SPEED: Float = 0.toFloat()
-        val UNCHANGED = -100
-        val CURSOR_DISAPPEAR_TIMEOUT = 5000
-        var SCROLL_START_PADDING = 100
-        var CURSOR_STROKE_WIDTH: Float = 0.toFloat()
-        var USE_SCROLL_HACK = true
-    }
-
-    var EFFECT_RADIUS: Int = 0
-    var EFFECT_DIAMETER: Int = 0
+    private var EFFECT_RADIUS: Int = 0
+    private var EFFECT_DIAMETER: Int = 0
+    private var CURSOR_RADIUS: Int = 0
+    private var MAX_CURSOR_SPEED: Float = 0.toFloat()
+    private val UNCHANGED = -100
+    private val CURSOR_DISAPPEAR_TIMEOUT = 5000
+    private var SCROLL_START_PADDING = 100
+    private var CURSOR_STROKE_WIDTH: Float = 0.toFloat()
+    private var USE_SCROLL_HACK = true
     private val cursorDirection = Point(0, 0)
     private val cursorPosition = PointF(0f, 0f)
     private val cursorSpeed = PointF(0f, 0f)
@@ -41,6 +39,7 @@ class CursorLayout : FrameLayout {
     private val cursorHideRunnable = Runnable { invalidate() }
     private var scrollHackStarted = false
     private var scrollHackCoords = PointF()
+    public var zoomMode = false
 
     private val isCursorDissappear: Boolean
         get() {
@@ -216,25 +215,36 @@ class CursorLayout : FrameLayout {
     }
 
     private fun handleDirectionKeyEvent(event: KeyEvent, x: Int, y: Int, keyDown: Boolean) {
-        lastCursorUpdate = System.currentTimeMillis()
-        if (keyDown) {
-            if (keyDispatcherState.isTracking(event)) {
-                return
+        if (zoomMode) {
+            val webView = getChildAt(0) as WebViewEx
+            if (y > 0) {
+                if (webView.canZoomOut())
+                    webView.zoomOut()
+            } else if (y < 0) {
+                if (webView.canZoomIn())
+                    webView.zoomIn()
             }
-            val handler = handler
-            handler.removeCallbacks(cursorUpdateRunnable)
-            handler.post(cursorUpdateRunnable)
-            keyDispatcherState.startTracking(event, this)
         } else {
-            keyDispatcherState.handleUpEvent(event)
-            cursorSpeed.set(0f, 0f)
-            if (scrollHackStarted) {
-                dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_CANCEL)
-                scrollHackStarted = false
+            lastCursorUpdate = System.currentTimeMillis()
+            if (keyDown) {
+                if (keyDispatcherState.isTracking(event)) {
+                    return
+                }
+                val handler = handler
+                handler.removeCallbacks(cursorUpdateRunnable)
+                handler.post(cursorUpdateRunnable)
+                keyDispatcherState.startTracking(event, this)
+            } else {
+                keyDispatcherState.handleUpEvent(event)
+                cursorSpeed.set(0f, 0f)
+                if (scrollHackStarted) {
+                    dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_CANCEL)
+                    scrollHackStarted = false
+                }
             }
-        }
 
-        cursorDirection.set(if (x == UNCHANGED) cursorDirection.x else x, if (y == UNCHANGED) cursorDirection.y else y)
+            cursorDirection.set(if (x == UNCHANGED) cursorDirection.x else x, if (y == UNCHANGED) cursorDirection.y else y)
+        }
     }
 
     private fun scrollWebViewBy(wv: WebViewEx, scrollX: Int, scrollY: Int) {
@@ -277,21 +287,41 @@ class CursorLayout : FrameLayout {
         if (isInEditMode) {
             return
         }
-        if (isCursorDissappear) {
-            return
+
+        if (zoomMode) {
+            val zoomText = "Zoom: +/-"
+            paint.textSize = Utils.D2P(context, 50F)
+            paint.color = Color.argb(128, 255, 255, 255)
+            paint.style = Paint.Style.FILL
+            val textWidth = paint.measureText(zoomText)
+            canvas.drawText(zoomText, width / 2f - textWidth / 2f, height / 2f, paint)
+            paint.color = Color.GRAY
+            paint.strokeWidth = CURSOR_STROKE_WIDTH
+            paint.style = Paint.Style.STROKE
+            canvas.drawText(zoomText, width / 2f - textWidth / 2f, height / 2f, paint)
+        } else if (!isCursorDissappear) {
+            val cx = cursorPosition.x
+            val cy = cursorPosition.y
+
+            paint.color = Color.argb(128, 255, 255, 255)
+            paint.style = Paint.Style.FILL
+            canvas.drawCircle(cx, cy, CURSOR_RADIUS.toFloat(), paint)
+
+            paint.color = Color.GRAY
+            paint.strokeWidth = CURSOR_STROKE_WIDTH
+            paint.style = Paint.Style.STROKE
+            canvas.drawCircle(cx, cy, CURSOR_RADIUS.toFloat(), paint)
         }
+    }
 
-        val cx = cursorPosition.x
-        val cy = cursorPosition.y
+    fun goToZoomMode() {
+        zoomMode = true
+        postInvalidate()
+    }
 
-        paint.color = Color.argb(128, 255, 255, 255)
-        paint.style = Paint.Style.FILL
-        canvas.drawCircle(cx, cy, CURSOR_RADIUS.toFloat(), paint)
-
-        paint.color = Color.GRAY
-        paint.strokeWidth = CURSOR_STROKE_WIDTH
-        paint.style = Paint.Style.STROKE
-        canvas.drawCircle(cx, cy, CURSOR_RADIUS.toFloat(), paint)
+    fun exitZoomMode() {
+        zoomMode = false
+        postInvalidate()
     }
 
     private val cursorUpdateRunnable = object : Runnable {

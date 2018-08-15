@@ -2,42 +2,17 @@ package com.phlox.tvwebbrowser.activity.main.view
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
-import android.graphics.Matrix
-import android.graphics.Paint
-import android.graphics.Path
-import android.graphics.Point
-import android.graphics.PointF
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
-import android.graphics.Rect
-import android.graphics.drawable.shapes.PathShape
-import android.os.Handler
-import android.os.SystemClock
-import android.renderscript.Allocation
-import android.renderscript.RenderScript
-import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Size
-import android.view.Display
 import android.view.Gravity
-import android.view.InputDevice
-import android.view.KeyEvent
-import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
-import android.view.WindowManager
-import android.webkit.ValueCallback
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.FrameLayout
 import android.widget.PopupMenu
-import android.widget.Toast
 
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.MainActivity
@@ -62,6 +37,7 @@ class WebViewEx : WebView {
         fun onThumbnailReady(thumbnail: Bitmap)
         fun onOpenInNewTabRequested(s: String)
         fun onDownloadRequested(url: String)
+        fun onWantZoomMode()
     }
 
     constructor(context: Context) : super(context) {
@@ -72,6 +48,7 @@ class WebViewEx : WebView {
         init()
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     private fun init() {
         if (isInEditMode) {
             return
@@ -92,9 +69,9 @@ class WebViewEx : WebView {
         browserSettings.javaScriptEnabled = true
         browserSettings.databaseEnabled = true
         browserSettings.useWideViewPort = true
-        /*browserSettings.setSupportZoom(true);
-        browserSettings.setBuiltInZoomControls(true);
-        browserSettings.setDisplayZoomControls(false);*/
+        browserSettings.setSupportZoom(true)
+        browserSettings.builtInZoomControls = false
+        browserSettings.displayZoomControls = false
         browserSettings.saveFormData = true
         browserSettings.setSupportZoom(true)
         browserSettings.domStorageEnabled = true
@@ -110,15 +87,17 @@ class WebViewEx : WebView {
         setOnLongClickListener {
             evaluateJavascript(Scripts.LONG_PRESS_SCRIPT) { s ->
                 if (s != null && "null" != s) {
-                    suggestActions(s)
+                    suggestActionsForLink(s)
+                } else {
+                    listener?.onWantZoomMode()
                 }
             }
             true
         }
     }
 
-    private fun suggestActions(s: String) {
-        var s = s
+    private fun suggestActionsForLink(href: String) {
+        var s = href
         if (s.startsWith("\"") && s.endsWith("\"")) {
             s = s.substring(1, s.length - 1)
         }

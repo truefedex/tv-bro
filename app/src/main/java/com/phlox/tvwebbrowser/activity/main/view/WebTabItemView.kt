@@ -27,8 +27,8 @@ class WebTabItemView(context: Context) : FrameLayout(context) {
     private val btnClose: Button
 
     interface Listener {
-        fun onTabSelected(tab: WebTabState?)
-        fun onTabDeleteClicked(tab: WebTabState?)
+        fun onTabSelected(tab: WebTabState)
+        fun onTabDeleteClicked(tab: WebTabState)
         fun onNeededThumbnailSizeCalculated(width: Int, height: Int)
     }
 
@@ -39,9 +39,9 @@ class WebTabItemView(context: Context) : FrameLayout(context) {
         llContainer = findViewById<View>(R.id.llContainer) as LinearLayout
         btnClose = findViewById<View>(R.id.btnClose) as Button
 
-        llContainer.setOnClickListener { listener!!.onTabSelected(tabState) }
+        llContainer.setOnClickListener { listener!!.onTabSelected(tabState!!) }
 
-        btnClose.setOnClickListener { listener!!.onTabDeleteClicked(tabState) }
+        btnClose.setOnClickListener { listener!!.onTabDeleteClicked(tabState!!) }
     }
 
     fun setListener(listener: Listener) {
