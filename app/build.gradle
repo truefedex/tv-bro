@@ -9,7 +9,7 @@ android {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 20
+        versionCode 21
         versionName "1.2.7"
     }
 

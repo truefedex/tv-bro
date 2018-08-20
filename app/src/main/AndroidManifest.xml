@@ -30,14 +30,6 @@
         android:name="android.software.leanback"
         android:required="false" />
 
-    <supports-screens android:resizeable="true"
-        android:smallScreens="false"
-        android:normalScreens="false"
-        android:largeScreens="true"
-        android:xlargeScreens="true"
-        android:anyDensity="true"
-        android:requiresSmallestWidthDp="1000" />
-
     <application
         android:name=".TVBro"
         android:allowBackup="true"
