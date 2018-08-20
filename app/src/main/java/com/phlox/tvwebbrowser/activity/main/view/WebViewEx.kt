@@ -81,8 +81,8 @@ class WebViewEx : WebView {
         browserSettings.cacheMode = WebSettings.LOAD_DEFAULT
         browserSettings.mediaPlaybackRequiresUserGesture = false
         browserSettings.setGeolocationEnabled(true)
-        browserSettings.javaScriptCanOpenWindowsAutomatically = true
-        browserSettings.setSupportMultipleWindows(true)
+        browserSettings.javaScriptCanOpenWindowsAutomatically = false
+        browserSettings.setSupportMultipleWindows(false)
 
         setOnLongClickListener {
             evaluateJavascript(Scripts.LONG_PRESS_SCRIPT) { s ->

@@ -179,9 +179,10 @@ class DownloadsActivity : ListActivity(), AdapterView.OnItemClickListener, Downl
     }
 
     private fun installAPK(download: Download) {
-        val canInstallFromOtherSources = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            packageManager.canRequestPackageInstalls()
-        else
+        val canInstallFromOtherSources = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //packageManager.canRequestPackageInstalls()
+            true
+        } else
             Settings.Secure.getInt(this.contentResolver, Settings.Secure.INSTALL_NON_MARKET_APPS) == 1
 
         if(canInstallFromOtherSources) {

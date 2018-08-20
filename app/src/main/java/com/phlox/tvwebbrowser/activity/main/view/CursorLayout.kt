@@ -1,11 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Point
-import android.graphics.PointF
+import android.graphics.*
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.KeyEvent
@@ -28,6 +24,7 @@ class CursorLayout : FrameLayout {
     private var SCROLL_START_PADDING = 100
     private var CURSOR_STROKE_WIDTH: Float = 0.toFloat()
     private var USE_SCROLL_HACK = true
+    private val SCROLL_HACK_PADDING = 200
     private val cursorDirection = Point(0, 0)
     private val cursorPosition = PointF(0f, 0f)
     private val cursorSpeed = PointF(0f, 0f)
@@ -39,6 +36,7 @@ class CursorLayout : FrameLayout {
     private val cursorHideRunnable = Runnable { invalidate() }
     private var scrollHackStarted = false
     private var scrollHackCoords = PointF()
+    private var scrollHackActiveRect = Rect()
     public var zoomMode = false
 
     private val isCursorDissappear: Boolean
@@ -94,6 +92,8 @@ class CursorLayout : FrameLayout {
             return
         }
         cursorPosition.set(w / 2.0f, h / 2.0f)
+        scrollHackActiveRect.set(0, 0, width, height)
+        scrollHackActiveRect.inset(SCROLL_HACK_PADDING, SCROLL_HACK_PADDING)
         handler.postDelayed(cursorHideRunnable, CURSOR_DISAPPEAR_TIMEOUT.toLong())
     }
 
@@ -254,18 +254,26 @@ class CursorLayout : FrameLayout {
         if ((scrollX != 0 && wv.canScrollHorizontally(scrollX)) || (scrollY != 0 && wv.canScrollVertically(scrollY))) {
             wv.scrollTo(wv.scrollX + scrollX, wv.scrollY + scrollY)
         } else if (USE_SCROLL_HACK && !dpadCenterPressed) {
+            var justStarted = false
             if (!scrollHackStarted) {
-                scrollHackCoords.set(cursorPosition.x, cursorPosition.y)
+                scrollHackCoords.set(
+                        bound(cursorPosition.x, scrollHackActiveRect.left.toFloat(), scrollHackActiveRect.right.toFloat()),
+                        bound(cursorPosition.y, scrollHackActiveRect.top.toFloat(), scrollHackActiveRect.bottom.toFloat()))
                 dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_DOWN)
                 scrollHackStarted = true
+                justStarted = true
             }
             scrollHackCoords.x -= scrollX
             scrollHackCoords.y -= scrollY
-            if (scrollHackCoords.x < 0 || scrollHackCoords.x >= width ||
-                    scrollHackCoords.y < 0 || scrollHackCoords.y >= height) {
-                dispatchMotionEvent(Math.min(Math.max(0f, scrollHackCoords.x), (width - 1).toFloat()),
-                        Math.min(Math.max(0f, scrollHackCoords.y), (height - 1).toFloat()), MotionEvent.ACTION_UP)
-                scrollWebViewBy(wv, scrollX, scrollY)
+            if (scrollHackCoords.x < scrollHackActiveRect.left || scrollHackCoords.x >= scrollHackActiveRect.right ||
+                    scrollHackCoords.y < scrollHackActiveRect.top || scrollHackCoords.y >= scrollHackActiveRect.bottom) {
+                scrollHackCoords.x += scrollX
+                scrollHackCoords.y += scrollY
+                dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_CANCEL)
+                scrollHackStarted = false
+                if (!justStarted) {
+                    scrollWebViewBy(wv, scrollX, scrollY)
+                }
                 return
             }
             dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_MOVE)
@@ -277,6 +285,16 @@ class CursorLayout : FrameLayout {
             max
         } else if (value < -max) {
             -max
+        } else {
+            value
+        }
+    }
+
+    private fun bound(value: Float, min: Float, max: Float): Float {
+        return if (value > max) {
+            max
+        } else if (value < min) {
+            min
         } else {
             value
         }
@@ -363,23 +381,28 @@ class CursorLayout : FrameLayout {
             }
 
             val child = getChildAt(0) as WebViewEx
+            var dx = 0
+            var dy = 0
             if (cursorPosition.y > height - SCROLL_START_PADDING) {
                 if (cursorSpeed.y > 0) {
-                    scrollWebViewBy(child, 0, cursorSpeed.y.toInt())
+                    dy = cursorSpeed.y.toInt()
                 }
             } else if (cursorPosition.y < SCROLL_START_PADDING) {
                 if (cursorSpeed.y < 0) {
-                    scrollWebViewBy(child, 0, cursorSpeed.y.toInt())
+                    dy = cursorSpeed.y.toInt()
                 }
             }
             if (cursorPosition.x > width - SCROLL_START_PADDING) {
                 if (cursorSpeed.x > 0) {
-                    scrollWebViewBy(child, cursorSpeed.x.toInt(), 0)
+                    dx = cursorSpeed.x.toInt()
                 }
             } else if (cursorPosition.x < SCROLL_START_PADDING) {
                 if (cursorSpeed.x < 0) {
-                    scrollWebViewBy(child, cursorSpeed.x.toInt(), 0)
+                    dx = cursorSpeed.x.toInt()
                 }
+            }
+            if (dx != 0 || dy != 0) {
+                scrollWebViewBy(child, dx, dy)
             }
 
             invalidate()
