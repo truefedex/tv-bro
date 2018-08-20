@@ -42,10 +42,7 @@ import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
-import com.phlox.tvwebbrowser.utils.AndroidBug5497Workaround
-import com.phlox.tvwebbrowser.utils.BaseAnimationListener
-import com.phlox.tvwebbrowser.utils.StringUtils
-import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -801,7 +798,7 @@ class MainActivity : Activity() {
         }
 
         tab.webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
-            onDownloadRequested(url, URLUtil.guessFileName(url, contentDisposition, mimetype), userAgent
+            onDownloadRequested(url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
                     ?: tab.webView.uaString)
         }
     }

@@ -58,4 +58,9 @@
     <string name="shortcuts">\"Быстрые\" клавиши</string>
     <string name="toggle_main_menu">Отобразить меню</string>
     <string name="voice_search">Голосовой поиск</string>
+    <string name="install">Установить</string>
+    <string name="turn_on_unknown_sources">Пожалуйста, активируйте системную настройку \"Установка из неизвестных источников\"</string>
+    <string name="storage_not_mounted">Хранилище файлов не найдено</string>
+    <string name="can_not_create_downloads">Не могу создать директорию для скачанных файлов</string>
+    <string name="voice_search_not_found">Приложение голосового поиска не найдено</string>
 </resources>
