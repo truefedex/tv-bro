@@ -195,7 +195,7 @@
         android:layout_alignWithParentIfMissing="true"/>
 
     <com.phlox.tvwebbrowser.activity.main.view.CursorLayout
-        android:id="@+id/fullscreen_container"
+        android:id="@+id/flFullscreenContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:keepScreenOn="true"

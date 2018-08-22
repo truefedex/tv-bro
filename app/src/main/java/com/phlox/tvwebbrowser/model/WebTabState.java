@@ -5,11 +5,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Parcel;
+import android.webkit.WebChromeClient;
 
 import com.phlox.tvwebbrowser.activity.main.MainActivity;
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx;
 import com.phlox.tvwebbrowser.utils.Utils;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,6 +35,7 @@ public class WebTabState {
     public Bitmap thumbnail;
     public String thumbnailHash;
     public boolean webPageInteractionDetected = false;
+    public WebChromeClient webChromeClient;
 
     public WebTabState() {
     }

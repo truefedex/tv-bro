@@ -2,6 +2,8 @@ package com.phlox.tvwebbrowser.activity.main.view
 
 import android.content.Context
 import android.graphics.*
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.KeyEvent
@@ -94,7 +96,7 @@ class CursorLayout : FrameLayout {
         cursorPosition.set(w / 2.0f, h / 2.0f)
         scrollHackActiveRect.set(0, 0, width, height)
         scrollHackActiveRect.inset(SCROLL_HACK_PADDING, SCROLL_HACK_PADDING)
-        handler.postDelayed(cursorHideRunnable, CURSOR_DISAPPEAR_TIMEOUT.toLong())
+        postDelayed(cursorHideRunnable, CURSOR_DISAPPEAR_TIMEOUT.toLong())
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -215,14 +217,16 @@ class CursorLayout : FrameLayout {
     }
 
     private fun handleDirectionKeyEvent(event: KeyEvent, x: Int, y: Int, keyDown: Boolean) {
+        val child = getChildAt(0)
         if (zoomMode) {
-            val webView = getChildAt(0) as WebViewEx
-            if (y > 0) {
-                if (webView.canZoomOut())
-                    webView.zoomOut()
-            } else if (y < 0) {
-                if (webView.canZoomIn())
-                    webView.zoomIn()
+            if (child != null && child is WebViewEx) {
+                if (y > 0) {
+                    if (child.canZoomOut())
+                        child.zoomOut()
+                } else if (y < 0) {
+                    if (child.canZoomIn())
+                        child.zoomIn()
+                }
             }
         } else {
             lastCursorUpdate = System.currentTimeMillis()
@@ -230,9 +234,8 @@ class CursorLayout : FrameLayout {
                 if (keyDispatcherState.isTracking(event)) {
                     return
                 }
-                val handler = handler
-                handler.removeCallbacks(cursorUpdateRunnable)
-                handler.post(cursorUpdateRunnable)
+                removeCallbacks(cursorUpdateRunnable)
+                post(cursorUpdateRunnable)
                 keyDispatcherState.startTracking(event, this)
             } else {
                 keyDispatcherState.handleUpEvent(event)
@@ -344,7 +347,7 @@ class CursorLayout : FrameLayout {
 
     private val cursorUpdateRunnable = object : Runnable {
         override fun run() {
-            handler.removeCallbacks(cursorHideRunnable)
+            removeCallbacks(cursorHideRunnable)
 
             val newTime = System.currentTimeMillis()
             val dTime = newTime - lastCursorUpdate
@@ -357,7 +360,7 @@ class CursorLayout : FrameLayout {
             if (Math.abs(cursorSpeed.x) < 0.1f) cursorSpeed.x = 0f
             if (Math.abs(cursorSpeed.y) < 0.1f) cursorSpeed.y = 0f
             if (cursorDirection.x == 0 && cursorDirection.y == 0 && cursorSpeed.x == 0f && cursorSpeed.y == 0f) {
-                handler.postDelayed(cursorHideRunnable, CURSOR_DISAPPEAR_TIMEOUT.toLong())
+                postDelayed(cursorHideRunnable, CURSOR_DISAPPEAR_TIMEOUT.toLong())
                 return
             }
             tmpPointF.set(cursorPosition)
@@ -380,7 +383,6 @@ class CursorLayout : FrameLayout {
                 }
             }
 
-            val child = getChildAt(0) as WebViewEx
             var dx = 0
             var dy = 0
             if (cursorPosition.y > height - SCROLL_START_PADDING) {
@@ -402,11 +404,14 @@ class CursorLayout : FrameLayout {
                 }
             }
             if (dx != 0 || dy != 0) {
-                scrollWebViewBy(child, dx, dy)
+                val child = getChildAt(0)
+                if (child != null && child is WebViewEx) {
+                    scrollWebViewBy(child, dx, dy)
+                }
             }
 
             invalidate()
-            handler.post(this)
+            post(this)
         }
     }
 }

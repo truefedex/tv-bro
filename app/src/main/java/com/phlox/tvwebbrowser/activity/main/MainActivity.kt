@@ -43,6 +43,7 @@ import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.utils.*
+import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -92,7 +93,6 @@ class MainActivity : Activity() {
 
     private var llMenu: LinearLayout? = null
     private var etUrl: EditText? = null
-    private var flFullscreenContainer: FrameLayout? = null
     private var fullScreenView: View? = null
     private var progressBar: ProgressBar? = null
     private var llActionBar: LinearLayout? = null
@@ -108,7 +108,6 @@ class MainActivity : Activity() {
     private var lvTabs: ListView? = null
     private var progressBarGeneric: ProgressBar? = null
     private var ibDownloads: ImageButton? = null
-    private var ibMore: ImageButton? = null
     private var popupMenuMoreActions: PopupMenu? = null
     private var prefs: SharedPreferences? = null
 
@@ -272,7 +271,6 @@ class MainActivity : Activity() {
         llActionBar = findViewById(R.id.llActionBar)
         etUrl = findViewById(R.id.etUrl)
         flWebViewContainer = findViewById(R.id.flWebViewContainer)
-        flFullscreenContainer = findViewById(R.id.fullscreen_container)
         progressBar = findViewById(R.id.progressBar)
         ibMenu = findViewById(R.id.ibMenu)
         flMenuRightContainer = findViewById(R.id.flMenuRightContainer)
@@ -281,7 +279,6 @@ class MainActivity : Activity() {
         ibRefresh = findViewById(R.id.ibRefresh)
         ibVoiceSearch = findViewById(R.id.ibVoiceSearch)
         ibDownloads = findViewById(R.id.ibDownloads)
-        ibMore = findViewById(R.id.ibMore)
         btnNewTab = findViewById(R.id.btnNewTab)
         lvTabs = findViewById(R.id.lvTabs)
         progressBarGeneric = findViewById(R.id.progressBarGeneric)
@@ -334,7 +331,7 @@ class MainActivity : Activity() {
 
         ibDownloads!!.setOnClickListener { startActivity(Intent(this@MainActivity, DownloadsActivity::class.java)) }
 
-        ibMore!!.setOnClickListener {
+        ibMore.setOnClickListener {
             if (popupMenuMoreActions == null) {
                 popupMenuMoreActions = PopupMenu(this@MainActivity, ibMore, Gravity.BOTTOM)
                 popupMenuMoreActions!!.inflate(R.menu.action_more)
@@ -563,7 +560,7 @@ class MainActivity : Activity() {
             }
         })
 
-        tab.webView.webChromeClient = object : WebChromeClient() {
+        tab.webChromeClient = object : WebChromeClient() {
             override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
                 return super.onJsAlert(view, url, message, result)
             }
@@ -578,12 +575,15 @@ class MainActivity : Activity() {
             }
 
             override fun onHideCustomView() {
-                flFullscreenContainer!!.removeView(fullScreenView)
-                fullscreenViewCallback!!.onCustomViewHidden()
-                fullScreenView = null
+                if (fullScreenView != null) {
+                    flFullscreenContainer.removeView(fullScreenView)
+                    fullScreenView = null
+                }
 
+                fullscreenViewCallback!!.onCustomViewHidden()
+
+                flFullscreenContainer.visibility = View.GONE
                 tab.webView.visibility = View.VISIBLE
-                flFullscreenContainer!!.visibility = View.GONE
             }
 
             override fun onProgressChanged(view: WebView, newProgress: Int) {
@@ -618,6 +618,9 @@ class MainActivity : Activity() {
                             webPermissionsRequest = null
                         }
                         .setPositiveButton(R.string.allow) { dialog, which ->
+                            if (webPermissionsRequest == null) {
+                                return@setPositiveButton
+                            }
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                 val neededPermissions = ArrayList<String>()
                                 reuestedResourcesForAlreadyGrantedPermissions = ArrayList()
@@ -745,6 +748,8 @@ class MainActivity : Activity() {
                 }
             }
         }
+
+        tab.webView.webChromeClient = tab.webChromeClient
 
         tab.webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
@@ -946,12 +951,12 @@ class MainActivity : Activity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             VOICE_SEARCH_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK) {
                     // Populate the wordsList with the String values the recognition engine thought it heard
-                    val matches = data.getStringArrayListExtra(
+                    val matches = data?.getStringArrayListExtra(
                             RecognizerIntent.EXTRA_RESULTS)
                     if (matches == null || matches.isEmpty()) {
                         Utils.showToast(this, getString(R.string.can_not_recognize))
@@ -962,14 +967,17 @@ class MainActivity : Activity() {
                 }
             }
             PICKFILE_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK && pickFileCallback != null) {
+                if (resultCode == Activity.RESULT_OK && pickFileCallback != null &&
+                        data != null && data.data != null) {
                     val uris = arrayOf(data.data)
                     pickFileCallback!!.onReceiveValue(uris)
                 }
             }
             REQUEST_CODE_HISTORY_ACTIVITY -> if (resultCode == Activity.RESULT_OK) {
-                val url = data.getStringExtra(HistoryActivity.KEY_URL)
-                navigate(url)
+                val url = data?.getStringExtra(HistoryActivity.KEY_URL)
+                if (url != null) {
+                    navigate(url)
+                }
                 hideMenuOverlay()
             }
 
@@ -1042,7 +1050,13 @@ class MainActivity : Activity() {
         val shortcutMgr = ShortcutMgr.getInstance(this)
         val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
 
-        if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer!!.zoomMode) {
+        /*if (currentTab != null && fullScreenView != null) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                //nop
+            } else if (event.action == KeyEvent.ACTION_UP) {
+                currentTab!!.webChromeClient.onHideCustomView()
+            }
+        } else*/ if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer!!.zoomMode) {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 //nop
             } else if (event.action == KeyEvent.ACTION_UP) {

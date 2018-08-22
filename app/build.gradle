@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 27
@@ -9,8 +10,8 @@ android {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 21
-        versionName "1.2.7"
+        versionCode 22
+        versionName "1.2.8"
     }
 
     buildTypes {
