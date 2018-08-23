@@ -25,15 +25,15 @@ class TVBro : Application() {
             }
 
             override fun onUpgrade(asql: ASQL?, db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-                var oldVersion = oldVersion
-                while (oldVersion < newVersion) {
-                    when (oldVersion) {
+                var version = oldVersion
+                while (version < newVersion) {
+                    when (version) {
                         1//1 to 2 version migration
                         -> createHistoryTable(db!!)
                         4//4 to 5 version migration
                         -> createDownloadsTable(db!!)
                     }
-                    oldVersion++
+                    version++
                 }
             }
 
