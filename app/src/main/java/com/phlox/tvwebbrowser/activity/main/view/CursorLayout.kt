@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.AttributeSet
+import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.WindowManager
@@ -26,7 +27,7 @@ class CursorLayout : FrameLayout {
     private var SCROLL_START_PADDING = 100
     private var CURSOR_STROKE_WIDTH: Float = 0.toFloat()
     private var USE_SCROLL_HACK = true
-    private val SCROLL_HACK_PADDING = 200
+    private val SCROLL_HACK_PADDING = 300
     private val cursorDirection = Point(0, 0)
     private val cursorPosition = PointF(0f, 0f)
     private val cursorSpeed = PointF(0f, 0f)
@@ -103,7 +104,10 @@ class CursorLayout : FrameLayout {
         if (callback != null) {
             callback!!.onUserInteraction()
         }
-        when (event.keyCode) {
+        val keyCode = event.keyCode
+        val action = event.action
+        Log.d("KEY EVENT", "Key code: $keyCode action: $action")
+        when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     handleDirectionKeyEvent(event, -1, UNCHANGED, true)
@@ -172,7 +176,7 @@ class CursorLayout : FrameLayout {
                 }
                 return true
             }
-            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
                 if (isCursorDissappear) {
                     return super.dispatchKeyEvent(event)
                 }

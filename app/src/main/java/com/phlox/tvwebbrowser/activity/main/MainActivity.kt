@@ -1,6 +1,9 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
@@ -18,6 +21,7 @@ import android.util.Size
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
@@ -91,23 +95,11 @@ class MainActivity : Activity() {
     private var downloadsService: DownloadService? = null
     private var downloadAnimation: Animation? = null
 
-    private var llMenu: LinearLayout? = null
     private var etUrl: EditText? = null
     private var fullScreenView: View? = null
-    private var progressBar: ProgressBar? = null
-    private var llActionBar: LinearLayout? = null
-    private var ibMenu: ImageButton? = null
-    private var llMenuOverlay: LinearLayout? = null
-    private var flMenuRightContainer: FrameLayout? = null
-    private var ibBack: ImageButton? = null
-    private var ibForward: ImageButton? = null
-    private var ibRefresh: ImageButton? = null
-    private var ibVoiceSearch: ImageButton? = null
     private var flWebViewContainer: CursorLayout? = null
     private var btnNewTab: Button? = null
     private var lvTabs: ListView? = null
-    private var progressBarGeneric: ProgressBar? = null
-    private var ibDownloads: ImageButton? = null
     private var popupMenuMoreActions: PopupMenu? = null
     private var prefs: SharedPreferences? = null
 
@@ -134,10 +126,10 @@ class MainActivity : Activity() {
         val anim = AnimationUtils.loadAnimation(this@MainActivity, android.R.anim.fade_out)
         anim.setAnimationListener(object : BaseAnimationListener() {
             override fun onAnimationEnd(animation: Animation) {
-                progressBar!!.visibility = View.GONE
+                progressBar.visibility = View.GONE
             }
         })
-        progressBar!!.startAnimation(anim)
+        progressBar.startAnimation(anim)
     }
 
     private var mConnectivityChangeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
@@ -177,20 +169,6 @@ class MainActivity : Activity() {
 
     internal var onMenuMoreItemClickListener: PopupMenu.OnMenuItemClickListener = PopupMenu.OnMenuItemClickListener { item ->
         when (item.itemId) {
-            R.id.miFavorites -> {
-                val currentPageTitle = if (currentTab != null) currentTab!!.currentTitle else ""
-                val currentPageUrl = if (currentTab != null) currentTab!!.currentOriginalUrl else ""
-                FavoritesDialog(this@MainActivity, FavoritesDialog.Callback { item -> navigate(item.url) }, currentPageTitle, currentPageUrl).show()
-                hideMenuOverlay()
-                true
-            }
-            R.id.miHistory -> {
-                startActivityForResult(
-                        Intent(this@MainActivity, HistoryActivity::class.java),
-                        REQUEST_CODE_HISTORY_ACTIVITY)
-                hideMenuOverlay()
-                true
-            }
             R.id.miSearchEngine -> {
                 SearchEngineConfigDialogFactory.show(this@MainActivity, searchEngineURL, prefs, true) { url -> searchEngineURL = url }
                 hideMenuOverlay()
@@ -229,6 +207,20 @@ class MainActivity : Activity() {
         }
     }
 
+    fun showHistory() {
+        startActivityForResult(
+                Intent(this@MainActivity, HistoryActivity::class.java),
+                REQUEST_CODE_HISTORY_ACTIVITY)
+        hideMenuOverlay()
+    }
+
+    fun showFavorites() {
+        val currentPageTitle = if (currentTab != null) currentTab!!.currentTitle else ""
+        val currentPageUrl = if (currentTab != null) currentTab!!.currentOriginalUrl else ""
+        FavoritesDialog(this@MainActivity, FavoritesDialog.Callback { item -> navigate(item.url) }, currentPageTitle, currentPageUrl).show()
+        hideMenuOverlay()
+    }
+
     internal var downloadsServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             val binder = service as DownloadService.Binder
@@ -254,7 +246,7 @@ class MainActivity : Activity() {
         override fun onAllDownloadsComplete() {
             if (downloadAnimation != null) {
                 downloadAnimation!!.reset()
-                ibDownloads!!.clearAnimation()
+                ibDownloads.clearAnimation()
                 downloadAnimation = null
             }
         }
@@ -266,26 +258,14 @@ class MainActivity : Activity() {
         jsInterface.setActivity(this)
         setContentView(R.layout.activity_main)
         AndroidBug5497Workaround.assistActivity(this)
-        llMenu = findViewById(R.id.llMenu)
-        llMenuOverlay = findViewById(R.id.llMenuOverlay)
-        llActionBar = findViewById(R.id.llActionBar)
         etUrl = findViewById(R.id.etUrl)
         flWebViewContainer = findViewById(R.id.flWebViewContainer)
-        progressBar = findViewById(R.id.progressBar)
-        ibMenu = findViewById(R.id.ibMenu)
-        flMenuRightContainer = findViewById(R.id.flMenuRightContainer)
-        ibBack = findViewById(R.id.ibBack)
-        ibForward = findViewById(R.id.ibForward)
-        ibRefresh = findViewById(R.id.ibRefresh)
-        ibVoiceSearch = findViewById(R.id.ibVoiceSearch)
-        ibDownloads = findViewById(R.id.ibDownloads)
         btnNewTab = findViewById(R.id.btnNewTab)
         lvTabs = findViewById(R.id.lvTabs)
-        progressBarGeneric = findViewById(R.id.progressBarGeneric)
 
-        llMenuOverlay!!.visibility = View.GONE
-        llActionBar!!.visibility = View.GONE
-        progressBar!!.visibility = View.GONE
+        llMenuOverlay.visibility = View.GONE
+        llActionBar.visibility = View.GONE
+        progressBar.visibility = View.GONE
 
         tabsAdapter = TabsListAdapter(tabsStates, tabsEventsListener)
         lvTabs!!.adapter = tabsAdapter
@@ -308,10 +288,10 @@ class MainActivity : Activity() {
         val activities = pm.queryIntentActivities(
                 Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0)
         if (activities.size == 0) {
-            ibVoiceSearch!!.visibility = View.GONE
+            ibVoiceSearch.visibility = View.GONE
         }
 
-        ibVoiceSearch!!.setOnClickListener { initiateVoiceSearch() }
+        ibVoiceSearch.setOnClickListener { initiateVoiceSearch() }
 
         /*ibHome.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -319,17 +299,21 @@ class MainActivity : Activity() {
                 navigate(HOME_URL);
             }
         });*/
-        ibBack!!.setOnClickListener { navigateBack() }
-        ibForward!!.setOnClickListener {
+        ibBack.setOnClickListener { navigateBack() }
+        ibForward.setOnClickListener {
             if (currentTab != null && currentTab!!.webView.canGoForward()) {
                 currentTab!!.webView.goForward()
             }
         }
-        ibRefresh!!.setOnClickListener { refresh() }
+        ibRefresh.setOnClickListener { refresh() }
 
-        ibMenu!!.setOnClickListener { finish() }
+        ibMenu.setOnClickListener { finish() }
 
-        ibDownloads!!.setOnClickListener { startActivity(Intent(this@MainActivity, DownloadsActivity::class.java)) }
+        ibDownloads.setOnClickListener { startActivity(Intent(this@MainActivity, DownloadsActivity::class.java)) }
+
+        ibFavorites.setOnClickListener { showFavorites() }
+
+        ibHistory.setOnClickListener { showHistory() }
 
         ibMore.setOnClickListener {
             if (popupMenuMoreActions == null) {
@@ -340,8 +324,8 @@ class MainActivity : Activity() {
             popupMenuMoreActions!!.show()
         }
 
-        flMenuRightContainer!!.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
-            if (focused && llMenuOverlay!!.visibility == View.VISIBLE) {
+        flMenuRightContainer.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
+            if (focused && llMenuOverlay.visibility == View.VISIBLE) {
                 hideMenuOverlay()
             }
         }
@@ -434,8 +418,8 @@ class MainActivity : Activity() {
     }
 
     private fun loadState() {
-        progressBarGeneric!!.visibility = View.VISIBLE
-        progressBarGeneric!!.requestFocus()
+        progressBarGeneric.visibility = View.VISIBLE
+        progressBarGeneric.requestFocus()
         object : Thread() {
             override fun run() {
                 initHistory()
@@ -587,11 +571,11 @@ class MainActivity : Activity() {
             }
 
             override fun onProgressChanged(view: WebView, newProgress: Int) {
-                progressBar!!.visibility = View.VISIBLE
+                progressBar.visibility = View.VISIBLE
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    progressBar!!.setProgress(newProgress, true)
+                    progressBar.setProgress(newProgress, true)
                 } else {
-                    progressBar!!.progress = newProgress
+                    progressBar.progress = newProgress
                 }
                 handler!!.removeCallbacks(progressBarHideRunnable)
                 if (newProgress == 100) {
@@ -726,7 +710,7 @@ class MainActivity : Activity() {
                 return true
             }
 
-            override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
+            /*override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
                 val tab = WebTabState()
                 //tab.currentOriginalUrl = url;
                 createWebView(tab)
@@ -746,7 +730,7 @@ class MainActivity : Activity() {
                         break
                     }
                 }
-            }
+            }*/
         }
 
         tab.webView.webChromeClient = tab.webChromeClient
@@ -797,7 +781,7 @@ class MainActivity : Activity() {
         }
 
         tab.webView.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
-            if (focused && llMenuOverlay!!.visibility == View.VISIBLE) {
+            if (focused && llMenuOverlay.visibility == View.VISIBLE) {
                 hideMenuOverlay()
             }
         }
@@ -875,7 +859,7 @@ class MainActivity : Activity() {
         showMenuOverlay()
         if (downloadAnimation == null) {
             downloadAnimation = AnimationUtils.loadAnimation(this, R.anim.infinite_fadeinout_anim)
-            ibDownloads!!.startAnimation(downloadAnimation)
+            ibDownloads.startAnimation(downloadAnimation)
         }
     }
 
@@ -1039,7 +1023,7 @@ class MainActivity : Activity() {
     }
 
     fun toggleMenu() {
-        if (llMenuOverlay!!.visibility == View.GONE) {
+        if (llMenuOverlay.visibility == View.GONE) {
             showMenuOverlay()
         } else {
             hideMenuOverlay()
@@ -1050,13 +1034,15 @@ class MainActivity : Activity() {
         val shortcutMgr = ShortcutMgr.getInstance(this)
         val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
 
-        /*if (currentTab != null && fullScreenView != null) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && currentTab != null && fullScreenView != null) {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 //nop
             } else if (event.action == KeyEvent.ACTION_UP) {
-                currentTab!!.webChromeClient.onHideCustomView()
+                handler?.post{
+                    currentTab!!.webChromeClient.onHideCustomView()
+                }
             }
-        } else*/ if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer!!.zoomMode) {
+        } else if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer!!.zoomMode) {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 //nop
             } else if (event.action == KeyEvent.ACTION_UP) {
@@ -1075,33 +1061,38 @@ class MainActivity : Activity() {
     }
 
     private fun showMenuOverlay() {
-        llMenuOverlay!!.visibility = View.VISIBLE
+        llMenuOverlay.visibility = View.VISIBLE
+
         val anim = AnimationUtils.loadAnimation(this, R.anim.menu_in_anim)
         anim.setAnimationListener(object : BaseAnimationListener() {
             override fun onAnimationEnd(animation: Animation) {
                 ibMenu!!.requestFocus()
+                flMenuRightContainer.alpha = 0f
+                flMenuRightContainer.animate().alpha(0.2f).start()
             }
         })
-        llMenu!!.startAnimation(anim)
+        llMenu.startAnimation(anim)
 
-        llActionBar!!.visibility = View.VISIBLE
-        llActionBar!!.startAnimation(AnimationUtils.loadAnimation(this, R.anim.actionbar_in_anim))
+        llActionBar.visibility = View.VISIBLE
+        llActionBar.startAnimation(AnimationUtils.loadAnimation(this, R.anim.actionbar_in_anim))
     }
 
     private fun hideMenuOverlay() {
-        if (llMenuOverlay!!.visibility == View.GONE) {
+        if (llMenuOverlay.visibility == View.GONE) {
             return
         }
         var anim = AnimationUtils.loadAnimation(this, R.anim.menu_out_anim)
         anim.setAnimationListener(object : BaseAnimationListener() {
             override fun onAnimationEnd(animation: Animation) {
-                llMenuOverlay!!.visibility = View.GONE
+                llMenuOverlay.visibility = View.GONE
                 if (currentTab != null) {
                     currentTab!!.webView.requestFocus()
                 }
             }
         })
-        llMenu!!.startAnimation(anim)
+        llMenu.startAnimation(anim)
+
+        flMenuRightContainer.animate().alpha(0f).start()
 
         anim = AnimationUtils.loadAnimation(this, android.R.anim.fade_out)
         anim.setAnimationListener(object : BaseAnimationListener() {
@@ -1109,14 +1100,14 @@ class MainActivity : Activity() {
                 llActionBar!!.visibility = View.GONE
             }
         })
-        llActionBar!!.startAnimation(anim)
+        llActionBar.startAnimation(anim)
     }
 
     internal inner class OnTabsLoadedRunnable(private val tabsStatesLoaded: List<WebTabState>) : Runnable {
 
         override fun run() {
             val intentUri = intent.data
-            progressBarGeneric!!.visibility = View.GONE
+            progressBarGeneric.visibility = View.GONE
             if (!running) {
                 if (!tabsStatesLoaded.isEmpty()) {
                     this@MainActivity.tabsStates.addAll(tabsStatesLoaded)

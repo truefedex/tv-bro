@@ -20,7 +20,8 @@
         android:orientation="horizontal"
         android:background="#fff"
         android:visibility="visible"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:elevation="5dp">
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -36,9 +37,34 @@
             android:layout_height="wrap_content"
             android:id="@+id/ibVoiceSearch"
             android:src="@drawable/ic_mic_none_grey_900_36dp"
-            android:nextFocusRight="@+id/etUrl"
-            android:background="@drawable/button_bg_selector"
-            android:layout_marginEnd="5dp" />
+            android:nextFocusRight="@+id/ibHistory"
+            android:background="@drawable/button_bg_selector" />
+        
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:padding="5dp">
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/ibHistory"
+                android:src="@drawable/ic_history_grey_900_18dp"
+                android:nextFocusRight="@+id/etUrl"
+                android:background="@drawable/button_bg_selector"
+                android:padding="4dp"
+                android:layout_marginBottom="1dp"/>
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/ibFavorites"
+                android:src="@drawable/ic_star_border_grey_900_18dp"
+                android:nextFocusRight="@+id/etUrl"
+                android:background="@drawable/button_bg_selector"
+                android:padding="4dp"
+                android:layout_marginTop="1dp"/>
+        </LinearLayout>
 
         <EditText
             android:layout_width="match_parent"
@@ -60,7 +86,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/llMenuOverlay"
-        android:layout_below="@+id/llActionBar">
+        android:layout_below="@+id/llActionBar"
+        android:elevation="5dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -68,7 +95,8 @@
             android:id="@+id/llMenu"
             android:orientation="vertical"
             android:background="#fff"
-            android:visibility="visible">
+            android:visibility="visible"
+            android:elevation="5dp">
 
             <LinearLayout
                 android:orientation="horizontal"
@@ -124,37 +152,6 @@
                     android:layout_marginEnd="3dp" />
             </LinearLayout>
 
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone">
-
-                <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/imageButton4"
-                    android:src="@drawable/ic_history_grey_900_24dp"
-                    android:background="@drawable/button_bg_selector"
-                    android:layout_margin="3dp" />
-
-                <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/imageButton2"
-                    android:src="@drawable/ic_file_download_grey_900_24dp"
-                    android:background="@drawable/button_bg_selector"
-                    android:layout_margin="3dp" />
-
-                <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/imageButton3"
-                    android:src="@drawable/ic_settings_grey_900_24dp"
-                    android:background="@drawable/button_bg_selector"
-                    android:layout_margin="3dp" />
-            </LinearLayout>
-
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
@@ -181,7 +178,9 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:clickable="true"
-            android:id="@+id/flMenuRightContainer" />
+            android:id="@+id/flMenuRightContainer"
+            android:background="#000"
+            android:alpha="0"/>
 
     </LinearLayout>
 

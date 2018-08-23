@@ -1,25 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <item android:title="@string/favorites"
-        android:id="@+id/miFavorites" />
-    <item android:title="@string/history"
-        android:id="@+id/miHistory" />
-
-    <item android:title="@string/settings"
-        android:id="@+id/miSettings" >
+    <item android:id="@+id/miShortcuts" android:title="@string/shortcuts">
         <menu>
-            <item android:id="@+id/miShortcuts" android:title="@string/shortcuts">
-                <menu>
-                    <item android:id="@+id/miShortcutMenu" android:title="@string/toggle_main_menu" />
-                    <item android:id="@+id/miShortcutNavigateBack" android:title="@string/navigate_back" />
-                    <item android:id="@+id/miShortcutNavigateHome" android:title="@string/navigate_home" />
-                    <item android:id="@+id/miShortcutRefreshPage" android:title="@string/refresh_page" />
-                    <item android:id="@+id/miShortcutVoiceSearch" android:title="@string/voice_search" />
-                </menu>
-            </item>
-            <item android:id="@+id/miUserAgent" android:title="@string/change_user_agent" />
-            <item android:id="@+id/miSearchEngine" android:title="@string/change_search_engine" />
+            <item android:id="@+id/miShortcutMenu" android:title="@string/toggle_main_menu" />
+            <item android:id="@+id/miShortcutNavigateBack" android:title="@string/navigate_back" />
+            <item android:id="@+id/miShortcutNavigateHome" android:title="@string/navigate_home" />
+            <item android:id="@+id/miShortcutRefreshPage" android:title="@string/refresh_page" />
+            <item android:id="@+id/miShortcutVoiceSearch" android:title="@string/voice_search" />
         </menu>
     </item>
+    <item android:id="@+id/miUserAgent" android:title="@string/change_user_agent" />
+    <item android:id="@+id/miSearchEngine" android:title="@string/change_search_engine" />
 </menu>
