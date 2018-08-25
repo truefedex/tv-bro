@@ -9,8 +9,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.phlox.tvwebbrowser.R;
-import com.phlox.tvwebbrowser.activity.singleton.shortcuts.Shortcut;
-import com.phlox.tvwebbrowser.activity.singleton.shortcuts.ShortcutMgr;
+import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut;
+import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr;
 
 /**
  * Created by PDT on 06.08.2017.
@@ -36,7 +36,7 @@ public class ShortcutDialog extends Dialog {
         btnSetKey = findViewById(R.id.btnSetKey);
         btnClearKey = findViewById(R.id.btnClearKey);
 
-        tvActionTitle.setText(shortcut.titleResId);
+        tvActionTitle.setText(shortcut.getTitleResId());
         updateShortcutNameDisplay();
         btnSetKey.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,14 +57,14 @@ public class ShortcutDialog extends Dialog {
         if (keyListenMode) {
             toggleKeyListenState();
         }
-        shortcut.keyCode = 0;
-        ShortcutMgr.getInstance(getContext()).save(shortcut);
+        shortcut.setKeyCode(0);
+        ShortcutMgr.Companion.getInstance(getContext()).save(shortcut);
         updateShortcutNameDisplay();
     }
 
     private void updateShortcutNameDisplay() {
-        tvActionKey.setText(shortcut.keyCode == 0 ?
-                getContext().getString(R.string.not_set) : KeyEvent.keyCodeToString(shortcut.keyCode));
+        tvActionKey.setText(shortcut.getKeyCode() == 0 ?
+                getContext().getString(R.string.not_set) : KeyEvent.keyCodeToString(shortcut.getKeyCode()));
     }
 
     private void toggleKeyListenState() {
@@ -77,8 +77,8 @@ public class ShortcutDialog extends Dialog {
         if (!keyListenMode) {
             return super.onKeyUp(keyCode, event);
         }
-        shortcut.keyCode = keyCode != 0 ? keyCode : event.getScanCode();
-        ShortcutMgr.getInstance(getContext()).save(shortcut);
+        shortcut.setKeyCode(keyCode != 0 ? keyCode : event.getScanCode());
+        ShortcutMgr.Companion.getInstance(getContext()).save(shortcut);
         toggleKeyListenState();
         updateShortcutNameDisplay();
         return true;

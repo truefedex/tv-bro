@@ -73,6 +73,7 @@ class WebViewEx : WebView {
         browserSettings.javaScriptEnabled = true
         browserSettings.databaseEnabled = true
         browserSettings.useWideViewPort = true
+        browserSettings.loadWithOverviewMode = true
         browserSettings.setSupportZoom(true)
         browserSettings.builtInZoomControls = false
         browserSettings.displayZoomControls = false
@@ -87,6 +88,9 @@ class WebViewEx : WebView {
         browserSettings.setGeolocationEnabled(true)
         browserSettings.javaScriptCanOpenWindowsAutomatically = false
         browserSettings.setSupportMultipleWindows(false)
+
+        /*scrollBarStyle = WebView.SCROLLBARS_OUTSIDE_OVERLAY
+        isScrollbarFadingEnabled = false*/
 
         setOnLongClickListener {
             evaluateJavascript(Scripts.LONG_PRESS_SCRIPT) { s ->

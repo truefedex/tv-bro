@@ -2,6 +2,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+Properties localProps = new Properties()
+localProps.load(project.rootProject.file('local.properties').newDataInputStream())
+
 android {
     compileSdkVersion 27
     buildToolsVersion "27.0.3"
@@ -14,11 +17,21 @@ android {
         versionName "1.2.9"
     }
 
+    signingConfigs {
+        release {
+            storeFile file(localProps["storeFile"])
+            storePassword localProps["storePassword"]
+            keyAlias localProps["keyAlias"]
+            keyPassword localProps["keyPassword"]
+        }
+    }
+
     buildTypes {
         release {
             debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 

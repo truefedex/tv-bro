@@ -1,9 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.AnimatorSet
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
@@ -21,7 +18,6 @@ import android.util.Size
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
-import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
@@ -40,7 +36,7 @@ import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.activity.main.view.Scripts
 import com.phlox.tvwebbrowser.activity.main.view.WebTabItemView
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
-import com.phlox.tvwebbrowser.activity.singleton.shortcuts.ShortcutMgr
+import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.HistoryItem
