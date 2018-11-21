@@ -732,8 +732,27 @@ class MainActivity : Activity() {
         tab.webView.webChromeClient = tab.webChromeClient
 
         tab.webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-                return super.shouldOverrideUrlLoading(view, url)
+            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                val url: String = request?.url.toString()
+
+		if( URLUtil.isNetworkUrl(url) ) {
+                    return false
+                }
+
+		val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+
+		intent.putExtra("URL_INTENT_ORIGIN", view?.hashCode())
+                intent.addCategory(Intent.CATEGORY_BROWSABLE)
+                intent.component = null
+                intent.selector = null
+
+		if (intent.resolveActivity(this@MainActivity.packageManager) != null) {
+                    startActivityIfNeeded(intent, -1)
+
+                    return true
+                }
+
+                return false
             }
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
