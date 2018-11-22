@@ -2,28 +2,16 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-Properties localProps = new Properties()
-localProps.load(project.rootProject.file('local.properties').newDataInputStream())
-
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
-        targetSdkVersion 27
-        versionCode 23
-        versionName "1.2.9"
-    }
-
-    signingConfigs {
-        release {
-            storeFile file(localProps["storeFile"])
-            storePassword localProps["storePassword"]
-            keyAlias localProps["keyAlias"]
-            keyPassword localProps["keyPassword"]
-        }
+        targetSdkVersion 28
+        versionCode 24
+        versionName "1.2.10"
     }
 
     buildTypes {
@@ -31,7 +19,6 @@ android {
             debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
     }
 
@@ -44,7 +31,7 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.github.truefedex:ASQL:v0.1.2'
     implementation 'de.halfbit:pinned-section-listview:1.0.0'
-    implementation 'com.android.support:support-v4:27.1.1'
+    implementation 'com.android.support:support-v4:28.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 repositories {

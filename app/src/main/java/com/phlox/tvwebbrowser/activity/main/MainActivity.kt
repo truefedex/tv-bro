@@ -25,6 +25,7 @@ import android.webkit.*
 import android.widget.*
 import com.phlox.asql.ASQL
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.adapter.TabsListAdapter
@@ -91,11 +92,7 @@ class MainActivity : Activity() {
     private var downloadsService: DownloadService? = null
     private var downloadAnimation: Animation? = null
 
-    private var etUrl: EditText? = null
     private var fullScreenView: View? = null
-    private var flWebViewContainer: CursorLayout? = null
-    private var btnNewTab: Button? = null
-    private var lvTabs: ListView? = null
     private var popupMenuMoreActions: PopupMenu? = null
     private var prefs: SharedPreferences? = null
 
@@ -134,7 +131,7 @@ class MainActivity : Activity() {
             val activeNetwork = cm.activeNetworkInfo
             val isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting
             if (currentTab != null) {
-                currentTab!!.webView.setNetworkAvailable(isConnected)
+                currentTab!!.webView?.setNetworkAvailable(isConnected)
             }
         }
     }
@@ -157,8 +154,8 @@ class MainActivity : Activity() {
                 return
             }
             if (currentTab != null) {
-                currentTab!!.webView.setNeedThumbnail(thumbnailesSize)
-                currentTab!!.webView.postInvalidate()
+                currentTab!!.webView?.setNeedThumbnail(thumbnailesSize)
+                currentTab!!.webView?.postInvalidate()
             }
         }
     }
@@ -175,7 +172,7 @@ class MainActivity : Activity() {
                 if (currentTab == null) {
                     return@OnMenuItemClickListener true
                 }
-                var uaString = currentTab!!.webView.settings.userAgentString
+                var uaString = currentTab!!.webView?.settings?.userAgentString
                 if (WebViewEx.defaultUAString == uaString) {
                     uaString = ""
                 }
@@ -185,7 +182,7 @@ class MainActivity : Activity() {
                     editor.apply()
                     for (tab in tabsStates) {
                         if (tab.webView != null) {
-                            tab.webView.settings.userAgentString = uaString
+                            tab.webView?.settings?.userAgentString = uaString
                         }
                     }
                     refresh()
@@ -254,20 +251,16 @@ class MainActivity : Activity() {
         jsInterface.setActivity(this)
         setContentView(R.layout.activity_main)
         AndroidBug5497Workaround.assistActivity(this)
-        etUrl = findViewById(R.id.etUrl)
-        flWebViewContainer = findViewById(R.id.flWebViewContainer)
-        btnNewTab = findViewById(R.id.btnNewTab)
-        lvTabs = findViewById(R.id.lvTabs)
 
         llMenuOverlay.visibility = View.GONE
         llActionBar.visibility = View.GONE
         progressBar.visibility = View.GONE
 
         tabsAdapter = TabsListAdapter(tabsStates, tabsEventsListener)
-        lvTabs!!.adapter = tabsAdapter
-        lvTabs!!.itemsCanFocus = true
+        lvTabs.adapter = tabsAdapter
+        lvTabs.itemsCanFocus = true
 
-        flWebViewContainer!!.setCallback(object : CursorLayout.Callback {
+        flWebViewContainer.setCallback(object : CursorLayout.Callback {
             override fun onUserInteraction() {
                 if (currentTab != null) {
                     if (!currentTab!!.webPageInteractionDetected) {
@@ -278,7 +271,7 @@ class MainActivity : Activity() {
             }
         })
 
-        btnNewTab!!.setOnClickListener { openInNewTab(HOME_URL) }
+        btnNewTab.setOnClickListener { openInNewTab(HOME_URL) }
 
         val pm = packageManager
         val activities = pm.queryIntentActivities(
@@ -297,8 +290,8 @@ class MainActivity : Activity() {
         });*/
         ibBack.setOnClickListener { navigateBack() }
         ibForward.setOnClickListener {
-            if (currentTab != null && currentTab!!.webView.canGoForward()) {
-                currentTab!!.webView.goForward()
+            if (currentTab != null && (currentTab!!.webView?.canGoForward() == true)) {
+                currentTab!!.webView?.goForward()
             }
         }
         ibRefresh.setOnClickListener { refresh() }
@@ -326,26 +319,26 @@ class MainActivity : Activity() {
             }
         }
 
-        etUrl!!.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
+        etUrl.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
             if (focused) {
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.showSoftInput(etUrl, InputMethodManager.SHOW_FORCED)
                 handler!!.postDelayed(//workaround an android TV bug
-                {
-                    etUrl!!.selectAll()
-                }, 500)
+                        {
+                            etUrl.selectAll()
+                        }, 500)
             }
         }
 
-        etUrl!!.setOnKeyListener(View.OnKeyListener { view, i, keyEvent ->
+        etUrl.setOnKeyListener(View.OnKeyListener { view, i, keyEvent ->
             when (keyEvent.keyCode) {
                 KeyEvent.KEYCODE_ENTER -> {
                     if (keyEvent.action == KeyEvent.ACTION_UP) {
                         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                         imm.hideSoftInputFromWindow(etUrl!!.windowToken, 0)
                         hideMenuOverlay()
-                        search(etUrl!!.text.toString())
-                        currentTab!!.webView.requestFocus()
+                        search(etUrl.text.toString())
+                        currentTab!!.webView?.requestFocus()
                     }
                     return@OnKeyListener true
                 }
@@ -359,14 +352,14 @@ class MainActivity : Activity() {
     }
 
     fun navigateBack() {
-        if (currentTab != null && currentTab!!.webView.canGoBack()) {
-            currentTab!!.webView.goBack()
+        if (currentTab != null && currentTab!!.webView?.canGoBack() == true) {
+            currentTab!!.webView?.goBack()
         }
     }
 
     fun refresh() {
         if (currentTab != null) {
-            currentTab!!.webView.reload()
+            currentTab!!.webView?.reload()
         }
     }
 
@@ -381,28 +374,9 @@ class MainActivity : Activity() {
     }
 
     private fun saveState() {
-        object : Thread() {
-            override fun run() {
-                val store = JSONObject()
-                val tabsStore = JSONArray()
-                for (tab in tabsStates) {
-                    val tabJson = tab.toJson(this@MainActivity, true)
-                    tabsStore.put(tabJson)
-                }
-                try {
-                    store.put("tabs", tabsStore)
-                    val fos = openFileOutput(STATE_JSON, Context.MODE_PRIVATE)
-                    try {
-                        fos.write(store.toString().toByteArray())
-                    } finally {
-                        fos.close()
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-
-            }
-        }.start()
+        TVBro.instance.threadPool.execute {
+            WebTabState.saveTabs(this, tabsStates)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -472,27 +446,30 @@ class MainActivity : Activity() {
     }
 
     private fun closeTab(tab: WebTabState?) {
+        if (tab == null) return
         val position = tabsStates.indexOf(tab)
-        if (tabsStates.size == 1) {
-            tab!!.selected = false
-            tab.webView.onPause()
-            flWebViewContainer!!.removeView(tab.webView)
-            currentTab = null
-        } else if (position == tabsStates.size - 1) {
-            changeTab(tabsStates[position - 1])
-        } else {
-            changeTab(tabsStates[position + 1])
+        when {
+            tabsStates.size == 1 -> {
+                tab.selected = false
+                tab.webView?.onPause()
+                flWebViewContainer.removeView(tab.webView)
+                currentTab = null
+            }
+
+            position == tabsStates.size - 1 -> changeTab(tabsStates[position - 1])
+
+            else -> changeTab(tabsStates[position + 1])
         }
         tabsStates.remove(tab)
-        tabsAdapter!!.notifyDataSetChanged()
+        tabsAdapter?.notifyDataSetChanged()
 
-        tab!!.removeFiles(this)
+        tab.removeFiles(this)
     }
 
     private fun changeTab(newTab: WebTabState) {
         if (currentTab != null) {
             currentTab!!.selected = false
-            currentTab!!.webView.onPause()
+            currentTab!!.webView?.onPause()
             flWebViewContainer!!.removeView(currentTab!!.webView)
         }
 
@@ -505,21 +482,21 @@ class MainActivity : Activity() {
             flWebViewContainer!!.addView(currentTab!!.webView)
         } else {
             flWebViewContainer!!.addView(currentTab!!.webView)
-            currentTab!!.webView.onResume()
+            currentTab!!.webView?.onResume()
         }
-        currentTab!!.webView.setNetworkAvailable(Utils.isNetworkConnected(this))
+        currentTab!!.webView?.setNetworkAvailable(Utils.isNetworkConnected(this))
 
         etUrl!!.setText(newTab.currentOriginalUrl)
-        ibBack!!.isEnabled = newTab.webView.canGoBack()
-        ibForward!!.isEnabled = newTab.webView.canGoForward()
+        ibBack!!.isEnabled = newTab.webView?.canGoBack() == true
+        ibForward!!.isEnabled = newTab.webView?.canGoForward() == true
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun createWebView(tab: WebTabState) {
         tab.webView = WebViewEx(this)
-        tab.webView.addJavascriptInterface(jsInterface, "TVBro")
+        tab.webView?.addJavascriptInterface(jsInterface, "TVBro")
 
-        tab.webView.setListener(object : WebViewEx.Listener {
+        tab.webView?.setListener(object : WebViewEx.Listener {
             override fun onThumbnailReady(thumbnail: Bitmap) {
                 tab.thumbnail = thumbnail
                 tabsAdapter!!.notifyDataSetChanged()
@@ -532,7 +509,7 @@ class MainActivity : Activity() {
             override fun onDownloadRequested(url: String) {
                 val fileName = Uri.parse(url).lastPathSegment
                 this@MainActivity.onDownloadRequested(url, fileName
-                        ?: "url.html", tab.webView.uaString)
+                        ?: "url.html", tab.webView?.uaString)
             }
 
             override fun onWantZoomMode() {
@@ -546,7 +523,7 @@ class MainActivity : Activity() {
             }
 
             override fun onShowCustomView(view: View, callback: WebChromeClient.CustomViewCallback) {
-                tab.webView.visibility = View.GONE
+                tab.webView?.visibility = View.GONE
                 flFullscreenContainer!!.visibility = View.VISIBLE
                 flFullscreenContainer!!.addView(view)
 
@@ -563,7 +540,7 @@ class MainActivity : Activity() {
                 fullscreenViewCallback!!.onCustomViewHidden()
 
                 flFullscreenContainer.visibility = View.GONE
-                tab.webView.visibility = View.VISIBLE
+                tab.webView?.visibility = View.VISIBLE
             }
 
             override fun onProgressChanged(view: WebView, newProgress: Int) {
@@ -598,13 +575,16 @@ class MainActivity : Activity() {
                             webPermissionsRequest = null
                         }
                         .setPositiveButton(R.string.allow) { dialog, which ->
+                            val webPermissionsRequest = this@MainActivity.webPermissionsRequest
+                            this@MainActivity.webPermissionsRequest = null
                             if (webPermissionsRequest == null) {
                                 return@setPositiveButton
                             }
+
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                 val neededPermissions = ArrayList<String>()
                                 reuestedResourcesForAlreadyGrantedPermissions = ArrayList()
-                                for (resource in webPermissionsRequest!!.resources) {
+                                for (resource in webPermissionsRequest.resources) {
                                     if (PermissionRequest.RESOURCE_AUDIO_CAPTURE == resource) {
                                         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                                             neededPermissions.add(Manifest.permission.RECORD_AUDIO)
@@ -627,18 +607,15 @@ class MainActivity : Activity() {
                                             MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS)
                                 } else {
                                     if (reuestedResourcesForAlreadyGrantedPermissions!!.isEmpty()) {
-                                        webPermissionsRequest!!.deny()
-                                        webPermissionsRequest = null
+                                        webPermissionsRequest.deny()
                                     } else {
                                         val grantedResourcesArr = arrayOfNulls<String>(reuestedResourcesForAlreadyGrantedPermissions!!.size)
                                         reuestedResourcesForAlreadyGrantedPermissions!!.toTypedArray()
-                                        webPermissionsRequest!!.grant(grantedResourcesArr)
-                                        webPermissionsRequest = null
+                                        webPermissionsRequest.grant(grantedResourcesArr)
                                     }
                                 }
                             } else {
-                                webPermissionsRequest!!.grant(webPermissionsRequest!!.resources)
-                                webPermissionsRequest = null
+                                webPermissionsRequest.grant(webPermissionsRequest.resources)
                             }
                             permRequestDialog = null
                         }
@@ -729,24 +706,24 @@ class MainActivity : Activity() {
             }*/
         }
 
-        tab.webView.webChromeClient = tab.webChromeClient
+        tab.webView?.webChromeClient = tab.webChromeClient
 
-        tab.webView.webViewClient = object : WebViewClient() {
+        tab.webView?.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url: String = request?.url.toString()
 
-		if( URLUtil.isNetworkUrl(url) ) {
+                if (URLUtil.isNetworkUrl(url)) {
                     return false
                 }
 
-		val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
 
-		intent.putExtra("URL_INTENT_ORIGIN", view?.hashCode())
+                intent.putExtra("URL_INTENT_ORIGIN", view?.hashCode())
                 intent.addCategory(Intent.CATEGORY_BROWSABLE)
                 intent.component = null
                 intent.selector = null
 
-		if (intent.resolveActivity(this@MainActivity.packageManager) != null) {
+                if (intent.resolveActivity(this@MainActivity.packageManager) != null) {
                     startActivityIfNeeded(intent, -1)
 
                     return true
@@ -757,14 +734,14 @@ class MainActivity : Activity() {
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
-                ibBack!!.isEnabled = tab.webView.canGoBack()
-                ibForward!!.isEnabled = tab.webView.canGoForward()
-                if (tab.webView.url != null) {
-                    tab.currentOriginalUrl = tab.webView.url
+                ibBack.isEnabled = tab.webView?.canGoBack() == true
+                ibForward.isEnabled = tab.webView?.canGoForward() == true
+                if (tab.webView?.url != null) {
+                    tab.currentOriginalUrl = tab.webView?.url
                 } else if (url != null) {
                     tab.currentOriginalUrl = url
                 }
-                etUrl!!.setText(tab.currentOriginalUrl)
+                etUrl.setText(tab.currentOriginalUrl)
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -772,18 +749,18 @@ class MainActivity : Activity() {
                 if (tab.webView == null || currentTab == null || view == null) {
                     return
                 }
-                ibBack!!.isEnabled = tab.webView.canGoBack()
-                ibForward!!.isEnabled = tab.webView.canGoForward()
-                tab.webView.setNeedThumbnail(thumbnailesSize)
-                tab.webView.postInvalidate()
-                if (tab.webView.url != null) {
-                    tab.currentOriginalUrl = tab.webView.url
+                ibBack!!.isEnabled = tab.webView?.canGoBack() == true
+                ibForward!!.isEnabled = tab.webView?.canGoForward() == true
+                tab.webView?.setNeedThumbnail(thumbnailesSize)
+                tab.webView?.postInvalidate()
+                if (tab.webView?.url != null) {
+                    tab.currentOriginalUrl = tab.webView?.url
                 } else if (url != null) {
                     tab.currentOriginalUrl = url
                 }
                 etUrl!!.setText(tab.currentOriginalUrl)
 
-                tab.webView.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
+                tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
                 currentTab!!.webPageInteractionDetected = false
                 if (HOME_URL == url) {
                     view.loadUrl("javascript:renderSuggestions()")
@@ -795,15 +772,15 @@ class MainActivity : Activity() {
             }
         }
 
-        tab.webView.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
+        tab.webView?.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
             if (focused && llMenuOverlay.visibility == View.VISIBLE) {
                 hideMenuOverlay()
             }
         }
 
-        tab.webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
+        tab.webView?.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
             onDownloadRequested(url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
-                    ?: tab.webView.uaString)
+                    ?: tab.webView?.uaString)
         }
     }
 
@@ -991,7 +968,7 @@ class MainActivity : Activity() {
         val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(mConnectivityChangeReceiver, intentFilter)
         if (currentTab != null) {
-            currentTab!!.webView.onResume()
+            currentTab!!.webView?.onResume()
         }
         bindService(Intent(this, DownloadService::class.java), downloadsServiceConnection, Context.BIND_AUTO_CREATE)
     }
@@ -999,7 +976,7 @@ class MainActivity : Activity() {
     override fun onPause() {
         unbindService(downloadsServiceConnection)
         if (currentTab != null) {
-            currentTab!!.webView.onPause()
+            currentTab!!.webView?.onPause()
         }
         if (mConnectivityChangeReceiver != null) unregisterReceiver(mConnectivityChangeReceiver)
         super.onPause()
@@ -1008,7 +985,7 @@ class MainActivity : Activity() {
 
     fun navigate(url: String) {
         if (currentTab != null) {
-            currentTab!!.webView.loadUrl(url)
+            currentTab!!.webView?.loadUrl(url)
         } else {
             openInNewTab(url)
         }
@@ -1053,8 +1030,8 @@ class MainActivity : Activity() {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 //nop
             } else if (event.action == KeyEvent.ACTION_UP) {
-                handler?.post{
-                    currentTab!!.webChromeClient.onHideCustomView()
+                handler?.post {
+                    currentTab!!.webChromeClient?.onHideCustomView()
                 }
             }
         } else if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer!!.zoomMode) {
@@ -1101,7 +1078,7 @@ class MainActivity : Activity() {
             override fun onAnimationEnd(animation: Animation) {
                 llMenuOverlay.visibility = View.GONE
                 if (currentTab != null) {
-                    currentTab!!.webView.requestFocus()
+                    currentTab!!.webView?.requestFocus()
                 }
             }
         })
