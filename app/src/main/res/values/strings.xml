@@ -41,6 +41,7 @@
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="msg_delete_history">Delete selected history items?</string>
+    <string name="msg_delete_history_all">Delete all history items?</string>
     <string name="open_folder">Open containing folder</string>
     <string name="no_file_explorer_msg">Seem there is no any suitable file explorer app installed on your device</string>
     <string name="shortcuts">Shortcuts</string>

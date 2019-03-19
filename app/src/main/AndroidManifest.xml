@@ -43,12 +43,12 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".activity.main.MainActivity"
-            android:banner="@drawable/app_icon_your_company"
+            android:banner="@drawable/banner"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:icon="@drawable/ic_launcher"
             android:label="@string/title_activity_main"
             android:launchMode="singleTop"
-            android:logo="@drawable/app_icon_your_company"
+            android:logo="@drawable/banner"
             android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>

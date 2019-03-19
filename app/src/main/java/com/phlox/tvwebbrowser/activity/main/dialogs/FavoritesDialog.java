@@ -100,7 +100,7 @@ public class FavoritesDialog extends Dialog implements FavoriteItemView.Listener
                     onItemsChanged();
                 } else {
                     items = new ArrayList<>();
-                    Utils.showToast(getContext(), R.string.error);
+                    Utils.INSTANCE.showToast(getContext(), R.string.error);
                     dismiss();
                 }
             }
@@ -129,7 +129,7 @@ public class FavoritesDialog extends Dialog implements FavoriteItemView.Listener
                 @Override
                 public void onDone(long lastInsertRowId, SQLException exception) {
                     if (exception != null) {
-                        Utils.showToast(getContext(), R.string.error);
+                        Utils.INSTANCE.showToast(getContext(), R.string.error);
                     } else {
                         item.id = lastInsertRowId;
                         items.add(0, item);
@@ -142,7 +142,7 @@ public class FavoritesDialog extends Dialog implements FavoriteItemView.Listener
                 @Override
                 public void onDone(int affectedRowsCount, SQLException exception) {
                     if (exception != null || affectedRowsCount == 0) {
-                        Utils.showToast(getContext(), R.string.error);
+                        Utils.INSTANCE.showToast(getContext(), R.string.error);
                     } else {
                         onItemsChanged();
                     }
@@ -165,7 +165,7 @@ public class FavoritesDialog extends Dialog implements FavoriteItemView.Listener
             @Override
             public void onDone(int affectedRowsCount, SQLException exception) {
                 if (exception != null || affectedRowsCount == 0) {
-                    Utils.showToast(getContext(), R.string.error);
+                    Utils.INSTANCE.showToast(getContext(), R.string.error);
                 } else {
                     items.remove(favorite);
                     onItemsChanged();

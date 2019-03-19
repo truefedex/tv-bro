@@ -6,7 +6,18 @@
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:nextFocusRight="@+id/ibDelete"/>
+        android:nextFocusRight="@+id/ibDelete"
+        android:nextFocusUp="@+id/btnClear"/>
+    <Button
+        android:id="@+id/btnClear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="@string/clear"
+        android:layout_margin="5dp"
+        android:background="@drawable/button_bg_selector"
+        android:onClick="onClearHistoryClick"
+        android:nextFocusDown="@android:id/list"/>
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -16,5 +27,6 @@
         android:visibility="gone"
         android:nextFocusLeft="@android:id/list"
         android:focusable="true"
+        android:onClick="onClearHistoryItemsClick"
         android:id="@+id/ibDelete"/>
 </RelativeLayout>
