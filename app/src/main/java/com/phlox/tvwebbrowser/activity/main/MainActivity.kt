@@ -37,15 +37,11 @@ import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.activity.main.view.Scripts
 import com.phlox.tvwebbrowser.activity.main.view.WebTabItemView
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
+import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
-import com.phlox.tvwebbrowser.model.AndroidJSInterface
-import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.model.HistoryItem
-import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
-import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.UnsupportedEncodingException
@@ -163,7 +159,11 @@ class MainActivity : Activity() {
     internal var onMenuMoreItemClickListener: PopupMenu.OnMenuItemClickListener = PopupMenu.OnMenuItemClickListener { item ->
         when (item.itemId) {
             R.id.miSearchEngine -> {
-                SearchEngineConfigDialogFactory.show(this@MainActivity, searchEngineURL, prefs, true) { url -> searchEngineURL = url }
+                SearchEngineConfigDialogFactory.show(this@MainActivity, searchEngineURL!!, prefs!!, true, object : SearchEngineConfigDialogFactory.Callback {
+                    override fun onDone(url: String) {
+                        searchEngineURL = url
+                    }
+                })
                 hideMenuOverlay()
                 true
             }
@@ -176,24 +176,27 @@ class MainActivity : Activity() {
                 if (WebViewEx.defaultUAString == uaString) {
                     uaString = ""
                 }
-                UserAgentConfigDialogFactory.show(this@MainActivity, uaString) { uaString ->
-                    val editor = prefs!!.edit()
-                    editor.putString(USER_AGENT_PREF_KEY, uaString)
-                    editor.apply()
-                    for (tab in tabsStates) {
-                        if (tab.webView != null) {
-                            tab.webView?.settings?.userAgentString = uaString
+                UserAgentConfigDialogFactory.show(this@MainActivity, uaString!!, object : UserAgentConfigDialogFactory.Callback {
+                    override fun onDone(defaultUAString: String?) {
+                        val editor = prefs!!.edit()
+                        editor.putString(USER_AGENT_PREF_KEY, defaultUAString)
+                        editor.apply()
+                        for (tab in tabsStates) {
+                            if (tab.webView != null) {
+                                tab.webView?.settings?.userAgentString = defaultUAString
+                            }
                         }
+                        refresh()
                     }
-                    refresh()
-                }
+                })
 
                 true
             }
             R.id.miShortcutMenu, R.id.miShortcutNavigateBack, R.id.miShortcutNavigateHome, R.id.miShortcutRefreshPage, R.id.miShortcutVoiceSearch -> {
                 ShortcutDialog(this@MainActivity,
-                        ShortcutMgr.getInstance(this@MainActivity).findForMenu(item.itemId))
-                        .show()
+                        ShortcutMgr.getInstance(this@MainActivity)
+                                .findForMenu(item.itemId)!!
+                ).show()
                 true
             }
             else -> false
@@ -210,7 +213,11 @@ class MainActivity : Activity() {
     fun showFavorites() {
         val currentPageTitle = if (currentTab != null) currentTab!!.currentTitle else ""
         val currentPageUrl = if (currentTab != null) currentTab!!.currentOriginalUrl else ""
-        FavoritesDialog(this@MainActivity, FavoritesDialog.Callback { item -> navigate(item.url) }, currentPageTitle, currentPageUrl).show()
+        FavoritesDialog(this@MainActivity, object : FavoritesDialog.Callback {
+            override fun onFavoriteChoosen(item: FavoriteItem?) {
+                navigate(item!!.url!!)
+            }
+        }, currentPageTitle!!, currentPageUrl!!).show()
         hideMenuOverlay()
     }
 
@@ -403,7 +410,12 @@ class MainActivity : Activity() {
         prefs = getSharedPreferences(MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         searchEngineURL = prefs!!.getString(SEARCH_ENGINE_URL_PREF_KEY, "")
         if ("" == searchEngineURL) {
-            SearchEngineConfigDialogFactory.show(this, searchEngineURL, prefs, false) { url -> searchEngineURL = url }
+            SearchEngineConfigDialogFactory.show(this, searchEngineURL!!, prefs!!, false,
+                    object : SearchEngineConfigDialogFactory.Callback {
+                        override fun onDone(url: String) {
+                            searchEngineURL = url
+                        }
+                    })
         }
     }
 
@@ -844,7 +856,7 @@ class MainActivity : Activity() {
             return
         }
         val fullDestFilePath = downloadsDir.toString() + File.separator + fileName
-        downloadsService!!.startDownloading(url, fullDestFilePath, fileName, userAgent)
+        downloadsService!!.startDownloading(url, fullDestFilePath, fileName, userAgent!!)
 
         Utils.showToast(this, getString(R.string.download_started,
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + File.separator + fileName))

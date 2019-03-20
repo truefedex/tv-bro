@@ -153,7 +153,7 @@ class DownloadsActivity : ListActivity(), AdapterView.OnItemClickListener, Downl
         val pm = PopupMenu(this, v, Gravity.BOTTOM)
         pm.menu.add(R.string.cancel)
         pm.setOnMenuItemClickListener {
-            downloadsService!!.cancelDownload(v.download)
+            downloadsService!!.cancelDownload(v.download!!)
             true
         }
         pm.show()
