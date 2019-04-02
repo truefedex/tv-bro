@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.arch.lifecycle.ViewModelProviders
 import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -11,6 +12,7 @@ import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.*
 import android.speech.RecognizerIntent
+import android.support.v4.app.FragmentActivity
 import android.text.TextUtils
 import android.util.Log
 import android.util.Patterns
@@ -25,7 +27,6 @@ import android.webkit.*
 import android.widget.*
 import com.phlox.asql.ASQL
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.adapter.TabsListAdapter
@@ -42,6 +43,10 @@ import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
 import java.io.UnsupportedEncodingException
@@ -49,10 +54,9 @@ import java.net.URLEncoder
 import java.util.*
 
 
-class MainActivity : Activity() {
+class MainActivity : FragmentActivity(), CoroutineScope by MainScope() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
-        val HOME_URL = "file:///android_asset/pages/new-tab.html"
         private val VOICE_SEARCH_REQUEST_CODE = 10001
         private val MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS = 10002
         private val MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS = 10003
@@ -65,6 +69,7 @@ class MainActivity : Activity() {
         val MAIN_PREFS_NAME = "main.xml"
     }
 
+    private lateinit var viewModel: MainActivityViewModel
     private var handler: Handler? = null
     private var currentTab: WebTabState? = null
     private val tabsStates = ArrayList<WebTabState>()
@@ -82,7 +87,7 @@ class MainActivity : Activity() {
     private var userAgentForDownload: String? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
     private val jsInterface = AndroidJSInterface()
-    private var asql: ASQL? = null
+    private lateinit var asql: ASQL
     private var lastHistoryItem: HistoryItem? = null
     private var searchEngineURL: String? = null
     private var downloadsService: DownloadService? = null
@@ -254,6 +259,7 @@ class MainActivity : Activity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
         handler = Handler()
         jsInterface.setActivity(this)
         setContentView(R.layout.activity_main)
@@ -269,16 +275,17 @@ class MainActivity : Activity() {
 
         flWebViewContainer.setCallback(object : CursorLayout.Callback {
             override fun onUserInteraction() {
-                if (currentTab != null) {
-                    if (!currentTab!!.webPageInteractionDetected) {
-                        currentTab!!.webPageInteractionDetected = true
-                        logVisitedHistory(currentTab!!.currentTitle, currentTab!!.currentOriginalUrl)
+                val tab = currentTab
+                if (tab != null) {
+                    if (!tab.webPageInteractionDetected) {
+                        tab.webPageInteractionDetected = true
+                        logVisitedHistory(tab.currentTitle, tab.currentOriginalUrl, tab.faviconHash)
                     }
                 }
             }
         })
 
-        btnNewTab.setOnClickListener { openInNewTab(HOME_URL) }
+        btnNewTab.setOnClickListener { openInNewTab(WebViewEx.HOME_URL) }
 
         val pm = packageManager
         val activities = pm.queryIntentActivities(
@@ -380,10 +387,8 @@ class MainActivity : Activity() {
         super.onStop()
     }
 
-    private fun saveState() {
-        TVBro.instance.threadPool.execute {
-            WebTabState.saveTabs(this, tabsStates)
-        }
+    private fun saveState() = launch(Dispatchers.Main) {
+        WebTabState.saveTabs(this@MainActivity, tabsStates)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -420,14 +425,14 @@ class MainActivity : Activity() {
     }
 
     private fun initHistory() {
-        val count = asql!!.count(HistoryItem::class.java)
+        val count = asql.count(HistoryItem::class.java)
         if (count > 5000) {
             val c = Calendar.getInstance()
             c.add(Calendar.MONTH, -3)
-            asql!!.db.delete("history", "time < ?", arrayOf(java.lang.Long.toString(c.time.time)))
+            asql.db.delete("history", "time < ?", arrayOf(java.lang.Long.toString(c.time.time)))
         }
         try {
-            val result = asql!!.queryAll<HistoryItem>(HistoryItem::class.java, "SELECT * FROM history ORDER BY time DESC LIMIT 1")
+            val result = asql.queryAll<HistoryItem>(HistoryItem::class.java, "SELECT * FROM history ORDER BY time DESC LIMIT 1")
             if (!result.isEmpty()) {
                 lastHistoryItem = result.get(0)
             }
@@ -436,9 +441,9 @@ class MainActivity : Activity() {
         }
 
         try {
-            val frequentlyUsedUrls = asql!!.queryAll<HistoryItem>(HistoryItem::class.java,
-                    "SELECT title, url, count(url) as cnt , max(time) as time FROM history GROUP BY title, url ORDER BY cnt DESC, time DESC LIMIT 6")
-            jsInterface.setSuggestions(frequentlyUsedUrls)
+            val frequentlyUsedUrls = asql.queryAll<HistoryItem>(HistoryItem::class.java,
+                    "SELECT title, url, favicon, count(url) as cnt , max(time) as time FROM history GROUP BY title, url, favicon ORDER BY cnt DESC, time DESC LIMIT 6")
+            jsInterface.setSuggestions(this, frequentlyUsedUrls)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -695,6 +700,10 @@ class MainActivity : Activity() {
                 return true
             }
 
+            override fun onReceivedIcon(view: WebView?, icon: Bitmap?) {
+                tab.updateFavIcon(this@MainActivity, icon)
+            }
+
             /*override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
                 val tab = WebTabState()
                 //tab.currentOriginalUrl = url;
@@ -774,7 +783,7 @@ class MainActivity : Activity() {
 
                 tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
                 currentTab!!.webPageInteractionDetected = false
-                if (HOME_URL == url) {
+                if (WebViewEx.HOME_URL == url) {
                     view.loadUrl("javascript:renderSuggestions()")
                 }
             }
@@ -808,16 +817,18 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun logVisitedHistory(title: String?, url: String?) {
-        if (url != null && (lastHistoryItem != null && url == lastHistoryItem!!.url || url == HOME_URL)) {
+    private fun logVisitedHistory(title: String?, url: String?, faviconHash: String?) {
+        if (url != null && (lastHistoryItem != null && url == lastHistoryItem!!.url || url == WebViewEx.HOME_URL)) {
             return
         }
 
-        lastHistoryItem = HistoryItem()
-        lastHistoryItem!!.url = url
-        lastHistoryItem!!.title = title ?: ""
-        lastHistoryItem!!.time = Date().time
-        asql!!.execInsert("INSERT INTO history (time, title, url) VALUES (:time, :title, :url)", lastHistoryItem) { lastInsertRowId, exception ->
+        val item = HistoryItem()
+        item.url = url
+        item.title = title ?: ""
+        item.time = Date().time
+        item.favicon = faviconHash
+        lastHistoryItem = item
+        asql.execInsert("INSERT INTO history (time, title, url, favicon) VALUES (:time, :title, :url, :favicon)", lastHistoryItem) { lastInsertRowId, exception ->
             if (exception != null) {
                 Log.e(TAG, exception.toString())
             } else {
@@ -1034,6 +1045,7 @@ class MainActivity : Activity() {
         }
     }
 
+    @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val shortcutMgr = ShortcutMgr.getInstance(this)
         val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
@@ -1120,7 +1132,7 @@ class MainActivity : Activity() {
             }
             if (tabsStatesLoaded.isEmpty()) {
                 if (intentUri == null) {
-                    openInNewTab(HOME_URL)
+                    openInNewTab(WebViewEx.HOME_URL)
                 }
             } else {
                 this@MainActivity.tabsStates.addAll(tabsStatesLoaded)

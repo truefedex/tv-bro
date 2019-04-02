@@ -23,6 +23,7 @@ import com.phlox.tvwebbrowser.activity.main.MainActivity
  */
 class WebViewEx : WebView {
     companion object {
+        const val HOME_URL = "about:blank"
         var defaultUAString: String? = null
     }
 
@@ -161,6 +162,15 @@ class WebViewEx : WebView {
         }
 
         super.onDraw(canvas)
+    }
+
+    override fun loadUrl(url: String?) {
+        if (HOME_URL == url) {
+            val data = context.assets.open("pages/new-tab.html").bufferedReader().use { it.readText() }
+            loadDataWithBaseURL(null, data, "text/html", "UTF-8", null)
+        } else {
+            super.loadUrl(url)
+        }
     }
 
     private fun renderThumbnail() {

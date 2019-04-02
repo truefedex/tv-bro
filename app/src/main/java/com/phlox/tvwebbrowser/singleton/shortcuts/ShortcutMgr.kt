@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 
 import com.phlox.tvwebbrowser.activity.main.MainActivity
+import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 
 import java.util.HashMap
 
@@ -65,7 +66,7 @@ class ShortcutMgr private constructor(private val ctx: Context) {
                 return true
             }
             Shortcut.NAVIGATE_HOME -> {
-                mainActivity.navigate(MainActivity.HOME_URL)
+                mainActivity.navigate(WebViewEx.HOME_URL)
                 return true
             }
             Shortcut.REFRESH_PAGE -> {

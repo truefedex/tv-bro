@@ -3,54 +3,72 @@
 <head>
     <title>TV Bro: new tab</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="assets/w3.css">
     <style>
         body {
-            color:#000;
-            background-color:#a1d9ef;
+            color:#343a3c;
+            background-color:#ffffff;
         }
-        .sugg {
-            background-color: #f8fcfe;
-            margin: 5px;
-            padding: 5px;
+
+        #suggestions {
+            width:75%;
+            margin: auto;
+            table-layout:fixed;
+            outline:none;
+            position: relative;
+        }
+
+        td {
+            overflow: hidden;
             white-space: nowrap;
+            word-wrap: break-word;
+            outline:none;
         }
-        .sugg:active {
-            background-color: rgba(220, 220, 255, 0);
+
+        .sugg {
+            padding: 17px 7px;
+            white-space: nowrap;
+            //background-image: linear-gradient(to bottom, #ffffff, #ffffff);
+            //border-style: solid;
+            //border-width: 1px;
+            //border-color: #cccccc;
+            word-wrap: break-word;
+            font-size: 1.6em;
+            transition:.5s;
+        }
+        .sugg:hover {
+            transition:.5s;
+            background-color: #eeeeee;
+        }
+        .sugg:hover > div:nth-child(2) {
+            //color: #6666aa;
+            //font-size: 1.8em;
+         }
+        .sugg > img {
+            width: 32px;
+            height: 32px;
+        }
+        .sugg-title {
+            display: inline-block;
+            max-width: 90%;
+            margin-left: 5px;
         }
         .ellipsize, .sugg-title, .sugg-desk{
             text-overflow: ellipsis;
             overflow: hidden;
         }
-        .sugg-title {
-            font-size: 1.4em;
-        }
         .sugg-desk {
             color: #888;
-            font-size: 0.9em;
+            font-size: 0.8em!important;
         }
     </style>
 </head>
 <body>
-<div class="w3-container" style="height: 100%; width: 100%; position: fixed; left: 0; top: 0; overflow-x: hidden;">
-    <div class="w3-center" style="width: 75%; margin: auto;">
-        <img class="" src="assets/ic_launcher.png" style="width: 50%; margin: 20px 0 0"/>
-        <input id="iSearch" class="w3-input w3-border" placeholder="Input search query or URL" style="margin: 30px 0 40px;"/>
-    </div>
-    <div id="suggestions" style="width:75%; margin: auto;">
+<div style="height: 100%; width: 100%; position: fixed; left: 0; top: 0; overflow-x: hidden;">
+    <table cellspacing="10" id="suggestions">
 
-    </div>
+    </table>
 </div>
 <script>
-document.getElementById('iSearch').onkeypress = function(e){
-    if (!e) e = window.event;
-    var keyCode = e.keyCode || e.which;
-    if (keyCode == '13'){
-        TVBro.search(e.target.value);
-        return false;
-    }
-}
-
 function onSuggestionClicked(index) {
     TVBro.navigate(suggs[index].url);
 }
@@ -60,20 +78,24 @@ function renderSuggestions() {
     if (suggs) return;
     var suggsStr = TVBro.suggestions();
     suggs = JSON.parse(suggsStr);
+    suggs.map(function(c, i, arr){
+        if (!c.favicon) {
+            c.favicon = 'file:///android_asset/pages/ic_web.png'
+        }
+        return c;
+    })
+    //suggs = [{"title": "test", "url":"http://google.com"}, {"title": "test", "url":"http://googlewerqwerqwerwqerqwerdfasdfaserfwsderfwerqwerqwerwqdfasdfawsefWEFefWEFwaefAWSF.com"}, {"title": "test", "url":"http://google.com"}, {"title": "test", "url":"http://google.com"}, {"title": "test", "url":"http://google.com"}, {"title": "test", "url":"http://google.com"}, {"title": "test", "url":"http://google.com"}];
     var container = document.getElementById('suggestions');
     var html = "";
     for (var i = 0; i < suggs.length; i++) {
-        html += '<div class="w3-row">';
-        html += '<div class="w3-half" onclick="onSuggestionClicked(' + i + ');"><div class="w3-card-4 sugg" style="margin-left: 0;"><div class="sugg-title">' +
-            suggs[i].title + '</div><div class="sugg-desk">' + suggs[i].url + '</div></div></div>';
-        if (i < (suggs.length - 1)) {
-            i++;
-            html += '<div class="w3-half" onclick="onSuggestionClicked(' + i + ');"><div class="w3-card-4 sugg" style="margin-right: 0;"><div class="sugg-title">' +
-                suggs[i].title + '</div><div class="sugg-desk">' + suggs[i].url + '</div></div></div>';
-        }
-        html += '</div>';
+        if (!(i % 2)) html += '<tr>';
+        html += '<td onclick="onSuggestionClicked(' + i + ');"><div class="sugg" style="margin-left: 0;">'+
+            '<img src="' + suggs[i].favicon + '" /><div class="sugg-title">' +
+            suggs[i].title + '</div><div class="sugg-desk">' + suggs[i].url + '</div></div></td>';
+        if ((i % 2) || i == (suggs.length - 1)) html += '</tr>';
     }
     container.innerHTML = html;
+    container.style.top = window.innerHeight / 2 - container.clientHeight / 2 + "px";
 }
 </script>
 </body>

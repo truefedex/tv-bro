@@ -24,6 +24,32 @@ import java.util.ArrayList
  * Class to store state of tab with webView
  */
 class WebTabState {
+    companion object {
+        const val TAB_THUMBNAILS_DIR = "tabthumbs"
+        const val FAVICONS_DIR = "favicons"
+
+        @Synchronized
+        fun saveTabs(context: Context, tabsStates: ArrayList<WebTabState>) {
+            val store = JSONObject()
+            val tabsStore = JSONArray()
+            for (tab in tabsStates) {
+                val tabJson = tab.toJson(context, true)
+                tabsStore.put(tabJson)
+            }
+            try {
+                store.put("tabs", tabsStore)
+                val fos = context.openFileOutput(MainActivity.STATE_JSON, Context.MODE_PRIVATE)
+                try {
+                    fos.write(store.toString().toByteArray())
+                } finally {
+                    fos.close()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     var webView: WebViewEx? = null
     var savedState: Bundle? = null
     var currentOriginalUrl: String? = null
@@ -31,10 +57,12 @@ class WebTabState {
     var selected: Boolean = false
     var thumbnail: Bitmap? = null
     var thumbnailHash: String? = null
+    var favicon: Bitmap? = null
+    var faviconHash: String? = null
     var webPageInteractionDetected = false
     var webChromeClient: WebChromeClient? = null
 
-    constructor() {}
+    constructor()
 
     constructor(context: Context, json: JSONObject) {
         try {
@@ -43,11 +71,20 @@ class WebTabState {
             selected = json.getBoolean("selected")
             if (json.has("thumbnail")) {
                 thumbnailHash = json.getString("thumbnail")
-                val thumbnailFile = File(context.filesDir.absolutePath +
-                        File.separator + WebTabState.BLOBS_DIR +
+                val thumbnailFile = File(context.cacheDir.absolutePath +
+                        File.separator + WebTabState.TAB_THUMBNAILS_DIR +
                         File.separator + thumbnailHash)
                 if (thumbnailFile.exists()) {
                     thumbnail = BitmapFactory.decodeFile(thumbnailFile.absolutePath)
+                }
+            }
+            if (json.has("favicon")) {
+                faviconHash = json.getString("favicon")
+                val faviconFile = File(context.cacheDir.absolutePath +
+                        File.separator + WebTabState.FAVICONS_DIR +
+                        File.separator + faviconHash)
+                if (faviconFile.exists()) {
+                    favicon = BitmapFactory.decodeFile(faviconFile.absolutePath)
                 }
             }
         } catch (e: JSONException) {
@@ -63,30 +100,41 @@ class WebTabState {
             store.put("title", currentTitle)
             store.put("selected", selected)
             if (storeFiles) {
-                val tabsBlobsDir = File(context.filesDir.absolutePath + File.separator + WebTabState.BLOBS_DIR)
-                if (tabsBlobsDir.exists() || tabsBlobsDir.mkdir()) {
+                val tabsThumbsDir = File(context.cacheDir.absolutePath + File.separator + WebTabState.TAB_THUMBNAILS_DIR)
+                if (tabsThumbsDir.exists() || tabsThumbsDir.mkdir()) {
                     if (thumbnail != null) {
-                        if (thumbnailHash != null) {
-                            removeThumbnailFile(context)
-                            thumbnailHash = null
-                        }
-                        val baos = ByteArrayOutputStream()
-                        thumbnail!!.compress(Bitmap.CompressFormat.PNG, 100, baos) //bm is the bitmap object
-                        val bitmapBytes = baos.toByteArray()
-                        val hash = Utils.MD5_Hash(bitmapBytes)
-                        if (hash != null) {
-                            val file = File(tabsBlobsDir.absolutePath + File.separator + hash)
-                            try {
-                                val fis = FileOutputStream(file)
-                                fis.write(bitmapBytes)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
+                        try {
+                            val baos = ByteArrayOutputStream()
+                            thumbnail!!.compress(Bitmap.CompressFormat.PNG, 100, baos)
+                            val bitmapBytes = baos.toByteArray()
+                            val hash = Utils.MD5_Hash(bitmapBytes)
+                            if (hash != null && hash != thumbnailHash) {
+                                if (thumbnailHash != null) {
+                                    removeThumbnailFile(context)
+                                    thumbnailHash = null
+                                }
+                                val file = File(tabsThumbsDir.absolutePath + File.separator + hash)
+                                var fos: FileOutputStream? = null
+                                try {
+                                    fos = FileOutputStream(file)
+                                    fos.write(bitmapBytes)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                } finally {
+                                    fos?.close()
+                                }
 
-                            thumbnailHash = hash
-                            store.put("thumbnail", thumbnailHash)
+                                thumbnailHash = hash
+                                store.put("thumbnail", thumbnailHash)
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
                     }
+                }
+
+                if (faviconHash != null) {
+                    store.put("favicon", faviconHash)
                 }
             }
         } catch (e: JSONException) {
@@ -103,8 +151,8 @@ class WebTabState {
     }
 
     private fun removeThumbnailFile(context: Context) {
-        val thumbnailFile = File(context.filesDir.absolutePath +
-                File.separator + WebTabState.BLOBS_DIR +
+        val thumbnailFile = File(context.cacheDir.absolutePath +
+                File.separator + WebTabState.TAB_THUMBNAILS_DIR +
                 File.separator + thumbnailHash)
         thumbnailFile.delete()
     }
@@ -125,27 +173,40 @@ class WebTabState {
         }
     }
 
-    companion object {
-        val BLOBS_DIR = "tabs_blobs"
-
-        @Synchronized
-        fun saveTabs(context: Context, tabsStates: ArrayList<WebTabState>) {
-            val store = JSONObject()
-            val tabsStore = JSONArray()
-            for (tab in tabsStates) {
-                val tabJson = tab.toJson(context, true)
-                tabsStore.put(tabJson)
-            }
+    fun updateFavIcon(context: Context, icon: Bitmap?) {
+        favicon = icon
+        if (favicon == null) {
+            faviconHash = null
+            return
+        }
+        val favIconsDir = File(context.cacheDir.absolutePath + File.separator + WebTabState.FAVICONS_DIR)
+        if (favIconsDir.exists() || favIconsDir.mkdir()) {
+            var bitmapBytes: ByteArray? = null
+            var hash: String? = null
             try {
-                store.put("tabs", tabsStore)
-                val fos = context.openFileOutput(MainActivity.STATE_JSON, Context.MODE_PRIVATE)
-                try {
-                    fos.write(store.toString().toByteArray())
-                } finally {
-                    fos.close()
-                }
+                val baos = ByteArrayOutputStream()
+                icon!!.compress(Bitmap.CompressFormat.PNG, 100, baos)
+                bitmapBytes = baos.toByteArray()
+                hash = Utils.MD5_Hash(bitmapBytes)
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+
+            if (bitmapBytes == null || hash == null || hash == faviconHash) return
+
+            faviconHash = hash
+
+            val file = File(favIconsDir.absolutePath + File.separator + faviconHash)
+            if (!file.exists()) {
+                var fos: FileOutputStream? = null
+                try {
+                    fos = FileOutputStream(file)
+                    fos.write(bitmapBytes)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    fos?.close()
+                }
             }
         }
     }

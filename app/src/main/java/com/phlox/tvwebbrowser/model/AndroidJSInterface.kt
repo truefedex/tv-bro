@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.model
 
+import android.content.Context
 import android.webkit.JavascriptInterface
 
 import com.phlox.tvwebbrowser.activity.main.MainActivity
@@ -37,12 +38,15 @@ class AndroidJSInterface {
     }
 
     @Throws(JSONException::class)
-    fun setSuggestions(frequentlyUsedURLs: List<HistoryItem>) {
+    fun setSuggestions(context: Context, frequentlyUsedURLs: List<HistoryItem>) {
         val jsArr = JSONArray()
         for (item in frequentlyUsedURLs) {
             val jsObj = JSONObject()
             jsObj.put("url", item.url)
             jsObj.put("title", item.title)
+            if (item.favicon != null) {
+                jsObj.put("favicon", "file:///" + context.cacheDir.absolutePath + "/favicons/" + item.favicon)
+            }
             jsArr.put(jsObj)
         }
         suggestions = jsArr.toString()

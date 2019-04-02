@@ -17,6 +17,7 @@ class HistoryItem {
     var time: Long = 0
     var title: String? = null
     var url: String? = null
+    var favicon: String? = null
 
     @DBIgnore
     var isDateHeader = false//used for displaying date headers inside list view
