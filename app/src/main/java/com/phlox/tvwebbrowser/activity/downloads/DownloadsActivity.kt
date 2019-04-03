@@ -10,6 +10,7 @@ import android.os.Environment
 import android.os.IBinder
 import android.provider.Settings
 import android.support.v4.content.FileProvider
+import android.support.v7.app.AppCompatActivity
 import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
@@ -28,9 +29,9 @@ import java.io.File
 import java.util.ArrayList
 
 import com.phlox.tvwebbrowser.R.string.url
+import kotlinx.android.synthetic.main.activity_downloads.*
 
-class DownloadsActivity : ListActivity(), AdapterView.OnItemClickListener, DownloadService.Listener, AdapterView.OnItemLongClickListener {
-    private var tvPlaceholder: TextView? = null
+class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, DownloadService.Listener, AdapterView.OnItemLongClickListener {
     private var adapter: DownloadListAdapter? = null
     private var asql: ASQL? = null
     private var loading = false
@@ -78,10 +79,9 @@ class DownloadsActivity : ListActivity(), AdapterView.OnItemClickListener, Downl
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_downloads)
-        tvPlaceholder = findViewById<View>(R.id.tvPlaceholder) as TextView
 
         adapter = DownloadListAdapter(this)
-        listAdapter = adapter
+        listView.adapter = adapter
         asql = ASQL.getDefault(this)
 
         listView.setOnScrollListener(onListScrollListener)

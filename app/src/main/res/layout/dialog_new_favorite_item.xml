@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="5dp">
+    android:padding="5dp"
+    android:minWidth="400dp">
 
     <TextView
         android:layout_width="wrap_content"
@@ -36,6 +37,7 @@
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
             android:id="@+id/ibTitle"
             android:src="@drawable/ic_mode_edit_grey_400_18dp" />
     </LinearLayout>
@@ -72,6 +74,7 @@
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
             android:id="@+id/ibUrl"
             android:src="@drawable/ic_mode_edit_grey_400_18dp" />
     </LinearLayout>
@@ -85,6 +88,7 @@
         <Button
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
             android:text="Cancel"
             android:id="@+id/btnCancel"
             android:layout_weight="1" />
@@ -92,6 +96,7 @@
         <Button
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
             android:text="Done"
             android:id="@+id/btnDone"
             android:layout_weight="1" />

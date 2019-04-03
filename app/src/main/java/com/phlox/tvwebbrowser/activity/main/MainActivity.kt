@@ -12,7 +12,7 @@ import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.*
 import android.speech.RecognizerIntent
-import android.support.v4.app.FragmentActivity
+import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
 import android.util.Patterns
@@ -24,7 +24,8 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
-import android.widget.*
+import android.widget.PopupMenu
+import android.widget.Toast
 import com.phlox.asql.ASQL
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
@@ -39,8 +40,8 @@ import com.phlox.tvwebbrowser.activity.main.view.Scripts
 import com.phlox.tvwebbrowser.activity.main.view.WebTabItemView
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.model.*
-import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
+import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
@@ -54,7 +55,7 @@ import java.net.URLEncoder
 import java.util.*
 
 
-class MainActivity : FragmentActivity(), CoroutineScope by MainScope() {
+class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         private val VOICE_SEARCH_REQUEST_CODE = 10001
@@ -292,6 +293,7 @@ class MainActivity : FragmentActivity(), CoroutineScope by MainScope() {
                 Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0)
         if (activities.size == 0) {
             ibVoiceSearch.visibility = View.GONE
+            ibMenu.nextFocusRightId = R.id.ibHistory
         }
 
         ibVoiceSearch.setOnClickListener { initiateVoiceSearch() }

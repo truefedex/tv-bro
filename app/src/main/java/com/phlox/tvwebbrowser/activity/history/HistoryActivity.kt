@@ -5,6 +5,7 @@ import android.app.ListActivity
 import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognizerIntent
+import android.support.v7.app.AppCompatActivity
 import android.view.*
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -17,13 +18,14 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
+import kotlinx.android.synthetic.main.activity_history.*
 
 
 /**
  * Created by fedex on 29.12.16.
  */
 
-class HistoryActivity : ListActivity(), AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
     private var ibDelete: ImageButton? = null
     private var adapter: HistoryAdapter? = null
@@ -61,7 +63,7 @@ class HistoryActivity : ListActivity(), AdapterView.OnItemClickListener, Adapter
         ibDelete = findViewById(R.id.ibDelete)
 
         adapter = HistoryAdapter()
-        listAdapter = adapter
+        listView.adapter = adapter
         asql = ASQL.getDefault(this)
 
         listView.setOnScrollListener(onListScrollListener)
@@ -104,12 +106,12 @@ class HistoryActivity : ListActivity(), AdapterView.OnItemClickListener, Adapter
         return super.dispatchKeyEvent(event)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             VOICE_SEARCH_REQUEST_CODE -> {
                 if (resultCode == RESULT_OK) {
                     // Populate the wordsList with the String values the recognition engine thought it heard
-                    val matches = data.getStringArrayListExtra(
+                    val matches = data?.getStringArrayListExtra(
                             RecognizerIntent.EXTRA_RESULTS)
                     if (matches == null || matches.isEmpty()) {
                         Utils.showToast(this, getString(R.string.can_not_recognize))
