@@ -18,14 +18,12 @@ class AndroidJSInterface {
 
     @JavascriptInterface
     fun search(string: String) {
-        if (activity == null) return
-        activity!!.runOnUiThread { activity!!.search(string) }
+        activity?.runOnUiThread { activity?.search(string) }
     }
 
     @JavascriptInterface
     fun navigate(string: String) {
-        if (activity == null) return
-        activity!!.runOnUiThread { activity!!.navigate(string) }
+        activity?.runOnUiThread { activity?.navigate(string) }
     }
 
     @JavascriptInterface

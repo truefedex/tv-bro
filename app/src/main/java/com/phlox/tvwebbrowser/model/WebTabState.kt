@@ -23,48 +23,22 @@ import java.util.ArrayList
  *
  * Class to store state of tab with webView
  */
-class WebTabState {
+data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle: String? = null,
+                       var selected: Boolean = false, var thumbnailHash: String? = null,
+                       var faviconHash: String? = null, var thumbnail: Bitmap? = null,
+                       var favicon: Bitmap? = null) {
     companion object {
         const val TAB_THUMBNAILS_DIR = "tabthumbs"
         const val FAVICONS_DIR = "favicons"
-
-        @Synchronized
-        fun saveTabs(context: Context, tabsStates: ArrayList<WebTabState>) {
-            val store = JSONObject()
-            val tabsStore = JSONArray()
-            for (tab in tabsStates) {
-                val tabJson = tab.toJson(context, true)
-                tabsStore.put(tabJson)
-            }
-            try {
-                store.put("tabs", tabsStore)
-                val fos = context.openFileOutput(MainActivity.STATE_JSON, Context.MODE_PRIVATE)
-                try {
-                    fos.write(store.toString().toByteArray())
-                } finally {
-                    fos.close()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
     }
 
+    //fields that don't need to be persisted to json
     var webView: WebViewEx? = null
     var savedState: Bundle? = null
-    var currentOriginalUrl: String? = null
-    var currentTitle: String? = null
-    var selected: Boolean = false
-    var thumbnail: Bitmap? = null
-    var thumbnailHash: String? = null
-    var favicon: Bitmap? = null
-    var faviconHash: String? = null
     var webPageInteractionDetected = false
     var webChromeClient: WebChromeClient? = null
 
-    constructor()
-
-    constructor(context: Context, json: JSONObject) {
+    constructor(context: Context, json: JSONObject) : this() {
         try {
             currentOriginalUrl = json.getString("url")
             currentTitle = json.getString("title")

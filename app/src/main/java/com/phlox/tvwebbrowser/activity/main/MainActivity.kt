@@ -30,6 +30,7 @@ import com.phlox.asql.ASQL
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
+import com.phlox.tvwebbrowser.activity.main.MainActivityViewModel.Companion.STATE_JSON
 import com.phlox.tvwebbrowser.activity.main.adapter.TabsListAdapter
 import com.phlox.tvwebbrowser.activity.main.dialogs.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFactory
@@ -44,10 +45,7 @@ import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.File
 import java.io.UnsupportedEncodingException
@@ -64,7 +62,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         private val MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10004
         private val PICKFILE_REQUEST_CODE = 10005
         private val REQUEST_CODE_HISTORY_ACTIVITY = 10006
-        val STATE_JSON = "state.json"
         val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
         val USER_AGENT_PREF_KEY = "user_agent"
         val MAIN_PREFS_NAME = "main.xml"
@@ -72,8 +69,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private lateinit var viewModel: MainActivityViewModel
     private var handler: Handler? = null
-    private var currentTab: WebTabState? = null
-    private val tabsStates = ArrayList<WebTabState>()
     private var tabsAdapter: TabsListAdapter? = null
     private var thumbnailesSize: Size? = null
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
@@ -87,35 +82,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private var originalDownloadFileName: String? = null
     private var userAgentForDownload: String? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
-    private val jsInterface = AndroidJSInterface()
-    private lateinit var asql: ASQL
-    private var lastHistoryItem: HistoryItem? = null
     private var searchEngineURL: String? = null
     private var downloadsService: DownloadService? = null
     private var downloadAnimation: Animation? = null
-
     private var fullScreenView: View? = null
     private var popupMenuMoreActions: PopupMenu? = null
-    private var prefs: SharedPreferences? = null
-
-    private val webTabStates: List<WebTabState>
-        get() {
-            val tabsStates = ArrayList<WebTabState>()
-            try {
-                val fis = openFileInput(STATE_JSON)
-                val storeStr = StringUtils.streamToString(fis)
-                val store = JSONObject(storeStr)
-                val tabsStore = store.getJSONArray("tabs")
-                for (i in 0 until tabsStore.length()) {
-                    val tab = WebTabState(this@MainActivity, tabsStore.getJSONObject(i))
-                    tabsStates.add(tab)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-            return tabsStates
-        }
+    private lateinit var prefs: SharedPreferences
 
     internal var progressBarHideRunnable: Runnable = Runnable {
         val anim = AnimationUtils.loadAnimation(this@MainActivity, android.R.anim.fade_out)
@@ -132,8 +104,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val activeNetwork = cm.activeNetworkInfo
             val isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting
-            if (currentTab != null) {
-                currentTab!!.webView?.setNetworkAvailable(isConnected)
+            if (viewModel.currentTab.value != null) {
+                viewModel.currentTab.value!!.webView?.setNetworkAvailable(isConnected)
             }
         }
     }
@@ -155,9 +127,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             } else if (thumbnailesSize!!.width == width && thumbnailesSize!!.height == height) {
                 return
             }
-            if (currentTab != null) {
-                currentTab!!.webView?.setNeedThumbnail(thumbnailesSize)
-                currentTab!!.webView?.postInvalidate()
+            if (viewModel.currentTab.value != null) {
+                viewModel.currentTab.value!!.webView?.setNeedThumbnail(thumbnailesSize)
+                viewModel.currentTab.value!!.webView?.postInvalidate()
             }
         }
     }
@@ -175,10 +147,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
             R.id.miUserAgent -> {
                 hideMenuOverlay()
-                if (currentTab == null) {
+                if (viewModel.currentTab.value == null) {
                     return@OnMenuItemClickListener true
                 }
-                var uaString = currentTab!!.webView?.settings?.userAgentString
+                var uaString = viewModel.currentTab.value!!.webView?.settings?.userAgentString
                 if (WebViewEx.defaultUAString == uaString) {
                     uaString = ""
                 }
@@ -187,7 +159,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                         val editor = prefs!!.edit()
                         editor.putString(USER_AGENT_PREF_KEY, defaultUAString)
                         editor.apply()
-                        for (tab in tabsStates) {
+                        for (tab in viewModel.tabsStates) {
                             if (tab.webView != null) {
                                 tab.webView?.settings?.userAgentString = defaultUAString
                             }
@@ -217,8 +189,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     fun showFavorites() {
-        val currentPageTitle = if (currentTab != null) currentTab!!.currentTitle else ""
-        val currentPageUrl = if (currentTab != null) currentTab!!.currentOriginalUrl else ""
+        val currentPageTitle = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.currentTitle else ""
+        val currentPageUrl = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.currentOriginalUrl else ""
         FavoritesDialog(this@MainActivity, object : FavoritesDialog.Callback {
             override fun onFavoriteChoosen(item: FavoriteItem?) {
                 navigate(item!!.url!!)
@@ -262,7 +234,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
         handler = Handler()
-        jsInterface.setActivity(this)
+        viewModel.jsInterface.setActivity(this)
+        prefs = getSharedPreferences(MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         setContentView(R.layout.activity_main)
         AndroidBug5497Workaround.assistActivity(this)
 
@@ -270,17 +243,17 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         llActionBar.visibility = View.GONE
         progressBar.visibility = View.GONE
 
-        tabsAdapter = TabsListAdapter(tabsStates, tabsEventsListener)
+        tabsAdapter = TabsListAdapter(viewModel.tabsStates, tabsEventsListener)
         lvTabs.adapter = tabsAdapter
         lvTabs.itemsCanFocus = true
 
         flWebViewContainer.setCallback(object : CursorLayout.Callback {
             override fun onUserInteraction() {
-                val tab = currentTab
+                val tab = viewModel.currentTab.value
                 if (tab != null) {
                     if (!tab.webPageInteractionDetected) {
                         tab.webPageInteractionDetected = true
-                        logVisitedHistory(tab.currentTitle, tab.currentOriginalUrl, tab.faviconHash)
+                        viewModel.logVisitedHistory(tab.currentTitle, tab.currentOriginalUrl, tab.faviconHash)
                     }
                 }
             }
@@ -306,8 +279,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         });*/
         ibBack.setOnClickListener { navigateBack() }
         ibForward.setOnClickListener {
-            if (currentTab != null && (currentTab!!.webView?.canGoForward() == true)) {
-                currentTab!!.webView?.goForward()
+            if (viewModel.currentTab.value != null && (viewModel.currentTab.value!!.webView?.canGoForward() == true)) {
+                viewModel.currentTab.value!!.webView?.goForward()
             }
         }
         ibRefresh.setOnClickListener { refresh() }
@@ -354,7 +327,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                         imm.hideSoftInputFromWindow(etUrl!!.windowToken, 0)
                         hideMenuOverlay()
                         search(etUrl.text.toString())
-                        currentTab!!.webView?.requestFocus()
+                        viewModel.currentTab.value!!.webView?.requestFocus()
                     }
                     return@OnKeyListener true
                 }
@@ -362,35 +335,24 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             false
         })
 
-        asql = ASQL.getDefault(applicationContext)
-
         loadState()
     }
 
     fun navigateBack() {
-        if (currentTab != null && currentTab!!.webView?.canGoBack() == true) {
-            currentTab!!.webView?.goBack()
+        if (viewModel.currentTab.value != null && viewModel.currentTab.value!!.webView?.canGoBack() == true) {
+            viewModel.currentTab.value!!.webView?.goBack()
         }
     }
 
     fun refresh() {
-        if (currentTab != null) {
-            currentTab!!.webView?.reload()
+        if (viewModel.currentTab.value != null) {
+            viewModel.currentTab.value!!.webView?.reload()
         }
     }
 
     override fun onDestroy() {
-        jsInterface.setActivity(null)
+        viewModel.jsInterface.setActivity(null)
         super.onDestroy()
-    }
-
-    override fun onStop() {
-        saveState()
-        super.onStop()
-    }
-
-    private fun saveState() = launch(Dispatchers.Main) {
-        WebTabState.saveTabs(this@MainActivity, tabsStates)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -401,55 +363,43 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
-    private fun loadState() {
+    private fun loadState() = launch(Dispatchers.Main) {
         progressBarGeneric.visibility = View.VISIBLE
         progressBarGeneric.requestFocus()
-        object : Thread() {
-            override fun run() {
-                initHistory()
+        viewModel.loadState().join()
 
-                val tabsStates = webTabStates
-                val onTabsLoadedRunnable = OnTabsLoadedRunnable(tabsStates)
-                runOnUiThread(onTabsLoadedRunnable)
+        if (!running) {
+            return@launch
+        }
+
+        progressBarGeneric.visibility = View.GONE
+
+        val intentUri = intent.data
+        if (intentUri == null) {
+            if (viewModel.tabsStates.isEmpty()) {
+                openInNewTab(WebViewEx.HOME_URL)
+            } else {
+                for (i in viewModel.tabsStates.indices) {
+                    val tab = viewModel.tabsStates[i]
+                    if (tab.selected) {
+                        changeTab(tab)
+                        break
+                    }
+                }
             }
-        }.start()
+        } else {
+            openInNewTab(intentUri.toString())
+        }
 
-        prefs = getSharedPreferences(MAIN_PREFS_NAME, Context.MODE_PRIVATE)
-        searchEngineURL = prefs!!.getString(SEARCH_ENGINE_URL_PREF_KEY, "")
+        searchEngineURL = prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, "")
         if ("" == searchEngineURL) {
-            SearchEngineConfigDialogFactory.show(this, searchEngineURL!!, prefs!!, false,
+            SearchEngineConfigDialogFactory.show(this@MainActivity, searchEngineURL!!, prefs, false,
                     object : SearchEngineConfigDialogFactory.Callback {
                         override fun onDone(url: String) {
                             searchEngineURL = url
                         }
                     })
         }
-    }
-
-    private fun initHistory() {
-        val count = asql.count(HistoryItem::class.java)
-        if (count > 5000) {
-            val c = Calendar.getInstance()
-            c.add(Calendar.MONTH, -3)
-            asql.db.delete("history", "time < ?", arrayOf(java.lang.Long.toString(c.time.time)))
-        }
-        try {
-            val result = asql.queryAll<HistoryItem>(HistoryItem::class.java, "SELECT * FROM history ORDER BY time DESC LIMIT 1")
-            if (!result.isEmpty()) {
-                lastHistoryItem = result.get(0)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        try {
-            val frequentlyUsedUrls = asql.queryAll<HistoryItem>(HistoryItem::class.java,
-                    "SELECT title, url, favicon, count(url) as cnt , max(time) as time FROM history GROUP BY title, url, favicon ORDER BY cnt DESC, time DESC LIMIT 6")
-            jsInterface.setSuggestions(this, frequentlyUsedUrls)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
     }
 
     private fun openInNewTab(url: String?) {
@@ -459,51 +409,54 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         val tab = WebTabState()
         tab.currentOriginalUrl = url
         createWebView(tab)
-        tabsStates.add(0, tab)
+        viewModel.tabsStates.add(0, tab)
         changeTab(tab)
         navigate(url)
     }
 
     private fun closeTab(tab: WebTabState?) {
         if (tab == null) return
-        val position = tabsStates.indexOf(tab)
+        val position = viewModel.tabsStates.indexOf(tab)
         when {
-            tabsStates.size == 1 -> {
+            viewModel.tabsStates.size == 1 -> {
                 tab.selected = false
                 tab.webView?.onPause()
                 flWebViewContainer.removeView(tab.webView)
-                currentTab = null
+                viewModel.currentTab.value = null
             }
 
-            position == tabsStates.size - 1 -> changeTab(tabsStates[position - 1])
+            position == viewModel.tabsStates.size - 1 -> changeTab(viewModel.tabsStates[position - 1])
 
-            else -> changeTab(tabsStates[position + 1])
+            else -> changeTab(viewModel.tabsStates[position + 1])
         }
-        tabsStates.remove(tab)
+        viewModel.tabsStates.remove(tab)
         tabsAdapter?.notifyDataSetChanged()
 
         tab.removeFiles(this)
     }
 
     private fun changeTab(newTab: WebTabState) {
-        if (currentTab != null) {
-            currentTab!!.selected = false
-            currentTab!!.webView?.onPause()
-            flWebViewContainer!!.removeView(currentTab!!.webView)
+        if (viewModel.currentTab.value != null) {
+            viewModel.currentTab.value!!.selected = false
+            viewModel.currentTab.value!!.webView?.onPause()
+            flWebViewContainer!!.removeView(viewModel.currentTab.value!!.webView)
         }
 
         newTab.selected = true
-        currentTab = newTab
+        viewModel.currentTab.value = newTab
         tabsAdapter!!.notifyDataSetChanged()
-        if (currentTab!!.webView == null) {
-            createWebView(currentTab!!)
-            currentTab!!.restoreWebView()
-            flWebViewContainer!!.addView(currentTab!!.webView)
-        } else {
-            flWebViewContainer!!.addView(currentTab!!.webView)
-            currentTab!!.webView?.onResume()
+        if (llMenuOverlay.visibility == View.GONE) {
+            lvTabs.setSelection(viewModel.tabsStates.indexOf(newTab))
         }
-        currentTab!!.webView?.setNetworkAvailable(Utils.isNetworkConnected(this))
+        if (viewModel.currentTab.value!!.webView == null) {
+            createWebView(viewModel.currentTab.value!!)
+            viewModel.currentTab.value!!.restoreWebView()
+            flWebViewContainer!!.addView(viewModel.currentTab.value!!.webView)
+        } else {
+            flWebViewContainer!!.addView(viewModel.currentTab.value!!.webView)
+            viewModel.currentTab.value!!.webView?.onResume()
+        }
+        viewModel.currentTab.value!!.webView?.setNetworkAvailable(Utils.isNetworkConnected(this))
 
         etUrl!!.setText(newTab.currentOriginalUrl)
         ibBack!!.isEnabled = newTab.webView?.canGoBack() == true
@@ -513,7 +466,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun createWebView(tab: WebTabState) {
         tab.webView = WebViewEx(this)
-        tab.webView?.addJavascriptInterface(jsInterface, "TVBro")
+        tab.webView?.addJavascriptInterface(viewModel.jsInterface, "TVBro")
 
         tab.webView?.setListener(object : WebViewEx.Listener {
             override fun onThumbnailReady(thumbnail: Bitmap) {
@@ -710,9 +663,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 val tab = WebTabState()
                 //tab.currentOriginalUrl = url;
                 createWebView(tab)
-                val currentTab = this@MainActivity.currentTab
-                val index = if (currentTab == null) 0 else tabsStates.indexOf(currentTab)
-                tabsStates.add(index, tab)
+                val currentTab = this@MainActivity.viewModel.currentTab.value
+                val index = if (currentTab == null) 0 else viewModel.tabsStates.indexOf(currentTab)
+                viewModel.tabsStates.add(index, tab)
                 changeTab(tab)
                 (resultMsg.obj as WebView.WebViewTransport).webView = tab.webView
                 resultMsg.sendToTarget()
@@ -720,7 +673,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
 
             override fun onCloseWindow(window: WebView) {
-                for (tab in tabsStates) {
+                for (tab in viewModel.tabsStates) {
                     if (tab.webView == window) {
                         closeTab(tab)
                         break
@@ -769,7 +722,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                if (tab.webView == null || currentTab == null || view == null) {
+                if (tab.webView == null || viewModel.currentTab.value == null || view == null) {
                     return
                 }
                 ibBack!!.isEnabled = tab.webView?.canGoBack() == true
@@ -784,7 +737,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 etUrl!!.setText(tab.currentOriginalUrl)
 
                 tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
-                currentTab!!.webPageInteractionDetected = false
+                viewModel.currentTab.value!!.webPageInteractionDetected = false
                 if (WebViewEx.HOME_URL == url) {
                     view.loadUrl("javascript:renderSuggestions()")
                 }
@@ -816,26 +769,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE)
         } else {
             startDownload(url, originalDownloadFileName!!, userAgent)
-        }
-    }
-
-    private fun logVisitedHistory(title: String?, url: String?, faviconHash: String?) {
-        if (url != null && (lastHistoryItem != null && url == lastHistoryItem!!.url || url == WebViewEx.HOME_URL)) {
-            return
-        }
-
-        val item = HistoryItem()
-        item.url = url
-        item.title = title ?: ""
-        item.time = Date().time
-        item.favicon = faviconHash
-        lastHistoryItem = item
-        asql.execInsert("INSERT INTO history (time, title, url, favicon) VALUES (:time, :title, :url, :favicon)", lastHistoryItem) { lastInsertRowId, exception ->
-            if (exception != null) {
-                Log.e(TAG, exception.toString())
-            } else {
-                //good!
-            }
         }
     }
 
@@ -881,7 +814,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     override fun onTrimMemory(level: Int) {
-        for (tab in tabsStates) {
+        for (tab in viewModel.tabsStates) {
             if (!tab.selected) {
                 tab.recycleWebView()
             }
@@ -992,25 +925,26 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         super.onResume()
         val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(mConnectivityChangeReceiver, intentFilter)
-        if (currentTab != null) {
-            currentTab!!.webView?.onResume()
+        if (viewModel.currentTab.value != null) {
+            viewModel.currentTab.value!!.webView?.onResume()
         }
         bindService(Intent(this, DownloadService::class.java), downloadsServiceConnection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onPause() {
         unbindService(downloadsServiceConnection)
-        if (currentTab != null) {
-            currentTab!!.webView?.onPause()
+        if (viewModel.currentTab.value != null) {
+            viewModel.currentTab.value!!.webView?.onPause()
         }
         if (mConnectivityChangeReceiver != null) unregisterReceiver(mConnectivityChangeReceiver)
+        launch(Dispatchers.Main) { viewModel.saveState() }
         super.onPause()
         running = false
     }
 
     fun navigate(url: String) {
-        if (currentTab != null) {
-            currentTab!!.webView?.loadUrl(url)
+        if (viewModel.currentTab.value != null) {
+            viewModel.currentTab.value!!.webView?.loadUrl(url)
         } else {
             openInNewTab(url)
         }
@@ -1052,12 +986,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         val shortcutMgr = ShortcutMgr.getInstance(this)
         val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
 
-        if (keyCode == KeyEvent.KEYCODE_BACK && currentTab != null && fullScreenView != null) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && viewModel.currentTab.value != null && fullScreenView != null) {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 //nop
             } else if (event.action == KeyEvent.ACTION_UP) {
                 handler?.post {
-                    currentTab!!.webChromeClient?.onHideCustomView()
+                    viewModel.currentTab.value!!.webChromeClient?.onHideCustomView()
                 }
             }
         } else if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer!!.zoomMode) {
@@ -1103,8 +1037,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         anim.setAnimationListener(object : BaseAnimationListener() {
             override fun onAnimationEnd(animation: Animation) {
                 llMenuOverlay.visibility = View.GONE
-                if (currentTab != null) {
-                    currentTab!!.webView?.requestFocus()
+                if (viewModel.currentTab.value != null) {
+                    viewModel.currentTab.value!!.webView?.requestFocus()
                 }
             }
         })
@@ -1119,36 +1053,5 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         })
         llActionBar.startAnimation(anim)
-    }
-
-    internal inner class OnTabsLoadedRunnable(private val tabsStatesLoaded: List<WebTabState>) : Runnable {
-
-        override fun run() {
-            val intentUri = intent.data
-            progressBarGeneric.visibility = View.GONE
-            if (!running) {
-                if (!tabsStatesLoaded.isEmpty()) {
-                    this@MainActivity.tabsStates.addAll(tabsStatesLoaded)
-                }
-                return
-            }
-            if (tabsStatesLoaded.isEmpty()) {
-                if (intentUri == null) {
-                    openInNewTab(WebViewEx.HOME_URL)
-                }
-            } else {
-                this@MainActivity.tabsStates.addAll(tabsStatesLoaded)
-                for (i in tabsStatesLoaded.indices) {
-                    val tab = tabsStatesLoaded[i]
-                    if (tab.selected) {
-                        changeTab(tab)
-                        break
-                    }
-                }
-            }
-            if (intentUri != null) {
-                openInNewTab(intentUri.toString())
-            }
-        }
     }
 }
