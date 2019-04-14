@@ -65,4 +65,6 @@
     <string name="storage_not_mounted">Storage not mounted</string>
     <string name="can_not_create_downloads">Can not create downloads dir</string>
     <string name="voice_search_not_found">Voice search not found</string>
+    <string name="new_version_dialog_title">New version available</string>
+    <string name="later">Later</string>
 </resources>

@@ -1,13 +1,23 @@
 package com.phlox.tvwebbrowser.service.downloads
 
+import android.app.Activity
 import android.app.Service
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.provider.Settings
+import android.support.v4.content.FileProvider
+import android.webkit.MimeTypeMap
+import android.widget.Toast
 
 import com.phlox.asql.ASQL
+import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.Download
+import java.io.File
 
 import java.util.ArrayList
 import java.util.Date
@@ -62,19 +72,8 @@ class DownloadService : Service() {
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        return Service.START_STICKY
-    }
-
-    override fun onBind(intent: Intent): IBinder? {
-        return binder
-    }
-
-    fun startDownloading(url: String, fullDestFilePath: String, fileName: String, userAgent: String) {
-        val download = Download()
-        download.url = url
-        download.filename = fileName
-        download.filepath = fullDestFilePath
-        download.time = Date().time
+        val download = intent.getSerializableExtra("download") as Download
+        val userAgent = intent.getStringExtra("userAgent")
         try {
             asql!!.save(download)
         } catch (e: IllegalAccessException) {
@@ -84,7 +83,11 @@ class DownloadService : Service() {
         val downloadTask = DownloadTask(download, userAgent, downloadTasksListener)
         activeDownloads.add(downloadTask)
         executor.execute(downloadTask)
-        startService(Intent(this, DownloadService::class.java))
+        return START_STICKY
+    }
+
+    override fun onBind(intent: Intent): IBinder? {
+        return binder
     }
 
     fun cancelDownload(download: Download) {
@@ -108,12 +111,40 @@ class DownloadService : Service() {
     private fun onTaskEnded(task: DownloadTask) {
         asql!!.save(task.downloadInfo) { result, exception ->
             activeDownloads.remove(task)
+            when (task.downloadInfo.operationAfterDownload) {
+                Download.OperationAfterDownload.INSTALL -> {
+                    val canInstallFromOtherSources = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        packageManager.canRequestPackageInstalls()
+                    } else
+                        Settings.Secure.getInt(this.contentResolver, Settings.Secure.INSTALL_NON_MARKET_APPS) == 1
+                    if (canInstallFromOtherSources) {
+                        launchInstallAPKActivity(this, task.downloadInfo)
+                    }
+                }
+            }
             if (activeDownloads.isEmpty()) {
                 for (i in listeners.indices) {
                     listeners[i].onAllDownloadsComplete()
                 }
                 stopSelf()
             }
+        }
+    }
+
+    fun launchInstallAPKActivity(context: Context, download: Download) {
+        val file = File(download.filepath)
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
+        val apkURI = FileProvider.getUriForFile(
+                context,
+                context.applicationContext.packageName + ".provider", file)
+
+        val install = Intent(Intent.ACTION_INSTALL_PACKAGE)
+        install.setDataAndType(apkURI, mimeType)
+        install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        try {
+            context.startActivity(install)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(context, R.string.error, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -146,5 +177,21 @@ class DownloadService : Service() {
     inner class Binder : android.os.Binder() {
         val service: DownloadService
             get() = this@DownloadService
+    }
+
+    companion object {
+        fun startDownloading(context: Context, url: String, fullDestFilePath: String, fileName: String, userAgent: String,
+                             operationAfterDownload: Download.OperationAfterDownload) {
+            val download = Download()
+            download.url = url
+            download.filename = fileName
+            download.filepath = fullDestFilePath
+            download.time = Date().time
+            download.operationAfterDownload = operationAfterDownload
+            val intent = Intent(context, DownloadService::class.java)
+            intent.putExtra("download", download)
+            intent.putExtra("userAgent", userAgent)
+            context.startService(intent)
+        }
     }
 }

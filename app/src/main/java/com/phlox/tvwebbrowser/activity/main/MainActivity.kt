@@ -26,11 +26,9 @@ import android.view.inputmethod.InputMethodManager
 import android.webkit.*
 import android.widget.PopupMenu
 import android.widget.Toast
-import com.phlox.asql.ASQL
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
-import com.phlox.tvwebbrowser.activity.main.MainActivityViewModel.Companion.STATE_JSON
 import com.phlox.tvwebbrowser.activity.main.adapter.TabsListAdapter
 import com.phlox.tvwebbrowser.activity.main.dialogs.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFactory
@@ -46,7 +44,6 @@ import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
-import org.json.JSONObject
 import java.io.File
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
@@ -59,7 +56,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         private val VOICE_SEARCH_REQUEST_CODE = 10001
         private val MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS = 10002
         private val MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS = 10003
-        private val MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10004
+        val MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10004
         private val PICKFILE_REQUEST_CODE = 10005
         private val REQUEST_CODE_HISTORY_ACTIVITY = 10006
         val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
@@ -78,9 +75,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private var geoPermissionOrigin: String? = null
     private var geoPermissionsCallback: GeolocationPermissions.Callback? = null
     private var running: Boolean = false
-    private var urlToDownload: String? = null
-    private var originalDownloadFileName: String? = null
-    private var userAgentForDownload: String? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
     private var searchEngineURL: String? = null
     private var downloadsService: DownloadService? = null
@@ -397,8 +391,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     object : SearchEngineConfigDialogFactory.Callback {
                         override fun onDone(url: String) {
                             searchEngineURL = url
+                            viewModel.checkUpdateIfNeeded(this@MainActivity)
                         }
                     })
+        } else {
+            viewModel.checkUpdateIfNeeded(this@MainActivity)
         }
     }
 
@@ -480,7 +477,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             override fun onDownloadRequested(url: String) {
                 val fileName = Uri.parse(url).lastPathSegment
-                this@MainActivity.onDownloadRequested(url, fileName
+                viewModel.onDownloadRequested(this@MainActivity, url, fileName
                         ?: "url.html", tab.webView?.uaString)
             }
 
@@ -755,61 +752,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
 
         tab.webView?.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
-            onDownloadRequested(url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
+            viewModel.onDownloadRequested(this@MainActivity, url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
                     ?: tab.webView?.uaString)
-        }
-    }
-
-    private fun onDownloadRequested(url: String, originalDownloadFileName: String?, userAgent: String?) {
-        this.urlToDownload = url
-        this.originalDownloadFileName = originalDownloadFileName
-        this.userAgentForDownload = userAgent
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE)
-        } else {
-            startDownload(url, originalDownloadFileName!!, userAgent)
-        }
-    }
-
-    private fun startDownload(url: String, originalFileName: String, userAgent: String?) {
-        val extPos = originalFileName.lastIndexOf(".")
-        val hasExt = extPos != -1
-        var ext: String? = null
-        var prefix: String? = null
-        if (hasExt) {
-            ext = originalFileName.substring(extPos + 1)
-            prefix = originalFileName.substring(0, extPos)
-        }
-        var fileName = originalFileName
-        var i = 0
-        while (File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + File.separator + fileName).exists()) {
-            i++
-            if (hasExt) {
-                fileName = prefix + "_(" + i + ")." + ext
-            } else {
-                fileName = originalFileName + "_(" + i + ")"
-            }
-        }
-
-        if (Environment.MEDIA_MOUNTED != Environment.getExternalStorageState()) {
-            Toast.makeText(this, R.string.storage_not_mounted, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        if (!downloadsDir.exists() && !downloadsDir.mkdirs()) {
-            Toast.makeText(this, R.string.can_not_create_downloads, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val fullDestFilePath = downloadsDir.toString() + File.separator + fileName
-        downloadsService!!.startDownloading(url, fullDestFilePath, fileName, userAgent!!)
-
-        Utils.showToast(this, getString(R.string.download_started,
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + File.separator + fileName))
-        showMenuOverlay()
-        if (downloadAnimation == null) {
-            downloadAnimation = AnimationUtils.loadAnimation(this, R.anim.infinite_fadeinout_anim)
-            ibDownloads.startAnimation(downloadAnimation)
         }
     }
 
@@ -877,9 +821,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 return
             }
             MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE -> {
-                val urlToDownload = this.urlToDownload
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && urlToDownload != null) {
-                    startDownload(urlToDownload, originalDownloadFileName!!, userAgentForDownload)
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    viewModel.startDownload(this)
                 }
             }
         }
@@ -1053,5 +996,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         })
         llActionBar.startAnimation(anim)
+    }
+
+    fun onDownloadStarted(fileName: String) {
+        Utils.showToast(this, getString(R.string.download_started,
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + File.separator + fileName))
+        showMenuOverlay()
+        if (downloadAnimation == null) {
+            downloadAnimation = AnimationUtils.loadAnimation(this, R.anim.infinite_fadeinout_anim)
+            ibDownloads.startAnimation(downloadAnimation)
+        }
     }
 }

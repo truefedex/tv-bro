@@ -2,6 +2,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'io.fabric'
 
 android {
     compileSdkVersion 28
@@ -20,6 +22,17 @@ android {
             debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    flavorDimensions "crashlytics"
+    productFlavors {
+        crashlyticsfree {
+            dimension "crashlytics"
+        }
+        crashlytics {
+            dimension "crashlytics"
+            versionNameSuffix "-crashlytics"
         }
     }
 
@@ -45,4 +58,7 @@ dependencies {
 
     implementation 'com.github.truefedex:ASQL:v0.1.2'
     implementation 'de.halfbit:pinned-section-listview:1.0.0'
+
+    crashlyticsImplementation 'com.google.firebase:firebase-core:16.0.8'
+    crashlyticsImplementation 'com.crashlytics.sdk.android:crashlytics:2.9.9'
 }

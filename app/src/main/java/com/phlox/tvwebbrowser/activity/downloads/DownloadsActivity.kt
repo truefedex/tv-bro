@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.downloads
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.ListActivity
 import android.content.*
@@ -186,7 +187,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
             Settings.Secure.getInt(this.contentResolver, Settings.Secure.INSTALL_NON_MARKET_APPS) == 1
 
         if(canInstallFromOtherSources) {
-            launchInstallAPKActivity(download)
+            launchInstallAPKActivity(this, download)
         } else {
             AlertDialog.Builder(this)
                     .setTitle(R.string.app_name)
@@ -198,23 +199,6 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
                     }})
                     .show()
 
-        }
-    }
-
-    fun launchInstallAPKActivity(download: Download) {
-        val file = File(download.filepath)
-        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
-        val apkURI = FileProvider.getUriForFile(
-                this,
-                this.applicationContext.packageName + ".provider", file)
-
-        val install = Intent(Intent.ACTION_INSTALL_PACKAGE)
-        install.setDataAndType(apkURI, mimeType)
-        install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        try {
-            startActivityForResult(install, 1001011)//we are not using result for now
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(this, R.string.error, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -280,6 +264,23 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
             if (parts.size > 0)
                 result = parts[parts.size - 1]
             return result
+        }
+
+        fun launchInstallAPKActivity(activity: Activity, download: Download) {
+            val file = File(download.filepath)
+            val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
+            val apkURI = FileProvider.getUriForFile(
+                    activity,
+                    activity.applicationContext.packageName + ".provider", file)
+
+            val install = Intent(Intent.ACTION_INSTALL_PACKAGE)
+            install.setDataAndType(apkURI, mimeType)
+            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            try {
+                activity.startActivityForResult(install, 1001011)//we are not using result for now
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
