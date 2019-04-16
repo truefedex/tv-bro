@@ -1,6 +1,9 @@
 package com.phlox.tvwebbrowser
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import com.phlox.tvwebbrowser.singleton.initASQL
 import java.net.CookieHandler
 import java.net.CookieManager
@@ -14,6 +17,7 @@ import java.util.concurrent.TimeUnit
 class TVBro : Application() {
     companion object {
         lateinit var instance: TVBro
+        const val CHANNEL_ID_DOWNLOADS: String = "downloads"
     }
 
     lateinit var threadPool: ThreadPoolExecutor
@@ -32,5 +36,19 @@ class TVBro : Application() {
         CookieHandler.setDefault(cookieManager)
 
         initASQL()
+
+        initNotificationChannels()
+    }
+
+    private fun initNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = getString(R.string.downloads)
+            val descriptionText = getString(R.string.downloads_notifications_description)
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(CHANNEL_ID_DOWNLOADS, name, importance)
+            channel.description = descriptionText
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 }

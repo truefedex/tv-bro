@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.Settings
@@ -42,6 +43,7 @@ class MainActivityViewModel: ViewModel() {
         var TAG = MainActivityViewModel.javaClass.simpleName
     }
 
+    var needToCheckUpdateAgain: Boolean = false
     val asql by lazy { ASQL.getDefault(TVBro.instance) }
     val currentTab = MutableLiveData<WebTabState>()
     val tabsStates = ArrayList<WebTabState>()
@@ -170,10 +172,25 @@ class MainActivityViewModel: ViewModel() {
                                 .setTitle(R.string.app_name)
                                 .setMessage(R.string.turn_on_unknown_sources)
                                 .setPositiveButton(android.R.string.ok) { dialog, which -> run {
-                                    val intentSettings = Intent()
-                                    intentSettings.action = Settings.ACTION_SECURITY_SETTINGS
-                                    activity.startActivity(intentSettings)
+                                    val intent = Intent()
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                        intent.action = Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
+                                        intent.data = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
+                                    } else {
+                                        intent.action = Settings.ACTION_SECURITY_SETTINGS
+                                    }
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    try {
+                                        activity.startActivityForResult(intent, MainActivity.REQUEST_CODE_UNKNOWN_APP_SOURCES)
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                        Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
+                                    }
+                                    needToCheckUpdateAgain = true
                                 }}
+                                .setNegativeButton(android.R.string.cancel) { dialog, which ->
+
+                                }
                                 .show()
                     }
                 }
@@ -194,6 +211,7 @@ class MainActivityViewModel: ViewModel() {
         this.urlToDownload = url
         this.originalDownloadFileName = originalDownloadFileName
         this.userAgentForDownload = userAgent
+        this.operationAfterDownload = operationAfterDownload
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             activity.requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     MainActivity.MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE)

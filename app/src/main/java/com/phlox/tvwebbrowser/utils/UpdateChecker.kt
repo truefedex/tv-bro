@@ -73,18 +73,20 @@ class UpdateChecker(val currentVersionCode: Int) {
     }
 
     fun showUpdateDialog(context: Context, channel: String, callback: DialogCallback) {
-        if (versionCheckResult == null || versionCheckResult!!.latestVersionCode >= currentVersionCode) {
+        if (versionCheckResult == null || versionCheckResult!!.latestVersionCode <= currentVersionCode) {
             throw IllegalStateException("Latest version not defined or less than current")
         }
         var message = ""
         for (changelogEntry in versionCheckResult!!.changelog) {
             if (changelogEntry.versionCode > currentVersionCode) {
-                message += "<b>${changelogEntry.versionName}</b>\n" +
-                        changelogEntry.changes
+                message += "<b>${changelogEntry.versionName}</b><br>" +
+                        changelogEntry.changes.replace("\n", "<br>")
             }
         }
         val textView = TextView(context)
         textView.text = Html.fromHtml(message)
+        val padding = Utils.D2P(context, 25f).toInt()
+        textView.setPadding(padding, padding, padding, padding)
         AlertDialog.Builder(context)
                 .setTitle(R.string.new_version_dialog_title)
                 .setView(textView)

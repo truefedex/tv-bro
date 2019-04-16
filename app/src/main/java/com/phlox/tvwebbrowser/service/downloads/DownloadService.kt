@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.service.downloads
 
-import android.app.Activity
+import android.app.Notification
+import android.app.NotificationManager
 import android.app.Service
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -10,18 +11,20 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
+import android.support.v4.app.NotificationCompat
 import android.support.v4.content.FileProvider
+import android.text.format.Formatter
 import android.webkit.MimeTypeMap
 import android.widget.Toast
 
 import com.phlox.asql.ASQL
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
 import java.io.File
 
 import java.util.ArrayList
 import java.util.Date
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
@@ -35,6 +38,8 @@ class DownloadService : Service() {
     private val listeners = ArrayList<Listener>()
     private val handler = Handler(Looper.getMainLooper())
     private val binder = Binder()
+    private var notificationBuilder: NotificationCompat.Builder? = null
+    private lateinit var notificationManager: NotificationManager
 
     internal var downloadTasksListener: DownloadTask.Callback = object : DownloadTask.Callback {
         internal val MIN_NOTIFY_TIMEOUT = 100
@@ -65,6 +70,7 @@ class DownloadService : Service() {
     override fun onCreate() {
         super.onCreate()
         asql = ASQL.getDefault(applicationContext)
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
     override fun onDestroy() {
@@ -83,7 +89,46 @@ class DownloadService : Service() {
         val downloadTask = DownloadTask(download, userAgent, downloadTasksListener)
         activeDownloads.add(downloadTask)
         executor.execute(downloadTask)
+        startForeground(DOWNLOAD_NOTIFICATION_ID, updateNotification())
         return START_STICKY
+    }
+
+    private fun updateNotification(): Notification {
+        var title = ""
+        var downloaded = 0L
+        var total = 0L
+        var hasUnknownSizedFiles = false
+        for (download in activeDownloads) {
+            title += download.downloadInfo.filename + ","
+            downloaded += download.downloadInfo.bytesReceived
+            if (download.downloadInfo.size > 0) {
+                total += download.downloadInfo.size
+            } else {
+                hasUnknownSizedFiles = true
+            }
+        }
+        title.trim(',')
+        val description = if (hasUnknownSizedFiles) {
+            Formatter.formatShortFileSize(this, downloaded)
+        } else {
+            Formatter.formatShortFileSize(this, downloaded) + " of " +
+                    Formatter.formatShortFileSize(this, total)
+        }
+        if (notificationBuilder == null) {
+            notificationBuilder = NotificationCompat.Builder(this, TVBro.CHANNEL_ID_DOWNLOADS)
+                    .setOngoing(true)
+                    .setOnlyAlertOnce(true)
+                    .setSmallIcon(R.drawable.ic_launcher)
+        }
+        notificationBuilder!!.setContentTitle(title)
+                .setContentText(description)
+                .setSmallIcon(R.drawable.ic_launcher)
+        if (hasUnknownSizedFiles || total == 0L) {
+            notificationBuilder!!.setProgress(0, 0, true)
+        } else {
+            notificationBuilder!!.setProgress(100, (downloaded * 100 / total).toInt(), false)
+        }
+        return notificationBuilder!!.build()
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -126,7 +171,7 @@ class DownloadService : Service() {
                 for (i in listeners.indices) {
                     listeners[i].onAllDownloadsComplete()
                 }
-                stopSelf()
+                stopForeground(true)
             }
         }
     }
@@ -171,6 +216,7 @@ class DownloadService : Service() {
             for (i in listeners.indices) {
                 listeners[i].onDownloadUpdated(task.downloadInfo)
             }
+            notificationManager.notify(DOWNLOAD_NOTIFICATION_ID, updateNotification())
         }
     }
 
@@ -180,6 +226,8 @@ class DownloadService : Service() {
     }
 
     companion object {
+        const val DOWNLOAD_NOTIFICATION_ID = 101101
+
         fun startDownloading(context: Context, url: String, fullDestFilePath: String, fileName: String, userAgent: String,
                              operationAfterDownload: Download.OperationAfterDownload) {
             val download = Download()

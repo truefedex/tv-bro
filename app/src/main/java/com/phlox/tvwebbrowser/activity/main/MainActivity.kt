@@ -53,15 +53,16 @@ import java.util.*
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
-        private val VOICE_SEARCH_REQUEST_CODE = 10001
-        private val MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS = 10002
-        private val MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS = 10003
-        val MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10004
-        private val PICKFILE_REQUEST_CODE = 10005
-        private val REQUEST_CODE_HISTORY_ACTIVITY = 10006
-        val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
-        val USER_AGENT_PREF_KEY = "user_agent"
-        val MAIN_PREFS_NAME = "main.xml"
+        private const val VOICE_SEARCH_REQUEST_CODE = 10001
+        private const val MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS = 10002
+        private const val MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS = 10003
+        const val MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10004
+        private const val PICKFILE_REQUEST_CODE = 10005
+        private const val REQUEST_CODE_HISTORY_ACTIVITY = 10006
+        const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
+        const val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
+        const val USER_AGENT_PREF_KEY = "user_agent"
+        const val MAIN_PREFS_NAME = "main.xml"
     }
 
     private lateinit var viewModel: MainActivityViewModel
@@ -856,6 +857,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     navigate(url)
                 }
                 hideMenuOverlay()
+            }
+            REQUEST_CODE_UNKNOWN_APP_SOURCES -> if (viewModel.needToCheckUpdateAgain) {
+                viewModel.checkUpdateIfNeeded(this)
             }
 
             else -> super.onActivityResult(requestCode, resultCode, data)

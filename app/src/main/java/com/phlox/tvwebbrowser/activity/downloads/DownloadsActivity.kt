@@ -30,6 +30,7 @@ import java.io.File
 import java.util.ArrayList
 
 import com.phlox.tvwebbrowser.R.string.url
+import com.phlox.tvwebbrowser.activity.main.MainActivity
 import kotlinx.android.synthetic.main.activity_downloads.*
 
 class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, DownloadService.Listener, AdapterView.OnItemLongClickListener {
@@ -194,8 +195,18 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
                     .setMessage(R.string.turn_on_unknown_sources)
                     .setPositiveButton(android.R.string.ok, DialogInterface.OnClickListener { dialog, which -> run {
                         val intentSettings = Intent()
-                        intentSettings.action = android.provider.Settings.ACTION_SECURITY_SETTINGS
-                        startActivity(intentSettings)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            intentSettings.action = Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
+                            intentSettings.data = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
+                        } else {
+                            intentSettings.action = Settings.ACTION_SECURITY_SETTINGS
+                        }
+                        try {
+                            startActivityForResult(intentSettings, REQUEST_CODE_UNKNOWN_APP_SOURCES)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            Toast.makeText(this, R.string.error, Toast.LENGTH_SHORT).show()
+                        }
                     }})
                     .show()
 
@@ -257,6 +268,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
     }
 
     companion object {
+        const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
 
         internal fun getFileExtension(filePath: String): String? {
             var result = ""
