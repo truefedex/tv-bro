@@ -1,7 +1,7 @@
 package com.phlox.tvwebbrowser.singleton.shortcuts
 
 import android.content.Context
-import android.content.SharedPreferences
+import com.phlox.tvwebbrowser.TVBro
 
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
@@ -12,12 +12,12 @@ import java.util.HashMap
  * Created by PDT on 06.08.2017.
  */
 
-class ShortcutMgr private constructor(private val ctx: Context) {
+class ShortcutMgr private constructor() {
     private val shortcuts: MutableMap<Int, Shortcut>
 
     init {
         shortcuts = HashMap()
-        val prefs = ctx.getSharedPreferences(PREFS_SHORTCUTS, Context.MODE_PRIVATE)
+        val prefs = TVBro.instance.getSharedPreferences(PREFS_SHORTCUTS, Context.MODE_PRIVATE)
         for (shortcut in Shortcut.values()) {
             shortcut.keyCode = prefs.getInt(shortcut.prefsKey, shortcut.keyCode)
             if (shortcut.keyCode != 0) {
@@ -39,19 +39,19 @@ class ShortcutMgr private constructor(private val ctx: Context) {
         if (shortcut.keyCode != 0) {
             shortcuts[shortcut.keyCode] = shortcut
         }
-        val prefs = ctx.getSharedPreferences(PREFS_SHORTCUTS, Context.MODE_PRIVATE)
+        val prefs = TVBro.instance.getSharedPreferences(PREFS_SHORTCUTS, Context.MODE_PRIVATE)
         prefs.edit()
                 .putInt(shortcut.prefsKey, shortcut.keyCode)
                 .apply()
     }
 
-    fun findForMenu(menuId: Int): Shortcut? {
+    fun findForId(id: Int): Shortcut? {
         for ((_, value) in shortcuts) {
-            if (value.menuItemId == menuId) {
+            if (value.itemId == id) {
                 return value
             }
         }
-        return Shortcut.findForMenu(menuId)
+        return Shortcut.findForMenu(id)
     }
 
     fun process(keyCode: Int, mainActivity: MainActivity): Boolean {
@@ -78,7 +78,6 @@ class ShortcutMgr private constructor(private val ctx: Context) {
                 return true
             }
         }
-        return false
     }
 
     fun canProcessKeyCode(keyCode: Int): Boolean {
@@ -89,9 +88,9 @@ class ShortcutMgr private constructor(private val ctx: Context) {
         val PREFS_SHORTCUTS = "shortcuts"
         private var instance: ShortcutMgr? = null
 
-        @Synchronized fun getInstance(context: Context): ShortcutMgr {
+        @Synchronized fun getInstance(): ShortcutMgr {
             if (instance == null) {
-                instance = ShortcutMgr(context.applicationContext)
+                instance = ShortcutMgr()
             }
             return instance!!
         }

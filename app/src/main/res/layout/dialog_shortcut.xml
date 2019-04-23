@@ -44,6 +44,8 @@
         android:id="@+id/btnSetKey"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="2dp"
+        android:background="@drawable/button_bg_selector"
         android:ellipsize="end"
         android:lines="1"
         android:text="@string/set_key_for_action" />
@@ -52,6 +54,8 @@
         android:id="@+id/btnClearKey"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:background="@drawable/button_bg_selector"
         android:ellipsize="end"
         android:lines="1"
         android:text="@string/clear" />

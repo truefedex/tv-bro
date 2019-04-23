@@ -20,6 +20,7 @@ class MainSettingsView @JvmOverloads constructor(
     init {
         LayoutInflater.from(getContext()).inflate(R.layout.view_settings_main, this, true)
         settingsViewModel = ViewModelProviders.of(activity as FragmentActivity).get(SettingsViewModel::class.java)
+        orientation = VERTICAL
 
         initSearchEngineConfigUI()
 

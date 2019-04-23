@@ -31,11 +31,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
-                <include
+                <com.phlox.tvwebbrowser.activity.main.dialogs.settings.ShortcutsSettingsView
                     android:id="@+id/tabShortcuts"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    layout="@layout/view_settings_shortcuts" />
+                    android:layout_height="match_parent" />
 
                 <include
                     android:id="@+id/tabVersion"

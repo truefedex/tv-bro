@@ -272,7 +272,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             override fun onChanged(uas: String?) {
                 for (tab in viewModel.tabsStates) {
                     tab.webView?.settings?.userAgentString = uas
-                    if (uas == null || uas == "") {
+                    if (tab.webView != null && (uas == null || uas == "")) {
                         settingsViewModel.saveUAString(SettingsViewModel.TV_BRO_UA_PREFIX +
                                 tab.webView!!.settings.userAgentString.replace("Mobile Safari", "Safari"))
                     }
@@ -877,7 +877,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        val shortcutMgr = ShortcutMgr.getInstance(this)
+        val shortcutMgr = ShortcutMgr.getInstance()
         val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
 
         if (keyCode == KeyEvent.KEYCODE_BACK && viewModel.currentTab.value != null && fullScreenView != null) {

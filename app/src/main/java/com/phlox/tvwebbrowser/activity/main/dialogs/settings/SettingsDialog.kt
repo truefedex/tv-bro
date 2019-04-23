@@ -8,10 +8,6 @@ import com.phlox.tvwebbrowser.R
 import android.widget.TabHost
 
 class SettingsDialog(context: Context, val viewModel: SettingsViewModel) : Dialog(context), DialogInterface.OnDismissListener {
-    override fun onDismiss(dialog: DialogInterface?) {
-        mainView.save()
-    }
-
     private var mainView: MainSettingsView
     private var tabHost: TabHost
 
@@ -43,41 +39,7 @@ class SettingsDialog(context: Context, val viewModel: SettingsViewModel) : Dialo
         setOnDismissListener(this)
     }
 
-    /*internal var onMenuMoreItemClickListener: PopupMenu.OnMenuItemClickListener = PopupMenu.OnMenuItemClickListener { item ->
-        when (item.itemId) {
-            R.id.miUserAgent -> {
-                hideMenuOverlay()
-                if (viewModel.currentTab.value == null) {
-                    return@OnMenuItemClickListener true
-                }
-                var uaString = viewModel.currentTab.value!!.webView?.settings?.userAgentString
-                if (WebViewEx.defaultUAString == uaString) {
-                    uaString = ""
-                }
-                UserAgentConfigDialogFactory.show(this@MainActivity, uaString!!, object : UserAgentConfigDialogFactory.Callback {
-                    override fun onDone(defaultUAString: String?) {
-                        val editor = prefs!!.edit()
-                        editor.putString(USER_AGENT_PREF_KEY, defaultUAString)
-                        editor.apply()
-                        for (tab in viewModel.tabsStates) {
-                            if (tab.webView != null) {
-                                tab.webView?.settings?.userAgentString = defaultUAString
-                            }
-                        }
-                        refresh()
-                    }
-                })
-
-                true
-            }
-            R.id.miShortcutMenu, R.id.miShortcutNavigateBack, R.id.miShortcutNavigateHome, R.id.miShortcutRefreshPage, R.id.miShortcutVoiceSearch -> {
-                ShortcutDialog(this@MainActivity,
-                        ShortcutMgr.getInstance(this@MainActivity)
-                                .findForMenu(item.itemId)!!
-                ).show()
-                true
-            }
-            else -> false
-        }
-    }*/
+    override fun onDismiss(dialog: DialogInterface?) {
+        mainView.save()
+    }
 }

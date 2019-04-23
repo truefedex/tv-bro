@@ -44,7 +44,7 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
             toggleKeyListenState()
         }
         shortcut.keyCode = 0
-        ShortcutMgr.getInstance(context).save(shortcut)
+        ShortcutMgr.getInstance().save(shortcut)
         updateShortcutNameDisplay()
     }
 
@@ -65,7 +65,7 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
             return super.onKeyUp(keyCode, event)
         }
         shortcut.keyCode = if (keyCode != 0) keyCode else event.scanCode
-        ShortcutMgr.getInstance(context).save(shortcut)
+        ShortcutMgr.getInstance().save(shortcut)
         toggleKeyListenState()
         updateShortcutNameDisplay()
         return true
