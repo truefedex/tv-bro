@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.*
 import android.content.pm.PackageManager
@@ -17,23 +18,21 @@ import android.text.TextUtils
 import android.util.Log
 import android.util.Patterns
 import android.util.Size
-import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
-import android.widget.PopupMenu
-import android.widget.Toast
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.adapter.TabsListAdapter
 import com.phlox.tvwebbrowser.activity.main.dialogs.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFactory
-import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutDialog
-import com.phlox.tvwebbrowser.activity.main.dialogs.UserAgentConfigDialogFactory
+import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
+import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsViewModel
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.activity.main.view.Scripts
 import com.phlox.tvwebbrowser.activity.main.view.WebTabItemView
@@ -47,25 +46,23 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
-import java.util.*
+import kotlin.collections.ArrayList
 
 
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
-        private const val VOICE_SEARCH_REQUEST_CODE = 10001
+        const val VOICE_SEARCH_REQUEST_CODE = 10001
         private const val MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS = 10002
         private const val MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS = 10003
         const val MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10004
         private const val PICKFILE_REQUEST_CODE = 10005
         private const val REQUEST_CODE_HISTORY_ACTIVITY = 10006
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
-        const val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
-        const val USER_AGENT_PREF_KEY = "user_agent"
-        const val MAIN_PREFS_NAME = "main.xml"
     }
 
     private lateinit var viewModel: MainActivityViewModel
+    private lateinit var settingsViewModel: SettingsViewModel
     private var handler: Handler? = null
     private var tabsAdapter: TabsListAdapter? = null
     private var thumbnailesSize: Size? = null
@@ -77,12 +74,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private var geoPermissionsCallback: GeolocationPermissions.Callback? = null
     private var running: Boolean = false
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
-    private var searchEngineURL: String? = null
     private var downloadsService: DownloadService? = null
     private var downloadAnimation: Animation? = null
     private var fullScreenView: View? = null
-    private var popupMenuMoreActions: PopupMenu? = null
     private lateinit var prefs: SharedPreferences
+    private val webViews = ArrayList<WebViewEx>()
 
     internal var progressBarHideRunnable: Runnable = Runnable {
         val anim = AnimationUtils.loadAnimation(this@MainActivity, android.R.anim.fade_out)
@@ -126,53 +122,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 viewModel.currentTab.value!!.webView?.setNeedThumbnail(thumbnailesSize)
                 viewModel.currentTab.value!!.webView?.postInvalidate()
             }
-        }
-    }
-
-    internal var onMenuMoreItemClickListener: PopupMenu.OnMenuItemClickListener = PopupMenu.OnMenuItemClickListener { item ->
-        when (item.itemId) {
-            R.id.miSearchEngine -> {
-                SearchEngineConfigDialogFactory.show(this@MainActivity, searchEngineURL!!, prefs!!, true, object : SearchEngineConfigDialogFactory.Callback {
-                    override fun onDone(url: String) {
-                        searchEngineURL = url
-                    }
-                })
-                hideMenuOverlay()
-                true
-            }
-            R.id.miUserAgent -> {
-                hideMenuOverlay()
-                if (viewModel.currentTab.value == null) {
-                    return@OnMenuItemClickListener true
-                }
-                var uaString = viewModel.currentTab.value!!.webView?.settings?.userAgentString
-                if (WebViewEx.defaultUAString == uaString) {
-                    uaString = ""
-                }
-                UserAgentConfigDialogFactory.show(this@MainActivity, uaString!!, object : UserAgentConfigDialogFactory.Callback {
-                    override fun onDone(defaultUAString: String?) {
-                        val editor = prefs!!.edit()
-                        editor.putString(USER_AGENT_PREF_KEY, defaultUAString)
-                        editor.apply()
-                        for (tab in viewModel.tabsStates) {
-                            if (tab.webView != null) {
-                                tab.webView?.settings?.userAgentString = defaultUAString
-                            }
-                        }
-                        refresh()
-                    }
-                })
-
-                true
-            }
-            R.id.miShortcutMenu, R.id.miShortcutNavigateBack, R.id.miShortcutNavigateHome, R.id.miShortcutRefreshPage, R.id.miShortcutVoiceSearch -> {
-                ShortcutDialog(this@MainActivity,
-                        ShortcutMgr.getInstance(this@MainActivity)
-                                .findForMenu(item.itemId)!!
-                ).show()
-                true
-            }
-            else -> false
         }
     }
 
@@ -228,9 +177,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
+        settingsViewModel = ViewModelProviders.of(this).get(SettingsViewModel::class.java)
         handler = Handler()
-        viewModel.jsInterface.setActivity(this)
-        prefs = getSharedPreferences(MAIN_PREFS_NAME, Context.MODE_PRIVATE)
+        prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         setContentView(R.layout.activity_main)
         AndroidBug5497Workaround.assistActivity(this)
 
@@ -256,15 +205,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         btnNewTab.setOnClickListener { openInNewTab(WebViewEx.HOME_URL) }
 
-        val pm = packageManager
-        val activities = pm.queryIntentActivities(
-                Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0)
-        if (activities.size == 0) {
-            ibVoiceSearch.visibility = View.GONE
-            ibMenu.nextFocusRightId = R.id.ibHistory
-        }
-
-        ibVoiceSearch.setOnClickListener { initiateVoiceSearch() }
+        ibVoiceSearch.setOnClickListener { viewModel.initiateVoiceSearch(this) }
 
         /*ibHome.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -288,13 +229,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         ibHistory.setOnClickListener { showHistory() }
 
-        ibMore.setOnClickListener {
-            if (popupMenuMoreActions == null) {
-                popupMenuMoreActions = PopupMenu(this@MainActivity, ibMore, Gravity.BOTTOM)
-                popupMenuMoreActions!!.inflate(R.menu.action_more)
-                popupMenuMoreActions!!.setOnMenuItemClickListener(onMenuMoreItemClickListener)
-            }
-            popupMenuMoreActions!!.show()
+        ibSettings.setOnClickListener {
+            SettingsDialog(this, settingsViewModel).show()
+            hideMenuOverlay()
         }
 
         flMenuRightContainer.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
@@ -328,6 +265,19 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
             }
             false
+        })
+
+
+        settingsViewModel.uaString.observe(this, object : Observer<String> {
+            override fun onChanged(uas: String?) {
+                for (tab in viewModel.tabsStates) {
+                    tab.webView?.settings?.userAgentString = uas
+                    if (uas == null || uas == "") {
+                        settingsViewModel.saveUAString(SettingsViewModel.TV_BRO_UA_PREFIX +
+                                tab.webView!!.settings.userAgentString.replace("Mobile Safari", "Safari"))
+                    }
+                }
+            }
         })
 
         loadState()
@@ -386,12 +336,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             openInNewTab(intentUri.toString())
         }
 
-        searchEngineURL = prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, "")
-        if ("" == searchEngineURL) {
-            SearchEngineConfigDialogFactory.show(this@MainActivity, searchEngineURL!!, prefs, false,
+        if ("" == settingsViewModel.searchEngineURL.value) {
+            SearchEngineConfigDialogFactory.show(this@MainActivity, settingsViewModel, false,
                     object : SearchEngineConfigDialogFactory.Callback {
                         override fun onDone(url: String) {
-                            searchEngineURL = url
                             viewModel.checkUpdateIfNeeded(this@MainActivity)
                         }
                     })
@@ -464,6 +412,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun createWebView(tab: WebTabState) {
         tab.webView = WebViewEx(this)
+
+        if (settingsViewModel.uaString.value == null || settingsViewModel.uaString.value == "") {
+            settingsViewModel.saveUAString("TV Bro/1.0 " + tab.webView!!.settings.userAgentString.replace("Mobile Safari", "Safari"))
+        }
+        tab.webView!!.settings.userAgentString = settingsViewModel.uaString.value
+
         tab.webView?.addJavascriptInterface(viewModel.jsInterface, "TVBro")
 
         tab.webView?.setListener(object : WebViewEx.Listener {
@@ -479,7 +433,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             override fun onDownloadRequested(url: String) {
                 val fileName = Uri.parse(url).lastPathSegment
                 viewModel.onDownloadRequested(this@MainActivity, url, fileName
-                        ?: "url.html", tab.webView?.uaString)
+                        ?: "url.html", tab.webView?.settings?.userAgentString)
             }
 
             override fun onWantZoomMode() {
@@ -754,7 +708,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         tab.webView?.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
             viewModel.onDownloadRequested(this@MainActivity, url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
-                    ?: tab.webView?.uaString)
+                    ?: tab.webView?.settings?.userAgentString)
         }
     }
 
@@ -768,15 +722,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     fun initiateVoiceSearch() {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.speak))
-        try {
-            startActivityForResult(intent, VOICE_SEARCH_REQUEST_CODE)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(this, R.string.voice_search_not_found, Toast.LENGTH_SHORT).show()
-        }
+
 
     }
 
@@ -864,12 +810,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
-
     }
 
     override fun onResume() {
         running = true
         super.onResume()
+        viewModel.jsInterface.setActivity(this)
         val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(mConnectivityChangeReceiver, intentFilter)
         if (viewModel.currentTab.value != null) {
@@ -879,6 +825,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     override fun onPause() {
+        viewModel.jsInterface.setActivity(null)
         unbindService(downloadsServiceConnection)
         if (viewModel.currentTab.value != null) {
             viewModel.currentTab.value!!.webView?.onPause()
@@ -915,7 +862,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 return
             }
 
-            val searchUrl = searchEngineURL!!.replace("[query]", query!!)
+            val searchUrl = settingsViewModel.searchEngineURL.value!!.replace("[query]", query!!)
             navigate(searchUrl)
         }
     }

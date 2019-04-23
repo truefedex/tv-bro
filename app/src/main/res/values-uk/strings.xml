@@ -59,7 +59,8 @@
     <string name="toggle_main_menu">Відобразити меню</string>
     <string name="voice_search">Голосовий пошук</string>
     <string name="install">Встановити</string>
-    <string name="turn_on_unknown_sources">Будь-ласка, дозвольте TV Bro встановлювати додатки з невідомих джерел у системних налаштунках</string>
+    <string name="turn_on_unknown_sources">Будь-ласка, активуйте системну настройку \"Невідомі джерела\"</string>
+    <string name="turn_on_unknown_sources_for_app">Будь-ласка, дозвольте TV Bro встановлювати додатки з невідомих джерел у системних налаштунках</string>
     <string name="storage_not_mounted">Сховище файлів не знайдено</string>
     <string name="can_not_create_downloads">Не можу створити директорію для завантажених файлів</string>
     <string name="voice_search_not_found">Додаток голосового пошуку не знайдено</string>

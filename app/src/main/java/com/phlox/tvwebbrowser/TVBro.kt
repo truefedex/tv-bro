@@ -18,6 +18,7 @@ class TVBro : Application() {
     companion object {
         lateinit var instance: TVBro
         const val CHANNEL_ID_DOWNLOADS: String = "downloads"
+        const val MAIN_PREFS_NAME = "main.xml"
     }
 
     lateinit var threadPool: ThreadPoolExecutor

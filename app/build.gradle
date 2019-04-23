@@ -8,6 +8,11 @@ apply plugin: 'io.fabric'
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 
+ext {
+    support_lib_version = '28.0.0'
+    lifecycle_version = "1.1.1"
+}
+
 android {
     compileSdkVersion 28
     buildToolsVersion '28.0.3'
@@ -55,14 +60,12 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    def supportLibVersion = '28.0.0'
-    implementation "com.android.support:support-v4:$supportLibVersion"
-    implementation "com.android.support:appcompat-v7:$supportLibVersion"
+    implementation "com.android.support:support-v4:$support_lib_version"
+    implementation "com.android.support:appcompat-v7:$support_lib_version"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
 
-    def lifecycle_version = "1.1.1"
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
     annotationProcessor "android.arch.lifecycle:compiler:$lifecycle_version"
     kapt "android.arch.lifecycle:compiler:$lifecycle_version"

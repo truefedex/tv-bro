@@ -14,9 +14,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.FrameLayout
 import android.widget.PopupMenu
-
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.activity.main.MainActivity
 
 /**
  * Created by fedex on 12.08.16.
@@ -24,7 +22,6 @@ import com.phlox.tvwebbrowser.activity.main.MainActivity
 class WebViewEx : WebView {
     companion object {
         const val HOME_URL = "about:blank"
-        var defaultUAString: String? = null
     }
 
     private var needThumbnail: Size? = null
@@ -33,7 +30,6 @@ class WebViewEx : WebView {
     private var actionsMenu: PopupMenu? = null
     private var lastTouchX: Int = 0
     private var lastTouchY: Int = 0
-    var uaString: String? = null
 
     interface Listener {
         fun onThumbnailReady(thumbnail: Bitmap)
@@ -58,15 +54,6 @@ class WebViewEx : WebView {
 
         val browserSettings = settings
         browserSettings.javaScriptCanOpenWindowsAutomatically = true
-        if (defaultUAString == null) {
-            defaultUAString = "TV Bro/1.0 " + browserSettings.userAgentString.replace("Mobile Safari", "Safari")
-        }
-        val prefs = context.getSharedPreferences(MainActivity.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
-        uaString = prefs.getString(MainActivity.USER_AGENT_PREF_KEY, "")
-        if ("" == uaString) {
-            uaString = defaultUAString
-        }
-        browserSettings.userAgentString = uaString
         browserSettings.pluginState = WebSettings.PluginState.ON_DEMAND
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             browserSettings.safeBrowsingEnabled = false

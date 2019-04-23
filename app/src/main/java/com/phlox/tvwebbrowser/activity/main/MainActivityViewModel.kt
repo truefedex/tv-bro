@@ -1,9 +1,10 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
-import android.app.AlertDialog
+import android.app.Activity
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -12,7 +13,10 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.Settings
+import android.speech.RecognizerIntent
+import android.support.v7.app.AlertDialog
 import android.util.Log
+import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import com.phlox.asql.ASQL
@@ -28,6 +32,7 @@ import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.utils.StringUtils
 import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.Utils
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -40,7 +45,7 @@ import java.util.*
 class MainActivityViewModel: ViewModel() {
     companion object {
         const val STATE_JSON = "state.json"
-        var TAG = MainActivityViewModel.javaClass.simpleName
+        var TAG: String = MainActivityViewModel::class.java.simpleName
     }
 
     var needToCheckUpdateAgain: Boolean = false
@@ -143,7 +148,7 @@ class MainActivityViewModel: ViewModel() {
     }
 
     fun checkUpdateIfNeeded(activity: MainActivity) = GlobalScope.launch(Dispatchers.Main) {
-        val updateChecker = UpdateChecker(24/*BuildConfig.VERSION_CODE*/)
+        val updateChecker = UpdateChecker(BuildConfig.VERSION_CODE)
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 updateChecker.check("https://raw.githubusercontent.com/truefedex/tv-bro/master/latest_version.json",
@@ -170,7 +175,8 @@ class MainActivityViewModel: ViewModel() {
                     } else {
                         AlertDialog.Builder(activity)
                                 .setTitle(R.string.app_name)
-                                .setMessage(R.string.turn_on_unknown_sources)
+                                .setMessage(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                                    R.string.turn_on_unknown_sources_for_app else R.string.turn_on_unknown_sources)
                                 .setPositiveButton(android.R.string.ok) { dialog, which -> run {
                                     val intent = Intent()
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -182,11 +188,11 @@ class MainActivityViewModel: ViewModel() {
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
                                     try {
                                         activity.startActivityForResult(intent, MainActivity.REQUEST_CODE_UNKNOWN_APP_SOURCES)
+                                        needToCheckUpdateAgain = true
                                     } catch (e: Exception) {
                                         e.printStackTrace()
                                         Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
                                     }
-                                    needToCheckUpdateAgain = true
                                 }}
                                 .setNegativeButton(android.R.string.cancel) { dialog, which ->
 
@@ -195,9 +201,7 @@ class MainActivityViewModel: ViewModel() {
                     }
                 }
 
-                override fun later() {
-
-                }
+                override fun later() {}
 
                 override fun settings() {
 
@@ -265,5 +269,27 @@ class MainActivityViewModel: ViewModel() {
         DownloadService.startDownloading(activity, url, fullDestFilePath, fileName!!, userAgent!!, operationAfterDownload)
 
         activity.onDownloadStarted(fileName)
+    }
+
+    fun initiateVoiceSearch(activity: MainActivity) {
+        val pm = activity.packageManager
+        val activities = pm.queryIntentActivities(
+                Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0)
+        if (activities.size == 0) {
+            AlertDialog.Builder(activity)
+                    .setTitle(R.string.app_name)
+                    .setMessage(R.string.voice_search_not_found)
+                    .setPositiveButton(android.R.string.ok) { _, _ ->  }
+        } else {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, activity.getString(R.string.speak))
+            try {
+                activity.startActivityForResult(intent, MainActivity.VOICE_SEARCH_REQUEST_CODE)
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }

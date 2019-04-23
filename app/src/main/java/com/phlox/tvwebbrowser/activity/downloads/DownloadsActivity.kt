@@ -192,7 +192,8 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         } else {
             AlertDialog.Builder(this)
                     .setTitle(R.string.app_name)
-                    .setMessage(R.string.turn_on_unknown_sources)
+                    .setMessage(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                        R.string.turn_on_unknown_sources_for_app else R.string.turn_on_unknown_sources)
                     .setPositiveButton(android.R.string.ok, DialogInterface.OnClickListener { dialog, which -> run {
                         val intentSettings = Intent()
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -201,6 +202,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
                         } else {
                             intentSettings.action = Settings.ACTION_SECURITY_SETTINGS
                         }
+                        intentSettings.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
                         try {
                             startActivityForResult(intentSettings, REQUEST_CODE_UNKNOWN_APP_SOURCES)
                         } catch (e: Exception) {

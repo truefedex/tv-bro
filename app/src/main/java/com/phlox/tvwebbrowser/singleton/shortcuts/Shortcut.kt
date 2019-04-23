@@ -9,11 +9,11 @@ import com.phlox.tvwebbrowser.R
  */
 
 enum class Shortcut private constructor(var titleResId: Int, var menuItemId: Int, var prefsKey: String, var keyCode: Int) {
-    MENU(R.string.toggle_main_menu, R.id.miShortcutMenu, "shortcut_menu", KeyEvent.KEYCODE_BACK),
-    NAVIGATE_BACK(R.string.navigate_back, R.id.miShortcutNavigateBack, "shortcut_nav_back", 0),
-    NAVIGATE_HOME(R.string.navigate_home, R.id.miShortcutNavigateHome, "shortcut_nav_home", 0),
-    REFRESH_PAGE(R.string.refresh_page, R.id.miShortcutRefreshPage, "shortcut_refresh_page", 0),
-    VOICE_SEARCH(R.string.voice_search, R.id.miShortcutVoiceSearch, "shortcut_voice_search", KeyEvent.KEYCODE_SEARCH);
+    MENU(R.string.toggle_main_menu, 0/*R.id.miShortcutMenu*/, "shortcut_menu", KeyEvent.KEYCODE_BACK),
+    NAVIGATE_BACK(R.string.navigate_back, 0/*R.id.miShortcutNavigateBack*/, "shortcut_nav_back", 0),
+    NAVIGATE_HOME(R.string.navigate_home, 0/*R.id.miShortcutNavigateHome*/, "shortcut_nav_home", 0),
+    REFRESH_PAGE(R.string.refresh_page, 0/*R.id.miShortcutRefreshPage*/, "shortcut_refresh_page", 0),
+    VOICE_SEARCH(R.string.voice_search, 0/*R.id.miShortcutVoiceSearch*/, "shortcut_voice_search", KeyEvent.KEYCODE_SEARCH);
 
 
     companion object {
