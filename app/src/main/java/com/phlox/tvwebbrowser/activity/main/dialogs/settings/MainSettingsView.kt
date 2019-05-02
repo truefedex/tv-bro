@@ -35,7 +35,7 @@ class MainSettingsView @JvmOverloads constructor(
             settingsViewModel.uaStrings.indexOf(settingsViewModel.uaString.value)
         }
 
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, settingsViewModel.titles)
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, settingsViewModel.userAgentStringTitles)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spTitles.adapter = adapter
 
@@ -43,14 +43,14 @@ class MainSettingsView @JvmOverloads constructor(
             spTitles.setSelection(selected, false)
             etUAString.setText(settingsViewModel.uaStrings[selected])
         } else {
-            spTitles.setSelection(settingsViewModel.titles.size - 1, false)
+            spTitles.setSelection(settingsViewModel.userAgentStringTitles.size - 1, false)
             llUAString.visibility = View.VISIBLE
             etUAString.setText(settingsViewModel.uaString.value)
             etUAString.requestFocus()
         }
         spTitles.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (position == settingsViewModel.titles.size - 1 && llUAString.visibility == View.GONE) {
+                if (position == settingsViewModel.userAgentStringTitles.size - 1 && llUAString.visibility == View.GONE) {
                     llUAString.visibility = View.VISIBLE
                     llUAString.startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in))
                     etUAString.requestFocus()

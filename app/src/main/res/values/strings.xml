@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">TV Bro: TV Web Browser</string>
-    <string name="title_activity_main" translatable="false">TV Bro</string>
+    <string name="app_name_short" translatable="false">TV Bro</string>
     <string name="error">Error</string>
     <string name="ok">OK</string>
     <string name="loading">Loading&#8230;</string>
@@ -72,4 +72,10 @@
     <string name="downloads_notifications_description">Notifications regarding downloads statuses</string>
     <string name="main">Main</string>
     <string name="version_and_updates"><![CDATA[Version & updates]]></string>
+    <string name="version_s">Version: %s</string>
+    <string name="update_channel">Update channel:</string>
+    <string name="auto_check_for_updates">Auto check for updates</string>
+    <string name="update">Update</string>
+    <string name="new_version_available_s">New version available: %s</string>
+    <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Web browser optimized for TVs ( https://github.com/truefedex/tv-bro )</string>
 </resources>

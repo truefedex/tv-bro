@@ -1,6 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.RelativeLayout"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="22dp">
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name_short"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvTitle"
+        android:text="@string/web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro"
+        android:autoLink="all"
+        android:linksClickable="true"/>
+
+    <TextView
+        android:id="@+id/tvVersion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvDescription"
+        android:layout_marginTop="20dp"
+        android:text="@string/version_s" />
+
+    <CheckBox
+        android:id="@+id/chkAutoCheckUpdates"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvVersion"
+        android:layout_marginTop="30dp"
+        android:text="@string/auto_check_for_updates"/>
+
+    <TextView
+        android:id="@+id/tvUpdateChannel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/chkAutoCheckUpdates"
+        android:layout_marginTop="30dp"
+        android:text="@string/update_channel"
+        android:visibility="invisible"/>
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/spUpdateChannel"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/tvUpdateChannel"
+        android:visibility="invisible"/>
+
+    <TextView
+        android:id="@+id/tvNewVersion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/spUpdateChannel"
+        android:layout_marginTop="20dp"
+        android:text="@string/new_version_available_s"
+        android:visibility="invisible"/>
+
+    <Button
+        android:id="@+id/btnUpdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/tvNewVersion"
+        android:layout_marginStart="30dp"
+        android:layout_alignBaseline="@+id/tvNewVersion"
+        android:text="@string/update"
+        android:visibility="invisible"/>
+</merge>

@@ -230,8 +230,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         ibHistory.setOnClickListener { showHistory() }
 
         ibSettings.setOnClickListener {
-            SettingsDialog(this, settingsViewModel).show()
-            hideMenuOverlay()
+            showSettings()
         }
 
         flMenuRightContainer.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
@@ -281,6 +280,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         })
 
         loadState()
+    }
+
+    public fun showSettings() {
+        SettingsDialog(this, settingsViewModel).show()
     }
 
     fun navigateBack() {
@@ -340,11 +343,19 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             SearchEngineConfigDialogFactory.show(this@MainActivity, settingsViewModel, false,
                     object : SearchEngineConfigDialogFactory.Callback {
                         override fun onDone(url: String) {
-                            viewModel.checkUpdateIfNeeded(this@MainActivity)
+                            if (settingsViewModel.updateChecker.versionCheckResult == null) {
+                                settingsViewModel.checkUpdate{
+                                    settingsViewModel.showUpdateDialogIfNeeded(this@MainActivity)
+                                }
+                            }
                         }
                     })
         } else {
-            viewModel.checkUpdateIfNeeded(this@MainActivity)
+            if (settingsViewModel.updateChecker.versionCheckResult == null) {
+                settingsViewModel.checkUpdate{
+                    settingsViewModel.showUpdateDialogIfNeeded(this@MainActivity)
+                }
+            }
         }
     }
 
@@ -432,7 +443,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             override fun onDownloadRequested(url: String) {
                 val fileName = Uri.parse(url).lastPathSegment
-                viewModel.onDownloadRequested(this@MainActivity, url, fileName
+                onDownloadRequested(url, fileName
                         ?: "url.html", tab.webView?.settings?.userAgentString)
             }
 
@@ -707,9 +718,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
 
         tab.webView?.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
-            viewModel.onDownloadRequested(this@MainActivity, url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
+            onDownloadRequested(url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
                     ?: tab.webView?.settings?.userAgentString)
         }
+    }
+
+    fun onDownloadRequested(url: String, originalDownloadFileName: String?, userAgent: String?,
+                            operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP) {
+        viewModel.onDownloadRequested(this, url, originalDownloadFileName, userAgent, operationAfterDownload)
     }
 
     override fun onTrimMemory(level: Int) {
@@ -719,11 +735,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         }
         super.onTrimMemory(level)
-    }
-
-    fun initiateVoiceSearch() {
-
-
     }
 
     override fun onRequestPermissionsResult(requestCode: Int,
@@ -804,8 +815,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
                 hideMenuOverlay()
             }
-            REQUEST_CODE_UNKNOWN_APP_SOURCES -> if (viewModel.needToCheckUpdateAgain) {
-                viewModel.checkUpdateIfNeeded(this)
+            REQUEST_CODE_UNKNOWN_APP_SOURCES -> if (settingsViewModel.needToShowUpdateDlgAgain) {
+                settingsViewModel.showUpdateDialogIfNeeded(this)
             }
 
             else -> super.onActivityResult(requestCode, resultCode, data)
@@ -957,5 +968,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             downloadAnimation = AnimationUtils.loadAnimation(this, R.anim.infinite_fadeinout_anim)
             ibDownloads.startAnimation(downloadAnimation)
         }
+    }
+
+    fun initiateVoiceSearch() {
+        viewModel.initiateVoiceSearch(this)
     }
 }

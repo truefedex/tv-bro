@@ -48,7 +48,6 @@ class MainActivityViewModel: ViewModel() {
         var TAG: String = MainActivityViewModel::class.java.simpleName
     }
 
-    var needToCheckUpdateAgain: Boolean = false
     val asql by lazy { ASQL.getDefault(TVBro.instance) }
     val currentTab = MutableLiveData<WebTabState>()
     val tabsStates = ArrayList<WebTabState>()
@@ -144,69 +143,6 @@ class MainActivityViewModel: ViewModel() {
         lastHistoryItem = item
         asql.execInsert("INSERT INTO history (time, title, url, favicon) VALUES (:time, :title, :url, :favicon)", lastHistoryItem) { lastInsertRowId, exception ->
             exception?.printStackTrace()
-        }
-    }
-
-    fun checkUpdateIfNeeded(activity: MainActivity) = GlobalScope.launch(Dispatchers.Main) {
-        val updateChecker = UpdateChecker(BuildConfig.VERSION_CODE)
-        GlobalScope.launch(Dispatchers.IO) {
-            try {
-                updateChecker.check("https://raw.githubusercontent.com/truefedex/tv-bro/master/latest_version.json",
-                        arrayOf("release"))
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }.join()
-        if (updateChecker.versionCheckResult != null &&
-                updateChecker.versionCheckResult!!.latestVersionCode > updateChecker.currentVersionCode) {
-            updateChecker.showUpdateDialog(activity, "release", object : UpdateChecker.DialogCallback {
-                override fun download() {
-                    val update = updateChecker.versionCheckResult ?: return
-
-                    val canInstallFromOtherSources = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        activity.packageManager.canRequestPackageInstalls()
-                    } else
-                        Settings.Secure.getInt(activity.contentResolver, Settings.Secure.INSTALL_NON_MARKET_APPS) == 1
-
-                    if(canInstallFromOtherSources) {
-                        val filename = "update${update.latestVersionName}.apk"
-                        onDownloadRequested(activity, update.url, filename, "tvbro-update-checker",
-                                Download.OperationAfterDownload.INSTALL)
-                    } else {
-                        AlertDialog.Builder(activity)
-                                .setTitle(R.string.app_name)
-                                .setMessage(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                                    R.string.turn_on_unknown_sources_for_app else R.string.turn_on_unknown_sources)
-                                .setPositiveButton(android.R.string.ok) { dialog, which -> run {
-                                    val intent = Intent()
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                        intent.action = Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
-                                        intent.data = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
-                                    } else {
-                                        intent.action = Settings.ACTION_SECURITY_SETTINGS
-                                    }
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    try {
-                                        activity.startActivityForResult(intent, MainActivity.REQUEST_CODE_UNKNOWN_APP_SOURCES)
-                                        needToCheckUpdateAgain = true
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
-                                        Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
-                                    }
-                                }}
-                                .setNegativeButton(android.R.string.cancel) { dialog, which ->
-
-                                }
-                                .show()
-                    }
-                }
-
-                override fun later() {}
-
-                override fun settings() {
-
-                }
-            })
         }
     }
 

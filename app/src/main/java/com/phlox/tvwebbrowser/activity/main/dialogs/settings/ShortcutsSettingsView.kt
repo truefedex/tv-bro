@@ -15,6 +15,8 @@ import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.activity
 import kotlinx.android.synthetic.main.view_shortcut.view.*
 
+
+
 class ShortcutsSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ListView(context, attrs, defStyleAttr), AdapterView.OnItemClickListener {
@@ -41,6 +43,24 @@ class ShortcutsSettingsView @JvmOverloads constructor(
         }
         dialog.show()
     }
+
+/*    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        // Adjust width as necessary
+        val measuredWidth = MeasureSpec.getSize(widthMeasureSpec)
+        var _widthMeasureSpec = widthMeasureSpec
+        if (maxWidth > 0 && maxWidth < measuredWidth) {
+            val measureMode = MeasureSpec.getMode(widthMeasureSpec)
+            _widthMeasureSpec = MeasureSpec.makeMeasureSpec(maxWidth, measureMode)
+        }
+        // Adjust height as necessary
+        val measuredHeight = MeasureSpec.getSize(heightMeasureSpec)
+        var _heightMeasureSpec = heightMeasureSpec
+        if (maxHeight > 0 && maxHeight < measuredHeight) {
+            val measureMode = MeasureSpec.getMode(heightMeasureSpec)
+            _heightMeasureSpec = MeasureSpec.makeMeasureSpec(maxHeight, measureMode)
+        }
+        super.onMeasure(_widthMeasureSpec, _heightMeasureSpec)
+    }*/
 
     inner class ShortcutItemAdapter: BaseAdapter() {
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {

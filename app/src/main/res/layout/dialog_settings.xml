@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:minWidth="400dp"
-    android:minHeight="300dp">
+    android:orientation="vertical"
+    android:layout_width="@dimen/settings_dialog_width"
+    android:layout_height="@dimen/settings_dialog_height">
 
     <TabHost
         android:id="@+id/tabHost"
@@ -36,11 +35,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
-                <include
+                <com.phlox.tvwebbrowser.activity.main.dialogs.settings.VersionSettingsView
                     android:id="@+id/tabVersion"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    layout="@layout/view_settings_version" />
+                    android:layout_height="match_parent" />
             </FrameLayout>
         </LinearLayout>
     </TabHost>

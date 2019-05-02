@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.utils
 import android.app.Activity
 import android.content.ContextWrapper
 import android.view.View
+import java.util.*
 
 val View.activity: Activity?
     get() {
@@ -17,3 +18,9 @@ val View.activity: Activity?
             ctx = (ctx as ContextWrapper).baseContext
         }
     }
+
+fun Calendar.sameDay(other: Calendar): Boolean {
+    return this.get(Calendar.YEAR) == other.get(Calendar.YEAR) &&
+            this.get(Calendar.MONTH) == other.get(Calendar.MONTH) &&
+            this.get(Calendar.DAY_OF_MONTH) == other.get(Calendar.DAY_OF_MONTH)
+}
