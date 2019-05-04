@@ -21,8 +21,8 @@ android {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 25
-        versionName "1.3.0"
+        versionCode 26
+        versionName "1.4.0"
     }
     signingConfigs {
         release {
@@ -34,7 +34,7 @@ android {
     }
     buildTypes {
         release {
-            debuggable true
+            debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
@@ -48,7 +48,7 @@ android {
         }
         crashlytics {
             dimension "crashlytics"
-            versionNameSuffix "-crashlytics"
+            //versionNameSuffix "-crashlytics"
         }
     }
 
@@ -71,8 +71,9 @@ dependencies {
     kapt "android.arch.lifecycle:compiler:$lifecycle_version"
 
     implementation 'com.github.truefedex:ASQL:v0.1.2'
+    implementation 'com.github.truefedex:segmented-button:v1.0.0'
     implementation 'de.halfbit:pinned-section-listview:1.0.0'
 
     crashlyticsImplementation 'com.google.firebase:firebase-core:16.0.8'
-    crashlyticsImplementation 'com.crashlytics.sdk.android:crashlytics:2.9.9'
+    crashlyticsImplementation 'com.crashlytics.sdk.android:crashlytics:2.10.0'
 }

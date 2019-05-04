@@ -8,21 +8,21 @@
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.3.0-alpha",
-      "latestVersionCode": 25,
+      "latestVersionName": "v1.4.0",
+      "latestVersionCode": 26,
       "url": "https://github.com/truefedex/tv-bro/releases/download/v1.3.0-alpha/tvbro1.3.0alpha.apk"
     }
   ],
 
   "changelog": [
     {
-      "versionCode": 25,
-      "versionName": "v1.3.0",
-      "changes": "-Redesigned home page\n-New application icon\n-History screen: clear button added\n-Performance and stability improvements"
+      "versionCode": 26,
+      "versionName": "v1.4.0",
+      "changes": "-Fixed several layout problems and bugs\n-Auto update function (experimental)\n-New settings screen"
     },
     {
-      "versionCode": 0,
-      "versionName": "test",
+      "versionCode": 25,
+      "versionName": "v1.3.0",
       "changes": "-Redesigned home page\n-New application icon\n-History screen: clear button added\n-Performance and stability improvements"
     }
   ]

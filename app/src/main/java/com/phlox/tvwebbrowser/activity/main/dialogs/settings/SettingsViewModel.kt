@@ -28,7 +28,9 @@ class SettingsViewModel: ViewModel() {
         val TAG = SettingsViewModel::class.java.simpleName
         const val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
         const val USER_AGENT_PREF_KEY = "user_agent"
-        const val LAST_UPDATE_USER_NOTIFICATION_TIME="last_update_notif"
+        const val LAST_UPDATE_USER_NOTIFICATION_TIME_KEY="last_update_notif"
+        const val AUTOCHECK_UPDATES_KEY="auto_check_updates"
+        const val UPDATE_CHANNEL_KEY="update_channel"
         const val TV_BRO_UA_PREFIX = "TV Bro/1.0 "
     }
 
@@ -57,15 +59,19 @@ class SettingsViewModel: ViewModel() {
     //Version & updates configuration
     var needToShowUpdateDlgAgain: Boolean = false
     val updateChecker = UpdateChecker(BuildConfig.VERSION_CODE)
-    lateinit var lastUpdateNotificationTime: Calendar
+    var lastUpdateNotificationTime: Calendar
+    var needAutockeckUpdates: Boolean
+    var updateChannel: String
 
     init {
         prefs = TVBro.instance.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         searchEngineURL.postValue(prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, ""))
         uaString.postValue(prefs.getString(USER_AGENT_PREF_KEY, ""))
-        lastUpdateNotificationTime = if (prefs.contains(LAST_UPDATE_USER_NOTIFICATION_TIME))
-            Calendar.getInstance().apply { timeInMillis = prefs.getLong(LAST_UPDATE_USER_NOTIFICATION_TIME, 0) } else
+        lastUpdateNotificationTime = if (prefs.contains(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY))
+            Calendar.getInstance().apply { timeInMillis = prefs.getLong(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY, 0) } else
             Calendar.getInstance()
+        needAutockeckUpdates = prefs.getBoolean(AUTOCHECK_UPDATES_KEY, !UpdateChecker.isInstalledByMarket(TVBro.instance))
+        updateChannel = prefs.getString(UPDATE_CHANNEL_KEY, "release")!!
     }
 
     fun changeSearchEngineUrl(url: String) {
@@ -82,34 +88,46 @@ class SettingsViewModel: ViewModel() {
         uaString.postValue(uas)
     }
 
+    fun saveAutoCheckUpdates(need: Boolean) {
+        val editor = prefs.edit()
+        editor.putBoolean(AUTOCHECK_UPDATES_KEY, need)
+        editor.apply()
+        needAutockeckUpdates = need
+    }
+
+    fun saveUpdateChannel(selectedChannel: String) {
+        val editor = prefs.edit()
+        editor.putString(UPDATE_CHANNEL_KEY, updateChannel)
+        editor.apply()
+        updateChannel = selectedChannel
+    }
+
     fun checkUpdate(onUpdateAvailableCallback: () -> Unit) = GlobalScope.launch(Dispatchers.Main) {
         if (updateChecker.versionCheckResult == null) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
                     updateChecker.check("https://raw.githubusercontent.com/truefedex/tv-bro/master/latest_version.json",
-                            arrayOf("release"))
+                            arrayOf(updateChannel))
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }.join()
         }
-        if (updateChecker.versionCheckResult != null &&
-                updateChecker.versionCheckResult!!.latestVersionCode > updateChecker.currentVersionCode) {
+        if (updateChecker.hasUpdate()) {
             onUpdateAvailableCallback()
         }
     }
 
-    public fun showUpdateDialogIfNeeded(activity: MainActivity) {
+    public fun showUpdateDialogIfNeeded(activity: MainActivity, force: Boolean = false) {
         val now = Calendar.getInstance()
-        if (lastUpdateNotificationTime.sameDay(now)) {
+        if (lastUpdateNotificationTime.sameDay(now) && !force) {
             return
         }
-        if (updateChecker.versionCheckResult == null ||
-                updateChecker.versionCheckResult!!.latestVersionCode <= updateChecker.currentVersionCode) {
+        if (updateChecker.hasUpdate()) {
             throw IllegalStateException()
         }
         lastUpdateNotificationTime = now
-        prefs.edit().putLong(LAST_UPDATE_USER_NOTIFICATION_TIME, lastUpdateNotificationTime.timeInMillis).apply()
+        prefs.edit().putLong(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY, lastUpdateNotificationTime.timeInMillis).apply()
 
         updateChecker.showUpdateDialog(activity, "release", object : UpdateChecker.DialogCallback {
             override fun download() {
@@ -161,6 +179,5 @@ class SettingsViewModel: ViewModel() {
                 activity.showSettings()
             }
         })
-
     }
 }

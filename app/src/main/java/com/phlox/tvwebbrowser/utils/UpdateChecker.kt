@@ -29,7 +29,7 @@ class UpdateChecker(val currentVersionCode: Int) {
 
     class ChangelogEntry(val versionCode: Int, val versionName: String, val changes: String)
     class UpdateCheckResult(val latestVersionCode: Int, val latestVersionName: String, val channel:String,
-                            val url: String, val changelog: ArrayList<ChangelogEntry>)
+                            val url: String, val changelog: ArrayList<ChangelogEntry>, val availableChannels: Array<String>)
     interface DialogCallback {
         fun download()
         fun later()
@@ -47,8 +47,10 @@ class UpdateChecker(val currentVersionCode: Int) {
             var latestVersionName = ""
             var url = ""
             var latestVersionChannelName = ""
-            for (i in 0..(channelsJson.length() - 1)) {
+            var availableChannels = ArrayList<String>()
+            for (i in 0 until channelsJson.length()) {
                 val channelJson = channelsJson.getJSONObject(i)
+                availableChannels.add(channelJson.getString("name"))
                 if (channelsToCheck.contains(channelJson.getString("name"))) {
                     if (latestVersionCode < channelJson.getInt("latestVersionCode")) {
                         latestVersionCode = channelJson.getInt("latestVersionCode")
@@ -66,7 +68,7 @@ class UpdateChecker(val currentVersionCode: Int) {
                         versionChangesJson.getString("versionName"),
                         versionChangesJson.getString("changes")))
             }
-            versionCheckResult = UpdateCheckResult(latestVersionCode, latestVersionName, latestVersionChannelName, url, changelog)
+            versionCheckResult = UpdateCheckResult(latestVersionCode, latestVersionName, latestVersionChannelName, url, changelog, availableChannels.toTypedArray())
         } finally {
             urlConnection.disconnect()
         }
@@ -100,5 +102,9 @@ class UpdateChecker(val currentVersionCode: Int) {
                     callback.settings()
                 })
                 .show()
+    }
+
+    fun hasUpdate(): Boolean {
+        return versionCheckResult != null && versionCheckResult!!.latestVersionCode > currentVersionCode
     }
 }

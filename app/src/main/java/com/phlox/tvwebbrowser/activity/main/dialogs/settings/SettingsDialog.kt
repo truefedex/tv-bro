@@ -4,42 +4,45 @@ import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.view.View
+import com.fedir.segmentedbutton.SegmentedButton
 import com.phlox.tvwebbrowser.R
-import android.widget.TabHost
+import com.phlox.tvwebbrowser.widgets.SegmentedButtonTabsAdapter
 
-class SettingsDialog(context: Context, val viewModel: SettingsViewModel) : Dialog(context), DialogInterface.OnDismissListener {
-    private var mainView: MainSettingsView
-    private var tabHost: TabHost
+class SettingsDialog(context: Context, val viewModel: SettingsViewModel) : Dialog(context), DialogInterface.OnDismissListener, VersionSettingsView.Callback {
+    private var mainView: MainSettingsView? = null
+    private var sbTabs: SegmentedButton
 
     init {
         setTitle(R.string.settings)
         setContentView(R.layout.dialog_settings)
 
-        tabHost = findViewById(R.id.tabHost)
+        sbTabs = findViewById(R.id.sbTabs)
 
-        tabHost.setup()
-
-        val mainTabSpec = tabHost.newTabSpec("general")
-        mainTabSpec.setIndicator(context.getString(R.string.main))
-        mainTabSpec.setContent(R.id.tabMain)
-        tabHost.addTab(mainTabSpec)
-
-        val shortcutsTabSpec = tabHost.newTabSpec("shortcuts")
-        shortcutsTabSpec.setIndicator(context.getString(R.string.shortcuts))
-        shortcutsTabSpec.setContent(R.id.tabShortcuts)
-        tabHost.addTab(shortcutsTabSpec)
-
-        val versionTabSpec = tabHost.newTabSpec("version")
-        versionTabSpec.setIndicator(context.getString(R.string.version_and_updates))
-        versionTabSpec.setContent(R.id.tabVersion)
-        tabHost.addTab(versionTabSpec)
-
-        mainView = findViewById(R.id.tabMain) as MainSettingsView
+        val tabContentAdapter = object : SegmentedButtonTabsAdapter(sbTabs, findViewById(R.id.flTabsContent)) {
+            override fun createContentViewForSegmentButtonId(id: Int): View {
+                return when (id) {
+                    R.id.btnMainTab -> {
+                        mainView = MainSettingsView(context)
+                        mainView!!
+                    }
+                    R.id.btnShortcutsTab -> ShortcutsSettingsView(context)
+                    else -> {
+                        val view = VersionSettingsView(context)
+                        view.callback = this@SettingsDialog
+                        view
+                    }
+                }
+            }
+        }
 
         setOnDismissListener(this)
     }
 
     override fun onDismiss(dialog: DialogInterface?) {
-        mainView.save()
+        mainView?.save()
+    }
+
+    override fun onNeedToCloseSettings() {
+        dismiss()
     }
 }

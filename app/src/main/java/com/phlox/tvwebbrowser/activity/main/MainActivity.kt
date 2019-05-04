@@ -46,6 +46,7 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
+import java.util.*
 import kotlin.collections.ArrayList
 
 
@@ -343,7 +344,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             SearchEngineConfigDialogFactory.show(this@MainActivity, settingsViewModel, false,
                     object : SearchEngineConfigDialogFactory.Callback {
                         override fun onDone(url: String) {
-                            if (settingsViewModel.updateChecker.versionCheckResult == null) {
+                            if (settingsViewModel.needAutockeckUpdates &&
+                                    settingsViewModel.updateChecker.versionCheckResult == null &&
+                                    !settingsViewModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
                                 settingsViewModel.checkUpdate{
                                     settingsViewModel.showUpdateDialogIfNeeded(this@MainActivity)
                                 }
@@ -351,7 +354,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                         }
                     })
         } else {
-            if (settingsViewModel.updateChecker.versionCheckResult == null) {
+            if (settingsViewModel.needAutockeckUpdates &&
+                    settingsViewModel.updateChecker.versionCheckResult == null &&
+                    !settingsViewModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
                 settingsViewModel.checkUpdate{
                     settingsViewModel.showUpdateDialogIfNeeded(this@MainActivity)
                 }
