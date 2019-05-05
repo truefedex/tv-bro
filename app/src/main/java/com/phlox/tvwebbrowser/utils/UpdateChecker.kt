@@ -115,7 +115,9 @@ class UpdateChecker(val currentVersionCode: Int) {
     fun downloadUpdate(context: Context) = GlobalScope.launch(Dispatchers.Main) {
         val dialog = ProgressDialog(context)
         dialog.setCancelable(true)
-        dialog.isIndeterminate = true
+        dialog.setMessage(context.getString(R.string.downloading_file))
+        dialog.isIndeterminate = false
+        dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
         dialog.show()
         var downloaded = false
         var downloadedFile: File? = null
@@ -138,10 +140,10 @@ class UpdateChecker(val currentVersionCode: Int) {
                 }
 
                 val fileLength = connection.contentLength
-                if (fileLength != -1) {
+                if (fileLength == -1) {
                     launch(Dispatchers.Main) {
-                        dialog.isIndeterminate = false
-                        dialog.progress = 0
+                        dialog.isIndeterminate = true
+                        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
                     }
                 }
 
