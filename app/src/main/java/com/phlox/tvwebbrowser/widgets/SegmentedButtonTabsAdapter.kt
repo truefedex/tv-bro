@@ -33,7 +33,7 @@ abstract class SegmentedButtonTabsAdapter(val segmentedButton: SegmentedButton, 
             view = createContentViewForSegmentButtonId(checkedSegmentId)
             contentViewsCache.put(checkedSegmentId, view)
         }
-        contentLayout.addView(view)
+        contentLayout.addView(view, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         currentContentView = view
     }
 

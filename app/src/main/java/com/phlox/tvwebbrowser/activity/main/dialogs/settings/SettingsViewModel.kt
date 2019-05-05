@@ -123,7 +123,7 @@ class SettingsViewModel: ViewModel() {
         if (lastUpdateNotificationTime.sameDay(now) && !force) {
             return
         }
-        if (updateChecker.hasUpdate()) {
+        if (!updateChecker.hasUpdate()) {
             throw IllegalStateException()
         }
         lastUpdateNotificationTime = now
@@ -131,7 +131,7 @@ class SettingsViewModel: ViewModel() {
 
         updateChecker.showUpdateDialog(activity, "release", object : UpdateChecker.DialogCallback {
             override fun download() {
-                val update = updateChecker.versionCheckResult ?: return
+                updateChecker.versionCheckResult ?: return
 
                 val canInstallFromOtherSources = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     activity.packageManager.canRequestPackageInstalls()
@@ -139,9 +139,10 @@ class SettingsViewModel: ViewModel() {
                     Settings.Secure.getInt(activity.contentResolver, Settings.Secure.INSTALL_NON_MARKET_APPS) == 1
 
                 if (canInstallFromOtherSources) {
-                    val filename = "update${update.latestVersionName}.apk"
+                    /*val filename = "update${update.latestVersionName}.apk"
                     activity.onDownloadRequested(update.url, filename, "tvbro-update-checker",
-                            Download.OperationAfterDownload.INSTALL)
+                            Download.OperationAfterDownload.INSTALL)*/
+                    updateChecker.downloadUpdate(activity)
                 } else {
                     AlertDialog.Builder(activity)
                             .setTitle(R.string.app_name)

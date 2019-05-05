@@ -7,6 +7,8 @@ import android.net.NetworkInfo
 import android.view.Display
 import android.view.WindowManager
 import android.widget.Toast
+import java.io.File
+import java.io.IOException
 
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -100,5 +102,26 @@ object Utils {
         val c2 = Calendar.getInstance()
         c2.timeInMillis = other
         return c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR) && c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
+    }
+
+    @Throws(IOException::class)
+    fun createTempFile(context: Context, fileName: String): File {
+        val externalCacheDir = context.externalCacheDir
+        val internalCacheDir = context.cacheDir
+        val cacheDir: File
+        if (externalCacheDir == null && internalCacheDir == null) {
+            throw IOException("No cache directory available")
+        }
+        if (externalCacheDir == null) {
+            cacheDir = internalCacheDir
+        } else if (internalCacheDir == null) {
+            cacheDir = externalCacheDir
+        } else {
+            cacheDir = if (externalCacheDir.freeSpace > internalCacheDir.freeSpace)
+                externalCacheDir
+            else
+                internalCacheDir
+        }
+        return File(cacheDir, fileName)
     }
 }

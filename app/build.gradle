@@ -21,8 +21,8 @@ android {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 26
-        versionName "1.4.0"
+        versionCode 27
+        versionName "1.4.1"
     }
     signingConfigs {
         release {

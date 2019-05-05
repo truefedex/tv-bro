@@ -6,10 +6,7 @@ import android.support.v4.app.FragmentActivity
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.LinearLayout
-import android.widget.RelativeLayout
+import android.widget.*
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.MainActivity
@@ -19,7 +16,7 @@ import kotlinx.android.synthetic.main.view_settings_version.view.*
 
 class VersionSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
-) : RelativeLayout(context, attrs, defStyleAttr) {
+) : ScrollView(context, attrs, defStyleAttr) {
     var settingsViewModel: SettingsViewModel
     var callback: Callback? = null
 
@@ -32,9 +29,6 @@ class VersionSettingsView @JvmOverloads constructor(
     init {
         LayoutInflater.from(getContext()).inflate(R.layout.view_settings_version, this, true)
         settingsViewModel = ViewModelProviders.of(activity as FragmentActivity).get(SettingsViewModel::class.java)
-
-        val padding = Utils.D2P(context, 22f).toInt()
-        setPadding(padding,padding,padding,padding)
 
         tvVersion.text = context.getString(R.string.version_s, BuildConfig.VERSION_NAME)
 
@@ -77,6 +71,7 @@ class VersionSettingsView @JvmOverloads constructor(
                     updateUIVisibility()
                 }
             }
+            return
         }
 
         tvUpdateChannel.visibility = if (settingsViewModel.needAutockeckUpdates) View.VISIBLE else View.INVISIBLE
@@ -98,5 +93,8 @@ class VersionSettingsView @JvmOverloads constructor(
         val hasUpdate = settingsViewModel.updateChecker.hasUpdate()
         tvNewVersion.visibility = if (settingsViewModel.needAutockeckUpdates && hasUpdate) View.VISIBLE else View.INVISIBLE
         btnUpdate.visibility = if (settingsViewModel.needAutockeckUpdates && hasUpdate) View.VISIBLE else View.INVISIBLE
+        if (hasUpdate) {
+            tvNewVersion.text = context.getString(R.string.new_version_available_s, settingsViewModel.updateChecker.versionCheckResult!!.latestVersionName)
+        }
     }
 }
