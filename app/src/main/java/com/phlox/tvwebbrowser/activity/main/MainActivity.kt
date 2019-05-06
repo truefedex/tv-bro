@@ -1,6 +1,8 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
@@ -9,10 +11,13 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
+import android.net.http.SslError
 import android.os.*
 import android.speech.RecognizerIntent
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
@@ -64,7 +69,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var settingsViewModel: SettingsViewModel
-    private var handler: Handler? = null
+    private lateinit var uiHandler: Handler
     private var tabsAdapter: TabsListAdapter? = null
     private var thumbnailesSize: Size? = null
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
@@ -179,7 +184,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
         settingsViewModel = ViewModelProviders.of(this).get(SettingsViewModel::class.java)
-        handler = Handler()
+        uiHandler = Handler()
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         setContentView(R.layout.activity_main)
         AndroidBug5497Workaround.assistActivity(this)
@@ -244,7 +249,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             if (focused) {
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.showSoftInput(etUrl, InputMethodManager.SHOW_FORCED)
-                handler!!.postDelayed(//workaround an android TV bug
+                uiHandler!!.postDelayed(//workaround an android TV bug
                         {
                             etUrl.selectAll()
                         }, 500)
@@ -490,11 +495,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 } else {
                     progressBar.progress = newProgress
                 }
-                handler!!.removeCallbacks(progressBarHideRunnable)
+                uiHandler!!.removeCallbacks(progressBarHideRunnable)
                 if (newProgress == 100) {
-                    handler!!.postDelayed(progressBarHideRunnable, 1000)
+                    uiHandler!!.postDelayed(progressBarHideRunnable, 1000)
                 } else {
-                    handler!!.postDelayed(progressBarHideRunnable, 5000)
+                    uiHandler!!.postDelayed(progressBarHideRunnable, 5000)
                 }
             }
 
@@ -714,6 +719,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             override fun onLoadResource(view: WebView, url: String) {
                 super.onLoadResource(view, url)
             }
+
+            override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
+                showCertificateErrorHint(error)
+                handler.proceed()
+            }
         }
 
         tab.webView?.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
@@ -725,6 +735,25 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         tab.webView?.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
             onDownloadRequested(url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
                     ?: tab.webView?.settings?.userAgentString)
+        }
+    }
+
+    private fun showCertificateErrorHint(error: SslError) {
+        llCertificateWarning.visibility = View.VISIBLE
+        llCertificateWarning.alpha = 1f
+        etUrl.setTextColor(Color.RED)
+        uiHandler.removeCallbacks(hideCertificateWarningRunnable)
+        uiHandler.postDelayed(hideCertificateWarningRunnable, 10000)
+    }
+
+    private val hideCertificateWarningRunnable = object : Runnable {
+        override fun run() {
+            llCertificateWarning.animate().alpha(0f).setDuration(1000)
+                    .setListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator?) {
+                            llCertificateWarning.visibility = View.GONE
+                        }
+                    }).start()
         }
     }
 
@@ -853,6 +882,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     fun navigate(url: String) {
+        etUrl.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
         if (viewModel.currentTab.value != null) {
             viewModel.currentTab.value!!.webView?.loadUrl(url)
         } else {
@@ -900,7 +930,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 //nop
             } else if (event.action == KeyEvent.ACTION_UP) {
-                handler?.post {
+                uiHandler?.post {
                     viewModel.currentTab.value!!.webChromeClient?.onHideCustomView()
                 }
             }

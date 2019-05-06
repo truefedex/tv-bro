@@ -72,11 +72,11 @@
             android:id="@+id/etUrl"
             android:iconifiedByDefault="false"
             android:textCursorDrawable="@null"
-            android:textColor="#000"
+            android:textColor="@color/default_url_color"
 
             android:imeOptions="actionSearch"
             android:hint="@string/url_prompt"
-            android:inputType="textFilter|textNoSuggestions"
+            android:inputType="textFilter|textNoSuggestions|textUri"
             />
 
     </LinearLayout>
@@ -182,6 +182,43 @@
             android:background="#000"
             android:alpha="0"/>
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llToasts"
+        android:layout_width="300dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/llActionBar"
+        android:layout_alignWithParentIfMissing="true"
+        android:padding="10dp">
+        <LinearLayout
+            android:id="@+id/llCertificateWarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#88ff0000"
+            android:padding="5dp"
+            android:visibility="gone">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/warning"
+                android:textColor="#fff"
+                android:textSize="25sp"
+                android:textStyle="bold"
+                android:lines="1"
+                android:ellipsize="end"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/unprotected_connection"
+                android:textColor="#fff"
+                android:textSize="22sp"
+                android:lines="1"
+                android:ellipsize="end"/>
+        </LinearLayout>
     </LinearLayout>
 
     <ProgressBar

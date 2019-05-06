@@ -78,4 +78,6 @@
     <string name="update">Update</string>
     <string name="new_version_available_s">New version available: %s</string>
     <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Web browser optimized for TVs ( https://github.com/truefedex/tv-bro )</string>
+    <string name="warning">Warning</string>
+    <string name="unprotected_connection">Unprotected connection</string>
 </resources>

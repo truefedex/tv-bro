@@ -69,4 +69,13 @@
     <string name="later">Позже</string>
     <string name="new_version_dialog_title">Доступна новая версия</string>
     <string name="downloads_notifications_description">Уведомления о загрузках</string>
+    <string name="auto_check_for_updates">Проверять обновления</string>
+    <string name="main">Основные</string>
+    <string name="unprotected_connection">Незащищенное соединение</string>
+    <string name="update">Обновить</string>
+    <string name="update_channel">Канал обновлений</string>
+    <string name="version_and_updates">Версия</string>
+    <string name="version_s">Версия: %s</string>
+    <string name="warning">Предупреждение</string>
+    <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Веб-браузер, оптимизированный для телевизоров (https://github.com/truefedex/tv-bro)</string>
 </resources>
