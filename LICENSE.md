@@ -10,9 +10,9 @@ modification, are permitted provided that the following conditions are met:
   list of conditions and the following disclaimer.
 
 * Redistributions in binary form must follow one of two paths:
-  1. __Unmodified binary redistribution__ possible if and only if it binary identical to one 
-  of releases provided by author (Fedir Tsapana). Up to version 1.2.10 binary releases
-  published only at http://4pda.ru/forum/index.php?showtopic=767233 .
+  1. __Unmodified binary redistribution__ possible if and only if it binary identical 
+  to one of releases provided by author (Fedir Tsapana) published only at 
+  https://github.com/truefedex/tv-bro/releases web page.
   2. __Modified binary redistribution__ possible but derived application name cannot
   contain "TV Bro" string in any case. It also must not use the same app icon and 
   [application id](https://developer.android.com/studio/build/application-id) 
