@@ -45,7 +45,7 @@ class VersionSettingsView @JvmOverloads constructor(
                 val selectedChannel = settingsViewModel.updateChecker.versionCheckResult!!.availableChannels[position]
                 if (selectedChannel == settingsViewModel.updateChannel) return
                 settingsViewModel.saveUpdateChannel(selectedChannel)
-                settingsViewModel.checkUpdate {
+                settingsViewModel.checkUpdate(true) {
                     updateUIVisibility()
                 }
             }
@@ -66,7 +66,7 @@ class VersionSettingsView @JvmOverloads constructor(
 
     private fun updateUIVisibility() {
         if (settingsViewModel.updateChecker.versionCheckResult == null) {
-            settingsViewModel.checkUpdate {
+            settingsViewModel.checkUpdate(false) {
                 if (settingsViewModel.updateChecker.versionCheckResult != null) {
                     updateUIVisibility()
                 }

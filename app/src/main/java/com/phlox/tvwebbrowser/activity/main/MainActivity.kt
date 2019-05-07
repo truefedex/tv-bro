@@ -295,6 +295,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     fun navigateBack() {
         if (viewModel.currentTab.value != null && viewModel.currentTab.value!!.webView?.canGoBack() == true) {
             viewModel.currentTab.value!!.webView?.goBack()
+        } else if (llMenuOverlay.visibility != View.VISIBLE) {
+            showMenuOverlay()
+        } else {
+            hideMenuOverlay()
         }
     }
 
@@ -352,8 +356,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                             if (settingsViewModel.needAutockeckUpdates &&
                                     settingsViewModel.updateChecker.versionCheckResult == null &&
                                     !settingsViewModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
-                                settingsViewModel.checkUpdate{
-                                    settingsViewModel.showUpdateDialogIfNeeded(this@MainActivity)
+                                settingsViewModel.checkUpdate(false){
+                                    if (settingsViewModel.updateChecker.hasUpdate()) {
+                                        settingsViewModel.showUpdateDialogIfNeeded(this@MainActivity)
+                                    }
                                 }
                             }
                         }
@@ -362,8 +368,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             if (settingsViewModel.needAutockeckUpdates &&
                     settingsViewModel.updateChecker.versionCheckResult == null &&
                     !settingsViewModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
-                settingsViewModel.checkUpdate{
-                    settingsViewModel.showUpdateDialogIfNeeded(this@MainActivity)
+                settingsViewModel.checkUpdate(false){
+                    if (settingsViewModel.updateChecker.hasUpdate()) {
+                        settingsViewModel.showUpdateDialogIfNeeded(this@MainActivity)
+                    }
                 }
             }
         }

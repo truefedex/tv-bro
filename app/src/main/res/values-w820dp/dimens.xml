@@ -1,4 +1,4 @@
 <resources>
     <dimen name="settings_dialog_width">600dp</dimen>
-    <dimen name="settings_dialog_height">350dp</dimen>
+    <dimen name="settings_dialog_height">400dp</dimen>
 </resources>

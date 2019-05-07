@@ -78,4 +78,5 @@
     <string name="version_s">Версія: %s</string>
     <string name="warning">Увага</string>
     <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Веб-браузер, оптимізований для телевізорів (https://github.com/truefedex/tv-bro)</string>
+    <string name="new_version_available_s">Доступна нова версія: %s</string>
 </resources>

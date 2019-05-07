@@ -14,7 +14,6 @@ import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
-import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.sameDay
 import kotlinx.coroutines.Dispatchers
@@ -97,13 +96,13 @@ class SettingsViewModel: ViewModel() {
 
     fun saveUpdateChannel(selectedChannel: String) {
         val editor = prefs.edit()
-        editor.putString(UPDATE_CHANNEL_KEY, updateChannel)
+        editor.putString(UPDATE_CHANNEL_KEY, selectedChannel)
         editor.apply()
         updateChannel = selectedChannel
     }
 
-    fun checkUpdate(onUpdateAvailableCallback: () -> Unit) = GlobalScope.launch(Dispatchers.Main) {
-        if (updateChecker.versionCheckResult == null) {
+    fun checkUpdate(force: Boolean, onDoneCallback: () -> Unit) = GlobalScope.launch(Dispatchers.Main) {
+        if (updateChecker.versionCheckResult == null || force) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
                     updateChecker.check("https://raw.githubusercontent.com/truefedex/tv-bro/master/latest_version.json",
@@ -113,9 +112,7 @@ class SettingsViewModel: ViewModel() {
                 }
             }.join()
         }
-        if (updateChecker.hasUpdate()) {
-            onUpdateAvailableCallback()
-        }
+        onDoneCallback()
     }
 
     public fun showUpdateDialogIfNeeded(activity: MainActivity, force: Boolean = false) {

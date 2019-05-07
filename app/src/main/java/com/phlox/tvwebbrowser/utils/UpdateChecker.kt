@@ -168,7 +168,7 @@ class UpdateChecker(val currentVersionCode: Int) {
                             val progress = total * 100 / fileLength
                             dialog.progress = progress.toInt()
                         }
-                        nextDialogUpdateTime += 500
+                        nextDialogUpdateTime += 50
                     }
                 } while (count != -1)
             } catch (e: Exception) {
