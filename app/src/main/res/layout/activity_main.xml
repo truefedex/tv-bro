@@ -232,6 +232,7 @@
 
     <com.phlox.tvwebbrowser.activity.main.view.CursorLayout
         android:id="@+id/flFullscreenContainer"
+        android:background="#000"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:keepScreenOn="true"

@@ -40,6 +40,8 @@
         android:label="@string/app_name"
         android:largeHeap="true"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
+        android:screenOrientation="sensor"
         android:theme="@style/AppTheme">
         <activity
             android:name=".activity.main.MainActivity"
@@ -49,7 +51,6 @@
             android:label="@string/app_name_short"
             android:launchMode="singleTop"
             android:logo="@drawable/banner"
-            android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -74,12 +75,10 @@
         <activity
             android:name=".activity.history.HistoryActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="adjustResize" />
 
         <activity android:name=".activity.downloads.DownloadsActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="adjustResize" />
 
         <meta-data

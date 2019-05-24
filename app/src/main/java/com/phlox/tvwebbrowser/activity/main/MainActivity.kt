@@ -249,7 +249,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             if (focused) {
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.showSoftInput(etUrl, InputMethodManager.SHOW_FORCED)
-                uiHandler!!.postDelayed(//workaround an android TV bug
+                uiHandler.postDelayed(//workaround an android TV bug
                         {
                             etUrl.selectAll()
                         }, 500)
@@ -365,6 +365,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                         }
                     })
         } else {
+            if (viewModel.currentTab.value == null ||
+                    viewModel.currentTab.value!!.currentOriginalUrl == WebViewEx.HOME_URL) {
+                showMenuOverlay()
+            }
             if (settingsViewModel.needAutockeckUpdates &&
                     settingsViewModel.updateChecker.versionCheckResult == null &&
                     !settingsViewModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
@@ -477,8 +481,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             override fun onShowCustomView(view: View, callback: WebChromeClient.CustomViewCallback) {
                 tab.webView?.visibility = View.GONE
-                flFullscreenContainer!!.visibility = View.VISIBLE
-                flFullscreenContainer!!.addView(view)
+                flFullscreenContainer.visibility = View.VISIBLE
+                flFullscreenContainer.addView(view)
+                flFullscreenContainer.cursorPosition.set(flWebViewContainer.cursorPosition)
 
                 fullScreenView = view
                 fullscreenViewCallback = callback
@@ -490,8 +495,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     fullScreenView = null
                 }
 
-                fullscreenViewCallback!!.onCustomViewHidden()
+                fullscreenViewCallback?.onCustomViewHidden()
 
+                flWebViewContainer.cursorPosition.set(flFullscreenContainer.cursorPosition)
                 flFullscreenContainer.visibility = View.GONE
                 tab.webView?.visibility = View.VISIBLE
             }
@@ -503,11 +509,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 } else {
                     progressBar.progress = newProgress
                 }
-                uiHandler!!.removeCallbacks(progressBarHideRunnable)
+                uiHandler.removeCallbacks(progressBarHideRunnable)
                 if (newProgress == 100) {
-                    uiHandler!!.postDelayed(progressBarHideRunnable, 1000)
+                    uiHandler.postDelayed(progressBarHideRunnable, 1000)
                 } else {
-                    uiHandler!!.postDelayed(progressBarHideRunnable, 5000)
+                    uiHandler.postDelayed(progressBarHideRunnable, 5000)
                 }
             }
 

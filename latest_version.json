@@ -8,17 +8,17 @@
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.4.3",
-      "latestVersionCode": 30,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.4.3/tvbro1.4.3.apk"
+      "latestVersionName": "v1.4.4",
+      "latestVersionCode": 31,
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.4.4/tvbro1.4.4.apk"
     }
   ],
 
   "changelog": [
     {
-      "versionCode": 30,
-      "versionName": "v1.4.3",
-      "changes": "-Fixed several layout problems and bugs\n-Auto update function (experimental)\n-New settings screen\n-Sites with self-signed certificated now displayed (with warning)"
+      "versionCode": 31,
+      "versionName": "v1.4.4",
+      "changes": "-Fixed several layout problems and bugs\n-Updated homepage\n-Auto update function (experimental)\n-New settings screen\n-Sites with self-signed certificates now displayed (with warning)"
     },
     {
       "versionCode": 25,

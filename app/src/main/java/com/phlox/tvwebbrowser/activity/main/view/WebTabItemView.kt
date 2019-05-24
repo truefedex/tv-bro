@@ -13,6 +13,7 @@ import android.widget.TextView
 
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.WebTabState
+import kotlinx.android.synthetic.main.view_tab_item.view.*
 
 /**
  * Created by PDT on 24.08.2016.
@@ -20,11 +21,6 @@ import com.phlox.tvwebbrowser.model.WebTabState
 class WebTabItemView(context: Context) : FrameLayout(context) {
     private var tabState: WebTabState? = null
     private var listener: Listener? = null
-
-    private val tvTitle: TextView
-    private val ivThumbnail: ImageView
-    private val llContainer: LinearLayout
-    private val btnClose: Button
 
     interface Listener {
         fun onTabSelected(tab: WebTabState)
@@ -34,13 +30,8 @@ class WebTabItemView(context: Context) : FrameLayout(context) {
 
     init {
         LayoutInflater.from(context).inflate(R.layout.view_tab_item, this)
-        tvTitle = findViewById<View>(R.id.tvTitle) as TextView
-        ivThumbnail = findViewById<View>(R.id.ivThumbnail) as ImageView
-        llContainer = findViewById<View>(R.id.llContainer) as LinearLayout
-        btnClose = findViewById<View>(R.id.btnClose) as Button
 
         llContainer.setOnClickListener { listener!!.onTabSelected(tabState!!) }
-
         btnClose.setOnClickListener { listener!!.onTabDeleteClicked(tabState!!) }
     }
 
@@ -59,14 +50,11 @@ class WebTabItemView(context: Context) : FrameLayout(context) {
         } else {
             ivThumbnail.setImageResource(android.R.color.transparent)
         }
-        llContainer.setBackgroundResource(if (tabState.selected)
-            R.drawable.selected_tab_button_bg_selector
-        else
-            R.drawable.tab_button_bg_selector)
+        llContainer.isActivated = tabState.selected
     }
 
     public override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val calculatedHeightSpec = View.MeasureSpec.makeMeasureSpec(View.MeasureSpec.getSize(widthMeasureSpec) * 4 / 5, View.MeasureSpec.getMode(widthMeasureSpec))
+        val calculatedHeightSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec) * 4 / 5, View.MeasureSpec.getMode(widthMeasureSpec))
         super.onMeasure(widthMeasureSpec, calculatedHeightSpec)
     }
 

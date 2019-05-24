@@ -29,7 +29,7 @@ class CursorLayout : FrameLayout {
     private var USE_SCROLL_HACK = true
     private val SCROLL_HACK_PADDING = 300
     private val cursorDirection = Point(0, 0)
-    private val cursorPosition = PointF(0f, 0f)
+    public val cursorPosition = PointF(0f, 0f)
     private val cursorSpeed = PointF(0f, 0f)
     private val paint = Paint()
     private var lastCursorUpdate = System.currentTimeMillis()

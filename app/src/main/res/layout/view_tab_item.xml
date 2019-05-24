@@ -12,7 +12,6 @@
         android:layout_weight="1"
         android:clickable="true"
         android:focusable="true"
-        android:focusableInTouchMode="true"
         android:background="@drawable/tab_button_bg_selector"
         android:id="@+id/llContainer">
 

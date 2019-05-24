@@ -123,7 +123,7 @@ class MainActivityViewModel: ViewModel() {
 
         try {
             val frequentlyUsedUrls = asql.queryAll<HistoryItem>(HistoryItem::class.java,
-                    "SELECT title, url, favicon, count(url) as cnt , max(time) as time FROM history GROUP BY title, url, favicon ORDER BY cnt DESC, time DESC LIMIT 6")
+                    "SELECT title, url, favicon, count(url) as cnt , max(time) as time FROM history GROUP BY title, url, favicon ORDER BY cnt DESC, time DESC LIMIT 8")
             jsInterface.setSuggestions(TVBro.instance, frequentlyUsedUrls)
         } catch (e: Exception) {
             e.printStackTrace()
