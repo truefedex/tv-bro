@@ -22,7 +22,7 @@ import java.util.ArrayList
 /**
  * Created by PDT on 09.09.2016.
  */
-class FavoritesDialog(context: Context, private val callback: Callback, private val currentPageTitle: String, private val currentPageUrl: String) : Dialog(context), FavoriteItemView.Listener {
+class FavoritesDialog(context: Context, private val callback: Callback, private val currentPageTitle: String?, private val currentPageUrl: String?) : Dialog(context), FavoriteItemView.Listener {
     private var items: MutableList<FavoriteItem> = ArrayList()
     private val adapter: FavoritesListAdapter = FavoritesListAdapter(items, this)
     private val asql: ASQL

@@ -79,4 +79,5 @@
     <string name="warning">Предупреждение</string>
     <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Веб-браузер, оптимизированный для телевизоров (https://github.com/truefedex/tv-bro)</string>
     <string name="new_version_available_s">Доступна новая версия: %s</string>
+    <string name="err_webview_can_not_link">Не могу найти WebView компонент. Попробуйте сперва установить Chrome (или другую версию Chrome, если уже стоит).</string>
 </resources>

@@ -77,7 +77,8 @@ class DownloadService : Service() {
         super.onDestroy()
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent == null) return START_STICKY
         val download = intent.getSerializableExtra("download") as Download
         val userAgent = intent.getStringExtra("userAgent")
         try {

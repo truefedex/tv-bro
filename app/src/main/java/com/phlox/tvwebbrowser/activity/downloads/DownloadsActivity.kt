@@ -271,6 +271,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     companion object {
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
+        const val REQUEST_CODE_INSTALL_PACKAGE = 10008
 
         internal fun getFileExtension(filePath: String): String? {
             var result = ""
@@ -291,7 +292,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
             install.setDataAndType(apkURI, mimeType)
             install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             try {
-                activity.startActivityForResult(install, 1001011)//we are not using result for now
+                activity.startActivityForResult(install, REQUEST_CODE_INSTALL_PACKAGE)//we are not using result for now
             } catch (e: ActivityNotFoundException) {
                 Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
             }

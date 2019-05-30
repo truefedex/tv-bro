@@ -29,6 +29,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
+import android.widget.Toast
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
@@ -145,7 +146,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             override fun onFavoriteChoosen(item: FavoriteItem?) {
                 navigate(item!!.url!!)
             }
-        }, currentPageTitle!!, currentPageUrl!!).show()
+        }, currentPageTitle, currentPageUrl).show()
         hideMenuOverlay()
     }
 
@@ -387,7 +388,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
         val tab = WebTabState()
         tab.currentOriginalUrl = url
-        createWebView(tab)
+        if (!createWebView(tab)) {
+            return
+        }
         viewModel.tabsStates.add(0, tab)
         changeTab(tab)
         navigate(url)
@@ -428,7 +431,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             lvTabs.setSelection(viewModel.tabsStates.indexOf(newTab))
         }
         if (viewModel.currentTab.value!!.webView == null) {
-            createWebView(viewModel.currentTab.value!!)
+            if (!createWebView(viewModel.currentTab.value!!)) {
+                return
+            }
             viewModel.currentTab.value!!.restoreWebView()
             flWebViewContainer!!.addView(viewModel.currentTab.value!!.webView)
         } else {
@@ -443,8 +448,24 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun createWebView(tab: WebTabState) {
-        tab.webView = WebViewEx(this)
+    private fun createWebView(tab: WebTabState): Boolean {
+        try {
+            tab.webView = WebViewEx(this)
+        } catch (e: UnsatisfiedLinkError) {
+            e.printStackTrace()
+            Toast.makeText(this,
+                    getString(R.string.err_webview_can_not_link),
+                    Toast.LENGTH_LONG).show()
+            finish()
+            return false
+        } catch (e: PackageManager.NameNotFoundException) {
+            e.printStackTrace()
+            Toast.makeText(this,
+                    getString(R.string.err_webview_can_not_link),
+                    Toast.LENGTH_LONG).show()
+            finish()
+            return false
+        }
 
         if (settingsViewModel.uaString.value == null || settingsViewModel.uaString.value == "") {
             settingsViewModel.saveUAString("TV Bro/1.0 " + tab.webView!!.settings.userAgentString.replace("Mobile Safari", "Safari"))
@@ -560,17 +581,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                                 }
 
                                 if (!neededPermissions.isEmpty()) {
-                                    val permissionsArr = arrayOfNulls<String>(neededPermissions.size)
-                                    neededPermissions.toTypedArray()
-                                    requestPermissions(permissionsArr,
+                                    requestPermissions(neededPermissions.toTypedArray(),
                                             MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS)
                                 } else {
                                     if (reuestedResourcesForAlreadyGrantedPermissions!!.isEmpty()) {
                                         webPermissionsRequest.deny()
                                     } else {
-                                        val grantedResourcesArr = arrayOfNulls<String>(reuestedResourcesForAlreadyGrantedPermissions!!.size)
-                                        reuestedResourcesForAlreadyGrantedPermissions!!.toTypedArray()
-                                        webPermissionsRequest.grant(grantedResourcesArr)
+                                        webPermissionsRequest.grant(reuestedResourcesForAlreadyGrantedPermissions!!.toTypedArray())
                                     }
                                 }
                             } else {
@@ -750,6 +767,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             onDownloadRequested(url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
                     ?: tab.webView?.settings?.userAgentString)
         }
+
+        return true
     }
 
     private fun showCertificateErrorHint(error: SslError) {
@@ -787,6 +806,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>, grantResults: IntArray) {
+        if (grantResults.isEmpty()) return
         when (requestCode) {
             MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS -> {
                 if (webPermissionsRequest == null) {
@@ -807,9 +827,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 if (resources.isEmpty()) {
                     webPermissionsRequest!!.deny()
                 } else {
-                    val resourcesArr = arrayOfNulls<String>(resources.size)
-                    resources.toTypedArray()
-                    webPermissionsRequest!!.grant(resourcesArr)
+                    webPermissionsRequest!!.grant(resources.toTypedArray())
                 }
                 webPermissionsRequest = null
                 return

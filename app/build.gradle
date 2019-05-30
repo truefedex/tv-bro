@@ -21,8 +21,8 @@ android {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 31
-        versionName "1.4.4"
+        versionCode 32
+        versionName "1.4.5"
     }
     signingConfigs {
         release {
@@ -75,5 +75,5 @@ dependencies {
     implementation 'de.halfbit:pinned-section-listview:1.0.0'
 
     crashlyticsImplementation 'com.google.firebase:firebase-core:16.0.9'
-    crashlyticsImplementation 'com.crashlytics.sdk.android:crashlytics:2.10.0'
+    crashlyticsImplementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
 }
