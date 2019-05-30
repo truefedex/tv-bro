@@ -2,19 +2,24 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v1.4.4",
-      "latestVersionCode": 31,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.4.4/tvbro1.4.4.apk"
+      "latestVersionName": "v1.4.5",
+      "latestVersionCode": 32,
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.4.5/tvbro1.4.5.apk"
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.4.4",
-      "latestVersionCode": 31,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.4.4/tvbro1.4.4.apk"
+      "latestVersionName": "v1.4.5",
+      "latestVersionCode": 32,
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.4.5/tvbro1.4.5.apk"
     }
   ],
 
   "changelog": [
+    {
+      "versionCode": 32,
+      "versionName": "v1.4.5",
+      "changes": "-Fixed several bugs"
+    },
     {
       "versionCode": 31,
       "versionName": "v1.4.4",

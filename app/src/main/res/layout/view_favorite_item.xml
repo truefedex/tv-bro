@@ -19,8 +19,7 @@
         android:padding="6dp"
         android:gravity="center_vertical"
         android:layout_weight="1"
-        android:id="@+id/llContent"
-        android:background="@drawable/favorite_item_view_bg_selector">
+        android:id="@+id/llContent">
 
         <TextView
             android:layout_width="wrap_content"
