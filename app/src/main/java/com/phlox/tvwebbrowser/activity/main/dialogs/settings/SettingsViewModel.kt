@@ -1,14 +1,14 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.ViewModel
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.support.v7.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.widget.Toast
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R

@@ -10,8 +10,8 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.IBinder
 import android.provider.Settings
-import android.support.v4.content.FileProvider
-import android.support.v7.app.AppCompatActivity
+import androidx.core.content.FileProvider
+import androidx.appcompat.app.AppCompatActivity
 import android.view.Gravity
 import android.view.MenuItem
 import android.view.View

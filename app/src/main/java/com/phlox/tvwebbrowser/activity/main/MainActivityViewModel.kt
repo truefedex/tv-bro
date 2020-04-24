@@ -2,8 +2,8 @@ package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
 import android.app.Activity
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.ViewModel
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
@@ -14,7 +14,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import android.speech.RecognizerIntent
-import android.support.v7.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils

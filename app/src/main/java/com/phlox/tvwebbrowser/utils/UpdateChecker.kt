@@ -5,8 +5,8 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.support.v4.content.FileProvider
-import android.support.v7.app.AlertDialog
+import androidx.core.content.FileProvider
+import androidx.appcompat.app.AlertDialog
 import android.text.Html
 import android.util.Log
 import android.webkit.MimeTypeMap

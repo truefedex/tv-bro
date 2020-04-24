@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/tv-bro.iml" filepath="$PROJECT_DIR$/tv-bro.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="tvbro/app" />
+      <module fileurl="file://$PROJECT_DIR$/tvbro.iml" filepath="$PROJECT_DIR$/tvbro.iml" group="tvbro" />
     </modules>
   </component>
 </project>

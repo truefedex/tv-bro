@@ -1,8 +1,8 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
-import android.arch.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProviders
 import android.content.Context
-import android.support.v4.app.FragmentActivity
+import androidx.fragment.app.FragmentActivity
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
