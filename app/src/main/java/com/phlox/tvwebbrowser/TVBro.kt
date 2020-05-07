@@ -4,7 +4,6 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import com.phlox.tvwebbrowser.singleton.initASQL
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.util.concurrent.ArrayBlockingQueue
@@ -35,8 +34,6 @@ class TVBro : Application() {
 
         val cookieManager = CookieManager()
         CookieHandler.setDefault(cookieManager)
-
-        initASQL()
 
         initNotificationChannels()
     }

@@ -2,7 +2,6 @@ package com.phlox.tvwebbrowser.activity.downloads
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.app.ListActivity
 import android.content.*
 import android.net.Uri
 import android.os.Build
@@ -10,48 +9,33 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.IBinder
 import android.provider.Settings
-import androidx.core.content.FileProvider
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Gravity
-import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.webkit.MimeTypeMap
-import android.widget.*
-
-import com.phlox.asql.ASQL
+import android.widget.AbsListView
+import android.widget.AdapterView
+import android.widget.PopupMenu
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
+import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.Utils
-
-import java.io.File
-import java.util.ArrayList
-
-import com.phlox.tvwebbrowser.R.string.url
-import com.phlox.tvwebbrowser.activity.main.MainActivity
 import kotlinx.android.synthetic.main.activity_downloads.*
+import java.io.File
+import java.util.*
 
 class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, DownloadService.Listener, AdapterView.OnItemLongClickListener {
     private var adapter: DownloadListAdapter? = null
-    private var asql: ASQL? = null
-    private var loading = false
     private var downloadsService: DownloadService? = null
     private val listeners = ArrayList<DownloadService.Listener>()
 
-    private val sqlCallback = ASQL.ResultCallback<List<Download>> { result, error ->
-        loading = false
-        if (result != null) {
-            if (!result.isEmpty()) {
-                tvPlaceholder!!.visibility = View.GONE
-                adapter!!.addItems(result)
-                listView.requestFocus()
-            }
-        } else {
-            Utils.showToast(this@DownloadsActivity, R.string.error)
-        }
-    }
+    private lateinit var viewModel: DownloadsViewModel
 
     internal var onListScrollListener: AbsListView.OnScrollListener = object : AbsListView.OnScrollListener {
         override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
@@ -60,7 +44,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
         override fun onScroll(view: AbsListView, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
             if (totalItemCount != 0 && firstVisibleItem + visibleItemCount >= totalItemCount - 1) {
-                loadItems()
+                viewModel.loadItems(adapter!!.realCount)
             }
         }
     }
@@ -82,15 +66,25 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_downloads)
 
+        viewModel = ViewModelProvider(this).get(DownloadsViewModel::class.java)
+
         adapter = DownloadListAdapter(this)
         listView.adapter = adapter
-        asql = ASQL.getDefault(this)
 
         listView.setOnScrollListener(onListScrollListener)
         listView.onItemClickListener = this
         listView.onItemLongClickListener = this
 
-        loadItems()
+        viewModel.items.observe(this, object : Observer<List<Download>> {
+            override fun onChanged(it: List<Download>) {
+                if (it.isNotEmpty()) {
+                    tvPlaceholder.visibility = View.GONE
+                    adapter!!.addItems(it)
+                    listView.requestFocus()
+                }
+            }
+        })
+        viewModel.loadItems()
     }
 
     override fun onStart() {
@@ -228,13 +222,8 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     private fun deleteItem(v: DownloadListItemView) {
         File(v.download?.filepath).delete()
-        asql!!.delete(v.download) { result, exception ->
-            if (exception != null) {
-                Utils.showToast(this@DownloadsActivity, R.string.error)
-            } else {
-                adapter!!.remove(v.download!!)
-            }
-        }
+        AppDatabase.db.downloadDao().delete(v.download!!)
+        adapter!!.remove(v.download!!)
     }
 
     override fun onDownloadUpdated(downloadInfo: Download) {
@@ -257,16 +246,6 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     fun unregisterListener(listener: DownloadService.Listener) {
         listeners.remove(listener)
-    }
-
-    private fun loadItems() {
-        if (loading) {
-            return
-        }
-        loading = true
-
-        asql!!.queryAll(Download::class.java, "SELECT * FROM downloads ORDER BY time DESC LIMIT 100 OFFSET ?",
-                sqlCallback, java.lang.Long.toString(adapter!!.realCount))
     }
 
     companion object {

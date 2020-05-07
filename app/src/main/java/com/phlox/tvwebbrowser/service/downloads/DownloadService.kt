@@ -17,10 +17,10 @@ import android.text.format.Formatter
 import android.webkit.MimeTypeMap
 import android.widget.Toast
 
-import com.phlox.asql.ASQL
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.singleton.AppDatabase
 import java.io.File
 
 import java.util.ArrayList
@@ -33,7 +33,6 @@ import java.util.concurrent.Executors
 
 class DownloadService : Service() {
     private val activeDownloads = ArrayList<DownloadTask>()
-    private var asql: ASQL? = null
     private val executor = Executors.newCachedThreadPool()
     private val listeners = ArrayList<Listener>()
     private val handler = Handler(Looper.getMainLooper())
@@ -69,7 +68,6 @@ class DownloadService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        asql = ASQL.getDefault(applicationContext)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
@@ -82,7 +80,7 @@ class DownloadService : Service() {
         val download = intent.getSerializableExtra("download") as Download
         val userAgent = intent.getStringExtra("userAgent")
         try {
-            asql!!.save(download)
+            download.id = AppDatabase.db.downloadDao().insert(download)
         } catch (e: IllegalAccessException) {
             e.printStackTrace()
         }
@@ -155,25 +153,25 @@ class DownloadService : Service() {
     }
 
     private fun onTaskEnded(task: DownloadTask) {
-        asql!!.save(task.downloadInfo) { result, exception ->
-            activeDownloads.remove(task)
-            when (task.downloadInfo.operationAfterDownload) {
-                Download.OperationAfterDownload.INSTALL -> {
-                    val canInstallFromOtherSources = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        packageManager.canRequestPackageInstalls()
-                    } else
-                        Settings.Secure.getInt(this.contentResolver, Settings.Secure.INSTALL_NON_MARKET_APPS) == 1
-                    if (canInstallFromOtherSources) {
-                        launchInstallAPKActivity(this, task.downloadInfo)
-                    }
+        AppDatabase.db.downloadDao().update(task.downloadInfo)
+        activeDownloads.remove(task)
+        when (task.downloadInfo.operationAfterDownload) {
+            Download.OperationAfterDownload.INSTALL -> {
+                val canInstallFromOtherSources = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    packageManager.canRequestPackageInstalls()
+                } else
+                    Settings.Secure.getInt(this.contentResolver, Settings.Secure.INSTALL_NON_MARKET_APPS) == 1
+                if (canInstallFromOtherSources) {
+                    launchInstallAPKActivity(this, task.downloadInfo)
                 }
             }
-            if (activeDownloads.isEmpty()) {
-                for (i in listeners.indices) {
-                    listeners[i].onAllDownloadsComplete()
-                }
-                stopForeground(true)
+            Download.OperationAfterDownload.NOP -> {}
+        }
+        if (activeDownloads.isEmpty()) {
+            for (i in listeners.indices) {
+                listeners[i].onAllDownloadsComplete()
             }
+            stopForeground(true)
         }
     }
 

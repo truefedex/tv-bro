@@ -1,26 +1,18 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
-import android.app.Activity
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.provider.Settings
 import android.speech.RecognizerIntent
-import androidx.appcompat.app.AlertDialog
 import android.util.Log
-import android.view.View
-import android.view.animation.AnimationUtils
 import android.widget.Toast
-import com.phlox.asql.ASQL
-import com.phlox.tvwebbrowser.BuildConfig
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
@@ -29,10 +21,8 @@ import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
+import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.StringUtils
-import com.phlox.tvwebbrowser.utils.UpdateChecker
-import com.phlox.tvwebbrowser.utils.Utils
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -48,7 +38,6 @@ class MainActivityViewModel: ViewModel() {
         var TAG: String = MainActivityViewModel::class.java.simpleName
     }
 
-    val asql by lazy { ASQL.getDefault(TVBro.instance) }
     val currentTab = MutableLiveData<WebTabState>()
     val tabsStates = ArrayList<WebTabState>()
     var lastHistoryItem: HistoryItem? = null
@@ -106,14 +95,14 @@ class MainActivityViewModel: ViewModel() {
     }
 
     private fun initHistory() {
-        val count = asql.count(HistoryItem::class.java)
+        val count = AppDatabase.db.historyDao().count()
         if (count > 5000) {
             val c = Calendar.getInstance()
             c.add(Calendar.MONTH, -3)
-            asql.db.delete("history", "time < ?", arrayOf(java.lang.Long.toString(c.time.time)))
+            AppDatabase.db.historyDao().deleteWhereTimeLessThan(c.time.time)
         }
         try {
-            val result = asql.queryAll<HistoryItem>(HistoryItem::class.java, "SELECT * FROM history ORDER BY time DESC LIMIT 1")
+            val result = AppDatabase.db.historyDao().last()
             if (!result.isEmpty()) {
                 lastHistoryItem = result.get(0)
             }
@@ -122,8 +111,7 @@ class MainActivityViewModel: ViewModel() {
         }
 
         try {
-            val frequentlyUsedUrls = asql.queryAll<HistoryItem>(HistoryItem::class.java,
-                    "SELECT title, url, favicon, count(url) as cnt , max(time) as time FROM history GROUP BY title, url, favicon ORDER BY cnt DESC, time DESC LIMIT 8")
+            val frequentlyUsedUrls = AppDatabase.db.historyDao().frequentlyUsedUrls()
             jsInterface.setSuggestions(TVBro.instance, frequentlyUsedUrls)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -136,14 +124,12 @@ class MainActivityViewModel: ViewModel() {
         }
 
         val item = HistoryItem()
-        item.url = url
+        item.url = url ?: ""
         item.title = title ?: ""
         item.time = Date().time
         item.favicon = faviconHash
         lastHistoryItem = item
-        asql.execInsert("INSERT INTO history (time, title, url, favicon) VALUES (:time, :title, :url, :favicon)", lastHistoryItem) { lastInsertRowId, exception ->
-            exception?.printStackTrace()
-        }
+        AppDatabase.db.historyDao().insert(item)
     }
 
     fun onDownloadRequested(activity: MainActivity, url: String, originalDownloadFileName: String?, userAgent: String?,

@@ -2,30 +2,24 @@ package com.phlox.tvwebbrowser.activity.main.dialogs
 
 import android.app.Dialog
 import android.content.Context
-import android.database.SQLException
 import android.view.View
-import android.widget.AdapterView
-import android.widget.Button
-import android.widget.ListView
-import android.widget.ProgressBar
-import android.widget.TextView
-
-import com.phlox.asql.ASQL
+import android.widget.*
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.adapter.FavoritesListAdapter
 import com.phlox.tvwebbrowser.activity.main.view.FavoriteItemView
 import com.phlox.tvwebbrowser.model.FavoriteItem
-import com.phlox.tvwebbrowser.utils.Utils
-
-import java.util.ArrayList
+import com.phlox.tvwebbrowser.singleton.AppDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.util.*
 
 /**
  * Created by PDT on 09.09.2016.
  */
-class FavoritesDialog(context: Context, private val callback: Callback, private val currentPageTitle: String?, private val currentPageUrl: String?) : Dialog(context), FavoriteItemView.Listener {
+class FavoritesDialog(context: Context, val scope: CoroutineScope, private val callback: Callback, private val currentPageTitle: String?, private val currentPageUrl: String?) : Dialog(context), FavoriteItemView.Listener {
     private var items: MutableList<FavoriteItem> = ArrayList()
     private val adapter: FavoritesListAdapter = FavoritesListAdapter(items, this)
-    private val asql: ASQL
 
     private val tvPlaceholder: TextView
     private val listView: ListView
@@ -67,20 +61,11 @@ class FavoritesDialog(context: Context, private val callback: Callback, private 
         tvPlaceholder.visibility = View.GONE
         listView.adapter = adapter
 
-        asql = ASQL.getDefault(getContext())
-
-        asql.queryAll(FavoriteItem::class.java, "SELECT * FROM favorites WHERE parent=0 ORDER BY id DESC", ASQL.ResultCallback { result, error ->
+        scope.launch(Dispatchers.Main) {
+            items.addAll(AppDatabase.db.favoritesDao().getAll())
+            onItemsChanged()
             pbLoading.visibility = View.GONE
-            if (result != null) {
-                items.addAll(result)
-                onItemsChanged()
-            } else {
-                items = ArrayList()
-                Utils.showToast(getContext(), R.string.error)
-                dismiss()
-            }
-        })
-
+        }
     }
 
     private fun showAddItemDialog() {
@@ -98,26 +83,17 @@ class FavoritesDialog(context: Context, private val callback: Callback, private 
         pbLoading.visibility = View.VISIBLE
         listView.visibility = View.GONE
         tvPlaceholder.visibility = View.GONE
-        if (item.id == 0L) {
-            asql.execInsert("INSERT INTO favorites (title, url, parent) VALUES (:title, :url, :parent)", item) { lastInsertRowId, exception ->
-                if (exception != null) {
-                    Utils.showToast(context, R.string.error)
-                } else {
-                    item.id = lastInsertRowId
-                    items.add(0, item)
-                    onItemsChanged()
-                }
-            }
-        } else {
-            asql.execUpdateDelete("UPDATE favorites SET title=:title, url=:url, parent=:parent WHERE id=:id", item) { affectedRowsCount, exception ->
-                if (exception != null || affectedRowsCount == 0) {
-                    Utils.showToast(context, R.string.error)
-                } else {
-                    onItemsChanged()
-                }
+        scope.launch(Dispatchers.Main) {
+            if (item.id == 0L) {
+                val lastInsertRowId = AppDatabase.db.favoritesDao().insert(item)
+                item.id = lastInsertRowId
+                items.add(0, item)
+                onItemsChanged()
+            } else {
+                AppDatabase.db.favoritesDao().update(item)
+                onItemsChanged()
             }
         }
-
     }
 
     private fun onItemsChanged() {
@@ -127,22 +103,17 @@ class FavoritesDialog(context: Context, private val callback: Callback, private 
         tvPlaceholder.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
     }
 
-    override fun onDeleteClick(favorite: FavoriteItem?) {
-        asql.execUpdateDelete("DELETE FROM favorites WHERE id=:id", favorite) { affectedRowsCount, exception ->
-            if (exception != null || affectedRowsCount == 0) {
-                Utils.showToast(context, R.string.error)
-            } else {
-                items.remove(favorite)
-                onItemsChanged()
-            }
-        }
+    override fun onDeleteClick(favorite: FavoriteItem) {
+        AppDatabase.db.favoritesDao().delete(favorite)
+        items.remove(favorite)
+        onItemsChanged()
     }
 
-    override fun onEditClick(favorite: FavoriteItem?) {
+    override fun onEditClick(favorite: FavoriteItem) {
         FavoriteEditorDialog(context, object : FavoriteEditorDialog.Callback {
             override fun onDone(item: FavoriteItem) {
                 onItemEdited(item)
             }
-        }, favorite!!).show()
+        }, favorite).show()
     }
 }

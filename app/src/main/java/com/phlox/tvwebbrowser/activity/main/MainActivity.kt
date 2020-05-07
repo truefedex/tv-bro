@@ -30,6 +30,7 @@ import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
@@ -142,7 +143,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     fun showFavorites() {
         val currentPageTitle = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.currentTitle else ""
         val currentPageUrl = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.currentOriginalUrl else ""
-        FavoritesDialog(this@MainActivity, object : FavoritesDialog.Callback {
+
+        FavoritesDialog(this@MainActivity, lifecycleScope, object : FavoritesDialog.Callback {
             override fun onFavoriteChoosen(item: FavoriteItem?) {
                 navigate(item!!.url!!)
             }
@@ -458,7 +460,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     Toast.LENGTH_LONG).show()
             finish()
             return false
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this,
                     getString(R.string.err_webview_can_not_link),
@@ -750,6 +752,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             override fun onLoadResource(view: WebView, url: String) {
                 super.onLoadResource(view, url)
             }
+
+
 
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
                 showCertificateErrorHint(error)

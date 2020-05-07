@@ -34,7 +34,8 @@ class FavoritesListAdapter(private val favorites: List<FavoriteItem>, private va
         if (convertView != null) {
             view = convertView as FavoriteItemView
         } else {
-            view = FavoriteItemView(viewGroup.context, itemsListener)
+            view = FavoriteItemView(viewGroup.context)
+            view.listener = itemsListener
         }
         view.bind(favorites[i], isEditMode)
         return view

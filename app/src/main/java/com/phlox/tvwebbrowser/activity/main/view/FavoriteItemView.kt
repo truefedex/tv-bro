@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
 import android.content.Context
+import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -15,7 +16,8 @@ import com.phlox.tvwebbrowser.model.FavoriteItem
 /**
  * Created by PDT on 13.09.2016.
  */
-class FavoriteItemView(context: Context, private val listener: Listener) : FrameLayout(context) {
+class FavoriteItemView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
+        FrameLayout(context, attrs, defStyleAttr) {
     var favorite: FavoriteItem? = null
         private set
 
@@ -24,10 +26,11 @@ class FavoriteItemView(context: Context, private val listener: Listener) : Frame
     private var tvUrl: TextView? = null
     private var ivArrow: ImageView? = null
     private var llContent: LinearLayout? = null
+    var listener: Listener? = null
 
     interface Listener {
-        fun onDeleteClick(favorite: FavoriteItem?)
-        fun onEditClick(favorite: FavoriteItem?)
+        fun onDeleteClick(favorite: FavoriteItem)
+        fun onEditClick(favorite: FavoriteItem)
     }
 
     init {
@@ -42,9 +45,9 @@ class FavoriteItemView(context: Context, private val listener: Listener) : Frame
         ivArrow = findViewById<View>(R.id.ivArrow) as ImageView
         llContent = findViewById<View>(R.id.llContent) as LinearLayout
 
-        ibDelete!!.setOnClickListener { listener.onDeleteClick(favorite) }
+        ibDelete!!.setOnClickListener { favorite?.let { listener?.onDeleteClick(it)} }
 
-        llContent!!.setOnClickListener { listener.onEditClick(favorite) }
+        llContent!!.setOnClickListener {  favorite?.let {listener?.onEditClick(it)} }
     }
 
     fun bind(favorite: FavoriteItem, editMode: Boolean) {

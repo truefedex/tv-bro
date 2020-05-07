@@ -1,27 +1,27 @@
 package com.phlox.tvwebbrowser.model
 
-import com.phlox.asql.annotations.DBIgnore
-import com.phlox.asql.annotations.DBTable
-import com.phlox.asql.annotations.MarkMode
-
-import java.util.Calendar
-import java.util.GregorianCalendar
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.Index
+import androidx.room.PrimaryKey
 
 /**
  * Created by fedex on 28.12.16.
  */
 
-@DBTable(name = "history", markMode = MarkMode.ALL_EXCEPT_IGNORED)
+@Entity(tableName = "history", indices = arrayOf(Index(value = ["time"], name = "history_time_idx"),
+        Index(value = ["title"], name = "history_title_idx"), Index(value = ["url"], name = "history_url_idx")))
 class HistoryItem {
+    @PrimaryKey(autoGenerate = true)
     var id: Long = 0
     var time: Long = 0
-    var title: String? = null
-    var url: String? = null
+    var title: String = ""
+    var url: String = ""
     var favicon: String? = null
 
-    @DBIgnore
+    @Ignore
     var isDateHeader = false//used for displaying date headers inside list view
-    @DBIgnore
+    @Ignore
     var selected = false
 
     companion object {

@@ -1,18 +1,20 @@
 package com.phlox.tvwebbrowser.model
 
-import com.phlox.asql.annotations.DBTable
-import com.phlox.asql.annotations.MarkMode
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 /**
  * Created by PDT on 09.09.2016.
  */
-@DBTable(name = "favorites", markMode = MarkMode.ALL_EXCEPT_IGNORED)
+@Entity(tableName = "favorites")
 class FavoriteItem {
-    var id: Long = 0
-    var title: String? = null
-    var url: String? = null
-    var parent: Long = 0
-
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "ID") var id: Long = 0
+    @ColumnInfo(name = "TITLE") var title: String? = null
+    @ColumnInfo(name = "URL") var url: String? = null
+    @ColumnInfo(name = "PARENT") var parent: Long? = 0
+    var favicon: String? = null
     val isFolder: Boolean
         get() = url == null
 }
