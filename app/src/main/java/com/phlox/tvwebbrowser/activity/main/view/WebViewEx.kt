@@ -52,30 +52,32 @@ class WebViewEx : WebView {
             return
         }
 
-        val browserSettings = settings
-        browserSettings.javaScriptCanOpenWindowsAutomatically = true
-        browserSettings.pluginState = WebSettings.PluginState.ON_DEMAND
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            browserSettings.safeBrowsingEnabled = false
+        with(settings) {
+            javaScriptCanOpenWindowsAutomatically = true
+            pluginState = WebSettings.PluginState.ON_DEMAND
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                safeBrowsingEnabled = false
+            }
+            javaScriptEnabled = true
+            databaseEnabled = true
+            useWideViewPort = true
+            loadWithOverviewMode = true
+            setSupportZoom(true)
+            builtInZoomControls = false
+            displayZoomControls = false
+            saveFormData = true
+            setSupportZoom(true)
+            domStorageEnabled = true
+            allowContentAccess = false
+            setAppCachePath(context.cacheDir.absolutePath)
+            setAppCacheEnabled(true)
+            cacheMode = WebSettings.LOAD_DEFAULT
+            mediaPlaybackRequiresUserGesture = false
+            setGeolocationEnabled(true)
+            javaScriptCanOpenWindowsAutomatically = false
+            setSupportMultipleWindows(false)
+            setNeedInitialFocus(false)
         }
-        browserSettings.javaScriptEnabled = true
-        browserSettings.databaseEnabled = true
-        browserSettings.useWideViewPort = true
-        browserSettings.loadWithOverviewMode = true
-        browserSettings.setSupportZoom(true)
-        browserSettings.builtInZoomControls = false
-        browserSettings.displayZoomControls = false
-        browserSettings.saveFormData = true
-        browserSettings.setSupportZoom(true)
-        browserSettings.domStorageEnabled = true
-        browserSettings.allowContentAccess = false
-        browserSettings.setAppCachePath(context.cacheDir.absolutePath)
-        browserSettings.setAppCacheEnabled(true)
-        browserSettings.cacheMode = WebSettings.LOAD_DEFAULT
-        browserSettings.mediaPlaybackRequiresUserGesture = false
-        browserSettings.setGeolocationEnabled(true)
-        browserSettings.javaScriptCanOpenWindowsAutomatically = false
-        browserSettings.setSupportMultipleWindows(false)
 
         /*scrollBarStyle = WebView.SCROLLBARS_OUTSIDE_OVERLAY
         isScrollbarFadingEnabled = false*/

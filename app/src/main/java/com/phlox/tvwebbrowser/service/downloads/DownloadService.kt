@@ -79,11 +79,6 @@ class DownloadService : Service() {
         if (intent == null) return START_STICKY
         val download = intent.getSerializableExtra("download") as Download
         val userAgent = intent.getStringExtra("userAgent")
-        try {
-            download.id = AppDatabase.db.downloadDao().insert(download)
-        } catch (e: IllegalAccessException) {
-            e.printStackTrace()
-        }
 
         val downloadTask = DownloadTask(download, userAgent, downloadTasksListener)
         activeDownloads.add(downloadTask)
@@ -153,14 +148,14 @@ class DownloadService : Service() {
     }
 
     private fun onTaskEnded(task: DownloadTask) {
-        AppDatabase.db.downloadDao().update(task.downloadInfo)
         activeDownloads.remove(task)
         when (task.downloadInfo.operationAfterDownload) {
             Download.OperationAfterDownload.INSTALL -> {
                 val canInstallFromOtherSources = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     packageManager.canRequestPackageInstalls()
-                } else
+                } else {
                     Settings.Secure.getInt(this.contentResolver, Settings.Secure.INSTALL_NON_MARKET_APPS) == 1
+                }
                 if (canInstallFromOtherSources) {
                     launchInstallAPKActivity(this, task.downloadInfo)
                 }
@@ -193,6 +188,7 @@ class DownloadService : Service() {
     }
 
     private fun notifyListenersAboutDownloadDone(task: DownloadTask) {
+        AppDatabase.db.downloadDao().update(task.downloadInfo)
         handler.post {
             for (i in listeners.indices) {
                 listeners[i].onDownloadUpdated(task.downloadInfo)
@@ -202,6 +198,7 @@ class DownloadService : Service() {
     }
 
     private fun notifyListenersAboutError(task: DownloadTask, responseCode: Int, responseMessage: String) {
+        AppDatabase.db.downloadDao().update(task.downloadInfo)
         handler.post {
             for (i in listeners.indices) {
                 listeners[i].onDownloadError(task.downloadInfo, responseCode, responseMessage)

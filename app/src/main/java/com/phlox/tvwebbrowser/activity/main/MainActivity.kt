@@ -966,10 +966,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 //nop
             } else if (event.action == KeyEvent.ACTION_UP) {
-                uiHandler?.post {
+                uiHandler.post {
                     viewModel.currentTab.value!!.webChromeClient?.onHideCustomView()
                 }
             }
+            return true
         } else if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer!!.zoomMode) {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 //nop

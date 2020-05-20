@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
@@ -31,6 +32,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
 class MainActivityViewModel: ViewModel() {
     companion object {
@@ -73,7 +75,7 @@ class MainActivityViewModel: ViewModel() {
     }
 
     fun loadState() = GlobalScope.launch(Dispatchers.Main) {
-        launch (Dispatchers.IO) { initHistory() }
+        initHistory()
         val tabsStatesLoaded = async (Dispatchers.IO){
             val tabsStates = ArrayList<WebTabState>()
             try {
@@ -94,7 +96,7 @@ class MainActivityViewModel: ViewModel() {
         tabsStates.addAll(tabsStatesLoaded)
     }
 
-    private fun initHistory() {
+    private suspend fun initHistory() {
         val count = AppDatabase.db.historyDao().count()
         if (count > 5000) {
             val c = Calendar.getInstance()
@@ -129,7 +131,9 @@ class MainActivityViewModel: ViewModel() {
         item.time = Date().time
         item.favicon = faviconHash
         lastHistoryItem = item
-        AppDatabase.db.historyDao().insert(item)
+        viewModelScope.launch(Dispatchers.Main) {
+            AppDatabase.db.historyDao().insert(item)
+        }
     }
 
     fun onDownloadRequested(activity: MainActivity, url: String, originalDownloadFileName: String?, userAgent: String?,

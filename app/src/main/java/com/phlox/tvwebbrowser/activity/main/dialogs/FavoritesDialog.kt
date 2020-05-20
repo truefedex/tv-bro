@@ -104,9 +104,11 @@ class FavoritesDialog(context: Context, val scope: CoroutineScope, private val c
     }
 
     override fun onDeleteClick(favorite: FavoriteItem) {
-        AppDatabase.db.favoritesDao().delete(favorite)
-        items.remove(favorite)
-        onItemsChanged()
+        scope.launch(Dispatchers.Main) {
+            AppDatabase.db.favoritesDao().delete(favorite)
+            items.remove(favorite)
+            onItemsChanged()
+        }
     }
 
     override fun onEditClick(favorite: FavoriteItem) {

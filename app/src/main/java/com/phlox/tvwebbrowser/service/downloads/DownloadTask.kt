@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.service.downloads
 import android.webkit.CookieManager
 
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.singleton.AppDatabase
 
 import java.io.File
 import java.io.FileOutputStream
@@ -31,6 +32,8 @@ class DownloadTask(var downloadInfo: Download, private val userAgent: String, va
     }
 
     override fun run() {
+        downloadInfo.id = AppDatabase.db.downloadDao().insert(downloadInfo)
+
         var input: InputStream? = null
         var output: OutputStream? = null
         var connection: HttpURLConnection? = null

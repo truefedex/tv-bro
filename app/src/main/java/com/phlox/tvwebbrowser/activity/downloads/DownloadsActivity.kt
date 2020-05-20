@@ -20,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.Download
@@ -27,6 +28,8 @@ import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.Utils
 import kotlinx.android.synthetic.main.activity_downloads.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
@@ -220,7 +223,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         }
     }
 
-    private fun deleteItem(v: DownloadListItemView) {
+    private fun deleteItem(v: DownloadListItemView) = lifecycleScope.launch(Dispatchers.Main) {
         File(v.download?.filepath).delete()
         AppDatabase.db.downloadDao().delete(v.download!!)
         adapter!!.remove(v.download!!)
