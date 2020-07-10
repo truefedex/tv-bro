@@ -57,7 +57,7 @@ class MainActivityViewModel: ViewModel() {
             val store = JSONObject()
             val tabsStore = JSONArray()
             for (tab in tabsCopy) {
-                val tabJson = tab.toJson(TVBro.instance, true)
+                val tabJson = tab.toJson()
                 tabsStore.put(tabJson)
             }
             try {

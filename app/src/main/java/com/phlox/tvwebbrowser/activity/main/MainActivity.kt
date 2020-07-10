@@ -22,11 +22,12 @@ import androidx.appcompat.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
 import android.util.Patterns
-import android.util.Size
 import android.view.KeyEvent
 import android.view.View
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
 import android.widget.Toast
@@ -35,15 +36,12 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
-import com.phlox.tvwebbrowser.activity.main.adapter.TabsListAdapter
 import com.phlox.tvwebbrowser.activity.main.dialogs.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFactory
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsViewModel
-import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
-import com.phlox.tvwebbrowser.activity.main.view.Scripts
-import com.phlox.tvwebbrowser.activity.main.view.WebTabItemView
-import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
+import com.phlox.tvwebbrowser.activity.main.view.*
+import com.phlox.tvwebbrowser.activity.main.view.WebViewEx.Companion.HOME_URL
 import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
@@ -72,8 +70,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var uiHandler: Handler
-    private var tabsAdapter: TabsListAdapter? = null
-    private var thumbnailesSize: Size? = null
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
     private var permRequestDialog: AlertDialog? = null
     private var webPermissionsRequest: PermissionRequest? = null
@@ -109,31 +105,28 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
-    internal var tabsEventsListener: WebTabItemView.Listener = object : WebTabItemView.Listener {
-        override fun onTabSelected(tab: WebTabState) {
-            if (!tab.selected) {
+    private val tabsListener = object : TitlesView.Listener {
+        override fun onTitleChanged(index: Int) {
+            val tab = tabByTitleIndex(index)
+            displayThumbnail(tab)
+        }
+
+        override fun onTitleSelected(index: Int) {
+            val tab = tabByTitleIndex(index)
+            if (tab == null) {
+                openInNewTab(HOME_URL, if (index < 0) 0 else viewModel.tabsStates.size)
+            } else if (!tab.selected) {
                 changeTab(tab)
             }
+            hideMenuOverlay()
         }
 
-        override fun onTabDeleteClicked(tab: WebTabState) {
-            closeTab(tab)
-        }
-
-        override fun onNeededThumbnailSizeCalculated(width: Int, height: Int) {
-            if (thumbnailesSize == null) {
-                thumbnailesSize = Size(width, height)
-            } else if (thumbnailesSize!!.width == width && thumbnailesSize!!.height == height) {
-                return
-            }
-            if (viewModel.currentTab.value != null) {
-                viewModel.currentTab.value!!.webView?.setNeedThumbnail(thumbnailesSize)
-                viewModel.currentTab.value!!.webView?.postInvalidate()
-            }
+        override fun onTitleOptions() {
+            //closeTab(tab)
         }
     }
 
-    fun showHistory() {
+    private fun showHistory() {
         startActivityForResult(
                 Intent(this@MainActivity, HistoryActivity::class.java),
                 REQUEST_CODE_HISTORY_ACTIVITY)
@@ -192,13 +185,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         setContentView(R.layout.activity_main)
         AndroidBug5497Workaround.assistActivity(this)
 
-        llMenuOverlay.visibility = View.GONE
-        llActionBar.visibility = View.GONE
+        ivMiniatures.visibility = View.INVISIBLE
+        llBottomPanel.visibility = View.INVISIBLE
+        rlActionBar.visibility = View.INVISIBLE
         progressBar.visibility = View.GONE
 
-        tabsAdapter = TabsListAdapter(viewModel.tabsStates, tabsEventsListener)
-        lvTabs.adapter = tabsAdapter
-        lvTabs.itemsCanFocus = true
+        vTitles.listener = tabsListener
 
         flWebViewContainer.setCallback(object : CursorLayout.Callback {
             override fun onUserInteraction() {
@@ -212,16 +204,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         })
 
-        btnNewTab.setOnClickListener { openInNewTab(WebViewEx.HOME_URL) }
-
         ibVoiceSearch.setOnClickListener { viewModel.initiateVoiceSearch(this) }
 
-        /*ibHome.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                navigate(HOME_URL);
-            }
-        });*/
+        ibHome.setOnClickListener {navigate(HOME_URL) }
         ibBack.setOnClickListener { navigateBack() }
         ibForward.setOnClickListener {
             if (viewModel.currentTab.value != null && (viewModel.currentTab.value!!.webView?.canGoForward() == true)) {
@@ -229,24 +214,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         }
         ibRefresh.setOnClickListener { refresh() }
+        ibCloseTab.setOnClickListener { viewModel.currentTab.value?.apply { closeTab(this) } }
 
         ibMenu.setOnClickListener { finish() }
-
         ibDownloads.setOnClickListener { startActivity(Intent(this@MainActivity, DownloadsActivity::class.java)) }
-
         ibFavorites.setOnClickListener { showFavorites() }
-
         ibHistory.setOnClickListener { showHistory() }
-
-        ibSettings.setOnClickListener {
-            showSettings()
-        }
-
-        flMenuRightContainer.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
-            if (focused && llMenuOverlay.visibility == View.VISIBLE) {
-                hideMenuOverlay()
-            }
-        }
+        ibSettings.setOnClickListener { showSettings() }
 
         etUrl.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
             if (focused) {
@@ -259,22 +233,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         }
 
-        etUrl.setOnKeyListener(View.OnKeyListener { view, i, keyEvent ->
-            when (keyEvent.keyCode) {
-                KeyEvent.KEYCODE_ENTER -> {
-                    if (keyEvent.action == KeyEvent.ACTION_UP) {
-                        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                        imm.hideSoftInputFromWindow(etUrl!!.windowToken, 0)
-                        hideMenuOverlay()
-                        search(etUrl.text.toString())
-                        viewModel.currentTab.value!!.webView?.requestFocus()
-                    }
-                    return@OnKeyListener true
-                }
-            }
-            false
-        })
+        etUrl.setOnKeyListener(etUrlKeyListener)
 
+        ibForward.onFocusChangeListener = bottomButtonsFocusListener
+        ibBack.onFocusChangeListener = bottomButtonsFocusListener
+        ibRefresh.onFocusChangeListener = bottomButtonsFocusListener
+        ibHome.onFocusChangeListener = bottomButtonsFocusListener
+        ibCloseTab.onFocusChangeListener = bottomButtonsFocusListener
+        ibForward.setOnKeyListener(bottomButtonsKeyListener)
+        ibBack.setOnKeyListener(bottomButtonsKeyListener)
+        ibRefresh.setOnKeyListener(bottomButtonsKeyListener)
+        ibHome.setOnKeyListener(bottomButtonsKeyListener)
+        ibCloseTab.setOnKeyListener(bottomButtonsKeyListener)
 
         settingsViewModel.uaString.observe(this, object : Observer<String> {
             override fun onChanged(uas: String?) {
@@ -291,14 +261,53 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         loadState()
     }
 
-    public fun showSettings() {
+    private val bottomButtonsFocusListener = View.OnFocusChangeListener { view, hasFocus ->
+        if (hasFocus) {
+            hideMenuOverlay(false)
+        }
+    }
+
+    private val bottomButtonsKeyListener = View.OnKeyListener { view, i, keyEvent ->
+        when (keyEvent.keyCode) {
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                if (keyEvent.action == KeyEvent.ACTION_UP) {
+                    hideBottomPanel()
+                    viewModel.currentTab.value?.webView?.requestFocus()
+                    flWebViewContainer.cursorPosition
+                }
+                return@OnKeyListener true
+            }
+        }
+        false
+    }
+
+    private val etUrlKeyListener = View.OnKeyListener { view, i, keyEvent ->
+        when (keyEvent.keyCode) {
+            KeyEvent.KEYCODE_ENTER -> {
+                if (keyEvent.action == KeyEvent.ACTION_UP) {
+                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(etUrl!!.windowToken, 0)
+                    hideMenuOverlay()
+                    search(etUrl.text.toString())
+                    viewModel.currentTab.value!!.webView?.requestFocus()
+                }
+                return@OnKeyListener true
+            }
+        }
+        false
+    }
+
+    private fun tabByTitleIndex(index: Int) =
+            if (index >= 0 && index < viewModel.tabsStates.size) viewModel.tabsStates[index] else null
+
+    fun showSettings() {
         SettingsDialog(this, settingsViewModel).show()
     }
 
     fun navigateBack() {
         if (viewModel.currentTab.value != null && viewModel.currentTab.value!!.webView?.canGoBack() == true) {
             viewModel.currentTab.value!!.webView?.goBack()
-        } else if (llMenuOverlay.visibility != View.VISIBLE) {
+        } else if (rlActionBar.visibility != View.VISIBLE) {
             showMenuOverlay()
         } else {
             hideMenuOverlay()
@@ -384,7 +393,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
-    private fun openInNewTab(url: String?) {
+    private fun openInNewTab(url: String?, index: Int = 0) {
         if (url == null) {
             return
         }
@@ -393,9 +402,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         if (!createWebView(tab)) {
             return
         }
-        viewModel.tabsStates.add(0, tab)
+        viewModel.tabsStates.add(index, tab)
         changeTab(tab)
         navigate(url)
+        if (rlActionBar.visibility == View.VISIBLE) {
+            hideMenuOverlay(true)
+        }
     }
 
     private fun closeTab(tab: WebTabState?) {
@@ -414,9 +426,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             else -> changeTab(viewModel.tabsStates[position + 1])
         }
         viewModel.tabsStates.remove(tab)
-        tabsAdapter?.notifyDataSetChanged()
-
-        tab.removeFiles(this)
+        vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
+        vTitles.postInvalidate()
+        tab.removeFiles()
+        hideBottomPanel()
     }
 
     private fun changeTab(newTab: WebTabState) {
@@ -428,10 +441,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         newTab.selected = true
         viewModel.currentTab.value = newTab
-        tabsAdapter!!.notifyDataSetChanged()
-        if (llMenuOverlay.visibility == View.GONE) {
-            lvTabs.setSelection(viewModel.tabsStates.indexOf(newTab))
-        }
+        vTitles.current = viewModel.tabsStates.indexOf(newTab)
         if (viewModel.currentTab.value!!.webView == null) {
             if (!createWebView(viewModel.currentTab.value!!)) {
                 return
@@ -477,11 +487,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         tab.webView?.addJavascriptInterface(viewModel.jsInterface, "TVBro")
 
         tab.webView?.setListener(object : WebViewEx.Listener {
-            override fun onThumbnailReady(thumbnail: Bitmap) {
-                tab.thumbnail = thumbnail
-                tabsAdapter!!.notifyDataSetChanged()
-            }
-
             override fun onOpenInNewTabRequested(s: String) {
                 openInNewTab(s)
             }
@@ -494,6 +499,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             override fun onWantZoomMode() {
                 flWebViewContainer?.goToZoomMode()
+            }
+
+            override fun onThumbnailError() {
+                //nop for now
             }
         })
 
@@ -543,7 +552,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             override fun onReceivedTitle(view: WebView, title: String) {
                 super.onReceivedTitle(view, title)
                 tab.currentTitle = title
-                tabsAdapter!!.notifyDataSetChanged()
+                vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
+                vTitles.postInvalidate()
             }
 
             override fun onPermissionRequest(request: PermissionRequest) {
@@ -733,14 +743,23 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
                 ibBack!!.isEnabled = tab.webView?.canGoBack() == true
                 ibForward!!.isEnabled = tab.webView?.canGoForward() == true
-                tab.webView?.setNeedThumbnail(thumbnailesSize)
-                tab.webView?.postInvalidate()
+
                 if (tab.webView?.url != null) {
                     tab.currentOriginalUrl = tab.webView?.url
                 } else if (url != null) {
                     tab.currentOriginalUrl = url
                 }
                 etUrl!!.setText(tab.currentOriginalUrl)
+
+                //thumbnail
+                viewModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
+                val newThumbnail = tab.webView?.renderThumbnail(tab.thumbnail)
+                if (newThumbnail != null) {
+                    tab.updateThumbnail(this@MainActivity, newThumbnail, this@MainActivity)
+                    if (rlActionBar.visibility == View.VISIBLE && tab == viewModel.currentTab.value) {
+                        displayThumbnail(tab)
+                    }
+                }
 
                 tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
                 viewModel.currentTab.value!!.webPageInteractionDetected = false
@@ -753,17 +772,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 super.onLoadResource(view, url)
             }
 
-
-
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
                 showCertificateErrorHint(error)
                 handler.proceed()
-            }
-        }
-
-        tab.webView?.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
-            if (focused && llMenuOverlay.visibility == View.VISIBLE) {
-                hideMenuOverlay()
             }
         }
 
@@ -950,7 +961,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     fun toggleMenu() {
-        if (llMenuOverlay.visibility == View.GONE) {
+        if (rlActionBar.visibility == View.INVISIBLE) {
             showMenuOverlay()
         } else {
             hideMenuOverlay()
@@ -967,15 +978,20 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 //nop
             } else if (event.action == KeyEvent.ACTION_UP) {
                 uiHandler.post {
-                    viewModel.currentTab.value!!.webChromeClient?.onHideCustomView()
+                    viewModel.currentTab.value?.webChromeClient?.onHideCustomView()
                 }
             }
             return true
-        } else if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer!!.zoomMode) {
+        } else if (keyCode == KeyEvent.KEYCODE_BACK && llBottomPanel.visibility == View.VISIBLE && rlActionBar.visibility != View.VISIBLE) {
+            if (event.action == KeyEvent.ACTION_UP) {
+                uiHandler.post { hideBottomPanel() }
+            }
+            return true
+        } else if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer.zoomMode) {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 //nop
             } else if (event.action == KeyEvent.ACTION_UP) {
-                flWebViewContainer!!.exitZoomMode()
+                flWebViewContainer.exitZoomMode()
             }
             return true
         } else if (shortcutMgr.canProcessKeyCode(keyCode)) {
@@ -990,46 +1006,136 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     private fun showMenuOverlay() {
-        llMenuOverlay.visibility = View.VISIBLE
+        ivMiniatures.visibility = View.VISIBLE
+        llBottomPanel.visibility = View.VISIBLE
+        flWebViewContainer.visibility = View.INVISIBLE
+        val currentTab = viewModel.currentTab.value
+        if (currentTab != null) {
+            currentTab.thumbnail = currentTab.webView?.renderThumbnail(currentTab.thumbnail)
+            displayThumbnail(currentTab)
+        }
 
-        val anim = AnimationUtils.loadAnimation(this, R.anim.menu_in_anim)
-        anim.setAnimationListener(object : BaseAnimationListener() {
-            override fun onAnimationEnd(animation: Animation) {
-                ibMenu!!.requestFocus()
-                flMenuRightContainer.alpha = 0f
-                flMenuRightContainer.animate().alpha(0.2f).start()
-            }
-        })
-        llMenu.startAnimation(anim)
+        llBottomPanel.translationY = llBottomPanel.height.toFloat()
+        llBottomPanel.alpha = 0f
+        llBottomPanel.animate()
+                .setDuration(300)
+                .setInterpolator(DecelerateInterpolator())
+                .translationY(0f)
+                .alpha(1f)
+                .withEndAction {
+                    ibMenu!!.requestFocus()
+                }
+                .start()
 
-        llActionBar.visibility = View.VISIBLE
-        llActionBar.startAnimation(AnimationUtils.loadAnimation(this, R.anim.actionbar_in_anim))
+        rlActionBar.visibility = View.VISIBLE
+        rlActionBar.translationY = -rlActionBar.height.toFloat()
+        rlActionBar.alpha = 0f
+        rlActionBar.animate()
+                .translationY(0f)
+                .alpha(1f)
+                .setDuration(300)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+
+        ivMiniatures.layoutParams = ivMiniatures.layoutParams.apply { this.height = flWebViewContainer.height }
+        ivMiniatures.translationY = 0f
+        ivMiniatures.animate()
+                .translationY(rlActionBar.height.toFloat())
+                .setDuration(300)
+                .setInterpolator(DecelerateInterpolator())
+                /*.withEndAction {
+                    vMiniatures.layoutParams = vMiniatures.layoutParams.apply {
+                        (this as RelativeLayout.LayoutParams).setMargins(0, rlActionBar.height, 0, 0)
+                    }
+                    vMiniatures.translationY = 0f
+                }*/
+                .start()
     }
 
-    private fun hideMenuOverlay() {
-        if (llMenuOverlay.visibility == View.GONE) {
+    private fun displayThumbnail(currentTab: WebTabState?) {
+        if (currentTab != null) {
+            llMiniaturePlaceholder.visibility = View.INVISIBLE
+            ivMiniatures.visibility = View.VISIBLE
+            if (currentTab.thumbnail != null) {
+                ivMiniatures.setImageBitmap(currentTab.thumbnail)
+            } else if (currentTab.thumbnailHash != null) {
+                launch(Dispatchers.IO) {
+                    val thumbnail = currentTab.loadThumbnail()
+                    launch(Dispatchers.Main) {
+                        if (thumbnail != null) {
+                            ivMiniatures.setImageBitmap(currentTab.thumbnail)
+                        } else {
+                            ivMiniatures.setImageResource(0)
+                        }
+                    }
+                }
+            } else {
+                ivMiniatures.setImageResource(0)
+            }
+        } else {
+            llMiniaturePlaceholder.visibility = View.VISIBLE
+            ivMiniatures.setImageResource(0)
+            ivMiniatures.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun hideMenuOverlay(hideBottomButtons: Boolean = true) {
+        if (rlActionBar.visibility == View.INVISIBLE) {
             return
         }
-        var anim = AnimationUtils.loadAnimation(this, R.anim.menu_out_anim)
-        anim.setAnimationListener(object : BaseAnimationListener() {
-            override fun onAnimationEnd(animation: Animation) {
-                llMenuOverlay.visibility = View.GONE
-                if (viewModel.currentTab.value != null) {
-                    viewModel.currentTab.value!!.webView?.requestFocus()
+        if (hideBottomButtons) {
+            hideBottomPanel()
+        }
+
+        rlActionBar.animate()
+                .translationY(-rlActionBar.height.toFloat())
+                .alpha(0f)
+                .setDuration(300)
+                .setInterpolator(DecelerateInterpolator())
+                .withEndAction {
+                    rlActionBar.visibility = View.INVISIBLE
                 }
-            }
-        })
-        llMenu.startAnimation(anim)
+                .start()
 
-        flMenuRightContainer.animate().alpha(0f).start()
+        if (llMiniaturePlaceholder.visibility == View.VISIBLE) {
+            llMiniaturePlaceholder.visibility = View.INVISIBLE
+            ivMiniatures.visibility = View.VISIBLE
+        }
 
-        anim = AnimationUtils.loadAnimation(this, android.R.anim.fade_out)
-        anim.setAnimationListener(object : BaseAnimationListener() {
-            override fun onAnimationEnd(animation: Animation) {
-                llActionBar!!.visibility = View.GONE
-            }
-        })
-        llActionBar.startAnimation(anim)
+        ivMiniatures.translationY = rlActionBar.height.toFloat()
+        ivMiniatures.animate()
+                .translationY(0f)
+                .setDuration(300)
+                .setInterpolator(DecelerateInterpolator())
+                .withEndAction {
+                    ivMiniatures.visibility = View.INVISIBLE
+                    rlActionBar.visibility = View.INVISIBLE
+                    ivMiniatures.setImageResource(0)
+                    val tab = tabByTitleIndex(vTitles.current)
+                    if (tab == null) {
+                        openInNewTab(HOME_URL, if (vTitles.current < 0) 0 else viewModel.tabsStates.size)
+                    } else if (!tab.selected) {
+                        changeTab(tab)
+                    }
+                    flWebViewContainer.visibility = View.VISIBLE
+                    if (hideBottomButtons && viewModel.currentTab.value != null) {
+                        viewModel.currentTab.value!!.webView?.requestFocus()
+                    }
+                }
+                .start()
+    }
+
+    private fun hideBottomPanel() {
+        if (llBottomPanel.visibility != View.VISIBLE) return
+        llBottomPanel.animate()
+                .setDuration(300)
+                .setInterpolator(AccelerateInterpolator())
+                .translationY(llBottomPanel.height.toFloat())
+                .withEndAction {
+                    llBottomPanel.translationY = 0f
+                    llBottomPanel.visibility = View.INVISIBLE
+                }
+                .start()
     }
 
     fun onDownloadStarted(fileName: String) {

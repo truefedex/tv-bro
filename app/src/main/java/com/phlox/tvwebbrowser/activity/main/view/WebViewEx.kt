@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Build
 import android.util.AttributeSet
-import android.util.Size
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -15,6 +14,7 @@ import android.webkit.WebView
 import android.widget.FrameLayout
 import android.widget.PopupMenu
 import com.phlox.tvwebbrowser.R
+import kotlin.math.min
 
 /**
  * Created by fedex on 12.08.16.
@@ -24,18 +24,16 @@ class WebViewEx : WebView {
         const val HOME_URL = "about:blank"
     }
 
-    private var needThumbnail: Size? = null
     private var listener: Listener? = null
-
     private var actionsMenu: PopupMenu? = null
     private var lastTouchX: Int = 0
     private var lastTouchY: Int = 0
 
     interface Listener {
-        fun onThumbnailReady(thumbnail: Bitmap)
         fun onOpenInNewTabRequested(s: String)
         fun onDownloadRequested(url: String)
         fun onWantZoomMode()
+        fun onThumbnailError()
     }
 
     constructor(context: Context) : super(context) {
@@ -130,10 +128,6 @@ class WebViewEx : WebView {
         this.listener = listener
     }
 
-    fun setNeedThumbnail(needThumbnail: Size?) {
-        this.needThumbnail = needThumbnail
-    }
-
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val action = event.action
         when (action and MotionEvent.ACTION_MASK) {
@@ -145,30 +139,38 @@ class WebViewEx : WebView {
         return super.onTouchEvent(event)
     }
 
-    override fun onDraw(canvas: Canvas) {
-        if (needThumbnail != null && listener != null) {
-            renderThumbnail()
-        }
-
-        super.onDraw(canvas)
-    }
-
     override fun loadUrl(url: String?) {
         if (HOME_URL == url) {
             val data = context.assets.open("pages/new-tab.html").bufferedReader().use { it.readText() }
-            loadDataWithBaseURL(null, data, "text/html", "UTF-8", null)
+            loadDataWithBaseURL("file:///android_asset/", data, "text/html", "UTF-8", null)
         } else {
             super.loadUrl(url)
         }
     }
 
-    private fun renderThumbnail() {
-        val thumbnail = Bitmap.createBitmap(needThumbnail!!.width, needThumbnail!!.height, Bitmap.Config.ARGB_8888)
+    fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
+        if (width == 0 || height == 0) return null
+        var thumbnail = bitmap
+        if (thumbnail == null) {
+            try {
+                thumbnail = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                try {
+                    thumbnail = Bitmap.createBitmap(width / 2, height / 2, Bitmap.Config.ARGB_8888)
+                } catch (e: OutOfMemoryError) {
+                    e.printStackTrace()
+                }
+            }
+        }
+        if (thumbnail == null) {
+            return null
+        }
         val canvas = Canvas(thumbnail)
-        val scaleFactor = needThumbnail!!.width / width.toFloat()
-        needThumbnail = null
+        val scaleFactor = width / width.toFloat()
         canvas.scale(scaleFactor, scaleFactor)
+        canvas.translate(-scrollX.toFloat() * scaleFactor, -scrollY.toFloat() * scaleFactor)
         super.draw(canvas)
-        listener!!.onThumbnailReady(thumbnail)
+        return thumbnail
     }
 }
