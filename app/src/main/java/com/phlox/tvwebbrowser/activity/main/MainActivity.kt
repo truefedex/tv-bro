@@ -82,7 +82,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private var downloadAnimation: Animation? = null
     private var fullScreenView: View? = null
     private lateinit var prefs: SharedPreferences
-    private val webViews = ArrayList<WebViewEx>()
 
     internal var progressBarHideRunnable: Runnable = Runnable {
         val anim = AnimationUtils.loadAnimation(this@MainActivity, android.R.anim.fade_out)
@@ -414,12 +413,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         if (tab == null) return
         val position = viewModel.tabsStates.indexOf(tab)
         when {
-            viewModel.tabsStates.size == 1 -> {
-                tab.selected = false
-                tab.webView?.onPause()
-                flWebViewContainer.removeView(tab.webView)
-                viewModel.currentTab.value = null
-            }
+            viewModel.tabsStates.size == 1 -> openInNewTab(HOME_URL, 0)
 
             position == viewModel.tabsStates.size - 1 -> changeTab(viewModel.tabsStates[position - 1])
 
@@ -427,6 +421,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
         viewModel.tabsStates.remove(tab)
         vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
+        vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
         vTitles.postInvalidate()
         tab.removeFiles()
         hideBottomPanel()

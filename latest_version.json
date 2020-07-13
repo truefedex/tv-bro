@@ -4,12 +4,14 @@
       "name": "release",
       "latestVersionName": "v1.4.5",
       "latestVersionCode": 32,
+      "minAPI": 21,
       "url": "https://github.com/truefedex/tv-bro/releases/download/v1.4.5/tvbro1.4.5.apk"
     },
     {
       "name": "beta",
       "latestVersionName": "v1.4.5",
       "latestVersionCode": 32,
+      "minAPI": 21,
       "url": "https://github.com/truefedex/tv-bro/releases/download/v1.4.5/tvbro1.4.5.apk"
     }
   ],

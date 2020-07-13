@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.os.Build
 import androidx.core.content.FileProvider
 import androidx.appcompat.app.AlertDialog
 import android.text.Html
@@ -45,8 +46,7 @@ class UpdateChecker(val currentVersionCode: Int) {
     }
 
     fun check(urlOfVersionFile: String, channelsToCheck: Array<String>) {
-        val url = URL(urlOfVersionFile)
-        val urlConnection = url.openConnection() as HttpURLConnection
+        val urlConnection = URL(urlOfVersionFile).openConnection() as HttpURLConnection
         try {
             val content = urlConnection.inputStream.bufferedReader().use { it.readText() }
             val json = JSONObject(content)
@@ -55,12 +55,14 @@ class UpdateChecker(val currentVersionCode: Int) {
             var latestVersionName = ""
             var url = ""
             var latestVersionChannelName = ""
-            var availableChannels = ArrayList<String>()
+            val availableChannels = ArrayList<String>()
             for (i in 0 until channelsJson.length()) {
                 val channelJson = channelsJson.getJSONObject(i)
                 availableChannels.add(channelJson.getString("name"))
                 if (channelsToCheck.contains(channelJson.getString("name"))) {
-                    if (latestVersionCode < channelJson.getInt("latestVersionCode")) {
+                    val minAPI = if (channelJson.has("minAPI")) channelJson.getInt("minAPI") else 21
+                    if (latestVersionCode < channelJson.getInt("latestVersionCode") &&
+                            minAPI <= Build.VERSION.SDK_INT) {
                         latestVersionCode = channelJson.getInt("latestVersionCode")
                         latestVersionName = channelJson.getString("latestVersionName")
                         url = channelJson.getString("url")
@@ -70,7 +72,7 @@ class UpdateChecker(val currentVersionCode: Int) {
             }
             val changelogJson = json.getJSONArray("changelog")
             val changelog = ArrayList<ChangelogEntry>()
-            for (i in 0..(changelogJson.length() - 1)) {
+            for (i in 0 until changelogJson.length()) {
                 val versionChangesJson = changelogJson.getJSONObject(i)
                 changelog.add(ChangelogEntry(versionChangesJson.getInt("versionCode"),
                         versionChangesJson.getString("versionName"),
