@@ -104,6 +104,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
+    @ExperimentalStdlibApi
     private val tabsListener = object : TitlesView.Listener {
         override fun onTitleChanged(index: Int) {
             val tab = tabByTitleIndex(index)
@@ -120,8 +121,35 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             hideMenuOverlay()
         }
 
-        override fun onTitleOptions() {
-            //closeTab(tab)
+        override fun onTitleOptions(index: Int) {
+            val tab = tabByTitleIndex(index)
+            AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.tabs)
+                    .setItems(R.array.tabs_options) { _, i ->
+                        when (i) {
+                            0 -> tab?.apply { closeTab(this) }
+                            1 -> {
+                                viewModel.tabsStates.forEach { it.removeFiles() }
+                                openInNewTab(HOME_URL, 0)
+                                while (viewModel.tabsStates.size > 1) viewModel.tabsStates.removeLast()
+                                vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
+                                vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
+                            }
+                            2 -> if (tab != null && index > 0) {
+                                viewModel.tabsStates.remove(tab)
+                                viewModel.tabsStates.add(index - 1, tab)
+                                vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
+                                vTitles.current = index - 1
+                            }
+                            3 -> if (tab != null && index < (viewModel.tabsStates.size - 1)) {
+                                viewModel.tabsStates.remove(tab)
+                                viewModel.tabsStates.add(index + 1, tab)
+                                vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
+                                vTitles.current = index + 1
+                            }
+                        }
+                    }
+                    .show()
         }
     }
 
@@ -132,7 +160,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         hideMenuOverlay()
     }
 
-    fun showFavorites() {
+    private fun showFavorites() {
         val currentPageTitle = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.currentTitle else ""
         val currentPageUrl = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.currentOriginalUrl else ""
 
@@ -175,6 +203,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
+    @ExperimentalStdlibApi
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
@@ -422,7 +451,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         viewModel.tabsStates.remove(tab)
         vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
         vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
-        vTitles.postInvalidate()
         tab.removeFiles()
         hideBottomPanel()
     }

@@ -10,9 +10,8 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.View
-import androidx.core.text.TextUtilsCompat
+import android.view.ViewConfiguration
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.utils.Utils
 
 class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
     : View(context, attrs, defStyleAttr) {
@@ -24,7 +23,7 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
     interface Listener {
         fun onTitleChanged(index: Int)
         fun onTitleSelected(index: Int)
-        fun onTitleOptions()
+        fun onTitleOptions(index: Int)
     }
 
     var listener: Listener? = null
@@ -38,6 +37,7 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
     var animationVector = 0
     var animationStartTime = 0L
     private val emptyTitle: String
+    private var onPressTime: Long = 0
 
     init {
         if (isInEditMode()) {
@@ -49,6 +49,7 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         isFocusable = true
         isFocusableInTouchMode = true
         isClickable = true
+        isLongClickable = true
         emptyTitle = context.getString(R.string.new_tab_title)
     }
 
@@ -163,20 +164,29 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         postInvalidate()
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
-            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> return true
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
+                if (event.repeatCount == 0) {
+                    onPressTime = System.currentTimeMillis()
+                } else if ((System.currentTimeMillis() - onPressTime) >= ViewConfiguration.getLongPressTimeout()) {
+                    listener?.onTitleOptions(current)
+                }
+                return true
+            }
         }
         return super.onKeyDown(keyCode, event)
     }
 
-    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> return moveLeft()
             KeyEvent.KEYCODE_DPAD_RIGHT -> return moveRight()
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
-                listener?.onTitleSelected(current)
+                if ((System.currentTimeMillis() - onPressTime) < ViewConfiguration.getLongPressTimeout())
+                    listener?.onTitleSelected(current)
+                return true
             }
         }
         return super.onKeyUp(keyCode, event)

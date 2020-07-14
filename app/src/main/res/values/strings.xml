@@ -83,4 +83,11 @@
     <string name="err_webview_can_not_link">Can not link to WebView component. Try to install chrome (or other version of chrome if already).</string>
     <string name="new_tab_title">[NEW TAB]</string>
     <string name="open_a_new_tab_here">Open a new tab here</string>
+    <string name="tabs">Tabs</string>
+    <array name="tabs_options">
+        <item>Close current</item>
+        <item>Close all</item>
+        <item>Move left</item>
+        <item>Move right</item>
+    </array>
 </resources>
