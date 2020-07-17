@@ -27,7 +27,7 @@
     {
       "versionCode": 33,
       "versionName": "v1.5.0",
-      "changes": "-New tabs layout\n-Updated homepage\n-More safe ssl errors handling\n-Fixed several other small bugs"
+      "changes": "-New tabs layout\n-More safe ssl errors handling\n-Fixed several other small bugs"
     },
     {
       "versionCode": 32,
