@@ -10,14 +10,14 @@ properties.load(project.rootProject.file('local.properties').newDataInputStream(
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.3'
+    buildToolsVersion '29.0.3'
 
     defaultConfig {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 32
-        versionName "1.4.5"
+        versionCode 33
+        versionName "1.5.0"
 
         javaCompileOptions {
             annotationProcessorOptions {
