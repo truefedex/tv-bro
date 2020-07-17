@@ -6,18 +6,21 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
-import androidx.core.content.FileProvider
-import androidx.appcompat.app.AlertDialog
 import android.text.Html
-import android.util.Log
 import android.webkit.MimeTypeMap
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
 import com.phlox.tvwebbrowser.R
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.io.*
-import java.lang.IllegalStateException
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
@@ -85,11 +88,12 @@ class UpdateChecker(val currentVersionCode: Int) {
     }
 
     fun showUpdateDialog(context: Context, channel: String, callback: DialogCallback) {
-        if (versionCheckResult == null || versionCheckResult!!.latestVersionCode <= currentVersionCode) {
-            throw IllegalStateException("Latest version not defined or less than current")
+        val version = versionCheckResult ?: return
+        if (version.latestVersionCode < currentVersionCode) {
+            throw IllegalStateException("Version less than current")
         }
         var message = ""
-        for (changelogEntry in versionCheckResult!!.changelog) {
+        for (changelogEntry in version.changelog) {
             if (changelogEntry.versionCode > currentVersionCode) {
                 message += "<b>${changelogEntry.versionName}</b><br>" +
                         changelogEntry.changes.replace("\n", "<br>")
@@ -201,6 +205,7 @@ class UpdateChecker(val currentVersionCode: Int) {
         val install = Intent(Intent.ACTION_INSTALL_PACKAGE)
         install.setDataAndType(apkURI, mimeType)
         install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         try {
             context.startActivity(install)
         } catch (e: ActivityNotFoundException) {
