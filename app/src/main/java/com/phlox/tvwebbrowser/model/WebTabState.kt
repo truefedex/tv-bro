@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.model
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.http.SslError
 import android.os.Bundle
 import android.webkit.WebChromeClient
 import com.phlox.tvwebbrowser.TVBro
@@ -39,6 +40,8 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
     var savedState: Bundle? = null
     var webPageInteractionDetected = false
     var webChromeClient: WebChromeClient? = null
+    var lastSSLError: SslError? = null
+    var trustSsl: Boolean = false
 
     constructor(context: Context, json: JSONObject) : this() {
         try {
@@ -136,18 +139,14 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
 
     fun restoreWebView() {
         if (savedState != null) {
-            webView!!.restoreState(savedState)
-        } else if (currentOriginalUrl != null) {
-            webView!!.loadUrl(currentOriginalUrl)
-        }
+            webView?.restoreState(savedState)
+        } else currentOriginalUrl?.apply { webView?.loadUrl(this) }
     }
 
     fun recycleWebView() {
-        if (webView != null) {
-            savedState = Bundle()
-            webView!!.saveState(savedState)
-            webView = null
-        }
+        savedState = Bundle()
+        webView?.saveState(savedState)
+        webView = null
     }
 
     fun updateFavIcon(context: Context, icon: Bitmap?) {

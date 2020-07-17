@@ -1,13 +1,9 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -17,8 +13,6 @@ import android.net.Uri
 import android.net.http.SslError
 import android.os.*
 import android.speech.RecognizerIntent
-import androidx.core.content.ContextCompat
-import androidx.appcompat.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
 import android.util.Patterns
@@ -31,6 +25,10 @@ import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
@@ -40,9 +38,14 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFactory
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsViewModel
-import com.phlox.tvwebbrowser.activity.main.view.*
+import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
+import com.phlox.tvwebbrowser.activity.main.view.Scripts
+import com.phlox.tvwebbrowser.activity.main.view.TitlesView
+import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx.Companion.HOME_URL
-import com.phlox.tvwebbrowser.model.*
+import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.model.FavoriteItem
+import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
@@ -314,7 +317,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             KeyEvent.KEYCODE_ENTER -> {
                 if (keyEvent.action == KeyEvent.ACTION_UP) {
                     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.hideSoftInputFromWindow(etUrl!!.windowToken, 0)
+                    imm.hideSoftInputFromWindow(etUrl.windowToken, 0)
                     hideMenuOverlay()
                     search(etUrl.text.toString())
                     viewModel.currentTab.value!!.webView?.requestFocus()
@@ -332,9 +335,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         SettingsDialog(this, settingsViewModel).show()
     }
 
-    fun navigateBack() {
+    fun navigateBack(goHomeIfNoHistory: Boolean = false) {
         if (viewModel.currentTab.value != null && viewModel.currentTab.value!!.webView?.canGoBack() == true) {
             viewModel.currentTab.value!!.webView?.goBack()
+        } else if (goHomeIfNoHistory) {
+            navigate(HOME_URL)
         } else if (rlActionBar.visibility != View.VISIBLE) {
             showMenuOverlay()
         } else {
@@ -343,9 +348,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     fun refresh() {
-        if (viewModel.currentTab.value != null) {
-            viewModel.currentTab.value!!.webView?.reload()
-        }
+        viewModel.currentTab.value?.webView?.reload()
     }
 
     override fun onDestroy() {
@@ -477,9 +480,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
         viewModel.currentTab.value!!.webView?.setNetworkAvailable(Utils.isNetworkConnected(this))
 
-        etUrl!!.setText(newTab.currentOriginalUrl)
-        ibBack!!.isEnabled = newTab.webView?.canGoBack() == true
-        ibForward!!.isEnabled = newTab.webView?.canGoForward() == true
+        etUrl.setText(newTab.currentOriginalUrl)
+        ibBack.isEnabled = newTab.webView?.canGoBack() == true
+        ibForward.isEnabled = newTab.webView?.canGoForward() == true
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -772,7 +775,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 } else if (url != null) {
                     tab.currentOriginalUrl = url
                 }
-                etUrl!!.setText(tab.currentOriginalUrl)
+                etUrl.setText(tab.currentOriginalUrl)
 
                 //thumbnail
                 viewModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
@@ -786,7 +789,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
                 tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
                 viewModel.currentTab.value!!.webPageInteractionDetected = false
-                if (WebViewEx.HOME_URL == url) {
+                if (HOME_URL == url) {
                     view.loadUrl("javascript:renderSuggestions()")
                 }
             }
@@ -796,8 +799,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
 
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
-                showCertificateErrorHint(error)
-                handler.proceed()
+                if (tab.trustSsl && tab.lastSSLError?.certificate?.toString()?.equals(error.certificate.toString()) == true) {
+                    tab.trustSsl = false
+                    tab.lastSSLError = null
+                    handler.proceed()
+                } else {
+                    handler.cancel()
+                    showCertificateErrorPage(error)
+                }
             }
         }
 
@@ -809,23 +818,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         return true
     }
 
-    private fun showCertificateErrorHint(error: SslError) {
-        llCertificateWarning.visibility = View.VISIBLE
-        llCertificateWarning.alpha = 1f
+    private fun showCertificateErrorPage(error: SslError) {
+        val tab = viewModel.currentTab.value ?: return
+        val webView = tab.webView ?: return
         etUrl.setTextColor(Color.RED)
-        uiHandler.removeCallbacks(hideCertificateWarningRunnable)
-        uiHandler.postDelayed(hideCertificateWarningRunnable, 10000)
-    }
-
-    private val hideCertificateWarningRunnable = object : Runnable {
-        override fun run() {
-            llCertificateWarning.animate().alpha(0f).setDuration(1000)
-                    .setListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator?) {
-                            llCertificateWarning.visibility = View.GONE
-                        }
-                    }).start()
-        }
+        tab.lastSSLError = error
+        val url = WebViewEx.INTERNAL_SCHEME + WebViewEx.INTERNAL_SCHEME_WARNING_DOMAIN +
+                "?type=" + WebViewEx.INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT +
+                "&url=" + URLEncoder.encode(error.url, "UTF-8")
+        webView.loadUrl(url)
     }
 
     fun onDownloadRequested(url: String, originalDownloadFileName: String?, userAgent: String?,

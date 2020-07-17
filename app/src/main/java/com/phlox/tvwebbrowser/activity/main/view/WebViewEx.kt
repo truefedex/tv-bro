@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.net.Uri
 import android.os.Build
 import android.util.AttributeSet
 import android.view.Gravity
@@ -22,6 +23,9 @@ import kotlin.math.min
 class WebViewEx : WebView {
     companion object {
         const val HOME_URL = "about:blank"
+        const val INTERNAL_SCHEME = "internal://"
+        const val INTERNAL_SCHEME_WARNING_DOMAIN = "warning"
+        const val INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT = "certificate"
     }
 
     private var listener: Listener? = null
@@ -139,12 +143,28 @@ class WebViewEx : WebView {
         return super.onTouchEvent(event)
     }
 
-    override fun loadUrl(url: String?) {
-        if (HOME_URL == url) {
-            val data = context.assets.open("pages/new-tab.html").bufferedReader().use { it.readText() }
-            loadDataWithBaseURL("file:///android_asset/", data, "text/html", "UTF-8", null)
-        } else {
-            super.loadUrl(url)
+    override fun loadUrl(url: String) {
+        when {
+            HOME_URL == url -> {
+                val data = context.assets.open("pages/new-tab.html").bufferedReader().use { it.readText() }
+                loadDataWithBaseURL("file:///android_asset/", data, "text/html", "UTF-8", null)
+            }
+            url.startsWith(INTERNAL_SCHEME) -> {
+                val uri = Uri.parse(url)
+                when (uri.authority) {
+                    INTERNAL_SCHEME_WARNING_DOMAIN -> {
+                        when (uri.getQueryParameter("type")) {
+                            INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT -> {
+                                val data = context.assets.open("pages/warning-certificate.html").bufferedReader().use { it.readText() }
+                                loadDataWithBaseURL("file:///android_asset/", data, "text/html", "UTF-8", uri.getQueryParameter("url"))
+                            }
+                        }
+                    }
+                }
+            }
+            else -> {
+                super.loadUrl(url)
+            }
         }
     }
 

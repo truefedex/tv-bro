@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.http.SslCertificate
 import android.os.Build
 import android.os.Environment
 import android.speech.RecognizerIntent
@@ -31,8 +32,14 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.lang.reflect.Field
+import java.security.KeyStore
+import java.security.cert.X509Certificate
 import java.util.*
-import kotlin.coroutines.CoroutineContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
+
 
 class MainActivityViewModel: ViewModel() {
     companion object {
@@ -43,11 +50,23 @@ class MainActivityViewModel: ViewModel() {
     val currentTab = MutableLiveData<WebTabState>()
     val tabsStates = ArrayList<WebTabState>()
     var lastHistoryItem: HistoryItem? = null
-    val jsInterface = AndroidJSInterface()
+    val jsInterface = AndroidJSInterface(this)
     private var urlToDownload: String? = null
     private var originalDownloadFileName: String? = null
     private var userAgentForDownload: String? = null
     private var operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP
+
+    private fun getTrustManager(): X509TrustManager {
+        val keyStoreType: String = KeyStore.getDefaultType()
+        val keyStore: KeyStore = KeyStore.getInstance(keyStoreType)
+        keyStore.load(null, null)
+
+        val trustManagerFactory: TrustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        trustManagerFactory.init(keyStore)
+        val trustManagers: Array<TrustManager> = trustManagerFactory.trustManagers
+
+        return (trustManagers[0] as X509TrustManager)
+    }
 
     fun saveState() {
         //WebTabState.saveTabs(TVBro.instance, tabsStates)

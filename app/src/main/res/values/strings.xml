@@ -90,4 +90,8 @@
         <item>Move left</item>
         <item>Move right</item>
     </array>
+    <string name="ssl_expired">The certificate has expired</string>
+    <string name="ssl_idmismatch">Hostname mismatch</string>
+    <string name="ssl_date_invalid">The date of the certificate is invalid</string>
+    <string name="ssl_invalid">A generic error occurred</string>
 </resources>
