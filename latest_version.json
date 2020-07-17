@@ -13,10 +13,22 @@
       "latestVersionCode": 32,
       "minAPI": 21,
       "url": "https://github.com/truefedex/tv-bro/releases/download/v1.4.5/tvbro1.4.5.apk"
+    },
+    {
+      "name": "alpha",
+      "latestVersionName": "v1.5.0",
+      "latestVersionCode": 33,
+      "minAPI": 21,
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.0-alpha/tvbro1.5.0.apk"
     }
   ],
 
   "changelog": [
+    {
+      "versionCode": 33,
+      "versionName": "v1.5.0",
+      "changes": "-New tabs layout\n-Updated homepage\n-More safe ssl errors handling\n-Fixed several other small bugs"
+    },
     {
       "versionCode": 32,
       "versionName": "v1.4.5",
@@ -26,11 +38,6 @@
       "versionCode": 31,
       "versionName": "v1.4.4",
       "changes": "-Fixed several layout problems and bugs\n-Updated homepage\n-Auto update function (experimental)\n-New settings screen\n-Sites with self-signed certificates now displayed (with warning)"
-    },
-    {
-      "versionCode": 25,
-      "versionName": "v1.3.0",
-      "changes": "-Redesigned home page\n-New application icon\n-History screen: clear button added\n-Performance and stability improvements"
     }
   ]
 }
