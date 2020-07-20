@@ -9,24 +9,24 @@
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.4.5",
-      "latestVersionCode": 32,
+      "latestVersionName": "v1.5.1",
+      "latestVersionCode": 34,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.4.5/tvbro1.4.5.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.1-beta/tvbro1.5.1.apk"
     },
     {
       "name": "alpha",
-      "latestVersionName": "v1.5.0",
-      "latestVersionCode": 33,
+      "latestVersionName": "v1.5.1",
+      "latestVersionCode": 34,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.0-alpha/tvbro1.5.0.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.1-beta/tvbro1.5.1.apk"
     }
   ],
 
   "changelog": [
     {
-      "versionCode": 33,
-      "versionName": "v1.5.0",
+      "versionCode": 34,
+      "versionName": "v1.5.1",
       "changes": "-New tabs layout\n-More safe ssl errors handling\n-Fixed several other small bugs"
     },
     {
