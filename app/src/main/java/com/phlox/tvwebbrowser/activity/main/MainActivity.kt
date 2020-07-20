@@ -459,26 +459,25 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     private fun changeTab(newTab: WebTabState) {
-        if (viewModel.currentTab.value != null) {
-            viewModel.currentTab.value!!.selected = false
-            viewModel.currentTab.value!!.webView?.onPause()
-            flWebViewContainer!!.removeView(viewModel.currentTab.value!!.webView)
+        viewModel.currentTab.value?.webView?.apply {
+            onPause()
+            flWebViewContainer.removeView(this)
         }
 
         newTab.selected = true
         viewModel.currentTab.value = newTab
         vTitles.current = viewModel.tabsStates.indexOf(newTab)
-        if (viewModel.currentTab.value!!.webView == null) {
-            if (!createWebView(viewModel.currentTab.value!!)) {
+        if (newTab.webView == null) {
+            if (!createWebView(newTab)) {
                 return
             }
-            viewModel.currentTab.value!!.restoreWebView()
-            flWebViewContainer!!.addView(viewModel.currentTab.value!!.webView)
+            newTab.restoreWebView()
+            flWebViewContainer.addView(newTab.webView)
         } else {
-            flWebViewContainer!!.addView(viewModel.currentTab.value!!.webView)
-            viewModel.currentTab.value!!.webView?.onResume()
+            flWebViewContainer.addView(newTab.webView)
+            newTab.webView!!.onResume()
         }
-        viewModel.currentTab.value!!.webView?.setNetworkAvailable(Utils.isNetworkConnected(this))
+        newTab.webView!!.setNetworkAvailable(Utils.isNetworkConnected(this))
 
         etUrl.setText(newTab.currentOriginalUrl)
         ibBack.isEnabled = newTab.webView?.canGoBack() == true

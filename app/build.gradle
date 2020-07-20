@@ -16,8 +16,8 @@ android {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 33
-        versionName "1.5.0"
+        versionCode 34
+        versionName "1.5.1"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -80,6 +80,6 @@ dependencies {
     implementation 'com.github.truefedex:segmented-button:v1.0.0'
     implementation 'de.halfbit:pinned-section-listview:1.0.0'
 
-    crashlyticsImplementation 'com.google.firebase:firebase-core:17.4.3'
+    crashlyticsImplementation 'com.google.firebase:firebase-core:17.4.4'
     crashlyticsImplementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
 }

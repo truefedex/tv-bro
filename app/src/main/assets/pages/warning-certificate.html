@@ -58,19 +58,19 @@
         }
     </style>
 </head>
-<body onload="showErrorDesk();">
+<body onload="onLoad();">
 <div class="interstitial-wrapper">
     <div>
         <img src="file:///android_asset/pages/ic_warning.svg">
         <!--<img src="ic_warning.svg">-->
-        <h1 style="margin-bottom: 28px;">Connection is not secure</h1>
-        <p><b>Hostname: </b><span id="hostname"></span></p>
-        <p><b>Error description: </b><span id="error"></span></p>
-        <p><b>Details: </b><br><span id="error-details"></span></p>
+        <h1 id="caption" style="margin-bottom: 28px;"></h1>
+        <p><b id="hostnameLabel"></b> <span id="hostname"></span></p>
+        <p><b id="errorDeskr"></b> <span id="error"></span></p>
+        <p><b id="details"></b><br> <span id="error-details"></span></p>
 
         <div id="certErrorAndCaptivePortalButtonContainer">
-            <button id="returnButton" onclick="TVBro.navigateBack();">Back to safety</button>
-            <button id="goForwardButton" onclick="TVBro.reloadWithSslTrust();">Go. I am aware of the risk</button>
+            <button id="returnButton" onclick="TVBro.navigateBack();"></button>
+            <button id="goForwardButton" onclick="TVBro.reloadWithSslTrust();"></button>
         </div>
     </div>
 </div>
@@ -78,7 +78,16 @@
 function onSuggestionClicked(index) {
     TVBro.navigate(suggs[index].url);
 }
-function showErrorDesk() {
+function onLoad() {
+    //translate captions first
+    document.getElementById("caption").innerHTML = TVBro.getStringByName('connection_isnt_secure');
+    document.getElementById("hostnameLabel").innerHTML = TVBro.getStringByName('hostname');
+    document.getElementById("errorDeskr").innerHTML = TVBro.getStringByName('err_desk');
+    document.getElementById("details").innerHTML = TVBro.getStringByName('details');
+    document.getElementById("returnButton").innerHTML = TVBro.getStringByName('back_to_safety');
+    document.getElementById("goForwardButton").innerHTML = TVBro.getStringByName('go_im_aware');
+
+    //show error info
     let url = new URL(TVBro.currentUrl());
     document.getElementById("hostname").innerHTML = url.hostname;
     let error = TVBro.lastSSLError(false);

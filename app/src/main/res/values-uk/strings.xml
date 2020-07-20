@@ -79,5 +79,18 @@
     <string name="warning">Увага</string>
     <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Веб-браузер, оптимізований для телевізорів (https://github.com/truefedex/tv-bro)</string>
     <string name="new_version_available_s">Доступна нова версія: %s</string>
-    <string name="err_webview_can_not_link">Не можу знайти WebView компонент. Спробуйте спочатку встановити Chrome (або новішу версію Chrome, якщо вже є).</string>
+    <string name="err_webview_can_not_link">Не можу знайти WebView компонент. Спробуйте спочатку встановити Android System WebView</string>
+    <string name="new_tab_title">[НОВА ВКЛ.]</string>
+    <string name="open_a_new_tab_here">Відкрити нову вкладку тут</string>
+    <string name="tabs">Вкладки</string>
+    <string name="ssl_expired">Термін дії сертифікату минув</string>
+    <string name="ssl_idmismatch">Невідповідність імені хоста</string>
+    <string name="ssl_date_invalid">Дата сертифіката недійсна</string>
+    <string name="ssl_invalid">Виникла загальна помилка</string>
+    <string name="back_to_safety">Повернення до безпеки</string>
+    <string name="go_im_aware">Вперед. Я знаю про ризик</string>
+    <string name="connection_isnt_secure">Підключення не захищено</string>
+    <string name="hostname">Ім\'я хоста:</string>
+    <string name="err_desk">Опис помилки:</string>
+    <string name="details">Деталі:</string>
 </resources>

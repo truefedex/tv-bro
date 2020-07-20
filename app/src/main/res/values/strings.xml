@@ -80,7 +80,7 @@
     <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Web browser optimized for TVs ( https://github.com/truefedex/tv-bro )</string>
     <string name="warning">Warning</string>
     <string name="unprotected_connection">Unprotected connection</string>
-    <string name="err_webview_can_not_link">Can not link to WebView component. Try to install chrome (or other version of chrome if already).</string>
+    <string name="err_webview_can_not_link">Can not link to WebView component. Try to install Android System WebView component first.</string>
     <string name="new_tab_title">[NEW TAB]</string>
     <string name="open_a_new_tab_here">Open a new tab here</string>
     <string name="tabs">Tabs</string>
@@ -94,4 +94,10 @@
     <string name="ssl_idmismatch">Hostname mismatch</string>
     <string name="ssl_date_invalid">The date of the certificate is invalid</string>
     <string name="ssl_invalid">A generic error occurred</string>
+    <string name="back_to_safety">Back to safety</string>
+    <string name="go_im_aware">Go. I am aware of the risk</string>
+    <string name="connection_isnt_secure">Connection is not secure</string>
+    <string name="hostname">Hostname:</string>
+    <string name="err_desk">Error description:</string>
+    <string name="details">Details:</string>
 </resources>

@@ -13,9 +13,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-/**
- * Created by fedex on 11.12.16.
- */
+
 class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewModel) {
     private var activity: MainActivity? = null
     private var suggestions = "[]"
@@ -48,6 +46,13 @@ class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewMode
                 currentOriginalUrl?.apply { webView?.loadUrl(this) }
             }
         }
+    }
+
+    @JavascriptInterface
+    fun getStringByName(name: String): String {
+        val ctx = TVBro.instance
+        val resId = ctx.resources.getIdentifier(name, "string", ctx.packageName)
+        return ctx.getString(resId)
     }
 
     @JavascriptInterface
