@@ -77,7 +77,7 @@
     <string name="auto_check_for_updates">Auto check for updates</string>
     <string name="update">Update</string>
     <string name="new_version_available_s">New version available: %s</string>
-    <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Web browser optimized for TVs ( https://github.com/truefedex/tv-bro )</string>
+    <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Web browser optimized for TVs\n https://github.com/truefedex/tv-bro</string>
     <string name="warning">Warning</string>
     <string name="unprotected_connection">Unprotected connection</string>
     <string name="err_webview_can_not_link">Can not link to WebView component. Try to install Android System WebView component first.</string>

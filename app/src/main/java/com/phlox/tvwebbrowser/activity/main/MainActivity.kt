@@ -459,6 +459,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     private fun changeTab(newTab: WebTabState) {
+        viewModel.tabsStates.forEach {
+            it.selected = false
+        }
         viewModel.currentTab.value?.webView?.apply {
             onPause()
             flWebViewContainer.removeView(this)
@@ -1046,7 +1049,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 .translationY(0f)
                 .alpha(1f)
                 .withEndAction {
-                    ibMenu!!.requestFocus()
+                    ibMenu.requestFocus()
                 }
                 .start()
 
