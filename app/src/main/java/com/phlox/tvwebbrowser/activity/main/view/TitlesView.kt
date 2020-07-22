@@ -8,9 +8,8 @@ import android.graphics.Rect
 import android.text.TextPaint
 import android.text.TextUtils
 import android.util.AttributeSet
-import android.view.KeyEvent
-import android.view.View
-import android.view.ViewConfiguration
+import android.view.*
+import androidx.core.view.GestureDetectorCompat
 import com.phlox.tvwebbrowser.R
 
 class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
@@ -34,13 +33,30 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
             postInvalidate()
         }
     private val paint = TextPaint(Paint.ANTI_ALIAS_FLAG)
+    private lateinit var gDetector: GestureDetectorCompat
     var animationVector = 0
     var animationStartTime = 0L
     private val emptyTitle: String
     private var onPressTime: Long = 0
 
+    val gestureListener = object : GestureDetector.SimpleOnGestureListener() {
+        override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean {
+            if (velocityX > 0) moveLeft() else moveRight()
+            return true
+        }
+
+        override fun onLongPress(e: MotionEvent?) {
+            listener?.onTitleOptions(current)
+        }
+
+        override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+            listener?.onTitleSelected(current)
+            return true
+        }
+    }
+
     init {
-        if (isInEditMode()) {
+        if (isInEditMode) {
             titles.addAll(arrayOf("Test", "Test2", "Test3"))
             current = 0
         }
@@ -51,6 +67,8 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         isClickable = true
         isLongClickable = true
         emptyTitle = context.getString(R.string.new_tab_title)
+
+        gDetector = GestureDetectorCompat(context, gestureListener)
     }
 
     private fun titleForIndex(index: Int): String {
@@ -155,10 +173,6 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         }
     }
 
-    private fun animate(from: Float, to : Float, animationProgress: Float): Float {
-        return from + (to - from) * animationProgress
-    }
-
     override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
         super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
         postInvalidate()
@@ -192,7 +206,19 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         return super.onKeyUp(keyCode, event)
     }
 
-    fun moveLeft(): Boolean {
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        return if (gDetector.onTouchEvent(event)) {
+            true
+        } else {
+            super.onTouchEvent(event)
+        }
+    }
+
+    private fun animate(from: Float, to : Float, animationProgress: Float): Float {
+        return from + (to - from) * animationProgress
+    }
+
+    private fun moveLeft(): Boolean {
         if (animationVector != 0) return false
         if (current <= -1) return false
         current--
@@ -202,7 +228,7 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         return true
     }
 
-    fun moveRight(): Boolean {
+    private fun moveRight(): Boolean {
         if (animationVector != 0) return false
         if (current >= titles.size) return false
         current++
