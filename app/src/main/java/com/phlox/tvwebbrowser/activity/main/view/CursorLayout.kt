@@ -32,7 +32,7 @@ class CursorLayout : FrameLayout {
     public val cursorPosition = PointF(0f, 0f)
     private val cursorSpeed = PointF(0f, 0f)
     private val paint = Paint()
-    private var lastCursorUpdate = System.currentTimeMillis()
+    private var lastCursorUpdate = System.currentTimeMillis() - CURSOR_DISAPPEAR_TIMEOUT
     private var dpadCenterPressed = false
     internal var tmpPointF = PointF()
     private var callback: Callback? = null

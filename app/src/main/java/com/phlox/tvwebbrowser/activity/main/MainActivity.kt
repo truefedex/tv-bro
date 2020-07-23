@@ -86,126 +86,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private var fullScreenView: View? = null
     private lateinit var prefs: SharedPreferences
 
-    internal var progressBarHideRunnable: Runnable = Runnable {
-        val anim = AnimationUtils.loadAnimation(this@MainActivity, android.R.anim.fade_out)
-        anim.setAnimationListener(object : BaseAnimationListener() {
-            override fun onAnimationEnd(animation: Animation) {
-                progressBar.visibility = View.GONE
-            }
-        })
-        progressBar.startAnimation(anim)
-    }
-
-    private var mConnectivityChangeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val activeNetwork = cm.activeNetworkInfo
-            val isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting
-            if (viewModel.currentTab.value != null) {
-                viewModel.currentTab.value!!.webView?.setNetworkAvailable(isConnected)
-            }
-        }
-    }
-
-    @ExperimentalStdlibApi
-    private val tabsListener = object : TitlesView.Listener {
-        override fun onTitleChanged(index: Int) {
-            val tab = tabByTitleIndex(index)
-            displayThumbnail(tab)
-        }
-
-        override fun onTitleSelected(index: Int) {
-            val tab = tabByTitleIndex(index)
-            if (tab == null) {
-                openInNewTab(HOME_URL, if (index < 0) 0 else viewModel.tabsStates.size)
-            } else if (!tab.selected) {
-                changeTab(tab)
-            }
-            hideMenuOverlay()
-        }
-
-        override fun onTitleOptions(index: Int) {
-            val tab = tabByTitleIndex(index)
-            AlertDialog.Builder(this@MainActivity)
-                    .setTitle(R.string.tabs)
-                    .setItems(R.array.tabs_options) { _, i ->
-                        when (i) {
-                            0 -> tab?.apply { closeTab(this) }
-                            1 -> {
-                                viewModel.tabsStates.forEach { it.removeFiles() }
-                                openInNewTab(HOME_URL, 0)
-                                while (viewModel.tabsStates.size > 1) viewModel.tabsStates.removeLast()
-                                vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
-                                vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
-                            }
-                            2 -> if (tab != null && index > 0) {
-                                viewModel.tabsStates.remove(tab)
-                                viewModel.tabsStates.add(index - 1, tab)
-                                vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
-                                vTitles.current = index - 1
-                            }
-                            3 -> if (tab != null && index < (viewModel.tabsStates.size - 1)) {
-                                viewModel.tabsStates.remove(tab)
-                                viewModel.tabsStates.add(index + 1, tab)
-                                vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
-                                vTitles.current = index + 1
-                            }
-                        }
-                    }
-                    .show()
-        }
-    }
-
-    private fun showHistory() {
-        startActivityForResult(
-                Intent(this@MainActivity, HistoryActivity::class.java),
-                REQUEST_CODE_HISTORY_ACTIVITY)
-        hideMenuOverlay()
-    }
-
-    private fun showFavorites() {
-        val currentPageTitle = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.currentTitle else ""
-        val currentPageUrl = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.currentOriginalUrl else ""
-
-        FavoritesDialog(this@MainActivity, lifecycleScope, object : FavoritesDialog.Callback {
-            override fun onFavoriteChoosen(item: FavoriteItem?) {
-                navigate(item!!.url!!)
-            }
-        }, currentPageTitle, currentPageUrl).show()
-        hideMenuOverlay()
-    }
-
-    internal var downloadsServiceConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val binder = service as DownloadService.Binder
-            downloadsService = binder.service
-            downloadsService!!.registerListener(downloadsServiceListener)
-        }
-
-        override fun onServiceDisconnected(name: ComponentName) {
-            downloadsService!!.unregisterListener(downloadsServiceListener)
-            downloadsService = null
-        }
-    }
-
-    internal var downloadsServiceListener: DownloadService.Listener = object : DownloadService.Listener {
-        override fun onDownloadUpdated(downloadInfo: Download) {
-
-        }
-
-        override fun onDownloadError(downloadInfo: Download, responseCode: Int, responseMessage: String) {
-
-        }
-
-        override fun onAllDownloadsComplete() {
-            if (downloadAnimation != null) {
-                downloadAnimation!!.reset()
-                ibDownloads.clearAnimation()
-                downloadAnimation = null
-            }
-        }
-    }
-
     @ExperimentalStdlibApi
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -253,7 +133,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         ibHistory.setOnClickListener { showHistory() }
         ibSettings.setOnClickListener { showSettings() }
 
-        etUrl.onFocusChangeListener = View.OnFocusChangeListener { view, focused ->
+        etUrl.onFocusChangeListener = View.OnFocusChangeListener { _, focused ->
             if (focused) {
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.showSoftInput(etUrl, InputMethodManager.SHOW_FORCED)
@@ -277,19 +157,111 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         ibHome.setOnKeyListener(bottomButtonsKeyListener)
         ibCloseTab.setOnKeyListener(bottomButtonsKeyListener)
 
-        settingsViewModel.uaString.observe(this, object : Observer<String> {
-            override fun onChanged(uas: String?) {
-                for (tab in viewModel.tabsStates) {
-                    tab.webView?.settings?.userAgentString = uas
-                    if (tab.webView != null && (uas == null || uas == "")) {
-                        settingsViewModel.saveUAString(SettingsViewModel.TV_BRO_UA_PREFIX +
-                                tab.webView!!.settings.userAgentString.replace("Mobile Safari", "Safari"))
-                    }
+        settingsViewModel.uaString.observe(this, Observer<String> { uas ->
+            for (tab in viewModel.tabsStates) {
+                tab.webView?.settings?.userAgentString = uas
+                if (tab.webView != null && (uas == null || uas == "")) {
+                    settingsViewModel.saveUAString(SettingsViewModel.TV_BRO_UA_PREFIX +
+                            tab.webView!!.settings.userAgentString.replace("Mobile Safari", "Safari"))
                 }
             }
         })
 
         loadState()
+    }
+
+    private var progressBarHideRunnable: Runnable = Runnable {
+        val anim = AnimationUtils.loadAnimation(this@MainActivity, android.R.anim.fade_out)
+        anim.setAnimationListener(object : BaseAnimationListener() {
+            override fun onAnimationEnd(animation: Animation) {
+                progressBar.visibility = View.GONE
+            }
+        })
+        progressBar.startAnimation(anim)
+    }
+
+    private var mConnectivityChangeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetwork = cm.activeNetworkInfo
+            val isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting
+            if (viewModel.currentTab.value != null) {
+                viewModel.currentTab.value!!.webView?.setNetworkAvailable(isConnected)
+            }
+        }
+    }
+
+    @ExperimentalStdlibApi
+    private val tabsListener = object : TitlesView.Listener {
+        override fun onTitleChanged(index: Int) {
+            val tab = tabByTitleIndex(index)
+            displayThumbnail(tab)
+        }
+
+        override fun onTitleSelected(index: Int) {
+            val tab = tabByTitleIndex(index)
+            if (tab == null) {
+                openInNewTab(HOME_URL, if (index < 0) 0 else viewModel.tabsStates.size)
+            } else if (!tab.selected) {
+                changeTab(tab)
+            }
+            hideMenuOverlay()
+        }
+
+        override fun onTitleOptions(index: Int) {
+            val tab = tabByTitleIndex(index)
+            showTabOptions(tab, index)
+        }
+    }
+
+    private fun showHistory() {
+        startActivityForResult(
+                Intent(this@MainActivity, HistoryActivity::class.java),
+                REQUEST_CODE_HISTORY_ACTIVITY)
+        hideMenuOverlay()
+    }
+
+    private fun showFavorites() {
+        val currentPageTitle = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.currentTitle else ""
+        val currentPageUrl = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.currentOriginalUrl else ""
+
+        FavoritesDialog(this@MainActivity, lifecycleScope, object : FavoritesDialog.Callback {
+            override fun onFavoriteChoosen(item: FavoriteItem?) {
+                navigate(item!!.url!!)
+            }
+        }, currentPageTitle, currentPageUrl).show()
+        hideMenuOverlay()
+    }
+
+    private var downloadsServiceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, service: IBinder) {
+            val binder = service as DownloadService.Binder
+            downloadsService = binder.service
+            downloadsService!!.registerListener(downloadsServiceListener)
+        }
+
+        override fun onServiceDisconnected(name: ComponentName) {
+            downloadsService!!.unregisterListener(downloadsServiceListener)
+            downloadsService = null
+        }
+    }
+
+    private var downloadsServiceListener: DownloadService.Listener = object : DownloadService.Listener {
+        override fun onDownloadUpdated(downloadInfo: Download) {
+
+        }
+
+        override fun onDownloadError(downloadInfo: Download, responseCode: Int, responseMessage: String) {
+
+        }
+
+        override fun onAllDownloadsComplete() {
+            if (downloadAnimation != null) {
+                downloadAnimation!!.reset()
+                ibDownloads.clearAnimation()
+                downloadAnimation = null
+            }
+        }
     }
 
     private val bottomButtonsFocusListener = View.OnFocusChangeListener { view, hasFocus ->
@@ -326,6 +298,37 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         }
         false
+    }
+
+    @ExperimentalStdlibApi
+    private fun showTabOptions(tab: WebTabState?, tabIndex: Int) {
+        AlertDialog.Builder(this@MainActivity)
+                .setTitle(R.string.tabs)
+                .setItems(R.array.tabs_options) { _, i ->
+                    when (i) {
+                        0 -> tab?.apply { closeTab(this) }
+                        1 -> {
+                            viewModel.tabsStates.forEach { it.removeFiles() }
+                            openInNewTab(HOME_URL, 0)
+                            while (viewModel.tabsStates.size > 1) viewModel.tabsStates.removeLast()
+                            vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
+                            vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
+                        }
+                        2 -> if (tab != null && tabIndex > 0) {
+                            viewModel.tabsStates.remove(tab)
+                            viewModel.tabsStates.add(tabIndex - 1, tab)
+                            vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
+                            vTitles.current = tabIndex - 1
+                        }
+                        3 -> if (tab != null && tabIndex < (viewModel.tabsStates.size - 1)) {
+                            viewModel.tabsStates.remove(tab)
+                            viewModel.tabsStates.add(tabIndex + 1, tab)
+                            vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
+                            vTitles.current = tabIndex + 1
+                        }
+                    }
+                }
+                .show()
     }
 
     private fun tabByTitleIndex(index: Int) =
@@ -539,7 +542,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 return super.onJsAlert(view, url, message, result)
             }
 
-            override fun onShowCustomView(view: View, callback: WebChromeClient.CustomViewCallback) {
+            override fun onShowCustomView(view: View, callback: CustomViewCallback) {
                 tab.webView?.visibility = View.GONE
                 flFullscreenContainer.visibility = View.VISIBLE
                 flFullscreenContainer.addView(view)
@@ -558,7 +561,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 fullscreenViewCallback?.onCustomViewHidden()
 
                 flWebViewContainer.cursorPosition.set(flFullscreenContainer.cursorPosition)
-                flFullscreenContainer.visibility = View.GONE
+                flFullscreenContainer.visibility = View.INVISIBLE
                 tab.webView?.visibility = View.VISIBLE
             }
 
