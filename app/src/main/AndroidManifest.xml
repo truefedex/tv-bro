@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.phlox.tvwebbrowser">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -43,7 +44,8 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:screenOrientation="sensor"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:targetApi="m">
         <activity
             android:name=".activity.main.MainActivity"
             android:banner="@drawable/banner"
@@ -51,8 +53,7 @@
             android:icon="@drawable/ic_launcher"
             android:label="@string/app_name_short"
             android:launchMode="singleTop"
-            android:logo="@drawable/banner"
-            android:windowSoftInputMode="adjustPan">
+            android:logo="@drawable/banner">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

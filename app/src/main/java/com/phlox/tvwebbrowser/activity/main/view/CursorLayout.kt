@@ -83,9 +83,7 @@ class CursorLayout : FrameLayout {
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        if (callback != null) {
-            callback!!.onUserInteraction()
-        }
+        callback?.onUserInteraction()
         return super.onInterceptTouchEvent(ev)
     }
 
@@ -101,9 +99,7 @@ class CursorLayout : FrameLayout {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (callback != null) {
-            callback!!.onUserInteraction()
-        }
+        callback?.onUserInteraction()
         val keyCode = event.keyCode
         val action = event.action
         Log.d("KEY EVENT", "Key code: $keyCode action: $action")

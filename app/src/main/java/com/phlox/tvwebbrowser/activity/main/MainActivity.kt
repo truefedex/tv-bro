@@ -14,16 +14,19 @@ import android.net.http.SslError
 import android.os.*
 import android.speech.RecognizerIntent
 import android.text.TextUtils
+import android.transition.TransitionManager
 import android.util.Log
 import android.util.Patterns
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
+import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -115,7 +118,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         })
 
-        ibVoiceSearch.setOnClickListener { viewModel.initiateVoiceSearch(this) }
+        ibVoiceSearch.setOnClickListener { initiateVoiceSearch() }
 
         ibHome.setOnClickListener {navigate(HOME_URL) }
         ibBack.setOnClickListener { navigateBack() }
@@ -133,16 +136,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         ibHistory.setOnClickListener { showHistory() }
         ibSettings.setOnClickListener { showSettings() }
 
-        etUrl.onFocusChangeListener = View.OnFocusChangeListener { _, focused ->
-            if (focused) {
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.showSoftInput(etUrl, InputMethodManager.SHOW_FORCED)
-                uiHandler.postDelayed(//workaround an android TV bug
-                        {
-                            etUrl.selectAll()
-                        }, 500)
-            }
-        }
+        etUrl.onFocusChangeListener = etUrlFocusChangeListener
 
         etUrl.setOnKeyListener(etUrlKeyListener)
 
@@ -170,6 +164,30 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         loadState()
     }
 
+    private val etUrlFocusChangeListener = View.OnFocusChangeListener { _, focused ->
+        if (focused) {
+            if (flUrl.parent == rlActionBar) {
+                syncTabWithTitles()
+                rlActionBar.removeView(flUrl)
+                val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                rlRoot.addView(flUrl, lp)
+                rlActionBar.visibility = View.INVISIBLE
+                llBottomPanel.visibility = View.INVISIBLE
+                ivMiniatures.visibility = View.INVISIBLE
+                llMiniaturePlaceholder.visibility = View.INVISIBLE
+                flWebViewContainer.visibility = View.VISIBLE
+                TransitionManager.beginDelayedTransition(rlRoot)
+            }
+
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(etUrl, InputMethodManager.SHOW_FORCED)
+            uiHandler.postDelayed(//workaround an android TV bug
+                    {
+                        etUrl.selectAll()
+                    }, 500)
+        }
+    }
+
     private var progressBarHideRunnable: Runnable = Runnable {
         val anim = AnimationUtils.loadAnimation(this@MainActivity, android.R.anim.fade_out)
         anim.setAnimationListener(object : BaseAnimationListener() {
@@ -195,16 +213,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private val tabsListener = object : TitlesView.Listener {
         override fun onTitleChanged(index: Int) {
             val tab = tabByTitleIndex(index)
+            etUrl.setText(tab?.currentOriginalUrl ?: "")
             displayThumbnail(tab)
         }
 
         override fun onTitleSelected(index: Int) {
-            val tab = tabByTitleIndex(index)
-            if (tab == null) {
-                openInNewTab(HOME_URL, if (index < 0) 0 else viewModel.tabsStates.size)
-            } else if (!tab.selected) {
-                changeTab(tab)
-            }
+            syncTabWithTitles()
             hideMenuOverlay()
         }
 
@@ -290,14 +304,31 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 if (keyEvent.action == KeyEvent.ACTION_UP) {
                     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(etUrl.windowToken, 0)
-                    hideMenuOverlay()
+                    hideFloatAddressBar()
                     search(etUrl.text.toString())
                     viewModel.currentTab.value!!.webView?.requestFocus()
                 }
                 return@OnKeyListener true
             }
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                if (keyEvent.action == KeyEvent.ACTION_UP) {
+                    hideFloatAddressBar()
+                }
+                return@OnKeyListener true
+            }
         }
         false
+    }
+
+    private fun hideFloatAddressBar() {
+        if (flUrl.parent == rlRoot) {
+            viewModel.currentTab.value?.apply { etUrl.setText(this.currentOriginalUrl) }
+            rlRoot.removeView(flUrl)
+            val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            lp.addRule(RelativeLayout.END_OF, R.id.ibSettings)
+            rlActionBar.addView(flUrl, lp)
+            TransitionManager.beginDelayedTransition(rlRoot)
+        }
     }
 
     @ExperimentalStdlibApi
@@ -492,8 +523,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun createWebView(tab: WebTabState): Boolean {
+        val webView: WebViewEx
         try {
-            tab.webView = WebViewEx(this)
+            webView = WebViewEx(this)
+            tab.webView = webView
         } catch (e: UnsatisfiedLinkError) {
             e.printStackTrace()
             Toast.makeText(this,
@@ -511,13 +544,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
 
         if (settingsViewModel.uaString.value == null || settingsViewModel.uaString.value == "") {
-            settingsViewModel.saveUAString("TV Bro/1.0 " + tab.webView!!.settings.userAgentString.replace("Mobile Safari", "Safari"))
+            settingsViewModel.saveUAString("TV Bro/1.0 " + webView.settings.userAgentString.replace("Mobile Safari", "Safari"))
         }
-        tab.webView!!.settings.userAgentString = settingsViewModel.uaString.value
+        webView.settings.userAgentString = settingsViewModel.uaString.value
 
-        tab.webView?.addJavascriptInterface(viewModel.jsInterface, "TVBro")
+        webView.addJavascriptInterface(viewModel.jsInterface, "TVBro")
 
-        tab.webView?.setListener(object : WebViewEx.Listener {
+        webView.setListener(object : WebViewEx.Listener {
             override fun onOpenInNewTabRequested(s: String) {
                 openInNewTab(s)
             }
@@ -729,9 +762,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }*/
         }
 
-        tab.webView?.webChromeClient = tab.webChromeClient
+        webView.webChromeClient = tab.webChromeClient
 
-        tab.webView?.webViewClient = object : WebViewClient() {
+        webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url: String = request?.url.toString()
 
@@ -764,7 +797,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 } else if (url != null) {
                     tab.currentOriginalUrl = url
                 }
-                etUrl.setText(tab.currentOriginalUrl)
+                if (tabByTitleIndex(vTitles.current) == tab) {
+                    etUrl.setText(tab.currentOriginalUrl)
+                }
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -780,7 +815,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 } else if (url != null) {
                     tab.currentOriginalUrl = url
                 }
-                etUrl.setText(tab.currentOriginalUrl)
+                if (tabByTitleIndex(vTitles.current) == tab) {
+                    etUrl.setText(tab.currentOriginalUrl)
+                }
 
                 //thumbnail
                 viewModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
@@ -793,7 +830,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
 
                 tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
-                viewModel.currentTab.value!!.webPageInteractionDetected = false
+                tab.webPageInteractionDetected = false
                 if (HOME_URL == url) {
                     view.loadUrl("javascript:renderSuggestions()")
                 }
@@ -815,9 +852,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         }
 
-        tab.webView?.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
+        webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
             onDownloadRequested(url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
                     ?: tab.webView?.settings?.userAgentString)
+        }
+
+        webView.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus && flUrl.parent == rlRoot) {
+                hideFloatAddressBar()
+            }
         }
 
         return true
@@ -1002,13 +1045,16 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         val shortcutMgr = ShortcutMgr.getInstance()
         val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
 
-        if (keyCode == KeyEvent.KEYCODE_BACK && viewModel.currentTab.value != null && fullScreenView != null) {
-            if (event.action == KeyEvent.ACTION_DOWN) {
-                //nop
-            } else if (event.action == KeyEvent.ACTION_UP) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && fullScreenView != null) {
+            if (event.action == KeyEvent.ACTION_UP) {
                 uiHandler.post {
                     viewModel.currentTab.value?.webChromeClient?.onHideCustomView()
                 }
+            }
+            return true
+        } else if (keyCode == KeyEvent.KEYCODE_BACK && flUrl.parent == rlRoot) {
+            if (event.action == KeyEvent.ACTION_UP) {
+                uiHandler.post { hideFloatAddressBar() }
             }
             return true
         } else if (keyCode == KeyEvent.KEYCODE_BACK && llBottomPanel.visibility == View.VISIBLE && rlActionBar.visibility != View.VISIBLE) {
@@ -1017,17 +1063,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
             return true
         } else if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer.zoomMode) {
-            if (event.action == KeyEvent.ACTION_DOWN) {
-                //nop
-            } else if (event.action == KeyEvent.ACTION_UP) {
-                flWebViewContainer.exitZoomMode()
+            if (event.action == KeyEvent.ACTION_UP) {
+                uiHandler.post { flWebViewContainer.exitZoomMode() }
             }
             return true
         } else if (shortcutMgr.canProcessKeyCode(keyCode)) {
-            if (event.action == KeyEvent.ACTION_DOWN) {
-                //nop
-            } else if (event.action == KeyEvent.ACTION_UP) {
-                shortcutMgr.process(keyCode, this)
+            if (event.action == KeyEvent.ACTION_UP) {
+                uiHandler.post { shortcutMgr.process(keyCode, this) }
             }
             return true
         }
@@ -1083,6 +1125,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun displayThumbnail(currentTab: WebTabState?) {
         if (currentTab != null) {
+            if (tabByTitleIndex(vTitles.current) != currentTab) return
             llMiniaturePlaceholder.visibility = View.INVISIBLE
             ivMiniatures.visibility = View.VISIBLE
             if (currentTab.thumbnail != null) {
@@ -1140,18 +1183,22 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     ivMiniatures.visibility = View.INVISIBLE
                     rlActionBar.visibility = View.INVISIBLE
                     ivMiniatures.setImageResource(0)
-                    val tab = tabByTitleIndex(vTitles.current)
-                    if (tab == null) {
-                        openInNewTab(HOME_URL, if (vTitles.current < 0) 0 else viewModel.tabsStates.size)
-                    } else if (!tab.selected) {
-                        changeTab(tab)
-                    }
+                    syncTabWithTitles()
                     flWebViewContainer.visibility = View.VISIBLE
-                    if (hideBottomButtons && viewModel.currentTab.value != null) {
+                    if (hideBottomButtons && viewModel.currentTab.value != null && flUrl.parent != rlRoot) {
                         viewModel.currentTab.value!!.webView?.requestFocus()
                     }
                 }
                 .start()
+    }
+
+    private fun syncTabWithTitles() {
+        val tab = tabByTitleIndex(vTitles.current)
+        if (tab == null) {
+            openInNewTab(HOME_URL, if (vTitles.current < 0) 0 else viewModel.tabsStates.size)
+        } else if (!tab.selected) {
+            changeTab(tab)
+        }
     }
 
     private fun hideBottomPanel() {
@@ -1178,6 +1225,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     }
 
     fun initiateVoiceSearch() {
+        hideMenuOverlay()
         viewModel.initiateVoiceSearch(this)
     }
 }

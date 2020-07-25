@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_browse_fragment"
+    android:id="@+id/rlRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#fff"
@@ -106,20 +106,24 @@
             android:layout_marginTop="5dp"
             android:layout_toEndOf="@id/ibDownloads"/>
 
-        <EditText
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/ibSettings"
-            android:id="@+id/etUrl"
-            android:iconifiedByDefault="false"
-            android:textCursorDrawable="@null"
-            android:textColor="@color/default_url_color"
-            android:layout_marginTop="15dp"
-            android:imeOptions="actionSearch"
-            android:hint="@string/url_prompt"
-            android:inputType="textFilter|textNoSuggestions|textUri"
-            />
-
+            android:background="#fff"
+            android:id="@+id/flUrl">
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/etUrl"
+                android:iconifiedByDefault="false"
+                android:textCursorDrawable="@null"
+                android:textColor="@color/default_url_color"
+                android:layout_marginTop="15dp"
+                android:imeOptions="actionSearch"
+                android:hint="@string/url_prompt"
+                android:inputType="textFilter|textNoSuggestions|textUri" />
+        </FrameLayout>
 
         <com.phlox.tvwebbrowser.activity.main.view.TitlesView
             android:layout_width="match_parent"
