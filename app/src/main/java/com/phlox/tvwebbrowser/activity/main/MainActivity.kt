@@ -27,11 +27,10 @@ import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
 import android.widget.RelativeLayout
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
@@ -92,8 +91,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     @ExperimentalStdlibApi
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
-        settingsViewModel = ViewModelProviders.of(this).get(SettingsViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
+        settingsViewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
         uiHandler = Handler()
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         setContentView(R.layout.activity_main)
@@ -464,9 +463,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
         val tab = WebTabState()
         tab.currentOriginalUrl = url
-        if (!createWebView(tab)) {
-            return
-        }
+        createWebView(tab) ?: return
         viewModel.tabsStates.add(index, tab)
         changeTab(tab)
         navigate(url)
@@ -504,43 +501,56 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         newTab.selected = true
         viewModel.currentTab.value = newTab
         vTitles.current = viewModel.tabsStates.indexOf(newTab)
-        if (newTab.webView == null) {
-            if (!createWebView(newTab)) {
+        var wv = newTab.webView
+        if (wv == null) {
+            wv = createWebView(newTab)
+            if (wv == null) {
                 return
             }
             newTab.restoreWebView()
             flWebViewContainer.addView(newTab.webView)
         } else {
-            flWebViewContainer.addView(newTab.webView)
-            newTab.webView!!.onResume()
+            (wv.parent as? ViewGroup)?.removeView(wv)
+            flWebViewContainer.addView(wv)
+            wv.onResume()
         }
-        newTab.webView!!.setNetworkAvailable(Utils.isNetworkConnected(this))
+        wv.setNetworkAvailable(Utils.isNetworkConnected(this))
 
         etUrl.setText(newTab.currentOriginalUrl)
-        ibBack.isEnabled = newTab.webView?.canGoBack() == true
-        ibForward.isEnabled = newTab.webView?.canGoForward() == true
+        ibBack.isEnabled = wv.canGoBack() == true
+        ibForward.isEnabled = wv.canGoForward() == true
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun createWebView(tab: WebTabState): Boolean {
+    private fun createWebView(tab: WebTabState): WebViewEx? {
         val webView: WebViewEx
         try {
             webView = WebViewEx(this)
             tab.webView = webView
-        } catch (e: UnsatisfiedLinkError) {
+        } catch (e: Throwable) {
             e.printStackTrace()
-            Toast.makeText(this,
-                    getString(R.string.err_webview_can_not_link),
-                    Toast.LENGTH_LONG).show()
-            finish()
-            return false
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(this,
-                    getString(R.string.err_webview_can_not_link),
-                    Toast.LENGTH_LONG).show()
-            finish()
-            return false
+
+            val dialogBuilder = AlertDialog.Builder(this)
+                    .setTitle(R.string.error)
+                    .setCancelable(false)
+                    .setMessage(R.string.err_webview_can_not_link)
+                    .setNegativeButton(R.string.exit) { _, _ -> finish() }
+
+            val appPackageName = "com.google.android.webview"
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName"))
+            val activities = packageManager.queryIntentActivities(intent, 0)
+            if (activities.size > 0) {
+                dialogBuilder.setPositiveButton(R.string.find_in_apps_store) { _, _ ->
+                    try {
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    finish()
+                }
+            }
+            dialogBuilder.show()
+            return null
         }
 
         if (settingsViewModel.uaString.value == null || settingsViewModel.uaString.value == "") {
@@ -863,7 +873,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         }
 
-        return true
+        return webView
     }
 
     private fun showCertificateErrorPage(error: SslError) {
@@ -1226,6 +1236,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     fun initiateVoiceSearch() {
         hideMenuOverlay()
-        viewModel.initiateVoiceSearch(this)
+        VoiceSearchHelper.initiateVoiceSearch(this, VOICE_SEARCH_REQUEST_CODE)
     }
 }

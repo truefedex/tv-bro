@@ -9,10 +9,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.AbsListView
-import android.widget.AdapterView
-import android.widget.ImageButton
-import android.widget.PopupMenu
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -22,6 +19,7 @@ import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import kotlinx.android.synthetic.main.activity_history.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -96,7 +94,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     //nop
                 } else if (event.action == KeyEvent.ACTION_UP) {
-                    initiateVoiceSearch()
+                    VoiceSearchHelper.initiateVoiceSearch(this, VOICE_SEARCH_REQUEST_CODE)
                 }
                 return true
             }
@@ -188,14 +186,6 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         pm.show()
     }
 
-    private fun initiateVoiceSearch() {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.speak))
-        startActivityForResult(intent, VOICE_SEARCH_REQUEST_CODE)
-    }
-
     fun onClearHistoryClick(view: View) {
         showDeleteDialog(true)
     }
@@ -205,8 +195,8 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     }
 
     companion object {
-        private val VOICE_SEARCH_REQUEST_CODE = 10001
+        private const val VOICE_SEARCH_REQUEST_CODE = 10001
 
-        val KEY_URL = "url"
+        const val KEY_URL = "url"
     }
 }

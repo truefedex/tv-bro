@@ -215,26 +215,4 @@ class MainActivityViewModel: ViewModel() {
 
         activity.onDownloadStarted(fileName)
     }
-
-    fun initiateVoiceSearch(activity: MainActivity) {
-        val pm = activity.packageManager
-        val activities = pm.queryIntentActivities(
-                Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0)
-        if (activities.size == 0) {
-            AlertDialog.Builder(activity)
-                    .setTitle(R.string.app_name)
-                    .setMessage(R.string.voice_search_not_found)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->  }
-        } else {
-            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                    RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)
-            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, activity.getString(R.string.speak))
-            try {
-                activity.startActivityForResult(intent, MainActivity.VOICE_SEARCH_REQUEST_CODE)
-            } catch (e: ActivityNotFoundException) {
-                Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 }

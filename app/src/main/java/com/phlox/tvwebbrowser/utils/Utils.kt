@@ -1,6 +1,8 @@
 package com.phlox.tvwebbrowser.utils
 
+import android.app.UiModeManager
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Point
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
@@ -123,5 +125,10 @@ object Utils {
                 internalCacheDir
         }
         return File(cacheDir, fileName)
+    }
+
+    fun isTV(context: Context): Boolean {
+        val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+        return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
     }
 }

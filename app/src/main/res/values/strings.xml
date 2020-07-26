@@ -100,4 +100,6 @@
     <string name="hostname">Hostname:</string>
     <string name="err_desk">Error description:</string>
     <string name="details">Details:</string>
+    <string name="exit">Exit</string>
+    <string name="find_in_apps_store">Find in applications store</string>
 </resources>
