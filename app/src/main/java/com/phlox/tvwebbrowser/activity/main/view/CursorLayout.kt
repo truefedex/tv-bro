@@ -2,8 +2,6 @@ package com.phlox.tvwebbrowser.activity.main.view
 
 import android.content.Context
 import android.graphics.*
-import android.os.Handler
-import android.os.Looper
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.util.Log
@@ -18,18 +16,19 @@ import com.phlox.tvwebbrowser.utils.Utils
  * Created by PDT on 25.08.2016.
  */
 class CursorLayout : FrameLayout {
-    private var EFFECT_RADIUS: Int = 0
-    private var EFFECT_DIAMETER: Int = 0
-    private var CURSOR_RADIUS: Int = 0
-    private var MAX_CURSOR_SPEED: Float = 0.toFloat()
-    private val UNCHANGED = -100
-    private val CURSOR_DISAPPEAR_TIMEOUT = 5000
-    private var SCROLL_START_PADDING = 100
-    private var CURSOR_STROKE_WIDTH: Float = 0.toFloat()
-    private var USE_SCROLL_HACK = true
-    private val SCROLL_HACK_PADDING = 300
+    companion object {
+        private const val UNCHANGED = Integer.MIN_VALUE
+        private const val CURSOR_DISAPPEAR_TIMEOUT = 5000
+        private const val USE_SCROLL_HACK = true
+        private const val SCROLL_HACK_PADDING = 300
+    }
+
+    private var cursorRadius: Int = 0
+    private var maxCursorSpeed: Float = 0f
+    private var scrollStartPadding = 100
+    private var cursorStrokeWidth: Float = 0f
     private val cursorDirection = Point(0, 0)
-    public val cursorPosition = PointF(0f, 0f)
+    val cursorPosition = PointF(0f, 0f)
     private val cursorSpeed = PointF(0f, 0f)
     private val paint = Paint()
     private var lastCursorUpdate = System.currentTimeMillis() - CURSOR_DISAPPEAR_TIMEOUT
@@ -38,9 +37,9 @@ class CursorLayout : FrameLayout {
     private var callback: Callback? = null
     private val cursorHideRunnable = Runnable { invalidate() }
     private var scrollHackStarted = false
-    private var scrollHackCoords = PointF()
-    private var scrollHackActiveRect = Rect()
-    public var zoomMode = false
+    private val scrollHackCoords = PointF()
+    private val scrollHackActiveRect = Rect()
+    var zoomMode = false
 
     private val isCursorDissappear: Boolean
         get() {
@@ -70,12 +69,10 @@ class CursorLayout : FrameLayout {
         val display = wm.defaultDisplay
         val displaySize = Point()
         display.getSize(displaySize)
-        EFFECT_RADIUS = displaySize.x / 20
-        EFFECT_DIAMETER = EFFECT_RADIUS * 2
-        CURSOR_STROKE_WIDTH = (displaySize.x / 400).toFloat()
-        CURSOR_RADIUS = displaySize.x / 110
-        MAX_CURSOR_SPEED = (displaySize.x / 25).toFloat()
-        SCROLL_START_PADDING = displaySize.x / 15
+        cursorStrokeWidth = (displaySize.x / 400).toFloat()
+        cursorRadius = displaySize.x / 110
+        maxCursorSpeed = (displaySize.x / 25).toFloat()
+        scrollStartPadding = displaySize.x / 15
     }
 
     fun setCallback(callback: Callback) {
@@ -317,7 +314,7 @@ class CursorLayout : FrameLayout {
             val textWidth = paint.measureText(zoomText)
             canvas.drawText(zoomText, width / 2f - textWidth / 2f, height / 2f, paint)
             paint.color = Color.GRAY
-            paint.strokeWidth = CURSOR_STROKE_WIDTH
+            paint.strokeWidth = cursorStrokeWidth
             paint.style = Paint.Style.STROKE
             canvas.drawText(zoomText, width / 2f - textWidth / 2f, height / 2f, paint)
         } else if (!isCursorDissappear) {
@@ -326,12 +323,12 @@ class CursorLayout : FrameLayout {
 
             paint.color = Color.argb(128, 255, 255, 255)
             paint.style = Paint.Style.FILL
-            canvas.drawCircle(cx, cy, CURSOR_RADIUS.toFloat(), paint)
+            canvas.drawCircle(cx, cy, cursorRadius.toFloat(), paint)
 
             paint.color = Color.GRAY
-            paint.strokeWidth = CURSOR_STROKE_WIDTH
+            paint.strokeWidth = cursorStrokeWidth
             paint.style = Paint.Style.STROKE
-            canvas.drawCircle(cx, cy, CURSOR_RADIUS.toFloat(), paint)
+            canvas.drawCircle(cx, cy, cursorRadius.toFloat(), paint)
         }
     }
 
@@ -355,8 +352,8 @@ class CursorLayout : FrameLayout {
 
             val accelerationFactor = 0.05f * dTime
             //float decelerationFactor = 1 - Math.min(0.5f, 0.005f * dTime);
-            cursorSpeed.set(bound(cursorSpeed.x/* * decelerationFactor*/ + bound(cursorDirection.x.toFloat(), 1f) * accelerationFactor, MAX_CURSOR_SPEED),
-                    bound(cursorSpeed.y/* * decelerationFactor*/ + bound(cursorDirection.y.toFloat(), 1f) * accelerationFactor, MAX_CURSOR_SPEED))
+            cursorSpeed.set(bound(cursorSpeed.x/* * decelerationFactor*/ + bound(cursorDirection.x.toFloat(), 1f) * accelerationFactor, maxCursorSpeed),
+                    bound(cursorSpeed.y/* * decelerationFactor*/ + bound(cursorDirection.y.toFloat(), 1f) * accelerationFactor, maxCursorSpeed))
             if (Math.abs(cursorSpeed.x) < 0.1f) cursorSpeed.x = 0f
             if (Math.abs(cursorSpeed.y) < 0.1f) cursorSpeed.y = 0f
             if (cursorDirection.x == 0 && cursorDirection.y == 0 && cursorSpeed.x == 0f && cursorSpeed.y == 0f) {
@@ -385,20 +382,20 @@ class CursorLayout : FrameLayout {
 
             var dx = 0
             var dy = 0
-            if (cursorPosition.y > height - SCROLL_START_PADDING) {
+            if (cursorPosition.y > height - scrollStartPadding) {
                 if (cursorSpeed.y > 0) {
                     dy = cursorSpeed.y.toInt()
                 }
-            } else if (cursorPosition.y < SCROLL_START_PADDING) {
+            } else if (cursorPosition.y < scrollStartPadding) {
                 if (cursorSpeed.y < 0) {
                     dy = cursorSpeed.y.toInt()
                 }
             }
-            if (cursorPosition.x > width - SCROLL_START_PADDING) {
+            if (cursorPosition.x > width - scrollStartPadding) {
                 if (cursorSpeed.x > 0) {
                     dx = cursorSpeed.x.toInt()
                 }
-            } else if (cursorPosition.x < SCROLL_START_PADDING) {
+            } else if (cursorPosition.x < scrollStartPadding) {
                 if (cursorSpeed.x < 0) {
                     dx = cursorSpeed.x.toInt()
                 }

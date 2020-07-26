@@ -562,7 +562,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         webView.setListener(object : WebViewEx.Listener {
             override fun onOpenInNewTabRequested(s: String) {
-                openInNewTab(s)
+                var index = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
+                index = if (index == -1) viewModel.tabsStates.size else index + 1
+                openInNewTab(s, index)
             }
 
             override fun onDownloadRequested(url: String) {
@@ -995,6 +997,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         if (viewModel.currentTab.value != null) {
             viewModel.currentTab.value!!.webView?.onResume()
         }
+        vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
+        vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
         bindService(Intent(this, DownloadService::class.java), downloadsServiceConnection, Context.BIND_AUTO_CREATE)
     }
 

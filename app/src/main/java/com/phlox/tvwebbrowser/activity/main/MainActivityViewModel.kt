@@ -47,6 +47,7 @@ class MainActivityViewModel: ViewModel() {
         var TAG: String = MainActivityViewModel::class.java.simpleName
     }
 
+    var loaded = false
     val currentTab = MutableLiveData<WebTabState>()
     val tabsStates = ArrayList<WebTabState>()
     var lastHistoryItem: HistoryItem? = null
@@ -94,6 +95,7 @@ class MainActivityViewModel: ViewModel() {
     }
 
     fun loadState() = GlobalScope.launch(Dispatchers.Main) {
+        if (loaded) return@launch
         initHistory()
         val tabsStatesLoaded = async (Dispatchers.IO){
             val tabsStates = ArrayList<WebTabState>()
@@ -113,6 +115,7 @@ class MainActivityViewModel: ViewModel() {
         }.await()
 
         tabsStates.addAll(tabsStatesLoaded)
+        loaded = true
     }
 
     private suspend fun initHistory() {
