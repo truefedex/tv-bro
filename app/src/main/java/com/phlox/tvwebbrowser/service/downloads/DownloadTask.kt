@@ -41,6 +41,9 @@ class DownloadTask(var downloadInfo: Download, private val userAgent: String, va
             val url = URL(downloadInfo.url)
             connection = url.openConnection() as HttpURLConnection
             connection.setRequestProperty("User-Agent", userAgent)
+            downloadInfo.mimeType?.apply { connection.setRequestProperty("Content-Type", this)}
+            downloadInfo.referer?.apply { connection.setRequestProperty("Referer", this)}
+            connection.setRequestProperty("Expect", "100-continue")
             connection.useCaches = false
             val cookie = CookieManager.getInstance().getCookie(url.toString())
             if (cookie != null) connection.setRequestProperty("cookie", cookie)

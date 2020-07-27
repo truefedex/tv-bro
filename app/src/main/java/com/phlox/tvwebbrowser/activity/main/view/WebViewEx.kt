@@ -65,7 +65,7 @@ class WebViewEx : WebView {
             useWideViewPort = true
             loadWithOverviewMode = true
             setSupportZoom(true)
-            builtInZoomControls = false
+            builtInZoomControls = true
             displayZoomControls = false
             saveFormData = true
             setSupportZoom(true)

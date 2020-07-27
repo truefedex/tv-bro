@@ -99,7 +99,6 @@ class CursorLayout : FrameLayout {
         callback?.onUserInteraction()
         val keyCode = event.keyCode
         val action = event.action
-        Log.d("KEY EVENT", "Key code: $keyCode action: $action")
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (event.action == KeyEvent.ACTION_DOWN) {

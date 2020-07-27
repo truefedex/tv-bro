@@ -1,27 +1,18 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.http.SslCertificate
 import android.os.Build
 import android.os.Environment
-import android.speech.RecognizerIntent
-import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
-import com.phlox.tvwebbrowser.model.AndroidJSInterface
-import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.model.HistoryItem
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.StringUtils
@@ -32,9 +23,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.lang.reflect.Field
 import java.security.KeyStore
-import java.security.cert.X509Certificate
 import java.util.*
 import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
@@ -52,10 +41,7 @@ class MainActivityViewModel: ViewModel() {
     val tabsStates = ArrayList<WebTabState>()
     var lastHistoryItem: HistoryItem? = null
     val jsInterface = AndroidJSInterface(this)
-    private var urlToDownload: String? = null
-    private var originalDownloadFileName: String? = null
-    private var userAgentForDownload: String? = null
-    private var operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP
+    private var downloadIntent: DownloadIntent? = null
 
     private fun getTrustManager(): X509TrustManager {
         val keyStoreType: String = KeyStore.getDefaultType()
@@ -158,12 +144,9 @@ class MainActivityViewModel: ViewModel() {
         }
     }
 
-    fun onDownloadRequested(activity: MainActivity, url: String, originalDownloadFileName: String?, userAgent: String?,
+    fun onDownloadRequested(activity: MainActivity, url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String? = null,
                             operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP) {
-        this.urlToDownload = url
-        this.originalDownloadFileName = originalDownloadFileName
-        this.userAgentForDownload = userAgent
-        this.operationAfterDownload = operationAfterDownload
+        downloadIntent = DownloadIntent(url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             activity.requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     MainActivity.MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE)
@@ -173,36 +156,27 @@ class MainActivityViewModel: ViewModel() {
     }
 
     fun startDownload(activity: MainActivity) {
-        val url = this.urlToDownload
-        val originalFileName = this.originalDownloadFileName
-        val userAgent = this.userAgentForDownload
-        val operationAfterDownload = this.operationAfterDownload
-        this.urlToDownload = null
-        this.originalDownloadFileName = null
-        this.userAgentForDownload = null
-        this.operationAfterDownload = Download.OperationAfterDownload.NOP
-        if (url == null || originalFileName == null) {
-            Log.w(TAG, "Can not download without url or originalFileName")
-            return
-        }
-        val extPos = originalFileName.lastIndexOf(".")
+        val download = this.downloadIntent ?: return
+        this.downloadIntent = null
+        val extPos = download.fileName.lastIndexOf(".")
         val hasExt = extPos != -1
         var ext: String? = null
         var prefix: String? = null
         if (hasExt) {
-            ext = originalFileName.substring(extPos + 1)
-            prefix = originalFileName.substring(0, extPos)
+            ext = download.fileName.substring(extPos + 1)
+            prefix = download.fileName.substring(0, extPos)
         }
-        var fileName = originalFileName
+        var fileName = download.fileName
         var i = 0
-        while (File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + File.separator + fileName).exists()) {
+        while (File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath + File.separator + fileName).exists()) {
             i++
             if (hasExt) {
                 fileName = prefix + "_(" + i + ")." + ext
             } else {
-                fileName = originalFileName + "_(" + i + ")"
+                fileName = download.fileName + "_(" + i + ")"
             }
         }
+        download.fileName = fileName
 
         if (Environment.MEDIA_MOUNTED != Environment.getExternalStorageState()) {
             Toast.makeText(activity, R.string.storage_not_mounted, Toast.LENGTH_SHORT).show()
@@ -213,8 +187,9 @@ class MainActivityViewModel: ViewModel() {
             Toast.makeText(activity, R.string.can_not_create_downloads, Toast.LENGTH_SHORT).show()
             return
         }
-        val fullDestFilePath = downloadsDir.toString() + File.separator + fileName
-        DownloadService.startDownloading(activity, url, fullDestFilePath, fileName!!, userAgent!!, operationAfterDownload)
+        download.fullDestFilePath = downloadsDir.toString() + File.separator + fileName
+
+        DownloadService.startDownloading(activity, download)
 
         activity.onDownloadStarted(fileName)
     }

@@ -569,8 +569,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             override fun onDownloadRequested(url: String) {
                 val fileName = Uri.parse(url).lastPathSegment
-                onDownloadRequested(url, fileName
-                        ?: "url.html", tab.webView?.settings?.userAgentString)
+                val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
+                onDownloadRequested(url, tab.currentOriginalUrl ?: "", fileName
+                        ?: "url.html", tab.webView?.settings?.userAgentString ?: getString(R.string.app_name), mimeType)
             }
 
             override fun onWantZoomMode() {
@@ -778,9 +779,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                Log.d(TAG, "shouldOverrideUrlLoading url: ${request?.url}")
                 val url: String = request?.url.toString()
 
                 if (URLUtil.isNetworkUrl(url)) {
+                    tab.currentOriginalUrl = url
+                    if (tabByTitleIndex(vTitles.current) == tab) {
+                        etUrl.setText(tab.currentOriginalUrl)
+                    }
                     return false
                 }
 
@@ -802,6 +808,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
+                Log.d(TAG, "onPageStarted url: $url")
                 ibBack.isEnabled = tab.webView?.canGoBack() == true
                 ibForward.isEnabled = tab.webView?.canGoForward() == true
                 if (tab.webView?.url != null) {
@@ -816,6 +823,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                Log.d(TAG, "onPageFinished url: $url")
                 if (tab.webView == null || viewModel.currentTab.value == null || view == null) {
                     return
                 }
@@ -850,23 +858,29 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             override fun onLoadResource(view: WebView, url: String) {
                 super.onLoadResource(view, url)
+                Log.d(TAG, "onLoadResource url: $url")
             }
 
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
+                Log.e(TAG, "onReceivedSslError url: ${error.url}")
                 if (tab.trustSsl && tab.lastSSLError?.certificate?.toString()?.equals(error.certificate.toString()) == true) {
                     tab.trustSsl = false
                     tab.lastSSLError = null
                     handler.proceed()
-                } else {
-                    handler.cancel()
+                    return
+                }
+                handler.cancel()
+                if (error.url == tab.currentOriginalUrl) {
                     showCertificateErrorPage(error)
                 }
             }
+
+
         }
 
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
-            onDownloadRequested(url, DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
-                    ?: tab.webView?.settings?.userAgentString)
+            onDownloadRequested(url, tab.currentOriginalUrl ?: "", DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
+                    ?: tab.webView?.settings?.userAgentString ?: getString(R.string.app_name), mimetype)
         }
 
         webView.setOnFocusChangeListener { v, hasFocus ->
@@ -889,9 +903,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         webView.loadUrl(url)
     }
 
-    fun onDownloadRequested(url: String, originalDownloadFileName: String?, userAgent: String?,
-                            operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP) {
-        viewModel.onDownloadRequested(this, url, originalDownloadFileName, userAgent, operationAfterDownload)
+    private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
+                                    operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP) {
+        viewModel.onDownloadRequested(this, url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload)
     }
 
     override fun onTrimMemory(level: Int) {

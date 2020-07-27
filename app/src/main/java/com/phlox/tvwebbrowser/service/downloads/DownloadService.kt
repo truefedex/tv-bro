@@ -14,12 +14,14 @@ import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import android.text.format.Formatter
+import android.util.Log
 import android.webkit.MimeTypeMap
 import android.widget.Toast
 
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.model.DownloadIntent
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import java.io.File
 
@@ -71,16 +73,14 @@ class DownloadService : Service() {
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) return START_STICKY
-        val download = intent.getSerializableExtra("download") as Download
-        val userAgent = intent.getStringExtra("userAgent")
-
-        val downloadTask = DownloadTask(download, userAgent, downloadTasksListener)
+        val download = Download()
+        val downloadIntent = intent.getParcelableExtra(KEY_DOWNLOAD) as DownloadIntent
+        download.fillWith(downloadIntent)
+        download.time = Date().time
+        Log.d(TAG, "Start to downloading url: ${download.url}")
+        val downloadTask = DownloadTask(download, downloadIntent.userAgent, downloadTasksListener)
         activeDownloads.add(downloadTask)
         executor.execute(downloadTask)
         startForeground(DOWNLOAD_NOTIFICATION_ID, updateNotification())
@@ -222,19 +222,13 @@ class DownloadService : Service() {
     }
 
     companion object {
+        val TAG: String = DownloadService::class.java.simpleName
         const val DOWNLOAD_NOTIFICATION_ID = 101101
+        private const val KEY_DOWNLOAD = "download"
 
-        fun startDownloading(context: Context, url: String, fullDestFilePath: String, fileName: String, userAgent: String,
-                             operationAfterDownload: Download.OperationAfterDownload) {
-            val download = Download()
-            download.url = url
-            download.filename = fileName
-            download.filepath = fullDestFilePath
-            download.time = Date().time
-            download.operationAfterDownload = operationAfterDownload
+        fun startDownloading(context: Context, downloadIntent: DownloadIntent) {
             val intent = Intent(context, DownloadService::class.java)
-            intent.putExtra("download", download)
-            intent.putExtra("userAgent", userAgent)
+            intent.putExtra(KEY_DOWNLOAD, downloadIntent)
             context.startService(intent)
         }
     }
