@@ -44,7 +44,8 @@
             android:background="@drawable/button_bg_selector"
             android:layout_margin="5dp"
             android:focusable="true"
-            android:focusableInTouchMode="true" />
+            android:focusableInTouchMode="true"
+            android:contentDescription="@string/close_application" />
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -56,7 +57,8 @@
             android:background="@drawable/button_bg_selector"
             android:layout_marginEnd="5dp"
             android:layout_marginTop="5dp"
-            android:layout_toEndOf="@id/ibMenu"/>
+            android:layout_toEndOf="@id/ibMenu"
+            android:contentDescription="@string/voice_search" />
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -68,7 +70,8 @@
             android:background="@drawable/button_bg_selector"
             android:layout_marginEnd="5dp"
             android:layout_marginTop="5dp"
-            android:layout_toEndOf="@id/ibVoiceSearch"/>
+            android:layout_toEndOf="@id/ibVoiceSearch"
+            android:contentDescription="@string/history" />
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -80,7 +83,8 @@
             android:background="@drawable/button_bg_selector"
             android:layout_marginEnd="5dp"
             android:layout_marginTop="5dp"
-            android:layout_toEndOf="@id/ibHistory"/>
+            android:layout_toEndOf="@id/ibHistory"
+            android:contentDescription="@string/favorites" />
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -92,7 +96,8 @@
             android:background="@drawable/button_bg_selector"
             android:layout_marginEnd="5dp"
             android:layout_marginTop="5dp"
-            android:layout_toEndOf="@id/ibFavorites"/>
+            android:layout_toEndOf="@id/ibFavorites"
+            android:contentDescription="@string/downloads" />
 
         <ImageButton
             android:src="@drawable/ic_settings_grey_900_24dp"
@@ -104,7 +109,8 @@
             android:background="@drawable/button_bg_selector"
             android:layout_marginEnd="5dp"
             android:layout_marginTop="5dp"
-            android:layout_toEndOf="@id/ibDownloads"/>
+            android:layout_toEndOf="@id/ibDownloads"
+            android:contentDescription="@string/settings" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -122,7 +128,8 @@
                 android:layout_marginTop="15dp"
                 android:imeOptions="actionSearch"
                 android:hint="@string/url_prompt"
-                android:inputType="textFilter|textNoSuggestions|textUri" />
+                android:inputType="textFilter|textNoSuggestions|textUri"
+                android:importantForAutofill="no" />
         </FrameLayout>
 
         <com.phlox.tvwebbrowser.activity.main.view.TitlesView
@@ -141,7 +148,8 @@
         android:id="@+id/ivMiniatures"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitXY" />
+        android:scaleType="fitXY"
+        tools:ignore="ContentDescription" />
 
     <LinearLayout
         android:id="@+id/llMiniaturePlaceholder"
@@ -157,7 +165,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_baseline_add_box_24"
-            android:layout_marginEnd="20dp"/>
+            android:layout_marginEnd="20dp"
+            tools:ignore="ContentDescription" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -178,7 +187,8 @@
             android:id="@+id/ibCloseTab"
             android:src="@drawable/ic_close_grey_900_24dp"
             android:background="@drawable/button_bg_selector"
-            android:layout_margin="3dp" />
+            android:layout_margin="3dp"
+            android:contentDescription="@string/close_tab" />
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -186,7 +196,8 @@
             android:id="@+id/ibBack"
             android:src="@drawable/back_icon_selector"
             android:background="@drawable/button_bg_selector"
-            android:layout_margin="3dp" />
+            android:layout_margin="3dp"
+            android:contentDescription="@string/navigate_back" />
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -196,7 +207,8 @@
             android:background="@drawable/button_bg_selector"
             android:layout_marginTop="3dp"
             android:layout_marginBottom="3dp"
-            android:layout_marginEnd="3dp" />
+            android:layout_marginEnd="3dp"
+            android:contentDescription="@string/navigate_forward" />
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -206,7 +218,8 @@
             android:background="@drawable/button_bg_selector"
             android:layout_marginTop="3dp"
             android:layout_marginBottom="3dp"
-            android:layout_marginEnd="3dp" />
+            android:layout_marginEnd="3dp"
+            android:contentDescription="@string/refresh_page" />
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -214,7 +227,8 @@
             android:id="@+id/ibHome"
             android:src="@drawable/ic_home_grey_900_24dp"
             android:background="@drawable/button_bg_selector"
-            android:layout_margin="3dp" />
+            android:layout_margin="3dp"
+            android:contentDescription="@string/navigate_home" />
     </LinearLayout>
 
     <com.phlox.tvwebbrowser.activity.main.view.CursorLayout

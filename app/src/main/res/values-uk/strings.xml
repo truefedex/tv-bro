@@ -45,7 +45,7 @@
     <string name="current_key">Кнопка:</string>
     <string name="favorites">Вибрані</string>
     <string name="history">Історія</string>
-    <string name="navigate_back">Навігація \"назад\"</string>
+    <string name="navigate_back">Навігація назад</string>
     <string name="navigate_home">Навігація \"додому\"</string>
     <string name="no_file_explorer_msg">Схоже, на вашому пристрої немає відповідного файлового менеджера</string>
     <string name="not_set">Не задано</string>
@@ -93,4 +93,9 @@
     <string name="hostname">Ім\'я хоста:</string>
     <string name="err_desk">Опис помилки:</string>
     <string name="details">Деталі:</string>
+    <string name="exit">Вихід</string>
+    <string name="find_in_apps_store">Знайти у магазині додатків</string>
+    <string name="close_application">Закрити додаток</string>
+    <string name="close_tab">Закрити вкладку</string>
+    <string name="navigate_forward">Навігація вперед</string>
 </resources>

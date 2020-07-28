@@ -102,4 +102,7 @@
     <string name="details">Details:</string>
     <string name="exit">Exit</string>
     <string name="find_in_apps_store">Find in applications store</string>
+    <string name="close_application">Close application</string>
+    <string name="close_tab">Close tab</string>
+    <string name="navigate_forward">Navigate forward</string>
 </resources>

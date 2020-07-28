@@ -45,7 +45,7 @@
     <string name="current_key">Клавиша:</string>
     <string name="favorites">Избранные</string>
     <string name="history">История</string>
-    <string name="navigate_back">Навигация \"назад\"</string>
+    <string name="navigate_back">Перейти назад</string>
     <string name="navigate_home">Навигация \"домой\"</string>
     <string name="no_file_explorer_msg">Похоже, на вашем устройстве нет подходящего файлового менеджера</string>
     <string name="not_set">Не задано</string>
@@ -93,4 +93,9 @@
     <string name="hostname">Имя хоста:</string>
     <string name="err_desk">Описание ошибки:</string>
     <string name="details">Подробности:</string>
+    <string name="exit">Выход</string>
+    <string name="find_in_apps_store">Найти в магазине приложений</string>
+    <string name="close_application">Закрыть приложение</string>
+    <string name="close_tab">Закрыть вкладку</string>
+    <string name="navigate_forward">Перейти вперед</string>
 </resources>
