@@ -32,7 +32,7 @@ class MainSettingsView @JvmOverloads constructor(
                 settingsViewModel.uaString.value!!.startsWith(SettingsViewModel.TV_BRO_UA_PREFIX)) {
             0
         } else {
-            settingsViewModel.uaStrings.indexOf(settingsViewModel.uaString.value)
+            settingsViewModel.uaStrings.indexOf(settingsViewModel.uaString.value ?: "")
         }
 
         val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, settingsViewModel.userAgentStringTitles)
