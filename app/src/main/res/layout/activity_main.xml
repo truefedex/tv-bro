@@ -224,6 +224,28 @@
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/ibZoomIn"
+            android:src="@drawable/zoomin_icon_selector"
+            android:background="@drawable/button_bg_selector"
+            android:layout_marginTop="3dp"
+            android:layout_marginBottom="3dp"
+            android:layout_marginEnd="3dp"
+            android:contentDescription="@string/zoom_in" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ibZoomOut"
+            android:src="@drawable/zoomout_icon_selector"
+            android:background="@drawable/button_bg_selector"
+            android:layout_marginTop="3dp"
+            android:layout_marginBottom="3dp"
+            android:layout_marginEnd="3dp"
+            android:contentDescription="@string/zoom_out" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:id="@+id/ibHome"
             android:src="@drawable/ic_home_grey_900_24dp"
             android:background="@drawable/button_bg_selector"

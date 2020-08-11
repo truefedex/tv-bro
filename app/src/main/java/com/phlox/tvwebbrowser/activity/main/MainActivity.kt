@@ -134,21 +134,33 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         ibFavorites.setOnClickListener { showFavorites() }
         ibHistory.setOnClickListener { showHistory() }
         ibSettings.setOnClickListener { showSettings() }
+        ibZoomIn.setOnClickListener {
+            viewModel.currentTab.value?.webView?.apply {
+                if (this.canZoomIn()) this.zoomIn()
+                onWebViewUpdated(viewModel.currentTab.value!!)
+                if (!this.canZoomIn()) {
+                    ibZoomOut.requestFocus()
+                }
+            }
+        }
+        ibZoomOut.setOnClickListener {
+            viewModel.currentTab.value?.webView?.apply {
+                if (this.canZoomOut()) this.zoomOut()
+                onWebViewUpdated(viewModel.currentTab.value!!)
+                if (!this.canZoomOut()) {
+                    ibZoomIn.requestFocus()
+                }
+            }
+        }
 
         etUrl.onFocusChangeListener = etUrlFocusChangeListener
 
         etUrl.setOnKeyListener(etUrlKeyListener)
 
-        ibForward.onFocusChangeListener = bottomButtonsFocusListener
-        ibBack.onFocusChangeListener = bottomButtonsFocusListener
-        ibRefresh.onFocusChangeListener = bottomButtonsFocusListener
-        ibHome.onFocusChangeListener = bottomButtonsFocusListener
-        ibCloseTab.onFocusChangeListener = bottomButtonsFocusListener
-        ibForward.setOnKeyListener(bottomButtonsKeyListener)
-        ibBack.setOnKeyListener(bottomButtonsKeyListener)
-        ibRefresh.setOnKeyListener(bottomButtonsKeyListener)
-        ibHome.setOnKeyListener(bottomButtonsKeyListener)
-        ibCloseTab.setOnKeyListener(bottomButtonsKeyListener)
+        llBottomPanel.childs.forEach {
+            it.onFocusChangeListener = bottomButtonsFocusListener
+            it.setOnKeyListener(bottomButtonsKeyListener)
+        }
 
         settingsViewModel.uaString.observe(this, Observer<String> { uas ->
             for (tab in viewModel.tabsStates) {
@@ -303,8 +315,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 if (keyEvent.action == KeyEvent.ACTION_UP) {
                     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(etUrl.windowToken, 0)
-                    hideFloatAddressBar()
                     search(etUrl.text.toString())
+                    hideFloatAddressBar()
                     viewModel.currentTab.value!!.webView?.requestFocus()
                 }
                 return@OnKeyListener true
@@ -517,8 +529,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         wv.setNetworkAvailable(Utils.isNetworkConnected(this))
 
         etUrl.setText(newTab.currentOriginalUrl)
-        ibBack.isEnabled = wv.canGoBack() == true
-        ibForward.isEnabled = wv.canGoForward() == true
+        onWebViewUpdated(newTab)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -809,8 +820,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 Log.d(TAG, "onPageStarted url: $url")
-                ibBack.isEnabled = tab.webView?.canGoBack() == true
-                ibForward.isEnabled = tab.webView?.canGoForward() == true
+                onWebViewUpdated(tab)
                 if (tab.webView?.url != null) {
                     tab.currentOriginalUrl = tab.webView?.url
                 } else if (url != null) {
@@ -827,8 +837,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 if (tab.webView == null || viewModel.currentTab.value == null || view == null) {
                     return
                 }
-                ibBack!!.isEnabled = tab.webView?.canGoBack() == true
-                ibForward!!.isEnabled = tab.webView?.canGoForward() == true
+                onWebViewUpdated(tab)
 
                 if (tab.webView?.url != null) {
                     tab.currentOriginalUrl = tab.webView?.url
@@ -890,6 +899,16 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
 
         return webView
+    }
+
+    private fun onWebViewUpdated(tab: WebTabState) {
+        ibBack.isEnabled = tab.webView?.canGoBack() == true
+        ibForward.isEnabled = tab.webView?.canGoForward() == true
+        val zoomPossible = tab.webView?.canZoomIn() == true || tab.webView?.canZoomOut() == true
+        ibZoomIn.visibility = if (zoomPossible) View.VISIBLE else View.GONE
+        ibZoomOut.visibility = if (zoomPossible) View.VISIBLE else View.GONE
+        ibZoomIn.isEnabled = tab.webView?.canZoomIn() == true
+        ibZoomOut.isEnabled = tab.webView?.canZoomOut() == true
     }
 
     private fun showCertificateErrorPage(error: SslError) {

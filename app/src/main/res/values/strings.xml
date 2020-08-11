@@ -54,6 +54,8 @@
     <string name="navigate_home">Navigate home</string>
     <string name="refresh_page">Refresh page</string>
     <string name="voice_search">Voice search</string>
+    <string name="zoom_in">Zoom in</string>
+    <string name="zoom_out">Zoom out</string>
     <string name="not_set">Not set</string>
     <string name="action">Action:</string>
     <string name="current_key">Current key:</string>
