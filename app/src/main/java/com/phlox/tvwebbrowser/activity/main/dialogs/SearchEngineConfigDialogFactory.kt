@@ -1,11 +1,11 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs
 
-import android.app.AlertDialog
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsViewModel
 

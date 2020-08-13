@@ -1002,7 +1002,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             PICKFILE_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && pickFileCallback != null &&
                         data != null && data.data != null) {
-                    val uris = arrayOf(data.data)
+                    val uris = arrayOf(data.data!!)
                     pickFileCallback!!.onReceiveValue(uris)
                 }
             }
