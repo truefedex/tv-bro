@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.*
 import android.os.SystemClock
 import android.util.AttributeSet
-import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.WindowManager
@@ -24,6 +23,7 @@ class CursorLayout : FrameLayout {
     }
 
     private var cursorRadius: Int = 0
+    private var cursorRadiusPressed: Int = 0
     private var maxCursorSpeed: Float = 0f
     private var scrollStartPadding = 100
     private var cursorStrokeWidth: Float = 0f
@@ -39,7 +39,7 @@ class CursorLayout : FrameLayout {
     private var scrollHackStarted = false
     private val scrollHackCoords = PointF()
     private val scrollHackActiveRect = Rect()
-    var zoomMode = false
+    var fingerMode = false
 
     private val isCursorDissappear: Boolean
         get() {
@@ -71,6 +71,7 @@ class CursorLayout : FrameLayout {
         display.getSize(displaySize)
         cursorStrokeWidth = (displaySize.x / 400).toFloat()
         cursorRadius = displaySize.x / 110
+        cursorRadiusPressed = cursorRadius + Utils.D2P(context, 5f).toInt()
         maxCursorSpeed = (displaySize.x / 25).toFloat()
         scrollStartPadding = displaySize.x / 15
     }
@@ -169,19 +170,32 @@ class CursorLayout : FrameLayout {
                 return true
             }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
-                if (isCursorDissappear) {
-                    return super.dispatchKeyEvent(event)
-                }
                 if (event.action == KeyEvent.ACTION_DOWN && !keyDispatcherState.isTracking(event)) {
-                    keyDispatcherState.startTracking(event, this)
-                    dpadCenterPressed = true
-                    dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_DOWN)
+                    if (fingerMode) {
+                        exitFingerMode()
+                        return false
+                    } else {
+                        keyDispatcherState.startTracking(event, this)
+                        if (!isCursorDissappear) {
+                            dpadCenterPressed = true
+                            dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_DOWN)
+                            postInvalidate()
+                        }
+                    }
                 } else if (event.action == KeyEvent.ACTION_UP) {
                     keyDispatcherState.handleUpEvent(event)
                     //loadUrl("javascript:function simulateClick(x,y){var clickEvent=document.createEvent('MouseEvents');clickEvent.initMouseEvent('click',true,true,window,0,0,0,x,y,false,false,false,false,0,null);document.elementFromPoint(x,y).dispatchEvent(clickEvent)}simulateClick("+(int)cursorPosition.x+","+(int)cursorPosition.y+");");
                     // Obtain MotionEvent object
-                    dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
-                    dpadCenterPressed = false
+                    if (fingerMode) {
+                        //nop
+                    } else if (isCursorDissappear) {
+                        lastCursorUpdate = System.currentTimeMillis()
+                        postInvalidate()
+                    } else {
+                        dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
+                        dpadCenterPressed = false
+                        postInvalidate()
+                    }
                 }
 
                 return true
@@ -213,37 +227,24 @@ class CursorLayout : FrameLayout {
     }
 
     private fun handleDirectionKeyEvent(event: KeyEvent, x: Int, y: Int, keyDown: Boolean) {
-        val child = getChildAt(0)
-        if (zoomMode) {
-            if (child != null && child is WebViewEx) {
-                if (y > 0) {
-                    if (child.canZoomOut())
-                        child.zoomOut()
-                } else if (y < 0) {
-                    if (child.canZoomIn())
-                        child.zoomIn()
-                }
+        lastCursorUpdate = System.currentTimeMillis()
+        if (keyDown) {
+            if (keyDispatcherState.isTracking(event)) {
+                return
             }
+            removeCallbacks(cursorUpdateRunnable)
+            post(cursorUpdateRunnable)
+            keyDispatcherState.startTracking(event, this)
         } else {
-            lastCursorUpdate = System.currentTimeMillis()
-            if (keyDown) {
-                if (keyDispatcherState.isTracking(event)) {
-                    return
-                }
-                removeCallbacks(cursorUpdateRunnable)
-                post(cursorUpdateRunnable)
-                keyDispatcherState.startTracking(event, this)
-            } else {
-                keyDispatcherState.handleUpEvent(event)
-                cursorSpeed.set(0f, 0f)
-                if (scrollHackStarted) {
-                    dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_CANCEL)
-                    scrollHackStarted = false
-                }
+            keyDispatcherState.handleUpEvent(event)
+            cursorSpeed.set(0f, 0f)
+            if (scrollHackStarted) {
+                dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_CANCEL)
+                scrollHackStarted = false
             }
-
-            cursorDirection.set(if (x == UNCHANGED) cursorDirection.x else x, if (y == UNCHANGED) cursorDirection.y else y)
         }
+
+        cursorDirection.set(if (x == UNCHANGED) cursorDirection.x else x, if (y == UNCHANGED) cursorDirection.y else y)
     }
 
     private fun scrollWebViewBy(wv: WebViewEx, scrollX: Int, scrollY: Int) {
@@ -305,39 +306,39 @@ class CursorLayout : FrameLayout {
             return
         }
 
-        if (zoomMode) {
-            val zoomText = "Zoom: +/-"
-            paint.textSize = Utils.D2P(context, 50F)
-            paint.color = Color.argb(128, 255, 255, 255)
-            paint.style = Paint.Style.FILL
-            val textWidth = paint.measureText(zoomText)
-            canvas.drawText(zoomText, width / 2f - textWidth / 2f, height / 2f, paint)
-            paint.color = Color.GRAY
-            paint.strokeWidth = cursorStrokeWidth
-            paint.style = Paint.Style.STROKE
-            canvas.drawText(zoomText, width / 2f - textWidth / 2f, height / 2f, paint)
-        } else if (!isCursorDissappear) {
+        if (fingerMode || !isCursorDissappear) {
             val cx = cursorPosition.x
             val cy = cursorPosition.y
+            val radius = if (dpadCenterPressed) cursorRadiusPressed else cursorRadius
 
-            paint.color = Color.argb(128, 255, 255, 255)
+            paint.color = if (fingerMode)
+                Color.argb(128, 200, 200, 255) else
+                Color.argb(128, 255, 255, 255)
             paint.style = Paint.Style.FILL
-            canvas.drawCircle(cx, cy, cursorRadius.toFloat(), paint)
+            canvas.drawCircle(cx, cy, radius.toFloat(), paint)
 
             paint.color = Color.GRAY
             paint.strokeWidth = cursorStrokeWidth
             paint.style = Paint.Style.STROKE
-            canvas.drawCircle(cx, cy, cursorRadius.toFloat(), paint)
+            canvas.drawCircle(cx, cy, radius.toFloat(), paint)
+
+            if (fingerMode) {
+                val halfRadius = radius.toFloat() / 2
+                canvas.drawLine(cx - halfRadius, cy, cx + halfRadius, cy, paint)
+                canvas.drawLine(cx, cy - halfRadius, cx, cy + halfRadius, paint)
+            }
         }
     }
 
-    fun goToZoomMode() {
-        zoomMode = true
+    fun goToFingerMode() {
+        fingerMode = true
         postInvalidate()
     }
 
-    fun exitZoomMode() {
-        zoomMode = false
+    fun exitFingerMode() {
+        dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
+        dpadCenterPressed = false
+        fingerMode = false
         postInvalidate()
     }
 

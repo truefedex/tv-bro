@@ -12,7 +12,7 @@
     <Button
         android:id="@+id/btnClear"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="?android:attr/listPreferredItemHeight"
         android:layout_alignParentEnd="true"
         android:text="@string/clear"
         android:layout_margin="5dp"

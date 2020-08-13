@@ -15,7 +15,6 @@ import android.webkit.WebView
 import android.widget.FrameLayout
 import android.widget.PopupMenu
 import com.phlox.tvwebbrowser.R
-import kotlin.math.min
 
 /**
  * Created by fedex on 12.08.16.
@@ -36,7 +35,7 @@ class WebViewEx : WebView {
     interface Listener {
         fun onOpenInNewTabRequested(s: String)
         fun onDownloadRequested(url: String)
-        fun onWantZoomMode()
+        fun onLongTap()
         fun onThumbnailError()
     }
 
@@ -89,7 +88,7 @@ class WebViewEx : WebView {
                 if (s != null && "null" != s) {
                     suggestActionsForLink(s)
                 } else {
-                    listener?.onWantZoomMode()
+                    listener?.onLongTap()
                 }
             }
             true

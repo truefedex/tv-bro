@@ -98,4 +98,6 @@
     <string name="close_application">Закрыть приложение</string>
     <string name="close_tab">Закрыть вкладку</string>
     <string name="navigate_forward">Перейти вперед</string>
+    <string name="zoom_in">Увеличить</string>
+    <string name="zoom_out">Уменьшить</string>
 </resources>

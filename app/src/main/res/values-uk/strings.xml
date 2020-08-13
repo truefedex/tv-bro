@@ -98,4 +98,6 @@
     <string name="close_application">Закрити додаток</string>
     <string name="close_tab">Закрити вкладку</string>
     <string name="navigate_forward">Навігація вперед</string>
+    <string name="zoom_in">Збільшити</string>
+    <string name="zoom_out">Зменшити</string>
 </resources>

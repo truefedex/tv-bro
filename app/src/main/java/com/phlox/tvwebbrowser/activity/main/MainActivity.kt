@@ -585,8 +585,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                         ?: "url.html", tab.webView?.settings?.userAgentString ?: getString(R.string.app_name), mimeType)
             }
 
-            override fun onWantZoomMode() {
-                flWebViewContainer?.goToZoomMode()
+            override fun onLongTap() {
+                flWebViewContainer?.goToFingerMode()
             }
 
             override fun onThumbnailError() {
@@ -1109,9 +1109,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 uiHandler.post { hideBottomPanel() }
             }
             return true
-        } else if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer.zoomMode) {
+        } else if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer.fingerMode) {
             if (event.action == KeyEvent.ACTION_UP) {
-                uiHandler.post { flWebViewContainer.exitZoomMode() }
+                uiHandler.post { flWebViewContainer.exitFingerMode() }
             }
             return true
         } else if (shortcutMgr.canProcessKeyCode(keyCode)) {
