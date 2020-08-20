@@ -16,8 +16,8 @@ android {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 38
-        versionName "1.5.5"
+        versionCode 39
+        versionName "1.5.6"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -42,7 +42,7 @@ android {
         }
     }
 
-    flavorDimensions "crashlytics"
+    flavorDimensions "crashlytics", "appstore"
     productFlavors {
         crashlyticsfree {
             dimension "crashlytics"
@@ -50,6 +50,13 @@ android {
         crashlytics {
             dimension "crashlytics"
             //versionNameSuffix "-crashlytics"
+        }
+
+        google {
+            dimension "appstore"
+        }
+        amazon {
+            dimension "appstore"
         }
     }
 
@@ -80,6 +87,6 @@ dependencies {
     implementation 'com.github.truefedex:segmented-button:v1.0.0'
     implementation 'de.halfbit:pinned-section-listview:1.0.0'
 
-    crashlyticsImplementation 'com.google.firebase:firebase-core:17.4.4'
+    crashlyticsImplementation 'com.google.firebase:firebase-core:17.5.0'
     crashlyticsImplementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
 }

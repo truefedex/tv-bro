@@ -42,6 +42,7 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
     var webChromeClient: WebChromeClient? = null
     var lastSSLError: SslError? = null
     var trustSsl: Boolean = false
+    var lastLoadingUrl: String? = null //this is last url appeared in WebViewClient.shouldOverrideUrlLoading callback
 
     constructor(context: Context, json: JSONObject) : this() {
         try {

@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.activity.downloads
 
-import android.content.Context
 import android.graphics.Color
 import android.text.format.Formatter
 import android.view.LayoutInflater
@@ -8,14 +7,11 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
-
-import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.*
 
 /**
  * Created by PDT on 24.01.2017.
@@ -70,6 +66,9 @@ class DownloadListItemView(private val downloadsActivity: DownloadsActivity, pri
     }
 
     private fun updateUI(download: Download) {
+        if (tvTitle?.text != download.filename) {
+            tvTitle?.text = download.filename
+        }
         this.download?.size = download.size
         this.download?.bytesReceived = download.bytesReceived
         progressBar!!.visibility = View.INVISIBLE

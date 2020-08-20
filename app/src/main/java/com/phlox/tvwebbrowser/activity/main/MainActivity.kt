@@ -32,6 +32,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
@@ -117,7 +118,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         })
 
-        ibVoiceSearch.setOnClickListener { initiateVoiceSearch() }
+        if (BuildConfig.FLAVOR_appstore == "amazon") {
+            ibVoiceSearch.visibility = View.GONE
+            ibMenu.nextFocusRightId = R.id.ibHistory
+        } else {
+            ibVoiceSearch.setOnClickListener { initiateVoiceSearch() }
+        }
 
         ibHome.setOnClickListener {navigate(HOME_URL) }
         ibBack.setOnClickListener { navigateBack() }
@@ -281,8 +287,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
 
         override fun onAllDownloadsComplete() {
-            if (downloadAnimation != null) {
-                downloadAnimation!!.reset()
+            downloadAnimation?.apply {
+                this.reset()
                 ibDownloads.clearAnimation()
                 downloadAnimation = null
             }
@@ -467,6 +473,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
             }
         }
+
+        if (BuildConfig.FLAVOR_appstore == "amazon") {
+            //amazon blocks some downloads, this is workaround
+            viewModel.logCatOutput().observe(this@MainActivity, Observer{ logMessage ->
+                if (logMessage.endsWith("AwContentsClientBridge: Dropping new download request.")) {
+                    viewModel.currentTab.value?.apply {
+                        val url = this.lastLoadingUrl ?: return@apply
+                        onDownloadRequested(url, this)
+                    }
+                }
+            })
+        }
     }
 
     private fun openInNewTab(url: String?, index: Int = 0) {
@@ -579,10 +597,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
 
             override fun onDownloadRequested(url: String) {
-                val fileName = Uri.parse(url).lastPathSegment
-                val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
-                onDownloadRequested(url, tab.currentOriginalUrl ?: "", fileName
-                        ?: "url.html", tab.webView?.settings?.userAgentString ?: getString(R.string.app_name), mimeType)
+                onDownloadRequested(url, tab)
             }
 
             override fun onLongTap() {
@@ -793,6 +808,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 Log.d(TAG, "shouldOverrideUrlLoading url: ${request?.url}")
                 val url: String = request?.url.toString()
 
+                tab.lastLoadingUrl = url
+
                 if (URLUtil.isNetworkUrl(url)) {
                     tab.currentOriginalUrl = url
                     if (tabByTitleIndex(vTitles.current) == tab) {
@@ -888,6 +905,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
 
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
+            Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
             onDownloadRequested(url, tab.currentOriginalUrl ?: "", DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
                     ?: tab.webView?.settings?.userAgentString ?: getString(R.string.app_name), mimetype)
         }
@@ -899,6 +917,15 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
 
         return webView
+    }
+
+    private fun onDownloadRequested(url: String, tab: WebTabState) {
+        Log.i(TAG, "onDownloadRequested url: $url")
+        val fileName = Uri.parse(url).lastPathSegment
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
+        onDownloadRequested(url, tab.currentOriginalUrl ?: "", fileName
+                ?: "url.html", tab.webView?.settings?.userAgentString
+                ?: getString(R.string.app_name), mimeType)
     }
 
     private fun onWebViewUpdated(tab: WebTabState) {

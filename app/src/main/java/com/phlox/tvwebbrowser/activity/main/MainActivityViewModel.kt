@@ -8,6 +8,7 @@ import android.os.Environment
 import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
@@ -192,5 +193,14 @@ class MainActivityViewModel: ViewModel() {
         DownloadService.startDownloading(activity, download)
 
         activity.onDownloadStarted(fileName)
+    }
+
+    fun logCatOutput() = liveData(viewModelScope.coroutineContext + Dispatchers.IO) {
+        Runtime.getRuntime().exec("logcat -c")
+        Runtime.getRuntime().exec("logcat")
+                .inputStream
+                .bufferedReader()
+                .useLines { lines -> lines.forEach { line -> emit(line) }
+                }
     }
 }
