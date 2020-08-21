@@ -32,7 +32,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
@@ -118,7 +117,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         })
 
-        if (BuildConfig.FLAVOR_appstore == "amazon") {
+        if (Utils.isFireTV(this)) {
             ibVoiceSearch.visibility = View.GONE
             ibMenu.nextFocusRightId = R.id.ibHistory
         } else {
@@ -474,7 +473,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             }
         }
 
-        if (BuildConfig.FLAVOR_appstore == "amazon") {
+        if (Utils.isFireTV(this@MainActivity)) {
             //amazon blocks some downloads, this is workaround
             viewModel.logCatOutput().observe(this@MainActivity, Observer{ logMessage ->
                 if (logMessage.endsWith("AwContentsClientBridge: Dropping new download request.")) {
