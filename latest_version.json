@@ -2,28 +2,33 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v1.5.5",
-      "latestVersionCode": 38,
+      "latestVersionName": "v1.5.6",
+      "latestVersionCode": 40,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.5/tvbro1.5.5.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.6/tvbro1.5.6.apk"
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.5.5",
-      "latestVersionCode": 38,
+      "latestVersionName": "v1.5.6",
+      "latestVersionCode": 40,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.5/tvbro1.5.5.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.6/tvbro1.5.6.apk"
     },
     {
       "name": "alpha",
-      "latestVersionName": "v1.5.5",
-      "latestVersionCode": 38,
+      "latestVersionName": "v1.5.6",
+      "latestVersionCode": 40,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.5/tvbro1.5.5.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.6/tvbro1.5.6.apk"
     }
   ],
 
   "changelog": [
+    {
+      "versionCode": 40,
+      "versionName": "v1.5.6",
+      "changes": "* Fire os compatibility fixes\n* Downloads content disposition headers handling"
+    },
     {
       "versionCode": 38,
       "versionName": "v1.5.5",
@@ -33,11 +38,6 @@
       "versionCode": 32,
       "versionName": "v1.4.5",
       "changes": "-Fixed several bugs"
-    },
-    {
-      "versionCode": 31,
-      "versionName": "v1.4.4",
-      "changes": "-Fixed several layout problems and bugs\n-Updated homepage\n-Auto update function (experimental)\n-New settings screen\n-Sites with self-signed certificates now displayed (with warning)"
     }
   ]
 }
