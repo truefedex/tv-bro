@@ -522,9 +522,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         viewModel.tabsStates.forEach {
             it.selected = false
         }
-        viewModel.currentTab.value?.webView?.apply {
+        viewModel.currentTab.value?.apply {
+            webView?.apply {
+                onPause()
+                flWebViewContainer.removeView(this)
+            }
             onPause()
-            flWebViewContainer.removeView(this)
         }
 
         newTab.selected = true
@@ -1064,11 +1067,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     override fun onPause() {
         viewModel.jsInterface.setActivity(null)
         unbindService(downloadsServiceConnection)
-        if (viewModel.currentTab.value != null) {
-            viewModel.currentTab.value!!.webView?.onPause()
-        }
         if (mConnectivityChangeReceiver != null) unregisterReceiver(mConnectivityChangeReceiver)
-        launch(Dispatchers.Main) { viewModel.saveState() }
+        viewModel.currentTab.value?.webView?.onPause()
+        viewModel.currentTab.value?.onPause()
+        viewModel.saveState()
         super.onPause()
         running = false
     }

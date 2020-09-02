@@ -35,9 +35,10 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
         const val FAVICONS_DIR = "favicons"
     }
 
+    var savedState: Bundle? = null
+
     //fields that don't need to be persisted to json
     var webView: WebViewEx? = null
-    var savedState: Bundle? = null
     var webPageInteractionDetected = false
     var webChromeClient: WebChromeClient? = null
     var lastSSLError: SslError? = null
@@ -61,6 +62,12 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
                     favicon = BitmapFactory.decodeFile(faviconFile.absolutePath)
                 }
             }
+            if (json.has("wv_state")) {
+                val state = Utils.convertJsonToBundle(json.getJSONObject("wv_state"))
+                if (state != null && !state.isEmpty) {
+                    savedState = state
+                }
+            }
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -73,11 +80,19 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
             store.put("url", currentOriginalUrl)
             store.put("title", currentTitle)
             store.put("selected", selected)
-            if (thumbnailHash != null) {
-                store.put("thumbnail", thumbnailHash)
-            }
-            if (faviconHash != null) {
-                store.put("favicon", faviconHash)
+            thumbnailHash?.apply { store.put("thumbnail", this) }
+            faviconHash?.apply { store.put("favicon", this) }
+            savedState?.apply {
+                val json = JSONObject()
+                val keys: Set<String> = keySet()
+                for (key in keys) {
+                    try {
+                        json.put(key, JSONObject.wrap(get(key)))
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                    }
+                }
+                store.put("wv_state", json)
             }
         } catch (e: JSONException) {
             e.printStackTrace()
@@ -145,9 +160,15 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
     }
 
     fun recycleWebView() {
-        savedState = Bundle()
-        webView?.saveState(savedState)
         webView = null
+    }
+
+    fun onPause() {
+        webView?.apply {
+            val state = Bundle()
+            saveState(state)
+            savedState = state
+        }
     }
 
     fun updateFavIcon(context: Context, icon: Bitmap?) {

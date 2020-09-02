@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
 import android.widget.Toast
+import androidx.core.app.BundleCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -58,7 +59,15 @@ class MainActivityViewModel: ViewModel() {
 
     fun saveState() {
         //WebTabState.saveTabs(TVBro.instance, tabsStates)
-        val tabsCopy = tabsStates.map { it.copy() }//clone list
+        val tabsCopy = tabsStates.map {
+            val cpy = it.copy()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                cpy.savedState = it.savedState?.deepCopy()
+            } else {
+                cpy.savedState = it.savedState
+            }
+            cpy
+        }//clone list
 
         GlobalScope.launch(Dispatchers.IO) {
             val store = JSONObject()

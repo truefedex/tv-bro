@@ -5,17 +5,18 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Point
 import android.net.ConnectivityManager
-import android.net.NetworkInfo
-import android.view.Display
+import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.File
 import java.io.IOException
-
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.Calendar
+import java.util.*
 
 
 object Utils {
@@ -134,5 +135,56 @@ object Utils {
 
     fun isFireTV(context: Context): Boolean {
         return context.packageManager.hasSystemFeature("amazon.hardware.fire_tv")
+    }
+
+    fun convertJsonToBundle(json: JSONObject): Bundle? {
+        val bundle = Bundle()
+        try {
+            val iterator = json.keys()
+            loop@ while (iterator.hasNext()) {
+                val key = iterator.next() as String
+                val value = json[key]
+                when (value.javaClass.simpleName) {
+                    "String" -> bundle.putString(key, value as String)
+                    "Integer" -> bundle.putInt(key, (value as Int))
+                    "Long" -> bundle.putLong(key, (value as Long))
+                    "Boolean" -> bundle.putBoolean(key, (value as Boolean))
+                    "JSONObject" -> bundle.putBundle(key, convertJsonToBundle(value as JSONObject))
+                    "Float" -> bundle.putFloat(key, (value as Float))
+                    "Double" -> bundle.putDouble(key, (value as Double))
+                    "JSONArray" -> {
+                        val jsArr = value as JSONArray
+                        if (jsArr.length() == 0) continue@loop
+                        val first = jsArr.get(0)
+                        when (first.javaClass.simpleName) {
+                            "String" -> bundle.putStringArray(key, Array<String>(jsArr.length()) {
+                                            jsArr.getString(it)
+                                        })
+                            //IntArray is more suitable but in our case (storing webview state) we need bytes
+                            "Integer" -> bundle.putByteArray(key, ByteArray(jsArr.length()) {
+                                jsArr.getInt(it).toByte()
+                            })
+                            "Long" -> bundle.putLongArray(key, LongArray(jsArr.length()) {
+                                jsArr.getLong(it)
+                            })
+                            "Boolean" -> bundle.putBooleanArray(key, BooleanArray(jsArr.length()) {
+                                jsArr.getBoolean(it)
+                            })
+                            "Float" -> bundle.putFloatArray(key, FloatArray(jsArr.length()) {
+                                jsArr.getDouble(it).toFloat()
+                            })
+                            "Double" -> bundle.putDoubleArray(key, DoubleArray(jsArr.length()) {
+                                jsArr.getDouble(it)
+                            })
+                        }
+                    }
+                    else -> bundle.putString(key, value.javaClass.simpleName)
+                }
+            }
+            return bundle
+        } catch (e: JSONException) {
+            e.printStackTrace()
+            return null
+        }
     }
 }

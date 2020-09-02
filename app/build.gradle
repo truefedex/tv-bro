@@ -71,18 +71,20 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.7'
 
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-alpha06'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-alpha06'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-alpha06'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-alpha07'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-alpha07'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-alpha07'
     kapt 'androidx.lifecycle:lifecycle-compiler:2.2.0'
 
     def room_version = "2.2.5"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
+
+    //implementation 'androidx.webkit:webkit:1.3.0'
 
     implementation 'com.github.truefedex:segmented-button:v1.0.0'
     implementation 'de.halfbit:pinned-section-listview:1.0.0'
