@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
-apply plugin: 'io.fabric'
+apply plugin: 'com.google.firebase.crashlytics'
 
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
@@ -16,8 +16,8 @@ android {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 40
-        versionName "1.5.6"
+        versionCode 41
+        versionName "1.5.7"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -90,5 +90,5 @@ dependencies {
     implementation 'de.halfbit:pinned-section-listview:1.0.0'
 
     crashlyticsImplementation 'com.google.firebase:firebase-core:17.5.0'
-    crashlyticsImplementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
+    crashlyticsImplementation 'com.google.firebase:firebase-crashlytics-ktx:17.2.1'
 }

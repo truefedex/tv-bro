@@ -15,6 +15,7 @@ import android.webkit.WebView
 import android.widget.FrameLayout
 import android.widget.PopupMenu
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.utils.LogUtils
 
 /**
  * Created by fedex on 12.08.16.
@@ -175,10 +176,12 @@ class WebViewEx : WebView {
                 thumbnail = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             } catch (e: Throwable) {
                 e.printStackTrace()
+                LogUtils.recordException(e)
                 try {
                     thumbnail = Bitmap.createBitmap(width / 2, height / 2, Bitmap.Config.ARGB_8888)
                 } catch (e: OutOfMemoryError) {
                     e.printStackTrace()
+                    LogUtils.recordException(e)
                 }
             }
         }

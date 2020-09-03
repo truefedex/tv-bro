@@ -9,6 +9,7 @@ import android.webkit.WebChromeClient
 import com.phlox.tvwebbrowser.TVBro
 
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
+import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,6 +71,7 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
             }
         } catch (e: JSONException) {
             e.printStackTrace()
+            LogUtils.recordException(e)
         }
 
     }
@@ -96,6 +98,7 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
             }
         } catch (e: JSONException) {
             e.printStackTrace()
+            LogUtils.recordException(e)
         }
 
         return store

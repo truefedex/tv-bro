@@ -17,6 +17,7 @@ import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
+import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.StringUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -86,6 +87,7 @@ class MainActivityViewModel: ViewModel() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                LogUtils.recordException(e)
             }
         }
     }
@@ -106,6 +108,7 @@ class MainActivityViewModel: ViewModel() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                LogUtils.recordException(e)
             }
             tabsStates
         }.await()
@@ -128,6 +131,7 @@ class MainActivityViewModel: ViewModel() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            LogUtils.recordException(e)
         }
 
         try {
@@ -135,6 +139,7 @@ class MainActivityViewModel: ViewModel() {
             jsInterface.setSuggestions(TVBro.instance, frequentlyUsedUrls)
         } catch (e: Exception) {
             e.printStackTrace()
+            LogUtils.recordException(e)
         }
     }
 
