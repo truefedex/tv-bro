@@ -15,6 +15,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.utils.UpdateChecker
+import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.sameDay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -69,7 +70,7 @@ class SettingsViewModel: ViewModel() {
         lastUpdateNotificationTime = if (prefs.contains(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY))
             Calendar.getInstance().apply { timeInMillis = prefs.getLong(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY, 0) } else
             Calendar.getInstance()
-        needAutockeckUpdates = prefs.getBoolean(AUTOCHECK_UPDATES_KEY, !UpdateChecker.isInstalledByMarket(TVBro.instance))
+        needAutockeckUpdates = prefs.getBoolean(AUTOCHECK_UPDATES_KEY, Utils.isInstalledByAPK(TVBro.instance))
         updateChannel = prefs.getString(UPDATE_CHANNEL_KEY, "release")!!
     }
 

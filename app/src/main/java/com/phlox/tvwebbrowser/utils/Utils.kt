@@ -137,6 +137,18 @@ object Utils {
         return context.packageManager.hasSystemFeature("amazon.hardware.fire_tv")
     }
 
+    fun isInstalledByGooglePlay(context: Context): Boolean {
+        // A list with valid installers package name
+        val validInstallers = ArrayList(Arrays.asList("com.android.vending", "com.google.android.feedback"))
+        val installer = context.packageManager.getInstallerPackageName(context.packageName)
+        return installer != null && validInstallers.contains(installer)
+    }
+
+    fun isInstalledByAPK(context: Context): Boolean {
+        val installer = context.packageManager.getInstallerPackageName(context.packageName)
+        return installer == null || "com.google.android.packageinstaller".equals(installer)
+    }
+
     fun convertJsonToBundle(json: JSONObject): Bundle? {
         val bundle = Bundle()
         try {

@@ -23,21 +23,10 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.*
-import kotlin.collections.ArrayList
 
 
 class UpdateChecker(val currentVersionCode: Int) {
     var versionCheckResult: UpdateCheckResult? = null
-
-    companion object {
-        fun isInstalledByMarket(context: Context): Boolean {
-            // A list with valid installers package name
-            val validInstallers = ArrayList(Arrays.asList("com.android.vending", "com.google.android.feedback"))
-            val installer = context.packageManager.getInstallerPackageName(context.packageName)
-            return installer != null && validInstallers.contains(installer)
-        }
-    }
 
     class ChangelogEntry(val versionCode: Int, val versionName: String, val changes: String)
     class UpdateCheckResult(val latestVersionCode: Int, val latestVersionName: String, val channel:String,
