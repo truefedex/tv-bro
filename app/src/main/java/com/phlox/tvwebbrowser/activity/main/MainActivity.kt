@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.activity.main
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
@@ -13,7 +12,6 @@ import android.net.Uri
 import android.net.http.SslError
 import android.os.*
 import android.speech.RecognizerIntent
-import android.text.TextUtils
 import android.transition.TransitionManager
 import android.util.Log
 import android.util.Patterns
@@ -75,14 +73,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var uiHandler: Handler
-    private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
-    private var permRequestDialog: AlertDialog? = null
-    private var webPermissionsRequest: PermissionRequest? = null
-    private var reuestedResourcesForAlreadyGrantedPermissions: ArrayList<String>? = null
-    private var geoPermissionOrigin: String? = null
-    private var geoPermissionsCallback: GeolocationPermissions.Callback? = null
     private var running: Boolean = false
-    private var pickFileCallback: ValueCallback<Array<Uri>>? = null
     private var downloadsService: DownloadService? = null
     private var downloadAnimation: Animation? = null
     private var fullScreenView: View? = null
@@ -592,6 +583,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         webView.addJavascriptInterface(viewModel.jsInterface, "TVBro")
 
         webView.setListener(object : WebViewEx.Listener {
+            override fun getActivity(): Activity {
+                return this@MainActivity
+            }
+
             override fun onOpenInNewTabRequested(s: String) {
                 var index = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
                 index = if (index == -1) viewModel.tabsStates.size else index + 1
@@ -609,21 +604,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             override fun onThumbnailError() {
                 //nop for now
             }
-        })
 
-        tab.webChromeClient = object : WebChromeClient() {
-            override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
-                return super.onJsAlert(view, url, message, result)
-            }
-
-            override fun onShowCustomView(view: View, callback: CustomViewCallback) {
+            override fun onShowCustomView(view: View) {
                 tab.webView?.visibility = View.GONE
                 flFullscreenContainer.visibility = View.VISIBLE
                 flFullscreenContainer.addView(view)
                 flFullscreenContainer.cursorPosition.set(flWebViewContainer.cursorPosition)
-
                 fullScreenView = view
-                fullscreenViewCallback = callback
             }
 
             override fun onHideCustomView() {
@@ -631,15 +618,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     flFullscreenContainer.removeView(fullScreenView)
                     fullScreenView = null
                 }
-
-                fullscreenViewCallback?.onCustomViewHidden()
-
                 flWebViewContainer.cursorPosition.set(flFullscreenContainer.cursorPosition)
                 flFullscreenContainer.visibility = View.INVISIBLE
                 tab.webView?.visibility = View.VISIBLE
             }
 
-            override fun onProgressChanged(view: WebView, newProgress: Int) {
+            override fun onProgressChanged(newProgress: Int) {
                 progressBar.visibility = View.VISIBLE
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     progressBar.setProgress(newProgress, true)
@@ -654,162 +638,33 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
             }
 
-            override fun onReceivedTitle(view: WebView, title: String) {
-                super.onReceivedTitle(view, title)
+            override fun onReceivedTitle(title: String) {
                 tab.currentTitle = title
                 vTitles.titles = viewModel.tabsStates.map { it.currentTitle }.run { ArrayList(this) }
                 vTitles.postInvalidate()
             }
 
-            override fun onPermissionRequest(request: PermissionRequest) {
-                webPermissionsRequest = request
-                permRequestDialog = AlertDialog.Builder(this@MainActivity)
-                        .setMessage(getString(R.string.web_perm_request_confirmation, TextUtils.join("\n", request.resources)))
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.deny) { dialog, which ->
-                            webPermissionsRequest!!.deny()
-                            permRequestDialog = null
-                            webPermissionsRequest = null
-                        }
-                        .setPositiveButton(R.string.allow) { dialog, which ->
-                            val webPermissionsRequest = this@MainActivity.webPermissionsRequest
-                            this@MainActivity.webPermissionsRequest = null
-                            if (webPermissionsRequest == null) {
-                                return@setPositiveButton
-                            }
-
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                val neededPermissions = ArrayList<String>()
-                                reuestedResourcesForAlreadyGrantedPermissions = ArrayList()
-                                for (resource in webPermissionsRequest.resources) {
-                                    if (PermissionRequest.RESOURCE_AUDIO_CAPTURE == resource) {
-                                        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                                            neededPermissions.add(Manifest.permission.RECORD_AUDIO)
-                                        } else {
-                                            reuestedResourcesForAlreadyGrantedPermissions!!.add(resource)
-                                        }
-                                    } else if (PermissionRequest.RESOURCE_VIDEO_CAPTURE == resource) {
-                                        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                                            neededPermissions.add(Manifest.permission.CAMERA)
-                                        } else {
-                                            reuestedResourcesForAlreadyGrantedPermissions!!.add(resource)
-                                        }
-                                    }
-                                }
-
-                                if (!neededPermissions.isEmpty()) {
-                                    requestPermissions(neededPermissions.toTypedArray(),
-                                            MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS)
-                                } else {
-                                    if (reuestedResourcesForAlreadyGrantedPermissions!!.isEmpty()) {
-                                        webPermissionsRequest.deny()
-                                    } else {
-                                        webPermissionsRequest.grant(reuestedResourcesForAlreadyGrantedPermissions!!.toTypedArray())
-                                    }
-                                }
-                            } else {
-                                webPermissionsRequest.grant(webPermissionsRequest.resources)
-                            }
-                            permRequestDialog = null
-                        }
-                        .create()
-                permRequestDialog!!.show()
-            }
-
-            override fun onPermissionRequestCanceled(request: PermissionRequest) {
-                if (permRequestDialog != null) {
-                    permRequestDialog!!.dismiss()
-                    permRequestDialog = null
+            override fun requestPermissions(array: Array<String>, geo: Boolean) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(array, if (geo) MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS else MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS)
                 }
-                webPermissionsRequest = null
             }
 
-            override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
-                geoPermissionOrigin = origin
-                geoPermissionsCallback = callback
-                permRequestDialog = AlertDialog.Builder(this@MainActivity)
-                        .setMessage(getString(R.string.web_perm_request_confirmation, getString(R.string.location)))
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.deny) { dialog, which ->
-                            geoPermissionsCallback!!.invoke(geoPermissionOrigin, false, false)
-                            permRequestDialog = null
-                            geoPermissionsCallback = null
-                        }
-                        .setPositiveButton(R.string.allow) { dialog, which ->
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                                        MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS)
-                            } else {
-                                geoPermissionsCallback!!.invoke(geoPermissionOrigin, true, true)
-                                geoPermissionsCallback = null
-                            }
-                            permRequestDialog = null
-                        }
-                        .create()
-                permRequestDialog!!.show()
-            }
-
-            override fun onGeolocationPermissionsHidePrompt() {
-                if (permRequestDialog != null) {
-                    permRequestDialog!!.dismiss()
-                    permRequestDialog = null
-                }
-                geoPermissionsCallback = null
-            }
-
-            override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
-                Log.i("TV Bro (" + consoleMessage.sourceId() + "[" + consoleMessage.lineNumber() + "])", consoleMessage.message())
-                return true
-            }
-
-
-            override fun onShowFileChooser(mWebView: WebView, callback: ValueCallback<Array<Uri>>, fileChooserParams: WebChromeClient.FileChooserParams): Boolean {
-                pickFileCallback = callback
+            override fun onShowFileChooser(intent: Intent): Boolean {
                 try {
-                    startActivityForResult(fileChooserParams.createIntent(), PICKFILE_REQUEST_CODE)
+                    startActivityForResult(intent, PICKFILE_REQUEST_CODE)
                 } catch (e: ActivityNotFoundException) {
-                    pickFileCallback = null
                     Utils.showToast(applicationContext, getString(R.string.err_cant_open_file_chooser))
                     return false
                 }
-
                 return true
             }
 
-            override fun onReceivedIcon(view: WebView?, icon: Bitmap?) {
+            override fun onReceivedIcon(icon: Bitmap) {
                 tab.updateFavIcon(this@MainActivity, icon)
             }
 
-            /*override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
-                val tab = WebTabState()
-                //tab.currentOriginalUrl = url;
-                createWebView(tab)
-                val currentTab = this@MainActivity.viewModel.currentTab.value
-                val index = if (currentTab == null) 0 else viewModel.tabsStates.indexOf(currentTab)
-                viewModel.tabsStates.add(index, tab)
-                changeTab(tab)
-                (resultMsg.obj as WebView.WebViewTransport).webView = tab.webView
-                resultMsg.sendToTarget()
-                return true
-            }
-
-            override fun onCloseWindow(window: WebView) {
-                for (tab in viewModel.tabsStates) {
-                    if (tab.webView == window) {
-                        closeTab(tab)
-                        break
-                    }
-                }
-            }*/
-        }
-
-        webView.webChromeClient = tab.webChromeClient
-
-        webView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                Log.d(TAG, "shouldOverrideUrlLoading url: ${request?.url}")
-                val url: String = request?.url.toString()
-
+            override fun shouldOverrideUrlLoading(url: String): Boolean {
                 tab.lastLoadingUrl = url
 
                 if (URLUtil.isNetworkUrl(url)) {
@@ -822,7 +677,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
                 val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
 
-                intent.putExtra("URL_INTENT_ORIGIN", view?.hashCode())
+                intent.putExtra("URL_INTENT_ORIGIN", tab.webView?.hashCode())
                 intent.addCategory(Intent.CATEGORY_BROWSABLE)
                 intent.component = null
                 intent.selector = null
@@ -836,9 +691,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 return false
             }
 
-            override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
-                super.onPageStarted(view, url, favicon)
-                Log.d(TAG, "onPageStarted url: $url")
+            override fun onPageStarted(url: String?) {
                 onWebViewUpdated(tab)
                 if (tab.webView?.url != null) {
                     tab.currentOriginalUrl = tab.webView?.url
@@ -850,10 +703,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
             }
 
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                Log.d(TAG, "onPageFinished url: $url")
-                if (tab.webView == null || viewModel.currentTab.value == null || view == null) {
+            override fun onPageFinished(url: String?) {
+                if (tab.webView == null || viewModel.currentTab.value == null) {
                     return
                 }
                 onWebViewUpdated(tab)
@@ -880,31 +731,14 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
                 tab.webPageInteractionDetected = false
                 if (HOME_URL == url) {
-                    view.loadUrl("javascript:renderSuggestions()")
+                    tab.webView?.loadUrl("javascript:renderSuggestions()")
                 }
             }
 
-            override fun onLoadResource(view: WebView, url: String) {
-                super.onLoadResource(view, url)
-                Log.d(TAG, "onLoadResource url: $url")
+            override fun onPageCertificateError(url: String?) {
+                etUrl.setTextColor(Color.RED)
             }
-
-            override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
-                Log.e(TAG, "onReceivedSslError url: ${error.url}")
-                if (tab.trustSsl && tab.lastSSLError?.certificate?.toString()?.equals(error.certificate.toString()) == true) {
-                    tab.trustSsl = false
-                    tab.lastSSLError = null
-                    handler.proceed()
-                    return
-                }
-                handler.cancel()
-                if (error.url == tab.currentOriginalUrl) {
-                    showCertificateErrorPage(error)
-                }
-            }
-
-
-        }
+        })
 
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
             Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
@@ -940,17 +774,6 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         ibZoomOut.isEnabled = tab.webView?.canZoomOut() == true
     }
 
-    private fun showCertificateErrorPage(error: SslError) {
-        val tab = viewModel.currentTab.value ?: return
-        val webView = tab.webView ?: return
-        etUrl.setTextColor(Color.RED)
-        tab.lastSSLError = error
-        val url = WebViewEx.INTERNAL_SCHEME + WebViewEx.INTERNAL_SCHEME_WARNING_DOMAIN +
-                "?type=" + WebViewEx.INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT +
-                "&url=" + URLEncoder.encode(error.url, "UTF-8")
-        webView.loadUrl(url)
-    }
-
     private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
                                     operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP) {
         viewModel.onDownloadRequested(this, url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload)
@@ -970,39 +793,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         if (grantResults.isEmpty()) return
         when (requestCode) {
             MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS -> {
-                if (webPermissionsRequest == null) {
-                    return
-                }
-                // If request is cancelled, the result arrays are empty.
-                val resources = ArrayList<String>()
-                for (i in permissions.indices) {
-                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                        if (Manifest.permission.CAMERA == permissions[i]) {
-                            resources.add(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
-                        } else if (Manifest.permission.RECORD_AUDIO == permissions[i]) {
-                            resources.add(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
-                        }
-                    }
-                }
-                resources.addAll(reuestedResourcesForAlreadyGrantedPermissions!!)
-                if (resources.isEmpty()) {
-                    webPermissionsRequest!!.deny()
-                } else {
-                    webPermissionsRequest!!.grant(resources.toTypedArray())
-                }
-                webPermissionsRequest = null
+                viewModel.currentTab.value?.webView?.onPermissionsResult(permissions, grantResults, false)
                 return
             }
             MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS -> {
-                if (geoPermissionsCallback == null) {
-                    return
-                }
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    geoPermissionsCallback!!.invoke(geoPermissionOrigin, true, true)
-                } else {
-                    geoPermissionsCallback!!.invoke(geoPermissionOrigin, false, false)
-                }
-                geoPermissionsCallback = null
+                viewModel.currentTab.value?.webView?.onPermissionsResult(permissions, grantResults, true)
                 return
             }
             MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE -> {
@@ -1029,10 +824,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 }
             }
             PICKFILE_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK && pickFileCallback != null &&
-                        data != null && data.data != null) {
-                    val uris = arrayOf(data.data!!)
-                    pickFileCallback!!.onReceiveValue(uris)
+                if (resultCode == Activity.RESULT_OK && data != null ) {
+                    viewModel.currentTab.value?.webView?.onFilePicked(data)
                 }
             }
             REQUEST_CODE_HISTORY_ACTIVITY -> if (resultCode == Activity.RESULT_OK) {
@@ -1123,7 +916,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         if (keyCode == KeyEvent.KEYCODE_BACK && fullScreenView != null) {
             if (event.action == KeyEvent.ACTION_UP) {
                 uiHandler.post {
-                    viewModel.currentTab.value?.webChromeClient?.onHideCustomView()
+                    viewModel.currentTab.value?.webView?.onHideCustomView()
                 }
             }
             return true
