@@ -85,7 +85,7 @@ class UpdateChecker(val currentVersionCode: Int) {
         for (changelogEntry in version.changelog) {
             if (changelogEntry.versionCode > currentVersionCode) {
                 message += "<b>${changelogEntry.versionName}</b><br>" +
-                        changelogEntry.changes.replace("\n", "<br>")
+                        changelogEntry.changes.replace("\n", "<br>") + "<br>"
             }
         }
         val textView = TextView(context)
