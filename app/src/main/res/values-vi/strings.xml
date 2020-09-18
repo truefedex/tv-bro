@@ -33,7 +33,7 @@
     <string name="user_agent_string">Chuỗi User Agent</string>
     <string name="choose_user_agent_string">Chọn chuỗi User Agent</string>
     <string name="edit_user_agent_string">Chỉnh sửa chuỗi User Agent</string>
-    <string name="nothing">Không có gì</string>
+    <string name="nothing">Không có tải xuống</string>
     <string name="cancelled">Đã hủy</string>
     <string name="download">Tải xuống</string>
     <string name="file_not_found">Không tìm thấy tệp</string>
@@ -50,8 +50,8 @@
     <string name="settings">Cài đặt</string>
     <string name="shortcut">Phím tắt</string>
     <string name="toggle_main_menu">Chuyển đổi menu chính</string>
-    <string name="navigate_back">Điều hướng quay lại</string>
-    <string name="navigate_home">Điều hướng về trang chủ</string>
+    <string name="navigate_back">Phím quay lại</string>
+    <string name="navigate_home">Trở về trang chủ</string>
     <string name="refresh_page">Làm mới trang</string>
     <string name="voice_search">Tìm kiếm bằng giọng nói</string>
     <string name="zoom_in">Phóng to</string>
@@ -79,7 +79,7 @@
     <string name="auto_check_for_updates">Tự động kiểm tra các bản cập nhật</string>
     <string name="update">Cập nhật</string>
     <string name="new_version_available_s">Có phiên bản mới: %s</string>
-    <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Trình duyệt web được tối ưu hóa cho TV  \n https://github.com/truefedex/tv-bro</string>
+    <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Trình duyệt web được tối ưu hóa cho TV  \nhttps://github.com/truefedex/tv-bro</string>
     <string name="warning">Cảnh báo</string>
     <string name="unprotected_connection">Kết nối không được bảo vệ</string>
     <string name="err_webview_can_not_link">Không thể liên kết với thành phần WebView. Trước tiên, hãy thử cài đặt thành phần WebView của hệ thống Android.</string>
@@ -87,14 +87,14 @@
     <string name="open_a_new_tab_here">Mở tab mới tại đây</string>
     <string name="tabs">Các tab</string>
     <array name="tabs_options">
-        <item>Close current</item>
-        <item>Close all</item>
-        <item>Move left</item>
-        <item>Move right</item>
+        <item>Đóng tab hiện tại</item>
+        <item>Đóng tất cả</item>
+        <item>Chuyển sang trái</item>
+        <item>Chuyển sang phải</item>
     </array>
     <string name="ssl_expired">Chứng chỉ đã hết hạn</string>
     <string name="ssl_idmismatch">Tên máy chủ không khớp</string>
-    <string name="ssl_date_invalid">Ngày của chứng chỉ không hợp lệ</string>
+    <string name="ssl_date_invalid">Ngày tháng của chứng chỉ không hợp lệ</string>
     <string name="ssl_invalid">Đã xảy ra lỗi</string>
     <string name="back_to_safety">Quay lại an toàn</string>
     <string name="go_im_aware">Tiếp tục. Tôi chấp nhận rủi ro</string>
@@ -106,5 +106,5 @@
     <string name="find_in_apps_store">Tìm trong kho ứng dụng</string>
     <string name="close_application">Đóng ứng dụng</string>
     <string name="close_tab">Đóng tab</string>
-    <string name="navigate_forward">Điều hướng về phía trước</string>
+    <string name="navigate_forward">Điều hướng về trước</string>
 </resources>
