@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.singleton
 
-import android.database.sqlite.SQLiteException
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -13,12 +12,14 @@ import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.model.dao.DownloadDao
 import com.phlox.tvwebbrowser.model.dao.FavoritesDao
 import com.phlox.tvwebbrowser.model.dao.HistoryDao
+import com.phlox.tvwebbrowser.model.dao.TabsDao
 
-@Database(entities = arrayOf(Download::class, FavoriteItem::class, HistoryItem::class), version = 8)
+@Database(entities = arrayOf(Download::class, FavoriteItem::class, HistoryItem::class), version = 9)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
     abstract fun historyDao(): HistoryDao
     abstract fun favoritesDao(): FavoritesDao
+    abstract fun tabsDao(): TabsDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {

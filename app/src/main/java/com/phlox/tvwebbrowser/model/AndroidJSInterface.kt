@@ -30,7 +30,7 @@ class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewMode
 
     @JavascriptInterface
     fun currentUrl(): String {
-        return mainActivityViewModel.currentTab.value?.currentOriginalUrl ?: ""
+        return mainActivityViewModel.currentTab.value?.url ?: ""
     }
 
     @JavascriptInterface
@@ -43,7 +43,7 @@ class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewMode
         activity?.runOnUiThread {
             mainActivityViewModel.currentTab.value?.apply {
                 trustSsl = true
-                currentOriginalUrl?.apply { webView?.loadUrl(this) }
+                url?.apply { webView?.loadUrl(this) }
             }
         }
     }

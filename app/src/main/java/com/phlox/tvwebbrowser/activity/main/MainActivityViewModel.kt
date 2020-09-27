@@ -1,12 +1,10 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
 import android.widget.Toast
-import androidx.core.app.BundleCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
@@ -18,14 +16,12 @@ import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.LogUtils
-import com.phlox.tvwebbrowser.utils.StringUtils
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.io.FileInputStream
 import java.security.KeyStore
 import java.util.*
 import javax.net.ssl.TrustManager
@@ -58,63 +54,53 @@ class MainActivityViewModel: ViewModel() {
         return (trustManagers[0] as X509TrustManager)
     }
 
-    fun saveState() {
-        //WebTabState.saveTabs(TVBro.instance, tabsStates)
-        val tabsCopy = tabsStates.map {
-            val cpy = it.copy()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                cpy.savedState = it.savedState?.deepCopy()
-            } else {
-                cpy.savedState = it.savedState
-            }
-            cpy
-        }//clone list
-
-        GlobalScope.launch(Dispatchers.IO) {
-            val store = JSONObject()
-            val tabsStore = JSONArray()
-            for (tab in tabsCopy) {
-                val tabJson = tab.toJson()
-                tabsStore.put(tabJson)
-            }
-            try {
-                store.put("tabs", tabsStore)
-                val fos = TVBro.instance.openFileOutput(STATE_JSON, Context.MODE_PRIVATE)
-                try {
-                    fos.write(store.toString().toByteArray())
-                } finally {
-                    fos.close()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                LogUtils.recordException(e)
-            }
-        }
-    }
-
-    fun loadState() = GlobalScope.launch(Dispatchers.Main) {
+    fun loadState() = viewModelScope.launch(Dispatchers.Main) {
         if (loaded) return@launch
         initHistory()
-        val tabsStatesLoaded = async (Dispatchers.IO){
-            val tabsStates = ArrayList<WebTabState>()
-            try {
-                val fis = TVBro.instance.openFileInput(STATE_JSON)
-                val storeStr = StringUtils.streamToString(fis)
-                val store = JSONObject(storeStr)
-                val tabsStore = store.getJSONArray("tabs")
-                for (i in 0 until tabsStore.length()) {
-                    val tab = WebTabState(TVBro.instance, tabsStore.getJSONObject(i))
-                    tabsStates.add(tab)
+        val tabsDao = AppDatabase.db.tabsDao()
+        val stateFile = File(TVBro.instance.filesDir, STATE_JSON)
+        if (stateFile.exists()) {
+            val tabsStatesLoadedFromLegacyJson = async(Dispatchers.IO) {
+                val tabsStates = ArrayList<WebTabState>()
+                try {
+                    val storeStr = FileInputStream(stateFile).bufferedReader().use { it.readText() }
+                    val store = JSONObject(storeStr)
+                    val tabsStore = store.getJSONArray("tabs")
+                    for (i in 0 until tabsStore.length()) {
+                        val tab = WebTabState(TVBro.instance, tabsStore.getJSONObject(i))
+                        tabsStates.add(tab)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    LogUtils.recordException(e)
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                LogUtils.recordException(e)
+                //TODO: uncomment
+                //stateFile.delete()
+                tabsStates
+            }.await()
+            //TODO: comment?
+            tabsDao.deleteAll(false)
+            tabsStatesLoadedFromLegacyJson.forEachIndexed { index, webTabState ->
+                webTabState.position = index
+                tabsDao.insert(webTabState)
             }
-            tabsStates
-        }.await()
-
-        tabsStates.addAll(tabsStatesLoaded)
+        }
+        tabsStates.addAll(tabsDao.getAll(false))
         loaded = true
+    }
+
+    fun saveCurrentTab() {
+        viewModelScope.launch(Dispatchers.Main) {
+            val tabsDB = AppDatabase.db.tabsDao()
+
+            currentTab.value?.apply {
+                if (this.id != 0L ) {
+                    tabsDB.update(this)
+                } else {
+                    tabsDB.insert(this)
+                }
+            }
+        }
     }
 
     private suspend fun initHistory() {

@@ -3,11 +3,12 @@ package com.phlox.tvwebbrowser.model
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.http.SslError
 import android.os.Bundle
-import android.webkit.WebChromeClient
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
 import com.phlox.tvwebbrowser.TVBro
-
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.Utils
@@ -16,37 +17,45 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
-
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
+
 
 /**
  * Created by PDT on 24.08.2016.
  *
  * Class to store state of tab with webView
  */
-data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle: String = "",
+@Entity(tableName = "tabs")
+data class WebTabState(@PrimaryKey(autoGenerate = true)
+                       var id: Long = 0, var url: String = "", var title: String = "",
                        var selected: Boolean = false, var thumbnailHash: String? = null,
-                       var faviconHash: String? = null, var thumbnail: Bitmap? = null,
-                       var favicon: Bitmap? = null) {
+                       var faviconHash: String? = null, @Ignore var thumbnail: Bitmap? = null,
+                       @Ignore var favicon: Bitmap? = null, var incognito: Boolean = false,
+                       var position: Int = 0) {
     companion object {
         const val TAB_THUMBNAILS_DIR = "tabthumbs"
         const val FAVICONS_DIR = "favicons"
     }
 
-    var savedState: Bundle? = null
+    @ColumnInfo(name = "wv_state", typeAffinity = ColumnInfo.BLOB)
+    private val wvState: ByteArray? = null
 
-    //fields that don't need to be persisted to json
+    @Ignore
+    var savedState: Bundle? = null
+    @Ignore
     var webView: WebViewEx? = null
+    @Ignore
     var webPageInteractionDetected = false
+    @Ignore
     var lastLoadingUrl: String? = null //this is last url appeared in WebViewClient.shouldOverrideUrlLoading callback
 
     constructor(context: Context, json: JSONObject) : this() {
         try {
-            currentOriginalUrl = json.getString("url")
-            currentTitle = json.getString("title")
+            url = json.getString("url")
+            title = json.getString("title")
             selected = json.getBoolean("selected")
             if (json.has("thumbnail")) {
                 thumbnailHash = json.getString("thumbnail")
@@ -76,8 +85,8 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
     fun toJson(): JSONObject {
         val store = JSONObject()
         try {
-            store.put("url", currentOriginalUrl)
-            store.put("title", currentTitle)
+            store.put("url", url)
+            store.put("title", title)
             store.put("selected", selected)
             thumbnailHash?.apply { store.put("thumbnail", this) }
             faviconHash?.apply { store.put("favicon", this) }
@@ -104,7 +113,7 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
     private fun saveThumbnail(context: Context, scope: CoroutineScope) {
         val thumbnail = this.thumbnail
         val thumbnailHash = this.thumbnailHash
-        val url = currentOriginalUrl
+        val url = url
         if (thumbnail == null || url == null) return
         scope.launch(Dispatchers.IO) {
             synchronized(this@WebTabState) {
@@ -154,9 +163,10 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
     }
 
     fun restoreWebView() {
-        if (savedState != null) {
+        val state = savedState
+        if (state != null) {
             webView?.restoreState(savedState)
-        } else currentOriginalUrl?.apply { webView?.loadUrl(this) }
+        } else url?.apply { webView?.loadUrl(this) }
     }
 
     fun recycleWebView() {
@@ -211,7 +221,7 @@ data class WebTabState(var currentOriginalUrl: String? = null, var currentTitle:
 
     fun updateThumbnail(context: Context, thumbnail: Bitmap, scope: CoroutineScope) {
         this.thumbnail = thumbnail
-        val url = currentOriginalUrl
+        val url = url
         if (url != null) {
             var hash = Utils.MD5_Hash(url.toByteArray(Charset.defaultCharset()))
             if (hash != null) {
