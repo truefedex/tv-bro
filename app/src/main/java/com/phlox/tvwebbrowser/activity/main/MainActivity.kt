@@ -15,6 +15,7 @@ import android.transition.TransitionManager
 import android.util.Log
 import android.util.Patterns
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
@@ -153,6 +154,7 @@ class MainActivity : AppCompatActivity() {
         etUrl.setOnKeyListener(etUrlKeyListener)
 
         llBottomPanel.childs.forEach {
+            it.setOnTouchListener(bottomButtonsOnTouchListener)
             it.onFocusChangeListener = bottomButtonsFocusListener
             it.setOnKeyListener(bottomButtonsKeyListener)
         }
@@ -281,6 +283,20 @@ class MainActivity : AppCompatActivity() {
                 ibDownloads.clearAnimation()
                 downloadAnimation = null
             }
+        }
+    }
+
+    private val bottomButtonsOnTouchListener = View.OnTouchListener{ v, e ->
+        when (e.action) {
+            MotionEvent.ACTION_DOWN -> {
+                return@OnTouchListener true
+            }
+            MotionEvent.ACTION_UP -> {
+                hideMenuOverlay(false)
+                v.performClick()
+                return@OnTouchListener true
+            }
+            else -> return@OnTouchListener false
         }
     }
 

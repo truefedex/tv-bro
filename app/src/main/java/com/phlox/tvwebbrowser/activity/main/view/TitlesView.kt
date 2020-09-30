@@ -33,7 +33,7 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
             postInvalidate()
         }
     private val paint = TextPaint(Paint.ANTI_ALIAS_FLAG)
-    private lateinit var gDetector: GestureDetectorCompat
+    private var gDetector: GestureDetectorCompat
     var animationVector = 0
     var animationStartTime = 0L
     private val emptyTitle: String
@@ -49,8 +49,12 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
             listener?.onTitleOptions(current)
         }
 
-        override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
-            listener?.onTitleSelected(current)
+        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+            if (e.x < width / 3) {
+                moveLeft()
+            } else if (e.x > width / 3 * 2) {
+                moveRight()
+            } else listener?.onTitleSelected(current)
             return true
         }
     }
