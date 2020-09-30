@@ -35,7 +35,7 @@ android {
     }
     buildTypes {
         release {
-            debuggable false
+            debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
@@ -62,6 +62,13 @@ android {
 
     lintOptions {
         abortOnError false
+    }
+
+    kapt {
+        arguments {
+            //used when AppDatabase @Database annotation exportSchema = true. Useful for migrations
+            arg("room.schemaLocation", "$projectDir/schemas".toString())
+        }
     }
 }
 

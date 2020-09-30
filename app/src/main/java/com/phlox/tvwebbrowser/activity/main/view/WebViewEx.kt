@@ -53,8 +53,8 @@ class WebViewEx : WebView {
     private var reuestedResourcesForAlreadyGrantedPermissions: ArrayList<String>? = null
     private var geoPermissionOrigin: String? = null
     private var geoPermissionsCallback: GeolocationPermissions.Callback? = null
-    private var lastSSLError: SslError? = null
-    private var trustSsl: Boolean = false
+    var lastSSLError: SslError? = null
+    var trustSsl: Boolean = false
     private var currentOriginalUrl: String? = null
 
     interface Listener {
