@@ -149,6 +149,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
 
     fun recycleWebView() {
         webView = null
+        savedState = null
     }
 
     fun onPause() {

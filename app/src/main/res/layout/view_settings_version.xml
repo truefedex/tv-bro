@@ -16,15 +16,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/tvTitle"
-        android:text="@string/web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro"
-        android:autoLink="all"
-        android:linksClickable="true"/>
+        android:text="@string/web_browser_optimized_for_tvs" />
+
+    <TextView
+        android:id="@+id/tvLink"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvDescription"
+        android:text="@string/homepage_link"
+        android:background="@drawable/text_link_background_selector"
+        android:autoLink="web"
+        android:linksClickable="false"
+        android:focusable="true"
+        android:clickable="true"/>
 
     <TextView
         android:id="@+id/tvVersion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/tvDescription"
+        android:layout_below="@+id/tvLink"
         android:layout_marginTop="20dp"
         android:text="@string/version_s" />
 

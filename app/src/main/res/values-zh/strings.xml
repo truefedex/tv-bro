@@ -77,7 +77,7 @@
     <string name="auto_check_for_updates">自动检查更新</string>
     <string name="update">更新资料</string>
     <string name="new_version_available_s">新版本可用: %s</string>
-    <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">针对电视进行了优化的网络浏览器\n https://github.com/truefedex/tv-bro</string>
+    <string name="web_browser_optimized_for_tvs">针对电视进行了优化的网络浏览器\n https://github.com/truefedex/tv-bro</string>
     <string name="warning">警告</string>
     <string name="unprotected_connection">未保护的连接</string>
     <string name="err_webview_can_not_link">无法链接到WebView组件。尝试先安装Android系统WebView组件。</string>

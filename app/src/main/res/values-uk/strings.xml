@@ -77,7 +77,7 @@
     <string name="version_and_updates">Версія</string>
     <string name="version_s">Версія: %s</string>
     <string name="warning">Увага</string>
-    <string name="web_browser_optimized_for_tvs_https_github_com_truefedex_tv_bro">Веб-браузер, оптимізований для телевізорів\n https://github.com/truefedex/tv-bro</string>
+    <string name="web_browser_optimized_for_tvs">Веб-браузер, оптимізований для телевізорів\n https://github.com/truefedex/tv-bro</string>
     <string name="new_version_available_s">Доступна нова версія: %s</string>
     <string name="err_webview_can_not_link">Не можу знайти WebView компонент. Спробуйте спочатку встановити Android System WebView</string>
     <string name="new_tab_title">[НОВА ВКЛ.]</string>

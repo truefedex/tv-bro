@@ -2,14 +2,18 @@ package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
 import androidx.lifecycle.ViewModelProviders
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.fragment.app.FragmentActivity
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
+import androidx.lifecycle.ViewModelProvider
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.MainActivity
+import com.phlox.tvwebbrowser.activity.main.MainActivityViewModel
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activity
 import kotlinx.android.synthetic.main.view_settings_version.view.*
@@ -28,9 +32,16 @@ class VersionSettingsView @JvmOverloads constructor(
 
     init {
         LayoutInflater.from(getContext()).inflate(R.layout.view_settings_version, this, true)
-        settingsViewModel = ViewModelProviders.of(activity as FragmentActivity).get(SettingsViewModel::class.java)
+        settingsViewModel = ViewModelProvider(activity as FragmentActivity).get(SettingsViewModel::class.java)
 
         tvVersion.text = context.getString(R.string.version_s, BuildConfig.VERSION_NAME)
+
+        tvLink.setOnClickListener {
+            callback?.onNeedToCloseSettings()
+            val intent = Intent(activity, MainActivity::class.java)
+            intent.data = Uri.parse(tvLink.text.toString())
+            activity?.startActivity(intent)
+        }
 
         chkAutoCheckUpdates.isChecked = settingsViewModel.needAutockeckUpdates
 
