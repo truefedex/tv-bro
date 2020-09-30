@@ -9,12 +9,13 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.HistoryItem
+import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.model.dao.DownloadDao
 import com.phlox.tvwebbrowser.model.dao.FavoritesDao
 import com.phlox.tvwebbrowser.model.dao.HistoryDao
 import com.phlox.tvwebbrowser.model.dao.TabsDao
 
-@Database(entities = arrayOf(Download::class, FavoriteItem::class, HistoryItem::class), version = 9)
+@Database(entities = arrayOf(Download::class, FavoriteItem::class, HistoryItem::class, WebTabState::class), version = 9/*, exportSchema = true*/)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
     abstract fun historyDao(): HistoryDao
@@ -74,6 +75,12 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS 'tabs' ('id' INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 'url' TEXT NOT NULL, 'title' TEXT NOT NULL, 'selected' INTEGER NOT NULL, 'thumbnailHash' TEXT, 'faviconHash' TEXT, 'incognito' INTEGER NOT NULL, 'position' INTEGER NOT NULL, 'wv_state' BLOB)")
+            }
+        }
+
         private fun createHistoryTable(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE history ("
                     + "id INTEGER PRIMARY KEY NOT NULL,"
@@ -104,6 +111,6 @@ abstract class AppDatabase : RoomDatabase() {
         val db: AppDatabase by lazy { Room.databaseBuilder(
                 TVBro.instance,
                 AppDatabase::class.java, "main.db"
-        ).addMigrations(MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8).build() }
+        ).addMigrations(MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9).build() }
     }
 }

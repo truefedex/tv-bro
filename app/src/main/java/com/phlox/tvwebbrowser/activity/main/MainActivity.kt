@@ -57,7 +57,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
+class MainActivity : AppCompatActivity() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         const val VOICE_SEARCH_REQUEST_CODE = 10001
@@ -345,9 +345,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     when (i) {
                         0 -> tab?.apply { closeTab(this) }
                         1 -> {
-                            viewModel.tabsStates.forEach { it.removeFiles() }
+                            viewModel.onCloseAllTabs()
+                            flWebViewContainer.removeAllViews()
                             openInNewTab(HOME_URL, 0)
-                            while (viewModel.tabsStates.size > 1) viewModel.tabsStates.removeLast()
                             vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
                             vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
                         }
@@ -404,7 +404,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
-    private fun loadState() = launch(Dispatchers.Main) {
+    private fun loadState() = lifecycleScope.launch(Dispatchers.Main) {
         progressBarGeneric.visibility = View.VISIBLE
         progressBarGeneric.requestFocus()
         viewModel.loadState().join()
@@ -418,7 +418,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         val intentUri = intent.data
         if (intentUri == null) {
             if (viewModel.tabsStates.isEmpty()) {
-                openInNewTab(WebViewEx.HOME_URL)
+                openInNewTab(HOME_URL)
             } else {
                 for (i in viewModel.tabsStates.indices) {
                     val tab = viewModel.tabsStates[i]
@@ -449,7 +449,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                     })
         } else {
             if (viewModel.currentTab.value == null ||
-                    viewModel.currentTab.value!!.url == WebViewEx.HOME_URL) {
+                    viewModel.currentTab.value!!.url == HOME_URL) {
                 showMenuOverlay()
             }
             if (settingsViewModel.needAutockeckUpdates &&
@@ -494,6 +494,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private fun closeTab(tab: WebTabState?) {
         if (tab == null) return
         val position = viewModel.tabsStates.indexOf(tab)
+        viewModel.currentTab.value = null
+        tab.webView?.apply { flWebViewContainer.removeView(this) }
         when {
             viewModel.tabsStates.size == 1 -> openInNewTab(HOME_URL, 0)
 
@@ -501,10 +503,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
             else -> changeTab(viewModel.tabsStates[position + 1])
         }
-        viewModel.tabsStates.remove(tab)
+        viewModel.onCloseTab(tab)
         vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
         vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
-        tab.removeFiles()
         hideBottomPanel()
     }
 
@@ -518,6 +519,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 flWebViewContainer.removeView(this)
             }
             onPause()
+            viewModel.saveTab(this)
         }
 
         newTab.selected = true
@@ -723,7 +725,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                 viewModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
                 val newThumbnail = tab.webView?.renderThumbnail(tab.thumbnail)
                 if (newThumbnail != null) {
-                    tab.updateThumbnail(this@MainActivity, newThumbnail, this@MainActivity)
+                    tab.updateThumbnail(this@MainActivity, newThumbnail, lifecycleScope)
                     if (rlActionBar.visibility == View.VISIBLE && tab == viewModel.currentTab.value) {
                         displayThumbnail(tab)
                     }
@@ -862,9 +864,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         viewModel.jsInterface.setActivity(null)
         unbindService(downloadsServiceConnection)
         if (mConnectivityChangeReceiver != null) unregisterReceiver(mConnectivityChangeReceiver)
-        viewModel.currentTab.value?.webView?.onPause()
-        viewModel.currentTab.value?.onPause()
-        viewModel.saveCurrentTab()
+        viewModel.currentTab.value?.apply {
+            webView?.onPause()
+            onPause()
+            viewModel.saveTab(this, true)
+        }
+
         super.onPause()
         running = false
     }
@@ -1000,7 +1005,7 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             if (currentTab.thumbnail != null) {
                 ivMiniatures.setImageBitmap(currentTab.thumbnail)
             } else if (currentTab.thumbnailHash != null) {
-                launch(Dispatchers.IO) {
+                lifecycleScope.launch(Dispatchers.IO) {
                     val thumbnail = currentTab.loadThumbnail()
                     launch(Dispatchers.Main) {
                         if (thumbnail != null) {

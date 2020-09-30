@@ -42,7 +42,7 @@ class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewMode
     fun reloadWithSslTrust() {
         activity?.runOnUiThread {
             mainActivityViewModel.currentTab.value?.apply {
-                trustSsl = true
+                webView?.trustSsl = true
                 url?.apply { webView?.loadUrl(this) }
             }
         }
@@ -63,9 +63,9 @@ class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewMode
     @JavascriptInterface
     fun lastSSLError(getDetails: Boolean): String {
         return if (getDetails) {
-            mainActivityViewModel.currentTab.value?.lastSSLError?.toString() ?: ""
+            mainActivityViewModel.currentTab.value?.webView?.lastSSLError?.toString() ?: ""
         } else {
-            when (mainActivityViewModel.currentTab.value?.lastSSLError?.primaryError) {
+            when (mainActivityViewModel.currentTab.value?.webView?.lastSSLError?.primaryError) {
                 SslError.SSL_EXPIRED -> TVBro.instance.getString(R.string.ssl_expired)
                 SslError.SSL_IDMISMATCH -> TVBro.instance.getString(R.string.ssl_idmismatch)
                 SslError.SSL_DATE_INVALID -> TVBro.instance.getString(R.string.ssl_date_invalid)

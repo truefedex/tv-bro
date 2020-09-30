@@ -22,11 +22,8 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
 import java.io.FileInputStream
-import java.security.KeyStore
 import java.util.*
-import javax.net.ssl.TrustManager
-import javax.net.ssl.TrustManagerFactory
-import javax.net.ssl.X509TrustManager
+import kotlin.collections.ArrayList
 
 
 class MainActivityViewModel: ViewModel() {
@@ -36,23 +33,12 @@ class MainActivityViewModel: ViewModel() {
     }
 
     var loaded = false
+    var incognitoMode = false
     val currentTab = MutableLiveData<WebTabState>()
     val tabsStates = ArrayList<WebTabState>()
     var lastHistoryItem: HistoryItem? = null
     val jsInterface = AndroidJSInterface(this)
     private var downloadIntent: DownloadIntent? = null
-
-    private fun getTrustManager(): X509TrustManager {
-        val keyStoreType: String = KeyStore.getDefaultType()
-        val keyStore: KeyStore = KeyStore.getInstance(keyStoreType)
-        keyStore.load(null, null)
-
-        val trustManagerFactory: TrustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-        trustManagerFactory.init(keyStore)
-        val trustManagers: Array<TrustManager> = trustManagerFactory.trustManagers
-
-        return (trustManagers[0] as X509TrustManager)
-    }
 
     fun loadState() = viewModelScope.launch(Dispatchers.Main) {
         if (loaded) return@launch
@@ -74,32 +60,54 @@ class MainActivityViewModel: ViewModel() {
                     e.printStackTrace()
                     LogUtils.recordException(e)
                 }
-                //TODO: uncomment
-                //stateFile.delete()
+                stateFile.delete()
                 tabsStates
             }.await()
-            //TODO: comment?
-            tabsDao.deleteAll(false)
+            //tabsDao.deleteAll(incognitoMode)
             tabsStatesLoadedFromLegacyJson.forEachIndexed { index, webTabState ->
                 webTabState.position = index
                 tabsDao.insert(webTabState)
             }
         }
-        tabsStates.addAll(tabsDao.getAll(false))
+        tabsStates.addAll(tabsDao.getAll(incognitoMode))
         loaded = true
     }
 
-    fun saveCurrentTab() {
+    fun saveTab(tab: WebTabState, saveAlsoSelectionAndPositions: Boolean = false) {
         viewModelScope.launch(Dispatchers.Main) {
             val tabsDB = AppDatabase.db.tabsDao()
 
-            currentTab.value?.apply {
-                if (this.id != 0L ) {
-                    tabsDB.update(this)
-                } else {
-                    tabsDB.insert(this)
-                }
+            if (saveAlsoSelectionAndPositions) {
+                tabsDB.unselectAll(incognitoMode)
             }
+            if (tab.id != 0L ) {
+                tabsDB.update(tab)
+            } else {
+                tab.id = tabsDB.insert(tab)
+            }
+
+            if (saveAlsoSelectionAndPositions) {
+                tabsDB.updatePositions(tabsStates)
+            }
+        }
+    }
+
+    fun onCloseTab(tab: WebTabState) {
+        tabsStates.remove(tab)
+        viewModelScope.launch(Dispatchers.Main) {
+            val tabsDB = AppDatabase.db.tabsDao()
+            tabsDB.delete(tab)
+            launch { tab.removeFiles() }
+        }
+    }
+
+    fun onCloseAllTabs() {
+        val tabsClone = ArrayList(tabsStates)
+        tabsStates.clear()
+        viewModelScope.launch(Dispatchers.Main) {
+            val tabsDB = AppDatabase.db.tabsDao()
+            tabsDB.deleteAll(incognitoMode)
+            launch { tabsClone.forEach { it.removeFiles() } }
         }
     }
 

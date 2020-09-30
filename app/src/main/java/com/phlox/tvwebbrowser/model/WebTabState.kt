@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.text.TextUtils
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
@@ -34,14 +35,12 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
                        var selected: Boolean = false, var thumbnailHash: String? = null,
                        var faviconHash: String? = null, @Ignore var thumbnail: Bitmap? = null,
                        @Ignore var favicon: Bitmap? = null, var incognito: Boolean = false,
-                       var position: Int = 0) {
+                       var position: Int = 0, @ColumnInfo(name = "wv_state", typeAffinity = ColumnInfo.BLOB)
+                       var wvState: ByteArray? = null) {
     companion object {
         const val TAB_THUMBNAILS_DIR = "tabthumbs"
         const val FAVICONS_DIR = "favicons"
     }
-
-    @ColumnInfo(name = "wv_state", typeAffinity = ColumnInfo.BLOB)
-    private val wvState: ByteArray? = null
 
     @Ignore
     var savedState: Bundle? = null
@@ -73,6 +72,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
                 val state = Utils.convertJsonToBundle(json.getJSONObject("wv_state"))
                 if (state != null && !state.isEmpty) {
                     savedState = state
+                    wvState = Utils.bundleToBytes(state)
                 }
             }
         } catch (e: JSONException) {
@@ -80,34 +80,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             LogUtils.recordException(e)
         }
 
-    }
-
-    fun toJson(): JSONObject {
-        val store = JSONObject()
-        try {
-            store.put("url", url)
-            store.put("title", title)
-            store.put("selected", selected)
-            thumbnailHash?.apply { store.put("thumbnail", this) }
-            faviconHash?.apply { store.put("favicon", this) }
-            savedState?.apply {
-                val json = JSONObject()
-                val keys: Set<String> = keySet()
-                for (key in keys) {
-                    try {
-                        json.put(key, JSONObject.wrap(get(key)))
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
-                    }
-                }
-                store.put("wv_state", json)
-            }
-        } catch (e: JSONException) {
-            e.printStackTrace()
-            LogUtils.recordException(e)
-        }
-
-        return store
     }
 
     private fun saveThumbnail(context: Context, scope: CoroutineScope) {
@@ -163,10 +135,16 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     }
 
     fun restoreWebView() {
-        val state = savedState
+        var state = savedState
+        val stateBytes = wvState
         if (state != null) {
-            webView?.restoreState(savedState)
-        } else url?.apply { webView?.loadUrl(this) }
+            webView?.restoreState(state)
+        } else if (stateBytes != null) {
+            state = Utils.bytesToBundle(stateBytes)
+            state?.apply {webView?.restoreState(this)}
+        } else {
+            this.url.takeIf { !TextUtils.isEmpty(url) }?.apply { webView?.loadUrl(this) }
+        }
     }
 
     fun recycleWebView() {
@@ -178,6 +156,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             val state = Bundle()
             saveState(state)
             savedState = state
+            wvState = Utils.bundleToBytes(state)
         }
     }
 

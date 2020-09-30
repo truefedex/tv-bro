@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import android.graphics.Point
 import android.net.ConnectivityManager
 import android.os.Bundle
+import android.os.Parcel
 import android.view.WindowManager
 import android.widget.Toast
 import org.json.JSONArray
@@ -170,8 +171,8 @@ object Utils {
                         val first = jsArr.get(0)
                         when (first.javaClass.simpleName) {
                             "String" -> bundle.putStringArray(key, Array<String>(jsArr.length()) {
-                                            jsArr.getString(it)
-                                        })
+                                jsArr.getString(it)
+                            })
                             //IntArray is more suitable but in our case (storing webview state) we need bytes
                             "Integer" -> bundle.putByteArray(key, ByteArray(jsArr.length()) {
                                 jsArr.getInt(it).toByte()
@@ -197,6 +198,27 @@ object Utils {
         } catch (e: JSONException) {
             e.printStackTrace()
             return null
+        }
+    }
+
+    fun bundleToBytes(bundle: Bundle): ByteArray? {
+        val parcel = Parcel.obtain()
+        parcel.writeBundle(bundle)
+        val bytes = parcel.marshall()
+        parcel.recycle()
+        return bytes
+    }
+
+    fun bytesToBundle(bytes: ByteArray): Bundle? {
+        return try {
+            val parcel = Parcel.obtain()
+            parcel.unmarshall(bytes, 0, bytes.size)
+            parcel.setDataPosition(0)
+            val bundle = parcel.readBundle(Utils::class.java.classLoader)
+            parcel.recycle()
+            bundle!!
+        } catch (e: Exception) {
+            null
         }
     }
 }
