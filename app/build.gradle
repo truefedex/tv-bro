@@ -16,8 +16,8 @@ android {
         applicationId "com.phlox.tvwebbrowser"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 41
-        versionName "1.5.7"
+        versionCode 42
+        versionName "1.5.8"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -35,7 +35,7 @@ android {
     }
     buildTypes {
         release {
-            debuggable true
+            debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
