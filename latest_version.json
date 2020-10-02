@@ -9,25 +9,25 @@
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.5.7",
-      "latestVersionCode": 41,
+      "latestVersionName": "v1.5.8",
+      "latestVersionCode": 42,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.7/tvbro1.5.7.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.8/tvbro1.5.8.apk"
     },
     {
       "name": "alpha",
-      "latestVersionName": "v1.5.7",
-      "latestVersionCode": 41,
+      "latestVersionName": "v1.5.8",
+      "latestVersionCode": 42,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.7/tvbro1.5.7.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.8/tvbro1.5.8.apk"
     }
   ],
 
   "changelog": [
     {
-      "versionCode": 41,
-      "versionName": "v1.5.7",
-      "changes": "* Tabs navigation history persists across app restarts\n* Vietnamese language added (thanks minhtamvn)"
+      "versionCode": 42,
+      "versionName": "v1.5.8",
+      "changes": "* Tabs navigation history persists across app restarts\n* Vietnamese language added (thanks minhtamvn)\n* Several small fixes"
     },
     {
       "versionCode": 40,
