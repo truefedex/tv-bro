@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
@@ -24,9 +23,7 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.utils.LogUtils
-import kotlinx.android.synthetic.main.activity_main.*
 import java.net.URLEncoder
 
 /**
@@ -44,7 +41,7 @@ class WebViewEx : WebView {
     private lateinit var webChromeClient_: WebChromeClient
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
-    private var listener: Listener? = null
+    private var callback: Callback? = null
     private var actionsMenu: PopupMenu? = null
     private var lastTouchX: Int = 0
     private var lastTouchY: Int = 0
@@ -57,7 +54,7 @@ class WebViewEx : WebView {
     var trustSsl: Boolean = false
     private var currentOriginalUrl: String? = null
 
-    interface Listener {
+    interface Callback {
         fun getActivity(): Activity
         fun onOpenInNewTabRequested(s: String)
         fun onDownloadRequested(url: String)
@@ -74,6 +71,7 @@ class WebViewEx : WebView {
         fun onPageStarted(url: String?)
         fun onPageFinished(url: String?)
         fun onPageCertificateError(url: String?)
+        fun isAd(url: Uri): Boolean
     }
 
     constructor(context: Context) : super(context) {
@@ -125,7 +123,7 @@ class WebViewEx : WebView {
                 if (s != null && "null" != s) {
                     suggestActionsForLink(s)
                 } else {
-                    listener?.onLongTap()
+                    callback?.onLongTap()
                 }
             }
             true
@@ -137,25 +135,25 @@ class WebViewEx : WebView {
             }
 
             override fun onShowCustomView(view: View, callback: CustomViewCallback) {
-                listener?.onShowCustomView(view)
+                this@WebViewEx.callback?.onShowCustomView(view)
                 fullscreenViewCallback = callback
             }
 
             override fun onHideCustomView() {
-                listener?.onHideCustomView()
+                callback?.onHideCustomView()
                 fullscreenViewCallback?.onCustomViewHidden()
             }
 
             override fun onProgressChanged(view: WebView, newProgress: Int) {
-                listener?.onProgressChanged(newProgress)
+                callback?.onProgressChanged(newProgress)
             }
 
             override fun onReceivedTitle(view: WebView, title: String) {
-                listener?.onReceivedTitle(title)
+                callback?.onReceivedTitle(title)
             }
 
             override fun onPermissionRequest(request: PermissionRequest) {
-                val activity = listener?.getActivity() ?: return
+                val activity = callback?.getActivity() ?: return
                 webPermissionsRequest = request
                 permRequestDialog = AlertDialog.Builder(activity)
                         .setMessage(activity.getString(R.string.web_perm_request_confirmation, TextUtils.join("\n", request.resources)))
@@ -192,7 +190,7 @@ class WebViewEx : WebView {
                                 }
 
                                 if (neededPermissions.isNotEmpty()) {
-                                    listener?.requestPermissions(neededPermissions.toTypedArray(), false)
+                                    callback?.requestPermissions(neededPermissions.toTypedArray(), false)
                                 } else {
                                     if (reuestedResourcesForAlreadyGrantedPermissions!!.isEmpty()) {
                                         webPermissionsRequest.deny()
@@ -218,7 +216,7 @@ class WebViewEx : WebView {
             }
 
             override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
-                val activity = listener?.getActivity() ?: return
+                val activity = this@WebViewEx.callback?.getActivity() ?: return
                 geoPermissionOrigin = origin
                 geoPermissionsCallback = callback
                 permRequestDialog = AlertDialog.Builder(activity)
@@ -232,7 +230,7 @@ class WebViewEx : WebView {
                         .setPositiveButton(R.string.allow) { dialog, which ->
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                                     ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                listener?.requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), true)
+                                this@WebViewEx.callback?.requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), true)
                             } else {
                                 geoPermissionsCallback!!.invoke(geoPermissionOrigin, true, true)
                                 geoPermissionsCallback = null
@@ -260,7 +258,7 @@ class WebViewEx : WebView {
             override fun onShowFileChooser(mWebView: WebView, callback: ValueCallback<Array<Uri>>, fileChooserParams: WebChromeClient.FileChooserParams): Boolean {
                 pickFileCallback = callback
 
-                val result = listener?.onShowFileChooser(fileChooserParams.createIntent()) ?: false
+                val result = this@WebViewEx.callback?.onShowFileChooser(fileChooserParams.createIntent()) ?: false
                 if (!result) {
                     pickFileCallback = null
                 }
@@ -268,7 +266,7 @@ class WebViewEx : WebView {
             }
 
             override fun onReceivedIcon(view: WebView?, icon: Bitmap) {
-                listener?.onReceivedIcon(icon)
+                callback?.onReceivedIcon(icon)
             }
 
             /*override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
@@ -295,29 +293,46 @@ class WebViewEx : WebView {
         }
 
         webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                Log.d(TAG, "shouldOverrideUrlLoading url: ${request?.url}")
-                val url: String = request?.url.toString()
+            private val loadedUrls = HashMap<String, Boolean>()
+
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                Log.d(TAG, "shouldOverrideUrlLoading url: ${request.url}")
+                val url: String = request.url.toString()
 
                 if (URLUtil.isNetworkUrl(url)) {
                     currentOriginalUrl = url
                 }
 
-                return listener?.shouldOverrideUrlLoading(url) ?: false
+                return callback?.shouldOverrideUrlLoading(url) ?: false
+            }
+
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                Log.d(TAG, "shouldInterceptRequest url: ${request.url}")
+
+                var ad: Boolean? = loadedUrls[request.url.toString()]
+                if (ad == null) {
+                    ad = callback?.isAd(request.url) ?: false
+                    loadedUrls[request.url.toString()] = ad
+                }
+                return if (ad)
+                    WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
+                    else super.shouldInterceptRequest(view, request)
+
+                return super.shouldInterceptRequest(view, request)
             }
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 Log.d(TAG, "onPageStarted url: $url")
                 currentOriginalUrl = url
-                listener?.onPageStarted(url)
+                callback?.onPageStarted(url)
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "onPageFinished url: $url")
                 currentOriginalUrl = url
-                listener?.onPageFinished(url)
+                callback?.onPageFinished(url)
             }
 
             override fun onLoadResource(view: WebView, url: String) {
@@ -344,7 +359,7 @@ class WebViewEx : WebView {
     }
 
     private fun showCertificateErrorPage(error: SslError) {
-        listener?.onPageCertificateError(error.url)
+        callback?.onPageCertificateError(error.url)
         lastSSLError = error
         val url = INTERNAL_SCHEME + INTERNAL_SCHEME_WARNING_DOMAIN +
                 "?type=" + INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT +
@@ -369,9 +384,9 @@ class WebViewEx : WebView {
             actionsMenu!!.menu.add(R.string.download)
             actionsMenu!!.setOnMenuItemClickListener { menuItem ->
                 if (menuItem === miNewTab) {
-                    listener!!.onOpenInNewTabRequested(url)
+                    callback!!.onOpenInNewTabRequested(url)
                 } else {
-                    listener!!.onDownloadRequested(url)
+                    callback!!.onDownloadRequested(url)
                 }
                 true
             }
@@ -384,8 +399,8 @@ class WebViewEx : WebView {
         }
     }
 
-    fun setListener(listener: Listener) {
-        this.listener = listener
+    fun setListener(callback: Callback) {
+        this.callback = callback
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

@@ -3,24 +3,21 @@ package com.phlox.tvwebbrowser.singleton
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.model.FavoriteItem
-import com.phlox.tvwebbrowser.model.HistoryItem
-import com.phlox.tvwebbrowser.model.WebTabState
-import com.phlox.tvwebbrowser.model.dao.DownloadDao
-import com.phlox.tvwebbrowser.model.dao.FavoritesDao
-import com.phlox.tvwebbrowser.model.dao.HistoryDao
-import com.phlox.tvwebbrowser.model.dao.TabsDao
+import com.phlox.tvwebbrowser.model.*
+import com.phlox.tvwebbrowser.model.dao.*
 
-@Database(entities = arrayOf(Download::class, FavoriteItem::class, HistoryItem::class, WebTabState::class), version = 9/*, exportSchema = true*/)
+@Database(entities = [Download::class, FavoriteItem::class, HistoryItem::class, WebTabState::class, AdBlockItem::class], version = 10/*, exportSchema = true*/)
+@TypeConverters(TypeConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
     abstract fun historyDao(): HistoryDao
     abstract fun favoritesDao(): FavoritesDao
     abstract fun tabsDao(): TabsDao
+    abstract fun adBlockList(): AdBlockListDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -81,6 +78,17 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                createAdBlockListTable(db)
+            }
+        }
+
+        private fun createAdBlockListTable(db: SupportSQLiteDatabase) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS 'adblocklist' ('id' INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 'type' INTEGER NOT NULL, 'value' TEXT NOT NULL)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS 'type_value_idx' ON 'adblocklist' ('type', 'value')")
+        }
+
         private fun createHistoryTable(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE history ("
                     + "id INTEGER PRIMARY KEY NOT NULL,"
@@ -111,6 +119,7 @@ abstract class AppDatabase : RoomDatabase() {
         val db: AppDatabase by lazy { Room.databaseBuilder(
                 TVBro.instance,
                 AppDatabase::class.java, "main.db"
-        ).addMigrations(MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9).build() }
+        ).addMigrations(MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9,
+            MIGRATION_9_10).build() }
     }
 }

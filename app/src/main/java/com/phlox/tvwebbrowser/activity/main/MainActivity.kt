@@ -37,7 +37,6 @@ import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.dialogs.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFactory
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
-import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsViewModel
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.activity.main.view.Scripts
 import com.phlox.tvwebbrowser.activity.main.view.TitlesView
@@ -72,6 +71,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var settingsViewModel: SettingsViewModel
+    private lateinit var adblockViewModel: AdblockViewModel
     private lateinit var uiHandler: Handler
     private var running: Boolean = false
     private var downloadsService: DownloadService? = null
@@ -84,6 +84,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
         settingsViewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
+        adblockViewModel = ViewModelProvider(this).get(AdblockViewModel::class.java)
         uiHandler = Handler()
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         setContentView(R.layout.activity_main)
@@ -599,7 +600,7 @@ class MainActivity : AppCompatActivity() {
 
         webView.addJavascriptInterface(viewModel.jsInterface, "TVBro")
 
-        webView.setListener(object : WebViewEx.Listener {
+        webView.setListener(object : WebViewEx.Callback {
             override fun getActivity(): Activity {
                 return this@MainActivity
             }
@@ -756,6 +757,10 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageCertificateError(url: String?) {
                 etUrl.setTextColor(Color.RED)
+            }
+
+            override fun isAd(url: Uri): Boolean {
+                return adblockViewModel.isAd(url)
             }
         })
 

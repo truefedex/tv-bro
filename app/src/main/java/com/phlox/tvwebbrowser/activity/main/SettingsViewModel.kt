@@ -1,5 +1,6 @@
-package com.phlox.tvwebbrowser.activity.main.dialogs.settings
+package com.phlox.tvwebbrowser.activity.main
 
+import android.app.Application
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import android.content.Context
@@ -10,10 +11,10 @@ import android.os.Build
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 import android.widget.Toast
+import androidx.lifecycle.AndroidViewModel
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.sameDay
@@ -23,7 +24,7 @@ import kotlinx.coroutines.launch
 import java.lang.IllegalStateException
 import java.util.*
 
-class SettingsViewModel: ViewModel() {
+class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         val TAG = SettingsViewModel::class.java.simpleName
         const val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
@@ -64,7 +65,7 @@ class SettingsViewModel: ViewModel() {
     var updateChannel: String
 
     init {
-        prefs = TVBro.instance.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
+        prefs = application.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         searchEngineURL.postValue(prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, ""))
         uaString.postValue(prefs.getString(USER_AGENT_PREF_KEY, ""))
         lastUpdateNotificationTime = if (prefs.contains(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY))
@@ -116,7 +117,7 @@ class SettingsViewModel: ViewModel() {
         onDoneCallback()
     }
 
-    public fun showUpdateDialogIfNeeded(activity: MainActivity, force: Boolean = false) {
+    fun showUpdateDialogIfNeeded(activity: MainActivity, force: Boolean = false) {
         val now = Calendar.getInstance()
         if (lastUpdateNotificationTime.sameDay(now) && !force) {
             return
@@ -125,10 +126,13 @@ class SettingsViewModel: ViewModel() {
             throw IllegalStateException()
         }
         lastUpdateNotificationTime = now
-        prefs.edit().putLong(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY, lastUpdateNotificationTime.timeInMillis).apply()
+        prefs.edit()
+                .putLong(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY, lastUpdateNotificationTime.timeInMillis)
+                .apply()
 
-        updateChecker.showUpdateDialog(activity, "release", object : UpdateChecker.DialogCallback {
+        updateChecker.showUpdateDialog(activity, object : UpdateChecker.DialogCallback {
             override fun download() {
+                if (activity.isFinishing) return
                 updateChecker.versionCheckResult ?: return
 
                 val canInstallFromOtherSources = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -137,37 +141,30 @@ class SettingsViewModel: ViewModel() {
                     Settings.Secure.getInt(activity.contentResolver, Settings.Secure.INSTALL_NON_MARKET_APPS) == 1
 
                 if (canInstallFromOtherSources) {
-                    /*val filename = "update${update.latestVersionName}.apk"
-                    activity.onDownloadRequested(update.url, filename, "tvbro-update-checker",
-                            Download.OperationAfterDownload.INSTALL)*/
                     updateChecker.downloadUpdate(activity)
                 } else {
                     AlertDialog.Builder(activity)
                             .setTitle(R.string.app_name)
                             .setMessage(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                                 R.string.turn_on_unknown_sources_for_app else R.string.turn_on_unknown_sources)
-                            .setPositiveButton(android.R.string.ok) { dialog, which ->
-                                run {
-                                    val intent = Intent()
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                        intent.action = Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
-                                        intent.data = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
-                                    } else {
-                                        intent.action = Settings.ACTION_SECURITY_SETTINGS
-                                    }
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    try {
-                                        activity.startActivityForResult(intent, MainActivity.REQUEST_CODE_UNKNOWN_APP_SOURCES)
-                                        needToShowUpdateDlgAgain = true
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
-                                        Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
-                                    }
+                            .setPositiveButton(android.R.string.ok) { _, _ ->
+                                val intent = Intent()
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    intent.action = Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
+                                    intent.data = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
+                                } else {
+                                    intent.action = Settings.ACTION_SECURITY_SETTINGS
+                                }
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+                                try {
+                                    activity.startActivityForResult(intent, MainActivity.REQUEST_CODE_UNKNOWN_APP_SOURCES)
+                                    needToShowUpdateDlgAgain = true
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                    Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
                                 }
                             }
-                            .setNegativeButton(android.R.string.cancel) { dialog, which ->
-
-                            }
+                            .setNegativeButton(android.R.string.cancel) { _, _ ->  }
                             .show()
                 }
             }
@@ -175,7 +172,9 @@ class SettingsViewModel: ViewModel() {
             override fun later() {}
 
             override fun settings() {
-                activity.showSettings()
+                if (!activity.isFinishing) {
+                    activity.showSettings()
+                }
             }
         })
     }

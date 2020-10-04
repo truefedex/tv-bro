@@ -9,6 +9,7 @@ import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.*
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
 import com.phlox.tvwebbrowser.utils.activity
 import kotlinx.android.synthetic.main.view_settings_main.view.*
 

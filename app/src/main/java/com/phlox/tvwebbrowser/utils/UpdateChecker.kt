@@ -76,7 +76,7 @@ class UpdateChecker(val currentVersionCode: Int) {
         }
     }
 
-    fun showUpdateDialog(context: Context, channel: String, callback: DialogCallback) {
+    fun showUpdateDialog(context: Context, callback: DialogCallback) {
         val version = versionCheckResult ?: return
         if (version.latestVersionCode < currentVersionCode) {
             throw IllegalStateException("Version less than current")
@@ -95,15 +95,9 @@ class UpdateChecker(val currentVersionCode: Int) {
         AlertDialog.Builder(context)
                 .setTitle(R.string.new_version_dialog_title)
                 .setView(textView)
-                .setPositiveButton(R.string.download, DialogInterface.OnClickListener { dialog, which ->
-                    callback.download()
-                })
-                .setNegativeButton(R.string.later, DialogInterface.OnClickListener { dialog, which ->
-                    callback.later()
-                })
-                .setNeutralButton(R.string.settings, DialogInterface.OnClickListener { dialog, which ->
-                    callback.settings()
-                })
+                .setPositiveButton(R.string.download) { _, _ -> callback.download() }
+                .setNegativeButton(R.string.later) { _, _ -> callback.later() }
+                .setNeutralButton(R.string.settings) { _, _ -> callback.settings() }
                 .show()
     }
 
