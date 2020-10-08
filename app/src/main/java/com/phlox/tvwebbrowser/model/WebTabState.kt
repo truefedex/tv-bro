@@ -36,7 +36,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
                        var faviconHash: String? = null, @Ignore var thumbnail: Bitmap? = null,
                        @Ignore var favicon: Bitmap? = null, var incognito: Boolean = false,
                        var position: Int = 0, @ColumnInfo(name = "wv_state", typeAffinity = ColumnInfo.BLOB)
-                       var wvState: ByteArray? = null) {
+                       var wvState: ByteArray? = null, var adblock: Boolean? = null) {
     companion object {
         const val TAB_THUMBNAILS_DIR = "tabthumbs"
         const val FAVICONS_DIR = "favicons"

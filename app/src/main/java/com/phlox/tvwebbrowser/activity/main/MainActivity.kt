@@ -116,7 +116,8 @@ class MainActivity : AppCompatActivity() {
             ibVoiceSearch.setOnClickListener { initiateVoiceSearch() }
         }
 
-        ibHome.setOnClickListener {navigate(HOME_URL) }
+        ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
+        ibHome.setOnClickListener { navigate(HOME_URL) }
         ibBack.setOnClickListener { navigateBack() }
         ibForward.setOnClickListener {
             if (viewModel.currentTab.value != null && (viewModel.currentTab.value!!.webView?.canGoForward() == true)) {
@@ -895,6 +896,10 @@ class MainActivity : AppCompatActivity() {
         running = false
     }
 
+    private fun toggleAdBlockForTab() {
+
+    }
+
     fun navigate(url: String) {
         etUrl.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
         if (viewModel.currentTab.value != null) {
@@ -905,11 +910,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun search(text: String) {
-        var text = text
-        val trimmedLowercased = text.trim { it <= ' ' }.toLowerCase()
+        @Suppress("NAME_SHADOWING") var text = text
+        val trimmedLowercased = text.trim { it <= ' ' }.toLowerCase(Locale.ROOT)
         if (Patterns.WEB_URL.matcher(text).matches() || trimmedLowercased.startsWith("http://") || trimmedLowercased.startsWith("https://")) {
-            if (!text.toLowerCase().contains("://")) {
-                text = "http://$text"
+            if (!text.toLowerCase(Locale.ROOT).contains("://")) {
+                text = "https://$text"
             }
             navigate(text)
         } else {
