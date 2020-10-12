@@ -1,5 +1,15 @@
-import org.jetbrains.kotlin.config.KotlinCompilerVersion
+import org.w3c.dom.Document
+import java.io.BufferedReader
+import java.io.FileOutputStream
+import java.net.URL
+import java.security.cert.X509Certificate
+import java.text.SimpleDateFormat
 import java.util.*
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
 
 
 plugins {
@@ -86,13 +96,13 @@ dependencies {
 
     implementation("androidx.appcompat:appcompat:1.2.0")
 
-    implementation(kotlin("stdlib-jdk7", KotlinCompilerVersion.VERSION))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.7")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.10")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
 
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-alpha07")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-alpha07")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-alpha07")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-beta01")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-beta01")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-beta01")
     kapt("androidx.lifecycle:lifecycle-compiler:2.2.0")
 
     val room_version = "2.2.5"
@@ -105,8 +115,67 @@ dependencies {
     implementation("com.github.truefedex:segmented-button:v1.0.0")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
-    "crashlyticsImplementation"("com.google.firebase:firebase-core:17.5.0")
-    "crashlyticsImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.2.1")
+    "crashlyticsImplementation"("com.google.firebase:firebase-core:17.5.1")
+    "crashlyticsImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.2.2")
 }
 
 tasks.getByName("check").dependsOn("lint")
+
+tasks.register("prepareAdblockerXml"){
+    doLast {
+        val pglYoyoListUrl = "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=nohtml&showintro=0&mimetype=plaintext"
+        //for unknown reason on some machines there ssl errors while accessing pgl.yoyo.org
+        val trustAllCerts: Array<javax.net.ssl.TrustManager> = arrayOf(object : javax.net.ssl.X509TrustManager {
+            override fun checkClientTrusted(certs: Array<X509Certificate?>?, authType: String?) {}
+            override fun checkServerTrusted(certs: Array<X509Certificate?>?, authType: String?) {}
+
+            override fun getAcceptedIssuers(): Array<X509Certificate>? {
+                return null
+            }
+        })
+        val sc = javax.net.ssl.SSLContext.getInstance("SSL")
+        sc.init(null, trustAllCerts, null)
+        javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory())
+        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier { s, sslSession -> true }
+        val hosts = URL(pglYoyoListUrl).openStream().bufferedReader().use(BufferedReader::readLines)
+        val xmlFile = FileOutputStream("$projectDir/src/main/assets/adblockerlist.xml")
+
+        try {
+            val documentFactory: DocumentBuilderFactory = DocumentBuilderFactory.newInstance()
+            val documentBuilder: DocumentBuilder = documentFactory.newDocumentBuilder()
+            val document: Document = documentBuilder.newDocument()
+
+            // root element
+            val root = document.createElement("root")
+            var attr = document.createAttribute("date")
+            attr.value = SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSSZ").format(Date())
+            root.setAttributeNode(attr)
+            document.appendChild(root)
+
+            hosts.forEach {
+                val employee = document.createElement("item")
+                employee.textContent = it
+
+                attr = document.createAttribute("type")
+                attr.value = "host"
+                employee.setAttributeNode(attr)
+
+                attr = document.createAttribute("src")
+                attr.value = "pgl.yoyo"
+                employee.setAttributeNode(attr)
+
+                root.appendChild(employee)
+            }
+            //transform the DOM Object to an XML File
+            val transformerFactory: TransformerFactory = TransformerFactory.newInstance()
+            val transformer = transformerFactory.newTransformer()
+            val domSource = DOMSource(document)
+            val streamResult = StreamResult(xmlFile)
+
+            transformer.transform(domSource, streamResult)
+            println("Done creating XML File")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}

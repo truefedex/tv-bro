@@ -91,4 +91,27 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        android:paddingLeft="22dp"
+        android:paddingRight="22dp"
+        android:layout_marginTop="20dp">
+        <TextView
+            android:layout_weight="1"
+            android:text="@string/enable_ads_blocking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:ellipsize="end"
+            android:textSize="16sp" />
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/scAdblock"
+            android:layout_weight="0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 </merge>

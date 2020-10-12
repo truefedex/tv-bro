@@ -37,20 +37,21 @@ class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
     }
 
     private var prefs = app.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
-    private val adBlockEnabled = MutableLiveData<Boolean>()
-    val isAdBlockEnabled: LiveData<Boolean>
-        get() = adBlockEnabled
+    var adBlockEnabled: Boolean = true
+        set(value) {
+            field = value
+            prefs.edit().putBoolean(ADBLOCK_ENABLED_PREF_KEY, field).apply()
+        }
     val lastUpdate = Calendar.getInstance()
 
     init {
-        adBlockEnabled.value = prefs.getBoolean(ADBLOCK_ENABLED_PREF_KEY, true)
+        adBlockEnabled = prefs.getBoolean(ADBLOCK_ENABLED_PREF_KEY, true)
         if (prefs.contains(ADBLOCK_LAST_UPDATE_LIST_KEY)) {
             val lastUpdateDate = Date(prefs.getLong(ADBLOCK_LAST_UPDATE_LIST_KEY, 0))
             lastUpdate.time = lastUpdateDate
         } else {
             loadPrepackagedList()
         }
-
     }
 
     @SuppressLint("SimpleDateFormat", "ApplySharedPref")

@@ -1,14 +1,17 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
-import androidx.lifecycle.ViewModelProviders
 import android.content.Context
-import androidx.fragment.app.FragmentActivity
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AnimationUtils
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.LinearLayout
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProvider
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.activity.main.AdblockViewModel
 import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
 import com.phlox.tvwebbrowser.utils.activity
 import kotlinx.android.synthetic.main.view_settings_main.view.*
@@ -17,15 +20,22 @@ class MainSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
     var settingsViewModel: SettingsViewModel
+    var adblockViewModel: AdblockViewModel
 
     init {
         LayoutInflater.from(getContext()).inflate(R.layout.view_settings_main, this, true)
-        settingsViewModel = ViewModelProviders.of(activity as FragmentActivity).get(SettingsViewModel::class.java)
+        settingsViewModel = ViewModelProvider(activity as FragmentActivity).get(SettingsViewModel::class.java)
+        adblockViewModel = ViewModelProvider(activity as FragmentActivity).get(AdblockViewModel::class.java)
         orientation = VERTICAL
 
         initSearchEngineConfigUI()
 
         initUAStringConfigUI(context)
+
+        scAdblock.isChecked = adblockViewModel.adBlockEnabled
+        scAdblock.setOnCheckedChangeListener { buttonView, isChecked ->
+            adblockViewModel.adBlockEnabled = isChecked
+        }
     }
 
     private fun initUAStringConfigUI(context: Context) {

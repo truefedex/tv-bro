@@ -71,6 +71,7 @@ class WebViewEx : WebView {
         fun onPageStarted(url: String?)
         fun onPageFinished(url: String?)
         fun onPageCertificateError(url: String?)
+        fun isAdBlockingEnabled(): Boolean
         fun isAd(url: Uri): Boolean
     }
 
@@ -309,16 +310,20 @@ class WebViewEx : WebView {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                 Log.d(TAG, "shouldInterceptRequest url: ${request.url}")
 
+                if (callback?.isAdBlockingEnabled() != true) {
+                    return super.shouldInterceptRequest(view, request)
+                }
+
                 var ad: Boolean? = loadedUrls[request.url.toString()]
                 if (ad == null) {
                     ad = callback?.isAd(request.url) ?: false
                     loadedUrls[request.url.toString()] = ad
                 }
-                return if (ad)
+                return if (ad) {
+                    Log.d(TAG, "Blocked ads request: ${request.url}")
                     WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
+                }
                     else super.shouldInterceptRequest(view, request)
-
-                return super.shouldInterceptRequest(view, request)
             }
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {

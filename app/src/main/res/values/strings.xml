@@ -108,6 +108,7 @@
     <string name="close_tab">Close tab</string>
     <string name="navigate_forward">Navigate forward</string>
     <string name="homepage_link" translatable="false">https://github.com/truefedex/tv-bro</string>
-    <string name="adblocker_disable">Disable ad blocker</string>
-    <string name="adblocker_enable">Enable ad blocker</string>
+    <string name="adblocker_disable">Disable ads blocker</string>
+    <string name="adblocker_enable">Enable ads blocker</string>
+    <string name="enable_ads_blocking">Enable ads blocking</string>
 </resources>

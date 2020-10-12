@@ -763,6 +763,13 @@ class MainActivity : AppCompatActivity() {
             override fun isAd(url: Uri): Boolean {
                 return adblockViewModel.isAd(url)
             }
+
+            override fun isAdBlockingEnabled(): Boolean {
+                viewModel.currentTab.value?.adblock?.apply {
+                    return this
+                }
+                return  adblockViewModel.adBlockEnabled
+            }
         })
 
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
@@ -797,6 +804,8 @@ class MainActivity : AppCompatActivity() {
         ibZoomOut.visibility = if (zoomPossible) View.VISIBLE else View.GONE
         ibZoomIn.isEnabled = tab.webView?.canZoomIn() == true
         ibZoomOut.isEnabled = tab.webView?.canZoomOut() == true
+        val adblockEnabled = tab.adblock ?: adblockViewModel.adBlockEnabled
+        ibAdBlock.setImageResource(if (adblockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
     }
 
     private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
@@ -897,7 +906,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun toggleAdBlockForTab() {
-
+        viewModel.currentTab.value?.apply {
+            var currentState = adblock
+            if (currentState == null) {
+                currentState = adblockViewModel.adBlockEnabled
+            }
+            adblock = !currentState
+            onWebViewUpdated(this)
+            refresh()
+        }
     }
 
     fun navigate(url: String) {
