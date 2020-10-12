@@ -2,10 +2,10 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v1.5.6",
-      "latestVersionCode": 40,
+      "latestVersionName": "v1.5.8",
+      "latestVersionCode": 42,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.6/tvbro1.5.6.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.8/tvbro1.5.8.apk"
     },
     {
       "name": "beta",
@@ -16,14 +16,19 @@
     },
     {
       "name": "alpha",
-      "latestVersionName": "v1.5.8",
-      "latestVersionCode": 42,
+      "latestVersionName": "v1.6.0",
+      "latestVersionCode": 43,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.5.8/tvbro1.5.8.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.6.0/tvbro1.6.0.apk"
     }
   ],
 
   "changelog": [
+    {
+      "versionCode": 43,
+      "versionName": "v1.6.0",
+      "changes": "* Basic ads blocker added"
+    },
     {
       "versionCode": 42,
       "versionName": "v1.5.8",
