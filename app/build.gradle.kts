@@ -40,7 +40,7 @@ android {
 
         javaCompileOptions {
             annotationProcessorOptions {
-                arguments = mapOf("room.incremental" to "true")
+                argument("room.incremental", "true")
             }
         }
     }
@@ -96,13 +96,13 @@ dependencies {
 
     implementation("androidx.appcompat:appcompat:1.2.0")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
 
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-beta01")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-beta01")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-beta01")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-rc01")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-rc01")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-rc01")
     kapt("androidx.lifecycle:lifecycle-compiler:2.2.0")
 
     val room_version = "2.2.5"
@@ -115,8 +115,8 @@ dependencies {
     implementation("com.github.truefedex:segmented-button:v1.0.0")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
-    "crashlyticsImplementation"("com.google.firebase:firebase-core:17.5.1")
-    "crashlyticsImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.2.2")
+    "crashlyticsImplementation"("com.google.firebase:firebase-core:18.0.2")
+    "crashlyticsImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.3.1")
 }
 
 tasks.getByName("check").dependsOn("lint")
