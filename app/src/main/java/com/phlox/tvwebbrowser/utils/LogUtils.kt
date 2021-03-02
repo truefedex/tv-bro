@@ -11,7 +11,7 @@ object LogUtils {
             val method2 = clazz2.getMethod("recordException", Throwable::class.java)
             method2.invoke(crashlytics, e)
         } catch (ex: ClassNotFoundException) {
-            //thats ok - not all builds include crashlytics
+            //that's ok - not all builds include crashlytics
         } catch (ex: Exception) {
             ex.printStackTrace()
         }

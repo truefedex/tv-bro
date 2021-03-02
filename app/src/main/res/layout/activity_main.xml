@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rlRoot"
     android:layout_width="match_parent"
@@ -174,93 +175,146 @@
             android:text="@string/open_a_new_tab_here" />
     </LinearLayout>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/llBottomPanel"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_alignParentBottom="true">
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:clipChildren="false"
+        android:gravity="center">
+
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/ibCloseTab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
+            android:contentDescription="@string/close_tab"
             android:src="@drawable/ic_close_grey_900_24dp"
-            android:background="@drawable/button_bg_selector"
             android:layout_margin="3dp"
-            android:contentDescription="@string/close_tab" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/ibBack"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/ibBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
+            android:contentDescription="@string/navigate_back"
             android:src="@drawable/back_icon_selector"
-            android:background="@drawable/button_bg_selector"
             android:layout_margin="3dp"
-            android:contentDescription="@string/navigate_back" />
+            app:layout_constraintEnd_toStartOf="@+id/ibForward"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toEndOf="@+id/ibCloseTab"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/ibForward"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
+            android:contentDescription="@string/navigate_forward"
             android:src="@drawable/forward_icon_selector"
-            android:background="@drawable/button_bg_selector"
             android:layout_marginTop="3dp"
             android:layout_marginBottom="3dp"
             android:layout_marginEnd="3dp"
-            android:contentDescription="@string/navigate_forward" />
+            app:layout_constraintEnd_toStartOf="@+id/ibRefresh"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toEndOf="@+id/ibBack"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/ibRefresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
+            android:contentDescription="@string/refresh_page"
             android:src="@drawable/ic_refresh_grey_900_24dp"
-            android:background="@drawable/button_bg_selector"
             android:layout_marginTop="3dp"
             android:layout_marginBottom="3dp"
             android:layout_marginEnd="3dp"
-            android:contentDescription="@string/refresh_page" />
+            app:layout_constraintEnd_toStartOf="@+id/ibZoomIn"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toEndOf="@+id/ibForward"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/ibZoomIn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
+            android:contentDescription="@string/zoom_in"
             android:src="@drawable/zoomin_icon_selector"
-            android:background="@drawable/button_bg_selector"
             android:layout_marginTop="3dp"
             android:layout_marginBottom="3dp"
             android:layout_marginEnd="3dp"
-            android:contentDescription="@string/zoom_in" />
+            app:layout_constraintEnd_toStartOf="@+id/ibZoomOut"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toEndOf="@+id/ibRefresh"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/ibZoomOut"
-            android:src="@drawable/zoomout_icon_selector"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:background="@drawable/button_bg_selector"
+            android:contentDescription="@string/zoom_out"
+            android:src="@drawable/zoomout_icon_selector"
             android:layout_marginTop="3dp"
             android:layout_marginBottom="3dp"
             android:layout_marginEnd="3dp"
-            android:contentDescription="@string/zoom_out" />
+            app:layout_constraintEnd_toStartOf="@+id/ibAdBlock"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toEndOf="@+id/ibZoomIn"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/ibAdBlock"
-            android:src="@drawable/ic_adblock_on"
-            android:background="@drawable/button_bg_selector"
-            android:layout_margin="3dp"
-            android:contentDescription="@string/adblocker_disable" />
-
-        <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/ibHome"
-            android:src="@drawable/ic_home_grey_900_24dp"
             android:background="@drawable/button_bg_selector"
-            android:layout_margin="3dp"
-            android:contentDescription="@string/navigate_home" />
-    </LinearLayout>
+            android:contentDescription="@string/adblocker_disable"
+            android:src="@drawable/ic_adblock_on"
+            android:layout_marginTop="3dp"
+            android:layout_marginBottom="3dp"
+            android:layout_marginEnd="3dp"
+            app:layout_constraintEnd_toStartOf="@+id/ibHome"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toEndOf="@+id/ibZoomOut"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <ImageButton
+            android:id="@+id/ibHome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
+            android:contentDescription="@string/navigate_home"
+            android:src="@drawable/ic_home_grey_900_24dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="3dp"
+            android:layout_marginBottom="3dp"
+            android:layout_marginEnd="3dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toEndOf="@+id/ibAdBlock"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <TextView
+            android:id="@+id/tvBlockedAdCounter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="20dp"
+            android:textSize="12sp"
+            app:layout_constraintTop_toTopOf="@+id/ibAdBlock"
+            app:layout_constraintBottom_toTopOf="@+id/ibAdBlock"
+            app:layout_constraintStart_toEndOf="@+id/ibAdBlock"
+            app:layout_constraintEnd_toEndOf="@+id/ibAdBlock"
+            android:background="@drawable/gray_badge_bg"
+            android:gravity="center"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="1" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.phlox.tvwebbrowser.activity.main.view.CursorLayout
         android:id="@+id/flFullscreenContainer"

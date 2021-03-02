@@ -770,6 +770,11 @@ class MainActivity : AppCompatActivity() {
                 }
                 return  adblockViewModel.adBlockEnabled
             }
+
+            override fun onBlockedAdsCountChanged(blockedAds: Int) {
+                tvBlockedAdCounter.visibility = if (blockedAds > 0) View.VISIBLE else View.GONE
+                tvBlockedAdCounter.text = blockedAds.toString()
+            }
         })
 
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->

@@ -64,18 +64,18 @@ android {
     flavorDimensions("crashlytics", "appstore")
     productFlavors {
         create("crashlyticsfree") {
-            setDimension("crashlytics")
+            dimension("crashlytics")
         }
         create("crashlytics") {
-            setDimension("crashlytics")
+            dimension("crashlytics")
             //versionNameSuffix "-crashlytics"
         }
 
         create("google") {
-            setDimension("appstore")
+            dimension("appstore")
         }
         create("amazon") {
-            setDimension("appstore")
+            dimension("appstore")
         }
     }
 
@@ -95,22 +95,20 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     implementation("androidx.appcompat:appcompat:1.2.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
 
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-rc01")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-rc01")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-rc01")
-    kapt("androidx.lifecycle:lifecycle-compiler:2.2.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.0")
 
-    val room_version = "2.2.5"
-    implementation("androidx.room:room-runtime:$room_version")
-    kapt("androidx.room:room-compiler:$room_version")
-    implementation("androidx.room:room-ktx:$room_version")
-
-    //implementation("androidx.webkit:webkit:1.3.0")
+    val roomVersion = "2.2.5"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    kapt("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
 
     implementation("com.github.truefedex:segmented-button:v1.0.0")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
@@ -135,8 +133,8 @@ tasks.register("prepareAdblockerXml"){
         })
         val sc = javax.net.ssl.SSLContext.getInstance("SSL")
         sc.init(null, trustAllCerts, null)
-        javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory())
-        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier { s, sslSession -> true }
+        javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(sc.socketFactory)
+        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
         val hosts = URL(pglYoyoListUrl).openStream().bufferedReader().use(BufferedReader::readLines)
         val xmlFile = FileOutputStream("$projectDir/src/main/assets/adblockerlist.xml")
 

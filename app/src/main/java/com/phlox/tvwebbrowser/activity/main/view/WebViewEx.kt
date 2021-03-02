@@ -73,6 +73,7 @@ class WebViewEx : WebView {
         fun onPageCertificateError(url: String?)
         fun isAdBlockingEnabled(): Boolean
         fun isAd(url: Uri): Boolean
+        fun onBlockedAdsCountChanged(blockedAds: Int)
     }
 
     constructor(context: Context) : super(context) {
@@ -295,6 +296,7 @@ class WebViewEx : WebView {
 
         webViewClient = object : WebViewClient() {
             private val loadedUrls = HashMap<String, Boolean>()
+            private var blockedAds = 0
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 Log.d(TAG, "shouldOverrideUrlLoading url: ${request.url}")
@@ -321,9 +323,10 @@ class WebViewEx : WebView {
                 }
                 return if (ad) {
                     Log.d(TAG, "Blocked ads request: ${request.url}")
+                    blockedAds++
+                    handler.post { callback?.onBlockedAdsCountChanged(blockedAds) }
                     WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
-                }
-                    else super.shouldInterceptRequest(view, request)
+                } else super.shouldInterceptRequest(view, request)
             }
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
@@ -331,6 +334,8 @@ class WebViewEx : WebView {
                 Log.d(TAG, "onPageStarted url: $url")
                 currentOriginalUrl = url
                 callback?.onPageStarted(url)
+                blockedAds = 0
+                callback?.onBlockedAdsCountChanged(blockedAds)
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
