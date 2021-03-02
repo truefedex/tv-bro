@@ -1,16 +1,10 @@
 package com.phlox.tvwebbrowser.service.downloads
 
 import android.webkit.CookieManager
-import android.webkit.URLUtil
-
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.singleton.AppDatabase
-
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import com.phlox.tvwebbrowser.utils.DownloadUtils
+import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -62,7 +56,7 @@ class DownloadTask(var downloadInfo: Download, private val userAgent: String, va
             input = connection.inputStream
             if (connection.headerFields.containsKey("Content-Disposition")) {
                 val mime = connection.getHeaderField("Content-Type")
-                downloadInfo.filename = URLUtil.guessFileName(downloadInfo.url, connection.getHeaderField("Content-Disposition"), mime)
+                downloadInfo.filename = DownloadUtils.guessFileName(downloadInfo.url, connection.getHeaderField("Content-Disposition"), mime)
                 downloadInfo.filepath = File(File(downloadInfo.filepath).parentFile, downloadInfo.filename).absolutePath
             }
             output = FileOutputStream(downloadInfo.filepath)
