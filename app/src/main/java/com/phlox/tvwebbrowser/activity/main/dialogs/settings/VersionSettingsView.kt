@@ -13,12 +13,13 @@ import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
+import com.phlox.tvwebbrowser.databinding.ViewSettingsVersionBinding
 import com.phlox.tvwebbrowser.utils.activity
-import kotlinx.android.synthetic.main.view_settings_version.view.*
 
 class VersionSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ScrollView(context, attrs, defStyleAttr) {
+    private var vb = ViewSettingsVersionBinding.inflate(LayoutInflater.from(getContext()), this, true)
     var settingsViewModel: SettingsViewModel
     var callback: Callback? = null
 
@@ -29,21 +30,20 @@ class VersionSettingsView @JvmOverloads constructor(
     }
 
     init {
-        LayoutInflater.from(getContext()).inflate(R.layout.view_settings_version, this, true)
         settingsViewModel = ViewModelProvider(activity as FragmentActivity).get(SettingsViewModel::class.java)
 
-        tvVersion.text = context.getString(R.string.version_s, BuildConfig.VERSION_NAME)
+        vb.tvVersion.text = context.getString(R.string.version_s, BuildConfig.VERSION_NAME)
 
-        tvLink.setOnClickListener {
+        vb.tvLink.setOnClickListener {
             callback?.onNeedToCloseSettings()
             val intent = Intent(activity, MainActivity::class.java)
-            intent.data = Uri.parse(tvLink.text.toString())
+            intent.data = Uri.parse(vb.tvLink.text.toString())
             activity?.startActivity(intent)
         }
 
-        chkAutoCheckUpdates.isChecked = settingsViewModel.needAutockeckUpdates
+        vb.chkAutoCheckUpdates.isChecked = settingsViewModel.needAutockeckUpdates
 
-        chkAutoCheckUpdates.setOnCheckedChangeListener { buttonView, isChecked ->
+        vb.chkAutoCheckUpdates.setOnCheckedChangeListener { buttonView, isChecked ->
             settingsViewModel.saveAutoCheckUpdates(isChecked)
 
             updateUIVisibility()
@@ -63,9 +63,9 @@ class VersionSettingsView @JvmOverloads constructor(
 
             }
         }
-        spUpdateChannel.onItemSelectedListener = updateChannelSelectedListener
+        vb.spUpdateChannel.onItemSelectedListener = updateChannelSelectedListener
 
-        btnUpdate.setOnClickListener {
+        vb.btnUpdate.setOnClickListener {
             callback?.onNeedToCloseSettings()
             settingsViewModel.showUpdateDialogIfNeeded(activity as MainActivity, true)
         }
@@ -83,27 +83,27 @@ class VersionSettingsView @JvmOverloads constructor(
             return
         }
 
-        tvUpdateChannel.visibility = if (settingsViewModel.needAutockeckUpdates) View.VISIBLE else View.INVISIBLE
-        spUpdateChannel.visibility = if (settingsViewModel.needAutockeckUpdates) View.VISIBLE else View.INVISIBLE
+        vb.tvUpdateChannel.visibility = if (settingsViewModel.needAutockeckUpdates) View.VISIBLE else View.INVISIBLE
+        vb.spUpdateChannel.visibility = if (settingsViewModel.needAutockeckUpdates) View.VISIBLE else View.INVISIBLE
 
         if (settingsViewModel.needAutockeckUpdates) {
             val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item,
                     settingsViewModel.updateChecker.versionCheckResult!!.availableChannels)
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spUpdateChannel.adapter = adapter
+            vb.spUpdateChannel.adapter = adapter
             val selected = settingsViewModel.updateChecker.versionCheckResult!!.availableChannels.indexOf(settingsViewModel.updateChannel)
             if (selected != -1) {
-                spUpdateChannel.onItemSelectedListener = null
-                spUpdateChannel.setSelection(selected)
-                spUpdateChannel.onItemSelectedListener = updateChannelSelectedListener
+                vb.spUpdateChannel.onItemSelectedListener = null
+                vb.spUpdateChannel.setSelection(selected)
+                vb.spUpdateChannel.onItemSelectedListener = updateChannelSelectedListener
             }
         }
 
         val hasUpdate = settingsViewModel.updateChecker.hasUpdate()
-        tvNewVersion.visibility = if (settingsViewModel.needAutockeckUpdates && hasUpdate) View.VISIBLE else View.INVISIBLE
-        btnUpdate.visibility = if (settingsViewModel.needAutockeckUpdates && hasUpdate) View.VISIBLE else View.INVISIBLE
+        vb.tvNewVersion.visibility = if (settingsViewModel.needAutockeckUpdates && hasUpdate) View.VISIBLE else View.INVISIBLE
+        vb.btnUpdate.visibility = if (settingsViewModel.needAutockeckUpdates && hasUpdate) View.VISIBLE else View.INVISIBLE
         if (hasUpdate) {
-            tvNewVersion.text = context.getString(R.string.new_version_available_s, settingsViewModel.updateChecker.versionCheckResult!!.latestVersionName)
+            vb.tvNewVersion.text = context.getString(R.string.new_version_available_s, settingsViewModel.updateChecker.versionCheckResult!!.latestVersionName)
         }
     }
 }

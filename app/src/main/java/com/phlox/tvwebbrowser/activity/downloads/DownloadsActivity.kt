@@ -18,22 +18,22 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.databinding.ActivityDownloadsBinding
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.Utils
-import kotlinx.android.synthetic.main.activity_downloads.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
 class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, DownloadService.Listener, AdapterView.OnItemLongClickListener {
+    private lateinit var vb: ActivityDownloadsBinding
     private var adapter: DownloadListAdapter? = null
     private var downloadsService: DownloadService? = null
     private val listeners = ArrayList<DownloadService.Listener>()
@@ -67,24 +67,23 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_downloads)
+        vb = ActivityDownloadsBinding.inflate(layoutInflater)
+        setContentView(vb.root)
 
         viewModel = ViewModelProvider(this).get(DownloadsViewModel::class.java)
 
         adapter = DownloadListAdapter(this)
-        listView.adapter = adapter
+        vb.listView.adapter = adapter
 
-        listView.setOnScrollListener(onListScrollListener)
-        listView.onItemClickListener = this
-        listView.onItemLongClickListener = this
+        vb.listView.setOnScrollListener(onListScrollListener)
+        vb.listView.onItemClickListener = this
+        vb.listView.onItemLongClickListener = this
 
-        viewModel.items.observe(this, object : Observer<List<Download>> {
-            override fun onChanged(it: List<Download>) {
-                if (it.isNotEmpty()) {
-                    tvPlaceholder.visibility = View.GONE
-                    adapter!!.addItems(it)
-                    listView.requestFocus()
-                }
+        viewModel.items.observe(this, {
+            if (it.isNotEmpty()) {
+                vb.tvPlaceholder.visibility = View.GONE
+                adapter!!.addItems(it)
+                vb.listView.requestFocus()
             }
         })
         viewModel.loadItems()
@@ -106,7 +105,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         if (v.download?.isDateHeader!!) {
             return
         }
-        val file = File(v.download?.filepath)
+        val file = File(v.download?.filepath!!)
         if (!file.exists()) {
             Utils.showToast(this, R.string.file_not_found)
         }
@@ -224,7 +223,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
     }
 
     private fun deleteItem(v: DownloadListItemView) = lifecycleScope.launch(Dispatchers.Main) {
-        File(v.download?.filepath).delete()
+        File(v.download?.filepath!!).delete()
         AppDatabase.db.downloadDao().delete(v.download!!)
         adapter!!.remove(v.download!!)
     }

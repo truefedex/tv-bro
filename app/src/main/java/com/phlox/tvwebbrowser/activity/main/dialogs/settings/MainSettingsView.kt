@@ -10,20 +10,19 @@ import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
-import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.AdblockViewModel
 import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
+import com.phlox.tvwebbrowser.databinding.ViewSettingsMainBinding
 import com.phlox.tvwebbrowser.utils.activity
-import kotlinx.android.synthetic.main.view_settings_main.view.*
 
 class MainSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
+    private var vb: ViewSettingsMainBinding = ViewSettingsMainBinding.inflate(LayoutInflater.from(getContext()), this)
     var settingsViewModel: SettingsViewModel
     var adblockViewModel: AdblockViewModel
 
     init {
-        LayoutInflater.from(getContext()).inflate(R.layout.view_settings_main, this, true)
         settingsViewModel = ViewModelProvider(activity as FragmentActivity).get(SettingsViewModel::class.java)
         adblockViewModel = ViewModelProvider(activity as FragmentActivity).get(AdblockViewModel::class.java)
         orientation = VERTICAL
@@ -32,8 +31,8 @@ class MainSettingsView @JvmOverloads constructor(
 
         initUAStringConfigUI(context)
 
-        scAdblock.isChecked = adblockViewModel.adBlockEnabled
-        scAdblock.setOnCheckedChangeListener { buttonView, isChecked ->
+        vb.scAdblock.isChecked = adblockViewModel.adBlockEnabled
+        vb.scAdblock.setOnCheckedChangeListener { buttonView, isChecked ->
             adblockViewModel.adBlockEnabled = isChecked
         }
     }
@@ -48,25 +47,25 @@ class MainSettingsView @JvmOverloads constructor(
 
         val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, settingsViewModel.userAgentStringTitles)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spTitles.adapter = adapter
+        vb.spTitles.adapter = adapter
 
         if (selected != -1) {
-            spTitles.setSelection(selected, false)
-            etUAString.setText(settingsViewModel.uaStrings[selected])
+            vb.spTitles.setSelection(selected, false)
+            vb.etUAString.setText(settingsViewModel.uaStrings[selected])
         } else {
-            spTitles.setSelection(settingsViewModel.userAgentStringTitles.size - 1, false)
-            llUAString.visibility = View.VISIBLE
-            etUAString.setText(settingsViewModel.uaString.value)
-            etUAString.requestFocus()
+            vb.spTitles.setSelection(settingsViewModel.userAgentStringTitles.size - 1, false)
+            vb.llUAString.visibility = View.VISIBLE
+            vb.etUAString.setText(settingsViewModel.uaString.value)
+            vb.etUAString.requestFocus()
         }
-        spTitles.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        vb.spTitles.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (position == settingsViewModel.userAgentStringTitles.size - 1 && llUAString.visibility == View.GONE) {
-                    llUAString.visibility = View.VISIBLE
-                    llUAString.startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in))
-                    etUAString.requestFocus()
+                if (position == settingsViewModel.userAgentStringTitles.size - 1 && vb.llUAString.visibility == View.GONE) {
+                    vb.llUAString.visibility = View.VISIBLE
+                    vb.llUAString.startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in))
+                    vb.etUAString.requestFocus()
                 }
-                etUAString.setText(settingsViewModel.uaStrings[position])
+                vb.etUAString.setText(settingsViewModel.uaStrings[position])
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
@@ -84,25 +83,25 @@ class MainSettingsView @JvmOverloads constructor(
         val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, settingsViewModel.SearchEnginesTitles)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
-        spEngine.adapter = adapter
+        vb.spEngine.adapter = adapter
 
         if (selected != -1) {
-            spEngine.setSelection(selected)
-            etUrl.setText(settingsViewModel.SearchEnginesURLs[selected])
+            vb.spEngine.setSelection(selected)
+            vb.etUrl.setText(settingsViewModel.SearchEnginesURLs[selected])
         } else {
-            spEngine.setSelection(settingsViewModel.SearchEnginesTitles.size - 1)
-            llURL.visibility = View.VISIBLE
-            etUrl.setText(settingsViewModel.searchEngineURL.value)
-            etUrl.requestFocus()
+            vb.spEngine.setSelection(settingsViewModel.SearchEnginesTitles.size - 1)
+            vb.llURL.visibility = View.VISIBLE
+            vb.etUrl.setText(settingsViewModel.searchEngineURL.value)
+            vb.etUrl.requestFocus()
         }
-        spEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        vb.spEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (position == settingsViewModel.SearchEnginesTitles.size - 1 && llURL.visibility == View.GONE) {
-                    llURL.visibility = View.VISIBLE
-                    llURL.startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in))
-                    etUrl.requestFocus()
+                if (position == settingsViewModel.SearchEnginesTitles.size - 1 && vb.llURL.visibility == View.GONE) {
+                    vb.llURL.visibility = View.VISIBLE
+                    vb.llURL.startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in))
+                    vb.etUrl.requestFocus()
                 }
-                etUrl.setText(settingsViewModel.SearchEnginesURLs[position])
+                vb.etUrl.setText(settingsViewModel.SearchEnginesURLs[position])
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
@@ -112,10 +111,10 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     fun save() {
-        val url = etUrl.text.toString()
+        val url = vb.etUrl.text.toString()
         settingsViewModel.changeSearchEngineUrl(url)
 
-        val userAgent = etUAString.text.toString().trim(' ')
+        val userAgent = vb.etUAString.text.toString().trim(' ')
         settingsViewModel.saveUAString(userAgent)
     }
 }

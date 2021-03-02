@@ -9,12 +9,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.lifecycle.ViewModelProvider
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutDialog
+import com.phlox.tvwebbrowser.databinding.ViewShortcutBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.activity
-import kotlinx.android.synthetic.main.view_shortcut.view.*
 
 
 
@@ -27,7 +28,7 @@ class ShortcutsSettingsView @JvmOverloads constructor(
             R.string.refresh_page, R.string.voice_search)
 
     init {
-        settingsViewModel = ViewModelProviders.of(activity as FragmentActivity).get(SettingsViewModel::class.java)
+        settingsViewModel = ViewModelProvider(activity as FragmentActivity).get(SettingsViewModel::class.java)
 
         selector = context.resources.getDrawable(R.drawable.list_item_bg_selector, null)
         adapter = ShortcutItemAdapter()
@@ -90,15 +91,17 @@ class ShortcutsSettingsView @JvmOverloads constructor(
     inner class ShortcutItemView @JvmOverloads constructor(
             context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
     ) : RelativeLayout(context, attrs, defStyleAttr) {
+        private var vb: ViewShortcutBinding
+
         init {
-            LayoutInflater.from(context).inflate(R.layout.view_shortcut, this, true)
+            vb = ViewShortcutBinding.inflate(LayoutInflater.from(context), this)
         }
 
         fun bind(position: Int, titleRes: Int) {
             val shortcut = ShortcutMgr.getInstance().findForId(position)
 
-            tvTitle.setText(titleRes)
-            tvKey.text = if (shortcut == null || shortcut.keyCode == 0)
+            vb.tvTitle.setText(titleRes)
+            vb.tvKey.text = if (shortcut == null || shortcut.keyCode == 0)
                 context.getString(R.string.not_set)
             else
                 KeyEvent.keyCodeToString(shortcut.keyCode)

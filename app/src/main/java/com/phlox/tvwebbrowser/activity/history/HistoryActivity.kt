@@ -9,18 +9,21 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.*
+import android.widget.AbsListView
+import android.widget.AdapterView
+import android.widget.ImageButton
+import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.databinding.ActivityHistoryBinding
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
-import kotlinx.android.synthetic.main.activity_history.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -30,6 +33,7 @@ import kotlinx.coroutines.launch
 
 class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
+    private lateinit var vb: ActivityHistoryBinding
     private var ibDelete: ImageButton? = null
     private var adapter: HistoryAdapter? = null
     private lateinit var historyViewModel: HistoryViewModel
@@ -48,6 +52,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        vb = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(R.layout.activity_history)
 
         historyViewModel = ViewModelProvider(this).get(HistoryViewModel::class.java)
@@ -55,17 +60,17 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         ibDelete = findViewById(R.id.ibDelete)
 
         adapter = HistoryAdapter()
-        listView.adapter = adapter
+        vb.listView.adapter = adapter
 
-        listView.setOnScrollListener(onListScrollListener)
-        listView.onItemClickListener = this
-        listView.onItemLongClickListener = this
+        vb.listView.setOnScrollListener(onListScrollListener)
+        vb.listView.onItemClickListener = this
+        vb.listView.onItemLongClickListener = this
 
         historyViewModel.items.observe(this, object : Observer<List<HistoryItem>> {
             override fun onChanged(items: List<HistoryItem>) {
                 if (items.isEmpty()) return
                 adapter!!.addItems(items)
-                listView.requestFocus()
+                vb.listView.requestFocus()
             }
         })
 

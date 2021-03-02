@@ -42,13 +42,13 @@ import com.phlox.tvwebbrowser.activity.main.view.Scripts
 import com.phlox.tvwebbrowser.activity.main.view.TitlesView
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx.Companion.HOME_URL
+import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity() {
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
     }
 
+    private lateinit var vb: ActivityMainBinding
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var adblockViewModel: AdblockViewModel
@@ -87,17 +88,18 @@ class MainActivity : AppCompatActivity() {
         adblockViewModel = ViewModelProvider(this).get(AdblockViewModel::class.java)
         uiHandler = Handler()
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
-        setContentView(R.layout.activity_main)
+        vb = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(vb.root)
         AndroidBug5497Workaround.assistActivity(this)
 
-        ivMiniatures.visibility = View.INVISIBLE
-        llBottomPanel.visibility = View.INVISIBLE
-        rlActionBar.visibility = View.INVISIBLE
-        progressBar.visibility = View.GONE
+        vb.ivMiniatures.visibility = View.INVISIBLE
+        vb.llBottomPanel.visibility = View.INVISIBLE
+        vb.rlActionBar.visibility = View.INVISIBLE
+        vb.progressBar.visibility = View.GONE
 
-        vTitles.listener = tabsListener
+        vb.vTitles.listener = tabsListener
 
-        flWebViewContainer.setCallback(object : CursorLayout.Callback {
+        vb.flWebViewContainer.setCallback(object : CursorLayout.Callback {
             override fun onUserInteraction() {
                 val tab = viewModel.currentTab.value
                 if (tab != null) {
@@ -110,52 +112,52 @@ class MainActivity : AppCompatActivity() {
         })
 
         if (Utils.isFireTV(this)) {
-            ibVoiceSearch.visibility = View.GONE
-            ibMenu.nextFocusRightId = R.id.ibHistory
+            vb.ibVoiceSearch.visibility = View.GONE
+            vb.ibMenu.nextFocusRightId = R.id.ibHistory
         } else {
-            ibVoiceSearch.setOnClickListener { initiateVoiceSearch() }
+            vb.ibVoiceSearch.setOnClickListener { initiateVoiceSearch() }
         }
 
-        ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
-        ibHome.setOnClickListener { navigate(HOME_URL) }
-        ibBack.setOnClickListener { navigateBack() }
-        ibForward.setOnClickListener {
+        vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
+        vb.ibHome.setOnClickListener { navigate(HOME_URL) }
+        vb.ibBack.setOnClickListener { navigateBack() }
+        vb.ibForward.setOnClickListener {
             if (viewModel.currentTab.value != null && (viewModel.currentTab.value!!.webView?.canGoForward() == true)) {
                 viewModel.currentTab.value!!.webView?.goForward()
             }
         }
-        ibRefresh.setOnClickListener { refresh() }
-        ibCloseTab.setOnClickListener { viewModel.currentTab.value?.apply { closeTab(this) } }
+        vb.ibRefresh.setOnClickListener { refresh() }
+        vb.ibCloseTab.setOnClickListener { viewModel.currentTab.value?.apply { closeTab(this) } }
 
-        ibMenu.setOnClickListener { finish() }
-        ibDownloads.setOnClickListener { startActivity(Intent(this@MainActivity, DownloadsActivity::class.java)) }
-        ibFavorites.setOnClickListener { showFavorites() }
-        ibHistory.setOnClickListener { showHistory() }
-        ibSettings.setOnClickListener { showSettings() }
-        ibZoomIn.setOnClickListener {
+        vb.ibMenu.setOnClickListener { finish() }
+        vb.ibDownloads.setOnClickListener { startActivity(Intent(this@MainActivity, DownloadsActivity::class.java)) }
+        vb.ibFavorites.setOnClickListener { showFavorites() }
+        vb.ibHistory.setOnClickListener { showHistory() }
+        vb.ibSettings.setOnClickListener { showSettings() }
+        vb.ibZoomIn.setOnClickListener {
             viewModel.currentTab.value?.webView?.apply {
                 if (this.canZoomIn()) this.zoomIn()
                 onWebViewUpdated(viewModel.currentTab.value!!)
                 if (!this.canZoomIn()) {
-                    ibZoomOut.requestFocus()
+                    vb.ibZoomOut.requestFocus()
                 }
             }
         }
-        ibZoomOut.setOnClickListener {
+        vb.ibZoomOut.setOnClickListener {
             viewModel.currentTab.value?.webView?.apply {
                 if (this.canZoomOut()) this.zoomOut()
                 onWebViewUpdated(viewModel.currentTab.value!!)
                 if (!this.canZoomOut()) {
-                    ibZoomIn.requestFocus()
+                    vb.ibZoomIn.requestFocus()
                 }
             }
         }
 
-        etUrl.onFocusChangeListener = etUrlFocusChangeListener
+        vb.etUrl.onFocusChangeListener = etUrlFocusChangeListener
 
-        etUrl.setOnKeyListener(etUrlKeyListener)
+        vb.etUrl.setOnKeyListener(etUrlKeyListener)
 
-        llBottomPanel.childs.forEach {
+        vb.llBottomPanel.childs.forEach {
             it.setOnTouchListener(bottomButtonsOnTouchListener)
             it.onFocusChangeListener = bottomButtonsFocusListener
             it.setOnKeyListener(bottomButtonsKeyListener)
@@ -176,24 +178,24 @@ class MainActivity : AppCompatActivity() {
 
     private val etUrlFocusChangeListener = View.OnFocusChangeListener { _, focused ->
         if (focused) {
-            if (flUrl.parent == rlActionBar) {
+            if (vb.flUrl.parent == vb.rlActionBar) {
                 syncTabWithTitles()
-                rlActionBar.removeView(flUrl)
+                vb.rlActionBar.removeView(vb.flUrl)
                 val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                rlRoot.addView(flUrl, lp)
-                rlActionBar.visibility = View.INVISIBLE
-                llBottomPanel.visibility = View.INVISIBLE
-                ivMiniatures.visibility = View.INVISIBLE
-                llMiniaturePlaceholder.visibility = View.INVISIBLE
-                flWebViewContainer.visibility = View.VISIBLE
-                TransitionManager.beginDelayedTransition(rlRoot)
+                vb.rlRoot.addView(vb.flUrl, lp)
+                vb.rlActionBar.visibility = View.INVISIBLE
+                vb.llBottomPanel.visibility = View.INVISIBLE
+                vb.ivMiniatures.visibility = View.INVISIBLE
+                vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
+                vb.flWebViewContainer.visibility = View.VISIBLE
+                TransitionManager.beginDelayedTransition(vb.rlRoot)
             }
 
             val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(etUrl, InputMethodManager.SHOW_FORCED)
+            imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_FORCED)
             uiHandler.postDelayed(//workaround an android TV bug
                     {
-                        etUrl.selectAll()
+                        vb.etUrl.selectAll()
                     }, 500)
         }
     }
@@ -202,10 +204,10 @@ class MainActivity : AppCompatActivity() {
         val anim = AnimationUtils.loadAnimation(this@MainActivity, android.R.anim.fade_out)
         anim.setAnimationListener(object : BaseAnimationListener() {
             override fun onAnimationEnd(animation: Animation) {
-                progressBar.visibility = View.GONE
+                vb.progressBar.visibility = View.GONE
             }
         })
-        progressBar.startAnimation(anim)
+        vb.progressBar.startAnimation(anim)
     }
 
     private var mConnectivityChangeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
@@ -223,7 +225,7 @@ class MainActivity : AppCompatActivity() {
     private val tabsListener = object : TitlesView.Listener {
         override fun onTitleChanged(index: Int) {
             val tab = tabByTitleIndex(index)
-            etUrl.setText(tab?.url ?: "")
+            vb.etUrl.setText(tab?.url ?: "")
             displayThumbnail(tab)
         }
 
@@ -282,7 +284,7 @@ class MainActivity : AppCompatActivity() {
         override fun onAllDownloadsComplete() {
             downloadAnimation?.apply {
                 this.reset()
-                ibDownloads.clearAnimation()
+                vb.ibDownloads.clearAnimation()
                 downloadAnimation = null
             }
         }
@@ -314,7 +316,7 @@ class MainActivity : AppCompatActivity() {
                 if (keyEvent.action == KeyEvent.ACTION_UP) {
                     hideBottomPanel()
                     viewModel.currentTab.value?.webView?.requestFocus()
-                    flWebViewContainer.cursorPosition
+                    vb.flWebViewContainer.cursorPosition
                 }
                 return@OnKeyListener true
             }
@@ -327,8 +329,8 @@ class MainActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_ENTER -> {
                 if (keyEvent.action == KeyEvent.ACTION_UP) {
                     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.hideSoftInputFromWindow(etUrl.windowToken, 0)
-                    search(etUrl.text.toString())
+                    imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
+                    search(vb.etUrl.text.toString())
                     hideFloatAddressBar()
                     viewModel.currentTab.value!!.webView?.requestFocus()
                 }
@@ -345,13 +347,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun hideFloatAddressBar() {
-        if (flUrl.parent == rlRoot) {
-            viewModel.currentTab.value?.apply { etUrl.setText(this.url) }
-            rlRoot.removeView(flUrl)
+        if (vb.flUrl.parent == vb.rlRoot) {
+            viewModel.currentTab.value?.apply { vb.etUrl.setText(this.url) }
+            vb.rlRoot.removeView(vb.flUrl)
             val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             lp.addRule(RelativeLayout.END_OF, R.id.ibSettings)
-            rlActionBar.addView(flUrl, lp)
-            TransitionManager.beginDelayedTransition(rlRoot)
+            vb.rlActionBar.addView(vb.flUrl, lp)
+            TransitionManager.beginDelayedTransition(vb.rlRoot)
         }
     }
 
@@ -364,22 +366,22 @@ class MainActivity : AppCompatActivity() {
                         0 -> tab?.apply { closeTab(this) }
                         1 -> {
                             viewModel.onCloseAllTabs()
-                            flWebViewContainer.removeAllViews()
+                            vb.flWebViewContainer.removeAllViews()
                             openInNewTab(HOME_URL, 0)
-                            vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
-                            vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
+                            vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
+                            vb.vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
                         }
                         2 -> if (tab != null && tabIndex > 0) {
                             viewModel.tabsStates.remove(tab)
                             viewModel.tabsStates.add(tabIndex - 1, tab)
-                            vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
-                            vTitles.current = tabIndex - 1
+                            vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
+                            vb.vTitles.current = tabIndex - 1
                         }
                         3 -> if (tab != null && tabIndex < (viewModel.tabsStates.size - 1)) {
                             viewModel.tabsStates.remove(tab)
                             viewModel.tabsStates.add(tabIndex + 1, tab)
-                            vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
-                            vTitles.current = tabIndex + 1
+                            vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
+                            vb.vTitles.current = tabIndex + 1
                         }
                     }
                 }
@@ -398,7 +400,7 @@ class MainActivity : AppCompatActivity() {
             viewModel.currentTab.value!!.webView?.goBack()
         } else if (goHomeIfNoHistory) {
             navigate(HOME_URL)
-        } else if (rlActionBar.visibility != View.VISIBLE) {
+        } else if (vb.rlActionBar.visibility != View.VISIBLE) {
             showMenuOverlay()
         } else {
             hideMenuOverlay()
@@ -423,15 +425,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadState() = lifecycleScope.launch(Dispatchers.Main) {
-        progressBarGeneric.visibility = View.VISIBLE
-        progressBarGeneric.requestFocus()
+        vb.progressBarGeneric.visibility = View.VISIBLE
+        vb.progressBarGeneric.requestFocus()
         viewModel.loadState().join()
 
         if (!running) {
             return@launch
         }
 
-        progressBarGeneric.visibility = View.GONE
+        vb.progressBarGeneric.visibility = View.GONE
 
         val intentUri = intent.data
         if (intentUri == null) {
@@ -504,7 +506,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.tabsStates.add(index, tab)
         changeTab(tab)
         navigate(url)
-        if (rlActionBar.visibility == View.VISIBLE) {
+        if (vb.rlActionBar.visibility == View.VISIBLE) {
             hideMenuOverlay(true)
         }
     }
@@ -513,7 +515,7 @@ class MainActivity : AppCompatActivity() {
         if (tab == null) return
         val position = viewModel.tabsStates.indexOf(tab)
         viewModel.currentTab.value = null
-        tab.webView?.apply { flWebViewContainer.removeView(this) }
+        tab.webView?.apply { vb.flWebViewContainer.removeView(this) }
         when {
             viewModel.tabsStates.size == 1 -> openInNewTab(HOME_URL, 0)
 
@@ -522,8 +524,8 @@ class MainActivity : AppCompatActivity() {
             else -> changeTab(viewModel.tabsStates[position + 1])
         }
         viewModel.onCloseTab(tab)
-        vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
-        vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
+        vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
+        vb.vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
         hideBottomPanel()
     }
 
@@ -534,7 +536,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.currentTab.value?.apply {
             webView?.apply {
                 onPause()
-                flWebViewContainer.removeView(this)
+                vb.flWebViewContainer.removeView(this)
             }
             onPause()
             viewModel.saveTab(this)
@@ -542,7 +544,7 @@ class MainActivity : AppCompatActivity() {
 
         newTab.selected = true
         viewModel.currentTab.value = newTab
-        vTitles.current = viewModel.tabsStates.indexOf(newTab)
+        vb.vTitles.current = viewModel.tabsStates.indexOf(newTab)
         var wv = newTab.webView
         if (wv == null) {
             wv = createWebView(newTab)
@@ -550,15 +552,15 @@ class MainActivity : AppCompatActivity() {
                 return
             }
             newTab.restoreWebView()
-            flWebViewContainer.addView(newTab.webView)
+            vb.flWebViewContainer.addView(newTab.webView)
         } else {
             (wv.parent as? ViewGroup)?.removeView(wv)
-            flWebViewContainer.addView(wv)
+            vb.flWebViewContainer.addView(wv)
             wv.onResume()
         }
         wv.setNetworkAvailable(Utils.isNetworkConnected(this))
 
-        etUrl.setText(newTab.url)
+        vb.etUrl.setText(newTab.url)
         onWebViewUpdated(newTab)
     }
 
@@ -617,7 +619,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onLongTap() {
-                flWebViewContainer?.goToFingerMode()
+                vb.flWebViewContainer?.goToFingerMode()
             }
 
             override fun onThumbnailError() {
@@ -626,28 +628,28 @@ class MainActivity : AppCompatActivity() {
 
             override fun onShowCustomView(view: View) {
                 tab.webView?.visibility = View.GONE
-                flFullscreenContainer.visibility = View.VISIBLE
-                flFullscreenContainer.addView(view)
-                flFullscreenContainer.cursorPosition.set(flWebViewContainer.cursorPosition)
+                vb.flFullscreenContainer.visibility = View.VISIBLE
+                vb.flFullscreenContainer.addView(view)
+                vb.flFullscreenContainer.cursorPosition.set(vb.flWebViewContainer.cursorPosition)
                 fullScreenView = view
             }
 
             override fun onHideCustomView() {
                 if (fullScreenView != null) {
-                    flFullscreenContainer.removeView(fullScreenView)
+                    vb.flFullscreenContainer.removeView(fullScreenView)
                     fullScreenView = null
                 }
-                flWebViewContainer.cursorPosition.set(flFullscreenContainer.cursorPosition)
-                flFullscreenContainer.visibility = View.INVISIBLE
+                vb.flWebViewContainer.cursorPosition.set(vb.flFullscreenContainer.cursorPosition)
+                vb.flFullscreenContainer.visibility = View.INVISIBLE
                 tab.webView?.visibility = View.VISIBLE
             }
 
             override fun onProgressChanged(newProgress: Int) {
-                progressBar.visibility = View.VISIBLE
+                vb.progressBar.visibility = View.VISIBLE
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    progressBar.setProgress(newProgress, true)
+                    vb.progressBar.setProgress(newProgress, true)
                 } else {
-                    progressBar.progress = newProgress
+                    vb.progressBar.progress = newProgress
                 }
                 uiHandler.removeCallbacks(progressBarHideRunnable)
                 if (newProgress == 100) {
@@ -659,8 +661,8 @@ class MainActivity : AppCompatActivity() {
 
             override fun onReceivedTitle(title: String) {
                 tab.title = title
-                vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
-                vTitles.postInvalidate()
+                vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
+                vb.vTitles.postInvalidate()
             }
 
             override fun requestPermissions(array: Array<String>, geo: Boolean) {
@@ -688,8 +690,8 @@ class MainActivity : AppCompatActivity() {
 
                 if (URLUtil.isNetworkUrl(url)) {
                     tab.url = url
-                    if (tabByTitleIndex(vTitles.current) == tab) {
-                        etUrl.setText(tab.url)
+                    if (tabByTitleIndex(vb.vTitles.current) == tab) {
+                        vb.etUrl.setText(tab.url)
                     }
                     return false
                 }
@@ -718,8 +720,8 @@ class MainActivity : AppCompatActivity() {
                 } else if (url != null) {
                     tab.url = url
                 }
-                if (tabByTitleIndex(vTitles.current) == tab) {
-                    etUrl.setText(tab.url)
+                if (tabByTitleIndex(vb.vTitles.current) == tab) {
+                    vb.etUrl.setText(tab.url)
                 }
             }
 
@@ -735,8 +737,8 @@ class MainActivity : AppCompatActivity() {
                 } else if (url != null) {
                     tab.url = url
                 }
-                if (tabByTitleIndex(vTitles.current) == tab) {
-                    etUrl.setText(tab.url)
+                if (tabByTitleIndex(vb.vTitles.current) == tab) {
+                    vb.etUrl.setText(tab.url)
                 }
 
                 //thumbnail
@@ -744,7 +746,7 @@ class MainActivity : AppCompatActivity() {
                 val newThumbnail = tab.webView?.renderThumbnail(tab.thumbnail)
                 if (newThumbnail != null) {
                     tab.updateThumbnail(this@MainActivity, newThumbnail, lifecycleScope)
-                    if (rlActionBar.visibility == View.VISIBLE && tab == viewModel.currentTab.value) {
+                    if (vb.rlActionBar.visibility == View.VISIBLE && tab == viewModel.currentTab.value) {
                         displayThumbnail(tab)
                     }
                 }
@@ -757,7 +759,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPageCertificateError(url: String?) {
-                etUrl.setTextColor(Color.RED)
+                vb.etUrl.setTextColor(Color.RED)
             }
 
             override fun isAd(url: Uri): Boolean {
@@ -772,8 +774,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onBlockedAdsCountChanged(blockedAds: Int) {
-                tvBlockedAdCounter.visibility = if (blockedAds > 0) View.VISIBLE else View.GONE
-                tvBlockedAdCounter.text = blockedAds.toString()
+                vb.tvBlockedAdCounter.visibility = if (blockedAds > 0) View.VISIBLE else View.GONE
+                vb.tvBlockedAdCounter.text = blockedAds.toString()
             }
         })
 
@@ -784,7 +786,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus && flUrl.parent == rlRoot) {
+            if (hasFocus && vb.flUrl.parent == vb.rlRoot) {
                 hideFloatAddressBar()
             }
         }
@@ -802,15 +804,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onWebViewUpdated(tab: WebTabState) {
-        ibBack.isEnabled = tab.webView?.canGoBack() == true
-        ibForward.isEnabled = tab.webView?.canGoForward() == true
+        vb.ibBack.isEnabled = tab.webView?.canGoBack() == true
+        vb.ibForward.isEnabled = tab.webView?.canGoForward() == true
         val zoomPossible = tab.webView?.canZoomIn() == true || tab.webView?.canZoomOut() == true
-        ibZoomIn.visibility = if (zoomPossible) View.VISIBLE else View.GONE
-        ibZoomOut.visibility = if (zoomPossible) View.VISIBLE else View.GONE
-        ibZoomIn.isEnabled = tab.webView?.canZoomIn() == true
-        ibZoomOut.isEnabled = tab.webView?.canZoomOut() == true
+        vb.ibZoomIn.visibility = if (zoomPossible) View.VISIBLE else View.GONE
+        vb.ibZoomOut.visibility = if (zoomPossible) View.VISIBLE else View.GONE
+        vb.ibZoomIn.isEnabled = tab.webView?.canZoomIn() == true
+        vb.ibZoomOut.isEnabled = tab.webView?.canZoomOut() == true
         val adblockEnabled = tab.adblock ?: adblockViewModel.adBlockEnabled
-        ibAdBlock.setImageResource(if (adblockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
+        vb.ibAdBlock.setImageResource(if (adblockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
     }
 
     private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
@@ -891,8 +893,8 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.currentTab.value != null) {
             viewModel.currentTab.value!!.webView?.onResume()
         }
-        vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
-        vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
+        vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
+        vb.vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
         bindService(Intent(this, DownloadService::class.java), downloadsServiceConnection, Context.BIND_AUTO_CREATE)
     }
 
@@ -923,7 +925,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun navigate(url: String) {
-        etUrl.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
+        vb.etUrl.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
         if (viewModel.currentTab.value != null) {
             viewModel.currentTab.value!!.webView?.loadUrl(url)
         } else {
@@ -955,7 +957,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun toggleMenu() {
-        if (rlActionBar.visibility == View.INVISIBLE) {
+        if (vb.rlActionBar.visibility == View.INVISIBLE) {
             showMenuOverlay()
         } else {
             hideMenuOverlay()
@@ -974,19 +976,19 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             return true
-        } else if (keyCode == KeyEvent.KEYCODE_BACK && flUrl.parent == rlRoot) {
+        } else if (keyCode == KeyEvent.KEYCODE_BACK && vb.flUrl.parent == vb.rlRoot) {
             if (event.action == KeyEvent.ACTION_UP) {
                 uiHandler.post { hideFloatAddressBar() }
             }
             return true
-        } else if (keyCode == KeyEvent.KEYCODE_BACK && llBottomPanel.visibility == View.VISIBLE && rlActionBar.visibility != View.VISIBLE) {
+        } else if (keyCode == KeyEvent.KEYCODE_BACK && vb.llBottomPanel.visibility == View.VISIBLE && vb.rlActionBar.visibility != View.VISIBLE) {
             if (event.action == KeyEvent.ACTION_UP) {
                 uiHandler.post { hideBottomPanel() }
             }
             return true
-        } else if (keyCode == KeyEvent.KEYCODE_BACK && flWebViewContainer.fingerMode) {
+        } else if (keyCode == KeyEvent.KEYCODE_BACK && vb.flWebViewContainer.fingerMode) {
             if (event.action == KeyEvent.ACTION_UP) {
-                uiHandler.post { flWebViewContainer.exitFingerMode() }
+                uiHandler.post { vb.flWebViewContainer.exitFingerMode() }
             }
             return true
         } else if (shortcutMgr.canProcessKeyCode(keyCode)) {
@@ -999,41 +1001,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showMenuOverlay() {
-        ivMiniatures.visibility = View.VISIBLE
-        llBottomPanel.visibility = View.VISIBLE
-        flWebViewContainer.visibility = View.INVISIBLE
+        vb.ivMiniatures.visibility = View.VISIBLE
+        vb.llBottomPanel.visibility = View.VISIBLE
+        vb.flWebViewContainer.visibility = View.INVISIBLE
         val currentTab = viewModel.currentTab.value
         if (currentTab != null) {
             currentTab.thumbnail = currentTab.webView?.renderThumbnail(currentTab.thumbnail)
             displayThumbnail(currentTab)
         }
 
-        llBottomPanel.translationY = llBottomPanel.height.toFloat()
-        llBottomPanel.alpha = 0f
-        llBottomPanel.animate()
+        vb.llBottomPanel.translationY = vb.llBottomPanel.height.toFloat()
+        vb.llBottomPanel.alpha = 0f
+        vb.llBottomPanel.animate()
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
                 .translationY(0f)
                 .alpha(1f)
                 .withEndAction {
-                    ibMenu.requestFocus()
+                    vb.ibMenu.requestFocus()
                 }
                 .start()
 
-        rlActionBar.visibility = View.VISIBLE
-        rlActionBar.translationY = -rlActionBar.height.toFloat()
-        rlActionBar.alpha = 0f
-        rlActionBar.animate()
+        vb.rlActionBar.visibility = View.VISIBLE
+        vb.rlActionBar.translationY = -vb.rlActionBar.height.toFloat()
+        vb.rlActionBar.alpha = 0f
+        vb.rlActionBar.animate()
                 .translationY(0f)
                 .alpha(1f)
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
                 .start()
 
-        ivMiniatures.layoutParams = ivMiniatures.layoutParams.apply { this.height = flWebViewContainer.height }
-        ivMiniatures.translationY = 0f
-        ivMiniatures.animate()
-                .translationY(rlActionBar.height.toFloat())
+        vb.ivMiniatures.layoutParams = vb.ivMiniatures.layoutParams.apply { this.height = vb.flWebViewContainer.height }
+        vb.ivMiniatures.translationY = 0f
+        vb.ivMiniatures.animate()
+                .translationY(vb.rlActionBar.height.toFloat())
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
                 /*.withEndAction {
@@ -1047,67 +1049,67 @@ class MainActivity : AppCompatActivity() {
 
     private fun displayThumbnail(currentTab: WebTabState?) {
         if (currentTab != null) {
-            if (tabByTitleIndex(vTitles.current) != currentTab) return
-            llMiniaturePlaceholder.visibility = View.INVISIBLE
-            ivMiniatures.visibility = View.VISIBLE
+            if (tabByTitleIndex(vb.vTitles.current) != currentTab) return
+            vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
+            vb.ivMiniatures.visibility = View.VISIBLE
             if (currentTab.thumbnail != null) {
-                ivMiniatures.setImageBitmap(currentTab.thumbnail)
+                vb.ivMiniatures.setImageBitmap(currentTab.thumbnail)
             } else if (currentTab.thumbnailHash != null) {
                 lifecycleScope.launch(Dispatchers.IO) {
                     val thumbnail = currentTab.loadThumbnail()
                     launch(Dispatchers.Main) {
                         if (thumbnail != null) {
-                            ivMiniatures.setImageBitmap(currentTab.thumbnail)
+                            vb.ivMiniatures.setImageBitmap(currentTab.thumbnail)
                         } else {
-                            ivMiniatures.setImageResource(0)
+                            vb.ivMiniatures.setImageResource(0)
                         }
                     }
                 }
             } else {
-                ivMiniatures.setImageResource(0)
+                vb.ivMiniatures.setImageResource(0)
             }
         } else {
-            llMiniaturePlaceholder.visibility = View.VISIBLE
-            ivMiniatures.setImageResource(0)
-            ivMiniatures.visibility = View.INVISIBLE
+            vb.llMiniaturePlaceholder.visibility = View.VISIBLE
+            vb.ivMiniatures.setImageResource(0)
+            vb.ivMiniatures.visibility = View.INVISIBLE
         }
     }
 
     private fun hideMenuOverlay(hideBottomButtons: Boolean = true) {
-        if (rlActionBar.visibility == View.INVISIBLE) {
+        if (vb.rlActionBar.visibility == View.INVISIBLE) {
             return
         }
         if (hideBottomButtons) {
             hideBottomPanel()
         }
 
-        rlActionBar.animate()
-                .translationY(-rlActionBar.height.toFloat())
+        vb.rlActionBar.animate()
+                .translationY(-vb.rlActionBar.height.toFloat())
                 .alpha(0f)
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
                 .withEndAction {
-                    rlActionBar.visibility = View.INVISIBLE
+                    vb.rlActionBar.visibility = View.INVISIBLE
                 }
                 .start()
 
-        if (llMiniaturePlaceholder.visibility == View.VISIBLE) {
-            llMiniaturePlaceholder.visibility = View.INVISIBLE
-            ivMiniatures.visibility = View.VISIBLE
+        if (vb.llMiniaturePlaceholder.visibility == View.VISIBLE) {
+            vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
+            vb.ivMiniatures.visibility = View.VISIBLE
         }
 
-        ivMiniatures.translationY = rlActionBar.height.toFloat()
-        ivMiniatures.animate()
+        vb.ivMiniatures.translationY = vb.rlActionBar.height.toFloat()
+        vb.ivMiniatures.animate()
                 .translationY(0f)
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
                 .withEndAction {
-                    ivMiniatures.visibility = View.INVISIBLE
-                    rlActionBar.visibility = View.INVISIBLE
-                    ivMiniatures.setImageResource(0)
+                    vb.ivMiniatures.visibility = View.INVISIBLE
+                    vb.rlActionBar.visibility = View.INVISIBLE
+                    vb.ivMiniatures.setImageResource(0)
                     syncTabWithTitles()
-                    flWebViewContainer.visibility = View.VISIBLE
-                    if (hideBottomButtons && viewModel.currentTab.value != null && flUrl.parent != rlRoot) {
+                    vb.flWebViewContainer.visibility = View.VISIBLE
+                    if (hideBottomButtons && viewModel.currentTab.value != null && vb.flUrl.parent != vb.rlRoot) {
                         viewModel.currentTab.value!!.webView?.requestFocus()
                     }
                 }
@@ -1115,23 +1117,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun syncTabWithTitles() {
-        val tab = tabByTitleIndex(vTitles.current)
+        val tab = tabByTitleIndex(vb.vTitles.current)
         if (tab == null) {
-            openInNewTab(HOME_URL, if (vTitles.current < 0) 0 else viewModel.tabsStates.size)
+            openInNewTab(HOME_URL, if (vb.vTitles.current < 0) 0 else viewModel.tabsStates.size)
         } else if (!tab.selected) {
             changeTab(tab)
         }
     }
 
     private fun hideBottomPanel() {
-        if (llBottomPanel.visibility != View.VISIBLE) return
-        llBottomPanel.animate()
+        if (vb.llBottomPanel.visibility != View.VISIBLE) return
+        vb.llBottomPanel.animate()
                 .setDuration(300)
                 .setInterpolator(AccelerateInterpolator())
-                .translationY(llBottomPanel.height.toFloat())
+                .translationY(vb.llBottomPanel.height.toFloat())
                 .withEndAction {
-                    llBottomPanel.translationY = 0f
-                    llBottomPanel.visibility = View.INVISIBLE
+                    vb.llBottomPanel.translationY = 0f
+                    vb.llBottomPanel.visibility = View.INVISIBLE
                 }
                 .start()
     }
@@ -1142,7 +1144,7 @@ class MainActivity : AppCompatActivity() {
         showMenuOverlay()
         if (downloadAnimation == null) {
             downloadAnimation = AnimationUtils.loadAnimation(this, R.anim.infinite_fadeinout_anim)
-            ibDownloads.startAnimation(downloadAnimation)
+            vb.ibDownloads.startAnimation(downloadAnimation)
         }
     }
 

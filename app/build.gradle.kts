@@ -15,8 +15,8 @@ import javax.xml.transform.stream.StreamResult
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("android.extensions")
     kotlin("kapt")
+    id("kotlin-parcelize")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
 }
@@ -80,7 +80,11 @@ android {
     }
 
     lintOptions {
-        isAbortOnError=false
+        isAbortOnError = false
+    }
+
+    buildFeatures {
+        viewBinding = true
     }
 
     kapt {
