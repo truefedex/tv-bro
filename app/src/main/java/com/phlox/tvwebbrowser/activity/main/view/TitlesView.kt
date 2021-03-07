@@ -184,12 +184,27 @@ class TitlesView @JvmOverloads constructor(context: Context, attrs: AttributeSet
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT,
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
                 if (event.repeatCount == 0) {
                     onPressTime = System.currentTimeMillis()
                 } else if ((System.currentTimeMillis() - onPressTime) >= ViewConfiguration.getLongPressTimeout()) {
                     listener?.onTitleOptions(current)
+                }
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                if (event.repeatCount == 0) {
+                    onPressTime = System.currentTimeMillis()
+                } else {
+                    moveLeft()
+                }
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                if (event.repeatCount == 0) {
+                    onPressTime = System.currentTimeMillis()
+                } else {
+                    moveRight()
                 }
                 return true
             }
