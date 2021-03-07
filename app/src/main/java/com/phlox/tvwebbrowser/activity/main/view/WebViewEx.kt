@@ -11,6 +11,9 @@ import android.graphics.Canvas
 import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
@@ -53,6 +56,8 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
     var lastSSLError: SslError? = null
     var trustSsl: Boolean = false
     private var currentOriginalUrl: Uri? = null
+    var blockedAds = 0
+    private val uiHandler = Handler(Looper.getMainLooper())
 
     interface Callback {
         fun getActivity(): Activity
@@ -74,11 +79,12 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
         fun isAdBlockingEnabled(): Boolean
         fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean
         fun onBlockedAdsCountChanged(blockedAds: Int)
+        fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
+        fun closeWindow(window: WebView)
     }
 
     init {
         with(settings) {
-            javaScriptCanOpenWindowsAutomatically = true
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 safeBrowsingEnabled = callback.isAdBlockingEnabled()
             }
@@ -99,7 +105,7 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
             mediaPlaybackRequiresUserGesture = false
             setGeolocationEnabled(true)
             javaScriptCanOpenWindowsAutomatically = false
-            setSupportMultipleWindows(false)
+            setSupportMultipleWindows(true)
             setNeedInitialFocus(false)
         }
 
@@ -111,7 +117,7 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
                 if (s != null && "null" != s) {
                     suggestActionsForLink(s)
                 } else {
-                    callback?.onLongTap()
+                    callback.onLongTap()
                 }
             }
             true
@@ -123,25 +129,25 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
             }
 
             override fun onShowCustomView(view: View, callback: CustomViewCallback) {
-                this@WebViewEx.callback?.onShowCustomView(view)
+                this@WebViewEx.callback.onShowCustomView(view)
                 fullscreenViewCallback = callback
             }
 
             override fun onHideCustomView() {
-                callback?.onHideCustomView()
+                callback.onHideCustomView()
                 fullscreenViewCallback?.onCustomViewHidden()
             }
 
             override fun onProgressChanged(view: WebView, newProgress: Int) {
-                callback?.onProgressChanged(newProgress)
+                callback.onProgressChanged(newProgress)
             }
 
             override fun onReceivedTitle(view: WebView, title: String) {
-                callback?.onReceivedTitle(title)
+                callback.onReceivedTitle(title)
             }
 
             override fun onPermissionRequest(request: PermissionRequest) {
-                val activity = callback?.getActivity() ?: return
+                val activity = callback.getActivity() ?: return
                 webPermissionsRequest = request
                 permRequestDialog = AlertDialog.Builder(activity)
                         .setMessage(activity.getString(R.string.web_perm_request_confirmation, TextUtils.join("\n", request.resources)))
@@ -178,7 +184,7 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
                                 }
 
                                 if (neededPermissions.isNotEmpty()) {
-                                    callback?.requestPermissions(neededPermissions.toTypedArray(), false)
+                                    callback.requestPermissions(neededPermissions.toTypedArray(), false)
                                 } else {
                                     if (reuestedResourcesForAlreadyGrantedPermissions!!.isEmpty()) {
                                         webPermissionsRequest.deny()
@@ -204,7 +210,7 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
             }
 
             override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
-                val activity = this@WebViewEx.callback?.getActivity() ?: return
+                val activity = this@WebViewEx.callback.getActivity() ?: return
                 geoPermissionOrigin = origin
                 geoPermissionsCallback = callback
                 permRequestDialog = AlertDialog.Builder(activity)
@@ -218,7 +224,7 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
                         .setPositiveButton(R.string.allow) { dialog, which ->
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                                     ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                this@WebViewEx.callback?.requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), true)
+                                this@WebViewEx.callback.requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), true)
                             } else {
                                 geoPermissionsCallback!!.invoke(geoPermissionOrigin, true, true)
                                 geoPermissionsCallback = null
@@ -243,10 +249,10 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
             }
 
 
-            override fun onShowFileChooser(mWebView: WebView, callback: ValueCallback<Array<Uri>>, fileChooserParams: WebChromeClient.FileChooserParams): Boolean {
+            override fun onShowFileChooser(mWebView: WebView, callback: ValueCallback<Array<Uri>>, fileChooserParams: FileChooserParams): Boolean {
                 pickFileCallback = callback
 
-                val result = this@WebViewEx.callback?.onShowFileChooser(fileChooserParams.createIntent()) ?: false
+                val result = this@WebViewEx.callback.onShowFileChooser(fileChooserParams.createIntent())
                 if (!result) {
                     pickFileCallback = null
                 }
@@ -254,52 +260,44 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
             }
 
             override fun onReceivedIcon(view: WebView?, icon: Bitmap) {
-                callback?.onReceivedIcon(icon)
+                callback.onReceivedIcon(icon)
             }
 
-            /*override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
-                val tab = WebTabState()
-                //tab.currentOriginalUrl = url;
-                createWebView(tab)
-                val currentTab = this@MainActivity.viewModel.currentTab.value
-                val index = if (currentTab == null) 0 else viewModel.tabsStates.indexOf(currentTab)
-                viewModel.tabsStates.add(index, tab)
-                changeTab(tab)
-                (resultMsg.obj as WebView.WebViewTransport).webView = tab.webView
+            override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
+                if (callback.isAdBlockingEnabled() && !isUserGesture) {
+                    blockedAds++
+                    callback.onBlockedAdsCountChanged(blockedAds)
+                    return false
+                }
+                val webView = callback.onCreateWindow(isDialog, isUserGesture) ?: return false
+                (resultMsg.obj as WebView.WebViewTransport).webView = webView
                 resultMsg.sendToTarget()
                 return true
             }
 
             override fun onCloseWindow(window: WebView) {
-                for (tab in viewModel.tabsStates) {
-                    if (tab.webView == window) {
-                        closeTab(tab)
-                        break
-                    }
-                }
-            }*/
+                callback.closeWindow(window)
+            }
         }
 
         webViewClient = object : WebViewClient() {
-            private var blockedAds = 0
-
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 Log.d(TAG, "shouldOverrideUrlLoading url: ${request.url}")
-                return callback?.shouldOverrideUrlLoading(request.url.toString()) ?: false
+                return callback.shouldOverrideUrlLoading(request.url.toString()) ?: false
             }
 
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                 Log.d(TAG, "shouldInterceptRequest url: ${request.url}")
 
-                if (callback?.isAdBlockingEnabled() != true) {
+                if (callback.isAdBlockingEnabled() != true) {
                     return super.shouldInterceptRequest(view, request)
                 }
 
-                val ad = currentOriginalUrl?.let { callback?.isAd(request, it)} ?: false
+                val ad = currentOriginalUrl?.let { callback.isAd(request, it)} ?: false
                 return if (ad) {
                     Log.d(TAG, "Blocked ads request: ${request.url}")
                     blockedAds++
-                    handler.post { callback?.onBlockedAdsCountChanged(blockedAds) }
+                    uiHandler.post { callback.onBlockedAdsCountChanged(blockedAds) }
                     WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
                 } else super.shouldInterceptRequest(view, request)
             }
@@ -308,15 +306,15 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
                 super.onPageStarted(view, url, favicon)
                 Log.d(TAG, "onPageStarted url: $url")
                 currentOriginalUrl = Uri.parse(url)
-                callback?.onPageStarted(url)
+                callback.onPageStarted(url)
                 blockedAds = 0
-                callback?.onBlockedAdsCountChanged(blockedAds)
+                callback.onBlockedAdsCountChanged(blockedAds)
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "onPageFinished url: $url")
-                callback?.onPageFinished(url)
+                callback.onPageFinished(url)
             }
 
             override fun onLoadResource(view: WebView, url: String) {
@@ -343,7 +341,7 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
     }
 
     private fun showCertificateErrorPage(error: SslError) {
-        callback?.onPageCertificateError(error.url)
+        callback.onPageCertificateError(error.url)
         lastSSLError = error
         val url = INTERNAL_SCHEME + INTERNAL_SCHEME_WARNING_DOMAIN +
                 "?type=" + INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT +
@@ -368,9 +366,9 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
             actionsMenu!!.menu.add(R.string.download)
             actionsMenu!!.setOnMenuItemClickListener { menuItem ->
                 if (menuItem === miNewTab) {
-                    callback!!.onOpenInNewTabRequested(url)
+                    callback.onOpenInNewTabRequested(url)
                 } else {
-                    callback!!.onDownloadRequested(url)
+                    callback.onDownloadRequested(url)
                 }
                 true
             }

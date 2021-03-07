@@ -413,6 +413,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         viewModel.jsInterface.setActivity(null)
+        viewModel.onDetachActivity()
         super.onDestroy()
     }
 
@@ -440,12 +441,17 @@ class MainActivity : AppCompatActivity() {
             if (viewModel.tabsStates.isEmpty()) {
                 openInNewTab(HOME_URL)
             } else {
+                var foundSelectedTab = false
                 for (i in viewModel.tabsStates.indices) {
                     val tab = viewModel.tabsStates[i]
                     if (tab.selected) {
                         changeTab(tab)
+                        foundSelectedTab = true
                         break
                     }
+                }
+                if (!foundSelectedTab) {//this may happen in some error states
+                    changeTab(viewModel.tabsStates[0])
                 }
             }
         } else {
@@ -514,12 +520,14 @@ class MainActivity : AppCompatActivity() {
     private fun closeTab(tab: WebTabState?) {
         if (tab == null) return
         val position = viewModel.tabsStates.indexOf(tab)
-        viewModel.currentTab.value = null
+        if (viewModel.currentTab.value == tab) {
+            viewModel.currentTab.value = null
+        }
         tab.webView?.apply { vb.flWebViewContainer.removeView(this) }
         when {
             viewModel.tabsStates.size == 1 -> openInNewTab(HOME_URL, 0)
 
-            position == viewModel.tabsStates.size - 1 -> changeTab(viewModel.tabsStates[position - 1])
+            position > 0 -> changeTab(viewModel.tabsStates[position - 1])
 
             else -> changeTab(viewModel.tabsStates[position + 1])
         }
@@ -530,6 +538,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun changeTab(newTab: WebTabState) {
+        if (viewModel.currentTab.value == newTab) return
         viewModel.tabsStates.forEach {
             it.selected = false
         }
@@ -637,6 +646,8 @@ class MainActivity : AppCompatActivity() {
         vb.ibZoomOut.isEnabled = tab.webView?.canZoomOut() == true
         val adblockEnabled = tab.adblock ?: adblockViewModel.adBlockEnabled
         vb.ibAdBlock.setImageResource(if (adblockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
+        vb.tvBlockedAdCounter.visibility = if (adblockEnabled && tab.webView?.blockedAds != 0) View.VISIBLE else View.GONE
+        vb.tvBlockedAdCounter.text = tab.webView?.blockedAds?.toString() ?: ""
     }
 
     private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
@@ -1092,6 +1103,7 @@ class MainActivity : AppCompatActivity() {
             if (tabByTitleIndex(vb.vTitles.current) == tab) {
                 vb.etUrl.setText(tab.url)
             }
+            tab.hasAutoOpenedWindows = false
         }
 
         override fun onPageFinished(url: String?) {
@@ -1143,8 +1155,36 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onBlockedAdsCountChanged(blockedAds: Int) {
+            if (!adblockViewModel.adBlockEnabled) return
             vb.tvBlockedAdCounter.visibility = if (blockedAds > 0) View.VISIBLE else View.GONE
             vb.tvBlockedAdCounter.text = blockedAds.toString()
+        }
+
+        override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx? {
+            if (isAdBlockingEnabled() && tab.hasAutoOpenedWindows) {
+                tab.webView?.apply {
+                    blockedAds++
+                    onBlockedAdsCountChanged(blockedAds)
+                }
+                return null
+            }
+            val tab = WebTabState()
+            val webView = createWebView(tab) ?: return null
+            val currentTab = this@MainActivity.viewModel.currentTab.value ?: return null
+            val index = viewModel.tabsStates.indexOf(currentTab) + 1
+            viewModel.tabsStates.add(index, tab)
+            changeTab(tab)
+            this.tab.hasAutoOpenedWindows = true
+            return webView
+        }
+
+        override fun closeWindow(window: WebView) {
+            for (tab in viewModel.tabsStates) {
+                if (tab.webView == window) {
+                    closeTab(tab)
+                    break
+                }
+            }
         }
     }
 }

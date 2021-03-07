@@ -211,4 +211,10 @@ class MainActivityViewModel: ViewModel() {
                 .useLines { lines -> lines.forEach { line -> emit(line) }
                 }
     }
+
+    fun onDetachActivity() {
+        for (tab in tabsStates) {
+            tab.recycleWebView()
+        }
+    }
 }

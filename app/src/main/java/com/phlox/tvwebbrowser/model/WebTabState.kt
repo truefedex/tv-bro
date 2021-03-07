@@ -50,6 +50,8 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     var webPageInteractionDetected = false
     @Ignore
     var lastLoadingUrl: String? = null //this is last url appeared in WebViewClient.shouldOverrideUrlLoading callback
+    @Ignore
+    var hasAutoOpenedWindows = false
 
     constructor(context: Context, json: JSONObject) : this() {
         try {
@@ -202,13 +204,11 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     fun updateThumbnail(context: Context, thumbnail: Bitmap, scope: CoroutineScope) {
         this.thumbnail = thumbnail
         val url = url
-        if (url != null) {
-            var hash = Utils.MD5_Hash(url.toByteArray(Charset.defaultCharset()))
-            if (hash != null) {
-                hash += hashCode()//to make thumbnails from different tabs unique even with same url
-                if (hash != thumbnailHash) {
-                    saveThumbnail(context, scope)
-                }
+        var hash = Utils.MD5_Hash(url.toByteArray(Charset.defaultCharset()))
+        if (hash != null) {
+            hash += hashCode()//to make thumbnails from different tabs unique even with same url
+            if (hash != thumbnailHash) {
+                saveThumbnail(context, scope)
             }
         }
     }
