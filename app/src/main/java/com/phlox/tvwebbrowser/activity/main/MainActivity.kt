@@ -568,7 +568,7 @@ class MainActivity : AppCompatActivity() {
     private fun createWebView(tab: WebTabState): WebViewEx? {
         val webView: WebViewEx
         try {
-            webView = WebViewEx(this)
+            webView = WebViewEx(WebViewCallback(tab), this)
             tab.webView = webView
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -602,182 +602,6 @@ class MainActivity : AppCompatActivity() {
         webView.settings.userAgentString = settingsViewModel.uaString.value
 
         webView.addJavascriptInterface(viewModel.jsInterface, "TVBro")
-
-        webView.setListener(object : WebViewEx.Callback {
-            override fun getActivity(): Activity {
-                return this@MainActivity
-            }
-
-            override fun onOpenInNewTabRequested(s: String) {
-                var index = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
-                index = if (index == -1) viewModel.tabsStates.size else index + 1
-                openInNewTab(s, index)
-            }
-
-            override fun onDownloadRequested(url: String) {
-                onDownloadRequested(url, tab)
-            }
-
-            override fun onLongTap() {
-                vb.flWebViewContainer?.goToFingerMode()
-            }
-
-            override fun onThumbnailError() {
-                //nop for now
-            }
-
-            override fun onShowCustomView(view: View) {
-                tab.webView?.visibility = View.GONE
-                vb.flFullscreenContainer.visibility = View.VISIBLE
-                vb.flFullscreenContainer.addView(view)
-                vb.flFullscreenContainer.cursorPosition.set(vb.flWebViewContainer.cursorPosition)
-                fullScreenView = view
-            }
-
-            override fun onHideCustomView() {
-                if (fullScreenView != null) {
-                    vb.flFullscreenContainer.removeView(fullScreenView)
-                    fullScreenView = null
-                }
-                vb.flWebViewContainer.cursorPosition.set(vb.flFullscreenContainer.cursorPosition)
-                vb.flFullscreenContainer.visibility = View.INVISIBLE
-                tab.webView?.visibility = View.VISIBLE
-            }
-
-            override fun onProgressChanged(newProgress: Int) {
-                vb.progressBar.visibility = View.VISIBLE
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    vb.progressBar.setProgress(newProgress, true)
-                } else {
-                    vb.progressBar.progress = newProgress
-                }
-                uiHandler.removeCallbacks(progressBarHideRunnable)
-                if (newProgress == 100) {
-                    uiHandler.postDelayed(progressBarHideRunnable, 1000)
-                } else {
-                    uiHandler.postDelayed(progressBarHideRunnable, 5000)
-                }
-            }
-
-            override fun onReceivedTitle(title: String) {
-                tab.title = title
-                vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
-                vb.vTitles.postInvalidate()
-            }
-
-            override fun requestPermissions(array: Array<String>, geo: Boolean) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissions(array, if (geo) MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS else MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS)
-                }
-            }
-
-            override fun onShowFileChooser(intent: Intent): Boolean {
-                try {
-                    startActivityForResult(intent, PICKFILE_REQUEST_CODE)
-                } catch (e: ActivityNotFoundException) {
-                    Utils.showToast(applicationContext, getString(R.string.err_cant_open_file_chooser))
-                    return false
-                }
-                return true
-            }
-
-            override fun onReceivedIcon(icon: Bitmap) {
-                tab.updateFavIcon(this@MainActivity, icon)
-            }
-
-            override fun shouldOverrideUrlLoading(url: String): Boolean {
-                tab.lastLoadingUrl = url
-
-                if (URLUtil.isNetworkUrl(url)) {
-                    tab.url = url
-                    if (tabByTitleIndex(vb.vTitles.current) == tab) {
-                        vb.etUrl.setText(tab.url)
-                    }
-                    return false
-                }
-
-                val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
-
-                intent.putExtra("URL_INTENT_ORIGIN", tab.webView?.hashCode())
-                intent.addCategory(Intent.CATEGORY_BROWSABLE)
-                intent.component = null
-                intent.selector = null
-
-                if (intent.resolveActivity(this@MainActivity.packageManager) != null) {
-                    startActivityIfNeeded(intent, -1)
-
-                    return true
-                }
-
-                return false
-            }
-
-            override fun onPageStarted(url: String?) {
-                onWebViewUpdated(tab)
-                val webViewUrl = tab.webView?.url
-                if (webViewUrl != null) {
-                    tab.url = webViewUrl
-                } else if (url != null) {
-                    tab.url = url
-                }
-                if (tabByTitleIndex(vb.vTitles.current) == tab) {
-                    vb.etUrl.setText(tab.url)
-                }
-            }
-
-            override fun onPageFinished(url: String?) {
-                if (tab.webView == null || viewModel.currentTab.value == null) {
-                    return
-                }
-                onWebViewUpdated(tab)
-
-                val webViewUrl = tab.webView?.url
-                if (webViewUrl != null) {
-                    tab.url = webViewUrl
-                } else if (url != null) {
-                    tab.url = url
-                }
-                if (tabByTitleIndex(vb.vTitles.current) == tab) {
-                    vb.etUrl.setText(tab.url)
-                }
-
-                //thumbnail
-                viewModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
-                val newThumbnail = tab.webView?.renderThumbnail(tab.thumbnail)
-                if (newThumbnail != null) {
-                    tab.updateThumbnail(this@MainActivity, newThumbnail, lifecycleScope)
-                    if (vb.rlActionBar.visibility == View.VISIBLE && tab == viewModel.currentTab.value) {
-                        displayThumbnail(tab)
-                    }
-                }
-
-                tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
-                tab.webPageInteractionDetected = false
-                if (HOME_URL == url) {
-                    tab.webView?.loadUrl("javascript:renderSuggestions()")
-                }
-            }
-
-            override fun onPageCertificateError(url: String?) {
-                vb.etUrl.setTextColor(Color.RED)
-            }
-
-            override fun isAd(url: Uri): Boolean {
-                return adblockViewModel.isAd(url)
-            }
-
-            override fun isAdBlockingEnabled(): Boolean {
-                viewModel.currentTab.value?.adblock?.apply {
-                    return this
-                }
-                return  adblockViewModel.adBlockEnabled
-            }
-
-            override fun onBlockedAdsCountChanged(blockedAds: Int) {
-                vb.tvBlockedAdCounter.visibility = if (blockedAds > 0) View.VISIBLE else View.GONE
-                vb.tvBlockedAdCounter.text = blockedAds.toString()
-            }
-        })
 
         webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
             Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
@@ -914,11 +738,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun toggleAdBlockForTab() {
         viewModel.currentTab.value?.apply {
-            var currentState = adblock
-            if (currentState == null) {
-                currentState = adblockViewModel.adBlockEnabled
-            }
-            adblock = !currentState
+            val currentState = adblock ?: adblockViewModel.adBlockEnabled
+            val newState = !currentState
+            adblock = newState
+            webView?.onUpdateAdblockSetting(newState)
             onWebViewUpdated(this)
             refresh()
         }
@@ -1151,5 +974,177 @@ class MainActivity : AppCompatActivity() {
     fun initiateVoiceSearch() {
         hideMenuOverlay()
         VoiceSearchHelper.initiateVoiceSearch(this, VOICE_SEARCH_REQUEST_CODE)
+    }
+
+    private inner class WebViewCallback(val tab: WebTabState): WebViewEx.Callback {
+        override fun getActivity(): Activity {
+            return this@MainActivity
+        }
+
+        override fun onOpenInNewTabRequested(s: String) {
+            var index = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
+            index = if (index == -1) viewModel.tabsStates.size else index + 1
+            openInNewTab(s, index)
+        }
+
+        override fun onDownloadRequested(url: String) {
+            onDownloadRequested(url, tab)
+        }
+
+        override fun onLongTap() {
+            vb.flWebViewContainer?.goToFingerMode()
+        }
+
+        override fun onThumbnailError() {
+            //nop for now
+        }
+
+        override fun onShowCustomView(view: View) {
+            tab.webView?.visibility = View.GONE
+            vb.flFullscreenContainer.visibility = View.VISIBLE
+            vb.flFullscreenContainer.addView(view)
+            vb.flFullscreenContainer.cursorPosition.set(vb.flWebViewContainer.cursorPosition)
+            fullScreenView = view
+        }
+
+        override fun onHideCustomView() {
+            if (fullScreenView != null) {
+                vb.flFullscreenContainer.removeView(fullScreenView)
+                fullScreenView = null
+            }
+            vb.flWebViewContainer.cursorPosition.set(vb.flFullscreenContainer.cursorPosition)
+            vb.flFullscreenContainer.visibility = View.INVISIBLE
+            tab.webView?.visibility = View.VISIBLE
+        }
+
+        override fun onProgressChanged(newProgress: Int) {
+            vb.progressBar.visibility = View.VISIBLE
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                vb.progressBar.setProgress(newProgress, true)
+            } else {
+                vb.progressBar.progress = newProgress
+            }
+            uiHandler.removeCallbacks(progressBarHideRunnable)
+            if (newProgress == 100) {
+                uiHandler.postDelayed(progressBarHideRunnable, 1000)
+            } else {
+                uiHandler.postDelayed(progressBarHideRunnable, 5000)
+            }
+        }
+
+        override fun onReceivedTitle(title: String) {
+            tab.title = title
+            vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
+            vb.vTitles.postInvalidate()
+        }
+
+        override fun requestPermissions(array: Array<String>, geo: Boolean) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(array, if (geo) MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS else MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS)
+            }
+        }
+
+        override fun onShowFileChooser(intent: Intent): Boolean {
+            try {
+                startActivityForResult(intent, PICKFILE_REQUEST_CODE)
+            } catch (e: ActivityNotFoundException) {
+                Utils.showToast(applicationContext, getString(R.string.err_cant_open_file_chooser))
+                return false
+            }
+            return true
+        }
+
+        override fun onReceivedIcon(icon: Bitmap) {
+            tab.updateFavIcon(this@MainActivity, icon)
+        }
+
+        override fun shouldOverrideUrlLoading(url: String): Boolean {
+            tab.lastLoadingUrl = url
+
+            if (URLUtil.isNetworkUrl(url)) {
+                return false
+            }
+
+            val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+
+            intent.putExtra("URL_INTENT_ORIGIN", tab.webView?.hashCode())
+            intent.addCategory(Intent.CATEGORY_BROWSABLE)
+            intent.component = null
+            intent.selector = null
+
+            if (intent.resolveActivity(this@MainActivity.packageManager) != null) {
+                startActivityIfNeeded(intent, -1)
+
+                return true
+            }
+
+            return false
+        }
+
+        override fun onPageStarted(url: String?) {
+            onWebViewUpdated(tab)
+            val webViewUrl = tab.webView?.url
+            if (webViewUrl != null) {
+                tab.url = webViewUrl
+            } else if (url != null) {
+                tab.url = url
+            }
+            if (tabByTitleIndex(vb.vTitles.current) == tab) {
+                vb.etUrl.setText(tab.url)
+            }
+        }
+
+        override fun onPageFinished(url: String?) {
+            if (tab.webView == null || viewModel.currentTab.value == null) {
+                return
+            }
+            onWebViewUpdated(tab)
+
+            val webViewUrl = tab.webView?.url
+            if (webViewUrl != null) {
+                tab.url = webViewUrl
+            } else if (url != null) {
+                tab.url = url
+            }
+            if (tabByTitleIndex(vb.vTitles.current) == tab) {
+                vb.etUrl.setText(tab.url)
+            }
+
+            //thumbnail
+            viewModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
+            val newThumbnail = tab.webView?.renderThumbnail(tab.thumbnail)
+            if (newThumbnail != null) {
+                tab.updateThumbnail(this@MainActivity, newThumbnail, lifecycleScope)
+                if (vb.rlActionBar.visibility == View.VISIBLE && tab == viewModel.currentTab.value) {
+                    displayThumbnail(tab)
+                }
+            }
+
+            tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
+            tab.webPageInteractionDetected = false
+            if (HOME_URL == url) {
+                tab.webView?.loadUrl("javascript:renderSuggestions()")
+            }
+        }
+
+        override fun onPageCertificateError(url: String?) {
+            vb.etUrl.setTextColor(Color.RED)
+        }
+
+        override fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean {
+            return adblockViewModel.isAd(request, baseUri)
+        }
+
+        override fun isAdBlockingEnabled(): Boolean {
+            viewModel.currentTab.value?.adblock?.apply {
+                return this
+            }
+            return  adblockViewModel.adBlockEnabled
+        }
+
+        override fun onBlockedAdsCountChanged(blockedAds: Int) {
+            vb.tvBlockedAdCounter.visibility = if (blockedAds > 0) View.VISIBLE else View.GONE
+            vb.tvBlockedAdCounter.text = blockedAds.toString()
+        }
     }
 }

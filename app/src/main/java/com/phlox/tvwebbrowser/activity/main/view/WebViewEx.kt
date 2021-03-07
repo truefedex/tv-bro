@@ -27,9 +27,10 @@ import com.phlox.tvwebbrowser.utils.LogUtils
 import java.net.URLEncoder
 
 /**
- * Created by fedex on 12.08.16.
+ * Copyright (c) 2016 Fedir Tsapana.
  */
-class WebViewEx : WebView {
+@SuppressLint("SetJavaScriptEnabled")
+class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
     companion object {
         val TAG = WebViewEx::class.java.simpleName
         const val HOME_URL = "about:blank"
@@ -38,10 +39,9 @@ class WebViewEx : WebView {
         const val INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT = "certificate"
     }
 
-    private lateinit var webChromeClient_: WebChromeClient
+    private var webChromeClient_: WebChromeClient
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
-    private var callback: Callback? = null
     private var actionsMenu: PopupMenu? = null
     private var lastTouchX: Int = 0
     private var lastTouchY: Int = 0
@@ -52,7 +52,7 @@ class WebViewEx : WebView {
     private var geoPermissionsCallback: GeolocationPermissions.Callback? = null
     var lastSSLError: SslError? = null
     var trustSsl: Boolean = false
-    private var currentOriginalUrl: String? = null
+    private var currentOriginalUrl: Uri? = null
 
     interface Callback {
         fun getActivity(): Activity
@@ -72,29 +72,15 @@ class WebViewEx : WebView {
         fun onPageFinished(url: String?)
         fun onPageCertificateError(url: String?)
         fun isAdBlockingEnabled(): Boolean
-        fun isAd(url: Uri): Boolean
+        fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean
         fun onBlockedAdsCountChanged(blockedAds: Int)
     }
 
-    constructor(context: Context) : super(context) {
-        init()
-    }
-
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
-        init()
-    }
-
-    @SuppressLint("SetJavaScriptEnabled")
-    private fun init() {
-        if (isInEditMode) {
-            return
-        }
-
+    init {
         with(settings) {
             javaScriptCanOpenWindowsAutomatically = true
-            pluginState = WebSettings.PluginState.ON_DEMAND
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                safeBrowsingEnabled = false
+                safeBrowsingEnabled = callback.isAdBlockingEnabled()
             }
             javaScriptEnabled = true
             databaseEnabled = true
@@ -295,18 +281,11 @@ class WebViewEx : WebView {
         }
 
         webViewClient = object : WebViewClient() {
-            private val loadedUrls = HashMap<String, Boolean>()
             private var blockedAds = 0
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 Log.d(TAG, "shouldOverrideUrlLoading url: ${request.url}")
-                val url: String = request.url.toString()
-
-                if (URLUtil.isNetworkUrl(url)) {
-                    currentOriginalUrl = url
-                }
-
-                return callback?.shouldOverrideUrlLoading(url) ?: false
+                return callback?.shouldOverrideUrlLoading(request.url.toString()) ?: false
             }
 
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -316,11 +295,7 @@ class WebViewEx : WebView {
                     return super.shouldInterceptRequest(view, request)
                 }
 
-                var ad: Boolean? = loadedUrls[request.url.toString()]
-                if (ad == null) {
-                    ad = callback?.isAd(request.url) ?: false
-                    loadedUrls[request.url.toString()] = ad
-                }
+                val ad = currentOriginalUrl?.let { callback?.isAd(request, it)} ?: false
                 return if (ad) {
                     Log.d(TAG, "Blocked ads request: ${request.url}")
                     blockedAds++
@@ -332,7 +307,7 @@ class WebViewEx : WebView {
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 Log.d(TAG, "onPageStarted url: $url")
-                currentOriginalUrl = url
+                currentOriginalUrl = Uri.parse(url)
                 callback?.onPageStarted(url)
                 blockedAds = 0
                 callback?.onBlockedAdsCountChanged(blockedAds)
@@ -341,7 +316,6 @@ class WebViewEx : WebView {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "onPageFinished url: $url")
-                currentOriginalUrl = url
                 callback?.onPageFinished(url)
             }
 
@@ -359,7 +333,7 @@ class WebViewEx : WebView {
                     return
                 }
                 handler.cancel()
-                if (error.url == currentOriginalUrl) {//skip ssl errors during loading non-page resources (Chrome did like this too)
+                if (error.url == currentOriginalUrl.toString()) {//skip ssl errors during loading non-page resources (Chrome did like this too)
                     showCertificateErrorPage(error)
                 }
             }
@@ -407,10 +381,6 @@ class WebViewEx : WebView {
             }
             actionsMenu!!.show()
         }
-    }
-
-    fun setListener(callback: Callback) {
-        this.callback = callback
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -523,6 +493,12 @@ class WebViewEx : WebView {
                 this.grant(resources.toTypedArray())
             }
             webPermissionsRequest = null
+        }
+    }
+
+    fun onUpdateAdblockSetting(adblockEnabled: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            settings.safeBrowsingEnabled = adblockEnabled
         }
     }
 }

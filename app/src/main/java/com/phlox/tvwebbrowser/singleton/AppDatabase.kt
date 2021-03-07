@@ -10,14 +10,12 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.model.dao.*
 
-@Database(entities = [Download::class, FavoriteItem::class, HistoryItem::class, WebTabState::class, AdBlockItem::class], version = 11/*, exportSchema = true*/)
-@TypeConverters(TypeConverter::class)
+@Database(entities = [Download::class, FavoriteItem::class, HistoryItem::class, WebTabState::class], version = 12/*, exportSchema = true*/)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
     abstract fun historyDao(): HistoryDao
     abstract fun favoritesDao(): FavoritesDao
     abstract fun tabsDao(): TabsDao
-    abstract fun adBlockList(): AdBlockListDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -91,6 +89,12 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS 'adblocklist';")
+            }
+        }
+
         private fun createAdBlockListTable(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS 'adblocklist' ('id' INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 'type' INTEGER NOT NULL, 'value' TEXT NOT NULL)")
             db.execSQL("CREATE INDEX IF NOT EXISTS 'type_value_idx' ON 'adblocklist' ('type', 'value')")
@@ -127,6 +131,6 @@ abstract class AppDatabase : RoomDatabase() {
                 TVBro.instance,
                 AppDatabase::class.java, "main.db"
         ).addMigrations(MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9,
-            MIGRATION_9_10, MIGRATION_10_11).build() }
+            MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12).build() }
     }
 }

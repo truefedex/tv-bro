@@ -61,16 +61,11 @@ android {
         }
     }
 
-    flavorDimensions("crashlytics", "appstore")
+    flavorDimensions("appstore")
     productFlavors {
-        create("crashlyticsfree") {
-            dimension("crashlytics")
+        create("generic") {
+            dimension("appstore")
         }
-        create("crashlytics") {
-            dimension("crashlytics")
-            //versionNameSuffix "-crashlytics"
-        }
-
         create("google") {
             dimension("appstore")
         }
@@ -95,13 +90,20 @@ android {
     }
 }
 
+repositories {
+    flatDir {
+        dir("libs/aars")
+    }
+}
+
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    implementation("com.brave.adblock:ad-block:1.0@aar")
 
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
 
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
@@ -117,67 +119,9 @@ dependencies {
     implementation("com.github.truefedex:segmented-button:v1.0.0")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
-    "crashlyticsImplementation"("com.google.firebase:firebase-core:18.0.2")
-    "crashlyticsImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.3.1")
+    //appstore-dependent dependencies
+    "googleImplementation"("com.google.firebase:firebase-core:18.0.2")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.3.1")
 }
 
 tasks.getByName("check").dependsOn("lint")
-
-tasks.register("prepareAdblockerXml"){
-    doLast {
-        val pglYoyoListUrl = "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=nohtml&showintro=0&mimetype=plaintext"
-        //for unknown reason on some machines there ssl errors while accessing pgl.yoyo.org
-        val trustAllCerts: Array<javax.net.ssl.TrustManager> = arrayOf(object : javax.net.ssl.X509TrustManager {
-            override fun checkClientTrusted(certs: Array<X509Certificate?>?, authType: String?) {}
-            override fun checkServerTrusted(certs: Array<X509Certificate?>?, authType: String?) {}
-
-            override fun getAcceptedIssuers(): Array<X509Certificate>? {
-                return null
-            }
-        })
-        val sc = javax.net.ssl.SSLContext.getInstance("SSL")
-        sc.init(null, trustAllCerts, null)
-        javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(sc.socketFactory)
-        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
-        val hosts = URL(pglYoyoListUrl).openStream().bufferedReader().use(BufferedReader::readLines)
-        val xmlFile = FileOutputStream("$projectDir/src/main/assets/adblockerlist.xml")
-
-        try {
-            val documentFactory: DocumentBuilderFactory = DocumentBuilderFactory.newInstance()
-            val documentBuilder: DocumentBuilder = documentFactory.newDocumentBuilder()
-            val document: Document = documentBuilder.newDocument()
-
-            // root element
-            val root = document.createElement("root")
-            var attr = document.createAttribute("date")
-            attr.value = SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSSZ").format(Date())
-            root.setAttributeNode(attr)
-            document.appendChild(root)
-
-            hosts.forEach {
-                val employee = document.createElement("item")
-                employee.textContent = it
-
-                attr = document.createAttribute("type")
-                attr.value = "host"
-                employee.setAttributeNode(attr)
-
-                attr = document.createAttribute("src")
-                attr.value = "pgl.yoyo"
-                employee.setAttributeNode(attr)
-
-                root.appendChild(employee)
-            }
-            //transform the DOM Object to an XML File
-            val transformerFactory: TransformerFactory = TransformerFactory.newInstance()
-            val transformer = transformerFactory.newTransformer()
-            val domSource = DOMSource(document)
-            val streamResult = StreamResult(xmlFile)
-
-            transformer.transform(domSource, streamResult)
-            println("Done creating XML File")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-}
