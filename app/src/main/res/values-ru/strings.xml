@@ -83,6 +83,12 @@
     <string name="new_tab_title">[НОВАЯ ВКЛ.]</string>
     <string name="open_a_new_tab_here">Открыть новую вкладку тут</string>
     <string name="tabs">Вкладки</string>
+    <array name="tabs_options">
+        <item>Закрыть текущую</item>
+        <item>Закрыть все</item>
+        <item>Сдвинуть влево</item>
+        <item>Сдвинуть вправо</item>
+    </array>
     <string name="ssl_expired">Срок действия сертификата истек</string>
     <string name="ssl_idmismatch">Несоответствие имени хоста</string>
     <string name="ssl_date_invalid">Дата сертификата недействительна</string>
