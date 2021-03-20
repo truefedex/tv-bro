@@ -20,6 +20,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.nio.charset.Charset
 
@@ -31,17 +32,30 @@ import java.nio.charset.Charset
  */
 @Entity(tableName = "tabs")
 data class WebTabState(@PrimaryKey(autoGenerate = true)
-                       var id: Long = 0, var url: String = "", var title: String = "",
-                       var selected: Boolean = false, var thumbnailHash: String? = null,
-                       var faviconHash: String? = null, @Ignore var thumbnail: Bitmap? = null,
-                       @Ignore var favicon: Bitmap? = null, var incognito: Boolean = false,
-                       var position: Int = 0, @ColumnInfo(name = "wv_state", typeAffinity = ColumnInfo.BLOB)
-                       var wvState: ByteArray? = null, var adblock: Boolean? = null) {
+                       var id: Long = 0,
+                       var url: String = "",
+                       var title: String = "",
+                       var selected: Boolean = false,
+                       var thumbnailHash: String? = null,
+                       var faviconHash: String? = null,
+                       var incognito: Boolean = false,
+                       var position: Int = 0,
+                       @Deprecated("This field is not used anymore")
+                       @ColumnInfo(name = "wv_state", typeAffinity = ColumnInfo.BLOB)
+                       var wvState: ByteArray? = null,
+                       @ColumnInfo(name = "wv_state_file")
+                       var wvStateFileName: String? = null,
+                       var adblock: Boolean? = null) {
     companion object {
         const val TAB_THUMBNAILS_DIR = "tabthumbs"
+        const val TAB_WVSTATES_DIR = "wvstates"
         const val FAVICONS_DIR = "favicons"
     }
 
+    @Ignore
+    var thumbnail: Bitmap? = null
+    @Ignore
+    var favicon: Bitmap? = null
     @Ignore
     var savedState: Bundle? = null
     @Ignore
@@ -74,7 +88,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
                 val state = Utils.convertJsonToBundle(json.getJSONObject("wv_state"))
                 if (state != null && !state.isEmpty) {
                     savedState = state
-                    wvState = Utils.bundleToBytes(state)
                 }
             }
         } catch (e: JSONException) {
@@ -123,9 +136,16 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     private fun getThumbnailPath(hash: String) =
         TVBro.instance.cacheDir.absolutePath + File.separator + TAB_THUMBNAILS_DIR + File.separator + hash + ".png"
 
+    private fun getWVStatePath(hash: String) =
+            TVBro.instance.filesDir.absolutePath + File.separator + TAB_WVSTATES_DIR + File.separator + hash
+
     fun removeFiles() {
         if (thumbnailHash != null) {
             removeThumbnailFile()
+        }
+        wvStateFileName?.apply {
+            File(getWVStatePath(this)).delete()
+            wvStateFileName = null
         }
     }
 
@@ -137,15 +157,47 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     }
 
     fun restoreWebView() {
-        var state = savedState
-        val stateBytes = wvState
-        if (state != null) {
-            webView?.restoreState(state)
-        } else if (stateBytes != null) {
-            state = Utils.bytesToBundle(stateBytes)
-            state?.apply {webView?.restoreState(this)}
-        } else {
+        val restored = kotlin.run {
+            var state = savedState
+            val stateFileName = wvStateFileName
+            if (state != null) {
+                webView?.restoreState(state)
+                return@run true
+            } else if (stateFileName != null) {
+                try {
+                    val stateBytes = File(getWVStatePath(stateFileName)).readBytes()
+                    state = Utils.bytesToBundle(stateBytes)
+                    if (state == null) return@run false
+                    webView?.restoreState(state)
+                    return@run true
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    return@run false
+                }
+            }
+            return@run false
+        }
+        if (!restored) {
             this.url.takeIf { !TextUtils.isEmpty(url) }?.apply { webView?.loadUrl(this) }
+        }
+    }
+
+    fun saveWebViewStateToFile() {
+        val state = savedState
+        var stateFileName = wvStateFileName
+        if (state == null) return
+        val stateBytes = Utils.bundleToBytes(state) ?: return
+        if (stateFileName == null) {
+            stateFileName = Utils.MD5_Hash(stateBytes) ?: return
+        }
+        try {
+            val statesDir = File(TVBro.instance.filesDir.absolutePath + File.separator + TAB_WVSTATES_DIR)
+            if (statesDir.exists() || statesDir.mkdir()) {
+                File(getWVStatePath(stateFileName)).writeBytes(stateBytes)
+                wvStateFileName = stateFileName
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -159,7 +211,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             val state = Bundle()
             saveState(state)
             savedState = state
-            wvState = Utils.bundleToBytes(state)
         }
     }
 

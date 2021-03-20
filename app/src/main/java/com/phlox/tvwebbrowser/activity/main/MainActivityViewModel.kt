@@ -80,6 +80,7 @@ class MainActivityViewModel: ViewModel() {
             if (saveAlsoSelectionAndPositions) {
                 tabsDB.unselectAll(incognitoMode)
             }
+            tab.saveWebViewStateToFile()
             if (tab.id != 0L ) {
                 tabsDB.update(tab)
             } else {
