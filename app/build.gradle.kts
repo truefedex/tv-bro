@@ -1,15 +1,4 @@
-import org.w3c.dom.Document
-import java.io.BufferedReader
-import java.io.FileOutputStream
-import java.net.URL
-import java.security.cert.X509Certificate
-import java.text.SimpleDateFormat
 import java.util.*
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
 
 
 plugins {
@@ -98,13 +87,12 @@ repositories {
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    implementation("com.brave.adblock:ad-block:1.0@aar")
 
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3-native-mt")
 
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0")
@@ -117,11 +105,12 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
 
     implementation("com.github.truefedex:segmented-button:v1.0.0")
+    implementation("com.github.truefedex:ad-block:v0.0.1-ci")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
     //appstore-dependent dependencies
     "googleImplementation"("com.google.firebase:firebase-core:18.0.2")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.3.1")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.4.0")
 }
 
 tasks.getByName("check").dependsOn("lint")

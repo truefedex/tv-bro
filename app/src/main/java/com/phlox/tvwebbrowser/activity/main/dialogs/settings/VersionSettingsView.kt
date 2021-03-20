@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.text.Html
 import androidx.fragment.app.FragmentActivity
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -34,6 +35,7 @@ class VersionSettingsView @JvmOverloads constructor(
 
         vb.tvVersion.text = context.getString(R.string.version_s, BuildConfig.VERSION_NAME)
 
+        vb.tvLink.text = Html.fromHtml("<p><u>https://github.com/truefedex/tv-bro</u></p>")
         vb.tvLink.setOnClickListener {
             callback?.onNeedToCloseSettings()
             val intent = Intent(activity, MainActivity::class.java)

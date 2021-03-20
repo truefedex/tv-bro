@@ -8,7 +8,7 @@ buildscript {
     }
     dependencies {
         val kotlinVersion = "1.4.31"
-        classpath("com.android.tools.build:gradle:4.1.2")
+        classpath("com.android.tools.build:gradle:4.1.3")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("com.google.gms:google-services:4.3.5")
         classpath("com.google.firebase:firebase-crashlytics-gradle:2.5.1")

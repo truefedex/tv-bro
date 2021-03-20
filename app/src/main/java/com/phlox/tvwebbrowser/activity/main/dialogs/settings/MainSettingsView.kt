@@ -10,10 +10,13 @@ import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
+import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.AdblockViewModel
 import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
 import com.phlox.tvwebbrowser.databinding.ViewSettingsMainBinding
 import com.phlox.tvwebbrowser.utils.activity
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -31,10 +34,40 @@ class MainSettingsView @JvmOverloads constructor(
 
         initUAStringConfigUI(context)
 
+        initAdBlockConfigUI()
+    }
+
+    private fun initAdBlockConfigUI() {
         vb.scAdblock.isChecked = adblockViewModel.adBlockEnabled
         vb.scAdblock.setOnCheckedChangeListener { buttonView, isChecked ->
             adblockViewModel.adBlockEnabled = isChecked
+            vb.llAdBlockerDetails.visibility = if (isChecked) VISIBLE else GONE
         }
+        vb.llAdBlockerDetails.visibility = if (adblockViewModel.adBlockEnabled) VISIBLE else GONE
+
+        adblockViewModel.clientLoading.observe(activity as FragmentActivity) {
+            updateAdBlockInfo()
+        }
+
+        vb.btnAdBlockerUpdate.setOnClickListener {
+            if (adblockViewModel.clientLoading.value!!) return@setOnClickListener
+            adblockViewModel.loadAdBlockList(true)
+            it.isEnabled = false
+        }
+
+        updateAdBlockInfo()
+    }
+
+    private fun updateAdBlockInfo() {
+        val dateFormat = SimpleDateFormat("hh:mm dd MMMM yyyy", Locale.getDefault())
+        val lastUpdate = if (adblockViewModel.lastUpdateListTime == 0L)
+            context.getString(R.string.never) else
+            dateFormat.format(Date(adblockViewModel.lastUpdateListTime))
+        val infoText = "URL: ${adblockViewModel.adBlockListURL}\n${context.getString(R.string.last_update)}: $lastUpdate"
+        vb.tvAdBlockerListInfo.text = infoText
+        val loadingAdBlockList = adblockViewModel.clientLoading.value!!
+        vb.btnAdBlockerUpdate.isEnabled = !loadingAdBlockList
+        vb.pbAdBlockerListLoading.visibility = if (loadingAdBlockList) View.VISIBLE else View.GONE
     }
 
     private fun initUAStringConfigUI(context: Context) {

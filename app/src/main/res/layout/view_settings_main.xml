@@ -21,6 +21,7 @@
         <Spinner
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:dropDownWidth="300dp"
             android:id="@+id/spEngine" />
 
         <LinearLayout
@@ -43,7 +44,8 @@
                 android:inputType="textUri"
                 android:ems="10"
                 android:hint="@string/search_engine_url_with_query_placeholder_query"
-                android:id="@+id/etUrl" />
+                android:id="@+id/etUrl"
+                android:importantForAutofill="no" />
         </LinearLayout>
 
     </LinearLayout>
@@ -65,6 +67,7 @@
         <Spinner
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:dropDownWidth="300dp"
             android:id="@+id/spTitles" />
 
         <LinearLayout
@@ -87,7 +90,8 @@
                 android:inputType="textUri"
                 android:ems="10"
                 android:hint="@string/edit_user_agent_string"
-                android:id="@+id/etUAString" />
+                android:id="@+id/etUAString"
+                android:importantForAutofill="no" />
         </LinearLayout>
 
     </LinearLayout>
@@ -113,5 +117,40 @@
             android:layout_weight="0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llAdBlockerDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        android:paddingLeft="22dp"
+        android:paddingRight="22dp"
+        android:layout_marginTop="20dp">
+        <Button
+            android:id="@+id/btnAdBlockerUpdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAllCaps="false"
+            android:text="@string/update_ad_blocker_list" />
+        <TextView
+            android:id="@+id/tvAdBlockerListInfo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:layout_marginStart="5dp"
+            android:lines="2"
+            tools:text="URL: https://test.com\nLast update: never"
+            android:layout_weight="1"/>
+
+        <ProgressBar
+            android:id="@+id/pbAdBlockerListLoading"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_weight="0"
+            android:visibility="gone"/>
+
     </LinearLayout>
 </merge>
