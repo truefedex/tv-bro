@@ -11,22 +11,19 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
-import androidx.core.app.NotificationCompat
-import androidx.core.content.FileProvider
 import android.text.format.Formatter
 import android.util.Log
 import android.webkit.MimeTypeMap
 import android.widget.Toast
-
+import androidx.core.app.NotificationCompat
+import androidx.core.content.FileProvider
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.DownloadIntent
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import java.io.File
-
-import java.util.ArrayList
-import java.util.Date
+import java.util.*
 import java.util.concurrent.Executors
 
 /**
@@ -43,7 +40,7 @@ class DownloadService : Service() {
     private lateinit var notificationManager: NotificationManager
 
     internal var downloadTasksListener: DownloadTask.Callback = object : DownloadTask.Callback {
-        internal val MIN_NOTIFY_TIMEOUT = 100
+        val MIN_NOTIFY_TIMEOUT = 100
         private var lastNotifyTime = System.currentTimeMillis()
         override fun onProgress(task: DownloadTask) {
             val now = System.currentTimeMillis()
@@ -75,15 +72,8 @@ class DownloadService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent == null) return START_STICKY
-        val download = Download()
         val downloadIntent = intent.getParcelableExtra(KEY_DOWNLOAD) as DownloadIntent
-        download.fillWith(downloadIntent)
-        download.time = Date().time
-        Log.d(TAG, "Start to downloading url: ${download.url}")
-        val downloadTask = DownloadTask(download, downloadIntent.userAgent, downloadTasksListener)
-        activeDownloads.add(downloadTask)
-        executor.execute(downloadTask)
-        startForeground(DOWNLOAD_NOTIFICATION_ID, updateNotification())
+        startDownloading(downloadIntent)
         return START_STICKY
     }
 
@@ -133,7 +123,7 @@ class DownloadService : Service() {
         for (i in activeDownloads.indices) {
             val task = activeDownloads[i]
             if (task.downloadInfo.id == download.id) {
-                task.isCancelled = true
+                task.downloadInfo.cancelled = true
                 break
             }
         }
@@ -160,7 +150,8 @@ class DownloadService : Service() {
                     launchInstallAPKActivity(this, task.downloadInfo)
                 }
             }
-            Download.OperationAfterDownload.NOP -> {}
+            Download.OperationAfterDownload.NOP -> {
+            }
         }
         if (activeDownloads.isEmpty()) {
             for (i in listeners.indices) {
@@ -216,6 +207,21 @@ class DownloadService : Service() {
         }
     }
 
+    fun startDownloading(downloadIntent: DownloadIntent) {
+        val download = Download()
+        download.fillWith(downloadIntent)
+        download.time = Date().time
+        Log.d(TAG, "Start to downloading url: ${download.url}")
+        val downloadTask = if (downloadIntent.base64BlobData == null) {
+            FileDownloadTask(download, downloadIntent.userAgent, downloadTasksListener)
+        } else {
+            BlobDownloadTask(download, downloadIntent.base64BlobData, downloadTasksListener)
+        }
+        activeDownloads.add(downloadTask)
+        executor.execute(downloadTask)
+        startForeground(DOWNLOAD_NOTIFICATION_ID, updateNotification())
+    }
+
     inner class Binder : android.os.Binder() {
         val service: DownloadService
             get() = this@DownloadService
@@ -225,11 +231,5 @@ class DownloadService : Service() {
         val TAG: String = DownloadService::class.java.simpleName
         const val DOWNLOAD_NOTIFICATION_ID = 101101
         private const val KEY_DOWNLOAD = "download"
-
-        fun startDownloading(context: Context, downloadIntent: DownloadIntent) {
-            val intent = Intent(context, DownloadService::class.java)
-            intent.putExtra(KEY_DOWNLOAD, downloadIntent)
-            context.startService(intent)
-        }
     }
 }

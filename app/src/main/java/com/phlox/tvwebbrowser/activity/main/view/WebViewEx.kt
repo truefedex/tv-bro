@@ -15,7 +15,6 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.text.TextUtils
-import android.util.AttributeSet
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
@@ -26,14 +25,15 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.utils.LogUtils
 import java.net.URLEncoder
 
 /**
  * Copyright (c) 2016 Fedir Tsapana.
  */
-@SuppressLint("SetJavaScriptEnabled")
-class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
+@SuppressLint("SetJavaScriptEnabled", "ViewConstructor")
+class WebViewEx(context: Context, val callback: Callback, val jsInterface: AndroidJSInterface) : WebView(context) {
     companion object {
         val TAG = WebViewEx::class.java.simpleName
         const val HOME_URL = "about:blank"
@@ -81,6 +81,7 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
         fun onBlockedAdsCountChanged(blockedAds: Int)
         fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
         fun closeWindow(window: WebView)
+        fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long)
     }
 
     init {
@@ -107,6 +108,11 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
             javaScriptCanOpenWindowsAutomatically = false
             setSupportMultipleWindows(true)
             setNeedInitialFocus(false)
+
+            allowFileAccess = true
+            allowFileAccessFromFileURLs = true
+            allowUniversalAccessFromFileURLs = true
+            domStorageEnabled = true
         }
 
         /*scrollBarStyle = WebView.SCROLLBARS_OUTSIDE_OVERLAY
@@ -289,7 +295,7 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                 Log.d(TAG, "shouldInterceptRequest url: ${request.url}")
 
-                if (callback.isAdBlockingEnabled() != true) {
+                if (!callback.isAdBlockingEnabled()) {
                     return super.shouldInterceptRequest(view, request)
                 }
 
@@ -315,11 +321,12 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "onPageFinished url: $url")
                 callback.onPageFinished(url)
+                evaluateJavascript(getGenericJSInjects(), null)
             }
 
             override fun onLoadResource(view: WebView, url: String) {
                 super.onLoadResource(view, url)
-                Log.d(TAG, "onLoadResource url: $url")
+                //Log.d(TAG, "onLoadResource url: $url")
             }
 
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
@@ -338,6 +345,59 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
         }
 
         webChromeClient = webChromeClient_
+
+        setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
+            Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
+            if (url.startsWith("blob:")) {
+                //nop. we handle this by injected js on onPageFinished
+            } else {
+                callback.onDownloadStart(url, userAgent, contentDisposition, mimetype, contentLength)
+            }
+        }
+
+        addJavascriptInterface(jsInterface, "TVBro")
+    }
+
+    private fun runBlobLoadInjectScript(blobUrl: String, mimetype: String) {
+        val js = "var xhr=new XMLHttpRequest();" +
+                "xhr.open('GET', '"+blobUrl+"', true);" +
+                "xhr.setRequestHeader('Content-type','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8');" +
+                "xhr.responseType = 'blob';" +
+                "xhr.onload = function(e) {" +
+                "    if (this.status == 200) {" +
+                "        var blobPdf = this.response;" +
+                "        var reader = new FileReader();" +
+                "        reader.readAsDataURL(blobPdf);" +
+                "        reader.onloadend = function() {" +
+                "            base64data = reader.result;" +
+                "            TVBro.takeBlobDownloadData(base64data, '$blobUrl', '$mimetype');" +
+                "        }" +
+                "    }" +
+                "};" +
+                "xhr.send();"
+
+        evaluateJavascript(js, null)
+        //loadUrl( "javascript: $js")
+
+        /*val sb = StringBuilder()
+        sb.append("var xhr = new XMLHttpRequest();")
+        sb.append("xhr.open('GET', '$blobUrl', true);")
+        sb.append("xhr.responseType = 'arraybuffer';")
+        sb.append("xhr.onload = function(e) {")
+        sb.append("if (this.status == 200) {")
+        sb.append("var uInt8Array = new Uint8Array(this.response);")
+        sb.append("var i = uInt8Array.length;")
+        sb.append("var binaryString = new Array(i);")
+        sb.append("while (i--){")
+        sb.append("binaryString[i] = String.fromCharCode(uInt8Array[i]);")
+        sb.append("};")
+        sb.append("var data = binaryString.join('');")
+        sb.append("var base64 = window.btoa(data);")
+        sb.append("TVBro.takeBlobDownloadData(base64, '$blobUrl', '$mimetype');")
+        sb.append("};")
+        sb.append("};")
+        sb.append("xhr.send();")
+        return "javascript:$sb"*/
     }
 
     private fun showCertificateErrorPage(error: SslError) {
@@ -415,6 +475,37 @@ class WebViewEx(val callback: Callback, context: Context) : WebView(context) {
                 super.loadUrl(url)
             }
         }
+    }
+
+    private fun getGenericJSInjects(): String {
+        return """
+    if (!window.tvBroClicksListener) {
+        window.tvBroClicksListener = function(e){
+            if (e.target.tagName.toUpperCase() == "A" && e.target.attributes.href.value.toLowerCase().startsWith("blob:")) {
+                var fileName = e.target.download;
+                var url = e.target.attributes.href.value;
+                var xhr=new XMLHttpRequest();
+                xhr.open('GET', e.target.attributes.href.value, true);
+                xhr.responseType = 'blob';
+                xhr.onload = function(e) {
+                    if (this.status == 200) {
+                        var blob = this.response;
+                        var reader = new FileReader();
+                        reader.readAsDataURL(blob);
+                        reader.onloadend = function() {
+                            base64data = reader.result;
+                            TVBro.takeBlobDownloadData(base64data, fileName, url, blob.type);
+                        }
+                    }
+                };
+                xhr.send();
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        };
+        document.addEventListener("click", window.tvBroClicksListener);
+    }
+        """.trimIndent()
     }
 
     fun renderThumbnail(bitmap: Bitmap?): Bitmap? {

@@ -155,17 +155,19 @@ class MainActivityViewModel: ViewModel() {
     }
 
     fun onDownloadRequested(activity: MainActivity, url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String? = null,
-                            operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP) {
-        downloadIntent = DownloadIntent(url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload)
+                            operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP,
+                            base64BlobData: String? = null) {
+        downloadIntent = DownloadIntent(url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload, null, base64BlobData)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             activity.requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     MainActivity.MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE)
         } else {
-            startDownload(activity)
+            startDownload(activity, activity.downloadsService)
         }
     }
 
-    fun startDownload(activity: MainActivity) {
+    fun startDownload(activity: MainActivity, downloadsService: DownloadService?) {
+        val service = downloadsService ?: return
         val download = this.downloadIntent ?: return
         this.downloadIntent = null
         val extPos = download.fileName.lastIndexOf(".")
@@ -199,7 +201,7 @@ class MainActivityViewModel: ViewModel() {
         }
         download.fullDestFilePath = downloadsDir.toString() + File.separator + fileName
 
-        DownloadService.startDownloading(activity, download)
+        service.startDownloading(download)
 
         activity.onDownloadStarted(fileName)
     }

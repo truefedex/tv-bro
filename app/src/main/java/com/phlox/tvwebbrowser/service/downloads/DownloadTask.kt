@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.service.downloads
 
+import android.util.Base64
 import android.webkit.CookieManager
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.singleton.AppDatabase
@@ -12,19 +13,17 @@ import java.net.URL
  * Created by PDT on 23.01.2017.
  */
 
-class DownloadTask(var downloadInfo: Download, private val userAgent: String, var callback: Callback) : Runnable {
-
-    var isCancelled: Boolean
-        get() = downloadInfo.cancelled
-        set(cancelled) {
-            downloadInfo.cancelled = cancelled
-        }
+interface DownloadTask {
+    var downloadInfo: Download
 
     interface Callback {
         fun onProgress(task: DownloadTask)
         fun onError(task: DownloadTask, responseCode: Int, responseMessage: String)
         fun onDone(task: DownloadTask)
     }
+}
+
+class FileDownloadTask(override var downloadInfo: Download, private val userAgent: String, val callback: DownloadTask.Callback) : Runnable, DownloadTask {
 
     override fun run() {
         downloadInfo.id = AppDatabase.db.downloadDao().insert(downloadInfo)
@@ -65,7 +64,7 @@ class DownloadTask(var downloadInfo: Download, private val userAgent: String, va
             var total: Long = 0
             var count = input.read(data)
             while (count != -1) {
-                if (isCancelled) {
+                if (downloadInfo.cancelled) {
                     downloadInfo.bytesReceived = 0
                     downloadInfo.size = Download.CANCELLED_MARK
                     callback.onDone(this)
@@ -89,11 +88,34 @@ class DownloadTask(var downloadInfo: Download, private val userAgent: String, va
             }
 
             connection?.disconnect()
-            if (isCancelled) {
+            if (downloadInfo.cancelled) {
                 File(downloadInfo.filepath).delete()
             }
         }
         downloadInfo.size = downloadInfo.bytesReceived
+        callback.onDone(this)
+    }
+}
+
+class BlobDownloadTask(override var downloadInfo: Download, val blobBase64Data: String, val callback: DownloadTask.Callback) : Runnable, DownloadTask {
+
+    override fun run() {
+        downloadInfo.id = AppDatabase.db.downloadDao().insert(downloadInfo)
+
+        try {
+            val blobAsBytes: ByteArray = Base64.decode(blobBase64Data.replaceFirst("data:${downloadInfo.mimeType};base64,", ""), 0)
+            File(downloadInfo.filepath).writeBytes(blobAsBytes)
+            downloadInfo.size = blobAsBytes.size.toLong()
+            downloadInfo.bytesReceived = downloadInfo.size
+        } catch (e: Exception) {
+            downloadInfo.size = Download.BROKEN_MARK
+            callback.onError(this, 0, e.toString())
+            return
+        } finally {
+            if (downloadInfo.cancelled) {
+                File(downloadInfo.filepath).delete()
+            }
+        }
         callback.onDone(this)
     }
 }

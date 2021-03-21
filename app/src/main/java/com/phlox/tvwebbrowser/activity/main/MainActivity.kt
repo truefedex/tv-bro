@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adblockViewModel: AdblockViewModel
     private lateinit var uiHandler: Handler
     private var running: Boolean = false
-    private var downloadsService: DownloadService? = null
+    var downloadsService: DownloadService? = null
     private var downloadAnimation: Animation? = null
     private var fullScreenView: View? = null
     private lateinit var prefs: SharedPreferences
@@ -577,7 +577,7 @@ class MainActivity : AppCompatActivity() {
     private fun createWebView(tab: WebTabState): WebViewEx? {
         val webView: WebViewEx
         try {
-            webView = WebViewEx(WebViewCallback(tab), this)
+            webView = WebViewEx(this, WebViewCallback(tab), viewModel.jsInterface)
             tab.webView = webView
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -609,14 +609,6 @@ class MainActivity : AppCompatActivity() {
             settingsViewModel.saveUAString("TV Bro/1.0 " + webView.settings.userAgentString.replace("Mobile Safari", "Safari"))
         }
         webView.settings.userAgentString = settingsViewModel.uaString.value
-
-        webView.addJavascriptInterface(viewModel.jsInterface, "TVBro")
-
-        webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
-            Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
-            onDownloadRequested(url, tab.url ?: "", DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
-                    ?: tab.webView?.settings?.userAgentString ?: getString(R.string.app_name), mimetype)
-        }
 
         webView.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus && vb.flUrl.parent == vb.rlRoot) {
@@ -652,7 +644,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
                                     operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP) {
-        viewModel.onDownloadRequested(this, url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload)
+        viewModel.onDownloadRequested(this, url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload, null)
     }
 
     override fun onTrimMemory(level: Int) {
@@ -678,7 +670,7 @@ class MainActivity : AppCompatActivity() {
             }
             MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    viewModel.startDownload(this)
+                    viewModel.startDownload(this, downloadsService)
                 }
             }
         }
@@ -1185,6 +1177,14 @@ class MainActivity : AppCompatActivity() {
                     break
                 }
             }
+        }
+
+        override fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long) {
+            Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
+            onDownloadRequested(url, tab.url
+                    ?: "", DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
+                    ?: tab.webView?.settings?.userAgentString
+                    ?: getString(R.string.app_name), mimetype)
         }
     }
 }
