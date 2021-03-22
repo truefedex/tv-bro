@@ -23,7 +23,7 @@ android {
         applicationId = "com.phlox.tvwebbrowser"
         minSdkVersion(21)
         targetSdkVersion(29)
-        versionCode = 43
+        versionCode = 44
         versionName = "1.6.0"
 
         javaCompileOptions {
