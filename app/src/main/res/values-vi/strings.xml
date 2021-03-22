@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">TV Bro: Trình duyệt web TV</string>
-    <string name="app_name_short" translatable="false">TV Bro</string>
     <string name="error">Lỗi</string>
     <string name="ok">OK</string>
     <string name="loading">Đang tải…</string>
@@ -22,7 +21,6 @@
     <string name="edit">Sửa</string>
     <string name="new_bookmark">Dấu trang mới</string>
     <string name="title">Tiêu đề</string>
-    <string name="url" translatable="false">URL</string>
     <string name="search_history">Lịch sử tìm kiếm</string>
     <string name="engine">Công cụ tìm kiếm</string>
     <string name="choose_default_search_engine">Chọn công cụ tìm kiếm mặc định</string>
