@@ -107,4 +107,8 @@
     <string name="close_application">Đóng ứng dụng</string>
     <string name="close_tab">Đóng tab</string>
     <string name="navigate_forward">Điều hướng về trước</string>
+    <string name="toggle_ads_blocking">Chuyển đổi tính năng chặn quảng cáo</string>
+    <string name="never">không bao giờ</string>
+    <string name="last_update">Cập nhật cuối cùng</string>
+    <string name="update_ad_blocker_list">Làm mới danh sách trình chặn quảng cáo</string>
 </resources>

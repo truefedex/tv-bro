@@ -106,4 +106,8 @@
     <string name="navigate_forward">Перейти вперед</string>
     <string name="zoom_in">Увеличить</string>
     <string name="zoom_out">Уменьшить</string>
+    <string name="toggle_ads_blocking">Переключить блокировку рекламы</string>
+    <string name="never">никогда</string>
+    <string name="last_update">Последнее обновлени</string>
+    <string name="update_ad_blocker_list">Обновить список блокировщика рекламы</string>
 </resources>

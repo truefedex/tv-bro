@@ -106,7 +106,7 @@
         android:layout_marginTop="20dp">
         <TextView
             android:layout_weight="1"
-            android:text="@string/enable_ads_blocking"
+            android:text="@string/toggle_ads_blocking"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:lines="1"

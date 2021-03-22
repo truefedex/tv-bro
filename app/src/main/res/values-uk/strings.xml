@@ -100,4 +100,8 @@
     <string name="navigate_forward">Навігація вперед</string>
     <string name="zoom_in">Збільшити</string>
     <string name="zoom_out">Зменшити</string>
+    <string name="toggle_ads_blocking">Увімкнути / вимкнути блокування реклами</string>
+    <string name="never">ніколи</string>
+    <string name="last_update">Останнє оновлення</string>
+    <string name="update_ad_blocker_list">Оновити список блокувальника реклами</string>
 </resources>

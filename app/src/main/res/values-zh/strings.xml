@@ -105,4 +105,8 @@
     <string name="close_application">关闭申请</string>
     <string name="close_tab">关闭标签</string>
     <string name="navigate_forward">向前导航</string>
+    <string name="toggle_ads_blocking">切换广告屏蔽</string>
+    <string name="never">绝不</string>
+    <string name="last_update">最后更新</string>
+    <string name="update_ad_blocker_list">刷新广告拦截器列表</string>
 </resources>

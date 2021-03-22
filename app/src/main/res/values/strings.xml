@@ -107,9 +107,7 @@
     <string name="close_application">Close application</string>
     <string name="close_tab">Close tab</string>
     <string name="navigate_forward">Navigate forward</string>
-    <string name="adblocker_disable">Disable ads blocker</string>
-    <string name="adblocker_enable">Enable ads blocker</string>
-    <string name="enable_ads_blocking">Enable ads blocking</string>
+    <string name="toggle_ads_blocking">Toggle ads blocking</string>
     <string name="never">never</string>
     <string name="last_update">Last update</string>
     <string name="update_ad_blocker_list">Update ad-blocker list</string>
