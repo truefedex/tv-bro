@@ -78,12 +78,6 @@ android {
     }
 }
 
-repositories {
-    flatDir {
-        dir("libs/aars")
-    }
-}
-
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 

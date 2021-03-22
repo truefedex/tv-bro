@@ -358,48 +358,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         addJavascriptInterface(jsInterface, "TVBro")
     }
 
-    private fun runBlobLoadInjectScript(blobUrl: String, mimetype: String) {
-        val js = "var xhr=new XMLHttpRequest();" +
-                "xhr.open('GET', '"+blobUrl+"', true);" +
-                "xhr.setRequestHeader('Content-type','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8');" +
-                "xhr.responseType = 'blob';" +
-                "xhr.onload = function(e) {" +
-                "    if (this.status == 200) {" +
-                "        var blobPdf = this.response;" +
-                "        var reader = new FileReader();" +
-                "        reader.readAsDataURL(blobPdf);" +
-                "        reader.onloadend = function() {" +
-                "            base64data = reader.result;" +
-                "            TVBro.takeBlobDownloadData(base64data, '$blobUrl', '$mimetype');" +
-                "        }" +
-                "    }" +
-                "};" +
-                "xhr.send();"
-
-        evaluateJavascript(js, null)
-        //loadUrl( "javascript: $js")
-
-        /*val sb = StringBuilder()
-        sb.append("var xhr = new XMLHttpRequest();")
-        sb.append("xhr.open('GET', '$blobUrl', true);")
-        sb.append("xhr.responseType = 'arraybuffer';")
-        sb.append("xhr.onload = function(e) {")
-        sb.append("if (this.status == 200) {")
-        sb.append("var uInt8Array = new Uint8Array(this.response);")
-        sb.append("var i = uInt8Array.length;")
-        sb.append("var binaryString = new Array(i);")
-        sb.append("while (i--){")
-        sb.append("binaryString[i] = String.fromCharCode(uInt8Array[i]);")
-        sb.append("};")
-        sb.append("var data = binaryString.join('');")
-        sb.append("var base64 = window.btoa(data);")
-        sb.append("TVBro.takeBlobDownloadData(base64, '$blobUrl', '$mimetype');")
-        sb.append("};")
-        sb.append("};")
-        sb.append("xhr.send();")
-        return "javascript:$sb"*/
-    }
-
     private fun showCertificateErrorPage(error: SslError) {
         callback.onPageCertificateError(error.url)
         lastSSLError = error
