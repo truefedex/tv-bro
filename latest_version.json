@@ -17,17 +17,17 @@
     {
       "name": "alpha",
       "latestVersionName": "v1.6.0",
-      "latestVersionCode": 43,
+      "latestVersionCode": 44,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.6.0/tvbro1.6.0.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.6.0-alpha2/tvbro1.6.0-alpha2.apk"
     }
   ],
 
   "changelog": [
     {
-      "versionCode": 43,
+      "versionCode": 44,
       "versionName": "v1.6.0",
-      "changes": "* Basic ads blocker added"
+      "changes": "* Adblocker added\n* Several major and minor bugs fixed\n* Localizations added"
     },
     {
       "versionCode": 42,
