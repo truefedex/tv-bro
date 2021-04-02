@@ -13,10 +13,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import com.phlox.tvwebbrowser.R
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.File
 import java.io.InputStream
@@ -58,6 +55,9 @@ class UpdateChecker(val currentVersionCode: Int) {
                         latestVersionCode = channelJson.getInt("latestVersionCode")
                         latestVersionName = channelJson.getString("latestVersionName")
                         url = channelJson.getString("url")
+                        if (channelJson.has("zip")) {
+                            url = channelJson.getString("zip")
+                        }
                         latestVersionChannelName = channelJson.getString("name")
                     }
                 }
@@ -102,6 +102,7 @@ class UpdateChecker(val currentVersionCode: Int) {
     }
 
     fun downloadUpdate(context: Context) = GlobalScope.launch(Dispatchers.Main) {
+        val update = versionCheckResult ?: return@launch
         val dialog = ProgressDialog(context)
         dialog.setCancelable(true)
         dialog.setMessage(context.getString(R.string.downloading_file))
@@ -109,14 +110,16 @@ class UpdateChecker(val currentVersionCode: Int) {
         dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
         dialog.show()
         var downloaded = false
-        var downloadedFile: File? = null
+        val zip = update.url.endsWith(".zip")
+        var downloadedFile = Utils.createTempFile(context, if (zip) "update.zip" else "update.apk")
+        var nextDialogUpdateTime = System.currentTimeMillis()
 
         val job = launch(Dispatchers.IO) io_launch@{
             var input: InputStream? = null
             var output: OutputStream? = null
             var connection: HttpURLConnection? = null
             try {
-                val url = URL(versionCheckResult!!.url)
+                val url = URL(update.url)
                 connection = url.openConnection() as HttpURLConnection
                 connection.connect()
 
@@ -137,12 +140,10 @@ class UpdateChecker(val currentVersionCode: Int) {
                 }
 
                 input = connection.inputStream
-                downloadedFile = Utils.createTempFile(context, "update.apk")
                 output = downloadedFile!!.outputStream()
                 val data = ByteArray(8 * 1024)
                 var total: Long = 0
                 var count: Int
-                var nextDialogUpdateTime = System.currentTimeMillis()
                 do {
                     if (!isActive) {
                         return@io_launch
@@ -153,7 +154,7 @@ class UpdateChecker(val currentVersionCode: Int) {
                         output.write(data, 0, count)
                     }
                     if (fileLength != -1 && System.currentTimeMillis() >= nextDialogUpdateTime) {
-                        launch(Dispatchers.Main) {
+                        withContext(Dispatchers.Main) {
                             val progress = total * 100 / fileLength
                             dialog.progress = progress.toInt()
                         }
@@ -170,6 +171,22 @@ class UpdateChecker(val currentVersionCode: Int) {
                 input?.close()
                 connection?.disconnect()
             }
+
+            if (zip) {
+                var apkFileName: String? = null//we assume there are only one file in zip
+                Utils.unzipFile(downloadedFile, downloadedFile.parentFile!!) { progress, filename ->
+                    apkFileName = filename
+                    if (System.currentTimeMillis() >= nextDialogUpdateTime) {
+                        launch(Dispatchers.Main) {
+                            dialog.progress = progress
+                        }
+                        nextDialogUpdateTime += 50
+                    }
+                }
+                downloadedFile.delete()
+                downloadedFile = File(downloadedFile.parent!!, apkFileName)
+            }
+
             downloaded = true
         }
         dialog.setOnCancelListener {
@@ -178,12 +195,12 @@ class UpdateChecker(val currentVersionCode: Int) {
         job.join()
         dialog.dismiss()
 
-        if (!downloaded || downloadedFile == null) return@launch
+        if (!downloaded) return@launch
 
-        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(downloadedFile!!.extension)
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(downloadedFile.extension)
         val apkURI = FileProvider.getUriForFile(
                 context,
-                context.applicationContext.packageName + ".provider", downloadedFile!!)
+                context.applicationContext.packageName + ".provider", downloadedFile)
 
         val install = Intent(Intent.ACTION_INSTALL_PACKAGE)
         install.setDataAndType(apkURI, mimeType)
@@ -197,6 +214,7 @@ class UpdateChecker(val currentVersionCode: Int) {
     }
 
     fun hasUpdate(): Boolean {
-        return versionCheckResult != null && versionCheckResult!!.latestVersionCode > currentVersionCode
+        val versionCheckResult = this.versionCheckResult ?: return false
+        return versionCheckResult.latestVersionCode > currentVersionCode
     }
 }

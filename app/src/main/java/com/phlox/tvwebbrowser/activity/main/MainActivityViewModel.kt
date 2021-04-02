@@ -138,13 +138,13 @@ class MainActivityViewModel: ViewModel() {
         }
     }
 
-    fun logVisitedHistory(title: String?, url: String?, faviconHash: String?) {
-        if (url != null && (lastHistoryItem != null && url == lastHistoryItem!!.url || url == WebViewEx.HOME_URL)) {
+    fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
+        if ((url == lastHistoryItem?.url) || url == WebViewEx.HOME_URL) {
             return
         }
 
         val item = HistoryItem()
-        item.url = url ?: ""
+        item.url = url
         item.title = title ?: ""
         item.time = Date().time
         item.favicon = faviconHash

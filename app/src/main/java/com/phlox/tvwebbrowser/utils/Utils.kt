@@ -12,12 +12,13 @@ import android.widget.Toast
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.File
-import java.io.IOException
+import java.io.*
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
 
 object Utils {
@@ -108,13 +109,12 @@ object Utils {
         return c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR) && c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
     }
 
-    @Throws(IOException::class)
     fun createTempFile(context: Context, fileName: String): File {
         val externalCacheDir = context.externalCacheDir
         val internalCacheDir = context.cacheDir
         val cacheDir: File
         if (externalCacheDir == null && internalCacheDir == null) {
-            throw IOException("No cache directory available")
+            throw Exception("No cache directory available")
         }
         if (externalCacheDir == null) {
             cacheDir = internalCacheDir
@@ -221,4 +221,46 @@ object Utils {
             null
         }
     }
+
+    fun unzipFile(zipFile: File, targetDirectory: File, progress: (progress: Int, fileName: String) -> Unit) {
+        val totalLen = zipFile.length()
+        var alreadyUncompressed: Long = 0
+        val zis = ZipInputStream(BufferedInputStream(FileInputStream(zipFile)))
+        try {
+            var ze: ZipEntry?
+            var count: Int
+            val buffer = ByteArray(1024)
+            while (true) {
+                ze = zis.nextEntry
+                if (ze == null) break
+                val file = File(targetDirectory, ze.name)
+                val dir = if (ze.isDirectory) file else file.parentFile
+                if (!dir.isDirectory && !dir.mkdirs()) throw FileSystemException(dir, null, "Failed to ensure directory: " + dir.absolutePath)
+                if (ze.isDirectory) continue
+                var readen = 0
+                FileOutputStream(file).use {
+                    while (zis.read(buffer).also { count = it } != -1) {
+                        it.write(buffer, 0, count)
+                        if (ze.size > 0) {
+                            readen += count
+                            val entryPercents = readen * ze.compressedSize * 100 / (ze.size * totalLen)
+                            val percent = (alreadyUncompressed * 100 / totalLen + entryPercents).toInt()
+                            progress(percent, ze.name)
+                        }
+                    }
+                }
+
+                alreadyUncompressed += ze.compressedSize
+                val percent = (alreadyUncompressed * 100 / totalLen).toInt()
+                progress(percent, ze.name)
+
+                // if time should be restored as well
+                val time: Long = ze.time
+                if (time > 0) file.setLastModified(time)
+            }
+        } finally {
+            zis.close()
+        }
+    }
+
 }
