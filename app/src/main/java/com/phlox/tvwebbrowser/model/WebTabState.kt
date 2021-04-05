@@ -45,12 +45,16 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
                        var wvState: ByteArray? = null,
                        @ColumnInfo(name = "wv_state_file")
                        var wvStateFileName: String? = null,
-                       var adblock: Boolean? = null) {
+                       var adblock: Boolean? = null,
+                       var scale: Float? = null) {
     companion object {
         const val TAB_THUMBNAILS_DIR = "tabthumbs"
         const val TAB_WVSTATES_DIR = "wvstates"
         const val FAVICONS_DIR = "favicons"
     }
+
+    @Ignore
+    var changingScale: Boolean = false
 
     @Ignore
     var thumbnail: Bitmap? = null

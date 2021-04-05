@@ -135,18 +135,26 @@ class MainActivity : AppCompatActivity() {
         vb.ibHistory.setOnClickListener { showHistory() }
         vb.ibSettings.setOnClickListener { showSettings() }
         vb.ibZoomIn.setOnClickListener {
-            viewModel.currentTab.value?.webView?.apply {
-                if (this.canZoomIn()) this.zoomIn()
-                onWebViewUpdated(viewModel.currentTab.value!!)
+            val tab = viewModel.currentTab.value ?: return@setOnClickListener
+            tab.webView?.apply {
+                if (this.canZoomIn()) {
+                    tab.changingScale = true
+                    this.zoomIn()
+                }
+                onWebViewUpdated(tab)
                 if (!this.canZoomIn()) {
                     vb.ibZoomOut.requestFocus()
                 }
             }
         }
         vb.ibZoomOut.setOnClickListener {
-            viewModel.currentTab.value?.webView?.apply {
-                if (this.canZoomOut()) this.zoomOut()
-                onWebViewUpdated(viewModel.currentTab.value!!)
+            val tab = viewModel.currentTab.value ?: return@setOnClickListener
+            tab.webView?.apply {
+                if (this.canZoomOut()) {
+                    tab.changingScale = true
+                    this.zoomOut()
+                }
+                onWebViewUpdated(tab)
                 if (!this.canZoomOut()) {
                     vb.ibZoomIn.requestFocus()
                 }
@@ -1185,6 +1193,20 @@ class MainActivity : AppCompatActivity() {
                     ?: "", DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent
                     ?: tab.webView?.settings?.userAgentString
                     ?: getString(R.string.app_name), mimetype)
+        }
+
+        override fun onScaleChanged(oldScale: Float, newScale: Float) {
+            Log.d(TAG, "onScaleChanged: oldScale: $oldScale newScale: $newScale")
+            val tabScale = tab.scale
+            if (tab.changingScale) {
+                tab.changingScale = false
+                tab.scale = newScale
+            } else if (tabScale != null && tabScale != newScale) {
+                val zoomBy = tabScale / newScale
+                Log.d(TAG, "Auto zoom by: $zoomBy")
+                tab.changingScale = true
+                tab.webView?.zoomBy(zoomBy)
+            }
         }
     }
 }
