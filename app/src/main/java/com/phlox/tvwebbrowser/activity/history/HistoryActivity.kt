@@ -53,7 +53,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         vb = ActivityHistoryBinding.inflate(layoutInflater)
-        setContentView(R.layout.activity_history)
+        setContentView(vb.root)
 
         historyViewModel = ViewModelProvider(this).get(HistoryViewModel::class.java)
 
