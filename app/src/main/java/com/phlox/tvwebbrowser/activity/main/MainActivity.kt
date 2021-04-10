@@ -1059,8 +1059,14 @@ class MainActivity : AppCompatActivity() {
             try {
                 startActivityForResult(intent, PICKFILE_REQUEST_CODE)
             } catch (e: ActivityNotFoundException) {
-                Utils.showToast(applicationContext, getString(R.string.err_cant_open_file_chooser))
-                return false
+                try {
+                    //trying again with type */* (seems file pickers usually doesn't support specific types in intent filters but still can do the job)
+                    intent.type = "*/*"
+                    startActivityForResult(intent, PICKFILE_REQUEST_CODE)
+                } catch (e: ActivityNotFoundException) {
+                    Utils.showToast(applicationContext, getString(R.string.err_cant_open_file_chooser))
+                    return false
+                }
             }
             return true
         }
