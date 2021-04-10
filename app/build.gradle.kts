@@ -23,8 +23,8 @@ android {
         applicationId = "com.phlox.tvwebbrowser"
         minSdkVersion(21)
         targetSdkVersion(29)
-        versionCode = 44
-        versionName = "1.6.0"
+        versionCode = 45
+        versionName = "1.6.1"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -88,9 +88,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3-native-mt")
 
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.0")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.1")
 
     val roomVersion = "2.2.5"
     implementation("androidx.room:room-runtime:$roomVersion")
@@ -102,8 +102,8 @@ dependencies {
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
     //appstore-dependent dependencies
-    "googleImplementation"("com.google.firebase:firebase-core:18.0.2")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.4.0")
+    "googleImplementation"("com.google.firebase:firebase-core:18.0.3")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.4.1")
 }
 
 tasks.getByName("check").dependsOn("lint")
