@@ -128,12 +128,6 @@
         android:paddingLeft="22dp"
         android:paddingRight="22dp"
         android:layout_marginTop="20dp">
-        <Button
-            android:id="@+id/btnAdBlockerUpdate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAllCaps="false"
-            android:text="@string/update_ad_blocker_list" />
         <TextView
             android:id="@+id/tvAdBlockerListInfo"
             android:layout_width="match_parent"
@@ -143,7 +137,13 @@
             android:lines="2"
             tools:text="URL: https://test.com\nLast update: never"
             android:layout_weight="1"/>
-
+        <ImageButton
+            android:id="@+id/btnAdBlockerUpdate"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_weight="0"
+            android:src="@drawable/ic_refresh_grey_900_24dp"
+            android:contentDescription="@string/update_ad_blocker_list" />
         <ProgressBar
             android:id="@+id/pbAdBlockerListLoading"
             style="?android:attr/progressBarStyle"

@@ -66,7 +66,7 @@ class MainSettingsView @JvmOverloads constructor(
         val infoText = "URL: ${adblockViewModel.adBlockListURL}\n${context.getString(R.string.last_update)}: $lastUpdate"
         vb.tvAdBlockerListInfo.text = infoText
         val loadingAdBlockList = adblockViewModel.clientLoading.value!!
-        vb.btnAdBlockerUpdate.isEnabled = !loadingAdBlockList
+        vb.btnAdBlockerUpdate.visibility = if (loadingAdBlockList) View.GONE else View.VISIBLE
         vb.pbAdBlockerListLoading.visibility = if (loadingAdBlockList) View.VISIBLE else View.GONE
     }
 
