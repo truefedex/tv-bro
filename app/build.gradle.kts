@@ -16,13 +16,13 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    compileSdkVersion(29)
-    buildToolsVersion = "29.0.3"
+    compileSdkVersion(30)
+    buildToolsVersion = "30.0.3"
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
         minSdkVersion(21)
-        targetSdkVersion(29)
+        targetSdkVersion(30)
         versionCode = 45
         versionName = "1.6.1"
 
@@ -52,13 +52,13 @@ android {
     flavorDimensions("appstore")
     productFlavors {
         create("generic") {
-            dimension("appstore")
+            dimension = "appstore"
         }
         create("google") {
-            dimension("appstore")
+            dimension = "appstore"
         }
         create("amazon") {
-            dimension("appstore")
+            dimension = "appstore"
         }
     }
 
@@ -81,10 +81,10 @@ android {
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    implementation("androidx.appcompat:appcompat:1.2.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
+    implementation("androidx.appcompat:appcompat:1.3.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.0")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.21")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3-native-mt")
 
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
@@ -92,7 +92,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.1")
 
-    val roomVersion = "2.2.5"
+    val roomVersion = "2.3.0"
     implementation("androidx.room:room-runtime:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
@@ -102,8 +102,8 @@ dependencies {
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
     //appstore-dependent dependencies
-    "googleImplementation"("com.google.firebase:firebase-core:18.0.3")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:17.4.1")
+    "googleImplementation"("com.google.firebase:firebase-core:19.0.0")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.1")
 }
 
 tasks.getByName("check").dependsOn("lint")

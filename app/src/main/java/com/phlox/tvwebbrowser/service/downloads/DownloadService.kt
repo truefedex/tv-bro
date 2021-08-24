@@ -71,9 +71,6 @@ class DownloadService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent == null) return START_STICKY
-        val downloadIntent = intent.getParcelableExtra(KEY_DOWNLOAD) as DownloadIntent
-        startDownloading(downloadIntent)
         return START_STICKY
     }
 
@@ -230,6 +227,5 @@ class DownloadService : Service() {
     companion object {
         val TAG: String = DownloadService::class.java.simpleName
         const val DOWNLOAD_NOTIFICATION_ID = 101101
-        private const val KEY_DOWNLOAD = "download"
     }
 }

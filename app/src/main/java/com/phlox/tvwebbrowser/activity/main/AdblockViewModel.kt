@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.lang.Exception
 import java.net.URL
 import java.util.*
 import javax.net.ssl.HttpsURLConnection
@@ -92,6 +93,11 @@ class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
     fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean {
         val client = client ?: return false
         val baseHost = baseUri.host
-        return baseHost != null && client.matches(request.url.toString(), Utils.mapRequestToFilterOption(request), baseHost)
+        val filterOption = try {
+            Utils.mapRequestToFilterOption(request)
+        } catch (e: Exception) {
+            return false
+        }
+        return baseHost != null && client.matches(request.url.toString(), filterOption, baseHost)
     }
 }
