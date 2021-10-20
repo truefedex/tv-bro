@@ -115,7 +115,7 @@ object DownloadUtils {
                 }
             }
         } else {
-            if (mimeType != null) {
+            if (mimeType != null && "application/octet-stream" != mimeType) {
                 // Compare the last segment of the extension against the mime type.
                 // If there's a mismatch, discard the entire extension.
                 val lastDotIndex = filename.lastIndexOf('.')

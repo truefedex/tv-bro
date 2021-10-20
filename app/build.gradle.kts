@@ -16,13 +16,13 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    compileSdkVersion(30)
+    compileSdk = 30
     buildToolsVersion = "30.0.3"
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        minSdkVersion(21)
-        targetSdkVersion(30)
+        minSdk = 21
+        targetSdk = 30
         versionCode = 45
         versionName = "1.6.1"
 
@@ -42,7 +42,7 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isDebuggable = false
+            isDebuggable = true
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig=signingConfigs.getByName("release")
@@ -62,7 +62,7 @@ android {
         }
     }
 
-    lintOptions {
+    lint {
         isAbortOnError = false
     }
 
@@ -82,9 +82,9 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.21")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.31")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3-native-mt")
 
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
@@ -102,8 +102,8 @@ dependencies {
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
     //appstore-dependent dependencies
-    "googleImplementation"("com.google.firebase:firebase-core:19.0.0")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.1")
+    "googleImplementation"("com.google.firebase:firebase-core:19.0.2")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.3")
 }
 
 tasks.getByName("check").dependsOn("lint")

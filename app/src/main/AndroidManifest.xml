@@ -45,6 +45,7 @@
         android:usesCleartextTraffic="true"
         android:screenOrientation="sensor"
         android:theme="@style/AppTheme"
+        android:requestLegacyExternalStorage="true"
         tools:targetApi="m">
         <activity
             android:name=".activity.main.MainActivity"
