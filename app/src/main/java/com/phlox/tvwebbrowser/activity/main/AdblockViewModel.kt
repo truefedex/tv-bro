@@ -10,17 +10,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.brave.adblock.AdBlockClient
 import com.brave.adblock.Utils
-import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.lang.Exception
 import java.net.URL
 import java.util.*
-import javax.net.ssl.HttpsURLConnection
-
 
 class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
     companion object {
@@ -77,9 +73,14 @@ class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
                 success = true
                 return@ioContext
             }
-            val easyList = URL(adBlockListURL).openConnection().inputStream.bufferedReader().use { it.readText() }
-            success = client.parse(easyList)
-            client.serialize(serializedFile.absolutePath)
+            try {
+                val easyList = URL(adBlockListURL).openConnection().inputStream.bufferedReader()
+                  .use { it.readText() }
+                success = client.parse(easyList)
+                client.serialize(serializedFile.absolutePath)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
         this@AdblockViewModel.client = client
         lastUpdateListTime = now.timeInMillis
@@ -98,6 +99,12 @@ class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
         } catch (e: Exception) {
             return false
         }
-        return baseHost != null && client.matches(request.url.toString(), filterOption, baseHost)
+        val result = try {
+            baseHost != null && client.matches(request.url.toString(), filterOption, baseHost)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+        return result
     }
 }
