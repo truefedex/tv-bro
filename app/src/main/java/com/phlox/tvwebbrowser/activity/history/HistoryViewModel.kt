@@ -2,15 +2,15 @@ package com.phlox.tvwebbrowser.activity.history
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.singleton.AppDatabase
+import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class HistoryViewModel(application: Application): AndroidViewModel(application) {
-    val items = MutableLiveData<List<HistoryItem>>().apply { ArrayList<HistoryItem>() }
+    val items = ObservableValue<List<HistoryItem>>(ArrayList())
     private var loading = false
     var searchQuery = ""
 

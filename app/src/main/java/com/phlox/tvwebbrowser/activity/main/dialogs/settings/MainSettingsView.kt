@@ -45,12 +45,12 @@ class MainSettingsView @JvmOverloads constructor(
         }
         vb.llAdBlockerDetails.visibility = if (adblockViewModel.adBlockEnabled) VISIBLE else GONE
 
-        adblockViewModel.clientLoading.observe(activity as FragmentActivity) {
+        adblockViewModel.clientLoading.subscribe(activity as FragmentActivity) {
             updateAdBlockInfo()
         }
 
         vb.btnAdBlockerUpdate.setOnClickListener {
-            if (adblockViewModel.clientLoading.value!!) return@setOnClickListener
+            if (adblockViewModel.clientLoading.value) return@setOnClickListener
             adblockViewModel.loadAdBlockList(true)
             it.isEnabled = false
         }
@@ -65,13 +65,13 @@ class MainSettingsView @JvmOverloads constructor(
             dateFormat.format(Date(adblockViewModel.lastUpdateListTime))
         val infoText = "URL: ${adblockViewModel.adBlockListURL}\n${context.getString(R.string.last_update)}: $lastUpdate"
         vb.tvAdBlockerListInfo.text = infoText
-        val loadingAdBlockList = adblockViewModel.clientLoading.value!!
+        val loadingAdBlockList = adblockViewModel.clientLoading.value
         vb.btnAdBlockerUpdate.visibility = if (loadingAdBlockList) View.GONE else View.VISIBLE
         vb.pbAdBlockerListLoading.visibility = if (loadingAdBlockList) View.VISIBLE else View.GONE
     }
 
     private fun initUAStringConfigUI(context: Context) {
-        val selected = if (settingsViewModel.uaString.value == null || settingsViewModel.uaString.value == "" ||
+        val selected = if (settingsViewModel.uaString.value == "" ||
                 settingsViewModel.uaString.value!!.startsWith(SettingsViewModel.TV_BRO_UA_PREFIX)) {
             0
         } else {

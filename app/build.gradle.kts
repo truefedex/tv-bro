@@ -83,6 +83,7 @@ dependencies {
 
     implementation("androidx.appcompat:appcompat:1.3.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.1")
+    implementation("androidx.recyclerview:recyclerview:1.2.1")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.31")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3-native-mt")
@@ -90,7 +91,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.3.1")
 
     val roomVersion = "2.3.0"
     implementation("androidx.room:room-runtime:$roomVersion")

@@ -6,11 +6,11 @@ import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.brave.adblock.AdBlockClient
 import com.brave.adblock.Utils
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -38,7 +38,7 @@ class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
         }
 
     private var client: AdBlockClient? = null
-    val clientLoading = MutableLiveData(false)
+    val clientLoading = ObservableValue(false)
     var adBlockListURL = DEFAULT_LIST_URL
     var lastUpdateListTime: Long = 0
 
@@ -58,7 +58,7 @@ class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
 
     @Suppress("BlockingMethodInNonBlockingContext")
     fun loadAdBlockList(forceReload: Boolean) = viewModelScope.launch {
-        if (clientLoading.value!!) return@launch
+        if (clientLoading.value) return@launch
         val checkDate = Calendar.getInstance()
         checkDate.timeInMillis = lastUpdateListTime
         checkDate.add(Calendar.MINUTE, AUTO_UPDATE_INTERVAL_MINUTES)

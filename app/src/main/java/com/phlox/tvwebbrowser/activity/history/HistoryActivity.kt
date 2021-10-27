@@ -14,12 +14,10 @@ import android.widget.AdapterView
 import android.widget.ImageButton
 import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ActivityHistoryBinding
-import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
@@ -66,13 +64,11 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         vb.listView.onItemClickListener = this
         vb.listView.onItemLongClickListener = this
 
-        historyViewModel.items.observe(this, object : Observer<List<HistoryItem>> {
-            override fun onChanged(items: List<HistoryItem>) {
-                if (items.isEmpty()) return
-                adapter!!.addItems(items)
-                vb.listView.requestFocus()
-            }
-        })
+        historyViewModel.items.subscribe(this) {
+            if (it.isEmpty()) return@subscribe
+            adapter!!.addItems(it)
+            vb.listView.requestFocus()
+        }
 
         historyViewModel.loadItems(false)
     }

@@ -1,28 +1,25 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.app.Application
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.appcompat.app.AlertDialog
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.AndroidViewModel
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.utils.sameDay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.lang.IllegalStateException
-import java.util.*
+import java.util.Calendar
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
@@ -35,14 +32,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         const val TV_BRO_UA_PREFIX = "TV Bro/1.0 "
     }
 
-    private var prefs: SharedPreferences
+    private var prefs = application.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
 
     //Search engines configuration
     val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Custom")
     val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
             "https://search.yahoo.com/search?p=[query]", "https://duckduckgo.com/?q=[query]",
             "https://yandex.com/search/?text=[query]", "")
-    var searchEngineURL = MutableLiveData<String>()
+    var searchEngineURL = ObservableValue(prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, "")!!)
     //User agent strings configuration
     val userAgentStringTitles = arrayOf("TV Bro", "Chrome (Desktop)", "Chrome (Mobile)", "Chrome (Tablet)", "Firefox (Desktop)", "Firefox (Tablet)", "Edge (Desktop)", "Safari (Desktop)", "Safari (iPad)", "Apple TV", "Custom")
     val uaStrings = listOf("",
@@ -56,7 +53,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Mobile/15E148 Safari/604.1",
             "AppleTV6,2/11.1",
             "")
-    var uaString = MutableLiveData<String>()
+    var uaString = ObservableValue(prefs.getString(USER_AGENT_PREF_KEY, "")!!)
     //Version & updates configuration
     var needToShowUpdateDlgAgain: Boolean = false
     val updateChecker = UpdateChecker(BuildConfig.VERSION_CODE)
@@ -65,9 +62,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     var updateChannel: String
 
     init {
-        prefs = application.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
-        searchEngineURL.postValue(prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, ""))
-        uaString.postValue(prefs.getString(USER_AGENT_PREF_KEY, ""))
         lastUpdateNotificationTime = if (prefs.contains(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY))
             Calendar.getInstance().apply { timeInMillis = prefs.getLong(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY, 0) } else
             Calendar.getInstance()
@@ -86,7 +80,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val editor = prefs.edit()
         editor.putString(USER_AGENT_PREF_KEY, uas)
         editor.apply()
-        uaString.postValue(uas)
+        uaString.value = uas
     }
 
     fun saveAutoCheckUpdates(need: Boolean) {

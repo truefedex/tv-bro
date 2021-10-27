@@ -79,7 +79,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         vb.listView.onItemClickListener = this
         vb.listView.onItemLongClickListener = this
 
-        viewModel.items.observe(this, {
+        viewModel.items.subscribe(this, {
             if (it.isNotEmpty()) {
                 vb.tvPlaceholder.visibility = View.GONE
                 adapter!!.addItems(it)

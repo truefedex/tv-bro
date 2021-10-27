@@ -27,7 +27,6 @@ import android.webkit.*
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
@@ -55,7 +54,6 @@ import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.*
 import kotlin.collections.ArrayList
-
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -171,15 +169,15 @@ class MainActivity : AppCompatActivity() {
             it.setOnKeyListener(bottomButtonsKeyListener)
         }
 
-        settingsViewModel.uaString.observe(this, Observer<String> { uas ->
+        settingsViewModel.uaString.subscribe(this.lifecycle) {
             for (tab in viewModel.tabsStates) {
-                tab.webView?.settings?.userAgentString = uas
-                if (tab.webView != null && (uas == null || uas == "")) {
+                tab.webView?.settings?.userAgentString = it
+                if (tab.webView != null && (it == "")) {
                     settingsViewModel.saveUAString(SettingsViewModel.TV_BRO_UA_PREFIX +
                             tab.webView!!.settings.userAgentString.replace("Mobile Safari", "Safari"))
                 }
             }
-        })
+        }
 
         loadState()
     }
@@ -499,14 +497,15 @@ class MainActivity : AppCompatActivity() {
 
         if (Utils.isFireTV(this@MainActivity)) {
             //amazon blocks some downloads, this is workaround
-            viewModel.logCatOutput().observe(this@MainActivity, Observer{ logMessage ->
+            viewModel.logCatOutput.subscribe(this@MainActivity) {
+                logMessage ->
                 if (logMessage.endsWith("AwContentsClientBridge: Dropping new download request.")) {
                     viewModel.currentTab.value?.apply {
                         val url = this.lastLoadingUrl ?: return@apply
                         onDownloadRequested(url, this)
                     }
                 }
-            })
+            }
         }
     }
 

@@ -1,13 +1,12 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
+import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
 import android.widget.Toast
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
@@ -16,6 +15,10 @@ import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.LogUtils
+import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.observable.ObservableList
+import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.utils.observable.ParameterizedEventSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -26,7 +29,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class MainActivityViewModel: ViewModel() {
+class MainActivityViewModel(application: Application): AndroidViewModel(application) {
     companion object {
         const val STATE_JSON = "state.json"
         var TAG: String = MainActivityViewModel::class.java.simpleName
@@ -34,17 +37,24 @@ class MainActivityViewModel: ViewModel() {
 
     var loaded = false
     var incognitoMode = false
-    val currentTab = MutableLiveData<WebTabState>()
-    val tabsStates = ArrayList<WebTabState>()
+    val currentTab = ObservableValue<WebTabState?>(null)
+    val tabsStates = ObservableList<WebTabState>()
     var lastHistoryItem: HistoryItem? = null
     val jsInterface = AndroidJSInterface(this)
     private var downloadIntent: DownloadIntent? = null
+    val logCatOutput = ParameterizedEventSource<String>()
+
+    init {
+        if (Utils.isFireTV(application)) {
+            launchLogcatOutputCoroutine()
+        }
+    }
 
     fun loadState() = viewModelScope.launch(Dispatchers.Main) {
         if (loaded) return@launch
         initHistory()
         val tabsDao = AppDatabase.db.tabsDao()
-        val stateFile = File(TVBro.instance.filesDir, STATE_JSON)
+        val stateFile = File(getApplication<TVBro>().filesDir, STATE_JSON)
         if (stateFile.exists()) {
             val tabsStatesLoadedFromLegacyJson = async(Dispatchers.IO) {
                 val tabsStates = ArrayList<WebTabState>()
@@ -53,7 +63,7 @@ class MainActivityViewModel: ViewModel() {
                     val store = JSONObject(storeStr)
                     val tabsStore = store.getJSONArray("tabs")
                     for (i in 0 until tabsStore.length()) {
-                        val tab = WebTabState(TVBro.instance, tabsStore.getJSONObject(i))
+                        val tab = WebTabState(getApplication(), tabsStore.getJSONObject(i))
                         tabsStates.add(tab)
                     }
                 } catch (e: Exception) {
@@ -131,7 +141,7 @@ class MainActivityViewModel: ViewModel() {
 
         try {
             val frequentlyUsedUrls = AppDatabase.db.historyDao().frequentlyUsedUrls()
-            jsInterface.setSuggestions(TVBro.instance, frequentlyUsedUrls)
+            jsInterface.setSuggestions(getApplication(), frequentlyUsedUrls)
         } catch (e: Exception) {
             e.printStackTrace()
             LogUtils.recordException(e)
@@ -206,13 +216,15 @@ class MainActivityViewModel: ViewModel() {
         activity.onDownloadStarted(fileName)
     }
 
-    fun logCatOutput() = liveData(viewModelScope.coroutineContext + Dispatchers.IO) {
-        Runtime.getRuntime().exec("logcat -c")
-        Runtime.getRuntime().exec("logcat")
-                .inputStream
-                .bufferedReader()
-                .useLines { lines -> lines.forEach { line -> emit(line) }
-                }
+    fun launchLogcatOutputCoroutine() {
+        viewModelScope.launch(Dispatchers.IO) {
+            Runtime.getRuntime().exec("logcat -c")
+            Runtime.getRuntime().exec("logcat")
+              .inputStream
+              .bufferedReader()
+              .useLines { lines -> lines.forEach { line -> logCatOutput.emit(line) }
+              }
+        }
     }
 
     fun onDetachActivity() {
