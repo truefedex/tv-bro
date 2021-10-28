@@ -7,8 +7,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.os.IBinder
 import android.provider.Settings
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.webkit.MimeTypeMap
@@ -18,27 +18,27 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.databinding.ActivityDownloadsBinding
 import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
-class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, DownloadService.Listener, AdapterView.OnItemLongClickListener {
+class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, DownloadsActiveModel.Listener, AdapterView.OnItemLongClickListener,
+  ActiveModelUser {
     private lateinit var vb: ActivityDownloadsBinding
-    private var adapter: DownloadListAdapter? = null
-    private var downloadsService: DownloadService? = null
-    private val listeners = ArrayList<DownloadService.Listener>()
+    private lateinit var adapter: DownloadListAdapter
+    private val listeners = ArrayList<DownloadsActiveModel.Listener>()
 
-    private lateinit var viewModel: DownloadsViewModel
+    private lateinit var model: DownloadsActiveModel
 
     internal var onListScrollListener: AbsListView.OnScrollListener = object : AbsListView.OnScrollListener {
         override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
@@ -47,30 +47,18 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
         override fun onScroll(view: AbsListView, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
             if (totalItemCount != 0 && firstVisibleItem + visibleItemCount >= totalItemCount - 1) {
-                viewModel.loadItems(adapter!!.realCount)
+                model.loadItems(adapter!!.realCount)
             }
-        }
-    }
-
-    internal var downloadsServiceConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val binder = service as DownloadService.Binder
-            downloadsService = binder.service
-            downloadsService!!.registerListener(this@DownloadsActivity)
-        }
-
-        override fun onServiceDisconnected(name: ComponentName) {
-            downloadsService!!.unregisterListener(this@DownloadsActivity)
-            downloadsService = null
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate this:" + System.identityHashCode(this))
         vb = ActivityDownloadsBinding.inflate(layoutInflater)
         setContentView(vb.root)
 
-        viewModel = ViewModelProvider(this).get(DownloadsViewModel::class.java)
+        model = TVBro.instance.models.get(DownloadsActiveModel::class, this)
 
         adapter = DownloadListAdapter(this)
         vb.listView.adapter = adapter
@@ -79,24 +67,27 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         vb.listView.onItemClickListener = this
         vb.listView.onItemLongClickListener = this
 
-        viewModel.items.subscribe(this, {
+        model.items.subscribe(this, {
             if (it.isNotEmpty()) {
                 vb.tvPlaceholder.visibility = View.GONE
-                adapter!!.addItems(it)
+                adapter.addItems(it)
                 vb.listView.requestFocus()
             }
         })
-        viewModel.loadItems()
+
+        if (model.items.value.isEmpty()) {
+            model.loadItems()
+        }
     }
 
-    override fun onStart() {
-        super.onStart()
-        bindService(Intent(this, DownloadService::class.java), downloadsServiceConnection, Context.BIND_AUTO_CREATE)
+    override fun onResume() {
+        super.onResume()
+        model.registerListener(this)
     }
 
-    override fun onStop() {
-        unbindService(downloadsServiceConnection)
-        super.onStop()
+    override fun onPause() {
+        model.unregisterListener(this@DownloadsActivity)
+        super.onPause()
     }
 
     override fun onItemClick(adapterView: AdapterView<*>, view: View, i: Int, l: Long) {
@@ -112,7 +103,6 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         if (v.download?.size != v.download?.bytesReceived) {
             return
         }
-        //Uri pathUri = Uri.fromFile(file);
         val pathUri = FileProvider.getUriForFile(this@DownloadsActivity,
                 BuildConfig.APPLICATION_ID + ".provider",
                 file)
@@ -151,7 +141,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         val pm = PopupMenu(this, v, Gravity.BOTTOM)
         pm.menu.add(R.string.cancel)
         pm.setOnMenuItemClickListener {
-            downloadsService!!.cancelDownload(v.download!!)
+            model.cancelDownload(v.download!!)
             true
         }
         pm.show()
@@ -223,9 +213,10 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
     }
 
     private fun deleteItem(v: DownloadListItemView) = lifecycleScope.launch(Dispatchers.Main) {
-        File(v.download?.filepath!!).delete()
-        AppDatabase.db.downloadDao().delete(v.download!!)
-        adapter!!.remove(v.download!!)
+        v.download?.let {
+            model.deleteItem(it)
+            adapter.remove(it)
+        }
     }
 
     override fun onDownloadUpdated(downloadInfo: Download) {
@@ -242,17 +233,18 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     override fun onAllDownloadsComplete() {}
 
-    fun registerListener(listener: DownloadService.Listener) {
+    fun registerListener(listener: DownloadsActiveModel.Listener) {
         listeners.add(listener)
     }
 
-    fun unregisterListener(listener: DownloadService.Listener) {
+    fun unregisterListener(listener: DownloadsActiveModel.Listener) {
         listeners.remove(listener)
     }
 
     companion object {
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
         const val REQUEST_CODE_INSTALL_PACKAGE = 10008
+        val TAG = DownloadsActivity::class.java.simpleName
 
         internal fun getFileExtension(filePath: String): String? {
             var result = ""

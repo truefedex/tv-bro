@@ -4,11 +4,15 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import com.phlox.tvwebbrowser.utils.statemodel.ActiveModel
+import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
+import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelsRepository
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.KClass
 
 /**
  * Created by PDT on 09.09.2016.
@@ -18,10 +22,16 @@ class TVBro : Application() {
         lateinit var instance: TVBro
         const val CHANNEL_ID_DOWNLOADS: String = "downloads"
         const val MAIN_PREFS_NAME = "main.xml"
+
+        fun <T: ActiveModel>get(clazz: KClass<T>, user: ActiveModelUser): T {
+            return instance.models.get(clazz, user)
+        }
     }
 
     lateinit var threadPool: ThreadPoolExecutor
         private set
+
+    val models = ActiveModelsRepository(this)
 
     override fun onCreate() {
         super.onCreate()

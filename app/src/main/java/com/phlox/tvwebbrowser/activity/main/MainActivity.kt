@@ -31,6 +31,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.activity.downloads.DownloadsActiveModel
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.dialogs.FavoritesDialog
@@ -45,9 +46,9 @@ import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.WebTabState
-import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
+import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
@@ -55,7 +56,7 @@ import java.net.URLEncoder
 import java.util.*
 import kotlin.collections.ArrayList
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ActiveModelUser {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         const val VOICE_SEARCH_REQUEST_CODE = 10001
@@ -71,9 +72,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var adblockViewModel: AdblockViewModel
+    private lateinit var downloadsModel: DownloadsActiveModel
     private lateinit var uiHandler: Handler
     private var running: Boolean = false
-    var downloadsService: DownloadService? = null
     private var downloadAnimation: Animation? = null
     private var fullScreenView: View? = null
     private lateinit var prefs: SharedPreferences
@@ -84,6 +85,7 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
         settingsViewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
         adblockViewModel = ViewModelProvider(this).get(AdblockViewModel::class.java)
+        downloadsModel = TVBro.get(DownloadsActiveModel::class, this)
         uiHandler = Handler()
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         vb = ActivityMainBinding.inflate(layoutInflater)
@@ -179,6 +181,21 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        downloadsModel.activeDownloads.subscribe(this) {
+            if (it.isNotEmpty()) {
+                if (downloadAnimation == null) {
+                    downloadAnimation = AnimationUtils.loadAnimation(this, R.anim.infinite_fadeinout_anim)
+                    vb.ibDownloads.startAnimation(downloadAnimation)
+                }
+            } else {
+                downloadAnimation?.apply {
+                    this.reset()
+                    vb.ibDownloads.clearAnimation()
+                    downloadAnimation = null
+                }
+            }
+        }
+
         loadState()
     }
 
@@ -263,37 +280,6 @@ class MainActivity : AppCompatActivity() {
             }
         }, currentPageTitle, currentPageUrl).show()
         hideMenuOverlay()
-    }
-
-    private var downloadsServiceConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val binder = service as DownloadService.Binder
-            downloadsService = binder.service
-            downloadsService!!.registerListener(downloadsServiceListener)
-        }
-
-        override fun onServiceDisconnected(name: ComponentName) {
-            downloadsService!!.unregisterListener(downloadsServiceListener)
-            downloadsService = null
-        }
-    }
-
-    private var downloadsServiceListener: DownloadService.Listener = object : DownloadService.Listener {
-        override fun onDownloadUpdated(downloadInfo: Download) {
-
-        }
-
-        override fun onDownloadError(downloadInfo: Download, responseCode: Int, responseMessage: String) {
-
-        }
-
-        override fun onAllDownloadsComplete() {
-            downloadAnimation?.apply {
-                this.reset()
-                vb.ibDownloads.clearAnimation()
-                downloadAnimation = null
-            }
-        }
     }
 
     private val bottomButtonsOnTouchListener = View.OnTouchListener{ v, e ->
@@ -677,8 +663,11 @@ class MainActivity : AppCompatActivity() {
             }
             MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    viewModel.startDownload(this, downloadsService)
+                    viewModel.startDownload(this)
                 }
+            }
+            else -> {
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults)
             }
         }
     }
@@ -729,12 +718,10 @@ class MainActivity : AppCompatActivity() {
         }
         vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
         vb.vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
-        bindService(Intent(this, DownloadService::class.java), downloadsServiceConnection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onPause() {
         viewModel.jsInterface.setActivity(null)
-        unbindService(downloadsServiceConnection)
         if (mConnectivityChangeReceiver != null) unregisterReceiver(mConnectivityChangeReceiver)
         viewModel.currentTab.value?.apply {
             webView?.onPause()
@@ -975,10 +962,6 @@ class MainActivity : AppCompatActivity() {
         Utils.showToast(this, getString(R.string.download_started,
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + File.separator + fileName))
         showMenuOverlay()
-        if (downloadAnimation == null) {
-            downloadAnimation = AnimationUtils.loadAnimation(this, R.anim.infinite_fadeinout_anim)
-            vb.ibDownloads.startAnimation(downloadAnimation)
-        }
     }
 
     fun initiateVoiceSearch() {

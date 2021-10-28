@@ -9,15 +9,14 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 
 /**
  * Created by PDT on 24.01.2017.
  */
 
-class DownloadListItemView(private val downloadsActivity: DownloadsActivity, private val viewType: Int) : FrameLayout(downloadsActivity), DownloadService.Listener {
+class DownloadListItemView(private val downloadsActivity: DownloadsActivity, private val viewType: Int) : FrameLayout(downloadsActivity), DownloadsActiveModel.Listener {
     private var defaultTextColor: Int = 0
     private var tvDate: TextView? = null
     private var tvTitle: TextView? = null

@@ -19,9 +19,11 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.activity.downloads.DownloadsActiveModel
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.DownloadIntent
 import com.phlox.tvwebbrowser.singleton.AppDatabase
+import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
 import java.io.File
 import java.util.*
 import java.util.concurrent.Executors
@@ -30,10 +32,9 @@ import java.util.concurrent.Executors
  * Created by PDT on 23.01.2017.
  */
 
-class DownloadService : Service() {
-    private val activeDownloads = ArrayList<DownloadTask>()
+class DownloadService : Service(), ActiveModelUser {
+    private lateinit var model: DownloadsActiveModel
     private val executor = Executors.newCachedThreadPool()
-    private val listeners = ArrayList<Listener>()
     private val handler = Handler(Looper.getMainLooper())
     private val binder = Binder()
     private var notificationBuilder: NotificationCompat.Builder? = null
@@ -46,31 +47,46 @@ class DownloadService : Service() {
             val now = System.currentTimeMillis()
             if (now - lastNotifyTime > MIN_NOTIFY_TIMEOUT) {
                 lastNotifyTime = now
-                notifyListeners(task)
+                handler.post {
+                    model.notifyListenersAboutDownloadProgress(task)
+                    notificationManager.notify(DOWNLOAD_NOTIFICATION_ID, updateNotification())
+                }
             }
         }
 
         override fun onError(task: DownloadTask, responseCode: Int, responseMessage: String) {
-            notifyListenersAboutError(task, responseCode, responseMessage)
+            AppDatabase.db.downloadDao().update(task.downloadInfo)
+            handler.post {
+                model.notifyListenersAboutError(task, responseCode, responseMessage)
+                onTaskEnded(task)
+            }
         }
 
         override fun onDone(task: DownloadTask) {
-            notifyListenersAboutDownloadDone(task)
+            AppDatabase.db.downloadDao().update(task.downloadInfo)
+            handler.post {
+                model.notifyListenersAboutDownloadProgress(task)
+                onTaskEnded(task)
+            }
         }
-    }
-
-    interface Listener {
-        fun onDownloadUpdated(downloadInfo: Download)
-        fun onDownloadError(downloadInfo: Download, responseCode: Int, responseMessage: String)
-        fun onAllDownloadsComplete()
     }
 
     override fun onCreate() {
         super.onCreate()
+        model = TVBro.get(DownloadsActiveModel::class, this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
+    override fun onDestroy() {
+        TVBro.instance.models.markAsNeedless(model, this)
+        super.onDestroy()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        intent?.let {
+            val downloadIntent = DownloadIntent.fromAndroidIntent(it)
+            startDownloading(downloadIntent)
+        }
         return START_STICKY
     }
 
@@ -79,7 +95,7 @@ class DownloadService : Service() {
         var downloaded = 0L
         var total = 0L
         var hasUnknownSizedFiles = false
-        for (download in activeDownloads) {
+        for (download in model.activeDownloads) {
             title += download.downloadInfo.filename + ","
             downloaded += download.downloadInfo.bytesReceived
             if (download.downloadInfo.size > 0) {
@@ -116,26 +132,7 @@ class DownloadService : Service() {
         return binder
     }
 
-    fun cancelDownload(download: Download) {
-        for (i in activeDownloads.indices) {
-            val task = activeDownloads[i]
-            if (task.downloadInfo.id == download.id) {
-                task.downloadInfo.cancelled = true
-                break
-            }
-        }
-    }
-
-    fun registerListener(listener: Listener) {
-        listeners.add(listener)
-    }
-
-    fun unregisterListener(listener: Listener) {
-        listeners.remove(listener)
-    }
-
     private fun onTaskEnded(task: DownloadTask) {
-        activeDownloads.remove(task)
         when (task.downloadInfo.operationAfterDownload) {
             Download.OperationAfterDownload.INSTALL -> {
                 val canInstallFromOtherSources = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -150,11 +147,9 @@ class DownloadService : Service() {
             Download.OperationAfterDownload.NOP -> {
             }
         }
-        if (activeDownloads.isEmpty()) {
-            for (i in listeners.indices) {
-                listeners[i].onAllDownloadsComplete()
-            }
-            stopForeground(true)
+        model.onDownloadEnded(task)
+        if (model.activeDownloads.isEmpty()) {
+            stopSelf()
         }
     }
 
@@ -175,35 +170,6 @@ class DownloadService : Service() {
         }
     }
 
-    private fun notifyListenersAboutDownloadDone(task: DownloadTask) {
-        AppDatabase.db.downloadDao().update(task.downloadInfo)
-        handler.post {
-            for (i in listeners.indices) {
-                listeners[i].onDownloadUpdated(task.downloadInfo)
-            }
-            onTaskEnded(task)
-        }
-    }
-
-    private fun notifyListenersAboutError(task: DownloadTask, responseCode: Int, responseMessage: String) {
-        AppDatabase.db.downloadDao().update(task.downloadInfo)
-        handler.post {
-            for (i in listeners.indices) {
-                listeners[i].onDownloadError(task.downloadInfo, responseCode, responseMessage)
-            }
-            onTaskEnded(task)
-        }
-    }
-
-    private fun notifyListeners(task: DownloadTask) {
-        handler.post {
-            for (i in listeners.indices) {
-                listeners[i].onDownloadUpdated(task.downloadInfo)
-            }
-            notificationManager.notify(DOWNLOAD_NOTIFICATION_ID, updateNotification())
-        }
-    }
-
     fun startDownloading(downloadIntent: DownloadIntent) {
         val download = Download()
         download.fillWith(downloadIntent)
@@ -214,7 +180,7 @@ class DownloadService : Service() {
         } else {
             BlobDownloadTask(download, downloadIntent.base64BlobData, downloadTasksListener)
         }
-        activeDownloads.add(downloadTask)
+        model.activeDownloads.add(downloadTask)
         executor.execute(downloadTask)
         startForeground(DOWNLOAD_NOTIFICATION_ID, updateNotification())
     }
@@ -225,6 +191,10 @@ class DownloadService : Service() {
     }
 
     companion object {
+        fun startDownloading(context: Context, downloadIntent: DownloadIntent) {
+            context.startService(downloadIntent.toAndroidIntent(context))
+        }
+
         val TAG: String = DownloadService::class.java.simpleName
         const val DOWNLOAD_NOTIFICATION_ID = 101101
     }

@@ -50,6 +50,10 @@ class MainActivityViewModel(application: Application): AndroidViewModel(applicat
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+    }
+
     fun loadState() = viewModelScope.launch(Dispatchers.Main) {
         if (loaded) return@launch
         initHistory()
@@ -172,12 +176,11 @@ class MainActivityViewModel(application: Application): AndroidViewModel(applicat
             activity.requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     MainActivity.MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE)
         } else {
-            startDownload(activity, activity.downloadsService)
+            startDownload(activity)
         }
     }
 
-    fun startDownload(activity: MainActivity, downloadsService: DownloadService?) {
-        val service = downloadsService ?: return
+    fun startDownload(activity: MainActivity) {
         val download = this.downloadIntent ?: return
         this.downloadIntent = null
         val extPos = download.fileName.lastIndexOf(".")
@@ -211,7 +214,7 @@ class MainActivityViewModel(application: Application): AndroidViewModel(applicat
         }
         download.fullDestFilePath = downloadsDir.toString() + File.separator + fileName
 
-        service.startDownloading(download)
+        DownloadService.startDownloading(getApplication<TVBro>(), download)
 
         activity.onDownloadStarted(fileName)
     }

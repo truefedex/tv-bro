@@ -87,6 +87,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.31")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3-native-mt")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.31")
 
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
@@ -100,6 +101,8 @@ dependencies {
     implementation("com.github.truefedex:segmented-button:v1.0.0")
     implementation("com.github.truefedex:ad-block:v0.0.1-ci")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
+
+    "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     //appstore-dependent dependencies
     "googleImplementation"("com.google.firebase:firebase-core:19.0.2")
