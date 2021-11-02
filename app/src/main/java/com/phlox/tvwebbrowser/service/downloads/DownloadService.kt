@@ -19,7 +19,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.activity.downloads.DownloadsActiveModel
+import com.phlox.tvwebbrowser.activity.downloads.ActiveDownloadsModel
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.DownloadIntent
 import com.phlox.tvwebbrowser.singleton.AppDatabase
@@ -33,7 +33,7 @@ import java.util.concurrent.Executors
  */
 
 class DownloadService : Service(), ActiveModelUser {
-    private lateinit var model: DownloadsActiveModel
+    private lateinit var model: ActiveDownloadsModel
     private val executor = Executors.newCachedThreadPool()
     private val handler = Handler(Looper.getMainLooper())
     private val binder = Binder()
@@ -73,7 +73,7 @@ class DownloadService : Service(), ActiveModelUser {
 
     override fun onCreate() {
         super.onCreate()
-        model = TVBro.get(DownloadsActiveModel::class, this)
+        model = TVBro.get(ActiveDownloadsModel::class, this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 

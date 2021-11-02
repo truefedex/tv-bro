@@ -31,7 +31,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.activity.downloads.DownloadsActiveModel
+import com.phlox.tvwebbrowser.activity.downloads.ActiveDownloadsModel
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.dialogs.FavoritesDialog
@@ -43,6 +43,7 @@ import com.phlox.tvwebbrowser.activity.main.view.TitlesView
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx.Companion.HOME_URL
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
+import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.WebTabState
@@ -70,14 +71,16 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
 
     private lateinit var vb: ActivityMainBinding
     private lateinit var viewModel: MainActivityViewModel
+    private lateinit var tabsModel: TabsModel
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var adblockViewModel: AdblockViewModel
-    private lateinit var downloadsModel: DownloadsActiveModel
+    private lateinit var downloadsModel: ActiveDownloadsModel
     private lateinit var uiHandler: Handler
     private var running: Boolean = false
     private var downloadAnimation: Animation? = null
     private var fullScreenView: View? = null
     private lateinit var prefs: SharedPreferences
+    private lateinit var jsInterface: AndroidJSInterface
 
     @ExperimentalStdlibApi
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,7 +88,9 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
         settingsViewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
         adblockViewModel = ViewModelProvider(this).get(AdblockViewModel::class.java)
-        downloadsModel = TVBro.get(DownloadsActiveModel::class, this)
+        downloadsModel = TVBro.get(ActiveDownloadsModel::class, this)
+        tabsModel = TVBro.get(TabsModel::class, this)
+        jsInterface = AndroidJSInterface(viewModel, tabsModel)
         uiHandler = Handler()
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         vb = ActivityMainBinding.inflate(layoutInflater)
@@ -101,7 +106,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
 
         vb.flWebViewContainer.setCallback(object : CursorLayout.Callback {
             override fun onUserInteraction() {
-                val tab = viewModel.currentTab.value
+                val tab = tabsModel.currentTab.value
                 if (tab != null) {
                     if (!tab.webPageInteractionDetected) {
                         tab.webPageInteractionDetected = true
@@ -122,12 +127,12 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         vb.ibHome.setOnClickListener { navigate(HOME_URL) }
         vb.ibBack.setOnClickListener { navigateBack() }
         vb.ibForward.setOnClickListener {
-            if (viewModel.currentTab.value != null && (viewModel.currentTab.value!!.webView?.canGoForward() == true)) {
-                viewModel.currentTab.value!!.webView?.goForward()
+            if (tabsModel.currentTab.value != null && (tabsModel.currentTab.value!!.webView?.canGoForward() == true)) {
+                tabsModel.currentTab.value!!.webView?.goForward()
             }
         }
         vb.ibRefresh.setOnClickListener { refresh() }
-        vb.ibCloseTab.setOnClickListener { viewModel.currentTab.value?.apply { closeTab(this) } }
+        vb.ibCloseTab.setOnClickListener { tabsModel.currentTab.value?.apply { closeTab(this) } }
 
         vb.ibMenu.setOnClickListener { finish() }
         vb.ibDownloads.setOnClickListener { startActivity(Intent(this@MainActivity, DownloadsActivity::class.java)) }
@@ -135,7 +140,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         vb.ibHistory.setOnClickListener { showHistory() }
         vb.ibSettings.setOnClickListener { showSettings() }
         vb.ibZoomIn.setOnClickListener {
-            val tab = viewModel.currentTab.value ?: return@setOnClickListener
+            val tab = tabsModel.currentTab.value ?: return@setOnClickListener
             tab.webView?.apply {
                 if (this.canZoomIn()) {
                     tab.changingScale = true
@@ -148,7 +153,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
             }
         }
         vb.ibZoomOut.setOnClickListener {
-            val tab = viewModel.currentTab.value ?: return@setOnClickListener
+            val tab = tabsModel.currentTab.value ?: return@setOnClickListener
             tab.webView?.apply {
                 if (this.canZoomOut()) {
                     tab.changingScale = true
@@ -172,7 +177,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         }
 
         settingsViewModel.uaString.subscribe(this.lifecycle) {
-            for (tab in viewModel.tabsStates) {
+            for (tab in tabsModel.tabsStates) {
                 tab.webView?.settings?.userAgentString = it
                 if (tab.webView != null && (it == "")) {
                     settingsViewModel.saveUAString(SettingsViewModel.TV_BRO_UA_PREFIX +
@@ -194,6 +199,10 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
                     downloadAnimation = null
                 }
             }
+        }
+
+        viewModel.frequentlyUsedUrls.subscribe(this) {
+            jsInterface.setSuggestions(application, it)
         }
 
         loadState()
@@ -238,8 +247,8 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
             val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val activeNetwork = cm.activeNetworkInfo
             val isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting
-            if (viewModel.currentTab.value != null) {
-                viewModel.currentTab.value!!.webView?.setNetworkAvailable(isConnected)
+            if (tabsModel.currentTab.value != null) {
+                tabsModel.currentTab.value!!.webView?.setNetworkAvailable(isConnected)
             }
         }
     }
@@ -271,8 +280,9 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
     }
 
     private fun showFavorites() {
-        val currentPageTitle = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.title else ""
-        val currentPageUrl = if (viewModel.currentTab.value != null) viewModel.currentTab.value!!.url else ""
+        val currentTab = tabsModel.currentTab.value
+        val currentPageTitle = currentTab?.title ?: ""
+        val currentPageUrl = currentTab?.url ?: ""
 
         FavoritesDialog(this@MainActivity, lifecycleScope, object : FavoritesDialog.Callback {
             override fun onFavoriteChoosen(item: FavoriteItem?) {
@@ -307,7 +317,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
             KeyEvent.KEYCODE_DPAD_UP -> {
                 if (keyEvent.action == KeyEvent.ACTION_UP) {
                     hideBottomPanel()
-                    viewModel.currentTab.value?.webView?.requestFocus()
+                    tabsModel.currentTab.value?.webView?.requestFocus()
                     vb.flWebViewContainer.cursorPosition
                 }
                 return@OnKeyListener true
@@ -324,7 +334,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
                     imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
                     search(vb.etUrl.text.toString())
                     hideFloatAddressBar()
-                    viewModel.currentTab.value!!.webView?.requestFocus()
+                    tabsModel.currentTab.value!!.webView?.requestFocus()
                 }
                 return@OnKeyListener true
             }
@@ -340,7 +350,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
 
     private fun hideFloatAddressBar() {
         if (vb.flUrl.parent == vb.rlRoot) {
-            viewModel.currentTab.value?.apply { vb.etUrl.setText(this.url) }
+            tabsModel.currentTab.value?.apply { vb.etUrl.setText(this.url) }
             vb.rlRoot.removeView(vb.flUrl)
             val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             lp.addRule(RelativeLayout.END_OF, R.id.ibSettings)
@@ -357,22 +367,22 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
                     when (i) {
                         0 -> tab?.apply { closeTab(this) }
                         1 -> {
-                            viewModel.onCloseAllTabs()
+                            tabsModel.onCloseAllTabs()
                             vb.flWebViewContainer.removeAllViews()
                             openInNewTab(HOME_URL, 0)
-                            vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
-                            vb.vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
+                            vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
+                            vb.vTitles.current = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
                         }
                         2 -> if (tab != null && tabIndex > 0) {
-                            viewModel.tabsStates.remove(tab)
-                            viewModel.tabsStates.add(tabIndex - 1, tab)
-                            vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
+                            tabsModel.tabsStates.remove(tab)
+                            tabsModel.tabsStates.add(tabIndex - 1, tab)
+                            vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
                             vb.vTitles.current = tabIndex - 1
                         }
-                        3 -> if (tab != null && tabIndex < (viewModel.tabsStates.size - 1)) {
-                            viewModel.tabsStates.remove(tab)
-                            viewModel.tabsStates.add(tabIndex + 1, tab)
-                            vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
+                        3 -> if (tab != null && tabIndex < (tabsModel.tabsStates.size - 1)) {
+                            tabsModel.tabsStates.remove(tab)
+                            tabsModel.tabsStates.add(tabIndex + 1, tab)
+                            vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
                             vb.vTitles.current = tabIndex + 1
                         }
                     }
@@ -381,15 +391,15 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
     }
 
     private fun tabByTitleIndex(index: Int) =
-            if (index >= 0 && index < viewModel.tabsStates.size) viewModel.tabsStates[index] else null
+            if (index >= 0 && index < tabsModel.tabsStates.size) tabsModel.tabsStates[index] else null
 
     fun showSettings() {
         SettingsDialog(this, settingsViewModel).show()
     }
 
     fun navigateBack(goHomeIfNoHistory: Boolean = false) {
-        if (viewModel.currentTab.value != null && viewModel.currentTab.value!!.webView?.canGoBack() == true) {
-            viewModel.currentTab.value!!.webView?.goBack()
+        if (tabsModel.currentTab.value != null && tabsModel.currentTab.value!!.webView?.canGoBack() == true) {
+            tabsModel.currentTab.value!!.webView?.goBack()
         } else if (goHomeIfNoHistory) {
             navigate(HOME_URL)
         } else if (vb.rlActionBar.visibility != View.VISIBLE) {
@@ -400,12 +410,12 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
     }
 
     fun refresh() {
-        viewModel.currentTab.value?.webView?.reload()
+        tabsModel.currentTab.value?.webView?.reload()
     }
 
     override fun onDestroy() {
-        viewModel.jsInterface.setActivity(null)
-        viewModel.onDetachActivity()
+        jsInterface.setActivity(null)
+        tabsModel.onDetachActivity()
         super.onDestroy()
     }
 
@@ -421,6 +431,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         vb.progressBarGeneric.visibility = View.VISIBLE
         vb.progressBarGeneric.requestFocus()
         viewModel.loadState().join()
+        tabsModel.loadState().join()
 
         if (!running) {
             return@launch
@@ -430,12 +441,12 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
 
         val intentUri = intent.data
         if (intentUri == null) {
-            if (viewModel.tabsStates.isEmpty()) {
+            if (tabsModel.tabsStates.isEmpty()) {
                 openInNewTab(HOME_URL)
             } else {
                 var foundSelectedTab = false
-                for (i in viewModel.tabsStates.indices) {
-                    val tab = viewModel.tabsStates[i]
+                for (i in tabsModel.tabsStates.indices) {
+                    val tab = tabsModel.tabsStates[i]
                     if (tab.selected) {
                         changeTab(tab)
                         foundSelectedTab = true
@@ -443,7 +454,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
                     }
                 }
                 if (!foundSelectedTab) {//this may happen in some error states
-                    changeTab(viewModel.tabsStates[0])
+                    changeTab(tabsModel.tabsStates[0])
                 }
             }
         } else {
@@ -466,8 +477,8 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
                         }
                     })
         } else {
-            if (viewModel.currentTab.value == null ||
-                    viewModel.currentTab.value!!.url == HOME_URL) {
+            val currentTab = tabsModel.currentTab.value
+            if (currentTab == null || currentTab.url == HOME_URL) {
                 showMenuOverlay()
             }
             if (settingsViewModel.needAutockeckUpdates &&
@@ -486,7 +497,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
             viewModel.logCatOutput.subscribe(this@MainActivity) {
                 logMessage ->
                 if (logMessage.endsWith("AwContentsClientBridge: Dropping new download request.")) {
-                    viewModel.currentTab.value?.apply {
+                    tabsModel.currentTab.value?.apply {
                         val url = this.lastLoadingUrl ?: return@apply
                         onDownloadRequested(url, this)
                     }
@@ -502,7 +513,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         val tab = WebTabState()
         tab.url = url
         createWebView(tab) ?: return
-        viewModel.tabsStates.add(index, tab)
+        tabsModel.tabsStates.add(index, tab)
         changeTab(tab)
         navigate(url)
         if (vb.rlActionBar.visibility == View.VISIBLE) {
@@ -512,41 +523,41 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
 
     private fun closeTab(tab: WebTabState?) {
         if (tab == null) return
-        val position = viewModel.tabsStates.indexOf(tab)
-        if (viewModel.currentTab.value == tab) {
-            viewModel.currentTab.value = null
+        val position = tabsModel.tabsStates.indexOf(tab)
+        if (tabsModel.currentTab.value == tab) {
+            tabsModel.currentTab.value = null
         }
         tab.webView?.apply { vb.flWebViewContainer.removeView(this) }
         when {
-            viewModel.tabsStates.size == 1 -> openInNewTab(HOME_URL, 0)
+            tabsModel.tabsStates.size == 1 -> openInNewTab(HOME_URL, 0)
 
-            position > 0 -> changeTab(viewModel.tabsStates[position - 1])
+            position > 0 -> changeTab(tabsModel.tabsStates[position - 1])
 
-            else -> changeTab(viewModel.tabsStates[position + 1])
+            else -> changeTab(tabsModel.tabsStates[position + 1])
         }
-        viewModel.onCloseTab(tab)
-        vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
-        vb.vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
+        tabsModel.onCloseTab(tab)
+        vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
+        vb.vTitles.current = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
         hideBottomPanel()
     }
 
     private fun changeTab(newTab: WebTabState) {
-        if (viewModel.currentTab.value == newTab) return
-        viewModel.tabsStates.forEach {
+        if (tabsModel.currentTab.value == newTab) return
+        tabsModel.tabsStates.forEach {
             it.selected = false
         }
-        viewModel.currentTab.value?.apply {
+        tabsModel.currentTab.value?.apply {
             webView?.apply {
                 onPause()
                 vb.flWebViewContainer.removeView(this)
             }
             onPause()
-            viewModel.saveTab(this)
+            tabsModel.saveTab(this)
         }
 
         newTab.selected = true
-        viewModel.currentTab.value = newTab
-        vb.vTitles.current = viewModel.tabsStates.indexOf(newTab)
+        tabsModel.currentTab.value = newTab
+        vb.vTitles.current = tabsModel.tabsStates.indexOf(newTab)
         var wv = newTab.webView
         if (wv == null) {
             wv = createWebView(newTab)
@@ -570,7 +581,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
     private fun createWebView(tab: WebTabState): WebViewEx? {
         val webView: WebViewEx
         try {
-            webView = WebViewEx(this, WebViewCallback(tab), viewModel.jsInterface)
+            webView = WebViewEx(this, WebViewCallback(tab), jsInterface)
             tab.webView = webView
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -641,7 +652,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
     }
 
     override fun onTrimMemory(level: Int) {
-        for (tab in viewModel.tabsStates) {
+        for (tab in tabsModel.tabsStates) {
             if (!tab.selected) {
                 tab.recycleWebView()
             }
@@ -654,11 +665,11 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         if (grantResults.isEmpty()) return
         when (requestCode) {
             MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS -> {
-                viewModel.currentTab.value?.webView?.onPermissionsResult(permissions, grantResults, false)
+                tabsModel.currentTab.value?.webView?.onPermissionsResult(permissions, grantResults, false)
                 return
             }
             MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS -> {
-                viewModel.currentTab.value?.webView?.onPermissionsResult(permissions, grantResults, true)
+                tabsModel.currentTab.value?.webView?.onPermissionsResult(permissions, grantResults, true)
                 return
             }
             MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE -> {
@@ -689,7 +700,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
             }
             PICKFILE_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null ) {
-                    viewModel.currentTab.value?.webView?.onFilePicked(data)
+                    tabsModel.currentTab.value?.webView?.onFilePicked(data)
                 }
             }
             REQUEST_CODE_HISTORY_ACTIVITY -> if (resultCode == Activity.RESULT_OK) {
@@ -710,23 +721,23 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
     override fun onResume() {
         running = true
         super.onResume()
-        viewModel.jsInterface.setActivity(this)
+        jsInterface.setActivity(this)
         val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(mConnectivityChangeReceiver, intentFilter)
-        if (viewModel.currentTab.value != null) {
-            viewModel.currentTab.value!!.webView?.onResume()
+        if (tabsModel.currentTab.value != null) {
+            tabsModel.currentTab.value!!.webView?.onResume()
         }
-        vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
-        vb.vTitles.current = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
+        vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
+        vb.vTitles.current = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
     }
 
     override fun onPause() {
-        viewModel.jsInterface.setActivity(null)
+        jsInterface.setActivity(null)
         if (mConnectivityChangeReceiver != null) unregisterReceiver(mConnectivityChangeReceiver)
-        viewModel.currentTab.value?.apply {
+        tabsModel.currentTab.value?.apply {
             webView?.onPause()
             onPause()
-            viewModel.saveTab(this, true)
+            tabsModel.saveTab(this, true)
         }
 
         super.onPause()
@@ -734,7 +745,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
     }
 
     private fun toggleAdBlockForTab() {
-        viewModel.currentTab.value?.apply {
+        tabsModel.currentTab.value?.apply {
             val currentState = adblock ?: adblockViewModel.adBlockEnabled
             val newState = !currentState
             adblock = newState
@@ -746,8 +757,8 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
 
     fun navigate(url: String) {
         vb.etUrl.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
-        if (viewModel.currentTab.value != null) {
-            viewModel.currentTab.value!!.webView?.loadUrl(url)
+        if (tabsModel.currentTab.value != null) {
+            tabsModel.currentTab.value!!.webView?.loadUrl(url)
         } else {
             openInNewTab(url)
         }
@@ -792,7 +803,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         if (keyCode == KeyEvent.KEYCODE_BACK && fullScreenView != null) {
             if (event.action == KeyEvent.ACTION_UP) {
                 uiHandler.post {
-                    viewModel.currentTab.value?.webView?.onHideCustomView()
+                    tabsModel.currentTab.value?.webView?.onHideCustomView()
                 }
             }
             return true
@@ -824,7 +835,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         vb.ivMiniatures.visibility = View.VISIBLE
         vb.llBottomPanel.visibility = View.VISIBLE
         vb.flWebViewContainer.visibility = View.INVISIBLE
-        val currentTab = viewModel.currentTab.value
+        val currentTab = tabsModel.currentTab.value
         if (currentTab != null) {
             currentTab.thumbnail = currentTab.webView?.renderThumbnail(currentTab.thumbnail)
             displayThumbnail(currentTab)
@@ -929,8 +940,8 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
                     vb.ivMiniatures.setImageResource(0)
                     syncTabWithTitles()
                     vb.flWebViewContainer.visibility = View.VISIBLE
-                    if (hideBottomButtons && viewModel.currentTab.value != null && vb.flUrl.parent != vb.rlRoot) {
-                        viewModel.currentTab.value!!.webView?.requestFocus()
+                    if (hideBottomButtons && tabsModel.currentTab.value != null && vb.flUrl.parent != vb.rlRoot) {
+                        tabsModel.currentTab.value!!.webView?.requestFocus()
                     }
                 }
                 .start()
@@ -939,7 +950,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
     private fun syncTabWithTitles() {
         val tab = tabByTitleIndex(vb.vTitles.current)
         if (tab == null) {
-            openInNewTab(HOME_URL, if (vb.vTitles.current < 0) 0 else viewModel.tabsStates.size)
+            openInNewTab(HOME_URL, if (vb.vTitles.current < 0) 0 else tabsModel.tabsStates.size)
         } else if (!tab.selected) {
             changeTab(tab)
         }
@@ -975,8 +986,8 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         }
 
         override fun onOpenInNewTabRequested(s: String) {
-            var index = viewModel.tabsStates.indexOf(viewModel.currentTab.value)
-            index = if (index == -1) viewModel.tabsStates.size else index + 1
+            var index = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
+            index = if (index == -1) tabsModel.tabsStates.size else index + 1
             openInNewTab(s, index)
         }
 
@@ -1027,7 +1038,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
 
         override fun onReceivedTitle(title: String) {
             tab.title = title
-            vb.vTitles.titles = viewModel.tabsStates.map { it.title }.run { ArrayList(this) }
+            vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
             vb.vTitles.postInvalidate()
         }
 
@@ -1095,7 +1106,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         }
 
         override fun onPageFinished(url: String?) {
-            if (tab.webView == null || viewModel.currentTab.value == null) {
+            if (tab.webView == null || tabsModel.currentTab.value == null) {
                 return
             }
             onWebViewUpdated(tab)
@@ -1111,11 +1122,11 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
             }
 
             //thumbnail
-            viewModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
+            tabsModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
             val newThumbnail = tab.webView?.renderThumbnail(tab.thumbnail)
             if (newThumbnail != null) {
                 tab.updateThumbnail(this@MainActivity, newThumbnail, lifecycleScope)
-                if (vb.rlActionBar.visibility == View.VISIBLE && tab == viewModel.currentTab.value) {
+                if (vb.rlActionBar.visibility == View.VISIBLE && tab == tabsModel.currentTab.value) {
                     displayThumbnail(tab)
                 }
             }
@@ -1136,7 +1147,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         }
 
         override fun isAdBlockingEnabled(): Boolean {
-            viewModel.currentTab.value?.adblock?.apply {
+            tabsModel.currentTab.value?.adblock?.apply {
                 return this
             }
             return  adblockViewModel.adBlockEnabled
@@ -1158,16 +1169,16 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
             }
             val tab = WebTabState()
             val webView = createWebView(tab) ?: return null
-            val currentTab = this@MainActivity.viewModel.currentTab.value ?: return null
-            val index = viewModel.tabsStates.indexOf(currentTab) + 1
-            viewModel.tabsStates.add(index, tab)
+            val currentTab = this@MainActivity.tabsModel.currentTab.value ?: return null
+            val index = tabsModel.tabsStates.indexOf(currentTab) + 1
+            tabsModel.tabsStates.add(index, tab)
             changeTab(tab)
             this.tab.hasAutoOpenedWindows = true
             return webView
         }
 
         override fun closeWindow(window: WebView) {
-            for (tab in viewModel.tabsStates) {
+            for (tab in tabsModel.tabsStates) {
                 if (tab.webView == window) {
                     closeTab(tab)
                     break

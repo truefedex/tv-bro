@@ -7,13 +7,14 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.MainActivityViewModel
+import com.phlox.tvwebbrowser.activity.main.TabsModel
 import com.phlox.tvwebbrowser.utils.DownloadUtils
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
 
-class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewModel) {
+class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewModel, private val tabsModel: TabsModel) {
     private var activity: MainActivity? = null
     private var suggestions = "[]"
 
@@ -29,7 +30,7 @@ class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewMode
 
     @JavascriptInterface
     fun currentUrl(): String {
-        return mainActivityViewModel.currentTab.value?.url ?: ""
+        return tabsModel.currentTab.value?.url ?: ""
     }
 
     @JavascriptInterface
@@ -40,7 +41,7 @@ class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewMode
     @JavascriptInterface
     fun reloadWithSslTrust() {
         activity?.runOnUiThread {
-            mainActivityViewModel.currentTab.value?.apply {
+            tabsModel.currentTab.value?.apply {
                 webView?.trustSsl = true
                 url?.apply { webView?.loadUrl(this) }
             }
@@ -62,9 +63,9 @@ class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewMode
     @JavascriptInterface
     fun lastSSLError(getDetails: Boolean): String {
         return if (getDetails) {
-            mainActivityViewModel.currentTab.value?.webView?.lastSSLError?.toString() ?: ""
+            tabsModel.currentTab.value?.webView?.lastSSLError?.toString() ?: ""
         } else {
-            when (mainActivityViewModel.currentTab.value?.webView?.lastSSLError?.primaryError) {
+            when (tabsModel.currentTab.value?.webView?.lastSSLError?.primaryError) {
                 SslError.SSL_EXPIRED -> TVBro.instance.getString(R.string.ssl_expired)
                 SslError.SSL_IDMISMATCH -> TVBro.instance.getString(R.string.ssl_idmismatch)
                 SslError.SSL_DATE_INVALID -> TVBro.instance.getString(R.string.ssl_date_invalid)

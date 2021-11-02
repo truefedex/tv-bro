@@ -24,7 +24,6 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.databinding.ActivityDownloadsBinding
 import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
 import kotlinx.coroutines.Dispatchers
@@ -32,13 +31,14 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
-class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, DownloadsActiveModel.Listener, AdapterView.OnItemLongClickListener,
+class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, ActiveDownloadsModel.Listener, AdapterView.OnItemLongClickListener,
   ActiveModelUser {
     private lateinit var vb: ActivityDownloadsBinding
     private lateinit var adapter: DownloadListAdapter
-    private val listeners = ArrayList<DownloadsActiveModel.Listener>()
+    private val listeners = ArrayList<ActiveDownloadsModel.Listener>()
 
-    private lateinit var model: DownloadsActiveModel
+    private lateinit var activeDownloadsModel: ActiveDownloadsModel
+    private lateinit var downloadsHistoryModel: DownloadsHistoryModel
 
     internal var onListScrollListener: AbsListView.OnScrollListener = object : AbsListView.OnScrollListener {
         override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
@@ -47,7 +47,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
         override fun onScroll(view: AbsListView, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
             if (totalItemCount != 0 && firstVisibleItem + visibleItemCount >= totalItemCount - 1) {
-                model.loadItems(adapter!!.realCount)
+                downloadsHistoryModel.loadNextItems()
             }
         }
     }
@@ -58,7 +58,8 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         vb = ActivityDownloadsBinding.inflate(layoutInflater)
         setContentView(vb.root)
 
-        model = TVBro.instance.models.get(DownloadsActiveModel::class, this)
+        activeDownloadsModel = TVBro.get(ActiveDownloadsModel::class, this)
+        downloadsHistoryModel = TVBro.get(DownloadsHistoryModel::class, this)
 
         adapter = DownloadListAdapter(this)
         vb.listView.adapter = adapter
@@ -67,7 +68,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         vb.listView.onItemClickListener = this
         vb.listView.onItemLongClickListener = this
 
-        model.items.subscribe(this, {
+        downloadsHistoryModel.lastLoadedItems.subscribe(this, {
             if (it.isNotEmpty()) {
                 vb.tvPlaceholder.visibility = View.GONE
                 adapter.addItems(it)
@@ -75,18 +76,22 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
             }
         })
 
-        if (model.items.value.isEmpty()) {
-            model.loadItems()
+        if (downloadsHistoryModel.allItems.isEmpty()) {
+            downloadsHistoryModel.loadNextItems()
+        } else {
+            vb.tvPlaceholder.visibility = View.GONE
+            adapter.addItems(downloadsHistoryModel.allItems)
+            vb.listView.requestFocus()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        model.registerListener(this)
+        activeDownloadsModel.registerListener(this)
     }
 
     override fun onPause() {
-        model.unregisterListener(this@DownloadsActivity)
+        activeDownloadsModel.unregisterListener(this@DownloadsActivity)
         super.onPause()
     }
 
@@ -141,7 +146,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         val pm = PopupMenu(this, v, Gravity.BOTTOM)
         pm.menu.add(R.string.cancel)
         pm.setOnMenuItemClickListener {
-            model.cancelDownload(v.download!!)
+            activeDownloadsModel.cancelDownload(v.download!!)
             true
         }
         pm.show()
@@ -214,7 +219,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     private fun deleteItem(v: DownloadListItemView) = lifecycleScope.launch(Dispatchers.Main) {
         v.download?.let {
-            model.deleteItem(it)
+            activeDownloadsModel.deleteItem(it)
             adapter.remove(it)
         }
     }
@@ -233,11 +238,11 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     override fun onAllDownloadsComplete() {}
 
-    fun registerListener(listener: DownloadsActiveModel.Listener) {
+    fun registerListener(listener: ActiveDownloadsModel.Listener) {
         listeners.add(listener)
     }
 
-    fun unregisterListener(listener: DownloadsActiveModel.Listener) {
+    fun unregisterListener(listener: ActiveDownloadsModel.Listener) {
         listeners.remove(listener)
     }
 

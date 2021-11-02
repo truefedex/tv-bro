@@ -7,17 +7,14 @@ import java.util.function.UnaryOperator
 
 typealias ListChangeObserver<T> = (ObservableList<T>) -> Unit
 
-class ObservableList<T>(private val pushOnSubscribe: Boolean = true): ArrayList<T>(), Subscribable<ListChangeObserver<T>> {
+class ObservableList<T>(): ArrayList<T>(), Subscribable<ListChangeObserver<T>> {
   override val observers = ArrayList<ListChangeObserver<T>>()
 
-  override fun subscribe(observer: ListChangeObserver<T>) {
-    super.subscribe(observer)
-    if (pushOnSubscribe) {
-      observer(this)
-    }
+  private fun notifyChanged() {
+    notifyObservers()`` 
   }
 
-  private fun notifyChanged() {
+  override fun notifyObservers() {
     for (observer in observers) {
       observer(this)
     }

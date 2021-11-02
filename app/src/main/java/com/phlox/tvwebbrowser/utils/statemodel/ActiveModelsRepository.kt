@@ -3,11 +3,13 @@ package com.phlox.tvwebbrowser.utils.statemodel
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import kotlin.reflect.KClass
 
 class ActiveModelsRepository(app: Application) {
   private val holdersMap = HashMap<String, StateModelHolder>()
+  private val mainHandler = Handler(Looper.getMainLooper())
 
   private class StateModelHolder(val activeModel: ActiveModel) {
     val users = ArrayList<ActiveModelUser>()
@@ -33,7 +35,6 @@ class ActiveModelsRepository(app: Application) {
     }
 
     override fun onActivityDestroyed(activity: Activity) {
-      Log.d("StateModelsRepository", "onActivityDestroyed")
       if (activity !is ActiveModelUser) return
       markAsNeedlessAllStatesUsedBy(activity)
     }
@@ -58,10 +59,11 @@ class ActiveModelsRepository(app: Application) {
   }
 
   fun markAsNeedless(activeModelUsed: ActiveModel, byUser: ActiveModelUser) {
-    holdersMap[activeModelUsed::class.qualifiedName]?.let {
+    val key = activeModelUsed::class.qualifiedName
+    holdersMap[key]?.let {
       if (it.users.remove(byUser)) {
         if (it.users.isEmpty()) {
-          holdersMap.remove(activeModelUsed::class.qualifiedName)
+          holdersMap.remove(key)
           it.activeModel.clear()
         }
       }
@@ -69,10 +71,12 @@ class ActiveModelsRepository(app: Application) {
   }
 
   fun markAsNeedlessAllStatesUsedBy(user: ActiveModelUser) {
-    for (kv in holdersMap) {
+    val iterator = holdersMap.iterator()
+    while (iterator.hasNext()) {
+      val kv = iterator.next()
       if (kv.value.users.remove(user)) {
         if (kv.value.users.isEmpty()) {
-          holdersMap.remove(kv.key)
+          iterator.remove()
           kv.value.activeModel.clear()
         }
       }

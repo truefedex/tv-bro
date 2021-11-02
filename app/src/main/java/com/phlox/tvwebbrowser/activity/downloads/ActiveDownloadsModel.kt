@@ -10,12 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 
-class DownloadsActiveModel: ActiveModel() {
-    //downloads in DB
-    val items = ObservableValue<List<Download>>(ArrayList())
-    private var loading = false
-
-    //running downloads
+class ActiveDownloadsModel: ActiveModel() {
     val activeDownloads = ObservableList<DownloadTask>()
     private val listeners = java.util.ArrayList<Listener>()
 
@@ -23,17 +18,6 @@ class DownloadsActiveModel: ActiveModel() {
         fun onDownloadUpdated(downloadInfo: Download)
         fun onDownloadError(downloadInfo: Download, responseCode: Int, responseMessage: String)
         fun onAllDownloadsComplete()
-    }
-
-    fun loadItems(offset: Long = 0) = modelScope.launch(Dispatchers.Main) {
-        if (loading) {
-            return@launch
-        }
-        loading = true
-
-        items.value = AppDatabase.db.downloadDao().allByLimitOffset(offset)
-
-        loading = false
     }
 
     suspend fun deleteItem(download: Download) {

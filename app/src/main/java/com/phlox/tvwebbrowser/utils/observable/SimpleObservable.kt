@@ -12,19 +12,30 @@ import kotlin.reflect.KProperty
 
 interface Subscribable<O> {
     val observers: ArrayList<O>
-    fun subscribe(observer: O) {
+    fun subscribe(observer: O, notifyOnSubscribe: Boolean = true) {
         if (!observers.contains(observer)) {
             observers.add(observer)
+            if (notifyOnSubscribe) {
+                notifyObservers()
+            }
         }
     }
 
     fun subscribe(lifecycleOwner: LifecycleOwner, observer: O) {
-        subscribe(lifecycleOwner.lifecycle, observer)
+        subscribe(lifecycleOwner.lifecycle, true, observer)
+    }
+
+    fun subscribe(lifecycleOwner: LifecycleOwner, notifyOnSubscribe: Boolean = true, observer: O) {
+        subscribe(lifecycleOwner.lifecycle, notifyOnSubscribe, observer)
     }
 
     fun subscribe(lifecycle: Lifecycle, observer: O) {
+        subscribe(lifecycle, true, observer)
+    }
+
+    fun subscribe(lifecycle: Lifecycle, notifyOnSubscribe: Boolean = true, observer: O) {
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-            subscribe(observer)
+            subscribe(observer, notifyOnSubscribe)
         }
 
         lifecycle.addObserver(object : LifecycleEventObserver {
@@ -34,7 +45,7 @@ interface Subscribable<O> {
                         unsubscribe(observer)
                     }
                     Lifecycle.State.STARTED, Lifecycle.State.RESUMED -> {
-                        subscribe(observer)
+                        subscribe(observer, notifyOnSubscribe)
                     }
                     Lifecycle.State.DESTROYED -> {
                         lifecycle.removeObserver(this)
@@ -49,28 +60,23 @@ interface Subscribable<O> {
     fun unsubscribe(observer: O) {
         observers.remove(observer)
     }
+
+    fun notifyObservers()
 }
 
 typealias ValueObserver<T> = (value: T) -> Unit
 
-class ObservableValue<T>(default: T, private val pushOnSubscribe: Boolean = true) : Subscribable<ValueObserver<T>> {
+class ObservableValue<T>(default: T) : Subscribable<ValueObserver<T>> {
     var value: T = default
         set(value) {
             field = value
-            notifyChanged(value)
+            notifyObservers()
         }
 
     override val observers = ArrayList<ValueObserver<T>>()
 
-    private fun notifyChanged(new: T) {
+    override fun notifyObservers() {
         for (observer in observers) {
-            observer(new)
-        }
-    }
-
-    override fun subscribe(observer: ValueObserver<T>) {
-        super.subscribe(observer)
-        if (pushOnSubscribe) {
             observer(value)
         }
     }
@@ -88,6 +94,11 @@ class EventSource: Subscribable<EventObserver> {
 
     fun emit() {
         wasEmitted = true
+        notifyObservers()
+    }
+
+    override fun notifyObservers() {
+        if (!wasEmitted) return
         for (observer in observers) {
             observer()
         }
@@ -98,10 +109,17 @@ typealias ParameterizedEventObserver<T> = (T) -> Unit
 
 class ParameterizedEventSource<T>: Subscribable<ParameterizedEventObserver<T>> {
     override val observers = ArrayList<ParameterizedEventObserver<T>>()
+    var lastEvent: T? = null
     
-    fun emit(p: T) {
+    fun emit(event: T) {
+        lastEvent = event
+        notifyObservers()
+    }
+
+    override fun notifyObservers() {
+        val event = lastEvent ?: return
         for (observer in observers) {
-            observer(p)
+            observer(event)
         }
     }
 }

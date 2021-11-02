@@ -16,7 +16,7 @@ import java.util.Date
  * Created by PDT on 24.01.2017.
  */
 
-class DownloadListItemView(private val downloadsActivity: DownloadsActivity, private val viewType: Int) : FrameLayout(downloadsActivity), DownloadsActiveModel.Listener {
+class DownloadListItemView(private val downloadsActivity: DownloadsActivity, private val viewType: Int) : FrameLayout(downloadsActivity), ActiveDownloadsModel.Listener {
     private var defaultTextColor: Int = 0
     private var tvDate: TextView? = null
     private var tvTitle: TextView? = null

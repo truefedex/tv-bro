@@ -14,14 +14,15 @@ import android.widget.AdapterView
 import android.widget.ImageButton
 import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.databinding.ActivityHistoryBinding
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
+import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -29,12 +30,13 @@ import kotlinx.coroutines.launch
  * Created by fedex on 29.12.16.
  */
 
-class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener,
+  ActiveModelUser {
 
     private lateinit var vb: ActivityHistoryBinding
     private var ibDelete: ImageButton? = null
     private var adapter: HistoryAdapter? = null
-    private lateinit var historyViewModel: HistoryViewModel
+    private lateinit var historyModel: HistoryModel
 
     internal var onListScrollListener: AbsListView.OnScrollListener = object : AbsListView.OnScrollListener {
         override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
@@ -42,8 +44,8 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         }
 
         override fun onScroll(view: AbsListView, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
-            if (totalItemCount != 0 && firstVisibleItem + visibleItemCount >= totalItemCount - 1 && "" == historyViewModel.searchQuery) {
-                historyViewModel.loadItems(false, adapter!!.realCount)
+            if (totalItemCount != 0 && firstVisibleItem + visibleItemCount >= totalItemCount - 1 && "" == historyModel.searchQuery) {
+                historyModel.loadItems(false, adapter!!.realCount)
             }
         }
     }
@@ -53,7 +55,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         vb = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(vb.root)
 
-        historyViewModel = ViewModelProvider(this).get(HistoryViewModel::class.java)
+        historyModel = TVBro.get(HistoryModel::class, this)
 
         ibDelete = findViewById(R.id.ibDelete)
 
@@ -64,13 +66,13 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         vb.listView.onItemClickListener = this
         vb.listView.onItemLongClickListener = this
 
-        historyViewModel.items.subscribe(this) {
+        historyModel.lastLoadedItems.subscribe(this) {
             if (it.isEmpty()) return@subscribe
             adapter!!.addItems(it)
             vb.listView.requestFocus()
         }
 
-        historyViewModel.loadItems(false)
+        historyModel.loadItems(false)
     }
 
     private fun showDeleteDialog(deleteAll: Boolean) {
@@ -115,8 +117,8 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
                         return
                     }
                     adapter!!.erase()
-                    historyViewModel.searchQuery = matches[0]
-                    historyViewModel.loadItems(true)
+                    historyModel.searchQuery = matches[0]
+                    historyModel.loadItems(true)
                 }
             }
 
