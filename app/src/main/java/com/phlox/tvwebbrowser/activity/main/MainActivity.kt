@@ -27,7 +27,6 @@ import android.webkit.*
 import android.widget.RelativeLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
@@ -49,7 +48,8 @@ import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
-import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelUser
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
@@ -57,7 +57,7 @@ import java.net.URLEncoder
 import java.util.*
 import kotlin.collections.ArrayList
 
-class MainActivity : AppCompatActivity(), ActiveModelUser {
+class MainActivity : AppCompatActivity() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         const val VOICE_SEARCH_REQUEST_CODE = 10001
@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var tabsModel: TabsModel
     private lateinit var settingsViewModel: SettingsViewModel
-    private lateinit var adblockViewModel: AdblockViewModel
+    private lateinit var adblockModel: AdblockModel
     private lateinit var downloadsModel: ActiveDownloadsModel
     private lateinit var uiHandler: Handler
     private var running: Boolean = false
@@ -85,11 +85,11 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
     @ExperimentalStdlibApi
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
-        settingsViewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
-        adblockViewModel = ViewModelProvider(this).get(AdblockViewModel::class.java)
-        downloadsModel = TVBro.get(ActiveDownloadsModel::class, this)
-        tabsModel = TVBro.get(TabsModel::class, this)
+        viewModel = ActiveModelsRepository.get(MainActivityViewModel::class, this)
+        settingsViewModel = ActiveModelsRepository.get(SettingsViewModel::class, this)
+        adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
+        downloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, this)
+        tabsModel = ActiveModelsRepository.get(TabsModel::class, this)
         jsInterface = AndroidJSInterface(viewModel, tabsModel)
         uiHandler = Handler()
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
@@ -640,7 +640,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         vb.ibZoomOut.visibility = if (zoomPossible) View.VISIBLE else View.GONE
         vb.ibZoomIn.isEnabled = tab.webView?.canZoomIn() == true
         vb.ibZoomOut.isEnabled = tab.webView?.canZoomOut() == true
-        val adblockEnabled = tab.adblock ?: adblockViewModel.adBlockEnabled
+        val adblockEnabled = tab.adblock ?: adblockModel.adBlockEnabled
         vb.ibAdBlock.setImageResource(if (adblockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
         vb.tvBlockedAdCounter.visibility = if (adblockEnabled && tab.webView?.blockedAds != 0) View.VISIBLE else View.GONE
         vb.tvBlockedAdCounter.text = tab.webView?.blockedAds?.toString() ?: ""
@@ -746,7 +746,7 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
 
     private fun toggleAdBlockForTab() {
         tabsModel.currentTab.value?.apply {
-            val currentState = adblock ?: adblockViewModel.adBlockEnabled
+            val currentState = adblock ?: adblockModel.adBlockEnabled
             val newState = !currentState
             adblock = newState
             webView?.onUpdateAdblockSetting(newState)
@@ -1143,18 +1143,18 @@ class MainActivity : AppCompatActivity(), ActiveModelUser {
         }
 
         override fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean {
-            return adblockViewModel.isAd(request, baseUri)
+            return adblockModel.isAd(request, baseUri)
         }
 
         override fun isAdBlockingEnabled(): Boolean {
             tabsModel.currentTab.value?.adblock?.apply {
                 return this
             }
-            return  adblockViewModel.adBlockEnabled
+            return  adblockModel.adBlockEnabled
         }
 
         override fun onBlockedAdsCountChanged(blockedAds: Int) {
-            if (!adblockViewModel.adBlockEnabled) return
+            if (!adblockModel.adBlockEnabled) return
             vb.tvBlockedAdCounter.visibility = if (blockedAds > 0) View.VISIBLE else View.GONE
             vb.tvBlockedAdCounter.text = blockedAds.toString()
         }

@@ -11,7 +11,7 @@ class ObservableList<T>(): ArrayList<T>(), Subscribable<ListChangeObserver<T>> {
   override val observers = ArrayList<ListChangeObserver<T>>()
 
   private fun notifyChanged() {
-    notifyObservers()`` 
+    notifyObservers()
   }
 
   override fun notifyObservers() {

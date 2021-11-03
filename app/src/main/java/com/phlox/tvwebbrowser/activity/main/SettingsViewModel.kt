@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.activity.main
 
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -8,7 +7,6 @@ import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.AndroidViewModel
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
@@ -16,12 +14,13 @@ import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.utils.sameDay
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.util.*
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+class SettingsViewModel : ActiveModel() {
     companion object {
         val TAG = SettingsViewModel::class.java.simpleName
         const val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
@@ -32,7 +31,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         const val TV_BRO_UA_PREFIX = "TV Bro/1.0 "
     }
 
-    private var prefs = application.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
+    private var prefs = TVBro.instance.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
 
     //Search engines configuration
     val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Custom")

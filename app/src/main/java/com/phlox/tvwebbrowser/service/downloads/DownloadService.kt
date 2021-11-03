@@ -23,7 +23,8 @@ import com.phlox.tvwebbrowser.activity.downloads.ActiveDownloadsModel
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.DownloadIntent
 import com.phlox.tvwebbrowser.singleton.AppDatabase
-import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelUser
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import java.io.File
 import java.util.*
 import java.util.concurrent.Executors
@@ -73,12 +74,12 @@ class DownloadService : Service(), ActiveModelUser {
 
     override fun onCreate() {
         super.onCreate()
-        model = TVBro.get(ActiveDownloadsModel::class, this)
+        model = ActiveModelsRepository.get(ActiveDownloadsModel::class, this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
 
     override fun onDestroy() {
-        TVBro.instance.models.markAsNeedless(model, this)
+        ActiveModelsRepository.markAsNeedless(model, this)
         super.onDestroy()
     }
 

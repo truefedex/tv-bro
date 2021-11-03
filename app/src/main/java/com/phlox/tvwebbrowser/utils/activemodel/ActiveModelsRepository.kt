@@ -1,18 +1,19 @@
-package com.phlox.tvwebbrowser.utils.statemodel
+package com.phlox.tvwebbrowser.utils.activemodel
 
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.MainThread
 import kotlin.reflect.KClass
 
-class ActiveModelsRepository(app: Application) {
+object ActiveModelsRepository {
   private val holdersMap = HashMap<String, StateModelHolder>()
   private val mainHandler = Handler(Looper.getMainLooper())
 
   private class StateModelHolder(val activeModel: ActiveModel) {
-    val users = ArrayList<ActiveModelUser>()
+    val users = ArrayList<Any>()
   }
 
   private val activityLifecycleCallbacks = object: Application.ActivityLifecycleCallbacks {
@@ -35,17 +36,25 @@ class ActiveModelsRepository(app: Application) {
     }
 
     override fun onActivityDestroyed(activity: Activity) {
-      if (activity !is ActiveModelUser) return
-      markAsNeedlessAllStatesUsedBy(activity)
+      markAsNeedlessAllModelsUsedBy(activity)
     }
   }
 
-  init {
+  fun init(app: Application){
     app.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
-  @Suppress("UNCHECKED_CAST")
+  fun <T: ActiveModel>get(clazz: KClass<T>, user: Activity): T {
+    return _get(clazz, user)
+  }
+
   fun <T: ActiveModel>get(clazz: KClass<T>, user: ActiveModelUser): T {
+    return _get(clazz, user)
+  }
+
+  @Suppress("UNCHECKED_CAST")
+  @MainThread
+  private fun <T: ActiveModel>_get(clazz: KClass<T>, user: Any): T {
     val className = clazz.qualifiedName ?: throw IllegalStateException("clazz should have name!")
     var modelHolder: StateModelHolder? = holdersMap[className]
     if (modelHolder == null) {
@@ -58,6 +67,7 @@ class ActiveModelsRepository(app: Application) {
     return modelHolder.activeModel as T
   }
 
+  @MainThread
   fun markAsNeedless(activeModelUsed: ActiveModel, byUser: ActiveModelUser) {
     val key = activeModelUsed::class.qualifiedName
     holdersMap[key]?.let {
@@ -70,7 +80,8 @@ class ActiveModelsRepository(app: Application) {
     }
   }
 
-  fun markAsNeedlessAllStatesUsedBy(user: ActiveModelUser) {
+  @MainThread
+  fun markAsNeedlessAllModelsUsedBy(user: Any) {
     val iterator = holdersMap.iterator()
     while (iterator.hasNext()) {
       val kv = iterator.next()

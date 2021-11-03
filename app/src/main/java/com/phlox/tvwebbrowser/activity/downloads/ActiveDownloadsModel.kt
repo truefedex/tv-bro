@@ -4,10 +4,7 @@ import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.service.downloads.DownloadTask
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
-import com.phlox.tvwebbrowser.utils.observable.ObservableValue
-import com.phlox.tvwebbrowser.utils.statemodel.ActiveModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import java.io.File
 
 class ActiveDownloadsModel: ActiveModel() {

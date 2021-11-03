@@ -1,13 +1,10 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
-import android.app.Application
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
@@ -18,12 +15,13 @@ import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.observable.ParameterizedEventSource
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
-class MainActivityViewModel(application: Application): AndroidViewModel(application) {
+class MainActivityViewModel: ActiveModel() {
     companion object {
         var TAG: String = MainActivityViewModel::class.java.simpleName
     }
@@ -35,12 +33,12 @@ class MainActivityViewModel(application: Application): AndroidViewModel(applicat
     val logCatOutput = ParameterizedEventSource<String>()
 
     init {
-        if (Utils.isFireTV(application)) {
+        if (Utils.isFireTV(TVBro.instance)) {
             launchLogcatOutputCoroutine()
         }
     }
 
-    fun loadState() = viewModelScope.launch(Dispatchers.Main) {
+    fun loadState() = modelScope.launch(Dispatchers.Main) {
         if (loaded) return@launch
         initHistory()
         loaded = true
@@ -82,7 +80,7 @@ class MainActivityViewModel(application: Application): AndroidViewModel(applicat
         item.time = Date().time
         item.favicon = faviconHash
         lastHistoryItem = item
-        viewModelScope.launch(Dispatchers.Main) {
+        modelScope.launch(Dispatchers.Main) {
             AppDatabase.db.historyDao().insert(item)
         }
     }
@@ -133,13 +131,13 @@ class MainActivityViewModel(application: Application): AndroidViewModel(applicat
         }
         download.fullDestFilePath = downloadsDir.toString() + File.separator + fileName
 
-        DownloadService.startDownloading(getApplication<TVBro>(), download)
+        DownloadService.startDownloading(TVBro.instance, download)
 
         activity.onDownloadStarted(fileName)
     }
 
     private fun launchLogcatOutputCoroutine() {
-        viewModelScope.launch(Dispatchers.IO) {
+        modelScope.launch(Dispatchers.IO) {
             Runtime.getRuntime().exec("logcat -c")
             Runtime.getRuntime().exec("logcat")
               .inputStream

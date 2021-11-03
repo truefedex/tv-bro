@@ -4,17 +4,18 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.text.Html
-import androidx.fragment.app.FragmentActivity
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.*
-import androidx.lifecycle.ViewModelProvider
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.ScrollView
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
 import com.phlox.tvwebbrowser.databinding.ViewSettingsVersionBinding
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
 
 class VersionSettingsView @JvmOverloads constructor(
@@ -31,7 +32,7 @@ class VersionSettingsView @JvmOverloads constructor(
     }
 
     init {
-        settingsViewModel = ViewModelProvider(activity as FragmentActivity).get(SettingsViewModel::class.java)
+        settingsViewModel = ActiveModelsRepository.get(SettingsViewModel::class, activity!!)
 
         vb.tvVersion.text = context.getString(R.string.version_s, BuildConfig.VERSION_NAME)
 

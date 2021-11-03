@@ -1,16 +1,14 @@
 package com.phlox.tvwebbrowser.activity.main
 
-import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import com.brave.adblock.AdBlockClient
 import com.brave.adblock.Utils
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -18,9 +16,9 @@ import java.io.File
 import java.net.URL
 import java.util.*
 
-class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
+class AdblockModel : ActiveModel() {
     companion object {
-        val TAG = AdblockViewModel::class.java.simpleName
+        val TAG = AdblockModel::class.java.simpleName
         const val ADBLOCK_ENABLED_PREF_KEY = "adblock_enabled"
         const val ADBLOCK_LAST_UPDATE_LIST_KEY = "adblock_last_update"
         const val ADBLOCK_LIST_URL_KEY = "adblock_list_url"
@@ -30,7 +28,7 @@ class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
         const val AUTO_UPDATE_INTERVAL_MINUTES = 60 * 24 * 30 //30 days
     }
 
-    private var prefs = app.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
+    private var prefs = TVBro.instance.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
     var adBlockEnabled: Boolean = true
         set(value) {
             field = value
@@ -57,7 +55,7 @@ class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
-    fun loadAdBlockList(forceReload: Boolean) = viewModelScope.launch {
+    fun loadAdBlockList(forceReload: Boolean) = modelScope.launch {
         if (clientLoading.value) return@launch
         val checkDate = Calendar.getInstance()
         checkDate.timeInMillis = lastUpdateListTime
@@ -68,7 +66,7 @@ class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
         val client = AdBlockClient()
         var success = false
         withContext(Dispatchers.IO) ioContext@ {
-            val serializedFile = File(app.filesDir, SERIALIZED_LIST_FILE)
+            val serializedFile = File(TVBro.instance.filesDir, SERIALIZED_LIST_FILE)
             if ((!needUpdate) && serializedFile.exists() && client.deserialize(serializedFile.absolutePath)) {
                 success = true
                 return@ioContext
@@ -82,7 +80,7 @@ class AdblockViewModel(val app: Application) : AndroidViewModel(app) {
                 e.printStackTrace()
             }
         }
-        this@AdblockViewModel.client = client
+        this@AdblockModel.client = client
         lastUpdateListTime = now.timeInMillis
         prefs.edit().putLong(ADBLOCK_LAST_UPDATE_LIST_KEY, now.timeInMillis).apply()
         if (!success) {

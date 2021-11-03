@@ -16,13 +16,12 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.databinding.ActivityHistoryBinding
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
-import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -30,8 +29,7 @@ import kotlinx.coroutines.launch
  * Created by fedex on 29.12.16.
  */
 
-class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener,
-  ActiveModelUser {
+class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener{
 
     private lateinit var vb: ActivityHistoryBinding
     private var ibDelete: ImageButton? = null
@@ -55,7 +53,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         vb = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(vb.root)
 
-        historyModel = TVBro.get(HistoryModel::class, this)
+        historyModel = ActiveModelsRepository.get(HistoryModel::class, this)
 
         ibDelete = findViewById(R.id.ibDelete)
 
@@ -66,7 +64,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         vb.listView.onItemClickListener = this
         vb.listView.onItemLongClickListener = this
 
-        historyModel.lastLoadedItems.subscribe(this) {
+        historyModel.lastLoadedItems.subscribe(this, false) {
             if (it.isEmpty()) return@subscribe
             adapter!!.addItems(it)
             vb.listView.requestFocus()

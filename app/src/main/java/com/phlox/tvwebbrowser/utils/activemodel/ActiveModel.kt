@@ -1,4 +1,4 @@
-package com.phlox.tvwebbrowser.utils.statemodel
+package com.phlox.tvwebbrowser.utils.activemodel
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

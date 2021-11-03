@@ -1,22 +1,22 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
-import androidx.lifecycle.ViewModelProviders
 import android.content.Context
-import androidx.fragment.app.FragmentActivity
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
-import androidx.lifecycle.ViewModelProvider
+import android.widget.AdapterView
+import android.widget.BaseAdapter
+import android.widget.ListView
+import android.widget.RelativeLayout
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutDialog
 import com.phlox.tvwebbrowser.databinding.ViewShortcutBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
-
 
 
 class ShortcutsSettingsView @JvmOverloads constructor(
@@ -28,7 +28,7 @@ class ShortcutsSettingsView @JvmOverloads constructor(
             R.string.refresh_page, R.string.voice_search)
 
     init {
-        settingsViewModel = ViewModelProvider(activity as FragmentActivity).get(SettingsViewModel::class.java)
+        settingsViewModel = ActiveModelsRepository.get(SettingsViewModel::class, activity!!)
 
         selector = context.resources.getDrawable(R.drawable.list_item_bg_selector, null)
         adapter = ShortcutItemAdapter()

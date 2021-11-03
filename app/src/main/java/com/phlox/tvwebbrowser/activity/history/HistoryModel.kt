@@ -2,14 +2,12 @@ package com.phlox.tvwebbrowser.activity.history
 
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.singleton.AppDatabase
-import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
-import com.phlox.tvwebbrowser.utils.statemodel.ActiveModel
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class HistoryModel: ActiveModel() {
-    val allItems = ObservableList<HistoryItem>()
     val lastLoadedItems = ObservableValue<List<HistoryItem>>(ArrayList())
     private var loading = false
     var searchQuery = ""

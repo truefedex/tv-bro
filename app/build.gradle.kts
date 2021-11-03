@@ -16,8 +16,8 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    compileSdk = 30
-    buildToolsVersion = "30.0.3"
+    compileSdk = 31
+    buildToolsVersion = "31.0.0"
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
@@ -34,10 +34,10 @@ android {
     }
     signingConfigs {
         create("release") {
-            storeFile = rootProject.file(properties.getProperty("storeFile"))
-            storePassword = properties.getProperty("storePassword")
-            keyAlias = properties.getProperty("keyAlias")
-            keyPassword = properties.getProperty("keyPassword")
+            //storeFile = rootProject.file(properties.getProperty("storeFile", ""))
+            //storePassword = properties.getProperty("storePassword", "")
+            //keyAlias = properties.getProperty("keyAlias", "")
+            //keyPassword = properties.getProperty("keyPassword", "")
         }
     }
     buildTypes {
@@ -86,12 +86,10 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.2.1")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.31")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3-native-mt")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.31")
 
-    implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
 
     val roomVersion = "2.3.0"
     implementation("androidx.room:room-runtime:$roomVersion")

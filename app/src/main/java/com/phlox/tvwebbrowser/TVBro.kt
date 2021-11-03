@@ -4,9 +4,9 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import com.phlox.tvwebbrowser.utils.statemodel.ActiveModel
-import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
-import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelsRepository
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelUser
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.util.concurrent.ArrayBlockingQueue
@@ -22,16 +22,10 @@ class TVBro : Application() {
         lateinit var instance: TVBro
         const val CHANNEL_ID_DOWNLOADS: String = "downloads"
         const val MAIN_PREFS_NAME = "main.xml"
-
-        fun <T: ActiveModel>get(clazz: KClass<T>, user: ActiveModelUser): T {
-            return instance.models.get(clazz, user)
-        }
     }
 
     lateinit var threadPool: ThreadPoolExecutor
         private set
-
-    val models = ActiveModelsRepository(this)
 
     override fun onCreate() {
         super.onCreate()
@@ -46,6 +40,8 @@ class TVBro : Application() {
         CookieHandler.setDefault(cookieManager)
 
         initNotificationChannels()
+
+        ActiveModelsRepository.init(this)
     }
 
     private fun initNotificationChannels() {

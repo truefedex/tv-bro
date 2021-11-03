@@ -21,18 +21,16 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.databinding.ActivityDownloadsBinding
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.Utils
-import com.phlox.tvwebbrowser.utils.statemodel.ActiveModelUser
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
-class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, ActiveDownloadsModel.Listener, AdapterView.OnItemLongClickListener,
-  ActiveModelUser {
+class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, ActiveDownloadsModel.Listener, AdapterView.OnItemLongClickListener{
     private lateinit var vb: ActivityDownloadsBinding
     private lateinit var adapter: DownloadListAdapter
     private val listeners = ArrayList<ActiveDownloadsModel.Listener>()
@@ -58,8 +56,8 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         vb = ActivityDownloadsBinding.inflate(layoutInflater)
         setContentView(vb.root)
 
-        activeDownloadsModel = TVBro.get(ActiveDownloadsModel::class, this)
-        downloadsHistoryModel = TVBro.get(DownloadsHistoryModel::class, this)
+        activeDownloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, this)
+        downloadsHistoryModel = ActiveModelsRepository.get(DownloadsHistoryModel::class, this)
 
         adapter = DownloadListAdapter(this)
         vb.listView.adapter = adapter
@@ -68,7 +66,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         vb.listView.onItemClickListener = this
         vb.listView.onItemLongClickListener = this
 
-        downloadsHistoryModel.lastLoadedItems.subscribe(this, {
+        downloadsHistoryModel.lastLoadedItems.subscribe(this, false, {
             if (it.isNotEmpty()) {
                 vb.tvPlaceholder.visibility = View.GONE
                 adapter.addItems(it)
