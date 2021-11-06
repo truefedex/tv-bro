@@ -205,6 +205,14 @@ class MainActivity : AppCompatActivity() {
             jsInterface.setSuggestions(application, it)
         }
 
+        tabsModel.currentTab.subscribe(this) {
+            vb.etUrl.setText(it?.url ?: "")
+            it?.let {
+                onWebViewUpdated(it)
+                vb.vTitles.current = tabsModel.tabsStates.indexOf(it)
+            }
+        }
+
         loadState()
     }
 
@@ -542,39 +550,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun changeTab(newTab: WebTabState) {
-        if (tabsModel.currentTab.value == newTab) return
-        tabsModel.tabsStates.forEach {
-            it.selected = false
-        }
-        tabsModel.currentTab.value?.apply {
-            webView?.apply {
-                onPause()
-                vb.flWebViewContainer.removeView(this)
-            }
-            onPause()
-            tabsModel.saveTab(this)
-        }
-
-        newTab.selected = true
-        tabsModel.currentTab.value = newTab
-        vb.vTitles.current = tabsModel.tabsStates.indexOf(newTab)
-        var wv = newTab.webView
-        if (wv == null) {
-            wv = createWebView(newTab)
-            if (wv == null) {
-                return
-            }
-            newTab.restoreWebView()
-            vb.flWebViewContainer.addView(newTab.webView)
-        } else {
-            (wv.parent as? ViewGroup)?.removeView(wv)
-            vb.flWebViewContainer.addView(wv)
-            wv.onResume()
-        }
-        wv.setNetworkAvailable(Utils.isNetworkConnected(this))
-
-        vb.etUrl.setText(newTab.url)
-        onWebViewUpdated(newTab)
+        tabsModel.changeTab(newTab, { tab: WebTabState -> createWebView(tab) }, vb.flWebViewContainer)
     }
 
     @SuppressLint("SetJavaScriptEnabled")

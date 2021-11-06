@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:drawable="@drawable/webtab_horizontal_active_focused_bkg" />
+    <item android:state_checked="true" android:drawable="@drawable/webtab_horizontal_active_bkg" />
+    <item android:drawable="@drawable/webtab_horizontal_bkg" />
+</selector>

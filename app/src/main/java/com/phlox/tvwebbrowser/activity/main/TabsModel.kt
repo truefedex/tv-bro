@@ -1,9 +1,12 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import android.view.ViewGroup
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.LogUtils
+import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
@@ -100,5 +103,37 @@ class TabsModel : ActiveModel() {
     for (tab in tabsStates) {
       tab.recycleWebView()
     }
+  }
+
+  fun changeTab(newTab: WebTabState, webViewProvider: (tab: WebTabState) -> WebViewEx?, webViewParent: ViewGroup) {
+    if (currentTab.value == newTab) return
+    tabsStates.forEach {
+      it.selected = false
+    }
+    currentTab.value?.apply {
+      webView?.apply {
+        onPause()
+        webViewParent.removeView(this)
+      }
+      onPause()
+      saveTab(this)
+    }
+
+    newTab.selected = true
+    currentTab.value = newTab
+    var wv = newTab.webView
+    if (wv == null) {
+      wv = webViewProvider(newTab)
+      if (wv == null) {
+        return
+      }
+      newTab.restoreWebView()
+      webViewParent.addView(newTab.webView)
+    } else {
+      (wv.parent as? ViewGroup)?.removeView(wv)
+      webViewParent.addView(wv)
+      wv.onResume()
+    }
+    wv.setNetworkAvailable(Utils.isNetworkConnected(TVBro.instance))
   }
 }
