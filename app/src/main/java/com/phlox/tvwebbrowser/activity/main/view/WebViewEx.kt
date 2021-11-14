@@ -58,6 +58,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
     private var currentOriginalUrl: Uri? = null
     var blockedAds = 0
     private val uiHandler = Handler(Looper.getMainLooper())
+    private var optimalPageFavIcon: Bitmap? = null
 
     interface Callback {
         fun getActivity(): Activity
@@ -267,6 +268,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             }
 
             override fun onReceivedIcon(view: WebView?, icon: Bitmap) {
+                val prevIcon = optimalPageFavIcon
+                if (prevIcon != null && prevIcon.width >= icon.width) return
+                optimalPageFavIcon = icon
                 callback.onReceivedIcon(icon)
             }
 
@@ -312,6 +316,10 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 Log.d(TAG, "onPageStarted url: $url")
+                optimalPageFavIcon = favicon
+                if (favicon != null) {
+                    callback.onReceivedIcon(favicon)
+                }
                 currentOriginalUrl = Uri.parse(url)
                 callback.onPageStarted(url)
                 blockedAds = 0
