@@ -2,4 +2,6 @@
     <color name="default_url_color">#000</color>
 
     <color name="selected_link_bkg">#AEBBFF</color>
+
+    <color name="top_bar_background">#eee</color>
 </resources>

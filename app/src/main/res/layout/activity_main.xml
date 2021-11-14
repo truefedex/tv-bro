@@ -28,7 +28,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/rlActionBar"
         android:orientation="horizontal"
-        android:background="#fff"
+        android:background="@color/top_bar_background"
         android:visibility="visible"
         android:gravity="center_vertical"
         android:elevation="5dp"
@@ -62,17 +62,18 @@
             android:contentDescription="@string/voice_search" />
 
         <ImageButton
+            android:id="@+id/ibHistory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/ibHistory"
-            android:src="@drawable/ic_history_grey_900_36dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_toEndOf="@id/ibVoiceSearch"
+            android:background="@drawable/button_bg_selector"
+            android:contentDescription="@string/history"
             android:nextFocusRight="@+id/ibFavorites"
             android:nextFocusDown="@+id/vTitles"
-            android:background="@drawable/button_bg_selector"
-            android:layout_marginEnd="5dp"
-            android:layout_marginTop="5dp"
-            android:layout_toEndOf="@id/ibVoiceSearch"
-            android:contentDescription="@string/history" />
+            android:src="@drawable/ic_history_grey_900_36dp"
+            />
 
         <ImageButton
             android:layout_width="wrap_content"
@@ -117,7 +118,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toEndOf="@id/ibSettings"
-            android:background="#fff"
+            android:background="@color/top_bar_background"
             android:id="@+id/flUrl">
             <EditText
                 android:layout_width="match_parent"
@@ -133,13 +134,12 @@
                 android:importantForAutofill="no" />
         </FrameLayout>
 
-        <com.phlox.tvwebbrowser.activity.main.view.TitlesView
+        <com.phlox.tvwebbrowser.activity.main.view.tabs.TabsView
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_margin="10dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="10dp"
             android:layout_below="@+id/ibMenu"
             android:focusable="true"
-            android:focusableInTouchMode="true"
             android:nextFocusUp="@+id/ibMenu"
             android:nextFocusDown="@+id/ibCloseTab"
             android:id="@+id/vTitles" />

@@ -10,7 +10,6 @@ import kotlin.reflect.KClass
 
 object ActiveModelsRepository {
   private val holdersMap = HashMap<String, StateModelHolder>()
-  private val mainHandler = Handler(Looper.getMainLooper())
 
   private class StateModelHolder(val activeModel: ActiveModel) {
     val users = ArrayList<Any>()
@@ -36,7 +35,9 @@ object ActiveModelsRepository {
     }
 
     override fun onActivityDestroyed(activity: Activity) {
-      markAsNeedlessAllModelsUsedBy(activity)
+      if (activity.isFinishing) {
+        markAsNeedlessAllModelsUsedBy(activity)
+      }
     }
   }
 

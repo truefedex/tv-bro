@@ -81,12 +81,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             }
             if (json.has("favicon")) {
                 faviconHash = json.getString("favicon")
-                val faviconFile = File(context.cacheDir.absolutePath +
-                        File.separator + WebTabState.FAVICONS_DIR +
-                        File.separator + faviconHash)
-                if (faviconFile.exists()) {
-                    favicon = BitmapFactory.decodeFile(faviconFile.absolutePath)
-                }
+                loadFavicon(context)
             }
             if (json.has("wv_state")) {
                 val state = Utils.convertJsonToBundle(json.getJSONObject("wv_state"))
@@ -99,6 +94,17 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             LogUtils.recordException(e)
         }
 
+    }
+
+    fun loadFavicon(context: Context) {
+        val faviconFile = File(
+          context.cacheDir.absolutePath +
+            File.separator + FAVICONS_DIR +
+            File.separator + faviconHash
+        )
+        if (faviconFile.exists()) {
+            favicon = BitmapFactory.decodeFile(faviconFile.absolutePath)
+        }
     }
 
     private fun saveThumbnail(context: Context, scope: CoroutineScope) {

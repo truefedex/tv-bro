@@ -38,9 +38,9 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFact
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.activity.main.view.Scripts
-import com.phlox.tvwebbrowser.activity.main.view.TitlesView
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx.Companion.HOME_URL
+import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.model.Download
@@ -48,14 +48,12 @@ import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
-import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelUser
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.*
-import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -262,11 +260,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     @ExperimentalStdlibApi
-    private val tabsListener = object : TitlesView.Listener {
+    private val tabsListener = object : Listener {
         override fun onTitleChanged(index: Int) {
+            Log.d(TAG, "onTitleChanged: $index")
             val tab = tabByTitleIndex(index)
             vb.etUrl.setText(tab?.url ?: "")
-            displayThumbnail(tab)
+            uiHandler.post {
+                displayThumbnail(tab)
+            }
         }
 
         override fun onTitleSelected(index: Int) {
@@ -277,6 +278,10 @@ class MainActivity : AppCompatActivity() {
         override fun onTitleOptions(index: Int) {
             val tab = tabByTitleIndex(index)
             showTabOptions(tab, index)
+        }
+
+        override fun onAddNewTabSelected() {
+            openInNewTab(HOME_URL, tabsModel.tabsStates.size)
         }
     }
 
@@ -378,20 +383,14 @@ class MainActivity : AppCompatActivity() {
                             tabsModel.onCloseAllTabs()
                             vb.flWebViewContainer.removeAllViews()
                             openInNewTab(HOME_URL, 0)
-                            vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
-                            vb.vTitles.current = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
                         }
                         2 -> if (tab != null && tabIndex > 0) {
                             tabsModel.tabsStates.remove(tab)
                             tabsModel.tabsStates.add(tabIndex - 1, tab)
-                            vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
-                            vb.vTitles.current = tabIndex - 1
                         }
                         3 -> if (tab != null && tabIndex < (tabsModel.tabsStates.size - 1)) {
                             tabsModel.tabsStates.remove(tab)
                             tabsModel.tabsStates.add(tabIndex + 1, tab)
-                            vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
-                            vb.vTitles.current = tabIndex + 1
                         }
                     }
                 }
@@ -544,8 +543,6 @@ class MainActivity : AppCompatActivity() {
             else -> changeTab(tabsModel.tabsStates[position + 1])
         }
         tabsModel.onCloseTab(tab)
-        vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
-        vb.vTitles.current = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
         hideBottomPanel()
     }
 
@@ -703,8 +700,6 @@ class MainActivity : AppCompatActivity() {
         if (tabsModel.currentTab.value != null) {
             tabsModel.currentTab.value!!.webView?.onResume()
         }
-        vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
-        vb.vTitles.current = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
     }
 
     override fun onPause() {
@@ -1014,8 +1009,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onReceivedTitle(title: String) {
             tab.title = title
-            vb.vTitles.titles = tabsModel.tabsStates.map { it.title }.run { ArrayList(this) }
-            vb.vTitles.postInvalidate()
+            vb.vTitles.onTabTitleUpdated(tab)
         }
 
         override fun requestPermissions(array: Array<String>, geo: Boolean) {
@@ -1042,6 +1036,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onReceivedIcon(icon: Bitmap) {
             tab.updateFavIcon(this@MainActivity, icon)
+            vb.vTitles.onFavIconUpdated(tab)
         }
 
         override fun shouldOverrideUrlLoading(url: String): Boolean {

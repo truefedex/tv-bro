@@ -34,15 +34,15 @@ android {
     }
     signingConfigs {
         create("release") {
-            //storeFile = rootProject.file(properties.getProperty("storeFile", ""))
-            //storePassword = properties.getProperty("storePassword", "")
-            //keyAlias = properties.getProperty("keyAlias", "")
-            //keyPassword = properties.getProperty("keyPassword", "")
+            storeFile = rootProject.file(properties.getProperty("storeFile", ""))
+            storePassword = properties.getProperty("storePassword", "")
+            keyAlias = properties.getProperty("keyAlias", "")
+            keyPassword = properties.getProperty("keyPassword", "")
         }
     }
     buildTypes {
         getByName("release") {
-            isDebuggable = false
+            isDebuggable = true
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig=signingConfigs.getByName("release")
@@ -103,8 +103,8 @@ dependencies {
     "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     //appstore-dependent dependencies
-    "googleImplementation"("com.google.firebase:firebase-core:19.0.2")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.3")
+    "googleImplementation"("com.google.firebase:firebase-core:20.0.0")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.4")
 }
 
 tasks.getByName("check").dependsOn("lint")

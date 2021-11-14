@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.phlox.tvwebbrowser.widgets.CheckableContainer xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+    android:layout_width="@dimen/web_tab_width"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
+    android:focusable="true"
+    android:focusableInTouchMode="false"
+    android:nextFocusUp="@+id/ibMenu"
+    android:nextFocusDown="@+id/ibCloseTab"
+    android:paddingStart="@dimen/web_tab_padding"
+    android:paddingEnd="@dimen/web_tab_padding"
     android:background="@drawable/webtab_horizontal_bkg_selector">
     <ImageView
         android:id="@+id/ivFavicon"
@@ -16,10 +21,15 @@
         android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_toEndOf="@+id/ivFavicon"
+        android:duplicateParentState="true"
+        android:textColor="@color/webtab_horizontal_text_selector"
         tools:text="@string/app_name"
         android:textSize="20sp"
         android:gravity="center_vertical"
         android:layout_marginStart="3dp"
         android:lines="1"
-        android:ellipsize="end" />
-</LinearLayout>
+        android:ellipsize="end"
+        android:paddingStart="0dp"
+        android:paddingEnd="10dp"/>
+</com.phlox.tvwebbrowser.widgets.CheckableContainer>

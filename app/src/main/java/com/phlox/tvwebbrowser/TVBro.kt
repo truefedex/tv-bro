@@ -4,15 +4,12 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
-import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelUser
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-import kotlin.reflect.KClass
 
 /**
  * Created by PDT on 09.09.2016.

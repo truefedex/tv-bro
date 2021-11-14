@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:parentTag="android.widget.RelativeLayout">
+  <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/rvTabs"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:layout_toStartOf="@+id/btnAdd"
+      android:layout_above="@+id/vSpacer"
+      android:background="@color/top_bar_background"
+      android:layout_weight="1" />
+  <Button
+      android:id="@+id/btnAdd"
+      android:layout_width="50dp"
+      android:layout_height="match_parent"
+      android:layout_above="@+id/vSpacer"
+      android:layout_alignParentEnd="true"
+      android:stateListAnimator="@null"
+      android:layout_marginStart="5dp"
+      android:textSize="26sp"
+      android:padding="0dp"
+      android:fontFamily="serif"
+      android:background="@drawable/button_bg_selector"
+      android:text="+" />
+  <View
+      android:id="@+id/vSpacer"
+      android:layout_width="match_parent"
+      android:layout_height="10dp"
+      android:layout_alignParentBottom="true"
+      android:background="#fff" />
+</merge>
