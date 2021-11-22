@@ -87,6 +87,7 @@
     <string name="open_a_new_tab_here">Open a new tab here</string>
     <string name="tabs">Tabs</string>
     <array name="tabs_options">
+        <item>Open new Tab</item>
         <item>Close current</item>
         <item>Close all</item>
         <item>Move left</item>

@@ -85,6 +85,7 @@
     <string name="open_a_new_tab_here">Mở tab mới tại đây</string>
     <string name="tabs">Các tab</string>
     <array name="tabs_options">
+        <item>Mở tab mới</item>
         <item>Đóng tab hiện tại</item>
         <item>Đóng tất cả</item>
         <item>Chuyển sang trái</item>

@@ -207,7 +207,12 @@ class MainActivity : AppCompatActivity() {
             vb.etUrl.setText(it?.url ?: "")
             it?.let {
                 onWebViewUpdated(it)
-                vb.vTitles.current = tabsModel.tabsStates.indexOf(it)
+            }
+        }
+
+        tabsModel.tabsStates.subscribe(this, false) {
+            if (it.isEmpty()) {
+                vb.flWebViewContainer.removeAllViews()
             }
         }
 
@@ -259,15 +264,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val displayThumbnailRunnable = object : Runnable {
+        var tabState: WebTabState? = null
+        override fun run() {
+            tabState?.let { displayThumbnail(it) }
+        }
+    }
+
     @ExperimentalStdlibApi
     private val tabsListener = object : Listener {
         override fun onTitleChanged(index: Int) {
             Log.d(TAG, "onTitleChanged: $index")
             val tab = tabByTitleIndex(index)
             vb.etUrl.setText(tab?.url ?: "")
-            uiHandler.post {
-                displayThumbnail(tab)
-            }
+            uiHandler.removeCallbacks(displayThumbnailRunnable)
+            displayThumbnailRunnable.tabState = tab
+            uiHandler.postDelayed(displayThumbnailRunnable, 200)
         }
 
         override fun onTitleSelected(index: Int) {
@@ -275,14 +287,13 @@ class MainActivity : AppCompatActivity() {
             hideMenuOverlay()
         }
 
-        override fun onTitleOptions(index: Int) {
-            val tab = tabByTitleIndex(index)
-            showTabOptions(tab, index)
-        }
-
         override fun onAddNewTabSelected() {
             openInNewTab(HOME_URL, tabsModel.tabsStates.size)
         }
+
+        override fun closeTab(tabState: WebTabState?) = this@MainActivity.closeTab(tabState)
+
+        override fun openInNewTab(url: String, tabIndex: Int) = this@MainActivity.openInNewTab(url, tabIndex)
     }
 
     private fun showHistory() {
@@ -370,31 +381,6 @@ class MainActivity : AppCompatActivity() {
             vb.rlActionBar.addView(vb.flUrl, lp)
             TransitionManager.beginDelayedTransition(vb.rlRoot)
         }
-    }
-
-    @ExperimentalStdlibApi
-    private fun showTabOptions(tab: WebTabState?, tabIndex: Int) {
-        AlertDialog.Builder(this@MainActivity)
-                .setTitle(R.string.tabs)
-                .setItems(R.array.tabs_options) { _, i ->
-                    when (i) {
-                        0 -> tab?.apply { closeTab(this) }
-                        1 -> {
-                            tabsModel.onCloseAllTabs()
-                            vb.flWebViewContainer.removeAllViews()
-                            openInNewTab(HOME_URL, 0)
-                        }
-                        2 -> if (tab != null && tabIndex > 0) {
-                            tabsModel.tabsStates.remove(tab)
-                            tabsModel.tabsStates.add(tabIndex - 1, tab)
-                        }
-                        3 -> if (tab != null && tabIndex < (tabsModel.tabsStates.size - 1)) {
-                            tabsModel.tabsStates.remove(tab)
-                            tabsModel.tabsStates.add(tabIndex + 1, tab)
-                        }
-                    }
-                }
-                .show()
     }
 
     private fun tabByTitleIndex(index: Int) =

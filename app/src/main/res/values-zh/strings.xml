@@ -85,10 +85,11 @@
     <string name="open_a_new_tab_here">在这里打开一个新标签</string>
     <string name="tabs">标签</string>
     <array name="tabs_options">
-        <item>Close current</item>
-        <item>Close all</item>
-        <item>Move left</item>
-        <item>Move right</item>
+        <item>开启新分页</item>
+        <item>关闭电流</item>
+        <item>关闭所有</item>
+        <item>向左移动</item>
+        <item>向右移</item>
     </array>
     <string name="ssl_expired">证书已过期</string>
     <string name="ssl_idmismatch">主机名不匹配</string>

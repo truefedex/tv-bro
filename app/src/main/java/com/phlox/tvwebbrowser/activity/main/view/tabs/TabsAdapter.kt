@@ -1,21 +1,19 @@
 package com.phlox.tvwebbrowser.activity.main.view.tabs
 
-import android.R.attr
-import android.content.Context
-import android.util.AttributeSet
+import android.graphics.drawable.BitmapDrawable
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.TabsModel
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.TabViewHolder
 import com.phlox.tvwebbrowser.databinding.ViewHorizontalWebtabItemBinding
 import com.phlox.tvwebbrowser.model.WebTabState
-import com.phlox.tvwebbrowser.widgets.CheckableContainer
 
-class TabsAdapter(private val tabsModel: TabsModel) : RecyclerView.Adapter<TabViewHolder>() {
+
+class TabsAdapter(private val tabsModel: TabsModel, private val tabsView: TabsView) : RecyclerView.Adapter<TabViewHolder>() {
   val tabsCopy = ArrayList<WebTabState>().apply { addAll(tabsModel.tabsStates) }
   var current: Int = 0
     set(value) {
@@ -27,8 +25,9 @@ class TabsAdapter(private val tabsModel: TabsModel) : RecyclerView.Adapter<TabVi
   interface Listener {
     fun onTitleChanged(index: Int)
     fun onTitleSelected(index: Int)
-    fun onTitleOptions(index: Int)
     fun onAddNewTabSelected()
+    fun closeTab(tabState: WebTabState?)
+    fun openInNewTab(url: String, tabIndex: Int)
   }
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TabViewHolder {
@@ -58,15 +57,18 @@ class TabsAdapter(private val tabsModel: TabsModel) : RecyclerView.Adapter<TabVi
         tabState.loadFavicon(itemView.context)
       }
       val favIcon = tabState.favicon
-      if (favIcon != null)
-        vb.ivFavicon.setImageBitmap(favIcon)
-      else
+      if (favIcon != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+          val drawable = BitmapDrawable(itemView.context.resources, favIcon)
+          drawable.isFilterBitmap = false
+          vb.ivFavicon.setImageDrawable(drawable)
+        } else {
+          vb.ivFavicon.setImageBitmap(favIcon)
+        }
+      } else
         vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
 
       vb.root.isChecked = position == current
-      //val padding = if (position == current) 0 else itemView.context.resources.getDimensionPixelSize(R.dimen.web_tab_padding)
-      //vb.root.setPadding(padding, 0, padding, 0)
-
 
       vb.root.tag = tabState
 
@@ -86,7 +88,7 @@ class TabsAdapter(private val tabsModel: TabsModel) : RecyclerView.Adapter<TabVi
         listener?.onTitleSelected(position)
       }
       vb.root.setOnLongClickListener {
-        listener?.onTitleOptions(position)
+        tabsView.showTabOptions(tabState, position)
         true
       }
     }

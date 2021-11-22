@@ -84,6 +84,7 @@
     <string name="open_a_new_tab_here">Открыть новую вкладку тут</string>
     <string name="tabs">Вкладки</string>
     <array name="tabs_options">
+        <item>Новая вкладка</item>
         <item>Закрыть текущую</item>
         <item>Закрыть все</item>
         <item>Сдвинуть влево</item>
