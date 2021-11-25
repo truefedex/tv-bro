@@ -6,10 +6,10 @@ import android.content.DialogInterface
 import android.view.View
 import com.fedir.segmentedbutton.SegmentedButton
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
+import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.widgets.SegmentedButtonTabsAdapter
 
-class SettingsDialog(context: Context, val viewModel: SettingsViewModel) : Dialog(context), DialogInterface.OnDismissListener, VersionSettingsView.Callback {
+class SettingsDialog(context: Context, val model: SettingsModel) : Dialog(context), DialogInterface.OnDismissListener, VersionSettingsView.Callback {
     private var mainView: MainSettingsView? = null
     private var sbTabs: SegmentedButton
 

@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="Theme.TVBro" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.TVBroBase" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowEnterTransition">@android:transition/fade</item>
         <item name="android:windowExitTransition">@android:transition/fade</item>
         <item name="android:windowSharedElementExitTransition">@android:transition/move</item>
@@ -11,5 +11,8 @@
         <item name="android:windowOverscan">true</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <style name="Theme.TVBro" parent="Theme.TVBroBase">
     </style>
 </resources>

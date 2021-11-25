@@ -7,7 +7,7 @@ import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
+import com.phlox.tvwebbrowser.activity.main.SettingsModel
 
 /**
  * Created by fedex on 18.01.17.
@@ -18,7 +18,7 @@ object SearchEngineConfigDialogFactory {
         fun onDone(url: String)
     }
 
-    fun show(context: Context, settings: SettingsViewModel, cancellable: Boolean, callback: Callback) {
+    fun show(context: Context, settings: SettingsModel, cancellable: Boolean, callback: Callback) {
 
         var selected = 0
         if ("" != settings.searchEngineURL.value) {

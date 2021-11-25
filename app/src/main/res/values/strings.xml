@@ -112,4 +112,10 @@
     <string name="never">never</string>
     <string name="last_update">Last update</string>
     <string name="update_ad_blocker_list">Update ad-blocker list</string>
+    <string name="need_restart">Need application restart</string>
+    <array name="themes">
+        <item>System</item>
+        <item>White</item>
+        <item>Black</item>
+    </array>
 </resources>

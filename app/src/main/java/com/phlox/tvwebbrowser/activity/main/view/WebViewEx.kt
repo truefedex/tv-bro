@@ -6,6 +6,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.Uri
@@ -24,6 +25,10 @@ import android.widget.FrameLayout
 import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebSettingsCompat.FORCE_DARK_OFF
+import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
+import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.utils.LogUtils
@@ -115,6 +120,20 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             allowFileAccessFromFileURLs = true
             allowUniversalAccessFromFileURLs = true
             domStorageEnabled = true
+
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+                    Configuration.UI_MODE_NIGHT_YES -> {
+                        WebSettingsCompat.setForceDark(this, FORCE_DARK_ON)
+                    }
+                    Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
+                        WebSettingsCompat.setForceDark(this, FORCE_DARK_OFF)
+                    }
+                    else -> {
+                        //
+                    }
+                }
+            }
         }
 
         /*scrollBarStyle = WebView.SCROLLBARS_OUTSIDE_OVERLAY

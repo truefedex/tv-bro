@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <style name="Theme.TVBro" parent="Theme.TVBroBase">
+    <item name="android:forceDarkAllowed">true</item>
+    <item name="android:isLightTheme">true</item>
+  </style>
+</resources>

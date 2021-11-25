@@ -11,7 +11,7 @@ import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.RelativeLayout
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.activity.main.SettingsViewModel
+import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutDialog
 import com.phlox.tvwebbrowser.databinding.ViewShortcutBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
@@ -23,12 +23,12 @@ class ShortcutsSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ListView(context, attrs, defStyleAttr), AdapterView.OnItemClickListener {
 
-    var settingsViewModel: SettingsViewModel
+    var settingsModel: SettingsModel
     val items = arrayOf(R.string.toggle_main_menu, R.string.navigate_back, R.string.navigate_home,
             R.string.refresh_page, R.string.voice_search)
 
     init {
-        settingsViewModel = ActiveModelsRepository.get(SettingsViewModel::class, activity!!)
+        settingsModel = ActiveModelsRepository.get(SettingsModel::class, activity!!)
 
         selector = context.resources.getDrawable(R.drawable.list_item_bg_selector, null)
         adapter = ShortcutItemAdapter()

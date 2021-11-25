@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.*
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.ConnectivityManager
@@ -70,7 +71,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var vb: ActivityMainBinding
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var tabsModel: TabsModel
-    private lateinit var settingsViewModel: SettingsViewModel
+    private lateinit var settingsModel: SettingsModel
     private lateinit var adblockModel: AdblockModel
     private lateinit var downloadsModel: ActiveDownloadsModel
     private lateinit var uiHandler: Handler
@@ -84,7 +85,7 @@ class MainActivity : AppCompatActivity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ActiveModelsRepository.get(MainActivityViewModel::class, this)
-        settingsViewModel = ActiveModelsRepository.get(SettingsViewModel::class, this)
+        settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
         adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
         downloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, this)
         tabsModel = ActiveModelsRepository.get(TabsModel::class, this)
@@ -174,11 +175,11 @@ class MainActivity : AppCompatActivity() {
             it.setOnKeyListener(bottomButtonsKeyListener)
         }
 
-        settingsViewModel.uaString.subscribe(this.lifecycle) {
+        settingsModel.uaString.subscribe(this.lifecycle) {
             for (tab in tabsModel.tabsStates) {
                 tab.webView?.settings?.userAgentString = it
                 if (tab.webView != null && (it == "")) {
-                    settingsViewModel.saveUAString(SettingsViewModel.TV_BRO_UA_PREFIX +
+                    settingsModel.saveUAString(SettingsModel.TV_BRO_UA_PREFIX +
                             tab.webView!!.settings.userAgentString.replace("Mobile Safari", "Safari"))
                 }
             }
@@ -387,7 +388,7 @@ class MainActivity : AppCompatActivity() {
             if (index >= 0 && index < tabsModel.tabsStates.size) tabsModel.tabsStates[index] else null
 
     fun showSettings() {
-        SettingsDialog(this, settingsViewModel).show()
+        SettingsDialog(this, settingsModel).show()
     }
 
     fun navigateBack(goHomeIfNoHistory: Boolean = false) {
@@ -454,16 +455,16 @@ class MainActivity : AppCompatActivity() {
             openInNewTab(intentUri.toString())
         }
 
-        if ("" == settingsViewModel.searchEngineURL.value) {
-            SearchEngineConfigDialogFactory.show(this@MainActivity, settingsViewModel, false,
+        if ("" == settingsModel.searchEngineURL.value) {
+            SearchEngineConfigDialogFactory.show(this@MainActivity, settingsModel, false,
                     object : SearchEngineConfigDialogFactory.Callback {
                         override fun onDone(url: String) {
-                            if (settingsViewModel.needAutockeckUpdates &&
-                                    settingsViewModel.updateChecker.versionCheckResult == null &&
-                                    !settingsViewModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
-                                settingsViewModel.checkUpdate(false){
-                                    if (settingsViewModel.updateChecker.hasUpdate()) {
-                                        settingsViewModel.showUpdateDialogIfNeeded(this@MainActivity)
+                            if (settingsModel.needAutockeckUpdates &&
+                                    settingsModel.updateChecker.versionCheckResult == null &&
+                                    !settingsModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
+                                settingsModel.checkUpdate(false){
+                                    if (settingsModel.updateChecker.hasUpdate()) {
+                                        settingsModel.showUpdateDialogIfNeeded(this@MainActivity)
                                     }
                                 }
                             }
@@ -474,12 +475,12 @@ class MainActivity : AppCompatActivity() {
             if (currentTab == null || currentTab.url == HOME_URL) {
                 showMenuOverlay()
             }
-            if (settingsViewModel.needAutockeckUpdates &&
-                    settingsViewModel.updateChecker.versionCheckResult == null &&
-                    !settingsViewModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
-                settingsViewModel.checkUpdate(false){
-                    if (settingsViewModel.updateChecker.hasUpdate()) {
-                        settingsViewModel.showUpdateDialogIfNeeded(this@MainActivity)
+            if (settingsModel.needAutockeckUpdates &&
+                    settingsModel.updateChecker.versionCheckResult == null &&
+                    !settingsModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
+                settingsModel.checkUpdate(false){
+                    if (settingsModel.updateChecker.hasUpdate()) {
+                        settingsModel.showUpdateDialogIfNeeded(this@MainActivity)
                     }
                 }
             }
@@ -568,10 +569,10 @@ class MainActivity : AppCompatActivity() {
             return null
         }
 
-        if (settingsViewModel.uaString.value == null || settingsViewModel.uaString.value == "") {
-            settingsViewModel.saveUAString("TV Bro/1.0 " + webView.settings.userAgentString.replace("Mobile Safari", "Safari"))
+        if (settingsModel.uaString.value == null || settingsModel.uaString.value == "") {
+            settingsModel.saveUAString("TV Bro/1.0 " + webView.settings.userAgentString.replace("Mobile Safari", "Safari"))
         }
-        webView.settings.userAgentString = settingsViewModel.uaString.value
+        webView.settings.userAgentString = settingsModel.uaString.value
 
         webView.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus && vb.flUrl.parent == vb.rlRoot) {
@@ -669,8 +670,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 hideMenuOverlay()
             }
-            REQUEST_CODE_UNKNOWN_APP_SOURCES -> if (settingsViewModel.needToShowUpdateDlgAgain) {
-                settingsViewModel.showUpdateDialogIfNeeded(this)
+            REQUEST_CODE_UNKNOWN_APP_SOURCES -> if (settingsModel.needToShowUpdateDlgAgain) {
+                settingsModel.showUpdateDialogIfNeeded(this)
             }
 
             else -> super.onActivityResult(requestCode, resultCode, data)
@@ -699,6 +700,10 @@ class MainActivity : AppCompatActivity() {
 
         super.onPause()
         running = false
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
     }
 
     private fun toggleAdBlockForTab() {
@@ -739,7 +744,7 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
-            val searchUrl = settingsViewModel.searchEngineURL.value!!.replace("[query]", query!!)
+            val searchUrl = settingsModel.searchEngineURL.value!!.replace("[query]", query!!)
             navigate(searchUrl)
         }
     }
