@@ -104,4 +104,11 @@
     <string name="never">ніколи</string>
     <string name="last_update">Останнє оновлення</string>
     <string name="update_ad_blocker_list">Оновити список блокувальника реклами</string>
+    <string name="need_restart">Потрібен перезапуск програми</string>
+    <string name="theme">Тема</string>
+    <array name="themes">
+        <item>Системна</item>
+        <item>Біла</item>
+        <item>Темна</item>
+    </array>
 </resources>

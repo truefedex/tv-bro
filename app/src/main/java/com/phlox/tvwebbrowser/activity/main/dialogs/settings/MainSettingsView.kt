@@ -7,6 +7,7 @@ import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.fragment.app.FragmentActivity
+import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.AdblockModel
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
@@ -35,6 +36,11 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     private fun initThemeSettingsUI() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+            vb.llThemeSettings.visibility = View.GONE
+            return
+        }
+
         val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, context.resources.getStringArray(R.array.themes))
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
@@ -49,9 +55,7 @@ class MainSettingsView @JvmOverloads constructor(
                 Toast.makeText(context, context.getString(R.string.need_restart), Toast.LENGTH_SHORT).show()
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>) {
-
-            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 

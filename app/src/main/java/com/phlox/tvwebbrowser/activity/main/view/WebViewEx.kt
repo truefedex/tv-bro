@@ -26,8 +26,6 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebSettingsCompat.FORCE_DARK_OFF
-import androidx.webkit.WebSettingsCompat.FORCE_DARK_ON
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.AndroidJSInterface
@@ -124,13 +122,13 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
                 when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
                     Configuration.UI_MODE_NIGHT_YES -> {
-                        WebSettingsCompat.setForceDark(this, FORCE_DARK_ON)
+                        WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_ON)
                     }
                     Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
-                        WebSettingsCompat.setForceDark(this, FORCE_DARK_OFF)
+                        WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_OFF)
                     }
                     else -> {
-                        //
+                        WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_AUTO)
                     }
                 }
             }

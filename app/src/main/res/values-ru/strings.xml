@@ -111,4 +111,11 @@
     <string name="never">никогда</string>
     <string name="last_update">Последнее обновлени</string>
     <string name="update_ad_blocker_list">Обновить список блокировщика рекламы</string>
+    <string name="need_restart">Требуется перезапуск приложения</string>
+    <string name="theme">Тема</string>
+    <array name="themes">
+        <item>Системная</item>
+        <item>Светлая</item>
+        <item>Тёмная</item>
+    </array>
 </resources>

@@ -110,4 +110,11 @@
     <string name="never">không bao giờ</string>
     <string name="last_update">Cập nhật cuối cùng</string>
     <string name="update_ad_blocker_list">Làm mới danh sách trình chặn quảng cáo</string>
+    <string name="need_restart">Cần khởi động lại ứng dụng</string>
+    <string name="theme">Chủ đề</string>
+    <array name="themes">
+        <item>Hệ thống</item>
+        <item>Màu trắng</item>
+        <item>Tối</item>
+    </array>
 </resources>

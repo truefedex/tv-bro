@@ -109,4 +109,11 @@
     <string name="last_update">העדכון אחרון</string>
     <string name="update_ad_blocker_list">עדכן את רשימת חוסמי המודעות</string>
     <string name="toggle_ads_blocking">החלף החלפת מודעות</string>
+    <string name="need_restart">צריך הפעלה מחדש של האפליקציה</string>
+    <string name="theme">נושא</string>
+    <array name="themes">
+        <item>מערכת</item>
+        <item>לבן</item>
+        <item>אפל</item>
+    </array>
 </resources>

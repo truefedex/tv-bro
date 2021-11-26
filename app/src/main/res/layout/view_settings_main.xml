@@ -5,189 +5,190 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     >
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingLeft="22dp"
-        android:paddingTop="5dp"
-        android:paddingRight="22dp"
-        >
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/choose_default_search_engine"
-            android:textSize="16sp"
-            />
-
-        <Spinner
-            android:id="@+id/spEngine"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:dropDownWidth="300dp"
-            />
-
-        <LinearLayout
-            android:id="@+id/llURL"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone"
-            >
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="@string/url"
-                android:textSize="16sp"
-                />
-
-            <EditText
-                android:id="@+id/etUrl"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:hint="@string/search_engine_url_with_query_placeholder_query"
-                android:importantForAutofill="no"
-                android:inputType="textUri"
-                />
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical"
-        android:paddingLeft="22dp"
-        android:paddingTop="5dp"
-        android:paddingRight="22dp"
-        >
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/choose_user_agent_string"
-            android:textSize="16sp"
-            />
-
-        <Spinner
-            android:id="@+id/spTitles"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:dropDownWidth="300dp"
-            />
-
-        <LinearLayout
-            android:id="@+id/llUAString"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone"
-            >
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="@string/user_agent_string"
-                android:textSize="16sp"
-                />
-
-            <EditText
-                android:id="@+id/etUAString"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:hint="@string/edit_user_agent_string"
-                android:importantForAutofill="no"
-                android:inputType="textUri"
-                />
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:orientation="horizontal"
-        android:paddingLeft="22dp"
-        android:paddingTop="5dp"
-        android:paddingRight="22dp"
-        >
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:lines="1"
-            android:text="@string/toggle_ads_blocking"
-            android:textSize="16sp"
-            />
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/scAdblock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/llAdBlockerDetails"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:orientation="horizontal"
-        android:paddingLeft="22dp"
-        android:paddingTop="5dp"
-        android:paddingRight="22dp"
-        >
-        <TextView
-            android:id="@+id/tvAdBlockerListInfo"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="5dp"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:lines="2"
-            tools:text="URL: https://test.com\nLast update: never"
-            />
-        <ImageButton
-            android:id="@+id/btnAdBlockerUpdate"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_weight="0"
-            android:contentDescription="@string/update_ad_blocker_list"
-            android:src="@drawable/ic_refresh_grey_900_24dp"
-            />
-        <ProgressBar
-            android:id="@+id/pbAdBlockerListLoading"
-            style="?android:attr/progressBarStyle"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_weight="0"
-            android:visibility="gone"
-            />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingLeft="22dp"
-        android:paddingTop="5dp"
-        android:paddingRight="22dp"
-        >
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:paddingLeft="22dp"
+      android:paddingTop="5dp"
+      android:paddingRight="22dp"
+      >
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Theme"
+        android:text="@string/choose_default_search_engine"
+        android:textSize="16sp"
+        />
+
+    <Spinner
+        android:id="@+id/spEngine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:dropDownWidth="300dp"
+        />
+
+    <LinearLayout
+        android:id="@+id/llURL"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        >
+
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="5dp"
+          android:text="@string/url"
+          android:textSize="16sp"
+          />
+
+      <EditText
+          android:id="@+id/etUrl"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:ems="10"
+          android:hint="@string/search_engine_url_with_query_placeholder_query"
+          android:importantForAutofill="no"
+          android:inputType="textUri"
+          />
+    </LinearLayout>
+
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="20dp"
+      android:orientation="vertical"
+      android:paddingLeft="22dp"
+      android:paddingTop="5dp"
+      android:paddingRight="22dp"
+      >
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/choose_user_agent_string"
+        android:textSize="16sp"
+        />
+
+    <Spinner
+        android:id="@+id/spTitles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:dropDownWidth="300dp"
+        />
+
+    <LinearLayout
+        android:id="@+id/llUAString"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        >
+
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="5dp"
+          android:text="@string/user_agent_string"
+          android:textSize="16sp"
+          />
+
+      <EditText
+          android:id="@+id/etUAString"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:ems="10"
+          android:hint="@string/edit_user_agent_string"
+          android:importantForAutofill="no"
+          android:inputType="textUri"
+          />
+    </LinearLayout>
+
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="20dp"
+      android:orientation="horizontal"
+      android:paddingLeft="22dp"
+      android:paddingTop="5dp"
+      android:paddingRight="22dp"
+      >
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="@string/toggle_ads_blocking"
+        android:textSize="16sp"
+        />
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/scAdblock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        />
+  </LinearLayout>
+
+  <LinearLayout
+      android:id="@+id/llAdBlockerDetails"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="20dp"
+      android:orientation="horizontal"
+      android:paddingLeft="22dp"
+      android:paddingTop="5dp"
+      android:paddingRight="22dp"
+      >
+    <TextView
+        android:id="@+id/tvAdBlockerListInfo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="5dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:lines="2"
+        tools:text="URL: https://test.com\nLast update: never"
+        />
+    <ImageButton
+        android:id="@+id/btnAdBlockerUpdate"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_weight="0"
+        android:contentDescription="@string/update_ad_blocker_list"
+        android:src="@drawable/ic_refresh_grey_900_24dp"
+        />
+    <ProgressBar
+        android:id="@+id/pbAdBlockerListLoading"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_weight="0"
+        android:visibility="gone"
+        />
+
+  </LinearLayout>
+
+  <LinearLayout
+      android:id="@+id/llThemeSettings"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:paddingLeft="22dp"
+      android:paddingTop="5dp"
+      android:paddingRight="22dp"
+      >
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/theme"
         android:textSize="16sp"
         />
 
@@ -199,6 +200,7 @@
         />
     <View
         android:layout_width="match_parent"
-        android:layout_height="50dp" />
-    </LinearLayout>
+        android:layout_height="50dp"
+        />
+  </LinearLayout>
 </LinearLayout>

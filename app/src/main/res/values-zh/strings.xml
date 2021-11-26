@@ -110,4 +110,11 @@
     <string name="never">绝不</string>
     <string name="last_update">最后更新</string>
     <string name="update_ad_blocker_list">刷新广告拦截器列表</string>
+    <string name="need_restart">需要重启应用</string>
+    <string name="theme">主题</string>
+    <array name="themes">
+        <item>系统</item>
+        <item>白色</item>
+        <item>黑暗</item>
+    </array>
 </resources>

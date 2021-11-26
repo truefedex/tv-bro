@@ -108,4 +108,11 @@
     <string name="last_update">اخرین بروزرسانی  Mo</string>
     <string name="update_ad_blocker_list">لیست مسدودکننده تبلیغات را به روز کنید</string>
     <string name="toggle_ads_blocking">مسدود کردن تبلیغات را تغییر دهید</string>
+    <string name="need_restart">نیاز به راه اندازی مجدد برنامه</string>
+    <string name="theme">موضوع</string>
+    <array name="themes">
+        <item>سیستم</item>
+        <item>سفید</item>
+        <item>تاریک</item>
+    </array>
 </resources>
