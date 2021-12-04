@@ -1,19 +1,16 @@
 package com.phlox.tvwebbrowser.activity.main
 
-import android.app.Application
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.BuildConfig
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.utils.UpdateChecker
-import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.utils.sameDay
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
@@ -25,27 +22,17 @@ import java.util.*
 class SettingsModel : ActiveModel() {
     companion object {
         val TAG = SettingsModel::class.java.simpleName
-        const val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
-        const val USER_AGENT_PREF_KEY = "user_agent"
-        const val THEME_KEY = "theme"
-        const val LAST_UPDATE_USER_NOTIFICATION_TIME_KEY="last_update_notif"
-        const val AUTOCHECK_UPDATES_KEY="auto_check_updates"
-        const val UPDATE_CHANNEL_KEY="update_channel"
         const val TV_BRO_UA_PREFIX = "TV Bro/1.0 "
     }
 
-    enum class Theme {
-        SYSTEM, WHITE, BLACK
-    }
-
-    private var prefs = TVBro.instance.getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
+    val config = TVBro.config
 
     //Search engines configuration
     val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Custom")
     val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
             "https://search.yahoo.com/search?p=[query]", "https://duckduckgo.com/?q=[query]",
             "https://yandex.com/search/?text=[query]", "")
-    var searchEngineURL = ObservableValue(prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, "")!!)
+    var searchEngineURL = ObservableValue(config.getSearchEngineURL())
     //User agent strings configuration
     val userAgentStringTitles = arrayOf("TV Bro", "Chrome (Desktop)", "Chrome (Mobile)", "Chrome (Tablet)", "Firefox (Desktop)", "Firefox (Tablet)", "Edge (Desktop)", "Safari (Desktop)", "Safari (iPad)", "Apple TV", "Custom")
     val uaStrings = listOf("",
@@ -59,67 +46,46 @@ class SettingsModel : ActiveModel() {
             "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Mobile/15E148 Safari/604.1",
             "AppleTV6,2/11.1",
             "")
-    var uaString = ObservableValue(prefs.getString(USER_AGENT_PREF_KEY, "")!!)
+    var uaString = ObservableValue(config.getUserAgentString())
     //Version & updates configuration
     var needToShowUpdateDlgAgain: Boolean = false
     val updateChecker = UpdateChecker(BuildConfig.VERSION_CODE)
     var lastUpdateNotificationTime: Calendar
     var needAutockeckUpdates: Boolean
+        get() = config.isNeedAutoCheckUpdates()
+        set(value) = config.setAutoCheckUpdates(value)
+    var theme by config::theme
     var updateChannel: String
 
     init {
-        lastUpdateNotificationTime = if (prefs.contains(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY))
-            Calendar.getInstance().apply { timeInMillis = prefs.getLong(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY, 0) } else
+        lastUpdateNotificationTime = if (config.prefs.contains(Config.LAST_UPDATE_USER_NOTIFICATION_TIME_KEY))
+            Calendar.getInstance().apply { timeInMillis = config.prefs.getLong(Config.LAST_UPDATE_USER_NOTIFICATION_TIME_KEY, 0) } else
             Calendar.getInstance()
-        needAutockeckUpdates = prefs.getBoolean(AUTOCHECK_UPDATES_KEY, Utils.isInstalledByAPK(TVBro.instance))
-        updateChannel = prefs.getString(UPDATE_CHANNEL_KEY, "release")!!
-    }
-
-    fun getTheme(): Theme {
-        return Theme.values()[prefs.getInt(THEME_KEY, 0)]
-    }
-
-    fun setTheme(theme: Theme) {
-        prefs.edit().putInt(THEME_KEY, theme.ordinal).apply()
-
-        when (theme) {
-            Theme.BLACK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-            Theme.WHITE -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        }
+        updateChannel = config.getUpdateChannel()
     }
 
     fun changeSearchEngineUrl(url: String) {
-        val editor = prefs.edit()
-        editor.putString(SEARCH_ENGINE_URL_PREF_KEY, url)
-        editor.apply()
+        config.setSearchEngineURL(url)
         searchEngineURL.value = url
     }
 
     fun saveUAString(uas: String) {
-        val editor = prefs.edit()
-        editor.putString(USER_AGENT_PREF_KEY, uas)
-        editor.apply()
+        config.setUserAgentString(uas)
         uaString.value = uas
     }
 
     fun saveAutoCheckUpdates(need: Boolean) {
-        val editor = prefs.edit()
-        editor.putBoolean(AUTOCHECK_UPDATES_KEY, need)
-        editor.apply()
-        needAutockeckUpdates = need
+        config.setAutoCheckUpdates(need)
     }
 
     fun saveUpdateChannel(selectedChannel: String) {
-        val editor = prefs.edit()
-        editor.putString(UPDATE_CHANNEL_KEY, selectedChannel)
-        editor.apply()
+        config.setUpdateChannel(selectedChannel)
         updateChannel = selectedChannel
     }
 
-    fun checkUpdate(force: Boolean, onDoneCallback: () -> Unit) = GlobalScope.launch(Dispatchers.Main) {
+    fun checkUpdate(force: Boolean, onDoneCallback: () -> Unit) = modelScope.launch(Dispatchers.Main) {
         if (updateChecker.versionCheckResult == null || force) {
-            GlobalScope.launch(Dispatchers.IO) {
+            launch(Dispatchers.IO) {
                 try {
                     updateChecker.check("https://raw.githubusercontent.com/truefedex/tv-bro/master/latest_version.json",
                             arrayOf(updateChannel))
@@ -140,8 +106,8 @@ class SettingsModel : ActiveModel() {
             throw IllegalStateException()
         }
         lastUpdateNotificationTime = now
-        prefs.edit()
-                .putLong(LAST_UPDATE_USER_NOTIFICATION_TIME_KEY, lastUpdateNotificationTime.timeInMillis)
+        config.prefs.edit()
+                .putLong(Config.LAST_UPDATE_USER_NOTIFICATION_TIME_KEY, lastUpdateNotificationTime.timeInMillis)
                 .apply()
 
         updateChecker.showUpdateDialog(activity, object : UpdateChecker.DialogCallback {

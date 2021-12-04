@@ -8,6 +8,7 @@ import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.fragment.app.FragmentActivity
 import androidx.webkit.WebViewFeature
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.AdblockModel
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
@@ -46,12 +47,12 @@ class MainSettingsView @JvmOverloads constructor(
 
         vb.spTheme.adapter = adapter
 
-        vb.spTheme.setSelection(settingsModel.getTheme().ordinal, false)
+        vb.spTheme.setSelection(settingsModel.theme.ordinal, false)
 
         vb.spTheme.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (settingsModel.getTheme().ordinal == position) return
-                settingsModel.setTheme(SettingsModel.Theme.values()[position])
+                if (settingsModel.theme.ordinal == position) return
+                settingsModel.theme = Config.Theme.values()[position]
                 Toast.makeText(context, context.getString(R.string.need_restart), Toast.LENGTH_SHORT).show()
             }
 
