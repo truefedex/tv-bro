@@ -9,14 +9,19 @@
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.6.2",
-      "latestVersionCode": 46,
+      "latestVersionName": "v1.7.0",
+      "latestVersionCode": 47,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.6.2/tvbro1.6.2.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.7.0/tvbro1.7.0.apk"
     }
   ],
 
   "changelog": [
+    {
+      "versionCode": 47,
+      "versionName": "v1.7.0",
+      "changes": "* Tabs redesign\n* Dark theme setting (Android 10+)"
+    },
     {
       "versionCode": 46,
       "versionName": "v1.6.2",
@@ -26,16 +31,6 @@
       "versionCode": 45,
       "versionName": "v1.6.1",
       "changes": "* Adblocker added\n* Several major and minor bugs fixed\n* Localizations added"
-    },
-    {
-      "versionCode": 42,
-      "versionName": "v1.5.8",
-      "changes": "* Tabs navigation history persists across app restarts\n* Vietnamese language added (thanks minhtamvn)\n* Several small fixes"
-    },
-    {
-      "versionCode": 40,
-      "versionName": "v1.5.6",
-      "changes": "* Fire os compatibility fixes\n* Downloads content disposition headers handling"
     }
   ]
 }
