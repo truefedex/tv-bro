@@ -111,8 +111,10 @@ class TabsView @JvmOverloads constructor(
   private val currentTabObserver: (value: WebTabState?) -> Unit =  {
     val new = tabsModel.tabsStates.indexOf(it)
     if (new != -1 && current != new) {
+      adapter.notifyItemChanged(current)
       current = new
-      adapter.onTabListChanged()
+      adapter.notifyItemChanged(new)
+      //adapter.onTabListChanged()
     }
   }
 }

@@ -23,8 +23,8 @@ android {
         applicationId = "com.phlox.tvwebbrowser"
         minSdk = 21
         targetSdk = 30
-        versionCode = 46
-        versionName = "1.6.2"
+        versionCode = 47
+        versionName = "1.7.0"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -42,7 +42,7 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isDebuggable = true
+            isDebuggable = false
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig=signingConfigs.getByName("release")
@@ -105,7 +105,7 @@ dependencies {
 
     //appstore-dependent dependencies
     "googleImplementation"("com.google.firebase:firebase-core:20.0.0")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.4")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.5")
 }
 
 tasks.getByName("check").dependsOn("lint")
