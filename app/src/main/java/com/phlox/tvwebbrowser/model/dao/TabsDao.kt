@@ -8,7 +8,7 @@ interface TabsDao {
     @Query("SELECT * FROM tabs WHERE incognito=:incognito ORDER BY position ASC")
     suspend fun getAll(incognito: Boolean = false): List<WebTabState>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: WebTabState): Long
 
     @Update

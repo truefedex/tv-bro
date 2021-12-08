@@ -7,12 +7,12 @@ import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
-import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
 import java.io.FileInputStream
@@ -33,7 +33,7 @@ class TabsModel : ActiveModel() {
     val tabsDao = AppDatabase.db.tabsDao()
     val stateFile = File(TVBro.instance.filesDir, STATE_JSON)
     if (stateFile.exists()) {
-      val tabsStatesLoadedFromLegacyJson = async(Dispatchers.IO) {
+      val tabsStatesLoadedFromLegacyJson = withContext(Dispatchers.IO) {
         val tabsStates = ArrayList<WebTabState>()
         try {
           val storeStr = FileInputStream(stateFile).bufferedReader().use { it.readText() }
@@ -49,7 +49,7 @@ class TabsModel : ActiveModel() {
         }
         stateFile.delete()
         tabsStates
-      }.await()
+      }
       //tabsDao.deleteAll(incognitoMode)
       tabsStatesLoadedFromLegacyJson.forEachIndexed { index, webTabState ->
         webTabState.position = index
@@ -68,7 +68,7 @@ class TabsModel : ActiveModel() {
         tabsDB.unselectAll(incognitoMode)
       }
       tab.saveWebViewStateToFile()
-      if (tab.id != 0L ) {
+      if (tab.id != null && tab.id != 0L) {
         tabsDB.update(tab)
       } else {
         tab.id = tabsDB.insert(tab)
