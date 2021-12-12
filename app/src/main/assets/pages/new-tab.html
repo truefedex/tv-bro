@@ -105,7 +105,7 @@ function renderSuggestions() {
         if (!(i % 2)) html += '<tr>';
         html += '<td onclick="onSuggestionClicked(' + i + ');"><div class="sugg" style="margin-left: 0;">'+
             '<img src="' + suggs[i].favicon + '" onerror="onfavloaderror(this);" /><div class="sugg-title">' +
-            suggs[i].title + '</div><div class="sugg-desk">' + suggs[i].url + '</div></div></td>';
+            suggs[i].title + '</div><div class="sugg-desk">' + escapeHTML(suggs[i].url) + '</div></div></td>';
         if ((i % 2) || i == (suggs.length - 1)) html += '</tr>';
     }
     container.innerHTML = html;
@@ -117,6 +117,13 @@ function onfavloaderror(source) {
     source.src = 'file:///android_asset/pages/ic_web.png';
     return true;
 }
+
+var escape = document.createElement('textarea');
+function escapeHTML(html) {
+    escape.textContent = html;
+    return escape.innerHTML;
+}
+
 renderSuggestions();
 </script>
 </body>

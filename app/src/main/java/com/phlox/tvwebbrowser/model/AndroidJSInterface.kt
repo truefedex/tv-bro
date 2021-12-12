@@ -43,7 +43,7 @@ class AndroidJSInterface(private val mainActivityViewModel: MainActivityViewMode
         activity?.runOnUiThread {
             tabsModel.currentTab.value?.apply {
                 webView?.trustSsl = true
-                url?.apply { webView?.loadUrl(this) }
+                url.apply { webView?.loadUrl(this) }
             }
         }
     }

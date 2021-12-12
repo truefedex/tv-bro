@@ -315,7 +315,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             }
 
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                Log.d(TAG, "shouldInterceptRequest url: ${request.url}")
+                //Log.d(TAG, "shouldInterceptRequest url: ${request.url}")
 
                 if (!callback.isAdBlockingEnabled()) {
                     return super.shouldInterceptRequest(view, request)
