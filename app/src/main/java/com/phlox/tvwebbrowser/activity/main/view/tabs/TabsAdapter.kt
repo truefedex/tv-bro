@@ -2,6 +2,8 @@ package com.phlox.tvwebbrowser.activity.main.view.tabs
 
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,16 +13,15 @@ import com.phlox.tvwebbrowser.activity.main.TabsModel
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.TabViewHolder
 import com.phlox.tvwebbrowser.databinding.ViewHorizontalWebtabItemBinding
 import com.phlox.tvwebbrowser.model.WebTabState
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.DiffUtil.DiffResult
 
 
 class TabsAdapter(private val tabsModel: TabsModel, private val tabsView: TabsView) : RecyclerView.Adapter<TabViewHolder>() {
-  val tabsCopy = ArrayList<WebTabState>().apply { addAll(tabsModel.tabsStates) }
+  private val tabsCopy = ArrayList<WebTabState>().apply { addAll(tabsModel.tabsStates) }
   var current: Int = 0
-    set(value) {
-      field = value
-
-    }
   var listener: Listener? = null
+  val uiHandler = Handler(Looper.getMainLooper())
 
   interface Listener {
     fun onTitleChanged(index: Int)
@@ -44,8 +45,10 @@ class TabsAdapter(private val tabsModel: TabsModel, private val tabsView: TabsVi
   }
 
   fun onTabListChanged() {
+    val tabsDiffUtilCallback = TabsDiffUtillCallback(tabsCopy, tabsModel.tabsStates)
+    val tabsDiffResult = DiffUtil.calculateDiff(tabsDiffUtilCallback)
     tabsCopy.apply { clear() }.addAll(tabsModel.tabsStates)
-    notifyDataSetChanged()
+    tabsDiffResult.dispatchUpdatesTo(this)
   }
 
   inner class TabViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -74,21 +77,23 @@ class TabsAdapter(private val tabsModel: TabsModel, private val tabsView: TabsVi
 
       vb.root.setOnFocusChangeListener { v, hasFocus ->
         if (hasFocus) {
-          if (current != position) {
+          if (current != tabState.position) {
             val oldCurrent = current
-            current = position
+            current = tabState.position
             listener?.onTitleChanged(position)
-            notifyItemChanged(oldCurrent)
-            notifyItemChanged(current)
+            uiHandler.post {
+              notifyItemChanged(oldCurrent)
+              notifyItemChanged(current)
+            }
           }
         }
       }
 
       vb.root.setOnClickListener {
-        listener?.onTitleSelected(position)
+        listener?.onTitleSelected(tabState.position)
       }
       vb.root.setOnLongClickListener {
-        tabsView.showTabOptions(tabState, position)
+        tabsView.showTabOptions(tabState)
         true
       }
     }

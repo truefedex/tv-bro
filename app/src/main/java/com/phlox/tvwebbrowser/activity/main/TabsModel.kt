@@ -28,6 +28,25 @@ class TabsModel : ActiveModel() {
   val currentTab = ObservableValue<WebTabState?>(null)
   val tabsStates = ObservableList<WebTabState>()
 
+  init {
+      tabsStates.subscribe({
+        //auto-update positions on any list change
+        var positionsChanged = false
+        tabsStates.forEachIndexed { index, webTabState ->
+          if (webTabState.position != index) {
+            webTabState.position = index
+            positionsChanged = true
+          }
+        }
+        if (positionsChanged) {
+          modelScope.launch {
+            val tabsDao = AppDatabase.db.tabsDao()
+            tabsDao.updatePositions(tabsStates)
+          }
+        }
+      }, false)
+  }
+
   fun loadState() = modelScope.launch(Dispatchers.Main) {
     if (loaded) return@launch
     val tabsDao = AppDatabase.db.tabsDao()
@@ -60,22 +79,18 @@ class TabsModel : ActiveModel() {
     loaded = true
   }
 
-  fun saveTab(tab: WebTabState, saveAlsoSelectionAndPositions: Boolean = false) {
+  fun saveTab(tab: WebTabState) {
     modelScope.launch(Dispatchers.Main) {
       val tabsDB = AppDatabase.db.tabsDao()
 
-      if (saveAlsoSelectionAndPositions) {
+      if (tab.selected) {
         tabsDB.unselectAll(incognitoMode)
       }
       tab.saveWebViewStateToFile()
-      if (tab.id != null && tab.id != 0L) {
+      if (tab.id != 0L) {
         tabsDB.update(tab)
       } else {
         tab.id = tabsDB.insert(tab)
-      }
-
-      if (saveAlsoSelectionAndPositions) {
-        tabsDB.updatePositions(tabsStates)
       }
     }
   }

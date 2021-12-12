@@ -101,7 +101,7 @@ class MainActivity : AppCompatActivity() {
         vb.rlActionBar.visibility = View.INVISIBLE
         vb.progressBar.visibility = View.GONE
 
-        vb.vTitles.listener = tabsListener
+        vb.vTabs.listener = tabsListener
 
         vb.flWebViewContainer.setCallback(object : CursorLayout.Callback {
             override fun onUserInteraction() {
@@ -294,7 +294,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun closeTab(tabState: WebTabState?) = this@MainActivity.closeTab(tabState)
 
-        override fun openInNewTab(url: String, tabIndex: Int) = this@MainActivity.openInNewTab(url, tabIndex)
+        override fun openInNewTab(url: String, tabIndex: Int) = this@MainActivity.openInNewTab(url, tabIndex, false)
     }
 
     private fun showHistory() {
@@ -500,7 +500,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openInNewTab(url: String?, index: Int = 0) {
+    private fun openInNewTab(url: String?, index: Int = 0, needToHideMenuOverlay: Boolean = true) {
         if (url == null) {
             return
         }
@@ -510,7 +510,7 @@ class MainActivity : AppCompatActivity() {
         tabsModel.tabsStates.add(index, tab)
         changeTab(tab)
         navigate(url)
-        if (vb.rlActionBar.visibility == View.VISIBLE) {
+        if (needToHideMenuOverlay && vb.rlActionBar.visibility == View.VISIBLE) {
             hideMenuOverlay(true)
         }
     }
@@ -530,6 +530,7 @@ class MainActivity : AppCompatActivity() {
             else -> changeTab(tabsModel.tabsStates[position + 1])
         }
         tabsModel.onCloseTab(tab)
+        hideMenuOverlay(true)
         hideBottomPanel()
     }
 
@@ -695,7 +696,7 @@ class MainActivity : AppCompatActivity() {
         tabsModel.currentTab.value?.apply {
             webView?.onPause()
             onPause()
-            tabsModel.saveTab(this, true)
+            tabsModel.saveTab(this)
         }
 
         super.onPause()
@@ -842,7 +843,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun displayThumbnail(currentTab: WebTabState?) {
         if (currentTab != null) {
-            if (tabByTitleIndex(vb.vTitles.current) != currentTab) return
+            if (tabByTitleIndex(vb.vTabs.current) != currentTab) return
             vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
             vb.ivMiniatures.visibility = View.VISIBLE
             if (currentTab.thumbnail != null) {
@@ -910,9 +911,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun syncTabWithTitles() {
-        val tab = tabByTitleIndex(vb.vTitles.current)
+        val tab = tabByTitleIndex(vb.vTabs.current)
         if (tab == null) {
-            openInNewTab(HOME_URL, if (vb.vTitles.current < 0) 0 else tabsModel.tabsStates.size)
+            openInNewTab(HOME_URL, if (vb.vTabs.current < 0) 0 else tabsModel.tabsStates.size)
         } else if (!tab.selected) {
             changeTab(tab)
         }
@@ -1000,7 +1001,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onReceivedTitle(title: String) {
             tab.title = title
-            vb.vTitles.onTabTitleUpdated(tab)
+            vb.vTabs.onTabTitleUpdated(tab)
         }
 
         override fun requestPermissions(array: Array<String>, geo: Boolean) {
@@ -1027,7 +1028,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onReceivedIcon(icon: Bitmap) {
             tab.updateFavIcon(this@MainActivity, icon)
-            vb.vTitles.onFavIconUpdated(tab)
+            vb.vTabs.onFavIconUpdated(tab)
         }
 
         override fun shouldOverrideUrlLoading(url: String): Boolean {
@@ -1061,7 +1062,7 @@ class MainActivity : AppCompatActivity() {
             } else if (url != null) {
                 tab.url = url
             }
-            if (tabByTitleIndex(vb.vTitles.current) == tab) {
+            if (tabByTitleIndex(vb.vTabs.current) == tab) {
                 vb.etUrl.setText(tab.url)
             }
             tab.hasAutoOpenedWindows = false
@@ -1079,7 +1080,7 @@ class MainActivity : AppCompatActivity() {
             } else if (url != null) {
                 tab.url = url
             }
-            if (tabByTitleIndex(vb.vTitles.current) == tab) {
+            if (tabByTitleIndex(vb.vTabs.current) == tab) {
                 vb.etUrl.setText(tab.url)
             }
 

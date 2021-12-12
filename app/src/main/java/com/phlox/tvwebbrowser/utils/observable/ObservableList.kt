@@ -2,8 +2,10 @@ package com.phlox.tvwebbrowser.utils.observable
 
 import android.os.Build.VERSION_CODES
 import androidx.annotation.RequiresApi
+import java.util.*
 import java.util.function.Predicate
 import java.util.function.UnaryOperator
+import kotlin.collections.ArrayList
 
 typealias ListChangeObserver<T> = (ObservableList<T>) -> Unit
 
@@ -93,6 +95,11 @@ class ObservableList<T>(): ArrayList<T>(), Subscribable<ListChangeObserver<T>> {
 
   override fun removeRange(fromIndex: Int, toIndex: Int) {
     super.removeRange(fromIndex, toIndex)
+    notifyChanged()
+  }
+
+  fun swap(i: Int, j: Int) {
+    super.set(i, super.set(j, super.get(i)))
     notifyChanged()
   }
 }

@@ -32,7 +32,7 @@ import java.nio.charset.Charset
  */
 @Entity(tableName = "tabs")
 data class WebTabState(@PrimaryKey(autoGenerate = true)
-                       var id: Long? = null,
+                       var id: Long = 0,
                        var url: String = "",
                        var title: String = "",
                        var selected: Boolean = false,

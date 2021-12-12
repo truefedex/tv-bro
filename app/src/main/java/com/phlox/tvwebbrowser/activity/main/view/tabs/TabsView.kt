@@ -50,24 +50,30 @@ class TabsView @JvmOverloads constructor(
     super.onDetachedFromWindow()
   }
 
-  fun showTabOptions(tab: WebTabState?, tabIndex: Int) {
+  fun showTabOptions(tab: WebTabState) {
+    val tabIndex = tabsModel.tabsStates.indexOf(tab)
     AlertDialog.Builder(context)
       .setTitle(R.string.tabs)
       .setItems(R.array.tabs_options) { _, i ->
         when (i) {
-          0 -> listener?.openInNewTab(WebViewEx.HOME_URL, tabIndex)
-          1 -> tab?.apply { listener?.closeTab(this) }
+          //Open new Tab
+          0 -> {
+            listener?.openInNewTab(WebViewEx.HOME_URL, tabIndex + 1)
+          }
+          //Close current
+          1 -> listener?.closeTab(tab)
+          //Close all
           2 -> {
             tabsModel.onCloseAllTabs()
             listener?.openInNewTab(WebViewEx.HOME_URL, 0)
           }
-          3 -> if (tab != null && tabIndex > 0) {
-            tabsModel.tabsStates.remove(tab)
-            tabsModel.tabsStates.add(tabIndex - 1, tab)
+          //Move left
+          3 -> if (tabIndex > 0) {
+            tabsModel.tabsStates.swap(tabIndex, tabIndex - 1)
           }
-          4 -> if (tab != null && tabIndex < (tabsModel.tabsStates.size - 1)) {
-            tabsModel.tabsStates.remove(tab)
-            tabsModel.tabsStates.add(tabIndex + 1, tab)
+          //Move right
+          4 -> if (tabIndex < (tabsModel.tabsStates.size - 1)) {
+            tabsModel.tabsStates.swap(tabIndex, tabIndex + 1)
           }
         }
       }
@@ -102,10 +108,19 @@ class TabsView @JvmOverloads constructor(
     adapter.notifyItemChanged(tabIndex)
   }
 
+  private fun scrollToSeeCurrentTab() {
+    val lm = (vb.rvTabs.layoutManager as LinearLayoutManager)
+    if (current < lm.findFirstCompletelyVisibleItemPosition() ||
+      current > lm.findLastCompletelyVisibleItemPosition()
+    ) {
+      vb.rvTabs.scrollToPosition(current)
+    }
+  }
+
   private val listChangeObserver: (ObservableList<WebTabState>) -> Unit = {
     adapter.onTabListChanged()
-    current = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
-    vb.rvTabs.scrollToPosition(current)
+
+    scrollToSeeCurrentTab()
   }
 
   private val currentTabObserver: (value: WebTabState?) -> Unit =  {
@@ -114,7 +129,8 @@ class TabsView @JvmOverloads constructor(
       adapter.notifyItemChanged(current)
       current = new
       adapter.notifyItemChanged(new)
-      //adapter.onTabListChanged()
+
+      scrollToSeeCurrentTab()
     }
   }
 }
