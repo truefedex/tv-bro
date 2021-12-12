@@ -234,6 +234,10 @@ object Utils {
                 ze = zis.nextEntry
                 if (ze == null) break
                 val file = File(targetDirectory, ze.name)
+                val canonicalPath = file.canonicalPath
+                if (!canonicalPath.startsWith(targetDirectory.canonicalPath)) {
+                    throw SecurityException("Zip Path Traversal attack!")
+                }
                 val dir = if (ze.isDirectory) file else file.parentFile
                 if (!dir.isDirectory && !dir.mkdirs()) throw FileSystemException(dir, null, "Failed to ensure directory: " + dir.absolutePath)
                 if (ze.isDirectory) continue
