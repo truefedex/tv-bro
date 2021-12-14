@@ -8,10 +8,14 @@ import com.phlox.tvwebbrowser.utils.DownloadUtils
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLConnection
+import javax.net.ssl.HttpsURLConnection
 
 /**
  * Created by PDT on 23.01.2017.
  */
+
+const val MAX_CONNECT_RETRIES = 5
 
 interface DownloadTask {
     var downloadInfo: Download
@@ -30,29 +34,53 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
 
         var input: InputStream? = null
         var output: OutputStream? = null
+        val url = URL(downloadInfo.url)
+
         var connection: HttpURLConnection? = null
         try {
-            val url = URL(downloadInfo.url)
-            connection = url.openConnection() as HttpURLConnection
-            connection.setRequestProperty("User-Agent", userAgent)
-            downloadInfo.mimeType?.apply { connection.setRequestProperty("Content-Type", this)}
-            downloadInfo.referer?.apply { connection.setRequestProperty("Referer", this)}
-            connection.setRequestProperty("Expect", "100-continue")
-            connection.useCaches = false
-            val cookie = CookieManager.getInstance().getCookie(url.toString())
-            if (cookie != null) connection.setRequestProperty("cookie", cookie)
-            connection.connect()
+            var retries = 0
+            do {
+                connection = url.openConnection() as HttpURLConnection
+                connection.apply {
+                    readTimeout = 10000
+                    connectTimeout = 20000
+                    setRequestProperty("User-Agent", userAgent)
+                    downloadInfo.mimeType?.apply { setRequestProperty("Content-Type", this) }
+                    downloadInfo.referer?.apply { setRequestProperty("Referer", this) }
+                    useCaches = false
+                    val cookie = CookieManager.getInstance().getCookie(url.toString())
+                    if (cookie != null) setRequestProperty("cookie", cookie)
+                    if (retries > 0) {
+                        //trust me, sometimes this helps! Don't ask me how...
+                        Thread.sleep(3000)
+                    }
+                    connect()
+                }
 
-            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                downloadInfo.size = Download.BROKEN_MARK
-                callback.onError(this, connection.responseCode, connection.responseMessage)
-                return
-            }
+                when (connection.responseCode) {
+                    HttpURLConnection.HTTP_OK -> break
+                    HttpURLConnection.HTTP_GATEWAY_TIMEOUT,
+                    HttpURLConnection.HTTP_UNAVAILABLE -> {
+                        retries++
+                        if (retries >= MAX_CONNECT_RETRIES) {
+                            downloadInfo.size = Download.BROKEN_MARK
+                            callback.onError(this, connection.responseCode, connection.responseMessage)
+                            return
+                        }
+                    }
+                    else -> {
+                        downloadInfo.size = Download.BROKEN_MARK
+                        callback.onError(this, connection.responseCode, connection.responseMessage)
+                        return
+                    }
+                }
+            } while (true)
+
+            input = connection!!.inputStream
 
             val fileLength = connection.contentLength
             downloadInfo.size = fileLength.toLong()
 
-            input = connection.inputStream
             if (connection.headerFields.containsKey("Content-Disposition")) {
                 val mime = connection.getHeaderField("Content-Type")
                 downloadInfo.filename = DownloadUtils.guessFileName(downloadInfo.url, connection.getHeaderField("Content-Disposition"), mime)

@@ -81,7 +81,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private lateinit var jsInterface: AndroidJSInterface
 
-    @ExperimentalStdlibApi
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ActiveModelsRepository.get(MainActivityViewModel::class, this)
@@ -272,7 +271,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @ExperimentalStdlibApi
     private val tabsListener = object : Listener {
         override fun onTitleChanged(index: Int) {
             Log.d(TAG, "onTitleChanged: $index")
