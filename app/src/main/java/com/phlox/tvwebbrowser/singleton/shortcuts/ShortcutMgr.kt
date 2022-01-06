@@ -1,7 +1,9 @@
 package com.phlox.tvwebbrowser.singleton.shortcuts
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.Config
 
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
@@ -14,10 +16,11 @@ import java.util.HashMap
 
 class ShortcutMgr private constructor() {
     private val shortcuts: MutableMap<Int, Shortcut>
+    private val prefs: SharedPreferences
 
     init {
         shortcuts = HashMap()
-        val prefs = TVBro.instance.getSharedPreferences(PREFS_SHORTCUTS, Context.MODE_PRIVATE)
+        prefs = TVBro.instance.getSharedPreferences(PREFS_SHORTCUTS, Context.MODE_PRIVATE)
         for (shortcut in Shortcut.values()) {
             shortcut.keyCode = prefs.getInt(shortcut.prefsKey, shortcut.keyCode)
             if (shortcut.keyCode != 0) {
@@ -39,7 +42,6 @@ class ShortcutMgr private constructor() {
         if (shortcut.keyCode != 0) {
             shortcuts[shortcut.keyCode] = shortcut
         }
-        val prefs = TVBro.instance.getSharedPreferences(PREFS_SHORTCUTS, Context.MODE_PRIVATE)
         prefs.edit()
                 .putInt(shortcut.prefsKey, shortcut.keyCode)
                 .apply()
@@ -66,7 +68,7 @@ class ShortcutMgr private constructor() {
                 return true
             }
             Shortcut.NAVIGATE_HOME -> {
-                mainActivity.navigate(WebViewEx.HOME_URL)
+                mainActivity.navigate(prefs.getString(HOME_PAGE_KEY, Config.DEFAULT_HOME_URL)!!)
                 return true
             }
             Shortcut.REFRESH_PAGE -> {
@@ -86,6 +88,7 @@ class ShortcutMgr private constructor() {
 
     companion object {
         val PREFS_SHORTCUTS = "shortcuts"
+        const val HOME_PAGE_KEY = "home_page"
         private var instance: ShortcutMgr? = null
 
         @Synchronized fun getInstance(): ShortcutMgr {

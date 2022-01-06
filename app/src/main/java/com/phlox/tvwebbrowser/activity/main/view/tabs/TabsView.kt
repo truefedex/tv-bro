@@ -10,6 +10,7 @@ import android.widget.RelativeLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.activity.main.TabsModel
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
@@ -27,6 +28,8 @@ class TabsView @JvmOverloads constructor(
 
   private val tabsModel = ActiveModelsRepository.get(TabsModel::class, context as Activity)
   private val adapter: TabsAdapter = TabsAdapter(tabsModel, this)
+  private val settingsModel: SettingsModel =
+    ActiveModelsRepository.get(SettingsModel::class, context as Activity)
   var current: Int by adapter::current
   var listener: Listener? by adapter::listener
 
@@ -58,14 +61,14 @@ class TabsView @JvmOverloads constructor(
         when (i) {
           //Open new Tab
           0 -> {
-            listener?.openInNewTab(WebViewEx.HOME_URL, tabIndex + 1)
+            listener?.openInNewTab(settingsModel.homePage.value!!, tabIndex + 1)
           }
           //Close current
           1 -> listener?.closeTab(tab)
           //Close all
           2 -> {
             tabsModel.onCloseAllTabs()
-            listener?.openInNewTab(WebViewEx.HOME_URL, 0)
+            listener?.openInNewTab(settingsModel.homePage.value!!, 0)
           }
           //Move left
           3 -> if (tabIndex > 0) {

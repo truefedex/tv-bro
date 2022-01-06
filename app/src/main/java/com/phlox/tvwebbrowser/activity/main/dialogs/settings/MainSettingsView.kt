@@ -164,11 +164,15 @@ class MainSettingsView @JvmOverloads constructor(
 
             }
         }
+        vb.scSearchEngineHomePage.isChecked = settingsModel.setSearchEngineAsHomePage
     }
 
     fun save() {
         val url = vb.etUrl.text.toString()
         settingsModel.changeSearchEngineUrl(url)
+
+        val searchEngineIsHomePage = vb.scSearchEngineHomePage.isChecked
+        settingsModel.setSearchEngineAsHomePage(searchEngineIsHomePage, url)
 
         val userAgent = vb.etUAString.text.toString().trim(' ')
         settingsModel.saveUAString(userAgent)
