@@ -33,6 +33,9 @@ class SettingsModel : ActiveModel() {
             "https://search.yahoo.com/search?p=[query]", "https://duckduckgo.com/?q=[query]",
             "https://yandex.com/search/?text=[query]", "")
     var searchEngineURL = ObservableValue(config.getSearchEngineURL())
+    //Home page settings
+    var setSearchEngineAsHomePage: Boolean = config.getSearchEngineAsHomePage()
+    var homePage = ObservableValue(config.getHomePage())
     //User agent strings configuration
     val userAgentStringTitles = arrayOf("TV Bro", "Chrome (Desktop)", "Chrome (Mobile)", "Chrome (Tablet)", "Firefox (Desktop)", "Firefox (Tablet)", "Edge (Desktop)", "Safari (Desktop)", "Safari (iPad)", "Apple TV", "Custom")
     val uaStrings = listOf("",
@@ -67,6 +70,19 @@ class SettingsModel : ActiveModel() {
     fun changeSearchEngineUrl(url: String) {
         config.setSearchEngineURL(url)
         searchEngineURL.value = url
+    }
+
+    fun setSearchEngineAsHomePage(searchEngineIsHomePage: Boolean, url: String) {
+        if (searchEngineIsHomePage) {
+            // Regex for base url parsing
+            val regexForUrl = """^https?:\/\/[^#?\/]+""".toRegex()
+            homePage.value = regexForUrl.find(url)?.value ?: Config.DEFAULT_HOME_URL
+        } else {
+            homePage.value = Config.DEFAULT_HOME_URL
+        }
+        config.setSearchEngineAsHomePage(searchEngineIsHomePage)
+        setSearchEngineAsHomePage = searchEngineIsHomePage
+        config.setHomePage(homePage.value)
     }
 
     fun saveUAString(uas: String) {

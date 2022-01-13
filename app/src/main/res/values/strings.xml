@@ -26,6 +26,7 @@
     <string name="search_history">Search history</string>
     <string name="engine">Search Engine</string>
     <string name="choose_default_search_engine">Choose default search engine</string>
+    <string name="set_search_engine_as_homepage">Set search engine as homepage</string>
     <string name="save">Save</string>
     <string name="search_engine_url_with_query_placeholder_query">Search engine URL with query placeholder [query]</string>
     <string name="change_search_engine">Change Search Engine</string>

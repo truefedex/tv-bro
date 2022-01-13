@@ -7,12 +7,15 @@ import com.phlox.tvwebbrowser.utils.Utils
 class Config(val prefs: SharedPreferences) {
     companion object {
         const val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
+        const val SEARCH_ENGINE_AS_HOME_PAGE_KEY = "search_engine_as_home_page"
+        const val HOME_PAGE_KEY = "home_page"
         const val USER_AGENT_PREF_KEY = "user_agent"
         const val THEME_KEY = "theme"
-        const val LAST_UPDATE_USER_NOTIFICATION_TIME_KEY="last_update_notif"
-        const val AUTO_CHECK_UPDATES_KEY="auto_check_updates"
-        const val UPDATE_CHANNEL_KEY="update_channel"
+        const val LAST_UPDATE_USER_NOTIFICATION_TIME_KEY = "last_update_notif"
+        const val AUTO_CHECK_UPDATES_KEY = "auto_check_updates"
+        const val UPDATE_CHANNEL_KEY = "update_channel"
         const val TV_BRO_UA_PREFIX = "TV Bro/1.0 "
+        const val DEFAULT_HOME_URL = "about:blank"
     }
 
     enum class Theme {
@@ -22,6 +25,10 @@ class Config(val prefs: SharedPreferences) {
     fun getSearchEngineURL(): String {
         return prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, "")!!
     }
+
+    fun getSearchEngineAsHomePage() = prefs.getBoolean(SEARCH_ENGINE_AS_HOME_PAGE_KEY, false)!!
+
+    fun getHomePage() = prefs.getString(HOME_PAGE_KEY, DEFAULT_HOME_URL)!!
 
     fun getUserAgentString(): String {
         return prefs.getString(USER_AGENT_PREF_KEY, "")!!
@@ -49,6 +56,14 @@ class Config(val prefs: SharedPreferences) {
 
     fun setSearchEngineURL(url: String) {
         prefs.edit().putString(SEARCH_ENGINE_URL_PREF_KEY, url).apply()
+    }
+
+    fun setSearchEngineAsHomePage(searchEngineIsHomePage: Boolean) {
+        prefs.edit().putBoolean(SEARCH_ENGINE_AS_HOME_PAGE_KEY, searchEngineIsHomePage).apply()
+    }
+
+    fun setHomePage(url: String) {
+        prefs.edit().putString(HOME_PAGE_KEY, url).apply()
     }
 
     fun setUserAgentString(uas: String) {

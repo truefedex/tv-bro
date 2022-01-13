@@ -55,6 +55,30 @@
           />
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:paddingTop="5dp"
+        >
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:ellipsize="end"
+          android:lines="1"
+          android:text="@string/set_search_engine_as_homepage"
+          android:textSize="16sp"
+          />
+      <androidx.appcompat.widget.SwitchCompat
+          android:id="@+id/scSearchEngineHomePage"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_weight="0"
+          />
+    </LinearLayout>
+
   </LinearLayout>
 
   <LinearLayout

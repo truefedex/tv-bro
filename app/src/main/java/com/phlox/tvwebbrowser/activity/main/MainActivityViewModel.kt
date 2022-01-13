@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
 import android.widget.Toast
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
@@ -70,7 +71,7 @@ class MainActivityViewModel: ActiveModel() {
     }
 
     fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
-        if ((url == lastHistoryItem?.url) || url == WebViewEx.HOME_URL) {
+        if ((url == lastHistoryItem?.url) || url == Config.DEFAULT_HOME_URL) {
             return
         }
 

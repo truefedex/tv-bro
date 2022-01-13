@@ -27,6 +27,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.utils.LogUtils
@@ -39,7 +40,6 @@ import java.net.URLEncoder
 class WebViewEx(context: Context, val callback: Callback, val jsInterface: AndroidJSInterface) : WebView(context) {
     companion object {
         val TAG = WebViewEx::class.java.simpleName
-        const val HOME_URL = "about:blank"
         const val INTERNAL_SCHEME = "internal://"
         const val INTERNAL_SCHEME_WARNING_DOMAIN = "warning"
         const val INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT = "certificate"
@@ -443,7 +443,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
 
     override fun loadUrl(url: String) {
         when {
-            HOME_URL == url -> {
+            Config.DEFAULT_HOME_URL == url -> {
                 val data = context.assets.open("pages/new-tab.html").bufferedReader().use { it.readText() }
                 loadDataWithBaseURL("file:///android_asset/", data, "text/html", "UTF-8", null)
             }

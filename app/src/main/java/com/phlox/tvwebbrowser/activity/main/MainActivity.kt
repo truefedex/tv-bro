@@ -40,7 +40,6 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.activity.main.view.Scripts
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
-import com.phlox.tvwebbrowser.activity.main.view.WebViewEx.Companion.HOME_URL
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.AndroidJSInterface
@@ -80,6 +79,7 @@ class MainActivity : AppCompatActivity() {
     private var fullScreenView: View? = null
     private lateinit var prefs: SharedPreferences
     private lateinit var jsInterface: AndroidJSInterface
+    private lateinit var homePage: String
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,7 +122,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
-        vb.ibHome.setOnClickListener { navigate(HOME_URL) }
+        vb.ibHome.setOnClickListener { navigate(homePage) }
         vb.ibBack.setOnClickListener { navigateBack() }
         vb.ibForward.setOnClickListener {
             if (tabsModel.currentTab.value != null && (tabsModel.currentTab.value!!.webView?.canGoForward() == true)) {
@@ -182,6 +182,10 @@ class MainActivity : AppCompatActivity() {
                             tab.webView!!.settings.userAgentString.replace("Mobile Safari", "Safari"))
                 }
             }
+        }
+
+        settingsModel.homePage.subscribe(this.lifecycle) {
+            homePage = it
         }
 
         downloadsModel.activeDownloads.subscribe(this) {
@@ -287,7 +291,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onAddNewTabSelected() {
-            openInNewTab(HOME_URL, tabsModel.tabsStates.size)
+            openInNewTab(homePage, tabsModel.tabsStates.size)
         }
 
         override fun closeTab(tabState: WebTabState?) = this@MainActivity.closeTab(tabState)
@@ -393,7 +397,7 @@ class MainActivity : AppCompatActivity() {
         if (tabsModel.currentTab.value != null && tabsModel.currentTab.value!!.webView?.canGoBack() == true) {
             tabsModel.currentTab.value!!.webView?.goBack()
         } else if (goHomeIfNoHistory) {
-            navigate(HOME_URL)
+            navigate(homePage)
         } else if (vb.rlActionBar.visibility != View.VISIBLE) {
             showMenuOverlay()
         } else {
@@ -434,7 +438,7 @@ class MainActivity : AppCompatActivity() {
         val intentUri = intent.data
         if (intentUri == null) {
             if (tabsModel.tabsStates.isEmpty()) {
-                openInNewTab(HOME_URL)
+                openInNewTab(homePage)
             } else {
                 var foundSelectedTab = false
                 for (i in tabsModel.tabsStates.indices) {
@@ -470,7 +474,7 @@ class MainActivity : AppCompatActivity() {
                     })
         } else {
             val currentTab = tabsModel.currentTab.value
-            if (currentTab == null || currentTab.url == HOME_URL) {
+            if (currentTab == null || currentTab.url == homePage) {
                 showMenuOverlay()
             }
             if (settingsModel.needAutockeckUpdates &&
@@ -521,7 +525,7 @@ class MainActivity : AppCompatActivity() {
         }
         tab.webView?.apply { vb.flWebViewContainer.removeView(this) }
         when {
-            tabsModel.tabsStates.size == 1 -> openInNewTab(HOME_URL, 0)
+            tabsModel.tabsStates.size == 1 -> openInNewTab(homePage, 0)
 
             position > 0 -> changeTab(tabsModel.tabsStates[position - 1])
 
@@ -911,7 +915,7 @@ class MainActivity : AppCompatActivity() {
     private fun syncTabWithTitles() {
         val tab = tabByTitleIndex(vb.vTabs.current)
         if (tab == null) {
-            openInNewTab(HOME_URL, if (vb.vTabs.current < 0) 0 else tabsModel.tabsStates.size)
+            openInNewTab(homePage, if (vb.vTabs.current < 0) 0 else tabsModel.tabsStates.size)
         } else if (!tab.selected) {
             changeTab(tab)
         }
@@ -1094,7 +1098,7 @@ class MainActivity : AppCompatActivity() {
 
             tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
             tab.webPageInteractionDetected = false
-            if (HOME_URL == url) {
+            if (homePage == url) {
                 tab.webView?.loadUrl("javascript:renderSuggestions()")
             }
         }

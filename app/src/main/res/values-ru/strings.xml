@@ -27,6 +27,7 @@
     <string name="change_user_agent">Изменить User Agent</string>
     <string name="choose_default_search_engine">Выберите поисковый движок по-умолчанию</string>
     <string name="engine">Поисковый движок</string>
+    <string name="set_search_engine_as_homepage">Установить поисковый движок в качестве домашней страницы</string>
     <string name="save">Сохранить</string>
     <string name="search_engine_url_with_query_placeholder_query">URL поискового движка (используйте параметр [query])</string>
     <string name="cancel">Отмена</string>
