@@ -364,7 +364,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                     return
                 }
                 handler.cancel()
-                if (error.url == currentOriginalUrl.toString()) {//skip ssl errors during loading non-page resources (Chrome did like this too)
+                val errUrl = error.url ?: return
+                val origUrl = currentOriginalUrl ?: return
+                if (Uri.parse(errUrl).host == origUrl.host) {//skip ssl errors during loading non-page resources (Chrome did like this too)
                     showCertificateErrorPage(error)
                 }
             }
@@ -461,6 +463,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                 }
             }
             else -> {
+                currentOriginalUrl = Uri.parse(url)
                 super.loadUrl(url)
             }
         }
