@@ -7,14 +7,14 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.TabsModel
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.TabViewHolder
 import com.phlox.tvwebbrowser.databinding.ViewHorizontalWebtabItemBinding
 import com.phlox.tvwebbrowser.model.WebTabState
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.DiffUtil.DiffResult
+import com.phlox.tvwebbrowser.widgets.CheckableContainer
 
 
 class TabsAdapter(private val tabsModel: TabsModel, private val tabsView: TabsView) : RecyclerView.Adapter<TabViewHolder>() {
@@ -22,6 +22,7 @@ class TabsAdapter(private val tabsModel: TabsModel, private val tabsView: TabsVi
   var current: Int = 0
   var listener: Listener? = null
   val uiHandler = Handler(Looper.getMainLooper())
+  var checkedView: CheckableContainer? = null
 
   interface Listener {
     fun onTitleChanged(index: Int)
@@ -71,20 +72,22 @@ class TabsAdapter(private val tabsModel: TabsModel, private val tabsView: TabsVi
       } else
         vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
 
-      vb.root.isChecked = position == current
+      if (current == tabState.position) {
+        checkedView?.isChecked = false
+        vb.root.isChecked = true
+        checkedView = vb.root
+      }
 
       vb.root.tag = tabState
 
       vb.root.setOnFocusChangeListener { v, hasFocus ->
         if (hasFocus) {
           if (current != tabState.position) {
-            val oldCurrent = current
             current = tabState.position
             listener?.onTitleChanged(position)
-            uiHandler.post {
-              notifyItemChanged(oldCurrent)
-              notifyItemChanged(current)
-            }
+            checkedView?.isChecked = false
+            vb.root.isChecked = true
+            checkedView = vb.root
           }
         }
       }
