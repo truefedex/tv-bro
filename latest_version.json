@@ -2,21 +2,26 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v1.7.1",
-      "latestVersionCode": 48,
+      "latestVersionName": "v1.7.2",
+      "latestVersionCode": 49,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.7.1/tvbro1.7.1.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.7.2/tvbro1.7.2.apk"
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.7.1",
-      "latestVersionCode": 48,
+      "latestVersionName": "v1.7.2",
+      "latestVersionCode": 49,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.7.1/tvbro1.7.1.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.7.2/tvbro1.7.2.apk"
     }
   ],
 
   "changelog": [
+    {
+      "versionCode": 49,
+      "versionName": "v1.7.2",
+      "changes": "* Added ability to set search engine as homepage (thank you E-D-W-I-N for pull request !)\n* Dark theme tuning/fixing/backporting; should now work on pre-Android 10 devices\n* Improvement: auto retry download, this helps on some sites\n* Fix: crash on download on Fire TV (thank you tsynik for crashlog)\n* Fix: unability to select tab with mouse (thank you xvkong for foundings)\n* Fix for not showing ssl errors on some pages\n* Fix for tabs fast scrolling issues"
+    },
     {
       "versionCode": 48,
       "versionName": "v1.7.1",
@@ -26,16 +31,6 @@
       "versionCode": 47,
       "versionName": "v1.7.0",
       "changes": "* Tabs redesign\n* Dark theme setting (Android 10+)"
-    },
-    {
-      "versionCode": 46,
-      "versionName": "v1.6.2",
-      "changes": "* Several bugs fixed"
-    },
-    {
-      "versionCode": 45,
-      "versionName": "v1.6.1",
-      "changes": "* Adblocker added\n* Several major and minor bugs fixed\n* Localizations added"
     }
   ]
 }
