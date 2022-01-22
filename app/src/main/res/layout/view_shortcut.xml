@@ -13,8 +13,8 @@
         android:ellipsize="end"
         android:textSize="18sp"
         android:padding="15dp"
-        android:textColor="#000"
-        android:text="TextView" />
+        android:textColor="@color/day_night_text_color_contrast"
+        tools:text="TextView" />
     <TextView
         android:id="@+id/tvKey"
         android:layout_width="wrap_content"
@@ -24,6 +24,5 @@
         android:layout_alignParentEnd="true"
         android:textSize="18sp"
         android:padding="15dp"
-        android:textColor="#888"
-        android:text="TextView" />
+        tools:text="TextView" />
 </merge>

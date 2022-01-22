@@ -5,30 +5,30 @@
         <layer-list>
             <item>
                 <shape android:shape="rectangle">
-                    <solid android:color="#ade1f5" />
+                    <solid android:color="@color/settings_tab_color_activated" />
                 </shape>
             </item>
             <item android:gravity="bottom">
                 <shape>
                     <size android:height="2dp" />
-                    <solid android:color="#009688" />
+                    <solid android:color="@color/settings_tab_activated_underline_color" />
                 </shape>
             </item>
         </layer-list>
     </item>
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="#ebebeb" />
+            <solid android:color="@color/settings_tab_color" />
         </shape>
     </item>
     <item android:state_focused="true">
         <shape android:shape="rectangle">
-            <solid android:color="#ade1f5" />
+            <solid android:color="@color/settings_tab_color_focused" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#EBEBEB" />
+            <solid android:color="@color/settings_tab_color" />
         </shape>
     </item>
 </selector>

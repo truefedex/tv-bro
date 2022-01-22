@@ -5,7 +5,6 @@
     android:id="@+id/rlRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#fff"
     tools:context=".activity.main.MainActivity"
     tools:deviceIds="tv"
     tools:ignore="MergeRootFrame"
@@ -135,14 +134,15 @@
         </FrameLayout>
 
         <com.phlox.tvwebbrowser.activity.main.view.tabs.TabsView
+            android:id="@+id/vTabs"
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:layout_marginTop="10dp"
             android:layout_below="@+id/ibMenu"
+            android:layout_marginTop="10dp"
             android:focusable="true"
             android:nextFocusUp="@+id/ibMenu"
             android:nextFocusDown="@+id/ibCloseTab"
-            android:id="@+id/vTabs" />
+            />
     </RelativeLayout>
 
     <ImageView

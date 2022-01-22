@@ -1,10 +1,9 @@
-package com.phlox.tvwebbrowser.activity.main.adapter
+package com.phlox.tvwebbrowser.activity.main.dialogs.favorites
 
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 
-import com.phlox.tvwebbrowser.activity.main.view.FavoriteItemView
 import com.phlox.tvwebbrowser.model.FavoriteItem
 
 /**

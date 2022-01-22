@@ -39,5 +39,5 @@
       android:layout_width="match_parent"
       android:layout_height="10dp"
       android:layout_alignParentBottom="true"
-      android:background="#fff" />
+      android:background="@color/top_bar_background2" />
 </merge>

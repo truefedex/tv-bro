@@ -3,15 +3,15 @@
     <item android:state_enabled="false" android:state_focused="false">
         <shape android:shape="rectangle">
             <corners android:radius="5dp" />
-            <solid android:color="#ebebeb" />
-            <stroke android:color="#afafaf" android:width="1dp" />
+            <solid android:color="@color/button_background_disabled" />
+            <stroke android:color="@color/button_corner" android:width="1dp" />
             <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
         </shape>
     </item>
     <item android:state_enabled="false" android:state_focused="true">
         <shape android:shape="rectangle">
             <corners android:radius="5dp" />
-            <solid android:color="#ebebeb" />
+            <solid android:color="@color/button_background_disabled" />
             <stroke android:color="#33add6" android:width="1dp" />
             <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
         </shape>
@@ -19,15 +19,15 @@
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <corners android:radius="5dp" />
-            <solid android:color="#ebebeb" />
-            <stroke android:color="#afafaf" android:width="1dp" />
+            <solid android:color="@color/button_background_pressed" />
+            <stroke android:color="@color/button_corner" android:width="1dp" />
             <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
         </shape>
     </item>
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <corners android:radius="5dp" />
-            <solid android:color="#ade1f5" />
+            <solid android:color="@color/button_background_focused" />
             <stroke android:color="#33add6" android:width="1dp" />
             <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
         </shape>
@@ -35,8 +35,8 @@
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="5dp" />
-            <solid android:color="#d0d9e1" />
-            <stroke android:color="#afafaf" android:width="1dp" />
+            <solid android:color="@color/button_background" />
+            <stroke android:color="@color/button_corner" android:width="1dp" />
             <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
         </shape>
     </item>

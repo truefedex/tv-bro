@@ -42,7 +42,7 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isDebuggable = false
+            isDebuggable = true
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig=signingConfigs.getByName("release")
@@ -91,9 +91,9 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.2")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.10")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
 
@@ -109,7 +109,7 @@ dependencies {
     "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     //appstore-dependent dependencies
-    "googleImplementation"("com.google.firebase:firebase-core:20.0.1")
+    "googleImplementation"("com.google.firebase:firebase-core:20.0.2")
     "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.6")
 }
 

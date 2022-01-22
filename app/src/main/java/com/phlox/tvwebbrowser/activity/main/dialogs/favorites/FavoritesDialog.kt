@@ -1,12 +1,10 @@
-package com.phlox.tvwebbrowser.activity.main.dialogs
+package com.phlox.tvwebbrowser.activity.main.dialogs.favorites
 
 import android.app.Dialog
 import android.content.Context
 import android.view.View
 import android.widget.*
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.activity.main.adapter.FavoritesListAdapter
-import com.phlox.tvwebbrowser.activity.main.view.FavoriteItemView
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import kotlinx.coroutines.CoroutineScope

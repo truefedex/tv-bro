@@ -1,4 +1,4 @@
-package com.phlox.tvwebbrowser.activity.main.view
+package com.phlox.tvwebbrowser.activity.main.dialogs.favorites
 
 import android.content.Context
 import android.util.AttributeSet

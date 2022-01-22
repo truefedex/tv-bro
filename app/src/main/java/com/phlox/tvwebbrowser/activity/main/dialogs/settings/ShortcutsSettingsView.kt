@@ -32,7 +32,7 @@ class ShortcutsSettingsView @JvmOverloads constructor(
 
         selector = context.resources.getDrawable(R.drawable.list_item_bg_selector, null)
         adapter = ShortcutItemAdapter()
-        setOnItemClickListener(this)
+        onItemClickListener = this
     }
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {

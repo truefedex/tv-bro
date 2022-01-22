@@ -1,4 +1,4 @@
-package com.phlox.tvwebbrowser.activity.main.dialogs
+package com.phlox.tvwebbrowser.activity.main.dialogs.favorites
 
 import android.app.Dialog
 import android.content.Context

@@ -3,27 +3,27 @@
     android:enterFadeDuration="150" android:exitFadeDuration="500">
     <item android:state_enabled="false" android:state_focused="false">
         <shape>
-            <solid android:color="#ebebeb" />
+            <solid android:color="@color/day_night_background_color" />
         </shape>
     </item>
     <item android:state_enabled="false" android:state_focused="true">
         <shape>
-            <solid android:color="#ebebeb" />
+            <solid android:color="@color/day_night_background_color" />
         </shape>
     </item>
     <item android:state_pressed="true">
         <shape>
-            <solid android:color="#ebebeb" />
+            <solid android:color="@color/day_night_list_focused_background_color" />
         </shape>
     </item>
     <item android:state_focused="true">
         <shape>
-            <solid android:color="#ade1f5" />
+            <solid android:color="@color/day_night_list_focused_background_color" />
         </shape>
     </item>
     <item>
         <shape>
-            <solid android:color="#d0d9e1" />
+            <solid android:color="@color/day_night_background_color" />
         </shape>
     </item>
 </selector>

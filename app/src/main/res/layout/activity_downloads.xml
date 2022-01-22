@@ -4,12 +4,15 @@
     android:id="@+id/activity_downloads"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/day_night_background_color"
     tools:context="com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity">
 
     <de.halfbit.pinnedsection.PinnedSectionListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:divider="@color/day_night_list_divider_color"
+        android:dividerHeight="1dp"
         android:listSelector="@drawable/list_item_bg_selector"/>
 
     <TextView
@@ -18,5 +21,6 @@
         android:layout_height="match_parent"
         android:id="@+id/tvPlaceholder"
         android:gravity="center"
-        android:textSize="30dp"/>
+        android:textColor="@color/day_night_text_color"
+        android:textSize="30sp"/>
 </RelativeLayout>
