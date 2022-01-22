@@ -19,6 +19,7 @@ import com.phlox.tvwebbrowser.utils.observable.ParameterizedEventSource
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
@@ -143,7 +144,12 @@ class MainActivityViewModel: ActiveModel() {
             Runtime.getRuntime().exec("logcat")
               .inputStream
               .bufferedReader()
-              .useLines { lines -> lines.forEach { line -> logCatOutput.emit(line) }
+              .useLines { lines ->
+                  lines.forEach {line ->
+                      withContext(Dispatchers.Main) {
+                          logCatOutput.emit(line)
+                      }
+                  }
               }
         }
     }
