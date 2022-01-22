@@ -4,7 +4,7 @@
     android:layout_width="@dimen/web_tab_width"
     android:layout_height="wrap_content"
     android:focusable="true"
-    android:focusableInTouchMode="false"
+    android:focusableInTouchMode="true"
     android:nextFocusUp="@+id/ibMenu"
     android:nextFocusDown="@+id/ibCloseTab"
     android:paddingStart="@dimen/web_tab_padding"
