@@ -49,7 +49,7 @@ android {
         }
     }
 
-    flavorDimensions("appstore")
+    flavorDimensions += listOf("appstore")
     productFlavors {
         create("generic") {
             dimension = "appstore"
@@ -60,10 +60,6 @@ android {
         create("amazon") {
             dimension = "appstore"
         }
-    }
-
-    lint {
-        isAbortOnError = false
     }
 
     buildFeatures {
