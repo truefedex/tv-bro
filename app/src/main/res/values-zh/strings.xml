@@ -117,4 +117,5 @@
         <item>白色</item>
         <item>黑暗</item>
     </array>
+  <string name="set_search_engine_as_homepage">将搜索引擎设为首页</string>
 </resources>

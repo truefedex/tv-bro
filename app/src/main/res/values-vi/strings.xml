@@ -117,4 +117,5 @@
         <item>Màu trắng</item>
         <item>Tối</item>
     </array>
+  <string name="set_search_engine_as_homepage">Đặt công cụ tìm kiếm làm trang chủ</string>
 </resources>

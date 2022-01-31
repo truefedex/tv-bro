@@ -12,17 +12,15 @@
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
--keep class com.phlox.asql.annotations.** {
-    *;
+-keepclassmembers class com.phlox.tvwebbrowser.model.** {
+   public *;
 }
--keepattributes DBColumn
--keepattributes DBTable
--keepattributes DBIgnore
--keepattributes DBPrimaryKey
+-keepclassmembers class com.brave.adblock.AdBlockClient {
+   public *;
+   private *;
+}
 
--keepclasseswithmembers class com.phlox.tvwebbrowser.model.** {
-    <fields>;
-}
+
+#-keepclasseswithmembers class com.phlox.tvwebbrowser.model.** {
+#    <fields>;
+#}

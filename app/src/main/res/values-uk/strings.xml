@@ -111,4 +111,5 @@
         <item>Біла</item>
         <item>Темна</item>
     </array>
+  <string name="set_search_engine_as_homepage">Встановити пошукову систему як домашню сторінку</string>
 </resources>

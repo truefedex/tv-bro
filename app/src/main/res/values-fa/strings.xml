@@ -115,4 +115,5 @@
         <item>سفید</item>
         <item>تاریک</item>
     </array>
+  <string name="set_search_engine_as_homepage">موتور جستجو را به عنوان صفحه اصلی تنظیم کنید</string>
 </resources>
