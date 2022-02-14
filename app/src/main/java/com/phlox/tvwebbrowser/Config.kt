@@ -44,7 +44,7 @@ class Config(val prefs: SharedPreferences) {
     }
 
     fun isKeepScreenOn(): Boolean {
-        return prefs.getBoolean(KEEP_SCREEN_ON, false)
+        return prefs.getBoolean(KEEP_SCREEN_ON_KEY, false)
     }
 
     var theme: Theme
