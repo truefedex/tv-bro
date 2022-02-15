@@ -19,6 +19,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -186,6 +187,14 @@ class MainActivity : AppCompatActivity() {
 
         settingsModel.homePage.subscribe(this.lifecycle) {
             homePage = it
+        }
+
+        settingsModel.keepScreenOn.subscribe(this.lifecycle) {
+            if (settingsModel.keepScreenOn) {
+                getWindow().addFlags.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            } else {
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
         }
 
         downloadsModel.activeDownloads.subscribe(this) {
