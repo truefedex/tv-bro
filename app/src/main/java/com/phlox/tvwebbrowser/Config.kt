@@ -84,6 +84,6 @@ class Config(val prefs: SharedPreferences) {
     }
 
     fun setKeepScreenOn(keepScreenOn: Boolean) {
-        prefs.edit().putString(KEEP_SCREEN_ON_KEY, keepScreenOn).apply()
+        prefs.edit().putBoolean(KEEP_SCREEN_ON_KEY, keepScreenOn).apply()
     }
 }
