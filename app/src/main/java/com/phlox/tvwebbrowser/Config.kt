@@ -16,6 +16,7 @@ class Config(val prefs: SharedPreferences) {
         const val UPDATE_CHANNEL_KEY = "update_channel"
         const val TV_BRO_UA_PREFIX = "TV Bro/1.0 "
         const val DEFAULT_HOME_URL = "about:blank"
+        const val KEEP_SCREEN_ON_KEY = "keep_screen_on"
     }
 
     enum class Theme {
@@ -40,6 +41,10 @@ class Config(val prefs: SharedPreferences) {
 
     fun getUpdateChannel(): String {
         return prefs.getString(UPDATE_CHANNEL_KEY, "release")!!
+    }
+
+    fun isKeepScreenOn(): Boolean {
+        return prefs.getBoolean(KEEP_SCREEN_ON_KEY, false)
     }
 
     var theme: Theme
@@ -76,5 +81,9 @@ class Config(val prefs: SharedPreferences) {
 
     fun setUpdateChannel(channel: String) {
         prefs.edit().putString(UPDATE_CHANNEL_KEY, channel).apply()
+    }
+
+    fun setKeepScreenOn(keepScreenOn: Boolean) {
+        prefs.edit().putBoolean(KEEP_SCREEN_ON_KEY, keepScreenOn).apply()
     }
 }

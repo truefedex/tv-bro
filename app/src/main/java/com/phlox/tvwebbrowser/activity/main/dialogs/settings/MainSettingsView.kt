@@ -34,6 +34,8 @@ class MainSettingsView @JvmOverloads constructor(
         initAdBlockConfigUI()
 
         initThemeSettingsUI()
+
+        initKeepScreenOnUI()
     }
 
     private fun initThemeSettingsUI() {
@@ -57,6 +59,14 @@ class MainSettingsView @JvmOverloads constructor(
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+    }
+
+    private fun initKeepScreenOnUI() {
+        vb.scKeepScreenOn.isChecked = settingsModel.keepScreenOn
+
+        vb.scKeepScreenOn.setOnCheckedChangeListener { buttonView, isChecked ->
+            settingsModel.keepScreenOn = isChecked
         }
     }
 

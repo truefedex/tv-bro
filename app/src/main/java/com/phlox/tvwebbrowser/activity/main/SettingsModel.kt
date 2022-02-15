@@ -59,6 +59,9 @@ class SettingsModel : ActiveModel() {
         set(value) = config.setAutoCheckUpdates(value)
     var theme by config::theme
     var updateChannel: String
+    var keepScreenOn: Boolean
+        get() = config.isKeepScreenOn()
+        set(value) = config.setKeepScreenOn(value)
 
     init {
         lastUpdateNotificationTime = if (config.prefs.contains(Config.LAST_UPDATE_USER_NOTIFICATION_TIME_KEY))
