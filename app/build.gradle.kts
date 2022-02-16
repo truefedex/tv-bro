@@ -88,12 +88,12 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.2.1")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
 
-    val roomVersion = "2.4.0-rc01"
+    val roomVersion = "2.4.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
@@ -105,8 +105,8 @@ dependencies {
     "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     //appstore-dependent dependencies
-    "googleImplementation"("com.google.firebase:firebase-core:20.0.2")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.7")
+    "googleImplementation"("com.google.firebase:firebase-core:20.1.0")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.8")
 }
 
 tasks.getByName("check").dependsOn("lint")
