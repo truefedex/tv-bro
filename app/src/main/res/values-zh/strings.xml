@@ -118,4 +118,5 @@
         <item>黑暗</item>
     </array>
   <string name="set_search_engine_as_homepage">将搜索引擎设为首页</string>
+  <string name="toggle_keep_screen_on">保持屏幕开启</string>
 </resources>

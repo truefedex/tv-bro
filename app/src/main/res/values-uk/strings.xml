@@ -112,4 +112,5 @@
         <item>Темна</item>
     </array>
   <string name="set_search_engine_as_homepage">Встановити пошукову систему як домашню сторінку</string>
+  <string name="toggle_keep_screen_on">Підтримувати екран увімкненим</string>
 </resources>

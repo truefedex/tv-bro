@@ -76,6 +76,7 @@
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:layout_weight="0"
+          android:nextFocusDown="@+id/spTitles"
           />
     </LinearLayout>
 
@@ -186,6 +187,7 @@
         android:layout_height="48dp"
         android:layout_weight="0"
         android:contentDescription="@string/update_ad_blocker_list"
+        android:nextFocusDown="@+id/spTheme"
         android:src="@drawable/ic_refresh_grey_900_24dp"
         />
     <ProgressBar
@@ -222,10 +224,6 @@
         android:layout_height="wrap_content"
         android:dropDownWidth="300dp"
         />
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        />
   </LinearLayout>
 
   <LinearLayout
@@ -253,4 +251,8 @@
         android:layout_weight="0"
         />
   </LinearLayout>
+  <View
+      android:layout_width="match_parent"
+      android:layout_height="50dp"
+      />
 </LinearLayout>

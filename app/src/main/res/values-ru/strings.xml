@@ -119,4 +119,5 @@
         <item>Светлая</item>
         <item>Тёмная</item>
     </array>
+  <string name="toggle_keep_screen_on">Поддерживать экран включенным</string>
 </resources>

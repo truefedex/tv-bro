@@ -117,4 +117,5 @@
         <item>אפל</item>
     </array>
   <string name="set_search_engine_as_homepage">הפוך מנוע חיפוש לדף הבית שלך</string>
+  <string name="toggle_keep_screen_on">השאר מסך דלוק</string>
 </resources>

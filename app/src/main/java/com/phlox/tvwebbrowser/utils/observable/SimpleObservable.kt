@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.utils.observable
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 
 /**
@@ -66,8 +67,8 @@ interface Subscribable<O> {
 
 typealias ValueObserver<T> = (value: T) -> Unit
 
-class ObservableValue<T>(default: T) : Subscribable<ValueObserver<T>> {
-    var value: T = default
+open class ObservableValue<T>(default: T) : Subscribable<ValueObserver<T>> {
+    open var value: T = default
         set(value) {
             field = value
             notifyObservers()
@@ -83,6 +84,18 @@ class ObservableValue<T>(default: T) : Subscribable<ValueObserver<T>> {
 
     operator fun getValue(thisRef: Any, prop: KProperty<*>): T = this.value
     operator fun setValue(thisRef: Any, prop: KProperty<*>, value: T) {this.value = value}
+}
+
+fun <T>makeObservable(property: KMutableProperty<T>): ObservableValue<T> {
+    return object : ObservableValue<T>(property.getter.call()) {
+        override var value: T = property.getter.call()
+            set(value) {
+                property.setter.call(value)
+                field = value
+                notifyObservers()
+            }
+            get() = property.getter.call()
+    }
 }
 
 typealias EventObserver = () -> Unit

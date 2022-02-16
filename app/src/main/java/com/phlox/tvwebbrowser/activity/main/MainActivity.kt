@@ -190,10 +190,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         settingsModel.keepScreenOn.subscribe(this.lifecycle) {
-            if (settingsModel.keepScreenOn) {
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            if (it) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             } else {
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             }
         }
 

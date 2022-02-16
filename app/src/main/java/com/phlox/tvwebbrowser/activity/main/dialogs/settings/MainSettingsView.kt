@@ -21,7 +21,7 @@ import java.util.*
 class MainSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ScrollView(context, attrs, defStyleAttr) {
-    private var vb: ViewSettingsMainBinding = ViewSettingsMainBinding.inflate(LayoutInflater.from(getContext()), this, true)
+    private var vb = ViewSettingsMainBinding.inflate(LayoutInflater.from(getContext()), this, true)
     var settingsModel: SettingsModel =
         ActiveModelsRepository.get(SettingsModel::class, activity!!)
     var adblockModel: AdblockModel = ActiveModelsRepository.get(AdblockModel::class, activity!!)
@@ -63,10 +63,10 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     private fun initKeepScreenOnUI() {
-        vb.scKeepScreenOn.isChecked = settingsModel.keepScreenOn
+        vb.scKeepScreenOn.isChecked = settingsModel.keepScreenOn.value
 
         vb.scKeepScreenOn.setOnCheckedChangeListener { buttonView, isChecked ->
-            settingsModel.keepScreenOn = isChecked
+            settingsModel.keepScreenOn.value = isChecked
         }
     }
 

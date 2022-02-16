@@ -43,9 +43,11 @@ class Config(val prefs: SharedPreferences) {
         return prefs.getString(UPDATE_CHANNEL_KEY, "release")!!
     }
 
-    fun isKeepScreenOn(): Boolean {
-        return prefs.getBoolean(KEEP_SCREEN_ON_KEY, false)
-    }
+    var keepScreenOn
+        get() = prefs.getBoolean(KEEP_SCREEN_ON_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(KEEP_SCREEN_ON_KEY, value).apply()
+        }
 
     var theme: Theme
         get() = Theme.values()[prefs.getInt(THEME_KEY, 0)]
@@ -81,9 +83,5 @@ class Config(val prefs: SharedPreferences) {
 
     fun setUpdateChannel(channel: String) {
         prefs.edit().putString(UPDATE_CHANNEL_KEY, channel).apply()
-    }
-
-    fun setKeepScreenOn(keepScreenOn: Boolean) {
-        prefs.edit().putBoolean(KEEP_SCREEN_ON_KEY, keepScreenOn).apply()
     }
 }

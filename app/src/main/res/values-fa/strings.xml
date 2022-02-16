@@ -116,4 +116,5 @@
         <item>تاریک</item>
     </array>
   <string name="set_search_engine_as_homepage">موتور جستجو را به عنوان صفحه اصلی تنظیم کنید</string>
+  <string name="toggle_keep_screen_on">صفحه نمایش را روشن بگذارید</string>
 </resources>
