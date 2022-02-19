@@ -121,7 +121,7 @@ class TabsModel : ActiveModel() {
   }
 
   fun changeTab(newTab: WebTabState, webViewProvider: (tab: WebTabState) -> WebViewEx?, webViewParent: ViewGroup) {
-    if (currentTab.value == newTab) return
+    if (currentTab.value == newTab && newTab.webView != null) return
     tabsStates.forEach {
       it.selected = false
     }

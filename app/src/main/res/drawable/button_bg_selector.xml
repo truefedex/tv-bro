@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="5dp" />
+            <solid android:color="@color/button_background_focused" />
+            <stroke android:color="#7133D6" android:width="1dp" />
+            <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
+        </shape>
+    </item>
     <item android:state_enabled="false" android:state_focused="false">
         <shape android:shape="rectangle">
             <corners android:radius="5dp" />

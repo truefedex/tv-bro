@@ -121,4 +121,5 @@
         <item>White</item>
         <item>Dark</item>
     </array>
+    <string name="incognito_mode">Incognito mode</string>
 </resources>

@@ -29,7 +29,7 @@ class CheckableContainer @JvmOverloads constructor(
 
   override fun onCreateDrawableState(extraSpace: Int): IntArray? {
     val drawableState = super.onCreateDrawableState(extraSpace + 1)
-    if (isChecked()) {
+    if (isChecked) {
       mergeDrawableStates(drawableState, checkedStateSet)
     }
     return drawableState

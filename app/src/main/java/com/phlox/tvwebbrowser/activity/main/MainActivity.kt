@@ -10,34 +10,36 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
-import android.os.*
+import android.os.Build
+import android.os.Bundle
+import android.os.Environment
+import android.os.Handler
 import android.speech.RecognizerIntent
-import android.transition.TransitionManager
 import android.util.Log
 import android.util.Patterns
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager;
+import android.view.WindowManager
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
-import android.view.inputmethod.InputMethodManager
-import android.webkit.*
-import android.widget.RelativeLayout
+import android.webkit.MimeTypeMap
+import android.webkit.URLUtil
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.activity.downloads.ActiveDownloadsModel
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
-import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFactory
+import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
+import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.activity.main.view.Scripts
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
@@ -50,13 +52,15 @@ import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ActionBar.Callback {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         const val VOICE_SEARCH_REQUEST_CODE = 10001
@@ -73,21 +77,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tabsModel: TabsModel
     private lateinit var settingsModel: SettingsModel
     private lateinit var adblockModel: AdblockModel
-    private lateinit var downloadsModel: ActiveDownloadsModel
     private lateinit var uiHandler: Handler
     private var running: Boolean = false
-    private var downloadAnimation: Animation? = null
     private var fullScreenView: View? = null
     private lateinit var prefs: SharedPreferences
     private lateinit var jsInterface: AndroidJSInterface
-    private lateinit var homePage: String
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ActiveModelsRepository.get(MainActivityViewModel::class, this)
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
         adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
-        downloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, this)
         tabsModel = ActiveModelsRepository.get(TabsModel::class, this)
         jsInterface = AndroidJSInterface(viewModel, tabsModel)
         uiHandler = Handler()
@@ -115,15 +115,8 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        if (Utils.isFireTV(this)) {
-            vb.ibVoiceSearch.visibility = View.GONE
-            vb.ibMenu.nextFocusRightId = R.id.ibHistory
-        } else {
-            vb.ibVoiceSearch.setOnClickListener { initiateVoiceSearch() }
-        }
-
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
-        vb.ibHome.setOnClickListener { navigate(homePage) }
+        vb.ibHome.setOnClickListener { navigate(settingsModel.homePage.value) }
         vb.ibBack.setOnClickListener { navigateBack() }
         vb.ibForward.setOnClickListener {
             if (tabsModel.currentTab.value != null && (tabsModel.currentTab.value!!.webView?.canGoForward() == true)) {
@@ -133,11 +126,8 @@ class MainActivity : AppCompatActivity() {
         vb.ibRefresh.setOnClickListener { refresh() }
         vb.ibCloseTab.setOnClickListener { tabsModel.currentTab.value?.apply { closeTab(this) } }
 
-        vb.ibMenu.setOnClickListener { finish() }
-        vb.ibDownloads.setOnClickListener { startActivity(Intent(this@MainActivity, DownloadsActivity::class.java)) }
-        vb.ibFavorites.setOnClickListener { showFavorites() }
-        vb.ibHistory.setOnClickListener { showHistory() }
-        vb.ibSettings.setOnClickListener { showSettings() }
+        vb.vActionBar.callback = this
+
         vb.ibZoomIn.setOnClickListener {
             val tab = tabsModel.currentTab.value ?: return@setOnClickListener
             tab.webView?.apply {
@@ -165,10 +155,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        vb.etUrl.onFocusChangeListener = etUrlFocusChangeListener
-
-        vb.etUrl.setOnKeyListener(etUrlKeyListener)
-
         vb.llBottomPanel.childs.forEach {
             it.setOnTouchListener(bottomButtonsOnTouchListener)
             it.onFocusChangeListener = bottomButtonsFocusListener
@@ -185,10 +171,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        settingsModel.homePage.subscribe(this.lifecycle) {
-            homePage = it
-        }
-
         settingsModel.keepScreenOn.subscribe(this.lifecycle) {
             if (it) {
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -197,27 +179,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        downloadsModel.activeDownloads.subscribe(this) {
-            if (it.isNotEmpty()) {
-                if (downloadAnimation == null) {
-                    downloadAnimation = AnimationUtils.loadAnimation(this, R.anim.infinite_fadeinout_anim)
-                    vb.ibDownloads.startAnimation(downloadAnimation)
-                }
-            } else {
-                downloadAnimation?.apply {
-                    this.reset()
-                    vb.ibDownloads.clearAnimation()
-                    downloadAnimation = null
-                }
-            }
-        }
-
         viewModel.frequentlyUsedUrls.subscribe(this) {
             jsInterface.setSuggestions(application, it)
         }
 
         tabsModel.currentTab.subscribe(this) {
-            vb.etUrl.setText(it?.url ?: "")
+            vb.vActionBar.setAddressBoxText(it?.url ?: "")
             it?.let {
                 onWebViewUpdated(it)
             }
@@ -230,30 +197,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         loadState()
-    }
-
-    private val etUrlFocusChangeListener = View.OnFocusChangeListener { _, focused ->
-        if (focused) {
-            if (vb.flUrl.parent == vb.rlActionBar) {
-                syncTabWithTitles()
-                vb.rlActionBar.removeView(vb.flUrl)
-                val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                vb.rlRoot.addView(vb.flUrl, lp)
-                vb.rlActionBar.visibility = View.INVISIBLE
-                vb.llBottomPanel.visibility = View.INVISIBLE
-                vb.ivMiniatures.visibility = View.INVISIBLE
-                vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
-                vb.flWebViewContainer.visibility = View.VISIBLE
-                TransitionManager.beginDelayedTransition(vb.rlRoot)
-            }
-
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_FORCED)
-            uiHandler.postDelayed(//workaround an android TV bug
-                    {
-                        vb.etUrl.selectAll()
-                    }, 500)
-        }
     }
 
     private var progressBarHideRunnable: Runnable = Runnable {
@@ -288,7 +231,7 @@ class MainActivity : AppCompatActivity() {
         override fun onTitleChanged(index: Int) {
             Log.d(TAG, "onTitleChanged: $index")
             val tab = tabByTitleIndex(index)
-            vb.etUrl.setText(tab?.url ?: "")
+            vb.vActionBar.setAddressBoxText(tab?.url ?: "")
             uiHandler.removeCallbacks(displayThumbnailRunnable)
             displayThumbnailRunnable.tabState = tab
             uiHandler.postDelayed(displayThumbnailRunnable, 200)
@@ -300,7 +243,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onAddNewTabSelected() {
-            openInNewTab(homePage, tabsModel.tabsStates.size)
+            openInNewTab(settingsModel.homePage.value, tabsModel.tabsStates.size)
         }
 
         override fun closeTab(tabState: WebTabState?) = this@MainActivity.closeTab(tabState)
@@ -308,14 +251,22 @@ class MainActivity : AppCompatActivity() {
         override fun openInNewTab(url: String, tabIndex: Int) = this@MainActivity.openInNewTab(url, tabIndex, false)
     }
 
-    private fun showHistory() {
+    override fun closeWindow() {
+        finish()
+    }
+
+    override fun showDownloads() {
+        startActivity(Intent(this@MainActivity, DownloadsActivity::class.java))
+    }
+
+    override fun showHistory() {
         startActivityForResult(
                 Intent(this@MainActivity, HistoryActivity::class.java),
                 REQUEST_CODE_HISTORY_ACTIVITY)
         hideMenuOverlay()
     }
 
-    private fun showFavorites() {
+    override fun showFavorites() {
         val currentTab = tabsModel.currentTab.value
         val currentPageTitle = currentTab?.title ?: ""
         val currentPageUrl = currentTab?.url ?: ""
@@ -362,51 +313,30 @@ class MainActivity : AppCompatActivity() {
         false
     }
 
-    private val etUrlKeyListener = View.OnKeyListener { view, i, keyEvent ->
-        when (keyEvent.keyCode) {
-            KeyEvent.KEYCODE_ENTER -> {
-                if (keyEvent.action == KeyEvent.ACTION_UP) {
-                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
-                    search(vb.etUrl.text.toString())
-                    hideFloatAddressBar()
-                    tabsModel.currentTab.value!!.webView?.requestFocus()
-                }
-                return@OnKeyListener true
-            }
-            KeyEvent.KEYCODE_DPAD_DOWN -> {
-                if (keyEvent.action == KeyEvent.ACTION_UP) {
-                    hideFloatAddressBar()
-                }
-                return@OnKeyListener true
-            }
-        }
-        false
-    }
-
-    private fun hideFloatAddressBar() {
-        if (vb.flUrl.parent == vb.rlRoot) {
-            tabsModel.currentTab.value?.apply { vb.etUrl.setText(this.url) }
-            vb.rlRoot.removeView(vb.flUrl)
-            val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            lp.addRule(RelativeLayout.END_OF, R.id.ibSettings)
-            vb.rlActionBar.addView(vb.flUrl, lp)
-            TransitionManager.beginDelayedTransition(vb.rlRoot)
-        }
-    }
-
     private fun tabByTitleIndex(index: Int) =
             if (index >= 0 && index < tabsModel.tabsStates.size) tabsModel.tabsStates[index] else null
 
-    fun showSettings() {
+    override fun showSettings() {
         SettingsDialog(this, settingsModel).show()
+    }
+
+    override fun onExtendedAddressBarMode() {
+        vb.llBottomPanel.visibility = View.INVISIBLE
+        //vb.ivMiniatures.visibility = View.INVISIBLE
+        //vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
+        //vb.flWebViewContainer.visibility = View.VISIBLE
+        //TransitionManager.beginDelayedTransition(vb.rlRoot)
+    }
+
+    override fun onUrlInputDone() {
+        hideMenuOverlay()
     }
 
     fun navigateBack(goHomeIfNoHistory: Boolean = false) {
         if (tabsModel.currentTab.value != null && tabsModel.currentTab.value!!.webView?.canGoBack() == true) {
             tabsModel.currentTab.value!!.webView?.goBack()
         } else if (goHomeIfNoHistory) {
-            navigate(homePage)
+            navigate(settingsModel.homePage.value)
         } else if (vb.rlActionBar.visibility != View.VISIBLE) {
             showMenuOverlay()
         } else {
@@ -447,7 +377,7 @@ class MainActivity : AppCompatActivity() {
         val intentUri = intent.data
         if (intentUri == null) {
             if (tabsModel.tabsStates.isEmpty()) {
-                openInNewTab(homePage)
+                openInNewTab(settingsModel.homePage.value)
             } else {
                 var foundSelectedTab = false
                 for (i in tabsModel.tabsStates.indices) {
@@ -483,7 +413,7 @@ class MainActivity : AppCompatActivity() {
                     })
         } else {
             val currentTab = tabsModel.currentTab.value
-            if (currentTab == null || currentTab.url == homePage) {
+            if (currentTab == null || currentTab.url == settingsModel.homePage.value) {
                 showMenuOverlay()
             }
             if (settingsModel.needAutockeckUpdates &&
@@ -534,7 +464,7 @@ class MainActivity : AppCompatActivity() {
         }
         tab.webView?.apply { vb.flWebViewContainer.removeView(this) }
         when {
-            tabsModel.tabsStates.size == 1 -> openInNewTab(homePage, 0)
+            tabsModel.tabsStates.size == 1 -> openInNewTab(settingsModel.homePage.value, 0)
 
             position > 0 -> changeTab(tabsModel.tabsStates[position - 1])
 
@@ -581,16 +511,10 @@ class MainActivity : AppCompatActivity() {
             return null
         }
 
-        if (settingsModel.uaString.value == null || settingsModel.uaString.value == "") {
+        if (settingsModel.uaString.value.isBlank()) {
             settingsModel.saveUAString("TV Bro/1.0 " + webView.settings.userAgentString.replace("Mobile Safari", "Safari"))
         }
         webView.settings.userAgentString = settingsModel.uaString.value
-
-        webView.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus && vb.flUrl.parent == vb.rlRoot) {
-                hideFloatAddressBar()
-            }
-        }
 
         return webView
     }
@@ -730,7 +654,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun navigate(url: String) {
-        vb.etUrl.setTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
+        vb.vActionBar.setAddressBoxTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
         if (tabsModel.currentTab.value != null) {
             tabsModel.currentTab.value!!.webView?.loadUrl(url)
         } else {
@@ -738,11 +662,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun search(text: String) {
-        @Suppress("NAME_SHADOWING") var text = text
-        val trimmedLowercased = text.trim { it <= ' ' }.toLowerCase(Locale.ROOT)
+    override fun search(aText: String) {
+        var text = aText
+        val trimmedLowercased = text.trim { it <= ' ' }.lowercase(Locale.ROOT)
         if (Patterns.WEB_URL.matcher(text).matches() || trimmedLowercased.startsWith("http://") || trimmedLowercased.startsWith("https://")) {
-            if (!text.toLowerCase(Locale.ROOT).contains("://")) {
+            if (!text.lowercase(Locale.ROOT).contains("://")) {
                 text = "https://$text"
             }
             navigate(text)
@@ -756,9 +680,15 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
-            val searchUrl = settingsModel.searchEngineURL.value!!.replace("[query]", query!!)
+            val searchUrl = settingsModel.searchEngineURL.value.replace("[query]", query!!)
             navigate(searchUrl)
         }
+    }
+
+    override fun toggleIncognitoMode() {
+        val config = TVBro.config
+        config.incognitoMode = !config.incognitoMode
+        recreate()
     }
 
     fun toggleMenu() {
@@ -779,11 +709,6 @@ class MainActivity : AppCompatActivity() {
                 uiHandler.post {
                     tabsModel.currentTab.value?.webView?.onHideCustomView()
                 }
-            }
-            return true
-        } else if (keyCode == KeyEvent.KEYCODE_BACK && vb.flUrl.parent == vb.rlRoot) {
-            if (event.action == KeyEvent.ACTION_UP) {
-                uiHandler.post { hideFloatAddressBar() }
             }
             return true
         } else if (keyCode == KeyEvent.KEYCODE_BACK && vb.llBottomPanel.visibility == View.VISIBLE && vb.rlActionBar.visibility != View.VISIBLE) {
@@ -823,9 +748,11 @@ class MainActivity : AppCompatActivity() {
                 .translationY(0f)
                 .alpha(1f)
                 .withEndAction {
-                    vb.ibMenu.requestFocus()
+                    vb.vActionBar.catchFocus()
                 }
                 .start()
+
+        vb.vActionBar.dismissExtendedAddressBarMode()
 
         vb.rlActionBar.visibility = View.VISIBLE
         vb.rlActionBar.translationY = -vb.rlActionBar.height.toFloat()
@@ -843,12 +770,6 @@ class MainActivity : AppCompatActivity() {
                 .translationY(vb.rlActionBar.height.toFloat())
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
-                /*.withEndAction {
-                    vMiniatures.layoutParams = vMiniatures.layoutParams.apply {
-                        (this as RelativeLayout.LayoutParams).setMargins(0, rlActionBar.height, 0, 0)
-                    }
-                    vMiniatures.translationY = 0f
-                }*/
                 .start()
     }
 
@@ -914,7 +835,7 @@ class MainActivity : AppCompatActivity() {
                     vb.ivMiniatures.setImageResource(0)
                     syncTabWithTitles()
                     vb.flWebViewContainer.visibility = View.VISIBLE
-                    if (hideBottomButtons && tabsModel.currentTab.value != null && vb.flUrl.parent != vb.rlRoot) {
+                    if (hideBottomButtons && tabsModel.currentTab.value != null) {
                         tabsModel.currentTab.value!!.webView?.requestFocus()
                     }
                 }
@@ -924,7 +845,7 @@ class MainActivity : AppCompatActivity() {
     private fun syncTabWithTitles() {
         val tab = tabByTitleIndex(vb.vTabs.current)
         if (tab == null) {
-            openInNewTab(homePage, if (vb.vTabs.current < 0) 0 else tabsModel.tabsStates.size)
+            openInNewTab(settingsModel.homePage.value, if (vb.vTabs.current < 0) 0 else tabsModel.tabsStates.size)
         } else if (!tab.selected) {
             changeTab(tab)
         }
@@ -949,7 +870,7 @@ class MainActivity : AppCompatActivity() {
         showMenuOverlay()
     }
 
-    fun initiateVoiceSearch() {
+    override fun initiateVoiceSearch() {
         hideMenuOverlay()
         VoiceSearchHelper.initiateVoiceSearch(this, VOICE_SEARCH_REQUEST_CODE)
     }
@@ -1074,7 +995,7 @@ class MainActivity : AppCompatActivity() {
                 tab.url = url
             }
             if (tabByTitleIndex(vb.vTabs.current) == tab) {
-                vb.etUrl.setText(tab.url)
+                vb.vActionBar.setAddressBoxText(tab.url)
             }
             tab.hasAutoOpenedWindows = false
         }
@@ -1092,7 +1013,7 @@ class MainActivity : AppCompatActivity() {
                 tab.url = url
             }
             if (tabByTitleIndex(vb.vTabs.current) == tab) {
-                vb.etUrl.setText(tab.url)
+                vb.vActionBar.setAddressBoxText(tab.url)
             }
 
             //thumbnail
@@ -1107,13 +1028,13 @@ class MainActivity : AppCompatActivity() {
 
             tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
             tab.webPageInteractionDetected = false
-            if (homePage == url) {
+            if (settingsModel.homePage.value == url) {
                 tab.webView?.loadUrl("javascript:renderSuggestions()")
             }
         }
 
         override fun onPageCertificateError(url: String?) {
-            vb.etUrl.setTextColor(Color.RED)
+            vb.vActionBar.setAddressBoxTextColor(Color.RED)
         }
 
         override fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean {

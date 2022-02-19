@@ -17,6 +17,7 @@ class Config(val prefs: SharedPreferences) {
         const val TV_BRO_UA_PREFIX = "TV Bro/1.0 "
         const val DEFAULT_HOME_URL = "about:blank"
         const val KEEP_SCREEN_ON_KEY = "keep_screen_on"
+        const val INCOGNITO_MODE_KEY = "incognito_mode"
     }
 
     enum class Theme {
@@ -27,7 +28,7 @@ class Config(val prefs: SharedPreferences) {
         return prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, "")!!
     }
 
-    fun getSearchEngineAsHomePage() = prefs.getBoolean(SEARCH_ENGINE_AS_HOME_PAGE_KEY, false)!!
+    fun getSearchEngineAsHomePage() = prefs.getBoolean(SEARCH_ENGINE_AS_HOME_PAGE_KEY, false)
 
     fun getHomePage() = prefs.getString(HOME_PAGE_KEY, DEFAULT_HOME_URL)!!
 
@@ -43,7 +44,13 @@ class Config(val prefs: SharedPreferences) {
         return prefs.getString(UPDATE_CHANNEL_KEY, "release")!!
     }
 
-    var keepScreenOn
+    var incognitoMode: Boolean
+        get() = prefs.getBoolean(INCOGNITO_MODE_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(INCOGNITO_MODE_KEY, value).apply()
+        }
+
+    var keepScreenOn: Boolean
         get() = prefs.getBoolean(KEEP_SCREEN_ON_KEY, false)
         set(value) {
             prefs.edit().putBoolean(KEEP_SCREEN_ON_KEY, value).apply()
