@@ -82,6 +82,7 @@ class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private var fullScreenView: View? = null
     private lateinit var prefs: SharedPreferences
     private lateinit var jsInterface: AndroidJSInterface
+    private val config = TVBro.config
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -445,8 +446,7 @@ class MainActivity : AppCompatActivity(), ActionBar.Callback {
         if (url == null) {
             return
         }
-        val tab = WebTabState()
-        tab.url = url
+        val tab = WebTabState(url = url, incognito = config.incognitoMode)
         createWebView(tab) ?: return
         tabsModel.tabsStates.add(index, tab)
         changeTab(tab)
@@ -687,7 +687,11 @@ class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     override fun toggleIncognitoMode() {
         val config = TVBro.config
-        config.incognitoMode = !config.incognitoMode
+        val incognitoMode = !config.incognitoMode
+        config.incognitoMode = incognitoMode
+        if (!incognitoMode) {
+            tabsModel.clearIncognitoData()
+        }
         recreate()
     }
 
@@ -1062,7 +1066,7 @@ class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 }
                 return null
             }
-            val tab = WebTabState()
+            val tab = WebTabState(incognito = config.incognitoMode)
             val webView = createWebView(tab) ?: return null
             val currentTab = this@MainActivity.tabsModel.currentTab.value ?: return null
             val index = tabsModel.tabsStates.indexOf(currentTab) + 1

@@ -248,6 +248,7 @@
         android:id="@+id/scKeepScreenOn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:nextFocusUp="@+id/spTheme"
         android:layout_weight="0"
         />
   </LinearLayout>

@@ -17,7 +17,7 @@ interface Subscribable<O> {
         if (!observers.contains(observer)) {
             observers.add(observer)
             if (notifyOnSubscribe) {
-                notifyObservers()
+                notifyObserver(observer)
             }
         }
     }
@@ -62,7 +62,13 @@ interface Subscribable<O> {
         observers.remove(observer)
     }
 
-    fun notifyObservers()
+    fun notifyObservers() {
+        for (observer in observers) {
+            notifyObserver(observer)
+        }
+    }
+
+    fun notifyObserver(observer: O)
 }
 
 typealias ValueObserver<T> = (value: T) -> Unit
@@ -80,6 +86,10 @@ open class ObservableValue<T>(default: T) : Subscribable<ValueObserver<T>> {
         for (observer in observers) {
             observer(value)
         }
+    }
+
+    override fun notifyObserver(observer: ValueObserver<T>) {
+        observer(value)
     }
 
     operator fun getValue(thisRef: Any, prop: KProperty<*>): T = this.value
@@ -116,6 +126,11 @@ class EventSource: Subscribable<EventObserver> {
             observer()
         }
     }
+
+    override fun notifyObserver(observer: EventObserver) {
+        if (!wasEmitted) return
+        observer()
+    }
 }
 
 typealias ParameterizedEventObserver<T> = (T) -> Unit
@@ -134,5 +149,10 @@ class ParameterizedEventSource<T>: Subscribable<ParameterizedEventObserver<T>> {
         for (observer in observers) {
             observer(event)
         }
+    }
+
+    override fun notifyObserver(observer: ParameterizedEventObserver<T>) {
+        val event = lastEvent ?: return
+        observer(event)
     }
 }

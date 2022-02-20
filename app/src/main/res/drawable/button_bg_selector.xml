@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checked="true">
+    <item android:state_checked="true" android:state_focused="false">
         <shape android:shape="rectangle">
             <corners android:radius="5dp" />
-            <solid android:color="@color/button_background_focused" />
-            <stroke android:color="#7133D6" android:width="1dp" />
+            <solid android:color="@color/button_corner" />
+            <stroke android:color="@color/button_corner" android:width="1dp" />
+            <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
+        </shape>
+    </item>
+    <item android:state_checked="true" android:state_focused="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="5dp" />
+            <solid android:color="@color/button_corner" />
+            <stroke android:color="#33add6" android:width="1dp" />
             <padding android:bottom="10dp" android:left="10dp" android:right="10dp" android:top="10dp" />
         </shape>
     </item>

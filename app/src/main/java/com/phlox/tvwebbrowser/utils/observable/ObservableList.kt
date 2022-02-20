@@ -22,6 +22,10 @@ class ObservableList<T>(): ArrayList<T>(), Subscribable<ListChangeObserver<T>> {
     }
   }
 
+  override fun notifyObserver(observer: ListChangeObserver<T>) {
+    observer(this)
+  }
+
   override fun add(element: T): Boolean {
     val result = super.add(element)
     notifyChanged()
@@ -101,5 +105,12 @@ class ObservableList<T>(): ArrayList<T>(), Subscribable<ListChangeObserver<T>> {
   fun swap(i: Int, j: Int) {
     super.set(i, super.set(j, super.get(i)))
     notifyChanged()
+  }
+
+  fun replaceAll(elements: Collection<T>): Boolean {
+    super.clear()
+    val result = super.addAll(elements)
+    notifyChanged()
+    return result
   }
 }

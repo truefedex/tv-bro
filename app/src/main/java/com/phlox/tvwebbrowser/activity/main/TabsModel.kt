@@ -19,14 +19,14 @@ import java.io.FileInputStream
 
 class TabsModel : ActiveModel() {
   companion object {
-    const val STATE_JSON = "state.json"
     var TAG: String = TabsModel::class.java.simpleName
   }
 
   var loaded = false
-  var incognitoMode = false
   val currentTab = ObservableValue<WebTabState?>(null)
   val tabsStates = ObservableList<WebTabState>()
+  private val config = TVBro.config
+  private var incognitoMode = config.incognitoMode
 
   init {
       tabsStates.subscribe({
@@ -48,50 +48,30 @@ class TabsModel : ActiveModel() {
   }
 
   fun loadState() = modelScope.launch(Dispatchers.Main) {
-    if (loaded) return@launch
-    val tabsDao = AppDatabase.db.tabsDao()
-    val stateFile = File(TVBro.instance.filesDir, STATE_JSON)
-    if (stateFile.exists()) {
-      val tabsStatesLoadedFromLegacyJson = withContext(Dispatchers.IO) {
-        val tabsStates = ArrayList<WebTabState>()
-        try {
-          val storeStr = FileInputStream(stateFile).bufferedReader().use { it.readText() }
-          val store = JSONObject(storeStr)
-          val tabsStore = store.getJSONArray("tabs")
-          for (i in 0 until tabsStore.length()) {
-            val tab = WebTabState(TVBro.instance, tabsStore.getJSONObject(i))
-            tabsStates.add(tab)
-          }
-        } catch (e: Exception) {
-          e.printStackTrace()
-          LogUtils.recordException(e)
-        }
-        stateFile.delete()
-        tabsStates
-      }
-      //tabsDao.deleteAll(incognitoMode)
-      tabsStatesLoadedFromLegacyJson.forEachIndexed { index, webTabState ->
-        webTabState.position = index
-        tabsDao.insert(webTabState)
+    if (loaded) {
+      //check is incognito mode changed
+      if (incognitoMode != config.incognitoMode) {
+        incognitoMode = config.incognitoMode
+        loaded = false
+      } else {
+        return@launch
       }
     }
-    tabsStates.addAll(tabsDao.getAll(incognitoMode))
+    val tabsDao = AppDatabase.db.tabsDao()
+    tabsStates.replaceAll(tabsDao.getAll(config.incognitoMode))
     loaded = true
   }
 
-  fun saveTab(tab: WebTabState) {
-    modelScope.launch(Dispatchers.Main) {
-      val tabsDB = AppDatabase.db.tabsDao()
-
-      if (tab.selected) {
-        tabsDB.unselectAll(incognitoMode)
-      }
-      tab.saveWebViewStateToFile()
-      if (tab.id != 0L) {
-        tabsDB.update(tab)
-      } else {
-        tab.id = tabsDB.insert(tab)
-      }
+  fun saveTab(tab: WebTabState) = modelScope.launch(Dispatchers.Main) {
+    val tabsDB = AppDatabase.db.tabsDao()
+    if (tab.selected) {
+      tabsDB.unselectAll(config.incognitoMode)
+    }
+    tab.saveWebViewStateToFile()
+    if (tab.id != 0L) {
+      tabsDB.update(tab)
+    } else {
+      tab.id = tabsDB.insert(tab)
     }
   }
 
@@ -109,7 +89,7 @@ class TabsModel : ActiveModel() {
     tabsStates.clear()
     modelScope.launch(Dispatchers.Main) {
       val tabsDB = AppDatabase.db.tabsDao()
-      tabsDB.deleteAll(incognitoMode)
+      tabsDB.deleteAll(config.incognitoMode)
       launch { tabsClone.forEach { it.removeFiles() } }
     }
   }
@@ -150,5 +130,12 @@ class TabsModel : ActiveModel() {
       wv.onResume()
     }
     wv.setNetworkAvailable(Utils.isNetworkConnected(TVBro.instance))
+  }
+
+  fun clearIncognitoData() = modelScope.launch(Dispatchers.Main) {
+    val tabsDB = AppDatabase.db.tabsDao()
+    tabsDB.deleteAll(true)
+    currentTab.value = null
+    tabsStates.clear()
   }
 }
