@@ -12,6 +12,7 @@ import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
+import com.phlox.tvwebbrowser.utils.FileUtils
 import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
@@ -152,5 +153,12 @@ class MainActivityViewModel: ActiveModel() {
                   }
               }
         }
+    }
+
+    fun clearIncognitoData() = modelScope.launch(Dispatchers.IO) {
+        val webViewData = File(TVBro.instance.filesDir.parentFile!!.absolutePath + "/app_webview_incognito")
+        FileUtils.deleteDirectory( webViewData )
+        val webViewCache = File(TVBro.instance.cacheDir.absolutePath + "/webview_incognito")
+        FileUtils.deleteDirectory( webViewCache )
     }
 }

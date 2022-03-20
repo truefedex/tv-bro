@@ -84,14 +84,12 @@ class TabsModel : ActiveModel() {
     }
   }
 
-  fun onCloseAllTabs() {
+  fun onCloseAllTabs() = modelScope.launch(Dispatchers.Main) {
     val tabsClone = ArrayList(tabsStates)
     tabsStates.clear()
-    modelScope.launch(Dispatchers.Main) {
-      val tabsDB = AppDatabase.db.tabsDao()
-      tabsDB.deleteAll(config.incognitoMode)
-      launch { tabsClone.forEach { it.removeFiles() } }
-    }
+    val tabsDB = AppDatabase.db.tabsDao()
+    tabsDB.deleteAll(config.incognitoMode)
+    launch { tabsClone.forEach { it.removeFiles() } }
   }
 
   fun onDetachActivity() {
@@ -130,12 +128,5 @@ class TabsModel : ActiveModel() {
       wv.onResume()
     }
     wv.setNetworkAvailable(Utils.isNetworkConnected(TVBro.instance))
-  }
-
-  fun clearIncognitoData() = modelScope.launch(Dispatchers.Main) {
-    val tabsDB = AppDatabase.db.tabsDao()
-    tabsDB.deleteAll(true)
-    currentTab.value = null
-    tabsStates.clear()
   }
 }

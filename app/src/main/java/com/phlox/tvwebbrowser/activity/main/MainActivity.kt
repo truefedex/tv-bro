@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
+import android.os.Process
 import android.speech.RecognizerIntent
 import android.util.Log
 import android.util.Patterns
@@ -34,6 +35,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFactory
@@ -60,7 +62,8 @@ import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.*
 
-class MainActivity : AppCompatActivity(), ActionBar.Callback {
+
+open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         const val VOICE_SEARCH_REQUEST_CODE = 10001
@@ -70,6 +73,7 @@ class MainActivity : AppCompatActivity(), ActionBar.Callback {
         private const val PICKFILE_REQUEST_CODE = 10005
         private const val REQUEST_CODE_HISTORY_ACTIVITY = 10006
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
+        const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
     }
 
     private lateinit var vb: ActivityMainBinding
@@ -86,6 +90,17 @@ class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val incognitoMode = config.incognitoMode
+        if (incognitoMode xor (this is IncognitoModeMainActivity)) {
+            switchProcess(incognitoMode)
+            finish()
+        }
+        val pidToKill = intent?.getIntExtra(KEY_PROCESS_ID_TO_KILL, -1) ?: -1
+        if (pidToKill != -1) {
+            Process.killProcess(pidToKill)
+        }
+
         viewModel = ActiveModelsRepository.get(MainActivityViewModel::class, this)
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
         adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
@@ -686,13 +701,26 @@ class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun toggleIncognitoMode() {
-        val config = TVBro.config
-        val incognitoMode = !config.incognitoMode
-        config.incognitoMode = incognitoMode
-        if (!incognitoMode) {
-            tabsModel.clearIncognitoData()
+        lifecycleScope.launch(Dispatchers.Main) {
+            val becomingIncognitoMode = !config.incognitoMode
+            if (!becomingIncognitoMode) {
+                tabsModel.onCloseAllTabs().join()
+                tabsModel.currentTab.value = null
+                viewModel.clearIncognitoData().join()
+            }
+            config.incognitoMode = becomingIncognitoMode
+            switchProcess(becomingIncognitoMode)
         }
-        recreate()
+    }
+
+    private fun switchProcess(incognitoMode: Boolean) {
+        val activityClass = if (incognitoMode) IncognitoModeMainActivity::class.java
+        else MainActivity::class.java
+        val intent = Intent(this@MainActivity, activityClass)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        intent.putExtra(KEY_PROCESS_ID_TO_KILL, Process.myPid())
+        startActivity(intent)
+        finish()
     }
 
     fun toggleMenu() {

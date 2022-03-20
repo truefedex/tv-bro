@@ -4,6 +4,8 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import android.util.Log
+import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import java.net.CookieHandler
@@ -20,6 +22,7 @@ class TVBro : Application() {
         lateinit var instance: TVBro
         const val CHANNEL_ID_DOWNLOADS: String = "downloads"
         const val MAIN_PREFS_NAME = "main.xml"
+        val TAG = TVBro::class.simpleName
 
         val config: Config get() = instance._config
     }
@@ -40,8 +43,7 @@ class TVBro : Application() {
         threadPool = ThreadPoolExecutor(0, maxThreadsInOfflineJobsPool, 20,
                 TimeUnit.SECONDS, ArrayBlockingQueue(maxThreadsInOfflineJobsPool))
 
-        val cookieManager = CookieManager()
-        CookieHandler.setDefault(cookieManager)
+        initWebView()
 
         initNotificationChannels()
 
@@ -52,6 +54,17 @@ class TVBro : Application() {
             Config.Theme.WHITE -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         }
+    }
+
+    private fun initWebView() {
+        Log.i(TAG, "initWebView")
+        if (config.incognitoMode) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                WebView.setDataDirectorySuffix("incognito")
+            }
+        }
+        val cookieManager = CookieManager()
+        CookieHandler.setDefault(cookieManager)
     }
 
     private fun initNotificationChannels() {

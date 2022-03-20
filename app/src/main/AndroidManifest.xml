@@ -84,6 +84,14 @@
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity android:name=".activity.IncognitoModeMainActivity"
+            android:process=":incognito"
+            android:exported="false"
+            android:icon="@drawable/ic_launcher"
+            android:label="@string/app_name_short"
+            android:launchMode="singleTask"
+            android:configChanges="uiMode"/>
+
         <meta-data
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />

@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser
 
+import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.utils.Utils
@@ -46,8 +47,9 @@ class Config(val prefs: SharedPreferences) {
 
     var incognitoMode: Boolean
         get() = prefs.getBoolean(INCOGNITO_MODE_KEY, false)
+        @SuppressLint("ApplySharedPref")
         set(value) {
-            prefs.edit().putBoolean(INCOGNITO_MODE_KEY, value).apply()
+            prefs.edit().putBoolean(INCOGNITO_MODE_KEY, value).commit()
         }
 
     var keepScreenOn: Boolean
