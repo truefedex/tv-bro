@@ -89,7 +89,9 @@ class TabsModel : ActiveModel() {
     tabsStates.clear()
     val tabsDB = AppDatabase.db.tabsDao()
     tabsDB.deleteAll(config.incognitoMode)
-    launch { tabsClone.forEach { it.removeFiles() } }
+    withContext(Dispatchers.IO) {
+      tabsClone.forEach { it.removeFiles() }
+    }
   }
 
   fun onDetachActivity() {

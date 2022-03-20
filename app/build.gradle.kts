@@ -23,7 +23,7 @@ android {
         applicationId = "com.phlox.tvwebbrowser"
         minSdk = 21
         targetSdk = 30
-        versionCode = 49
+        versionCode = 50
         versionName = "1.7.2"
 
         javaCompileOptions {
@@ -42,7 +42,7 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isDebuggable = false
+            isDebuggable = true
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig=signingConfigs.getByName("release")

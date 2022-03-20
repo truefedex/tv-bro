@@ -156,9 +156,11 @@ class MainActivityViewModel: ActiveModel() {
     }
 
     fun clearIncognitoData() = modelScope.launch(Dispatchers.IO) {
-        val webViewData = File(TVBro.instance.filesDir.parentFile!!.absolutePath + "/app_webview_incognito")
+        val webViewData = File(TVBro.instance.filesDir.parentFile!!.absolutePath +
+                "/app_webview_" + TVBro.INCOGNITO_DATA_DIRECTORY_SUFFIX)
         FileUtils.deleteDirectory( webViewData )
-        val webViewCache = File(TVBro.instance.cacheDir.absolutePath + "/webview_incognito")
+        val webViewCache = File(TVBro.instance.cacheDir.absolutePath + "/webview_" +
+            TVBro.INCOGNITO_DATA_DIRECTORY_SUFFIX)
         FileUtils.deleteDirectory( webViewCache )
     }
 }
