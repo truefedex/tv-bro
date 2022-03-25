@@ -19,6 +19,7 @@ class Config(val prefs: SharedPreferences) {
         const val DEFAULT_HOME_URL = "about:blank"
         const val KEEP_SCREEN_ON_KEY = "keep_screen_on"
         const val INCOGNITO_MODE_KEY = "incognito_mode"
+        const val INCOGNITO_MODE_HINT_SUPPRESS_KEY = "incognito_mode_hint_suppress"
     }
 
     enum class Theme {
@@ -50,6 +51,12 @@ class Config(val prefs: SharedPreferences) {
         @SuppressLint("ApplySharedPref")
         set(value) {
             prefs.edit().putBoolean(INCOGNITO_MODE_KEY, value).commit()
+        }
+
+    var incognitoModeHintSuppress: Boolean
+        get() = prefs.getBoolean(INCOGNITO_MODE_HINT_SUPPRESS_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(INCOGNITO_MODE_HINT_SUPPRESS_KEY, value).apply()
         }
 
     var keepScreenOn: Boolean

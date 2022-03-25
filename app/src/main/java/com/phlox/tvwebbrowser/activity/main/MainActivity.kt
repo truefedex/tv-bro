@@ -86,7 +86,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private var fullScreenView: View? = null
     private lateinit var prefs: SharedPreferences
     private lateinit var jsInterface: AndroidJSInterface
-    private val config = TVBro.config
+    protected val config = TVBro.config
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
