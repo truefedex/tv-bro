@@ -1,0 +1,121 @@
+<resources>
+    <string name="app_name">TV Bro: Webbrowser für TVs</string>
+    <string name="error">Fehler</string>
+    <string name="ok">OK</string>
+    <string name="loading">Lade&#8230;</string>
+    <string name="url_prompt">Suchbegriff oder URL eingeben</string>
+    <string name="can_not_recognize">Kann nicht erkannt werden</string>
+    <string name="speak">Suchanfrage</string>
+    <string name="open_new_tab">Öffne neuen Tab</string>
+    <string name="close">Schließen</string>
+    <string name="web_perm_request_confirmation">Diese Webseite nutzt folgende Ressourcen:\n\n%s</string>
+    <string name="allow">Erlauben</string>
+    <string name="deny">Ablehnen</string>
+    <string name="location">Standort</string>
+    <string name="open_in_new_tab">In neuem Tab öffnen</string>
+    <string name="download_started">Download startet…\nSpeicherort:\n%s</string>
+    <string name="downloading_file">Lade Datei herunter…</string>
+    <string name="err_cant_open_file_chooser">Kann Dateimanager nicht öffnen</string>
+    <string name="bookmarks">Lesezeichen</string>
+    <string name="add">Hinzufügen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="new_bookmark">Neues Lesezeichen</string>
+    <string name="title">Titel</string>
+    <string name="search_history">Suchverlauf</string>
+    <string name="engine">Suchmaschine</string>
+    <string name="choose_default_search_engine">Verwendete Suchmaschine auswählen</string>
+    <string name="set_search_engine_as_homepage">Suchmaschine als Startseite verwenden</string>
+    <string name="save">Speichern</string>
+    <string name="search_engine_url_with_query_placeholder_query">URL der Suchmaschine mit [Suchbegriff-Platzhalter]</string>
+    <string name="change_search_engine">Suchmaschine ändern</string>
+    <string name="change_user_agent">User-Agent ändern</string>
+    <string name="user_agent_string">"User-Agent-Zeichenfolge</string>
+    <string name="choose_user_agent_string">Zeichenfolge des User-Agenten wählen</string>
+    <string name="edit_user_agent_string">Zeichenfolge des User-Agenten bearbeiten</string>
+    <string name="nothing">Nichts</string>
+    <string name="cancelled">Abgebrochen</string>
+    <string name="download">Download</string>
+    <string name="file_not_found">Datei nicht gefunden</string>
+    <string name="no_app_for_file_type">Keine App zum Öffnen der Datei gefunden</string>
+    <string name="delete">Löschen</string>
+    <string name="cancel">Abbruch</string>
+    <string name="msg_delete_history">Ausgewählte Verlaufseinträge löschen?</string>
+    <string name="msg_delete_history_all">Gesamten Verlauf löschen?</string>
+    <string name="open_folder">Beinhaltenden Ordner öffnen</string>
+    <string name="no_file_explorer_msg">Auf dem Gerät ist kein geeigneter Dateimanager installiert</string>
+    <string name="shortcuts">Verknüpfungen</string>
+    <string name="favorites">Favoriten</string>
+    <string name="history">Verlauf</string>
+    <string name="settings">Einstellungen</string>
+    <string name="shortcut">Verknüpfung</string>
+    <string name="toggle_main_menu">Hauptmenü anzeigen</string>
+    <string name="navigate_back">Zurück</string>
+    <string name="navigate_home">Startseite</string>
+    <string name="refresh_page">Seite aktualisieren</string>
+    <string name="voice_search">Sprachsuche</string>
+    <string name="zoom_in">Vergrößern</string>
+    <string name="zoom_out">Verkleinern</string>
+    <string name="not_set">Nicht konfiguriert</string>
+    <string name="action">Aktion:</string>
+    <string name="current_key">Aktuelle Taste:</string>
+    <string name="set_key_for_action">Taste konfigurieren</string>
+    <string name="press_eny_key">Taste drücken...</string>
+    <string name="clear">Löschen</string>
+    <string name="install">Installieren</string>
+    <string name="turn_on_unknown_sources">Bitte \"Unbekannte Quellen\" erlauben</string>
+    <string name="turn_on_unknown_sources_for_app">Bitte erlaube TV Bro die Installation von Apps aus \"Unbekannten Quellen\" in den Systemeinstellungen</string>
+    <string name="storage_not_mounted">Speicher nicht verfügbar</string>
+    <string name="can_not_create_downloads">Kann Downloadordner nicht erstellen</string>
+    <string name="voice_search_not_found">Sprachsuche nicht gefunden</string>
+    <string name="new_version_dialog_title">Neue Version verfügbar</string>
+    <string name="later">Später</string>
+    <string name="downloads">Downloads</string>
+    <string name="downloads_notifications_description">Benachrichtigungen über Download-Status</string>
+    <string name="main">Haupt</string>
+    <string name="version_and_updates"><![CDATA[Version & Updates]]></string>
+    <string name="version_s">Version: %s</string>
+    <string name="update_channel">Updatekanal:</string>
+    <string name="auto_check_for_updates">Automatisch nach Updates suchen</string>
+    <string name="update">Update</string>
+    <string name="new_version_available_s">Neue Version verfügbar: %s</string>
+    <string name="web_browser_optimized_for_tvs">Webbrowser optimiert für TVs</string>
+    <string name="warning">Warnung</string>
+    <string name="unprotected_connection">Ungeschützte Verbindung</string>
+    <string name="err_webview_can_not_link">Keine Verbindung zur WebView-Komponente. Ist "Android System WebView" installiert?</string>
+    <string name="new_tab_title">[NEUER TAB]</string>
+    <string name="open_a_new_tab_here">Neuen Tab hier öffnen</string>
+    <string name="tabs">Tabs</string>
+    <array name="tabs_options">
+        <item>Öffne neuen Tab</item>
+        <item>Schließe aktuellen Tab</item>
+        <item>Alle Tabs schließen</item>
+        <item>Nach links</item>
+        <item>Nach rechts</item>
+    </array>
+    <string name="ssl_expired">Das Zertifikat ist abgelaufen</string>
+    <string name="ssl_idmismatch">Hostname stimmt nicht überein</string>
+    <string name="ssl_date_invalid">Datum des Zertifikats ungültig</string>
+    <string name="ssl_invalid">Ein Fehler ist aufgetreten</string>
+    <string name="back_to_safety">Zurück in Sicherheit</string>
+    <string name="go_im_aware">Weiter, ich kenne das Risiko! </string>
+    <string name="connection_isnt_secure">Unsichere Verbindung</string>
+    <string name="hostname">Hostname:</string>
+    <string name="err_desk">Fehlerbeschreibung:</string>
+    <string name="details">Details:</string>
+    <string name="exit">Verlassen</string>
+    <string name="find_in_apps_store">Im AppStore finden</string>
+    <string name="close_application">Schließe App</string>
+    <string name="close_tab">Schließe Tab</string>
+    <string name="navigate_forward">Navigiere vorwärts</string>
+    <string name="toggle_ads_blocking">AdBlocker an / aus</string>
+    <string name="never">Nie</string>
+    <string name="last_update">Letztes Update</string>
+    <string name="update_ad_blocker_list">AdBlocker-Liste aktualisieren</string>
+    <string name="need_restart">Benötigt App-Neustart</string>
+    <string name="theme">Thema</string>
+    <array name="themes">
+        <item>System</item>
+        <item>Hell</item>
+        <item>Dunkel</item>
+    </array>
+</resources>
