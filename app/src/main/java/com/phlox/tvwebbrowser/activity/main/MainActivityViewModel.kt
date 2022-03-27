@@ -72,7 +72,7 @@ class MainActivityViewModel: ActiveModel() {
         }
     }
 
-    fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
+    fun logVisitedHistory(title: String?, url: String, faviconHash: String?, incognito: Boolean) {
         if ((url == lastHistoryItem?.url) || url == Config.DEFAULT_HOME_URL) {
             return
         }
@@ -82,6 +82,7 @@ class MainActivityViewModel: ActiveModel() {
         item.title = title ?: ""
         item.time = Date().time
         item.favicon = faviconHash
+        item.incognito = incognito
         lastHistoryItem = item
         modelScope.launch(Dispatchers.Main) {
             AppDatabase.db.historyDao().insert(item)
@@ -162,5 +163,6 @@ class MainActivityViewModel: ActiveModel() {
         val webViewCache = File(TVBro.instance.cacheDir.absolutePath + "/webview_" +
             TVBro.INCOGNITO_DATA_DIRECTORY_SUFFIX)
         FileUtils.deleteDirectory( webViewCache )
+        AppDatabase.db.historyDao().deleteIncognitoHistory()
     }
 }

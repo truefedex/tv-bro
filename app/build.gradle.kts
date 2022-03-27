@@ -93,7 +93,7 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
 
-    val roomVersion = "2.4.1"
+    val roomVersion = "2.4.2"
     implementation("androidx.room:room-runtime:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
@@ -105,8 +105,8 @@ dependencies {
     "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     //appstore-dependent dependencies
-    "googleImplementation"("com.google.firebase:firebase-core:20.1.0")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.8")
+    "googleImplementation"("com.google.firebase:firebase-core:20.1.2")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.9")
 }
 
 tasks.getByName("check").dependsOn("lint")

@@ -95,6 +95,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         if (incognitoMode xor (this is IncognitoModeMainActivity)) {
             switchProcess(incognitoMode)
             finish()
+            return
         }
         val pidToKill = intent?.getIntExtra(KEY_PROCESS_ID_TO_KILL, -1) ?: -1
         if (pidToKill != -1) {
@@ -125,7 +126,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 if (tab != null) {
                     if (!tab.webPageInteractionDetected) {
                         tab.webPageInteractionDetected = true
-                        viewModel.logVisitedHistory(tab.title, tab.url, tab.faviconHash)
+                        viewModel.logVisitedHistory(tab.title, tab.url, tab.faviconHash, config.incognitoMode)
                     }
                 }
             }
@@ -268,6 +269,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun closeWindow() {
+        if (config.incognitoMode) {
+            toggleIncognitoMode(false)
+        }
         finish()
     }
 
@@ -701,14 +705,20 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun toggleIncognitoMode() {
-        lifecycleScope.launch(Dispatchers.Main) {
-            val becomingIncognitoMode = !config.incognitoMode
-            if (!becomingIncognitoMode) {
-                tabsModel.onCloseAllTabs().join()
-                tabsModel.currentTab.value = null
-                viewModel.clearIncognitoData().join()
-            }
-            config.incognitoMode = becomingIncognitoMode
+        toggleIncognitoMode(true)
+    }
+
+    private fun toggleIncognitoMode(andSwitchProcess: Boolean) = lifecycleScope.launch(Dispatchers.Main) {
+        val becomingIncognitoMode = !config.incognitoMode
+        if (!becomingIncognitoMode) {
+            vb.progressBarGeneric.visibility = View.VISIBLE
+            tabsModel.onCloseAllTabs().join()
+            tabsModel.currentTab.value = null
+            viewModel.clearIncognitoData().join()
+            vb.progressBarGeneric.visibility = View.GONE
+        }
+        config.incognitoMode = becomingIncognitoMode
+        if (andSwitchProcess) {
             switchProcess(becomingIncognitoMode)
         }
     }

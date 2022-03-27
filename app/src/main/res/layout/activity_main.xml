@@ -229,12 +229,13 @@
         />
 
     <ProgressBar
+        android:id="@+id/progressBarGeneric"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progressBarGeneric"
         android:layout_centerInParent="true"
         android:focusable="true"
-        android:focusableInTouchMode="true" />
+        android:focusableInTouchMode="true"
+        />
 
 </RelativeLayout>
