@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
+import android.webkit.WebView
 import android.widget.Toast
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
@@ -27,6 +28,10 @@ import java.util.*
 class MainActivityViewModel: ActiveModel() {
     companion object {
         var TAG: String = MainActivityViewModel::class.java.simpleName
+        const val WEB_VIEW_DATA_FOLDER = "app_webview"
+        const val WEB_VIEW_CACHE_FOLDER = "WebView"
+        const val WEB_VIEW_DATA_BACKUP_DIRECTORY_SUFFIX = "_backup"
+        const val INCOGNITO_DATA_DIRECTORY_SUFFIX = "incognito"
     }
 
     var loaded = false
@@ -156,13 +161,68 @@ class MainActivityViewModel: ActiveModel() {
         }
     }
 
+    fun prepareSwitchToIncognito() {
+        //to isolate incognito mode data:
+        //in api >= 28 we just use another directory for WebView data
+        //on earlier apis we backup-ing existing WebView data directory
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            WebView.setDataDirectorySuffix(INCOGNITO_DATA_DIRECTORY_SUFFIX)
+        } else {
+            val webViewData = File(
+                TVBro.instance.filesDir.parentFile!!.absolutePath +
+                        "/" + WEB_VIEW_DATA_FOLDER
+            )
+            val backupedWebViewData = File(
+                TVBro.instance.filesDir.parentFile!!.absolutePath +
+                        "/" + WEB_VIEW_DATA_FOLDER + WEB_VIEW_DATA_BACKUP_DIRECTORY_SUFFIX
+            )
+            if (backupedWebViewData.exists()) return // looks like we already in incognito mode
+            webViewData.renameTo(backupedWebViewData)
+            val webViewCache =
+                File(TVBro.instance.cacheDir.absolutePath + "/" + WEB_VIEW_CACHE_FOLDER)
+            val backupedWebViewCache = File(
+                TVBro.instance.cacheDir.absolutePath + "/" + WEB_VIEW_CACHE_FOLDER +
+                        WEB_VIEW_DATA_BACKUP_DIRECTORY_SUFFIX
+            )
+            webViewCache.renameTo(backupedWebViewCache)
+        }
+    }
+
     fun clearIncognitoData() = modelScope.launch(Dispatchers.IO) {
-        val webViewData = File(TVBro.instance.filesDir.parentFile!!.absolutePath +
-                "/app_webview_" + TVBro.INCOGNITO_DATA_DIRECTORY_SUFFIX)
-        FileUtils.deleteDirectory( webViewData )
-        val webViewCache = File(TVBro.instance.cacheDir.absolutePath + "/webview_" +
-            TVBro.INCOGNITO_DATA_DIRECTORY_SUFFIX)
-        FileUtils.deleteDirectory( webViewCache )
         AppDatabase.db.historyDao().deleteIncognitoHistory()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val webViewData = File(
+                TVBro.instance.filesDir.parentFile!!.absolutePath +
+                        "/" + WEB_VIEW_DATA_FOLDER + "_" + INCOGNITO_DATA_DIRECTORY_SUFFIX
+            )
+            FileUtils.deleteDirectory(webViewData)
+            val webViewCache =
+                File(
+                    TVBro.instance.cacheDir.absolutePath + "/" + WEB_VIEW_CACHE_FOLDER +
+                            "_" + INCOGNITO_DATA_DIRECTORY_SUFFIX
+                )
+            FileUtils.deleteDirectory(webViewCache)
+        } else {
+            val webViewData = File(
+                TVBro.instance.filesDir.parentFile!!.absolutePath +
+                        "/" + WEB_VIEW_DATA_FOLDER
+            )
+            FileUtils.deleteDirectory(webViewData)
+            val webViewCache =
+                File(TVBro.instance.cacheDir.absolutePath + "/" + WEB_VIEW_CACHE_FOLDER)
+            FileUtils.deleteDirectory(webViewCache)
+
+            val backupedWebViewData = File(
+                TVBro.instance.filesDir.parentFile!!.absolutePath +
+                        "/" + WEB_VIEW_DATA_FOLDER + WEB_VIEW_DATA_BACKUP_DIRECTORY_SUFFIX
+            )
+            backupedWebViewData.renameTo(webViewData)
+            val backupedWebViewCache = File(
+                TVBro.instance.cacheDir.absolutePath + "/" + WEB_VIEW_CACHE_FOLDER +
+                        WEB_VIEW_DATA_BACKUP_DIRECTORY_SUFFIX
+            )
+            backupedWebViewCache.renameTo(webViewCache)
+        }
     }
 }

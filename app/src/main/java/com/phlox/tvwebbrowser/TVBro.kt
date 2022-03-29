@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Process
 import android.util.Log
-import android.webkit.WebView
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
@@ -26,7 +25,6 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         lateinit var instance: TVBro
         const val CHANNEL_ID_DOWNLOADS: String = "downloads"
         const val MAIN_PREFS_NAME = "main.xml"
-        const val INCOGNITO_DATA_DIRECTORY_SUFFIX = "incognito"
         val TAG = TVBro::class.simpleName
 
         val config: Config get() = instance._config
@@ -65,9 +63,6 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
 
     private fun initWebView() {
         Log.i(TAG, "initWebView")
-        if (config.incognitoMode && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)) {
-            WebView.setDataDirectorySuffix(INCOGNITO_DATA_DIRECTORY_SUFFIX)
-        }
         val cookieManager = CookieManager()
         CookieHandler.setDefault(cookieManager)
     }

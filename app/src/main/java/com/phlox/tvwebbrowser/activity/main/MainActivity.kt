@@ -10,11 +10,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
-import android.os.Process
+import android.os.*
 import android.speech.RecognizerIntent
 import android.util.Log
 import android.util.Patterns
@@ -26,10 +22,7 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
-import android.webkit.MimeTypeMap
-import android.webkit.URLUtil
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
+import android.webkit.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -57,6 +50,7 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
@@ -103,6 +97,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         viewModel = ActiveModelsRepository.get(MainActivityViewModel::class, this)
+        if (incognitoMode) {
+            viewModel.prepareSwitchToIncognito()
+        }
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
         adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
         tabsModel = ActiveModelsRepository.get(TabsModel::class, this)
@@ -269,10 +266,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun closeWindow() {
-        if (config.incognitoMode) {
-            toggleIncognitoMode(false)
+        lifecycleScope.launch {
+            if (config.incognitoMode) {
+                toggleIncognitoMode(false).join()
+            }
+            finish()
         }
-        finish()
     }
 
     override fun showDownloads() {
@@ -710,13 +709,19 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private fun toggleIncognitoMode(andSwitchProcess: Boolean) = lifecycleScope.launch(Dispatchers.Main) {
         val becomingIncognitoMode = !config.incognitoMode
+        vb.progressBarGeneric.visibility = View.VISIBLE
         if (!becomingIncognitoMode) {
-            vb.progressBarGeneric.visibility = View.VISIBLE
+            withContext(Dispatchers.IO) {
+                WebStorage.getInstance().deleteAllData()
+                CookieManager.getInstance().removeAllCookies(null)
+                CookieManager.getInstance().flush()
+            }
+            tabsModel.currentTab.value?.webView?.clearCache(true)
             tabsModel.onCloseAllTabs().join()
             tabsModel.currentTab.value = null
             viewModel.clearIncognitoData().join()
-            vb.progressBarGeneric.visibility = View.GONE
         }
+        vb.progressBarGeneric.visibility = View.GONE
         config.incognitoMode = becomingIncognitoMode
         if (andSwitchProcess) {
             switchProcess(becomingIncognitoMode)
@@ -933,7 +938,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun onLongTap() {
-            vb.flWebViewContainer?.goToFingerMode()
+            vb.flWebViewContainer.goToFingerMode()
         }
 
         override fun onThumbnailError() {
