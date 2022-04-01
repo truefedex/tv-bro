@@ -3,7 +3,6 @@ package com.phlox.tvwebbrowser.activity.history
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
-import android.speech.RecognizerIntent
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -35,6 +34,8 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     private var ibDelete: ImageButton? = null
     private var adapter: HistoryAdapter? = null
     private lateinit var historyModel: HistoryModel
+    private val voiceSearchHelper = VoiceSearchHelper(this, VOICE_SEARCH_REQUEST_CODE,
+        VOICE_SEARCH_PERMISSIONS_REQUEST_CODE)
 
     internal var onListScrollListener: AbsListView.OnScrollListener = object : AbsListView.OnScrollListener {
         override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
@@ -79,7 +80,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         AlertDialog.Builder(this)
                 .setTitle(R.string.delete)
                 .setMessage(if (deleteAll) R.string.msg_delete_history_all else R.string.msg_delete_history)
-                .setPositiveButton(android.R.string.yes) { dialogInterface, i ->
+                .setPositiveButton(android.R.string.ok) { _, _ ->
                     lifecycleScope.launch(Dispatchers.Main) {
                         AppDatabase.db.historyDao().delete(*items.toTypedArray())
                         adapter!!.remove(items)
@@ -95,7 +96,17 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     //nop
                 } else if (event.action == KeyEvent.ACTION_UP) {
-                    VoiceSearchHelper.initiateVoiceSearch(this, VOICE_SEARCH_REQUEST_CODE)
+                    voiceSearchHelper.initiateVoiceSearch(object : VoiceSearchHelper.Callback {
+                        override fun onResult(text: String?) {
+                            if (text == null) {
+                                Utils.showToast(this@HistoryActivity, getString(R.string.can_not_recognize))
+                                return
+                            }
+                            adapter!!.erase()
+                            historyModel.searchQuery = text
+                            historyModel.loadItems(true)
+                        }
+                    })
                 }
                 return true
             }
@@ -104,23 +115,15 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        when (requestCode) {
-            VOICE_SEARCH_REQUEST_CODE -> {
-                if (resultCode == RESULT_OK) {
-                    // Populate the wordsList with the String values the recognition engine thought it heard
-                    val matches = data?.getStringArrayListExtra(
-                            RecognizerIntent.EXTRA_RESULTS)
-                    if (matches == null || matches.isEmpty()) {
-                        Utils.showToast(this, getString(R.string.can_not_recognize))
-                        return
-                    }
-                    adapter!!.erase()
-                    historyModel.searchQuery = matches[0]
-                    historyModel.loadItems(true)
-                }
-            }
+        if (!voiceSearchHelper.processActivityResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
 
-            else -> super.onActivityResult(requestCode, resultCode, data)
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
+        grantResults: IntArray) {
+        if (!voiceSearchHelper.processPermissionsResult(requestCode, permissions, grantResults)) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
 
@@ -197,6 +200,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
 
     companion object {
         private const val VOICE_SEARCH_REQUEST_CODE = 10001
+        private const val VOICE_SEARCH_PERMISSIONS_REQUEST_CODE = 10002
 
         const val KEY_URL = "url"
     }

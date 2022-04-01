@@ -3,4 +3,6 @@
     <dimen name="settings_dialog_height">350dp</dimen>
     <dimen name="web_tab_width">340dp</dimen>
     <dimen name="web_tab_padding">20dp</dimen>
+
+    <dimen name="voice_recognition_results_renderer_height">50dp</dimen>
 </resources>

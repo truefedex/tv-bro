@@ -11,7 +11,6 @@ import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.*
-import android.speech.RecognizerIntent
 import android.util.Log
 import android.util.Patterns
 import android.view.KeyEvent
@@ -68,6 +67,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         private const val REQUEST_CODE_HISTORY_ACTIVITY = 10006
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
         const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
+        private const val MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS = 10008
     }
 
     private lateinit var vb: ActivityMainBinding
@@ -81,6 +81,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private lateinit var prefs: SharedPreferences
     private lateinit var jsInterface: AndroidJSInterface
     protected val config = TVBro.config
+    private val voiceSearchHelper = VoiceSearchHelper(this, VOICE_SEARCH_REQUEST_CODE,
+        MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS)
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -576,6 +578,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>, grantResults: IntArray) {
+        if (voiceSearchHelper.processPermissionsResult(requestCode, permissions, grantResults)) {
+            return
+        }
         if (grantResults.isEmpty()) return
         when (requestCode) {
             MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS -> {
@@ -598,20 +603,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (voiceSearchHelper.processActivityResult(requestCode, resultCode, data)) {
+            return
+        }
         when (requestCode) {
-            VOICE_SEARCH_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    // Populate the wordsList with the String values the recognition engine thought it heard
-                    val matches = data?.getStringArrayListExtra(
-                            RecognizerIntent.EXTRA_RESULTS)
-                    if (matches == null || matches.isEmpty()) {
-                        Utils.showToast(this, getString(R.string.can_not_recognize))
-                        return
-                    }
-                    search(matches[0])
-                    hideMenuOverlay()
-                }
-            }
             PICKFILE_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null ) {
                     tabsModel.currentTab.value?.webView?.onFilePicked(data)
@@ -673,8 +668,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     fun navigate(url: String) {
         vb.vActionBar.setAddressBoxTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
-        if (tabsModel.currentTab.value != null) {
-            tabsModel.currentTab.value!!.webView?.loadUrl(url)
+        val tab = tabsModel.currentTab.value
+        if (tab != null) {
+            tab.webView?.loadUrl(url)
         } else {
             openInNewTab(url)
         }
@@ -919,7 +915,16 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     override fun initiateVoiceSearch() {
         hideMenuOverlay()
-        VoiceSearchHelper.initiateVoiceSearch(this, VOICE_SEARCH_REQUEST_CODE)
+        voiceSearchHelper.initiateVoiceSearch(object : VoiceSearchHelper.Callback {
+            override fun onResult(text: String?) {
+                if (text == null) {
+                    Utils.showToast(this@MainActivity, getString(R.string.can_not_recognize))
+                    return
+                }
+                search(text)
+                hideMenuOverlay()
+            }
+        })
     }
 
     private inner class WebViewCallback(val tab: WebTabState): WebViewEx.Callback {
