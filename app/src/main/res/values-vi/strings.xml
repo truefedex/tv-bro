@@ -119,4 +119,7 @@
     </array>
   <string name="set_search_engine_as_homepage">Đặt công cụ tìm kiếm làm trang chủ</string>
   <string name="toggle_keep_screen_on">Luôn bật màn hình</string>
+  <string name="incognito_mode">Chế độ ẩn danh</string>
+  <string name="incognito_mode_hint">Giờ đây, bạn có thể duyệt web một cách riêng tư và những người khác sử dụng thiết bị này sẽ không thấy hoạt động của bạn. TV Bro sẽ không lưu lịch sử duyệt web, cookie và dữ liệu trang web của bạn, thông tin đã nhập vào biểu mẫu.\n\nTuy nhiên, các bản tải xuống và dấu trang sẽ được lưu lại. Hoạt động của bạn có thể vẫn hiển thị với các trang web bạn truy cập, tổ chức của bạn hoặc nhà cung cấp dịch vụ internet.</string>
+    <string name="don_t_show_again">Không hiển thị lại</string>
 </resources>

@@ -118,4 +118,7 @@
     </array>
   <string name="set_search_engine_as_homepage">הפוך מנוע חיפוש לדף הבית שלך</string>
   <string name="toggle_keep_screen_on">השאר מסך דלוק</string>
+  <string name="incognito_mode">מצב גלישה בסתר</string>
+    <string name="incognito_mode_hint">עכשיו אתה יכול לגלוש באופן פרטי, ואנשים אחרים שמשתמשים במכשיר הזה לא יראו את הפעילות שלך. TV Bro לא ישמור את היסטוריית הגלישה שלך, קובצי Cookie ונתוני אתר, מידע שהוזן בטפסים.  עם זאת, הורדות וסימניות יישמרו. ייתכן שהפעילות שלך עדיין תהיה גלויה לאתרים שבהם אתה מבקר, לארגון או לספק שירותי האינטרנט שלך.</string>
+    <string name="don_t_show_again">אל תראה שוב</string>
 </resources>

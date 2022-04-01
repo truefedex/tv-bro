@@ -119,4 +119,7 @@
     </array>
   <string name="set_search_engine_as_homepage">将搜索引擎设为首页</string>
   <string name="toggle_keep_screen_on">保持屏幕开启</string>
+  <string name="incognito_mode">隐身模式</string>
+    <string name="incognito_mode_hint">现在您可以私下浏览，其他使用此设备的人将看不到您的活动。 TV Bro 不会保存您的浏览历史记录、cookie 和网站数据以及在表格中输入的信息。\n\n但是，下载和书签将被保存。 您访问的网站、您的组织或互联网服务提供商可能仍然可以看到您的活动。</string>
+    <string name="don_t_show_again">不再显示</string>
 </resources>
