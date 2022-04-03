@@ -44,6 +44,13 @@ class VersionSettingsView @JvmOverloads constructor(
             activity?.startActivity(intent)
         }
 
+        vb.tvUkraine.setOnClickListener {
+            callback?.onNeedToCloseSettings()
+            val intent = Intent(activity, MainActivity::class.java)
+            intent.data = Uri.parse("https://tv-bro-3546c.web.app/msg001.html")
+            activity?.startActivity(intent)
+        }
+
         vb.chkAutoCheckUpdates.isChecked = settingsModel.needAutockeckUpdates
 
         vb.chkAutoCheckUpdates.setOnCheckedChangeListener { buttonView, isChecked ->

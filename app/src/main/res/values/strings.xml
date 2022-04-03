@@ -124,4 +124,5 @@
     <string name="incognito_mode">Incognito mode</string>
     <string name="incognito_mode_hint">Now you can browse privately, and other people who use this device won’t see your activity. TV Bro won’t save your browsing history, cookies and site data, information entered in forms.\n\nHowever, downloads and bookmarks will be saved. Your activity might still be visible to websites you visit, your organization or internet service provider.</string>
     <string name="don_t_show_again">Don\'t show again</string>
+    <string name="why_icon_changed">Why icon changed?</string>
 </resources>
