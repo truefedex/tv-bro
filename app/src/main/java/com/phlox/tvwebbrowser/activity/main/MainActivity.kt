@@ -89,7 +89,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         val incognitoMode = config.incognitoMode
         if (incognitoMode xor (this is IncognitoModeMainActivity)) {
-            switchProcess(incognitoMode)
+            switchProcess(incognitoMode, intent?.extras)
             finish()
             return
         }
@@ -379,7 +379,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         super.onNewIntent(intent)
         val intentUri = intent.data
         if (intentUri != null) {
-            openInNewTab(intentUri.toString())
+            openInNewTab(intentUri.toString(), tabsModel.tabsStates.size)
         }
     }
 
@@ -414,7 +414,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 }
             }
         } else {
-            openInNewTab(intentUri.toString())
+            openInNewTab(intentUri.toString(), tabsModel.tabsStates.size)
         }
 
         if ("" == settingsModel.searchEngineURL.value) {
@@ -724,12 +724,15 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
     }
 
-    private fun switchProcess(incognitoMode: Boolean) {
+    private fun switchProcess(incognitoMode: Boolean, intentDataToCopy: Bundle? = null) {
         val activityClass = if (incognitoMode) IncognitoModeMainActivity::class.java
         else MainActivity::class.java
         val intent = Intent(this@MainActivity, activityClass)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         intent.putExtra(KEY_PROCESS_ID_TO_KILL, Process.myPid())
+        intentDataToCopy?.let {
+            intent.putExtras(it)
+        }
         startActivity(intent)
         finish()
     }

@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter
 import android.widget.ScrollView
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.databinding.ViewSettingsVersionBinding
@@ -22,7 +23,7 @@ class VersionSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ScrollView(context, attrs, defStyleAttr) {
     private var vb = ViewSettingsVersionBinding.inflate(LayoutInflater.from(getContext()), this, true)
-    var settingsModel: SettingsModel
+    var settingsModel = ActiveModelsRepository.get(SettingsModel::class, activity!!)
     var callback: Callback? = null
 
     private val updateChannelSelectedListener: AdapterView.OnItemSelectedListener
@@ -32,23 +33,15 @@ class VersionSettingsView @JvmOverloads constructor(
     }
 
     init {
-        settingsModel = ActiveModelsRepository.get(SettingsModel::class, activity!!)
-
         vb.tvVersion.text = context.getString(R.string.version_s, BuildConfig.VERSION_NAME)
 
         vb.tvLink.text = Html.fromHtml("<p><u>https://github.com/truefedex/tv-bro</u></p>")
         vb.tvLink.setOnClickListener {
-            callback?.onNeedToCloseSettings()
-            val intent = Intent(activity, MainActivity::class.java)
-            intent.data = Uri.parse(vb.tvLink.text.toString())
-            activity?.startActivity(intent)
+            loadUrl(vb.tvLink.text.toString())
         }
 
         vb.tvUkraine.setOnClickListener {
-            callback?.onNeedToCloseSettings()
-            val intent = Intent(activity, MainActivity::class.java)
-            intent.data = Uri.parse("https://tv-bro-3546c.web.app/msg001.html")
-            activity?.startActivity(intent)
+            loadUrl("https://tv-bro-3546c.web.app/msg001.html")
         }
 
         vb.chkAutoCheckUpdates.isChecked = settingsModel.needAutockeckUpdates
@@ -81,6 +74,15 @@ class VersionSettingsView @JvmOverloads constructor(
         }
 
         updateUIVisibility()
+    }
+
+    private fun loadUrl(url: String) {
+        callback?.onNeedToCloseSettings()
+        val activityClass = if (settingsModel.config.incognitoMode)
+            IncognitoModeMainActivity::class.java else MainActivity::class.java
+        val intent = Intent(activity, activityClass)
+        intent.data = Uri.parse(url)
+        activity?.startActivity(intent)
     }
 
     private fun updateUIVisibility() {

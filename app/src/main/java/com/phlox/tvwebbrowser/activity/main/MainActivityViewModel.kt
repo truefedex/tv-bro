@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
+import android.util.Log
 import android.webkit.WebView
 import android.widget.Toast
 import com.phlox.tvwebbrowser.Config
@@ -166,6 +167,14 @@ class MainActivityViewModel: ActiveModel() {
         //in api >= 28 we just use another directory for WebView data
         //on earlier apis we backup-ing existing WebView data directory
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val incognitoWebViewData = File(
+                TVBro.instance.filesDir.parentFile!!.absolutePath +
+                        "/" + WEB_VIEW_DATA_FOLDER + "_" + INCOGNITO_DATA_DIRECTORY_SUFFIX
+            )
+            if (incognitoWebViewData.exists()) {
+                Log.i(TAG, "Looks like we already in incognito mode")
+                return
+            }
             WebView.setDataDirectorySuffix(INCOGNITO_DATA_DIRECTORY_SUFFIX)
         } else {
             val webViewData = File(
@@ -176,7 +185,10 @@ class MainActivityViewModel: ActiveModel() {
                 TVBro.instance.filesDir.parentFile!!.absolutePath +
                         "/" + WEB_VIEW_DATA_FOLDER + WEB_VIEW_DATA_BACKUP_DIRECTORY_SUFFIX
             )
-            if (backupedWebViewData.exists()) return // looks like we already in incognito mode
+            if (backupedWebViewData.exists()) {
+                Log.i(TAG, "Looks like we already in incognito mode")
+                return
+            }
             webViewData.renameTo(backupedWebViewData)
             val webViewCache =
                 File(TVBro.instance.cacheDir.absolutePath + "/" + WEB_VIEW_CACHE_FOLDER)
