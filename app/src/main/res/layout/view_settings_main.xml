@@ -252,6 +252,13 @@
         android:layout_weight="0"
         />
   </LinearLayout>
+  <Button
+      android:id="@+id/btnClearWebCache"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="10dp"
+      android:layout_marginStart="22dp"
+      android:text="@string/clear_web_cache" />
   <View
       android:layout_width="match_parent"
       android:layout_height="50dp"

@@ -38,13 +38,19 @@
         android:layout_below="@+id/tvLink"
         android:layout_marginTop="20dp"
         android:text="@string/version_s" />
+    <TextView
+        android:id="@+id/tvWebViewVersion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvVersion"
+        tools:text="WebView Version: 10.0.1" />
 
     <TextView
         android:id="@+id/tvUkraine"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/tvVersion"
+        android:layout_below="@+id/tvWebViewVersion"
         android:text="@string/why_icon_changed"
         android:lines="1"
         android:ellipsize="end"
@@ -57,7 +63,7 @@
         android:layout_height="32dp"
         android:layout_marginStart="10dp"
         android:src="@drawable/banner"
-        android:layout_below="@+id/tvVersion"
+        android:layout_below="@+id/tvWebViewVersion"
         android:layout_toEndOf="@+id/tvUkraine" />
 
     <CheckBox

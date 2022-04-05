@@ -123,4 +123,5 @@
   <string name="incognito_mode_hint">Jetzt können Sie privat surfen und andere Personen, die dieses Gerät verwenden, können Ihre Aktivitäten nicht sehen. TV Bro speichert Ihren Browserverlauf, Cookies und Websitedaten sowie in Formulare eingegebene Informationen nicht.\n\nDownloads und Lesezeichen werden jedoch gespeichert. Ihre Aktivitäten sind möglicherweise weiterhin für von Ihnen besuchte Websites, Ihre Organisation oder Ihren Internetdienstanbieter sichtbar.</string>
     <string name="don_t_show_again">Nicht mehr anzeigen</string>
     <string name="why_icon_changed">Warum Symbol geändert?</string>
+  <string name="clear_web_cache">Webcache löschen</string>
 </resources>

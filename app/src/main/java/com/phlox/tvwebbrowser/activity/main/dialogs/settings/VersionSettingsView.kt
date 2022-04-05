@@ -1,15 +1,19 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.text.Html
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
+import android.webkit.WebView
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ScrollView
+import androidx.webkit.WebViewCompat
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
@@ -19,6 +23,7 @@ import com.phlox.tvwebbrowser.databinding.ViewSettingsVersionBinding
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
 
+@SuppressLint("SetTextI18n")
 class VersionSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ScrollView(context, attrs, defStyleAttr) {
@@ -34,6 +39,10 @@ class VersionSettingsView @JvmOverloads constructor(
 
     init {
         vb.tvVersion.text = context.getString(R.string.version_s, BuildConfig.VERSION_NAME)
+
+        val webViewPackage = WebViewCompat.getCurrentWebViewPackage(context)
+        val webViewVersion = (webViewPackage?.packageName ?: "unknown") + ":" + (webViewPackage?.versionName ?: "unknown")
+        vb.tvWebViewVersion.text = webViewVersion
 
         vb.tvLink.text = Html.fromHtml("<p><u>https://github.com/truefedex/tv-bro</u></p>")
         vb.tvLink.setOnClickListener {

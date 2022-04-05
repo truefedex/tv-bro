@@ -209,11 +209,18 @@ class MainActivityViewModel: ActiveModel() {
                         "/" + WEB_VIEW_DATA_FOLDER + "_" + INCOGNITO_DATA_DIRECTORY_SUFFIX
             )
             FileUtils.deleteDirectory(webViewData)
-            val webViewCache =
+            var webViewCache =
                 File(
                     TVBro.instance.cacheDir.absolutePath + "/" + WEB_VIEW_CACHE_FOLDER +
                             "_" + INCOGNITO_DATA_DIRECTORY_SUFFIX
                 )
+            if (!webViewCache.exists()) {
+                webViewCache = File(
+                    TVBro.instance.cacheDir.absolutePath + "/" +
+                            WEB_VIEW_CACHE_FOLDER.lowercase(Locale.getDefault()) +
+                            "_" + INCOGNITO_DATA_DIRECTORY_SUFFIX
+                )
+            }
             FileUtils.deleteDirectory(webViewCache)
         } else {
             val webViewData = File(

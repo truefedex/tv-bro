@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.webkit.WebView
 import android.widget.*
 import androidx.fragment.app.FragmentActivity
 import androidx.webkit.WebViewFeature
@@ -36,6 +37,11 @@ class MainSettingsView @JvmOverloads constructor(
         initThemeSettingsUI()
 
         initKeepScreenOnUI()
+
+        vb.btnClearWebCache.setOnClickListener {
+            WebView(context).clearCache(true)
+            Toast.makeText(context, android.R.string.ok, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun initThemeSettingsUI() {

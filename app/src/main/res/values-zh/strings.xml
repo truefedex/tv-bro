@@ -123,4 +123,5 @@
     <string name="incognito_mode_hint">现在您可以私下浏览，其他使用此设备的人将看不到您的活动。 TV Bro 不会保存您的浏览历史记录、cookie 和网站数据以及在表格中输入的信息。\n\n但是，下载和书签将被保存。 您访问的网站、您的组织或互联网服务提供商可能仍然可以看到您的活动。</string>
     <string name="don_t_show_again">不再显示</string>
     <string name="why_icon_changed">为什么图标变了？</string>
+  <string name="clear_web_cache">清除网络缓存</string>
 </resources>
