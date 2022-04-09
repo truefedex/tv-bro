@@ -39,9 +39,10 @@ class TabsModel : ActiveModel() {
           }
         }
         if (positionsChanged) {
+          val tabsListClone = ArrayList(tabsStates)
           modelScope.launch {
             val tabsDao = AppDatabase.db.tabsDao()
-            tabsDao.updatePositions(tabsStates)
+            tabsDao.updatePositions(tabsListClone)
           }
         }
       }, false)
