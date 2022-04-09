@@ -2,25 +2,25 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v1.7.2",
-      "latestVersionCode": 49,
+      "latestVersionName": "v1.8.2",
+      "latestVersionCode": 53,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.7.2/tvbro1.7.2.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.2/tvbro1.8.2.apk"
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.8.1",
-      "latestVersionCode": 52,
+      "latestVersionName": "v1.8.2",
+      "latestVersionCode": 53,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.1/tvbro1.8.1.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.2/tvbro1.8.2.apk"
     }
   ],
 
   "changelog": [
     {
-      "versionCode": 52,
-      "versionName": "v1.8.1",
-      "changes": "* Incognito mode implemented\n* Settings: added option to keep screen always on (thank you  Sebastian Niemann for pull request !)\n* German translation (thank you peat80 for pull request !)\n* Fixed problem with voice recognition on android >= 11 (now look a bit changed but functionality recovered)\n* Icon look changed to declare support for Ukraine (explanation by link in settings)\n* v1.8.1: added WebView version info and \"clear web cache\" button to settings; bugfixes;"
+      "versionCode": 53,
+      "versionName": "v1.8.2",
+      "changes": "* Incognito mode implemented\n* Settings: added option to keep screen always on (thank you  Sebastian Niemann for pull request !)\n* German translation (thank you peat80 for pull request !)\n* Fixed problem with voice recognition on android >= 11 (now look a bit changed but functionality recovered)\n* Icon look changed to declare support for Ukraine (explanation by link in settings)\n* v1.8.1: added WebView version info and \"clear web cache\" button to settings; bugfixes;\n* v1.8.2: often crash fixed"
     },
     {
       "versionCode": 49,
