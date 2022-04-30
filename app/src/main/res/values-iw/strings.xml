@@ -1,126 +1,132 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="app_name">"TV Bro: דפדפן לטלויזיה"</string>
-    <string name="error">"שגיאה"</string>
-
-    <!-- Fuzzy -->
-    <string name="ok">"OK"</string>
-    <string name="loading">"טוען..."</string>
-    <string name="url_prompt">"הכנס טקסט לחיפוש או URL"</string>
-    <string name="can_not_recognize">"לא ניתן לזהות"</string>
-    <string name="speak">"בקשת חיפוש"</string>
-    <string name="open_new_tab">"פתח כרטיסיה חדשה"</string>
-    <string name="close">"סגור"</string>
-    <string name="web_perm_request_confirmation">"הדף הזה מבקש להשתמש במקורות הבאים:
+  <string name="app_name">"TV Bro: דפדפן לטלויזיה"</string>
+  <string name="error">"שגיאה"</string>
+  <!-- Fuzzy -->
+  <string name="ok">"OK"</string>
+  <string name="loading">"טוען..."</string>
+  <string name="url_prompt">"הכנס טקסט לחיפוש או URL"</string>
+  <string name="can_not_recognize">"לא ניתן לזהות"</string>
+  <string name="speak">"בקשת חיפוש"</string>
+  <string name="open_new_tab">"פתח כרטיסיה חדשה"</string>
+  <string name="close">"סגור"</string>
+  <string name="web_perm_request_confirmation">"הדף הזה מבקש להשתמש במקורות הבאים:
 %s"</string>
-    <string name="allow">"אפשר"</string>
-    <string name="deny">"דחה"</string>
-    <string name="location">"מיקום"</string>
-    <string name="open_in_new_tab">"פתח בכרטיסיה חדשה"</string>
-    <string name="download_started">"ההורדה התחילה...
+  <string name="allow">"אפשר"</string>
+  <string name="deny">"דחה"</string>
+  <string name="location">"מיקום"</string>
+  <string name="open_in_new_tab">"פתח בכרטיסיה חדשה"</string>
+  <string name="download_started">"ההורדה התחילה...
 הקובץ יאוחסן ב:
 %s"</string>
-    <string name="downloading_file">"מוריד קובץ..."</string>
-    <string name="err_cant_open_file_chooser">"לא ניתן לפתוח את בוחר הקבצים"</string>
-    <string name="bookmarks">"סימניות"</string>
-    <string name="add">"הוסף"</string>
-    <string name="edit">"ערוך"</string>
-    <string name="new_bookmark">"סימניה חדשה"</string>
-    <string name="title">"כותרת"</string>
-    <string name="search_history">"היסטורית חיפוש"</string>
-    <string name="engine">"מנוע חיפוש"</string>
-    <string name="choose_default_search_engine">"בחר מנוע חיפוש ברירת מחדל"</string>
-    <string name="save">"שמור"</string>
-    <string name="search_engine_url_with_query_placeholder_query">"URL מנוע חיפוש עם בקשת שומר מקום [query]"</string>
-    <string name="change_search_engine">"שנה מנוע חיפוש"</string>
-    <string name="change_user_agent">"שנה הגדרת מצב משתמש"</string>
-    <string name="user_agent_string">"מחרוזת מצב משתמש"</string>
-    <string name="choose_user_agent_string">"בחר מחרוזת מצב משתמש"</string>
-    <string name="edit_user_agent_string">"ערוך מחרוזת מצב משתמש"</string>
-    <string name="nothing">"כלום"</string>
-    <string name="cancelled">"בוטל"</string>
-    <string name="download">"הורד"</string>
-    <string name="file_not_found">"לא ניתן למצוא את הקובץ"</string>
-    <string name="no_app_for_file_type">"לא נמצאו יישומים לפתיחת סוג הקובץ המבוקש"</string>
-    <string name="delete">"מחק"</string>
-    <string name="cancel">"ביטול"</string>
-    <string name="msg_delete_history">"למחוק את פריטי ההיסטוריה שנבחרו?"</string>
-    <string name="msg_delete_history_all">"למחוק את את כל פריטי ההיסטוריה?"</string>
-    <string name="open_folder">"פתח תיקיה מכילה"</string>
-    <string name="no_file_explorer_msg">"נראה שאין יישום פתיחת קבצים מתאים שמותקן על המכשיר"</string>
-    <string name="shortcuts">"קיצורי דרך"</string>
-    <string name="favorites">"מועדפים"</string>
-    <string name="history">"היסטוריה"</string>
-    <string name="settings">"הגדרות"</string>
-    <string name="shortcut">"קיצור דרך"</string>
-    <string name="toggle_main_menu">"הפעל/כבה את התפריט הראשי"</string>
-    <string name="navigate_back">"נווט חזרה"</string>
-    <string name="navigate_home">"נווט לבית"</string>
-    <string name="refresh_page">"רענן עמוד"</string>
-    <string name="voice_search">"חיפוש קולי"</string>
-    <string name="zoom_in">"הגדל"</string>
-    <string name="zoom_out">"הקטן"</string>
-    <string name="not_set">"לא הוגדר"</string>
-    <string name="action">"פעולה:"</string>
-    <string name="current_key">"מקש נוכחי:"</string>
-    <string name="set_key_for_action">"הגדר מקש לפעולה:"</string>
-    <string name="press_eny_key">"לחץ על כל מקש..."</string>
-    <string name="clear">"נקה"</string>
-    <string name="install">"התקן"</string>
-    <string name="turn_on_unknown_sources">"אנא הפעל את \"התקן ממקורות לא ידועים\" בהגדרות המערכת"</string>
-    <string name="turn_on_unknown_sources_for_app">"אנא אפשר לTV Bro להתקין מ\"מקורות לא ידועים\" בהגדרות המערכת"</string>
-    <string name="storage_not_mounted">"האחסון לא עוגן"</string>
-    <string name="can_not_create_downloads">"לא ניתן ליצור ספריית הורדות"</string>
-    <string name="voice_search_not_found">"חיפוש קולי לא נמצא"</string>
-    <string name="new_version_dialog_title">"גרסא חדשה זמינה"</string>
-    <string name="later">"מאוחר יותר"</string>
-    <string name="downloads">"הורדות"</string>
-    <string name="downloads_notifications_description">"התראות בנוגע לסטטוס הורדות"</string>
-    <string name="main">"ראשי"</string>
-    <string name="version_and_updates"><![CDATA[גרסא ועדכונים]]></string>
-    <string name="version_s">"גרסא: %s"</string>
-    <string name="update_channel">"ערוץ עדכונים:"</string>
-    <string name="auto_check_for_updates">"בדוק אוטומטית לעדכונים:"</string>
-    <string name="update">"עדכן:"</string>
-    <string name="new_version_available_s">"גרסא חדשה זמינה: %s"</string>
-    <string name="warning">"אזהרה"</string>
-    <string name="unprotected_connection">"חיבור לא מוגן"</string>
-    <string name="err_webview_can_not_link">"לא ניתן לקשר לרכיב WebView. נסה להתקין את רכיב WebView של מערכת Android קודם."</string>
-    <string name="new_tab_title">"[כרטיסיה חדשה]"</string>
-    <string name="open_a_new_tab_here">"פתח כרטיסיה חדשה כאן"</string>
-    <string name="tabs">"כרטיסיות"</string>
-    <string name="ssl_expired">"התעודה פגת תוקף"</string>
-    <string name="ssl_idmismatch">"אי התאמה בין שם המארח"</string>
-    <string name="ssl_date_invalid">"תאריך התעודה אינו תקין"</string>
-    <string name="ssl_invalid">"אירעה שגיאה גנרית"</string>
-    <string name="back_to_safety">"בחזרה למקום מבטחים"</string>
-    <string name="go_im_aware">"עבור. אני מודע לסיכון"</string>
-    <string name="connection_isnt_secure">"החיבור אינו מאובטח"</string>
-    <string name="hostname">"שם מארח:"</string>
-    <string name="err_desk">"תיאור שגיאה:"</string>
-    <string name="details">"פרטים:"</string>
-    <string name="exit">"יציאה"</string>
-    <string name="find_in_apps_store">"מצא בחנות האפליקציות"</string>
-    <string name="close_application">"סגור יישום"</string>
-    <string name="close_tab">"סגור כרטיסיה"</string>
-    <string name="navigate_forward">"נווט קדימה"</string>
-    <string name="web_browser_optimized_for_tvs">"דפדפן רשת מותאם לטלויזיות"</string>
-    <string name="never">לעולם לא</string>
-    <string name="last_update">העדכון אחרון</string>
-    <string name="update_ad_blocker_list">עדכן את רשימת חוסמי המודעות</string>
-    <string name="toggle_ads_blocking">החלף החלפת מודעות</string>
-    <string name="need_restart">צריך הפעלה מחדש של האפליקציה</string>
-    <string name="theme">נושא</string>
-    <array name="themes">
-        <item>מערכת</item>
-        <item>לבן</item>
-        <item>אפל</item>
-    </array>
+  <string name="downloading_file">"מוריד קובץ..."</string>
+  <string name="err_cant_open_file_chooser">"לא ניתן לפתוח את בוחר הקבצים"</string>
+  <string name="bookmarks">"סימניות"</string>
+  <string name="add">"הוסף"</string>
+  <string name="edit">"ערוך"</string>
+  <string name="new_bookmark">"סימניה חדשה"</string>
+  <string name="title">"כותרת"</string>
+  <string name="search_history">"היסטורית חיפוש"</string>
+  <string name="engine">"מנוע חיפוש"</string>
+  <string name="choose_default_search_engine">"בחר מנוע חיפוש ברירת מחדל"</string>
+  <string name="save">"שמור"</string>
+  <string name="search_engine_url_with_query_placeholder_query">"URL מנוע חיפוש עם בקשת שומר מקום [query]"</string>
+  <string name="change_search_engine">"שנה מנוע חיפוש"</string>
+  <string name="change_user_agent">"שנה הגדרת מצב משתמש"</string>
+  <string name="user_agent_string">"מחרוזת מצב משתמש"</string>
+  <string name="choose_user_agent_string">"בחר מחרוזת מצב משתמש"</string>
+  <string name="edit_user_agent_string">"ערוך מחרוזת מצב משתמש"</string>
+  <string name="nothing">"כלום"</string>
+  <string name="cancelled">"בוטל"</string>
+  <string name="download">"הורד"</string>
+  <string name="file_not_found">"לא ניתן למצוא את הקובץ"</string>
+  <string name="no_app_for_file_type">"לא נמצאו יישומים לפתיחת סוג הקובץ המבוקש"</string>
+  <string name="delete">"מחק"</string>
+  <string name="cancel">"ביטול"</string>
+  <string name="msg_delete_history">"למחוק את פריטי ההיסטוריה שנבחרו?"</string>
+  <string name="msg_delete_history_all">"למחוק את את כל פריטי ההיסטוריה?"</string>
+  <string name="open_folder">"פתח תיקיה מכילה"</string>
+  <string name="no_file_explorer_msg">"נראה שאין יישום פתיחת קבצים מתאים שמותקן על המכשיר"</string>
+  <string name="shortcuts">"קיצורי דרך"</string>
+  <string name="favorites">"מועדפים"</string>
+  <string name="history">"היסטוריה"</string>
+  <string name="settings">"הגדרות"</string>
+  <string name="shortcut">"קיצור דרך"</string>
+  <string name="toggle_main_menu">"הפעל/כבה את התפריט הראשי"</string>
+  <string name="navigate_back">"נווט חזרה"</string>
+  <string name="navigate_home">"נווט לבית"</string>
+  <string name="refresh_page">"רענן עמוד"</string>
+  <string name="voice_search">"חיפוש קולי"</string>
+  <string name="zoom_in">"הגדל"</string>
+  <string name="zoom_out">"הקטן"</string>
+  <string name="not_set">"לא הוגדר"</string>
+  <string name="action">"פעולה:"</string>
+  <string name="current_key">"מקש נוכחי:"</string>
+  <string name="set_key_for_action">"הגדר מקש לפעולה:"</string>
+  <string name="press_eny_key">"לחץ על כל מקש..."</string>
+  <string name="clear">"נקה"</string>
+  <string name="install">"התקן"</string>
+  <string name="turn_on_unknown_sources">"אנא הפעל את \"התקן ממקורות לא ידועים\" בהגדרות המערכת"</string>
+  <string name="turn_on_unknown_sources_for_app">"אנא אפשר לTV Bro להתקין מ\"מקורות לא ידועים\" בהגדרות המערכת"</string>
+  <string name="storage_not_mounted">"האחסון לא עוגן"</string>
+  <string name="can_not_create_downloads">"לא ניתן ליצור ספריית הורדות"</string>
+  <string name="voice_search_not_found">"חיפוש קולי לא נמצא"</string>
+  <string name="new_version_dialog_title">"גרסא חדשה זמינה"</string>
+  <string name="later">"מאוחר יותר"</string>
+  <string name="downloads">"הורדות"</string>
+  <string name="downloads_notifications_description">"התראות בנוגע לסטטוס הורדות"</string>
+  <string name="main">"ראשי"</string>
+  <string name="version_and_updates">גרסא ועדכונים</string>
+  <string name="version_s">"גרסא: %s"</string>
+  <string name="update_channel">"ערוץ עדכונים:"</string>
+  <string name="auto_check_for_updates">"בדוק אוטומטית לעדכונים:"</string>
+  <string name="update">"עדכן:"</string>
+  <string name="new_version_available_s">"גרסא חדשה זמינה: %s"</string>
+  <string name="warning">"אזהרה"</string>
+  <string name="unprotected_connection">"חיבור לא מוגן"</string>
+  <string name="err_webview_can_not_link">"לא ניתן לקשר לרכיב WebView. נסה להתקין את רכיב WebView של מערכת Android קודם."</string>
+  <string name="new_tab_title">"[כרטיסיה חדשה]"</string>
+  <string name="open_a_new_tab_here">"פתח כרטיסיה חדשה כאן"</string>
+  <string name="tabs">"כרטיסיות"</string>
+  <string name="ssl_expired">"התעודה פגת תוקף"</string>
+  <string name="ssl_idmismatch">"אי התאמה בין שם המארח"</string>
+  <string name="ssl_date_invalid">"תאריך התעודה אינו תקין"</string>
+  <string name="ssl_invalid">"אירעה שגיאה גנרית"</string>
+  <string name="back_to_safety">"בחזרה למקום מבטחים"</string>
+  <string name="go_im_aware">"עבור. אני מודע לסיכון"</string>
+  <string name="connection_isnt_secure">"החיבור אינו מאובטח"</string>
+  <string name="hostname">"שם מארח:"</string>
+  <string name="err_desk">"תיאור שגיאה:"</string>
+  <string name="details">"פרטים:"</string>
+  <string name="exit">"יציאה"</string>
+  <string name="find_in_apps_store">"מצא בחנות האפליקציות"</string>
+  <string name="close_application">"סגור יישום"</string>
+  <string name="close_tab">"סגור כרטיסיה"</string>
+  <string name="navigate_forward">"נווט קדימה"</string>
+  <string name="web_browser_optimized_for_tvs">"דפדפן רשת מותאם לטלויזיות"</string>
+  <string name="never">לעולם לא</string>
+  <string name="last_update">העדכון אחרון</string>
+  <string name="update_ad_blocker_list">עדכן את רשימת חוסמי המודעות</string>
+  <string name="toggle_ads_blocking">החלף החלפת מודעות</string>
+  <string name="need_restart">צריך הפעלה מחדש של האפליקציה</string>
+  <string name="theme">נושא</string>
+  <array name="themes">
+    <item>מערכת</item>
+    <item>לבן</item>
+    <item>אפל</item>
+  </array>
   <string name="set_search_engine_as_homepage">הפוך מנוע חיפוש לדף הבית שלך</string>
   <string name="toggle_keep_screen_on">השאר מסך דלוק</string>
   <string name="incognito_mode">מצב גלישה בסתר</string>
-    <string name="incognito_mode_hint">עכשיו אתה יכול לגלוש באופן פרטי, ואנשים אחרים שמשתמשים במכשיר הזה לא יראו את הפעילות שלך. TV Bro לא ישמור את היסטוריית הגלישה שלך, קובצי Cookie ונתוני אתר, מידע שהוזן בטפסים.  עם זאת, הורדות וסימניות יישמרו. ייתכן שהפעילות שלך עדיין תהיה גלויה לאתרים שבהם אתה מבקר, לארגון או לספק שירותי האינטרנט שלך.</string>
-    <string name="don_t_show_again">אל תראה שוב</string>
-    <string name="why_icon_changed">למה הסמל השתנה?</string>
+  <string name="incognito_mode_hint">עכשיו אתה יכול לגלוש באופן פרטי, ואנשים אחרים שמשתמשים במכשיר הזה לא יראו את הפעילות שלך. TV Bro לא ישמור את היסטוריית הגלישה שלך, קובצי Cookie ונתוני אתר, מידע שהוזן בטפסים.  עם זאת, הורדות וסימניות יישמרו. ייתכן שהפעילות שלך עדיין תהיה גלויה לאתרים שבהם אתה מבקר, לארגון או לספק שירותי האינטרנט שלך.</string>
+  <string name="don_t_show_again">אל תראה שוב</string>
+  <string name="why_icon_changed">למה הסמל השתנה?</string>
   <string name="clear_web_cache">נקה מטמון אינטרנט</string>
+  <string-array name="tabs_options">
+    <item>הוספה חדשה</item>
+    <item>זרם סגור</item>
+    <item>סגור הכל</item>
+    <item>זוז שמאלה</item>
+    <item>זוז ימינה</item>
+  </string-array>
 </resources>
