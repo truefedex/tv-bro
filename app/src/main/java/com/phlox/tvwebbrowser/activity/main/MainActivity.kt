@@ -370,8 +370,14 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun onDestroy() {
-        jsInterface.setActivity(null)
-        tabsModel.onDetachActivity()
+        //here properties can be uninitialized in case of wrong activity for incognito mode
+        //detection and force activity restart in onCreate()
+        if (::jsInterface.isInitialized) {
+            jsInterface.setActivity(null)
+        }
+        if (::tabsModel.isInitialized) {
+            tabsModel.onDetachActivity()
+        }
         super.onDestroy()
     }
 
