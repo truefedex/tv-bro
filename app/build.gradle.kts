@@ -33,7 +33,7 @@ android {
             }
         }
 
-        ndk { abiFilters.addAll( setOf("armeabi", "arm64-v8a", "x86_64") ) }
+        ndk { abiFilters.addAll( setOf("armeabi", "arm64", "x86_64") ) }
     }
     signingConfigs {
         create("release") {
