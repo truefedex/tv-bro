@@ -1,0 +1,127 @@
+<resources>
+    <string name="app_name">TV Bro: Przęglądarka internetowa dla TV</string>
+    <string name="error">Błąd</string>
+    <string name="ok">OK</string>
+    <string name="loading">Wczytywanie&#8230;</string>
+    <string name="url_prompt">Wpisz tekst zapytania lub adres URL</string>
+    <string name="can_not_recognize">Nie można rozpoznać</string>
+    <string name="speak">Szukaj zapytanie</string>
+    <string name="open_new_tab">Otwórz nową tabelę</string>
+    <string name="close">Zamknij</string>
+    <string name="web_perm_request_confirmation">Ta strona próbuje użyć następujących zasobów:\n\n%s</string>
+    <string name="allow">Pozwól</string>
+    <string name="deny">Zabroń</string>
+    <string name="location">Lokalizacja</string>
+    <string name="open_in_new_tab">Otwórz nową kartę</string>
+    <string name="download_started">Rozpoczynam pobieranie…\nFile zostanie zapisany w:\n%s</string>
+    <string name="downloading_file">Pobieram plik</string>
+    <string name="err_cant_open_file_chooser">Nie można otworzyć wybieracza plików</string>
+    <string name="bookmarks">Zakładki</string>
+    <string name="add">Dodaj</string>
+    <string name="edit">Edytuj</string>
+    <string name="new_bookmark">Nowa zakładka</string>
+    <string name="title">Tytuł</string>
+    <string name="search_history">Historia szukania</string>
+    <string name="engine">Dostawca wyszukiwarki</string>
+    <string name="choose_default_search_engine">Wybierz domyślną wyszukiwarkę</string>
+    <string name="set_search_engine_as_homepage">Ustaw wyszukiwarkę jako stronę główną</string>
+    <string name="save">Zapisz</string>
+    <string name="search_engine_url_with_query_placeholder_query">Wyszukiwarka URL z zapytania Search engine URL z symbolem zastępczym [query]</string>
+    <string name="change_search_engine">Zmień silnik wyszukiwarki</string>
+    <string name="change_user_agent">Zmień Agenta użytkownika</string>
+    <string name="user_agent_string">Wartość Agenta użytkownika</string>
+    <string name="choose_user_agent_string">Wybierz Wartość Agenta Użytkownika</string>
+    <string name="edit_user_agent_string">Edytuj wartość Agenta Użytkownika</string>
+    <string name="nothing">Nic</string>
+    <string name="cancelled">Anulowano</string>
+    <string name="download">Pobieranie</string>
+    <string name="file_not_found">Nie znaleziono pliku</string>
+    <string name="no_app_for_file_type">Nie znaleziono aplikacji otwierającej tego typu pliku</string>
+    <string name="delete">Usuń</string>
+    <string name="cancel">Anuluj</string>
+    <string name="msg_delete_history">Usunąć wybrane rzeczy z historii przeglądania?</string>
+    <string name="msg_delete_history_all">Usunąć wszystkie rzeczy z historii przeglądania?</string>
+    <string name="open_folder">Otwórz folder zawierający</string>
+    <string name="no_file_explorer_msg">Brak zainstalowanej odpowiedniego eksploratora plików na twoim urządzeniu.</string>
+    <string name="shortcuts">Skróty</string>
+    <string name="favorites">Ulubione</string>
+    <string name="history">Historia</string>
+    <string name="settings">Ustawienia</string>
+    <string name="shortcut">Skrót</string>
+    <string name="toggle_main_menu">Przęłącz główne menu</string>
+    <string name="navigate_back">Nawiguj wstecz</string>
+    <string name="navigate_home">Nawiguj na stronę domową</string>
+    <string name="refresh_page">Odswież</string>
+    <string name="voice_search">Wyszukiwanie głosowe</string>
+    <string name="zoom_in">Przybliż</string>
+    <string name="zoom_out">Oddal</string>
+    <string name="not_set">Nie ustawiono</string>
+    <string name="action">Akcja:</string>
+    <string name="current_key">Aktualny klawisz:</string>
+    <string name="set_key_for_action">Ustaw klawisz do akcji</string>
+    <string name="press_eny_key">Naciśnij dowolny klawisz...</string>
+    <string name="clear">Wyczyść</string>
+    <string name="install">Zainstaluj</string>
+    <string name="turn_on_unknown_sources">Proszę włączyć \"Unknown sources\" ustawienie w systemie</string>
+    <string name="turn_on_unknown_sources_for_app">Proszę pozwolić TV Bro na instalację aplikacji z \"Unknown sources\" w ustawieniach systemu</string>
+    <string name="storage_not_mounted">Nie zamontowano nośnika</string>
+    <string name="can_not_create_downloads">Nie mogę stworzyć folderu Pobrane dir</string>
+    <string name="voice_search_not_found">Nie znaleziono wyszukiwania głosowego</string>
+    <string name="new_version_dialog_title">Dostępna nowa wersja!</string>
+    <string name="later">Później</string>
+    <string name="downloads">Pobrane</string>
+    <string name="downloads_notifications_description">Powiadomienia w odniesieniu statusów pobierania</string>
+    <string name="main">Główna</string>
+    <string name="version_and_updates"><![CDATA[Version & updates]]></string>
+    <string name="version_s">Wersja: %s</string>
+    <string name="update_channel">Kanał aktualizacji:</string>
+    <string name="auto_check_for_updates">Automatycznie sprawdź aktualizacje</string>
+    <string name="update">Aktualizacja</string>
+    <string name="new_version_available_s">Dostępna nowa wersja: %s</string>
+    <string name="web_browser_optimized_for_tvs">Przęglądatka zaoptymalizowana dla telewizorów</string>
+    <string name="warning">Ostrzeżenie</string>
+    <string name="unprotected_connection">Połączenie nie jest chronione</string>
+    <string name="err_webview_can_not_link">Nie można podlinkować składnika WebView. Spróbuj najpierw zainstalować składnik Android System WebView.</string>
+    <string name="new_tab_title">[Nowa karta]</string>
+    <string name="open_a_new_tab_here">Otwórz nową kartę tutaj</string>
+    <string name="tabs">Karty</string>
+    <array name="tabs_options">
+        <item>Otwórz nową kartę</item>
+        <item>Zamknij obecną kartę</item>
+        <item>Zamknij wszystkie karty</item>
+        <item>Przesuń w lewo</item>
+        <item>Przesuń w prawo</item>
+    </array>
+    <string name="ssl_expired">Certyfikat wygasł</string>
+    <string name="ssl_idmismatch">Niedopasowanie nazwy hosta</string>
+    <string name="ssl_date_invalid">Data certyfikatu jest nieważna</string>
+    <string name="ssl_invalid">Wystąpił generyczny</string>
+    <string name="back_to_safety">Wróć do bezpiecznej strony</string>
+    <string name="go_im_aware">Naprzód. Jestem świadomy ryzyka</string>
+    <string name="connection_isnt_secure">Połączenie nie jest zabezpieczone</string>
+    <string name="hostname">Nazwa hosta:</string>
+    <string name="err_desk">Opis błędu:</string>
+    <string name="details">Detale:</string>
+    <string name="exit">Wyjście</string>
+    <string name="find_in_apps_store">Znajdź w sklepie z aplikacjami</string>
+    <string name="close_application">Zamknij aplikację</string>
+    <string name="close_tab">Zamknij kartę</string>
+    <string name="navigate_forward">Nawiguj do przodu</string>
+    <string name="toggle_ads_blocking">Przełącz blokadę reklam</string>
+    <string name="never">nigdy</string>
+    <string name="last_update">Ostatnia aktualizacja</string>
+    <string name="update_ad_blocker_list">Zaktualizauj listę blokady reklam</string>
+    <string name="toggle_keep_screen_on">Utrzymaj włączony wyświetlacz</string>
+    <string name="need_restart">Apilkacja potrzebuje restartu</string>
+    <string name="theme">Motyw</string>
+    <array name="themes">
+        <item>Kolory systemowe</item>
+        <item>Biały</item>
+        <item>Mroczny</item>
+    </array>
+    <string name="incognito_mode">Tryb incognito</string>
+    <string name="incognito_mode_hint">Teraz możesz przeglądać internet prywatnie, i pozostali ludzie którzy używają tego urządzenia nie zobaczą twojej aktywności. Aplikacja TV Bro nie będzie zapisywać twojej historii przeglądania, ciasteczek oraz danych stron, nformacji dodanych w formularzach.\n\nJednakże, zapisane zostaną pobrane piliki i zakładki. Twoja aktywność może nadal być widoczna dla stron które odwiedzasz, twojej organizacji lub dostawcy internetu.</string>
+    <string name="don_t_show_again">Nie pokazuj ponownie</string>
+    <string name="why_icon_changed">Czemu ikona się zmieniła?</string>
+    <string name="clear_web_cache">Wyczyść pamięć podręczną</string>
+</resources>
