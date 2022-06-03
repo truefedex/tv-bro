@@ -17,10 +17,10 @@
     <string name="download_started">Download iniziato…\nIl file sarà salvato in:\n%s</string>
     <string name="downloading_file">Scaricamento file…</string>
     <string name="err_cant_open_file_chooser">Cannot Open File Chooser</string>
-    <string name="bookmarks">Preferiti</string>
+    <string name="bookmarks">Segnalibri</string>
     <string name="add">Aggiungi</string>
     <string name="edit">Modifica</string>
-    <string name="new_bookmark">New bookmark</string>
+    <string name="new_bookmark">Nuovo segnalibro</string>
     <string name="title">Titolo</string>
     <string name="url" translatable="false">URL</string>
     <string name="search_history">Cronologia ricerche</string>
