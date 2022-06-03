@@ -1,0 +1,129 @@
+<resources>
+    <string name="app_name">TV Bro: TV Web Browser</string>
+    <string name="app_name_short" translatable="false">TV Bro</string>
+    <string name="error">Errore</string>
+    <string name="ok">OK</string>
+    <string name="loading">Caricamento&#8230;</string>
+    <string name="url_prompt">Inserisci testo da cercare o URL</string>
+    <string name="can_not_recognize">Can not recognize</string>
+    <string name="speak">Search query</string>
+    <string name="open_new_tab">Apri nuova scheda</string>
+    <string name="close">Chiudi</string>
+    <string name="web_perm_request_confirmation">Questa pagina web richiede di usare queste risorse:\n\n%s</string>
+    <string name="allow">Consenti</string>
+    <string name="deny">Nega</string>
+    <string name="location">Posizione</string>
+    <string name="open_in_new_tab">Apri in nuova scheda</string>
+    <string name="download_started">Download iniziato…\nIl file sarà salvato in:\n%s</string>
+    <string name="downloading_file">Scaricamento file…</string>
+    <string name="err_cant_open_file_chooser">Cannot Open File Chooser</string>
+    <string name="bookmarks">Preferiti</string>
+    <string name="add">Aggiungi</string>
+    <string name="edit">Modifica</string>
+    <string name="new_bookmark">New bookmark</string>
+    <string name="title">Titolo</string>
+    <string name="url" translatable="false">URL</string>
+    <string name="search_history">Cronologia ricerche</string>
+    <string name="engine">Motore di ricerca</string>
+    <string name="choose_default_search_engine">Imposta il motore di ricerca predefinito</string>
+    <string name="set_search_engine_as_homepage">Imposta il motore di ricerca come homepage</string>
+    <string name="save">Salva</string>
+    <string name="search_engine_url_with_query_placeholder_query">Search engine URL with query placeholder [query]</string>
+    <string name="change_search_engine">Change Search Engine</string>
+    <string name="change_user_agent">Change User Agent</string>
+    <string name="user_agent_string">User Agent String</string>
+    <string name="choose_user_agent_string">Choose User Agent String</string>
+    <string name="edit_user_agent_string">Edit User Agent String</string>
+    <string name="nothing">Nothing</string>
+    <string name="cancelled">Cancelled</string>
+    <string name="download">Download</string>
+    <string name="file_not_found">File not found</string>
+    <string name="no_app_for_file_type">No applications found to open this file type</string>
+    <string name="delete">Elimina</string>
+    <string name="cancel">Annulla</string>
+    <string name="msg_delete_history">Delete selected history items?</string>
+    <string name="msg_delete_history_all">Delete all history items?</string>
+    <string name="open_folder">Open containing folder</string>
+    <string name="no_file_explorer_msg">Seem there is no any suitable file explorer app installed on your device</string>
+    <string name="shortcuts">Shortcuts</string>
+    <string name="favorites">Preferiti</string>
+    <string name="history">Cronologia</string>
+    <string name="settings">Impostazioni</string>
+    <string name="shortcut">Shortcut</string>
+    <string name="toggle_main_menu">Toggle main menu</string>
+    <string name="navigate_back">Navigate back</string>
+    <string name="navigate_home">Navigate home</string>
+    <string name="refresh_page">Refresh page</string>
+    <string name="voice_search">Voice search</string>
+    <string name="zoom_in">Zoom in</string>
+    <string name="zoom_out">Zoom out</string>
+    <string name="not_set">Non impostato</string>
+    <string name="action">Azione:</string>
+    <string name="current_key">Current key:</string>
+    <string name="set_key_for_action">Set key for action</string>
+    <string name="press_eny_key">Press any key...</string>
+    <string name="clear">Pulisci</string>
+    <string name="install">Installa</string>
+    <string name="turn_on_unknown_sources">Please turn on \"Unknown sources\" system setting</string>
+    <string name="turn_on_unknown_sources_for_app">Please allow TV Bro to install apps from \"Unknown sources\" in system settings</string>
+    <string name="storage_not_mounted">Storage not mounted</string>
+    <string name="can_not_create_downloads">Can not create downloads dir</string>
+    <string name="voice_search_not_found">Voice search not found</string>
+    <string name="new_version_dialog_title">New version available</string>
+    <string name="later">Dopo</string>
+    <string name="downloads">Downloads</string>
+    <string name="downloads_notifications_description">Notifications regarding downloads statuses</string>
+    <string name="main">Main</string>
+    <string name="version_and_updates"><![CDATA[Version & updates]]></string>
+    <string name="version_s">Versione: %s</string>
+    <string name="update_channel">Canale aggiornamenti:</string>
+    <string name="auto_check_for_updates">Verifica aggiornamenti</string>
+    <string name="update">Aggiorna</string>
+    <string name="new_version_available_s">Nuova versione disponibile: %s</string>
+    <string name="web_browser_optimized_for_tvs">Web browser ottimizzato per le TV</string>
+    <string name="warning">Attenzione</string>
+    <string name="unprotected_connection">Unprotected connection</string>
+    <string name="err_webview_can_not_link">Can not link to WebView component. Try to install Android System WebView component first.</string>
+    <string name="new_tab_title">[NEW TAB]</string>
+    <string name="open_a_new_tab_here">Open a new tab here</string>
+    <string name="tabs">Schede</string>
+    <array name="tabs_options">
+        <item>Apri nuova scheda</item>
+        <item>Chiudi scheda</item>
+        <item>Chiudi tutte</item>
+        <item>Sposta a sinistra</item>
+        <item>Sposta a destra</item>
+    </array>
+    <string name="ssl_expired">Certificato scaduto</string>
+    <string name="ssl_idmismatch">Hostname mismatch</string>
+    <string name="ssl_date_invalid">The date of the certificate is invalid</string>
+    <string name="ssl_invalid">A generic error occurred</string>
+    <string name="back_to_safety">Back to safety</string>
+    <string name="go_im_aware">Go. I am aware of the risk</string>
+    <string name="connection_isnt_secure">Connection is not secure</string>
+    <string name="hostname">Hostname:</string>
+    <string name="err_desk">Descrizione errore:</string>
+    <string name="details">Dettagli:</string>
+    <string name="exit">Esci</string>
+    <string name="find_in_apps_store">Find in applications store</string>
+    <string name="close_application">Chiudi app</string>
+    <string name="close_tab">Chiudi scheda</string>
+    <string name="navigate_forward">Navigate forward</string>
+    <string name="toggle_ads_blocking">Toggle ads blocking</string>
+    <string name="never">never</string>
+    <string name="last_update">Last update</string>
+    <string name="update_ad_blocker_list">Update ad-blocker list</string>
+    <string name="toggle_keep_screen_on">Keep screen on</string>
+    <string name="need_restart">Need application restart</string>
+    <string name="theme">Theme</string>
+    <array name="themes">
+        <item>Sistema</item>
+        <item>Chiaro</item>
+        <item>Scuro</item>
+    </array>
+    <string name="incognito_mode">Incognito mode</string>
+    <string name="incognito_mode_hint">Now you can browse privately, and other people who use this device won’t see your activity. TV Bro won’t save your browsing history, cookies and site data, information entered in forms.\n\nHowever, downloads and bookmarks will be saved. Your activity might still be visible to websites you visit, your organization or internet service provider.</string>
+    <string name="don_t_show_again">Non mostrare più</string>
+    <string name="why_icon_changed">Perché l\'icona è cambiata?</string>
+    <string name="clear_web_cache">Pulisci la cache</string>
+</resources>
