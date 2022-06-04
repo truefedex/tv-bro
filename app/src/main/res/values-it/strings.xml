@@ -36,7 +36,7 @@
     <string name="edit_user_agent_string">Modifica stringa User Agent</string>
     <string name="nothing">Niente</string>
     <string name="cancelled">Annullato</string>
-    <string name="download">Download</string>
+    <string name="download">In scaricamento</string>
     <string name="file_not_found">File non trovato</string>
     <string name="no_app_for_file_type">Nessuna app trovata per aprire questo tipo di file</string>
     <string name="delete">Elimina</string>
