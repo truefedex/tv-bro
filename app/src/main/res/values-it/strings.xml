@@ -61,7 +61,7 @@
     <string name="action">Azione:</string>
     <string name="current_key">Tasto impostato:</string>
     <string name="set_key_for_action">Imposta tasto per l\'azione</string>
-    <string name="press_eny_key">Premi un tasto...</string>
+    <string name="press_eny_key">Premi un tasto…</string>
     <string name="clear">Pulisci</string>
     <string name="install">Installa</string>
     <string name="turn_on_unknown_sources">Attiva \"Fonti sconosciute\"</string>
@@ -84,7 +84,7 @@
     <string name="warning">Attenzione</string>
     <string name="unprotected_connection">Connessione non protetta</string>
     <string name="err_webview_can_not_link">Impossibile collegarsi a WebView. Installare Android System WebView.</string>
-    <string name="new_tab_title">[NEW TAB]</string>
+    <string name="new_tab_title">[NUOVA SCHEDA]</string>
     <string name="open_a_new_tab_here">Apri una nuova scheda qui</string>
     <string name="tabs">Schede</string>
     <array name="tabs_options">
@@ -98,19 +98,19 @@
     <string name="ssl_idmismatch">Hostname non corrispondente</string>
     <string name="ssl_date_invalid">La data del certificato non è valida</string>
     <string name="ssl_invalid">Si è verificato un errore</string>
-    <string name="back_to_safety">Ritorno alla sicurezza</string>
+    <string name="back_to_safety">Torna in sicurezza</string>
     <string name="go_im_aware">Ok. Sono consapevole del rischio</string>
     <string name="connection_isnt_secure">Connessione non sicura</string>
     <string name="hostname">Hostname:</string>
     <string name="err_desk">Descrizione errore:</string>
     <string name="details">Dettagli:</string>
     <string name="exit">Esci</string>
-    <string name="find_in_apps_store">Trova nello store</string>
+    <string name="find_in_apps_store">Cerca nello store</string>
     <string name="close_application">Chiudi app</string>
     <string name="close_tab">Chiudi scheda</string>
     <string name="navigate_forward">Avanti</string>
     <string name="toggle_ads_blocking">Blocca pubblicità</string>
-    <string name="never">mai</string>
+    <string name="never">Mai</string>
     <string name="last_update">Ultimo aggiornamento</string>
     <string name="update_ad_blocker_list">Aggiorna lista blocco pubblicità</string>
     <string name="toggle_keep_screen_on">Mantieni lo schermo acceso</string>
@@ -122,7 +122,7 @@
         <item>Scuro</item>
     </array>
     <string name="incognito_mode">Modalità Incognito</string>
-    <string name="incognito_mode_hint">Ora puoi navigare in privato e altri che utilizzano questo dispositivo non vedranno la tua attività. TV Bro non salverà la cronologia di navigazione, i cookie e i dati del sito, le informazioni inserite nei moduli.\n\nTuttavia, i download e i segnalibri verranno salvati. La tua attività potrebbe essere ancora visibile ai siti Web che visiti, alla tua organizzazione o al provider di servizi Internet.</string>
+    <string name="incognito_mode_hint">Ora puoi navigare in privato e altri utilizzatori di questo dispositivo non vedranno la tua attività. TV Bro non salverà la cronologia di navigazione, i cookie e i dati del sito, le informazioni inserite nei moduli.\n\nTuttavia, i download e i segnalibri verranno salvati. La tua attività potrebbe essere comunque visibile ai siti Web che visiti, alla tua organizzazione o al provider di servizi Internet.</string>
     <string name="don_t_show_again">Non mostrare più</string>
     <string name="why_icon_changed">Perché l\'icona è cambiata?</string>
     <string name="clear_web_cache">Pulisci la cache</string>
