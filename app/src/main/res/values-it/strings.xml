@@ -62,7 +62,7 @@
     <string name="current_key">Tasto impostato:</string>
     <string name="set_key_for_action">Imposta tasto per l\'azione</string>
     <string name="press_eny_key">Premi un tasto…</string>
-    <string name="clear">Pulisci</string>
+    <string name="clear">Ripristina</string>
     <string name="install">Installa</string>
     <string name="turn_on_unknown_sources">Attiva \"Fonti sconosciute\"</string>
     <string name="turn_on_unknown_sources_for_app">Consenti a TV Bro di installare app da \"Fonti sconosciute\" nelle impostazioni di sistema</string>
