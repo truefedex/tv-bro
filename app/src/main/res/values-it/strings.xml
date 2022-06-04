@@ -6,7 +6,7 @@
     <string name="loading">Caricamento&#8230;</string>
     <string name="url_prompt">Inserisci testo da cercare o URL</string>
     <string name="can_not_recognize">Non ho capito</string>
-    <string name="speak">Stringa da cercare</string>
+    <string name="speak">Testo da cercare</string>
     <string name="open_new_tab">Apri nuova scheda</string>
     <string name="close">Chiudi</string>
     <string name="web_perm_request_confirmation">Questa pagina web richiede queste risorse:\n\n%s</string>
@@ -28,7 +28,7 @@
     <string name="choose_default_search_engine">Imposta il motore di ricerca predefinito</string>
     <string name="set_search_engine_as_homepage">Imposta il motore di ricerca come homepage</string>
     <string name="save">Salva</string>
-    <string name="search_engine_url_with_query_placeholder_query">URL del motore di ricerca con segnaposto [query]</string>
+    <string name="search_engine_url_with_query_placeholder_query">URL del motore di ricerca con segnaposto [testo]</string>
     <string name="change_search_engine">Cambia motore di ricerca</string>
     <string name="change_user_agent">Cambia User Agent</string>
     <string name="user_agent_string">Stringa User Agent</string>
@@ -50,9 +50,9 @@
     <string name="history">Cronologia</string>
     <string name="settings">Impostazioni</string>
     <string name="shortcut">Scorciatoia</string>
-    <string name="toggle_main_menu">Menù principale</string>
+    <string name="toggle_main_menu">Attiva Menù</string>
     <string name="navigate_back">Naviga Indietro</string>
-    <string name="navigate_home">Naviga Home</string>
+    <string name="navigate_home">Vai a Home</string>
     <string name="refresh_page">Aggiorna pagina</string>
     <string name="voice_search">Ricerca vocale</string>
     <string name="zoom_in">Ingrandisci</string>
@@ -61,7 +61,7 @@
     <string name="action">Azione:</string>
     <string name="current_key">Tasto impostato:</string>
     <string name="set_key_for_action">Imposta tasto</string>
-    <string name="press_eny_key">Premi un tasto…</string>
+    <string name="press_eny_key">Premi tasto…</string>
     <string name="clear">Pulisci</string>
     <string name="install">Installa</string>
     <string name="turn_on_unknown_sources">Attiva \"Fonti sconosciute\"</string>
@@ -74,14 +74,14 @@
     <string name="downloads">File scaricati</string>
     <string name="downloads_notifications_description">Notifiche sullo stato dei download</string>
     <string name="main">Principale</string>
-    <string name="version_and_updates"><![CDATA[Versione & aggiornamenti]]></string>
+    <string name="version_and_updates">Versione & Info</string>
     <string name="version_s">Versione: %s</string>
     <string name="update_channel">Canale aggiornamenti:</string>
     <string name="auto_check_for_updates">Verifica aggiornamenti</string>
     <string name="update">Aggiorna</string>
     <string name="new_version_available_s">Nuova versione disponibile: %s</string>
     <string name="web_browser_optimized_for_tvs">Web browser ottimizzato per le TV</string>
-    <string name="warning">Attenzione</string>
+    <string name="warning">Attenzione!</string>
     <string name="unprotected_connection">Connessione non protetta</string>
     <string name="err_webview_can_not_link">Impossibile collegarsi a WebView. Installare Android System WebView.</string>
     <string name="new_tab_title">[NUOVA SCHEDA]</string>
@@ -114,7 +114,7 @@
     <string name="last_update">Ultimo aggiornamento</string>
     <string name="update_ad_blocker_list">Aggiorna lista blocco pubblicità</string>
     <string name="toggle_keep_screen_on">Mantieni schermo acceso</string>
-    <string name="need_restart">È necessario un riavvio</string>
+    <string name="need_restart">È necessario riavviare l\'app</string>
     <string name="theme">Tema</string>
     <array name="themes">
         <item>Sistema</item>
