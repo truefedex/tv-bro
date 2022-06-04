@@ -5,7 +5,7 @@
     <string name="ok">OK</string>
     <string name="loading">Caricamento&#8230;</string>
     <string name="url_prompt">Inserisci testo da cercare o URL</string>
-    <string name="can_not_recognize">Riconoscimento impossibile</string>
+    <string name="can_not_recognize">Non ho capito</string>
     <string name="speak">Stringa da cercare</string>
     <string name="open_new_tab">Apri nuova scheda</string>
     <string name="close">Chiudi</string>
