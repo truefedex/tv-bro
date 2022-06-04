@@ -33,12 +33,12 @@
     <string name="change_user_agent">Cambia User Agent</string>
     <string name="user_agent_string">Stringa User Agent</string>
     <string name="choose_user_agent_string">Imposta stringa User Agent</string>
-    <string name="edit_user_agent_string">Modifica stringa User Agent</string>
-    <string name="nothing">Niente</string>
+    <string name="edit_user_agent_string">Digita stringa User Agent</string>
+    <string name="nothing">Nessun elemento</string>
     <string name="cancelled">Annullato</string>
-    <string name="download">In scaricamento</string>
+    <string name="download">In download</string>
     <string name="file_not_found">File non trovato</string>
-    <string name="no_app_for_file_type">Nessuna app trovata per aprire questo tipo di file</string>
+    <string name="no_app_for_file_type">Nessuna app disponibile per aprire questo tipo di file</string>
     <string name="delete">Elimina</string>
     <string name="cancel">Annulla</string>
     <string name="msg_delete_history">Eliminare gli elementi selezionati dalla cronologia?</string>
@@ -51,8 +51,8 @@
     <string name="settings">Impostazioni</string>
     <string name="shortcut">Scorciatoia</string>
     <string name="toggle_main_menu">Menù principale</string>
-    <string name="navigate_back">Indietro</string>
-    <string name="navigate_home">Home</string>
+    <string name="navigate_back">Naviga Indietro</string>
+    <string name="navigate_home">Naviga Home</string>
     <string name="refresh_page">Aggiorna pagina</string>
     <string name="voice_search">Ricerca vocale</string>
     <string name="zoom_in">Ingrandisci</string>
@@ -60,9 +60,9 @@
     <string name="not_set">Non impostato</string>
     <string name="action">Azione:</string>
     <string name="current_key">Tasto impostato:</string>
-    <string name="set_key_for_action">Imposta tasto per l\'azione</string>
+    <string name="set_key_for_action">Imposta tasto</string>
     <string name="press_eny_key">Premi un tasto…</string>
-    <string name="clear">Ripristina</string>
+    <string name="clear">Pulisci</string>
     <string name="install">Installa</string>
     <string name="turn_on_unknown_sources">Attiva \"Fonti sconosciute\"</string>
     <string name="turn_on_unknown_sources_for_app">Consenti a TV Bro di installare app da \"Fonti sconosciute\" nelle impostazioni di sistema</string>
@@ -74,7 +74,7 @@
     <string name="downloads">File scaricati</string>
     <string name="downloads_notifications_description">Notifiche sullo stato dei download</string>
     <string name="main">Principale</string>
-    <string name="version_and_updates"><![CDATA[Version & updates]]></string>
+    <string name="version_and_updates"><![CDATA[Versione & aggiornamenti]]></string>
     <string name="version_s">Versione: %s</string>
     <string name="update_channel">Canale aggiornamenti:</string>
     <string name="auto_check_for_updates">Verifica aggiornamenti</string>
@@ -98,7 +98,7 @@
     <string name="ssl_idmismatch">Hostname non corrispondente</string>
     <string name="ssl_date_invalid">La data del certificato non è valida</string>
     <string name="ssl_invalid">Si è verificato un errore</string>
-    <string name="back_to_safety">Torna in sicurezza</string>
+    <string name="back_to_safety">Torna in zona sicura</string>
     <string name="go_im_aware">Ok. Sono consapevole del rischio</string>
     <string name="connection_isnt_secure">Connessione non sicura</string>
     <string name="hostname">Hostname:</string>
@@ -113,7 +113,7 @@
     <string name="never">Mai</string>
     <string name="last_update">Ultimo aggiornamento</string>
     <string name="update_ad_blocker_list">Aggiorna lista blocco pubblicità</string>
-    <string name="toggle_keep_screen_on">Mantieni lo schermo acceso</string>
+    <string name="toggle_keep_screen_on">Mantieni schermo acceso</string>
     <string name="need_restart">È necessario un riavvio</string>
     <string name="theme">Tema</string>
     <array name="themes">
