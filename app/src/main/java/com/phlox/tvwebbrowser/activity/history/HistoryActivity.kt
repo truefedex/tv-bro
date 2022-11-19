@@ -82,6 +82,10 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
                 .setMessage(if (deleteAll) R.string.msg_delete_history_all else R.string.msg_delete_history)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     lifecycleScope.launch(Dispatchers.Main) {
+                        if (deleteAll) {
+                            AppDatabase.db.historyDao().deleteWhereTimeLessThan(Long.MAX_VALUE)
+                            return@launch
+                        }
                         AppDatabase.db.historyDao().delete(*items.toTypedArray())
                         adapter!!.remove(items)
                     }
