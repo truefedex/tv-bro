@@ -75,8 +75,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     }
 
     private fun showDeleteDialog(deleteAll: Boolean) {
-        val items = if (deleteAll) adapter!!.items else adapter!!.selectedItems
-        if (items.isEmpty()) return
+        if (adapter!!.items.isEmpty() || (adapter!!.selectedItems.isEmpty() && !deleteAll)) return
         AlertDialog.Builder(this)
                 .setTitle(R.string.delete)
                 .setMessage(if (deleteAll) R.string.msg_delete_history_all else R.string.msg_delete_history)
@@ -84,10 +83,11 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
                     lifecycleScope.launch(Dispatchers.Main) {
                         if (deleteAll) {
                             AppDatabase.db.historyDao().deleteWhereTimeLessThan(Long.MAX_VALUE)
-                            return@launch
+                            adapter!!.erase()
+                        } else {
+                            AppDatabase.db.historyDao().delete(*(adapter!!.selectedItems).toTypedArray())
+                            adapter!!.remove(adapter!!.selectedItems)
                         }
-                        AppDatabase.db.historyDao().delete(*items.toTypedArray())
-                        adapter!!.remove(items)
                     }
                 }
                 .setNeutralButton(android.R.string.cancel) { dialogInterface, i -> }
