@@ -74,7 +74,7 @@ class AdblockModel : ActiveModel() {
             try {
                 val easyList = URL(adBlockListURL).openConnection().inputStream.bufferedReader()
                   .use { it.readText() }
-                success = client.loadRules(easyList)
+                success = client.parse(easyList)
                 client.serialize(serializedFile.absolutePath)
             } catch (e: Exception) {
                 e.printStackTrace()

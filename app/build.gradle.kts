@@ -1,5 +1,4 @@
 import java.util.*
-import kotlin.collections.*
 
 
 plugins {
@@ -24,16 +23,14 @@ android {
         applicationId = "com.phlox.tvwebbrowser"
         minSdk = 21
         targetSdk = 30
-        versionCode = 54
-        versionName = "1.8.3"
+        versionCode = 53
+        versionName = "1.8.2"
 
         javaCompileOptions {
             annotationProcessorOptions {
                 argument("room.incremental", "true")
             }
         }
-
-        ndk { abiFilters.addAll( setOf("armeabi", "arm64", "x86_64") ) }
     }
     signingConfigs {
         create("release") {
@@ -90,9 +87,9 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.3")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.20")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.21")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.20")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
 
@@ -102,14 +99,14 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
 
     implementation("com.github.truefedex:segmented-button:v1.0.0")
-    implementation("com.github.truefedex:adblock-rust:8ff108031a")
+    implementation("com.github.truefedex:ad-block:v0.0.1-ci")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
     "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     //appstore-dependent dependencies
     "googleImplementation"("com.google.firebase:firebase-core:20.1.2")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.10")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.9")
 }
 
 tasks.getByName("check").dependsOn("lint")
