@@ -16,13 +16,14 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    compileSdk = 31
-    buildToolsVersion = "31.0.0"
+    compileSdk = 32
+    buildToolsVersion = "32.0.0"
+    namespace = "com.phlox.tvwebbrowser"
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
         minSdk = 21
-        targetSdk = 30
+        targetSdk = 31
         versionCode = 53
         versionName = "1.8.2"
 
@@ -71,6 +72,8 @@ android {
         targetCompatibility to JavaVersion.VERSION_1_8
     }
 
+    lint.disable += setOf("UNUSED_PARAMETER")
+
     kapt {
         arguments {
             //used when AppDatabase @Database annotation exportSchema = true. Useful for migrations
@@ -82,16 +85,16 @@ android {
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    implementation("androidx.appcompat:appcompat:1.4.1")
+    implementation("androidx.appcompat:appcompat:1.5.1")
     implementation("androidx.webkit:webkit:1.4.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.20")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.20")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.7.21")
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
 
     val roomVersion = "2.4.2"
     implementation("androidx.room:room-runtime:$roomVersion")
@@ -105,8 +108,8 @@ dependencies {
     "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     //appstore-dependent dependencies
-    "googleImplementation"("com.google.firebase:firebase-core:20.1.2")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.2.9")
+    "googleImplementation"("com.google.firebase:firebase-core:21.1.1")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.2")
 }
 
 tasks.getByName("check").dependsOn("lint")

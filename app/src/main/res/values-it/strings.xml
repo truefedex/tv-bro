@@ -74,7 +74,7 @@
     <string name="downloads">File scaricati</string>
     <string name="downloads_notifications_description">Notifiche sullo stato dei download</string>
     <string name="main">Principale</string>
-    <string name="version_and_updates">Versione & Info</string>
+    <string name="version_and_updates">Versione &amp; Info</string>
     <string name="version_s">Versione: %s</string>
     <string name="update_channel">Canale aggiornamenti:</string>
     <string name="auto_check_for_updates">Verifica aggiornamenti</string>
