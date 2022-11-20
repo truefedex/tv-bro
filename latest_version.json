@@ -9,14 +9,19 @@
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.8.2",
-      "latestVersionCode": 53,
+      "latestVersionName": "v1.8.3",
+      "latestVersionCode": 55,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.2/tvbro1.8.2.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.3/tvbro1.8.3.apk"
     }
   ],
 
   "changelog": [
+    {
+      "versionCode": 55,
+      "versionName": "v1.8.3",
+      "changes": "* Fixed crash on incognito mode switch\n* Fixed History delete function (thank you @shark-yn)\n* Added Polish translation (thank you @BadOmen)\n* Added Italian translation (thank you @Vladi69)\n* Added some other minor missing translations\n* Dependency & target android API level update"
+    },
     {
       "versionCode": 53,
       "versionName": "v1.8.2",
@@ -26,11 +31,6 @@
       "versionCode": 49,
       "versionName": "v1.7.2",
       "changes": "* Added ability to set search engine as homepage (thank you E-D-W-I-N for pull request !)\n* Dark theme tuning/fixing/backporting; should now work on pre-Android 10 devices\n* Improvement: auto retry download, this helps on some sites\n* Fix: crash on download on Fire TV (thank you tsynik for crashlog)\n* Fix: unability to select tab with mouse (thank you xvkong for foundings)\n* Fix for not showing ssl errors on some pages\n* Fix for tabs fast scrolling issues"
-    },
-    {
-      "versionCode": 48,
-      "versionName": "v1.7.1",
-      "changes": "* Bugfix"
     }
   ]
 }
