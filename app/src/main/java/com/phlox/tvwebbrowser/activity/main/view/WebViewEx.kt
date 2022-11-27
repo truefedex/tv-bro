@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.media.MediaDrm
 import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
@@ -32,6 +33,8 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.utils.LogUtils
 import java.net.URLEncoder
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Copyright (c) 2016 Fedir Tsapana.
@@ -43,6 +46,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         const val INTERNAL_SCHEME = "internal://"
         const val INTERNAL_SCHEME_WARNING_DOMAIN = "warning"
         const val INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT = "certificate"
+        val WIDEVINE_UUID = UUID(-0x121074568629b532L,-0x5c37d8232ae2de13L)
     }
 
     private var webChromeClient_: WebChromeClient
@@ -53,7 +57,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
     private var lastTouchY: Int = 0
     private var permRequestDialog: AlertDialog? = null
     private var webPermissionsRequest: PermissionRequest? = null
-    private var reuestedResourcesForAlreadyGrantedPermissions: ArrayList<String>? = null
+    private var requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions: ArrayList<String>? = null
     private var geoPermissionOrigin: String? = null
     private var geoPermissionsCallback: GeolocationPermissions.Callback? = null
     var lastSSLError: SslError? = null
@@ -172,6 +176,20 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             }
 
             override fun onPermissionRequest(request: PermissionRequest) {
+                if (request.resources.size == 1 &&
+                    PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID == request.resources[0]) {
+                    //fast path for grant/deny RESOURCE_PROTECTED_MEDIA_ID
+                    if (MediaDrm.isCryptoSchemeSupported(WIDEVINE_UUID)) {
+                        val widevineKeyDrm = MediaDrm(WIDEVINE_UUID)
+                        val version = widevineKeyDrm.getPropertyString(MediaDrm.PROPERTY_VERSION)
+                        Log.i(TAG, "DRM widevine version = " + version)
+                        request.grant(request.resources)
+                    } else {
+                        request.deny()
+                    }
+                    return
+                }
+
                 val activity = callback.getActivity() ?: return
                 webPermissionsRequest = request
                 permRequestDialog = AlertDialog.Builder(activity)
@@ -191,31 +209,30 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                 val neededPermissions = ArrayList<String>()
-                                reuestedResourcesForAlreadyGrantedPermissions = ArrayList()
+                                val resourcesThatDoNotNeedToGrantPerms = ArrayList<String>()
                                 for (resource in webPermissionsRequest.resources) {
                                     if (PermissionRequest.RESOURCE_AUDIO_CAPTURE == resource) {
                                         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                                             neededPermissions.add(Manifest.permission.RECORD_AUDIO)
                                         } else {
-                                            reuestedResourcesForAlreadyGrantedPermissions!!.add(resource)
+                                            resourcesThatDoNotNeedToGrantPerms.add(resource)
                                         }
                                     } else if (PermissionRequest.RESOURCE_VIDEO_CAPTURE == resource) {
                                         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                                             neededPermissions.add(Manifest.permission.CAMERA)
                                         } else {
-                                            reuestedResourcesForAlreadyGrantedPermissions!!.add(resource)
+                                            resourcesThatDoNotNeedToGrantPerms.add(resource)
                                         }
+                                    } else {
+                                        resourcesThatDoNotNeedToGrantPerms.add(resource)
                                     }
                                 }
 
                                 if (neededPermissions.isNotEmpty()) {
+                                    requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions = resourcesThatDoNotNeedToGrantPerms
                                     callback.requestPermissions(neededPermissions.toTypedArray(), false)
                                 } else {
-                                    if (reuestedResourcesForAlreadyGrantedPermissions!!.isEmpty()) {
-                                        webPermissionsRequest.deny()
-                                    } else {
-                                        webPermissionsRequest.grant(reuestedResourcesForAlreadyGrantedPermissions!!.toTypedArray())
-                                    }
+                                    webPermissionsRequest.grant(webPermissionsRequest.resources)
                                 }
                             } else {
                                 webPermissionsRequest.grant(webPermissionsRequest.resources)
@@ -564,9 +581,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                     }
                 }
             }
-            reuestedResourcesForAlreadyGrantedPermissions?.apply {
+            requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions?.apply {
                 resources.addAll(this)
-                reuestedResourcesForAlreadyGrantedPermissions = null
+                requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions = null
             }
             if (resources.isEmpty()) {
                 this.deny()
