@@ -2,10 +2,10 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v1.8.2",
-      "latestVersionCode": 53,
+      "latestVersionName": "v1.8.3",
+      "latestVersionCode": 55,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.2/tvbro1.8.2.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.3/tvbro1.8.3.apk"
     },
     {
       "name": "beta",
