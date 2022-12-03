@@ -46,6 +46,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
                        @ColumnInfo(name = "wv_state_file")
                        var wvStateFileName: String? = null,
                        var adblock: Boolean? = null,
+                       var popupblock: Boolean? = null,
                        var scale: Float? = null) {
     companion object {
         const val TAB_THUMBNAILS_DIR = "tabthumbs"

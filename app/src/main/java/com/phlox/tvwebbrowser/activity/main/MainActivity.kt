@@ -68,6 +68,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
         const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
         private const val MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS = 10008
+        private const val DEFAULT_POPUP_BLOCK = false
     }
 
     private lateinit var vb: ActivityMainBinding
@@ -132,6 +133,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         })
 
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
+        vb.ibPopupBlock.setOnClickListener { togglePopupBlockForTab() }
         vb.ibHome.setOnClickListener { navigate(settingsModel.homePage.value) }
         vb.ibBack.setOnClickListener { navigateBack() }
         vb.ibForward.setOnClickListener {
@@ -562,10 +564,16 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.ibZoomOut.visibility = if (zoomPossible) View.VISIBLE else View.GONE
         vb.ibZoomIn.isEnabled = tab.webView?.canZoomIn() == true
         vb.ibZoomOut.isEnabled = tab.webView?.canZoomOut() == true
+
         val adblockEnabled = tab.adblock ?: adblockModel.adBlockEnabled
         vb.ibAdBlock.setImageResource(if (adblockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
         vb.tvBlockedAdCounter.visibility = if (adblockEnabled && tab.webView?.blockedAds != 0) View.VISIBLE else View.GONE
         vb.tvBlockedAdCounter.text = tab.webView?.blockedAds?.toString() ?: ""
+
+        val popupblockEnabled = tab.popupblock ?: DEFAULT_POPUP_BLOCK
+        vb.ibPopupBlock.setImageResource(if (popupblockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
+        vb.tvBlockedPopupCounter.visibility = if (tab.webView?.blockedPopups != 0) View.VISIBLE else View.GONE
+        vb.tvBlockedPopupCounter.text = tab.webView?.blockedPopups?.toString() ?: ""
     }
 
     private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
@@ -669,6 +677,15 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             webView?.onUpdateAdblockSetting(newState)
             onWebViewUpdated(this)
             refresh()
+        }
+    }
+
+    private fun togglePopupBlockForTab() {
+        tabsModel.currentTab.value?.apply {
+            val currentState = popupblock ?: DEFAULT_POPUP_BLOCK
+            val newState = !currentState
+            popupblock = newState
+            onWebViewUpdated(this)
         }
     }
 
@@ -1109,10 +1126,19 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return  adblockModel.adBlockEnabled
         }
 
+        override fun isPopupBlockingEnabled(): Boolean {
+            return tabsModel.currentTab.value?.popupblock ?: DEFAULT_POPUP_BLOCK
+        }
+
         override fun onBlockedAdsCountChanged(blockedAds: Int) {
             if (!adblockModel.adBlockEnabled) return
             vb.tvBlockedAdCounter.visibility = if (blockedAds > 0) View.VISIBLE else View.GONE
             vb.tvBlockedAdCounter.text = blockedAds.toString()
+        }
+
+        override fun onBlockedPopupsCountChanged(blockedPopups: Int) {
+            vb.tvBlockedPopupCounter.visibility = if (blockedPopups > 0) View.VISIBLE else View.GONE
+            vb.tvBlockedPopupCounter.text = blockedPopups.toString()
         }
 
         override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx? {
