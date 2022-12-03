@@ -427,7 +427,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             SearchEngineConfigDialogFactory.show(this@MainActivity, settingsModel, false,
                     object : SearchEngineConfigDialogFactory.Callback {
                         override fun onDone(url: String) {
-                            if (settingsModel.needAutockeckUpdates &&
+                            if (settingsModel.needAutoCheckUpdates &&
                                     settingsModel.updateChecker.versionCheckResult == null &&
                                     !settingsModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
                                 settingsModel.checkUpdate(false){
@@ -443,7 +443,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             if (currentTab == null || currentTab.url == settingsModel.homePage.value) {
                 showMenuOverlay()
             }
-            if (settingsModel.needAutockeckUpdates &&
+            if (settingsModel.needAutoCheckUpdates &&
                     settingsModel.updateChecker.versionCheckResult == null &&
                     !settingsModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
                 settingsModel.checkUpdate(false){

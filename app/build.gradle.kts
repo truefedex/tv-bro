@@ -42,11 +42,16 @@ android {
         }
     }
     buildTypes {
+        getByName("debug") {
+            isDebuggable = true
+            project.setProperty("crashlytics", false)
+        }
         getByName("release") {
             isDebuggable = false
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig=signingConfigs.getByName("release")
+            project.setProperty("crashlytics", true)
         }
     }
 
@@ -54,12 +59,16 @@ android {
     productFlavors {
         create("generic") {
             dimension = "appstore"
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
         }
         create("google") {
             dimension = "appstore"
+            //now auto-update violates Google Play policies
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
         }
         create("amazon") {
             dimension = "appstore"
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
         }
     }
 
@@ -107,9 +116,10 @@ dependencies {
 
     "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
-    //appstore-dependent dependencies
-    "googleImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.2")
+    if (project.property("crashlytics") == true) {
+        implementation("com.google.firebase:firebase-core:21.1.1")
+        implementation("com.google.firebase:firebase-crashlytics-ktx:18.3.2")
+    }
 }
 
 tasks.getByName("check").dependsOn("lint")

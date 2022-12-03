@@ -55,8 +55,8 @@ class SettingsModel : ActiveModel() {
     var needToShowUpdateDlgAgain: Boolean = false
     val updateChecker = UpdateChecker(BuildConfig.VERSION_CODE)
     var lastUpdateNotificationTime: Calendar
-    var needAutockeckUpdates: Boolean
-        get() = config.isNeedAutoCheckUpdates()
+    var needAutoCheckUpdates: Boolean
+        get() = config.isNeedAutoCheckUpdates() && BuildConfig.BUILT_IN_AUTO_UPDATE
         set(value) = config.setAutoCheckUpdates(value)
     var theme by config::theme
     var updateChannel: String
