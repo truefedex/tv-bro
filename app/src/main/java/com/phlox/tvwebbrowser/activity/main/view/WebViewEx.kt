@@ -34,7 +34,6 @@ import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.utils.LogUtils
 import java.net.URLEncoder
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * Copyright (c) 2016 Fedir Tsapana.
@@ -49,6 +48,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         val WIDEVINE_UUID = UUID(-0x121074568629b532L,-0x5c37d8232ae2de13L)
     }
 
+    private var genericInjects: String? = null
     private var webChromeClient_: WebChromeClient
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
@@ -481,34 +481,13 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
     }
 
     private fun getGenericJSInjects(): String {
-        return """
-    if (!window.tvBroClicksListener) {
-        window.tvBroClicksListener = function(e){
-            if (e.target.tagName.toUpperCase() == "A" && e.target.attributes.href.value.toLowerCase().startsWith("blob:")) {
-                var fileName = e.target.download;
-                var url = e.target.attributes.href.value;
-                var xhr=new XMLHttpRequest();
-                xhr.open('GET', e.target.attributes.href.value, true);
-                xhr.responseType = 'blob';
-                xhr.onload = function(e) {
-                    if (this.status == 200) {
-                        var blob = this.response;
-                        var reader = new FileReader();
-                        reader.readAsDataURL(blob);
-                        reader.onloadend = function() {
-                            base64data = reader.result;
-                            TVBro.takeBlobDownloadData(base64data, fileName, url, blob.type);
-                        }
-                    }
-                };
-                xhr.send();
-                e.stopPropagation();
-                e.preventDefault();
-            }
-        };
-        document.addEventListener("click", window.tvBroClicksListener);
-    }
-        """.trimIndent()
+        var injects = genericInjects
+        if (injects == null) {
+            injects =
+                context.assets.open("generic_injects.js").bufferedReader().use { it.readText() }
+            genericInjects = injects
+        }
+        return injects
     }
 
     fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
@@ -592,5 +571,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.safeBrowsingEnabled = adblockEnabled
         }
+    }
+
+    fun togglePlayback() {
+        evaluateJavascript("tvBroTogglePlayback()", null)
     }
 }

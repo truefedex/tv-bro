@@ -202,7 +202,8 @@ class CursorLayout : FrameLayout {
             }
         }
 
-        return super.dispatchKeyEvent(event)
+        val child = getChildAt(0)
+        return child?.dispatchKeyEvent(event) ?: super.dispatchKeyEvent(event)
     }
 
     private fun dispatchMotionEvent(x: Float, y: Float, action: Int) {

@@ -778,6 +778,17 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 uiHandler.post { shortcutMgr.process(keyCode, this) }
             }
             return true
+        } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY ||
+            keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE ||
+            keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+            //trick to make play/pause media buttons work
+            //TODO: remove this if someday webview starts handling media keys by himself
+            if (event.action == KeyEvent.ACTION_UP) {
+                uiHandler.post {
+                    tabsModel.currentTab.value?.webView?.togglePlayback()
+                }
+            }
+            return true
         }
         return super.dispatchKeyEvent(event)
     }
