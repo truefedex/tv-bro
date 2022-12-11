@@ -16,16 +16,16 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    compileSdk = 32
-    buildToolsVersion = "32.0.0"
+    compileSdk = 33
+    buildToolsVersion = "33.0.1"
     namespace = "com.phlox.tvwebbrowser"
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        minSdk = 21
-        targetSdk = 31
-        versionCode = 56
-        versionName = "1.8.4"
+        minSdk = 23
+        targetSdk = 33
+        versionCode = 57
+        versionName = "1.8.5"
 
         javaCompileOptions {
             annotationProcessorOptions {

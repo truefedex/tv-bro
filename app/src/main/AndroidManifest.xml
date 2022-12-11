@@ -8,7 +8,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
@@ -33,6 +34,17 @@
         android:name="android.software.leanback"
         android:required="false" />
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+    </queries>
+
     <application
         android:name=".TVBro"
         android:allowBackup="true"
@@ -44,8 +56,7 @@
         android:usesCleartextTraffic="true"
         android:screenOrientation="sensor"
         android:theme="@style/AppTheme"
-        android:requestLegacyExternalStorage="true"
-        tools:targetApi="m">
+        android:requestLegacyExternalStorage="true">
         <activity
             android:name=".activity.main.MainActivity"
             android:banner="@drawable/banner"

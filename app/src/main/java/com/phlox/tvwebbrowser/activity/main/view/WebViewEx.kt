@@ -109,8 +109,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             setSupportZoom(true)
             domStorageEnabled = true
             allowContentAccess = false
-            setAppCachePath(context.cacheDir.absolutePath)
-            setAppCacheEnabled(true)
             cacheMode = WebSettings.LOAD_DEFAULT
             mediaPlaybackRequiresUserGesture = false
             setGeolocationEnabled(true)
@@ -207,36 +205,33 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                                 return@setPositiveButton
                             }
 
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                val neededPermissions = ArrayList<String>()
-                                val resourcesThatDoNotNeedToGrantPerms = ArrayList<String>()
-                                for (resource in webPermissionsRequest.resources) {
-                                    if (PermissionRequest.RESOURCE_AUDIO_CAPTURE == resource) {
-                                        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                                            neededPermissions.add(Manifest.permission.RECORD_AUDIO)
-                                        } else {
-                                            resourcesThatDoNotNeedToGrantPerms.add(resource)
-                                        }
-                                    } else if (PermissionRequest.RESOURCE_VIDEO_CAPTURE == resource) {
-                                        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                                            neededPermissions.add(Manifest.permission.CAMERA)
-                                        } else {
-                                            resourcesThatDoNotNeedToGrantPerms.add(resource)
-                                        }
+                            val neededPermissions = ArrayList<String>()
+                            val resourcesThatDoNotNeedToGrantPerms = ArrayList<String>()
+                            for (resource in webPermissionsRequest.resources) {
+                                if (PermissionRequest.RESOURCE_AUDIO_CAPTURE == resource) {
+                                    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                                        neededPermissions.add(Manifest.permission.RECORD_AUDIO)
                                     } else {
                                         resourcesThatDoNotNeedToGrantPerms.add(resource)
                                     }
-                                }
-
-                                if (neededPermissions.isNotEmpty()) {
-                                    requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions = resourcesThatDoNotNeedToGrantPerms
-                                    callback.requestPermissions(neededPermissions.toTypedArray(), false)
+                                } else if (PermissionRequest.RESOURCE_VIDEO_CAPTURE == resource) {
+                                    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                                        neededPermissions.add(Manifest.permission.CAMERA)
+                                    } else {
+                                        resourcesThatDoNotNeedToGrantPerms.add(resource)
+                                    }
                                 } else {
-                                    webPermissionsRequest.grant(webPermissionsRequest.resources)
+                                    resourcesThatDoNotNeedToGrantPerms.add(resource)
                                 }
+                            }
+
+                            if (neededPermissions.isNotEmpty()) {
+                                requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions = resourcesThatDoNotNeedToGrantPerms
+                                callback.requestPermissions(neededPermissions.toTypedArray(), false)
                             } else {
                                 webPermissionsRequest.grant(webPermissionsRequest.resources)
                             }
+
                             permRequestDialog = null
                         }
                         .create()
@@ -264,8 +259,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                             geoPermissionsCallback = null
                         }
                         .setPositiveButton(R.string.allow) { dialog, which ->
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                                    ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                 this@WebViewEx.callback.requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), true)
                             } else {
                                 geoPermissionsCallback!!.invoke(geoPermissionOrigin, true, true)
@@ -422,7 +416,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         if (s.startsWith("\"") && s.endsWith("\"")) {
             s = s.substring(1, s.length - 1)
         }
-        val url = s.toLowerCase()
+        val url = s.toLowerCase(Locale.ROOT)
         if (url.startsWith("http://") || url.startsWith("https://")) {
             val anchor = View(context)
             val parent = parent as FrameLayout

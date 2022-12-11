@@ -62,7 +62,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         const val VOICE_SEARCH_REQUEST_CODE = 10001
         private const val MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS = 10002
         private const val MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS = 10003
-        const val MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10004
+        const val MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS = 10004
         private const val PICKFILE_REQUEST_CODE = 10005
         private const val REQUEST_CODE_HISTORY_ACTIVITY = 10006
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
@@ -597,7 +597,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 tabsModel.currentTab.value?.webView?.onPermissionsResult(permissions, grantResults, true)
                 return
             }
-            MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE -> {
+            MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     viewModel.startDownload(this)
                 }

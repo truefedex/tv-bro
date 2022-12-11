@@ -95,27 +95,36 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     override fun onItemClick(adapterView: AdapterView<*>, view: View, i: Int, l: Long) {
         val v = view as DownloadListItemView
-        if (v.download == null) return
-        if (v.download?.isDateHeader!!) {
+        val download = v.download ?: return
+
+        if (download.isDateHeader) {
             return
         }
-        val file = File(v.download?.filepath!!)
-        if (!file.exists()) {
-            Utils.showToast(this, R.string.file_not_found)
-        }
-        if (v.download?.size != v.download?.bytesReceived) {
+
+        if (download.size != download.bytesReceived) {
+            //file should be already marked in UI as broken
             return
         }
-        val pathUri = FileProvider.getUriForFile(this@DownloadsActivity,
+
+
+        val fileURI = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Uri.parse(download.filepath)
+        } else {
+            val file = File(download.filepath)
+            if (!file.exists()) {
+                Utils.showToast(this, R.string.file_not_found)
+                return
+            }
+
+            FileProvider.getUriForFile(this@DownloadsActivity,
                 BuildConfig.APPLICATION_ID + ".provider",
                 file)
-        val openIntent = Intent(Intent.ACTION_VIEW)
-        val extension = getFileExtension(v.download?.filepath!!)
-        if (extension != null) {
-            openIntent.setDataAndType(pathUri, MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension))
-        } else {
-            openIntent.data = pathUri
         }
+
+
+        val openIntent = Intent(Intent.ACTION_VIEW)
+        val mimeType = contentResolver.getType(fileURI)
+        openIntent.setDataAndType(fileURI, mimeType)
         openIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         try {
             startActivity(openIntent)
@@ -127,12 +136,12 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     override fun onItemLongClick(adapterView: AdapterView<*>, view: View, i: Int, l: Long): Boolean {
         val v = view as DownloadListItemView
-        if (v.download == null) return false
-        if (v.download?.isDateHeader!!) {
+        val download = v.download ?: return false
+        if (download.isDateHeader) {
             return true
         }
-        if (v.download?.size == Download.BROKEN_MARK || v.download?.size == Download.CANCELLED_MARK ||
-                v.download?.size == v.download?.bytesReceived) {
+        if (download.size == Download.BROKEN_MARK || download.size == Download.CANCELLED_MARK ||
+                download.size == download.bytesReceived) {
             showFinishedDownloadOptionsPopup(v)
         } else {
             showUnfinishedDownloadOptionsPopup(v)
@@ -151,16 +160,17 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
     }
 
     private fun showFinishedDownloadOptionsPopup(v: DownloadListItemView) {
+        val download = v.download ?: return
         val pm = PopupMenu(this, v, Gravity.BOTTOM)
-        if (v.download?.filename!!.endsWith(".apk", true) &&
-                v.download?.size == v.download?.bytesReceived) {
+        if (download.filename.endsWith(".apk", true) &&
+            download.size == download.bytesReceived) {
             pm.menu.add(0, 0, 0, R.string.install)
         }
         pm.menu.add(0, 1, 1, R.string.open_folder)
         pm.menu.add(0, 2, 2, R.string.delete)
         pm.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
-                0 -> installAPK(v.download!!)
+                0 -> installAPK(download)
                 1 -> openFolder(v)
                 2 -> deleteItem(v)
             }
@@ -246,30 +256,27 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     companion object {
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
-        const val REQUEST_CODE_INSTALL_PACKAGE = 10008
-        val TAG = DownloadsActivity::class.java.simpleName
-
-        internal fun getFileExtension(filePath: String): String? {
-            var result = ""
-            val parts = filePath.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            if (parts.size > 0)
-                result = parts[parts.size - 1]
-            return result
-        }
+        private const val REQUEST_CODE_INSTALL_PACKAGE = 10008
+        val TAG: String = DownloadsActivity::class.java.simpleName
 
         fun launchInstallAPKActivity(activity: Activity, download: Download) {
-            val file = File(download.filepath)
-            val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
-            val apkURI = FileProvider.getUriForFile(
+            val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension("apk")
+            val apkURI = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Uri.parse(download.filepath)
+            } else {
+                val file = File(download.filepath)
+                FileProvider.getUriForFile(
                     activity,
-                    activity.applicationContext.packageName + ".provider", file)
+                    activity.applicationContext.packageName + ".provider", file
+                )
+            }
 
             val install = Intent(Intent.ACTION_INSTALL_PACKAGE)
             install.setDataAndType(apkURI, mimeType)
             install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             try {
                 activity.startActivityForResult(install, REQUEST_CODE_INSTALL_PACKAGE)//we are not using result for now
-            } catch (e: ActivityNotFoundException) {
+            } catch (e: Exception) {
                 Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
             }
         }
