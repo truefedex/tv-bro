@@ -77,7 +77,7 @@ class MainActivityViewModel: ActiveModel() {
         }
     }
 
-    fun logVisitedHistory(title: String?, url: String, faviconHash: String?, incognito: Boolean) {
+    fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
         if ((url == lastHistoryItem?.url) || url == Config.DEFAULT_HOME_URL) {
             return
         }
@@ -87,7 +87,6 @@ class MainActivityViewModel: ActiveModel() {
         item.title = title ?: ""
         item.time = Date().time
         item.favicon = faviconHash
-        item.incognito = incognito
         lastHistoryItem = item
         modelScope.launch(Dispatchers.Main) {
             AppDatabase.db.historyDao().insert(item)
@@ -210,7 +209,6 @@ class MainActivityViewModel: ActiveModel() {
 
     fun clearIncognitoData() = modelScope.launch(Dispatchers.IO) {
         Log.d(TAG, "clearIncognitoData")
-        AppDatabase.db.historyDao().deleteIncognitoHistory()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val webViewData = File(

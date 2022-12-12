@@ -122,11 +122,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         vb.flWebViewContainer.setCallback(object : CursorLayout.Callback {
             override fun onUserInteraction() {
-                val tab = tabsModel.currentTab.value
-                if (tab != null) {
-                    if (!tab.webPageInteractionDetected) {
-                        tab.webPageInteractionDetected = true
-                        viewModel.logVisitedHistory(tab.title, tab.url, tab.faviconHash, config.incognitoMode)
+                val tab = tabsModel.currentTab.value ?: return
+                if (!tab.webPageInteractionDetected) {
+                    tab.webPageInteractionDetected = true
+                    if (!config.incognitoMode) {
+                        viewModel.logVisitedHistory(tab.title, tab.url, tab.faviconHash)
                     }
                 }
             }
