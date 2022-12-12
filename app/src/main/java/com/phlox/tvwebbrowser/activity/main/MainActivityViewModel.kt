@@ -170,6 +170,7 @@ class MainActivityViewModel: ActiveModel() {
     }
 
     fun prepareSwitchToIncognito() {
+        Log.d(TAG, "prepareSwitchToIncognito")
         //to isolate incognito mode data:
         //in api >= 28 we just use another directory for WebView data
         //on earlier apis we backup-ing existing WebView data directory
@@ -208,6 +209,7 @@ class MainActivityViewModel: ActiveModel() {
     }
 
     fun clearIncognitoData() = modelScope.launch(Dispatchers.IO) {
+        Log.d(TAG, "clearIncognitoData")
         AppDatabase.db.historyDao().deleteIncognitoHistory()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

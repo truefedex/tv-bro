@@ -88,6 +88,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         super.onCreate(savedInstanceState)
 
         val incognitoMode = config.incognitoMode
+        Log.d(TAG, "onCreate incognitoMode: $incognitoMode")
         if (incognitoMode xor (this is IncognitoModeMainActivity)) {
             switchProcess(incognitoMode, intent?.extras)
             finish()
@@ -268,6 +269,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun closeWindow() {
+        Log.d(TAG, "closeWindow")
         lifecycleScope.launch {
             if (config.incognitoMode) {
                 toggleIncognitoMode(false).join()
@@ -370,6 +372,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun onDestroy() {
+        Log.d(TAG, "onDestroy")
         //here properties can be uninitialized in case of wrong activity for incognito mode
         //detection and force activity restart in onCreate()
         if (::jsInterface.isInitialized) {
@@ -710,6 +713,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun toggleIncognitoMode(andSwitchProcess: Boolean) = lifecycleScope.launch(Dispatchers.Main) {
+        Log.d(TAG, "toggleIncognitoMode andSwitchProcess: $andSwitchProcess")
         val becomingIncognitoMode = !config.incognitoMode
         vb.progressBarGeneric.visibility = View.VISIBLE
         if (!becomingIncognitoMode) {
@@ -731,6 +735,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun switchProcess(incognitoMode: Boolean, intentDataToCopy: Bundle? = null) {
+        Log.d(TAG, "switchProcess incognitoMode: $incognitoMode")
         val activityClass = if (incognitoMode) IncognitoModeMainActivity::class.java
         else MainActivity::class.java
         val intent = Intent(this@MainActivity, activityClass)
