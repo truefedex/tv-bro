@@ -50,7 +50,7 @@ class ActionBar @JvmOverloads constructor(
 
             val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_FORCED)
-            handler.postDelayed(//workaround an android TV bug
+            postDelayed(//workaround an android TV bug
                 {
                     vb.etUrl.selectAll()
                 }, 500)
