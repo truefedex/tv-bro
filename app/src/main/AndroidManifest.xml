@@ -56,7 +56,8 @@
         android:usesCleartextTraffic="true"
         android:screenOrientation="sensor"
         android:theme="@style/AppTheme"
-        android:requestLegacyExternalStorage="true">
+        android:requestLegacyExternalStorage="true"
+        android:extractNativeLibs="${extractNativeLibs}">
         <activity
             android:name=".activity.main.MainActivity"
             android:banner="@drawable/banner"

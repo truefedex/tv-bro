@@ -60,15 +60,20 @@ android {
         create("generic") {
             dimension = "appstore"
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
+            //when distributing as an apk, the size of the distribution apk is more
+            //important than the size after installation
+            manifestPlaceholders["extractNativeLibs"] = "true"
         }
         create("google") {
             dimension = "appstore"
             //now auto-update violates Google Play policies
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
+            manifestPlaceholders["extractNativeLibs"] = "false"
         }
         create("amazon") {
             dimension = "appstore"
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
+            manifestPlaceholders["extractNativeLibs"] = "true"
         }
     }
 
