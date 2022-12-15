@@ -20,7 +20,9 @@
     <string name="bookmarks">Bookmarks</string>
     <string name="add">Add</string>
     <string name="edit">Edit</string>
+    <string name="no_bookmarks_yet">No bookmarks yet</string>
     <string name="new_bookmark">New bookmark</string>
+    <string name="done">Done</string>
     <string name="title">Title</string>
     <string name="url" translatable="false">URL</string>
     <string name="search_history">Search history</string>
