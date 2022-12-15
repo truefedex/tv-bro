@@ -5,15 +5,15 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("kapt")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
+    //id("com.google.gms.google-services")
+    //id("com.google.firebase.crashlytics")
 }
 
-val properties = Properties()
+/*val properties = Properties()
 val localPropertiesFile: File = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { properties.load(it) }
-}
+}*/
 
 android {
     compileSdk = 33
@@ -33,25 +33,25 @@ android {
             }
         }
     }
-    signingConfigs {
+/*    signingConfigs {
         create("release") {
             storeFile = rootProject.file(properties.getProperty("storeFile", ""))
             storePassword = properties.getProperty("storePassword", "")
             keyAlias = properties.getProperty("keyAlias", "")
             keyPassword = properties.getProperty("keyPassword", "")
         }
-    }
+    }*/
     buildTypes {
         getByName("debug") {
             isDebuggable = true
-            project.setProperty("crashlytics", false)
+            //project.setProperty("crashlytics", false)
         }
         getByName("release") {
             isDebuggable = false
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig=signingConfigs.getByName("release")
-            project.setProperty("crashlytics", true)
+            //signingConfig=signingConfigs.getByName("release")
+            //project.setProperty("crashlytics", true)
         }
     }
 
@@ -59,12 +59,12 @@ android {
     productFlavors {
         create("generic") {
             dimension = "appstore"
-            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
             //when distributing as an apk, the size of the distribution apk is more
             //important than the size after installation
             manifestPlaceholders["extractNativeLibs"] = "true"
         }
-        create("google") {
+/*        create("google") {
             dimension = "appstore"
             //now auto-update violates Google Play policies
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
@@ -74,7 +74,7 @@ android {
             dimension = "appstore"
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
             manifestPlaceholders["extractNativeLibs"] = "true"
-        }
+        }*/
     }
 
     buildFeatures {
@@ -119,12 +119,12 @@ dependencies {
     implementation("com.github.truefedex:ad-block:v0.0.1-ci")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
-    "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
+/*    "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     if (project.property("crashlytics") == true) {
         implementation("com.google.firebase:firebase-core:21.1.1")
         implementation("com.google.firebase:firebase-crashlytics-ktx:18.3.2")
-    }
+    }*/
 }
 
 tasks.getByName("check").dependsOn("lint")
