@@ -13,5 +13,4 @@ Features:
 - shortcuts
 
 Discussion pages:
-- http://4pda.ru/forum/index.php?showtopic=767233
 - https://forum.xda-developers.com/android/apps-games/tv-bro-browser-android-based-tvs-t3545295
