@@ -48,7 +48,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No bookmarks yet"
+        android:text="@string/no_bookmarks_yet"
         android:id="@+id/tvPlaceholder"
         android:textSize="20sp"
         android:paddingTop="20dp"
