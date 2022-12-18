@@ -21,7 +21,9 @@
     <string name="add">Aggiungi</string>
     <string name="edit">Modifica</string>
     <string name="new_bookmark">Nuovo segnalibro</string>
+    <string name="no_bookmarks_yet">Nessun segnalibro</string>
     <string name="title">Titolo</string>
+    <string name="done">Fatto</string>
     <string name="url" translatable="false">URL</string>
     <string name="search_history">Cronologia ricerche</string>
     <string name="engine">Motore di ricerca</string>
@@ -126,7 +128,4 @@
     <string name="don_t_show_again">Non mostrare più</string>
     <string name="why_icon_changed">Perché l\'icona è cambiata?</string>
     <string name="clear_web_cache">Pulisci la cache</string>
-
-    <string name="no_bookmarks_yet">Nessun segnalibro</string>
-    <string name="done">Fatto</string>
 </resources>
