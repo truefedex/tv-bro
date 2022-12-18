@@ -429,8 +429,8 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         if (s.startsWith("\"") && s.endsWith("\"")) {
             s = s.substring(1, s.length - 1)
         }
-        val url = s.toLowerCase(Locale.ROOT)
-        if (url.startsWith("http://") || url.startsWith("https://")) {
+        val url = s
+        if (url.startsWith("http://", true) || url.startsWith("https://", true)) {
             val anchor = View(context)
             val parent = parent as FrameLayout
             val lp = FrameLayout.LayoutParams(1, 1)
