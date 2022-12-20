@@ -121,16 +121,29 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             allowUniversalAccessFromFileURLs = true
             domStorageEnabled = true
 
-            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-                when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-                    Configuration.UI_MODE_NIGHT_YES -> {
-                        WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_ON)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                    when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+                        Configuration.UI_MODE_NIGHT_YES -> {
+                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(this, true)
+                        }
+                        Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
+                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(this, false)
+                        }
                     }
-                    Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
-                        WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_OFF)
-                    }
-                    else -> {
-                        WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_AUTO)
+                }
+            } else {
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                    when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+                        Configuration.UI_MODE_NIGHT_YES -> {
+                            WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_ON)
+                        }
+                        Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
+                            WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_OFF)
+                        }
+                        else -> {
+                            WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_AUTO)
+                        }
                     }
                 }
             }

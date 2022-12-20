@@ -23,7 +23,7 @@ android {
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
         minSdk = 23
-        targetSdk = 32
+        targetSdk = 33
         versionCode = 58
         versionName = "1.8.5"
 
