@@ -182,9 +182,24 @@
             android:layout_marginTop="3dp"
             android:layout_marginBottom="3dp"
             android:layout_marginEnd="3dp"
-            app:layout_constraintEnd_toStartOf="@+id/ibHome"
+            app:layout_constraintEnd_toStartOf="@+id/ibPopupBlock"
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toEndOf="@+id/ibZoomOut"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <ImageButton
+            android:id="@+id/ibPopupBlock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_bg_selector"
+            android:contentDescription="@string/toggle_ads_blocking"
+            android:src="@drawable/ic_adblock_on"
+            android:layout_marginTop="3dp"
+            android:layout_marginBottom="3dp"
+            android:layout_marginEnd="3dp"
+            app:layout_constraintEnd_toStartOf="@+id/ibHome"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toEndOf="@+id/ibAdBlock"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
         <ImageButton
@@ -199,7 +214,7 @@
             android:layout_marginBottom="3dp"
             android:layout_marginEnd="3dp"
             app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toEndOf="@+id/ibAdBlock"
+            app:layout_constraintStart_toEndOf="@+id/ibPopupBlock"
             app:layout_constraintBottom_toBottomOf="parent"/>
 
         <TextView
@@ -212,6 +227,22 @@
             app:layout_constraintBottom_toTopOf="@+id/ibAdBlock"
             app:layout_constraintStart_toEndOf="@+id/ibAdBlock"
             app:layout_constraintEnd_toEndOf="@+id/ibAdBlock"
+            android:background="@drawable/gray_badge_bg"
+            android:gravity="center"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:text="1" />
+
+        <TextView
+            android:id="@+id/tvBlockedPopupCounter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="20dp"
+            android:textSize="12sp"
+            app:layout_constraintTop_toTopOf="@+id/ibPopupBlock"
+            app:layout_constraintBottom_toTopOf="@+id/ibPopupBlock"
+            app:layout_constraintStart_toEndOf="@+id/ibPopupBlock"
+            app:layout_constraintEnd_toEndOf="@+id/ibPopupBlock"
             android:background="@drawable/gray_badge_bg"
             android:gravity="center"
             android:visibility="gone"
