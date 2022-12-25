@@ -89,7 +89,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:background="@drawable/button_bg_selector"
-            android:text="Cancel"
+            android:text="@string/cancel"
             android:id="@+id/btnCancel"
             android:layout_weight="1" />
 
@@ -97,7 +97,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:background="@drawable/button_bg_selector"
-            android:text="Done"
+            android:text="@string/done"
             android:id="@+id/btnDone"
             android:layout_weight="1" />
 

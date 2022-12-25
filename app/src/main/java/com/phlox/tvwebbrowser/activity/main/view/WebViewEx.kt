@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.media.MediaDrm
 import android.net.Uri
 import android.net.http.SslError
 import android.os.Build
@@ -32,6 +33,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.utils.LogUtils
 import java.net.URLEncoder
+import java.util.*
 
 /**
  * Copyright (c) 2016 Fedir Tsapana.
@@ -43,8 +45,10 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         const val INTERNAL_SCHEME = "internal://"
         const val INTERNAL_SCHEME_WARNING_DOMAIN = "warning"
         const val INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT = "certificate"
+        val WIDEVINE_UUID = UUID(-0x121074568629b532L,-0x5c37d8232ae2de13L)
     }
 
+    private var genericInjects: String? = null
     private var webChromeClient_: WebChromeClient
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
@@ -53,7 +57,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
     private var lastTouchY: Int = 0
     private var permRequestDialog: AlertDialog? = null
     private var webPermissionsRequest: PermissionRequest? = null
-    private var reuestedResourcesForAlreadyGrantedPermissions: ArrayList<String>? = null
+    private var requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions: ArrayList<String>? = null
     private var geoPermissionOrigin: String? = null
     private var geoPermissionsCallback: GeolocationPermissions.Callback? = null
     var lastSSLError: SslError? = null
@@ -108,8 +112,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             setSupportZoom(true)
             domStorageEnabled = true
             allowContentAccess = false
-            setAppCachePath(context.cacheDir.absolutePath)
-            setAppCacheEnabled(true)
             cacheMode = WebSettings.LOAD_DEFAULT
             mediaPlaybackRequiresUserGesture = false
             setGeolocationEnabled(true)
@@ -122,16 +124,29 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             allowUniversalAccessFromFileURLs = true
             domStorageEnabled = true
 
-            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-                when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-                    Configuration.UI_MODE_NIGHT_YES -> {
-                        WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_ON)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                    when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+                        Configuration.UI_MODE_NIGHT_YES -> {
+                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(this, true)
+                        }
+                        Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
+                            WebSettingsCompat.setAlgorithmicDarkeningAllowed(this, false)
+                        }
                     }
-                    Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
-                        WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_OFF)
-                    }
-                    else -> {
-                        WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_AUTO)
+                }
+            } else {
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                    when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+                        Configuration.UI_MODE_NIGHT_YES -> {
+                            WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_ON)
+                        }
+                        Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
+                            WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_OFF)
+                        }
+                        else -> {
+                            WebSettingsCompat.setForceDark(this, WebSettingsCompat.FORCE_DARK_AUTO)
+                        }
                     }
                 }
             }
@@ -175,6 +190,20 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             }
 
             override fun onPermissionRequest(request: PermissionRequest) {
+                if (request.resources.size == 1 &&
+                    PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID == request.resources[0]) {
+                    //fast path for grant/deny RESOURCE_PROTECTED_MEDIA_ID
+                    if (MediaDrm.isCryptoSchemeSupported(WIDEVINE_UUID)) {
+                        val widevineKeyDrm = MediaDrm(WIDEVINE_UUID)
+                        val version = widevineKeyDrm.getPropertyString(MediaDrm.PROPERTY_VERSION)
+                        Log.i(TAG, "DRM widevine version = " + version)
+                        request.grant(request.resources)
+                    } else {
+                        request.deny()
+                    }
+                    return
+                }
+
                 val activity = callback.getActivity() ?: return
                 webPermissionsRequest = request
                 permRequestDialog = AlertDialog.Builder(activity)
@@ -192,37 +221,33 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                                 return@setPositiveButton
                             }
 
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                val neededPermissions = ArrayList<String>()
-                                reuestedResourcesForAlreadyGrantedPermissions = ArrayList()
-                                for (resource in webPermissionsRequest.resources) {
-                                    if (PermissionRequest.RESOURCE_AUDIO_CAPTURE == resource) {
-                                        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                                            neededPermissions.add(Manifest.permission.RECORD_AUDIO)
-                                        } else {
-                                            reuestedResourcesForAlreadyGrantedPermissions!!.add(resource)
-                                        }
-                                    } else if (PermissionRequest.RESOURCE_VIDEO_CAPTURE == resource) {
-                                        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                                            neededPermissions.add(Manifest.permission.CAMERA)
-                                        } else {
-                                            reuestedResourcesForAlreadyGrantedPermissions!!.add(resource)
-                                        }
-                                    }
-                                }
-
-                                if (neededPermissions.isNotEmpty()) {
-                                    callback.requestPermissions(neededPermissions.toTypedArray(), false)
-                                } else {
-                                    if (reuestedResourcesForAlreadyGrantedPermissions!!.isEmpty()) {
-                                        webPermissionsRequest.deny()
+                            val neededPermissions = ArrayList<String>()
+                            val resourcesThatDoNotNeedToGrantPerms = ArrayList<String>()
+                            for (resource in webPermissionsRequest.resources) {
+                                if (PermissionRequest.RESOURCE_AUDIO_CAPTURE == resource) {
+                                    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                                        neededPermissions.add(Manifest.permission.RECORD_AUDIO)
                                     } else {
-                                        webPermissionsRequest.grant(reuestedResourcesForAlreadyGrantedPermissions!!.toTypedArray())
+                                        resourcesThatDoNotNeedToGrantPerms.add(resource)
                                     }
+                                } else if (PermissionRequest.RESOURCE_VIDEO_CAPTURE == resource) {
+                                    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                                        neededPermissions.add(Manifest.permission.CAMERA)
+                                    } else {
+                                        resourcesThatDoNotNeedToGrantPerms.add(resource)
+                                    }
+                                } else {
+                                    resourcesThatDoNotNeedToGrantPerms.add(resource)
                                 }
+                            }
+
+                            if (neededPermissions.isNotEmpty()) {
+                                requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions = resourcesThatDoNotNeedToGrantPerms
+                                callback.requestPermissions(neededPermissions.toTypedArray(), false)
                             } else {
                                 webPermissionsRequest.grant(webPermissionsRequest.resources)
                             }
+
                             permRequestDialog = null
                         }
                         .create()
@@ -250,8 +275,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                             geoPermissionsCallback = null
                         }
                         .setPositiveButton(R.string.allow) { dialog, which ->
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                                    ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                 this@WebViewEx.callback.requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), true)
                             } else {
                                 geoPermissionsCallback!!.invoke(geoPermissionOrigin, true, true)
@@ -414,8 +438,8 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         if (s.startsWith("\"") && s.endsWith("\"")) {
             s = s.substring(1, s.length - 1)
         }
-        val url = s.toLowerCase()
-        if (url.startsWith("http://") || url.startsWith("https://")) {
+        val url = s
+        if (url.startsWith("http://", true) || url.startsWith("https://", true)) {
             val anchor = View(context)
             val parent = parent as FrameLayout
             val lp = FrameLayout.LayoutParams(1, 1)
@@ -479,34 +503,13 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
     }
 
     private fun getGenericJSInjects(): String {
-        return """
-    if (!window.tvBroClicksListener) {
-        window.tvBroClicksListener = function(e){
-            if (e.target.tagName.toUpperCase() == "A" && e.target.attributes.href.value.toLowerCase().startsWith("blob:")) {
-                var fileName = e.target.download;
-                var url = e.target.attributes.href.value;
-                var xhr=new XMLHttpRequest();
-                xhr.open('GET', e.target.attributes.href.value, true);
-                xhr.responseType = 'blob';
-                xhr.onload = function(e) {
-                    if (this.status == 200) {
-                        var blob = this.response;
-                        var reader = new FileReader();
-                        reader.readAsDataURL(blob);
-                        reader.onloadend = function() {
-                            base64data = reader.result;
-                            TVBro.takeBlobDownloadData(base64data, fileName, url, blob.type);
-                        }
-                    }
-                };
-                xhr.send();
-                e.stopPropagation();
-                e.preventDefault();
-            }
-        };
-        document.addEventListener("click", window.tvBroClicksListener);
-    }
-        """.trimIndent()
+        var injects = genericInjects
+        if (injects == null) {
+            injects =
+                context.assets.open("generic_injects.js").bufferedReader().use { it.readText() }
+            genericInjects = injects
+        }
+        return injects
     }
 
     fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
@@ -573,9 +576,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                     }
                 }
             }
-            reuestedResourcesForAlreadyGrantedPermissions?.apply {
+            requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions?.apply {
                 resources.addAll(this)
-                reuestedResourcesForAlreadyGrantedPermissions = null
+                requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions = null
             }
             if (resources.isEmpty()) {
                 this.deny()
@@ -590,5 +593,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.safeBrowsingEnabled = adblockEnabled
         }
+    }
+
+    fun togglePlayback() {
+        evaluateJavascript("tvBroTogglePlayback()", null)
     }
 }

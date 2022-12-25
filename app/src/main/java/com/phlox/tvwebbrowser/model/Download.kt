@@ -42,7 +42,7 @@ class Download {
     fun fillWith(intent: DownloadIntent) {
         url = intent.url
         filename = intent.fileName
-        filepath = intent.fullDestFilePath!!
+        filepath = intent.fullDestFilePath ?: ""
         operationAfterDownload = intent.operationAfterDownload
         mimeType = intent.mimeType
         referer = intent.referer

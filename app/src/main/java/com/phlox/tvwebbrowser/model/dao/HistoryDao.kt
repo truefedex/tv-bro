@@ -21,9 +21,6 @@ interface HistoryDao {
     @Query("DELETE FROM history WHERE time < :time")
     suspend fun deleteWhereTimeLessThan(time: Long)
 
-    @Query("DELETE FROM history WHERE incognito")
-    suspend fun deleteIncognitoHistory()
-
     @Query("SELECT COUNT(*) FROM history")
     suspend fun count(): Int
 

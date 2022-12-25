@@ -18,6 +18,7 @@ class HistoryItem {
     var title: String = ""
     var url: String = ""
     var favicon: String? = null
+    @Deprecated("Not used anymore")
     var incognito: Boolean? = null
 
     @Ignore

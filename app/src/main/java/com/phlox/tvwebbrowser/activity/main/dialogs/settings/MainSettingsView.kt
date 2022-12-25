@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
 import android.content.Context
+import android.os.Build
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -45,7 +46,13 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     private fun initThemeSettingsUI() {
-        if (!WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+        val webViewSupportsDarkening = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)
+        } else {
+            WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)
+        }
+
+        if (!webViewSupportsDarkening) {
             vb.llThemeSettings.visibility = View.GONE
             return
         }

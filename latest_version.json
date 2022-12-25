@@ -2,35 +2,35 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v1.8.2",
-      "latestVersionCode": 53,
+      "latestVersionName": "v1.8.4",
+      "latestVersionCode": 56,
       "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.2/tvbro1.8.2.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.4/tvbro1.8.4.apk"
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.8.3",
-      "latestVersionCode": 55,
-      "minAPI": 21,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.3/tvbro1.8.3.apk"
+      "latestVersionName": "v1.8.5",
+      "latestVersionCode": 57,
+      "minAPI": 23,
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.5/tvbro1.8.5.apk"
     }
   ],
 
   "changelog": [
     {
-      "versionCode": 55,
-      "versionName": "v1.8.3",
-      "changes": "* Fixed crash on incognito mode switch\n* Fixed History delete function (thank you @shark-yn)\n* Added Polish translation (thank you @BadOmen)\n* Added Italian translation (thank you @Vladi69)\n* Added some other minor missing translations\n* Dependency & target android API level update"
+      "versionCode": 57,
+      "versionName": "v1.8.5",
+      "changes": "* Some crashes fixed\n* Do not log temporary history in incognito mode (even temporary)\n* Trick to make play/pause remote media button work (experimental)\n* Fixed one problem of not opening magnet links on Android 11 and below\n* Fixed downloading in private folder problem on Android 12\n* Dropped support of Android 5.x"
+    },
+    {
+      "versionCode": 56,
+      "versionName": "v1.8.4",
+      "changes": "* Fixed crash on incognito mode switch\n* Fixed History delete function (thank you @shark-yn)\n* DRM content support fix\n* Added Polish translation (thank you @BadOmen)\n* Added Italian translation (thank you @Vladi69)\n* Added some other minor missing translations\n* Dependency & target android API level update"
     },
     {
       "versionCode": 53,
       "versionName": "v1.8.2",
       "changes": "* Incognito mode implemented\n* Settings: added option to keep screen always on (thank you  Sebastian Niemann for pull request !)\n* German translation (thank you peat80 for pull request !)\n* Fixed problem with voice recognition on android >= 11 (now look a bit changed but functionality recovered)\n* Icon look changed to declare support for Ukraine (explanation by link in settings)\n* v1.8.1: added WebView version info and \"clear web cache\" button to settings; bugfixes;\n* v1.8.2: often crash fixed"
-    },
-    {
-      "versionCode": 49,
-      "versionName": "v1.7.2",
-      "changes": "* Added ability to set search engine as homepage (thank you E-D-W-I-N for pull request !)\n* Dark theme tuning/fixing/backporting; should now work on pre-Android 10 devices\n* Improvement: auto retry download, this helps on some sites\n* Fix: crash on download on Fire TV (thank you tsynik for crashlog)\n* Fix: unability to select tab with mouse (thank you xvkong for foundings)\n* Fix for not showing ssl errors on some pages\n* Fix for tabs fast scrolling issues"
     }
   ]
 }

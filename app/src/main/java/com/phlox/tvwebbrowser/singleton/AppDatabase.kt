@@ -118,8 +118,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         private val MIGRATION_15_16 = object : Migration(15, 16) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE history\n" +
-                        "ADD popupblock INTEGER;")
+                db.execSQL("DELETE FROM history WHERE incognito")
             }
         }
 

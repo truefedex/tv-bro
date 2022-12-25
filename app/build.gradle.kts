@@ -16,16 +16,16 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    compileSdk = 32
-    buildToolsVersion = "32.0.0"
+    compileSdk = 33
+    buildToolsVersion = "33.0.1"
     namespace = "com.phlox.tvwebbrowser"
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        minSdk = 21
-        targetSdk = 31
-        versionCode = 55
-        versionName = "1.8.3"
+        minSdk = 23
+        targetSdk = 33
+        versionCode = 58
+        versionName = "1.8.5"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -42,11 +42,16 @@ android {
         }
     }
     buildTypes {
+        getByName("debug") {
+            isDebuggable = true
+            project.setProperty("crashlytics", false)
+        }
         getByName("release") {
             isDebuggable = false
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig=signingConfigs.getByName("release")
+            project.setProperty("crashlytics", true)
         }
     }
 
@@ -54,12 +59,21 @@ android {
     productFlavors {
         create("generic") {
             dimension = "appstore"
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
+            //when distributing as an apk, the size of the distribution apk is more
+            //important than the size after installation
+            manifestPlaceholders["extractNativeLibs"] = "true"
         }
         create("google") {
             dimension = "appstore"
+            //now auto-update violates Google Play policies
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
+            manifestPlaceholders["extractNativeLibs"] = "false"
         }
         create("amazon") {
             dimension = "appstore"
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
+            manifestPlaceholders["extractNativeLibs"] = "true"
         }
     }
 
@@ -86,7 +100,7 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     implementation("androidx.appcompat:appcompat:1.5.1")
-    implementation("androidx.webkit:webkit:1.4.0")
+    implementation("androidx.webkit:webkit:1.5.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
 
@@ -107,9 +121,10 @@ dependencies {
 
     "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
-    //appstore-dependent dependencies
-    "googleImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.2")
+    if (project.property("crashlytics") == true) {
+        implementation("com.google.firebase:firebase-core:21.1.1")
+        implementation("com.google.firebase:firebase-crashlytics-ktx:18.3.2")
+    }
 }
 
 tasks.getByName("check").dependsOn("lint")

@@ -1,15 +1,21 @@
 package com.phlox.tvwebbrowser.service.downloads
 
+import android.content.ContentResolver
+import android.content.ContentValues
+import android.net.Uri
+import android.os.Build
+import android.os.ParcelFileDescriptor.AutoCloseOutputStream
+import android.provider.MediaStore
 import android.util.Base64
+import android.util.Log
 import android.webkit.CookieManager
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.DownloadUtils
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
-import java.net.URLConnection
-import javax.net.ssl.HttpsURLConnection
 
 /**
  * Created by PDT on 23.01.2017.
@@ -28,6 +34,9 @@ interface DownloadTask {
 }
 
 class FileDownloadTask(override var downloadInfo: Download, private val userAgent: String, val callback: DownloadTask.Callback) : Runnable, DownloadTask {
+    companion object {
+        val TAG = FileDownloadTask::class.java.simpleName
+    }
 
     override fun run() {
         downloadInfo.id = AppDatabase.db.downloadDao().insert(downloadInfo)
@@ -86,8 +95,9 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
                 downloadInfo.filename = DownloadUtils.guessFileName(downloadInfo.url, connection.getHeaderField("Content-Disposition"), mime)
                 downloadInfo.filepath = File(File(downloadInfo.filepath).parentFile, downloadInfo.filename).absolutePath
             }
-            output = FileOutputStream(downloadInfo.filepath)
 
+            output = prepareDownloadOutput(downloadInfo)
+            Log.d(TAG, "URI: " + downloadInfo.filename)
             val data = ByteArray(4096)
             var total: Long = 0
             var count = input.read(data)
@@ -116,9 +126,7 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
             }
 
             connection?.disconnect()
-            if (downloadInfo.cancelled) {
-                File(downloadInfo.filepath).delete()
-            }
+            cancelDownloadIfNeeded(downloadInfo)
         }
         downloadInfo.size = downloadInfo.bytesReceived
         callback.onDone(this)
@@ -132,7 +140,8 @@ class BlobDownloadTask(override var downloadInfo: Download, val blobBase64Data: 
 
         try {
             val blobAsBytes: ByteArray = Base64.decode(blobBase64Data.replaceFirst("data:${downloadInfo.mimeType};base64,", ""), 0)
-            File(downloadInfo.filepath).writeBytes(blobAsBytes)
+            val output = prepareDownloadOutput(downloadInfo)
+            output.buffered().use{ it.write(blobAsBytes) }
             downloadInfo.size = blobAsBytes.size.toLong()
             downloadInfo.bytesReceived = downloadInfo.size
         } catch (e: Exception) {
@@ -140,10 +149,56 @@ class BlobDownloadTask(override var downloadInfo: Download, val blobBase64Data: 
             callback.onError(this, 0, e.toString())
             return
         } finally {
-            if (downloadInfo.cancelled) {
-                File(downloadInfo.filepath).delete()
-            }
+            cancelDownloadIfNeeded(downloadInfo)
         }
         callback.onDone(this)
+    }
+}
+
+private fun cancelDownloadIfNeeded(downloadInfo: Download) {
+    val filePath = downloadInfo.filepath
+    if (filePath.isEmpty()) return
+    val contentResolver = TVBro.instance.contentResolver
+    if (downloadInfo.cancelled) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val rowsDeleted = contentResolver.delete(Uri.parse(filePath), null)
+            if (rowsDeleted < 1) {
+                Log.e(FileDownloadTask.TAG, "Download cancelled but content not deleted??")
+            }
+        } else {
+            File(filePath).delete()
+        }
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        val downloadDetails = ContentValues().apply {
+            put(MediaStore.Downloads.IS_PENDING, 0)
+        }
+        contentResolver.update(Uri.parse(filePath), downloadDetails, null, null)
+    }
+}
+
+private fun prepareDownloadOutput(downloadInfo: Download): OutputStream {
+    val contentResolver = TVBro.instance.contentResolver
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        val downloadsCollection =
+            MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val newDownloadDetails = ContentValues().apply {
+            if (downloadInfo.filename.isNotEmpty()) {
+                put(MediaStore.Downloads.DISPLAY_NAME, downloadInfo.filename)
+            }
+            put(MediaStore.Downloads.DOWNLOAD_URI, downloadInfo.url)
+            put(MediaStore.Downloads.REFERER_URI, downloadInfo.referer)
+            put(MediaStore.Downloads.IS_PENDING, 1)
+        }
+        val downloadUri = contentResolver
+            .insert(downloadsCollection, newDownloadDetails)
+        if (downloadUri == null) {
+            throw IllegalStateException("Can not create file")
+        }
+        val fd = contentResolver.openFileDescriptor(downloadUri, "w", null)
+        downloadInfo.filepath = downloadUri.toString()
+        AppDatabase.db.downloadDao().update(downloadInfo)
+        AutoCloseOutputStream(fd)
+    } else {
+        FileOutputStream(downloadInfo.filepath)
     }
 }

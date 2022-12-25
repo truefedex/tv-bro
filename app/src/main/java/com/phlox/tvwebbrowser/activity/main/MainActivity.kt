@@ -62,7 +62,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         const val VOICE_SEARCH_REQUEST_CODE = 10001
         private const val MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS = 10002
         private const val MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS = 10003
-        const val MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10004
+        const val MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS = 10004
         private const val PICKFILE_REQUEST_CODE = 10005
         private const val REQUEST_CODE_HISTORY_ACTIVITY = 10006
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
@@ -89,6 +89,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         super.onCreate(savedInstanceState)
 
         val incognitoMode = config.incognitoMode
+        Log.d(TAG, "onCreate incognitoMode: $incognitoMode")
         if (incognitoMode xor (this is IncognitoModeMainActivity)) {
             switchProcess(incognitoMode, intent?.extras)
             finish()
@@ -122,11 +123,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         vb.flWebViewContainer.setCallback(object : CursorLayout.Callback {
             override fun onUserInteraction() {
-                val tab = tabsModel.currentTab.value
-                if (tab != null) {
-                    if (!tab.webPageInteractionDetected) {
-                        tab.webPageInteractionDetected = true
-                        viewModel.logVisitedHistory(tab.title, tab.url, tab.faviconHash, config.incognitoMode)
+                val tab = tabsModel.currentTab.value ?: return
+                if (!tab.webPageInteractionDetected) {
+                    tab.webPageInteractionDetected = true
+                    if (!config.incognitoMode) {
+                        viewModel.logVisitedHistory(tab.title, tab.url, tab.faviconHash)
                     }
                 }
             }
@@ -270,6 +271,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun closeWindow() {
+        Log.d(TAG, "closeWindow")
         lifecycleScope.launch {
             if (config.incognitoMode) {
                 toggleIncognitoMode(false).join()
@@ -372,6 +374,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun onDestroy() {
+        Log.d(TAG, "onDestroy")
         //here properties can be uninitialized in case of wrong activity for incognito mode
         //detection and force activity restart in onCreate()
         if (::jsInterface.isInitialized) {
@@ -429,7 +432,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             SearchEngineConfigDialogFactory.show(this@MainActivity, settingsModel, false,
                     object : SearchEngineConfigDialogFactory.Callback {
                         override fun onDone(url: String) {
-                            if (settingsModel.needAutockeckUpdates &&
+                            if (settingsModel.needAutoCheckUpdates &&
                                     settingsModel.updateChecker.versionCheckResult == null &&
                                     !settingsModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
                                 settingsModel.checkUpdate(false){
@@ -445,7 +448,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             if (currentTab == null || currentTab.url == settingsModel.homePage.value) {
                 showMenuOverlay()
             }
-            if (settingsModel.needAutockeckUpdates &&
+            if (settingsModel.needAutoCheckUpdates &&
                     settingsModel.updateChecker.versionCheckResult == null &&
                     !settingsModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
                 settingsModel.checkUpdate(false){
@@ -605,7 +608,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 tabsModel.currentTab.value?.webView?.onPermissionsResult(permissions, grantResults, true)
                 return
             }
-            MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE -> {
+            MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     viewModel.startDownload(this)
                 }
@@ -727,6 +730,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun toggleIncognitoMode(andSwitchProcess: Boolean) = lifecycleScope.launch(Dispatchers.Main) {
+        Log.d(TAG, "toggleIncognitoMode andSwitchProcess: $andSwitchProcess")
         val becomingIncognitoMode = !config.incognitoMode
         vb.progressBarGeneric.visibility = View.VISIBLE
         if (!becomingIncognitoMode) {
@@ -748,6 +752,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun switchProcess(incognitoMode: Boolean, intentDataToCopy: Bundle? = null) {
+        Log.d(TAG, "switchProcess incognitoMode: $incognitoMode")
         val activityClass = if (incognitoMode) IncognitoModeMainActivity::class.java
         else MainActivity::class.java
         val intent = Intent(this@MainActivity, activityClass)
@@ -793,6 +798,17 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         } else if (shortcutMgr.canProcessKeyCode(keyCode)) {
             if (event.action == KeyEvent.ACTION_UP) {
                 uiHandler.post { shortcutMgr.process(keyCode, this) }
+            }
+            return true
+        } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY ||
+            keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE ||
+            keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+            //trick to make play/pause media buttons work
+            //TODO: remove this if someday webview starts handling media keys by himself
+            if (event.action == KeyEvent.ACTION_UP) {
+                uiHandler.post {
+                    tabsModel.currentTab.value?.webView?.togglePlayback()
+                }
             }
             return true
         }

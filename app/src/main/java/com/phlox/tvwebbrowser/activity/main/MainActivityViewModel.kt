@@ -10,7 +10,6 @@ import android.widget.Toast
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
@@ -78,7 +77,7 @@ class MainActivityViewModel: ActiveModel() {
         }
     }
 
-    fun logVisitedHistory(title: String?, url: String, faviconHash: String?, incognito: Boolean) {
+    fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
         if ((url == lastHistoryItem?.url) || url == Config.DEFAULT_HOME_URL) {
             return
         }
@@ -88,7 +87,6 @@ class MainActivityViewModel: ActiveModel() {
         item.title = title ?: ""
         item.time = Date().time
         item.favicon = faviconHash
-        item.incognito = incognito
         lastHistoryItem = item
         modelScope.launch(Dispatchers.Main) {
             AppDatabase.db.historyDao().insert(item)
@@ -99,9 +97,12 @@ class MainActivityViewModel: ActiveModel() {
                             operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP,
                             base64BlobData: String? = null) {
         downloadIntent = DownloadIntent(url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload, null, base64BlobData)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            activity.requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    MainActivity.MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
+            activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            activity.requestPermissions(
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                MainActivity.MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS
+            )
         } else {
             startDownload(activity)
         }
@@ -110,40 +111,45 @@ class MainActivityViewModel: ActiveModel() {
     fun startDownload(activity: MainActivity) {
         val download = this.downloadIntent ?: return
         this.downloadIntent = null
-        val extPos = download.fileName.lastIndexOf(".")
-        val hasExt = extPos != -1
-        var ext: String? = null
-        var prefix: String? = null
-        if (hasExt) {
-            ext = download.fileName.substring(extPos + 1)
-            prefix = download.fileName.substring(0, extPos)
-        }
-        var fileName = download.fileName
-        var i = 0
-        while (File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath + File.separator + fileName).exists()) {
-            i++
-            if (hasExt) {
-                fileName = prefix + "_(" + i + ")." + ext
-            } else {
-                fileName = download.fileName + "_(" + i + ")"
-            }
-        }
-        download.fileName = fileName
 
-        if (Environment.MEDIA_MOUNTED != Environment.getExternalStorageState()) {
-            Toast.makeText(activity, R.string.storage_not_mounted, Toast.LENGTH_SHORT).show()
-            return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            val extPos = download.fileName.lastIndexOf(".")
+            val hasExt = extPos != -1
+            var ext: String? = null
+            var prefix: String? = null
+            if (hasExt) {
+                ext = download.fileName.substring(extPos + 1)
+                prefix = download.fileName.substring(0, extPos)
+            }
+            var fileName = download.fileName
+            var i = 0
+            while (File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath + File.separator + fileName).exists()) {
+                i++
+                if (hasExt) {
+                    fileName = prefix + "_(" + i + ")." + ext
+                } else {
+                    fileName = download.fileName + "_(" + i + ")"
+                }
+            }
+            download.fileName = fileName
+
+            if (Environment.MEDIA_MOUNTED != Environment.getExternalStorageState()) {
+                Toast.makeText(activity, R.string.storage_not_mounted, Toast.LENGTH_SHORT).show()
+                return
+            }
+            val downloadsDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (!downloadsDir.exists() && !downloadsDir.mkdirs()) {
+                Toast.makeText(activity, R.string.can_not_create_downloads, Toast.LENGTH_SHORT)
+                    .show()
+                return
+            }
+            download.fullDestFilePath = downloadsDir.toString() + File.separator + fileName
         }
-        val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        if (!downloadsDir.exists() && !downloadsDir.mkdirs()) {
-            Toast.makeText(activity, R.string.can_not_create_downloads, Toast.LENGTH_SHORT).show()
-            return
-        }
-        download.fullDestFilePath = downloadsDir.toString() + File.separator + fileName
 
         DownloadService.startDownloading(TVBro.instance, download)
 
-        activity.onDownloadStarted(fileName)
+        activity.onDownloadStarted(download.fileName)
     }
 
     private fun launchLogcatOutputCoroutine() {
@@ -163,6 +169,7 @@ class MainActivityViewModel: ActiveModel() {
     }
 
     fun prepareSwitchToIncognito() {
+        Log.d(TAG, "prepareSwitchToIncognito")
         //to isolate incognito mode data:
         //in api >= 28 we just use another directory for WebView data
         //on earlier apis we backup-ing existing WebView data directory
@@ -201,7 +208,7 @@ class MainActivityViewModel: ActiveModel() {
     }
 
     fun clearIncognitoData() = modelScope.launch(Dispatchers.IO) {
-        AppDatabase.db.historyDao().deleteIncognitoHistory()
+        Log.d(TAG, "clearIncognitoData")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val webViewData = File(
