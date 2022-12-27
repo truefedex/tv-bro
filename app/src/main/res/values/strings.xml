@@ -128,4 +128,12 @@
     <string name="don_t_show_again">Don\'t show again</string>
     <string name="why_icon_changed">Why icon changed?</string>
     <string name="clear_web_cache">Clear web cache</string>
+    <string name="block_popups">Popups blocking</string>
+    <string name="block_popups_s">Popups blocking (%s)</string>
+    <array name="popup_blocking_level">
+        <item>Not block</item>
+        <item>Block dialogs</item>
+        <item>Also block new tab popups (script-initiated)</item>
+        <item>Block any new windows (maximal blocking)</item>
+    </array>
 </resources>

@@ -5,12 +5,14 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
+import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.Utils
 import kotlinx.coroutines.CoroutineScope
@@ -20,8 +22,8 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.net.URL
 import java.nio.charset.Charset
 
 
@@ -46,9 +48,10 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
                        @ColumnInfo(name = "wv_state_file")
                        var wvStateFileName: String? = null,
                        var adblock: Boolean? = null,
-                       var popupblock: Boolean? = null,
                        var scale: Float? = null) {
     companion object {
+        val TAG: String = WebTabState::class.java.simpleName
+
         const val TAB_THUMBNAILS_DIR = "tabthumbs"
         const val TAB_WVSTATES_DIR = "wvstates"
         const val FAVICONS_DIR = "favicons"
@@ -70,7 +73,11 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     @Ignore
     var lastLoadingUrl: String? = null //this is last url appeared in WebViewClient.shouldOverrideUrlLoading callback
     @Ignore
-    var hasAutoOpenedWindows = false
+    var blockedAds = 0
+    @Ignore
+    var blockedPopups = 0
+    @Ignore
+    private var cachedHostConfig: HostConfig? = null
 
     constructor(context: Context, json: JSONObject) : this() {
         try {
@@ -286,5 +293,43 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             thumbnailHash = null
         }
         return null
+    }
+
+    suspend fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean {
+        val hostConfig = findHostConfig(false)
+        val currentBlockPopupsLevelValue = hostConfig?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE
+        return when (currentBlockPopupsLevelValue) {
+            HostConfig.POPUP_BLOCK_NONE -> false
+            HostConfig.POPUP_BLOCK_DIALOGS -> dialog
+            HostConfig.POPUP_BLOCK_NEW_AUTO_OPENED_TABS -> dialog || !userGesture
+            else -> true
+        }
+    }
+
+    suspend fun changePopupBlockingLevel(newLevel: Int) {
+        val hostConfig = findHostConfig(true) ?: return
+        hostConfig.popupBlockLevel = newLevel
+        AppDatabase.db.hostsDao().update(hostConfig)
+    }
+
+    suspend fun findHostConfig(createIfNotFound: Boolean): HostConfig? {
+        Log.d(TAG, "findOrCreateHostConfig")
+        val currentHostName = try {
+            URL(url).host
+        } catch (e: Exception) {
+            Log.w(TAG, "Can not parse current url host: $e")
+            return null
+        }
+        var hostConfig = this.cachedHostConfig
+        if (hostConfig == null || hostConfig.hostName != currentHostName) {
+            val db = AppDatabase.db.hostsDao()
+            hostConfig = db.findByHostName(currentHostName)
+            if (hostConfig == null && createIfNotFound) {
+                hostConfig = HostConfig(currentHostName)
+                hostConfig.id = db.insert(hostConfig)
+            }
+            this.cachedHostConfig = hostConfig
+        }
+        return hostConfig
     }
 }

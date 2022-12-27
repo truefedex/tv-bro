@@ -63,8 +63,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
     var lastSSLError: SslError? = null
     var trustSsl: Boolean = false
     private var currentOriginalUrl: Uri? = null
-    var blockedAds = 0
-    var blockedPopups = 0
     private val uiHandler = Handler(Looper.getMainLooper())
     private var optimalPageFavIcon: Bitmap? = null
 
@@ -87,9 +85,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         fun onPageCertificateError(url: String?)
         fun isAdBlockingEnabled(): Boolean
         fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean
-        fun isPopupBlockingEnabled(): Boolean
-        fun onBlockedAdsCountChanged(blockedAds: Int)
-        fun onBlockedPopupsCountChanged(blockedPopups: Int)
+        fun onBlockedAd(url: Uri)
         fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
         fun closeWindow(window: WebView)
         fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long)
@@ -319,16 +315,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             }
 
             override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
-                if (callback.isPopupBlockingEnabled()) {
-                    blockedPopups++;
-                    callback.onBlockedPopupsCountChanged(blockedPopups);
-                    return false;
-                }
-                if (callback.isAdBlockingEnabled() && !isUserGesture) {
-                    blockedAds++
-                    callback.onBlockedAdsCountChanged(blockedAds)
-                    return false
-                }
                 val webView = callback.onCreateWindow(isDialog, isUserGesture) ?: return false
                 (resultMsg.obj as WebView.WebViewTransport).webView = webView
                 resultMsg.sendToTarget()
@@ -356,8 +342,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                 val ad = currentOriginalUrl?.let { callback.isAd(request, it)} ?: false
                 return if (ad) {
                     Log.d(TAG, "Blocked ads request: ${request.url}")
-                    blockedAds++
-                    uiHandler.post { callback.onBlockedAdsCountChanged(blockedAds) }
+                    uiHandler.post { callback.onBlockedAd(request.url) }
                     WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
                 } else super.shouldInterceptRequest(view, request)
             }
@@ -371,9 +356,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                 }
                 currentOriginalUrl = Uri.parse(url)
                 callback.onPageStarted(url)
-                blockedAds = 0
-                blockedPopups = 0
-                callback.onBlockedAdsCountChanged(blockedAds)
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
