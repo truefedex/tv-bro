@@ -35,6 +35,7 @@ import com.phlox.tvwebbrowser.utils.LogUtils
 import java.net.URLEncoder
 import java.util.*
 
+
 /**
  * Copyright (c) 2016 Fedir Tsapana.
  */
@@ -42,6 +43,7 @@ import java.util.*
 class WebViewEx(context: Context, val callback: Callback, val jsInterface: AndroidJSInterface) : WebView(context) {
     companion object {
         val TAG = WebViewEx::class.java.simpleName
+        const val WEB_VIEW_TAG = "TV Bro WebView"
         const val INTERNAL_SCHEME = "internal://"
         const val INTERNAL_SCHEME_WARNING_DOMAIN = "warning"
         const val INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT = "certificate"
@@ -84,8 +86,10 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         fun onPageFinished(url: String?)
         fun onPageCertificateError(url: String?)
         fun isAdBlockingEnabled(): Boolean
+        fun isDialogsBlockingEnabled(): Boolean
         fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean
         fun onBlockedAd(url: Uri)
+        fun onBlockedDialog()
         fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
         fun closeWindow(window: WebView)
         fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long)
@@ -164,7 +168,27 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
 
         webChromeClient_ = object : WebChromeClient() {
             override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
-                return super.onJsAlert(view, url, message, result)
+                return if (callback.isDialogsBlockingEnabled()) {
+                    callback.onBlockedDialog()
+                    result.cancel()
+                    true
+                } else super.onJsAlert(view, url, message, result)
+            }
+
+            override fun onJsConfirm(view: WebView, url: String, message: String, result: JsResult): Boolean {
+                return if (callback.isDialogsBlockingEnabled()) {
+                    callback.onBlockedDialog()
+                    result.cancel()
+                    true
+                } else super.onJsConfirm(view, url, message, result)
+            }
+
+            override fun onJsPrompt(view: WebView, url: String, message: String, defaultValue: String, result: JsPromptResult): Boolean {
+                return if (callback.isDialogsBlockingEnabled()) {
+                    callback.onBlockedDialog()
+                    result.cancel()
+                    true
+                } else super.onJsPrompt(view, url, message, defaultValue, result)
             }
 
             override fun onShowCustomView(view: View, callback: CustomViewCallback) {
@@ -292,7 +316,12 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             }
 
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
-                Log.i("TV Bro (" + consoleMessage.sourceId() + "[" + consoleMessage.lineNumber() + "])", consoleMessage.message())
+                val msg: String = "(" + consoleMessage.sourceId() + "[" + consoleMessage.lineNumber() + "]): " + consoleMessage.message()
+                when (consoleMessage.messageLevel()) {
+                    ConsoleMessage.MessageLevel.ERROR -> Log.e(WEB_VIEW_TAG, msg)
+                    ConsoleMessage.MessageLevel.WARNING -> Log.w(WEB_VIEW_TAG, msg)
+                    else -> Log.i(WEB_VIEW_TAG, msg)
+                }
                 return true
             }
 

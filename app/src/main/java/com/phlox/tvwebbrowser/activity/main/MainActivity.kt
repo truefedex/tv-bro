@@ -46,6 +46,7 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
+import java.net.URL
 import java.net.URLEncoder
 import java.util.*
 
@@ -678,8 +679,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val tab = tabsModel.currentTab.value ?: return
         val currentHostConfig = tab.findHostConfig(false)
         val currentBlockPopupsLevelValue = currentHostConfig?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE
+        val hostName = currentHostConfig?.hostName ?: try { URL(tab.url).host } catch (e: Exception) { "" }
         AlertDialog.Builder(this)
-            .setTitle(getString(R.string.block_popups_s, currentHostConfig?.hostName ?: ""))
+            .setTitle(getString(R.string.block_popups_s, hostName))
             .setSingleChoiceItems(R.array.popup_blocking_level, currentBlockPopupsLevelValue) {
                     dialog, itemId -> lifecycleScope.launch {
                         tab.changePopupBlockingLevel(itemId)
@@ -1028,9 +1030,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun requestPermissions(array: Array<String>, geo: Boolean) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(array, if (geo) MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS else MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS)
-            }
+            requestPermissions(array, if (geo) MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS else MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS)
         }
 
         override fun onShowFileChooser(intent: Intent): Boolean {
@@ -1140,6 +1140,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return  adblockModel.adBlockEnabled
         }
 
+        override fun isDialogsBlockingEnabled(): Boolean {
+            return runBlocking(Dispatchers.Main.immediate) { tab.shouldBlockNewWindow(true, false) }
+        }
+
         override fun onBlockedAd(url: Uri) {
             if (!adblockModel.adBlockEnabled) return
             tab.blockedAds++
@@ -1147,12 +1151,18 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             vb.tvBlockedAdCounter.text = tab.blockedAds.toString()
         }
 
+        override fun onBlockedDialog() {
+            tab.blockedPopups++
+            runOnUiThread {
+                vb.tvBlockedPopupCounter.visibility = if (tab.blockedPopups > 0) View.VISIBLE else View.GONE
+                vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
+            }
+        }
+
         override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx? {
             val shouldBlockNewWindow = runBlocking(Dispatchers.Main.immediate) { tab.shouldBlockNewWindow(dialog, userGesture) }
             if (shouldBlockNewWindow) {
-                tab.blockedPopups++
-                vb.tvBlockedPopupCounter.visibility = if (tab.blockedPopups > 0) View.VISIBLE else View.GONE
-                vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
+                onBlockedDialog()
                 return null
             }
             val tab = WebTabState(incognito = config.incognitoMode)
