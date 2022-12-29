@@ -3,8 +3,6 @@ package com.phlox.tvwebbrowser.utils.activemodel
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.annotation.MainThread
 import kotlin.reflect.KClass
 
@@ -45,21 +43,18 @@ object ActiveModelsRepository {
     app.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
   }
 
-  fun <T: ActiveModel>get(clazz: KClass<T>, user: Activity): T {
-    return _get(clazz, user)
-  }
-
-  fun <T: ActiveModel>get(clazz: KClass<T>, user: ActiveModelUser): T {
-    return _get(clazz, user)
-  }
-
+  /**
+   * Get active model from repository. If your user is not Activity then make sure that you manually marked as needless
+   * (@see com.phlox.tvwebbrowser.utils.statemodel.ActiveModelsRepository#markAsNeedless())
+   * all your "active models" when they are not needed (on your component onDestroy(), clear(), finalize() or similar)
+   */
   @Suppress("UNCHECKED_CAST")
   @MainThread
-  private fun <T: ActiveModel>_get(clazz: KClass<T>, user: Any): T {
+  fun <T: ActiveModel>get(clazz: KClass<T>, user: Any): T {
     val className = clazz.qualifiedName ?: throw IllegalStateException("clazz should have name!")
     var modelHolder: StateModelHolder? = holdersMap[className]
     if (modelHolder == null) {
-      modelHolder = StateModelHolder(clazz.constructors.first().call())
+      modelHolder = StateModelHolder(clazz.java.constructors.first().newInstance() as ActiveModel)
       holdersMap[className] = modelHolder
     }
     if (!modelHolder.users.contains(user)) {
@@ -69,7 +64,7 @@ object ActiveModelsRepository {
   }
 
   @MainThread
-  fun markAsNeedless(activeModelUsed: ActiveModel, byUser: ActiveModelUser) {
+  fun markAsNeedless(activeModelUsed: ActiveModel, byUser: Any) {
     val key = activeModelUsed::class.qualifiedName
     holdersMap[key]?.let {
       if (it.users.remove(byUser)) {

@@ -106,7 +106,6 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.7.21")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
 

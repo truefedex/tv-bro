@@ -17,12 +17,17 @@ import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.widgets.CheckableContainer
 
 
-class TabsAdapter(private val tabsModel: TabsModel, private val tabsView: TabsView) : RecyclerView.Adapter<TabViewHolder>() {
-  private val tabsCopy = ArrayList<WebTabState>().apply { addAll(tabsModel.tabsStates) }
+class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabViewHolder>() {
+  private val tabsCopy = ArrayList<WebTabState>().apply { addAll(tabsModel?.tabsStates ?: emptyList()) }
   var current: Int = 0
   var listener: Listener? = null
   val uiHandler = Handler(Looper.getMainLooper())
   var checkedView: CheckableContainer? = null
+  var tabsModel: TabsModel? = null
+    set(value) {
+      field = value
+      onTabListChanged()
+    }
 
   interface Listener {
     fun onTitleChanged(index: Int)
@@ -46,9 +51,9 @@ class TabsAdapter(private val tabsModel: TabsModel, private val tabsView: TabsVi
   }
 
   fun onTabListChanged() {
-    val tabsDiffUtilCallback = TabsDiffUtillCallback(tabsCopy, tabsModel.tabsStates)
+    val tabsDiffUtilCallback = TabsDiffUtillCallback(tabsCopy, tabsModel?.tabsStates ?: emptyList())
     val tabsDiffResult = DiffUtil.calculateDiff(tabsDiffUtilCallback)
-    tabsCopy.apply { clear() }.addAll(tabsModel.tabsStates)
+    tabsCopy.apply { clear() }.addAll(tabsModel?.tabsStates ?: emptyList())
     tabsDiffResult.dispatchUpdatesTo(this)
   }
 
@@ -62,13 +67,9 @@ class TabsAdapter(private val tabsModel: TabsModel, private val tabsView: TabsVi
       }
       val favIcon = tabState.favicon
       if (favIcon != null) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-          val drawable = BitmapDrawable(itemView.context.resources, favIcon)
-          drawable.isFilterBitmap = false
-          vb.ivFavicon.setImageDrawable(drawable)
-        } else {
-          vb.ivFavicon.setImageBitmap(favIcon)
-        }
+        val drawable = BitmapDrawable(itemView.context.resources, favIcon)
+        drawable.isFilterBitmap = false
+        vb.ivFavicon.setImageDrawable(drawable)
       } else
         vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
 
