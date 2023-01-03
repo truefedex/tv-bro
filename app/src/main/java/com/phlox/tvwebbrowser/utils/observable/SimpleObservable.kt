@@ -3,7 +3,6 @@ package com.phlox.tvwebbrowser.utils.observable
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 
 /**
@@ -96,7 +95,7 @@ open class ObservableValue<T>(default: T) : Subscribable<ValueObserver<T>> {
     operator fun setValue(thisRef: Any, prop: KProperty<*>, value: T) {this.value = value}
 }
 
-fun <T>makeObservable(property: KMutableProperty<T>): ObservableValue<T> {
+/*fun <T>makeObservable(property: KMutableProperty<T>): ObservableValue<T> {
     return object : ObservableValue<T>(property.getter.call()) {
         override var value: T = property.getter.call()
             set(value) {
@@ -106,7 +105,7 @@ fun <T>makeObservable(property: KMutableProperty<T>): ObservableValue<T> {
             }
             get() = property.getter.call()
     }
-}
+}*/
 
 typealias EventObserver = () -> Unit
 

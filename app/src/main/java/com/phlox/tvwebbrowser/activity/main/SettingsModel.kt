@@ -11,12 +11,10 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.utils.UpdateChecker
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.utils.sameDay
-import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
-import com.phlox.tvwebbrowser.utils.observable.makeObservable
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -60,7 +58,15 @@ class SettingsModel : ActiveModel() {
         set(value) = config.setAutoCheckUpdates(value)
     var theme by config::theme
     var updateChannel: String
-    var keepScreenOn = makeObservable(config::keepScreenOn)
+    var keepScreenOn = object : ObservableValue<Boolean>(config.keepScreenOn) {
+        override var value: Boolean = config.keepScreenOn
+            set(value) {
+                config.keepScreenOn = value
+                field = value
+                notifyObservers()
+            }
+            get() = config.keepScreenOn
+    }//makeObservable(config::keepScreenOn)
 
     init {
         lastUpdateNotificationTime = if (config.prefs.contains(Config.LAST_UPDATE_USER_NOTIFICATION_TIME_KEY))
