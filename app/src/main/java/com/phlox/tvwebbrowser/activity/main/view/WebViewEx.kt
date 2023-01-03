@@ -89,7 +89,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         fun isDialogsBlockingEnabled(): Boolean
         fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean
         fun onBlockedAd(url: Uri)
-        fun onBlockedDialog()
+        fun onBlockedDialog(newTab: Boolean)
         fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
         fun closeWindow(window: WebView)
         fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long)
@@ -169,7 +169,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         webChromeClient_ = object : WebChromeClient() {
             override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
                 return if (callback.isDialogsBlockingEnabled()) {
-                    callback.onBlockedDialog()
+                    callback.onBlockedDialog(false)
                     result.cancel()
                     true
                 } else super.onJsAlert(view, url, message, result)
@@ -177,7 +177,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
 
             override fun onJsConfirm(view: WebView, url: String, message: String, result: JsResult): Boolean {
                 return if (callback.isDialogsBlockingEnabled()) {
-                    callback.onBlockedDialog()
+                    callback.onBlockedDialog(false)
                     result.cancel()
                     true
                 } else super.onJsConfirm(view, url, message, result)
@@ -185,7 +185,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
 
             override fun onJsPrompt(view: WebView, url: String, message: String, defaultValue: String, result: JsPromptResult): Boolean {
                 return if (callback.isDialogsBlockingEnabled()) {
-                    callback.onBlockedDialog()
+                    callback.onBlockedDialog(false)
                     result.cancel()
                     true
                 } else super.onJsPrompt(view, url, message, defaultValue, result)

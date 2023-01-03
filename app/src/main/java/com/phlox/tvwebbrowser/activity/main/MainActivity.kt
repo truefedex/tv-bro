@@ -43,6 +43,7 @@ import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
+import com.phlox.tvwebbrowser.widgets.NotificationView
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
@@ -1151,18 +1152,20 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             vb.tvBlockedAdCounter.text = tab.blockedAds.toString()
         }
 
-        override fun onBlockedDialog() {
+        override fun onBlockedDialog(newTab: Boolean) {
             tab.blockedPopups++
             runOnUiThread {
                 vb.tvBlockedPopupCounter.visibility = if (tab.blockedPopups > 0) View.VISIBLE else View.GONE
                 vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
+                val msg = getString(if (newTab) R.string.new_tab_blocked else R.string.popup_dialog_blocked)
+                NotificationView.showBottomRight(vb.rlRoot, R.drawable.ic_block_popups, msg)
             }
         }
 
         override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx? {
             val shouldBlockNewWindow = runBlocking(Dispatchers.Main.immediate) { tab.shouldBlockNewWindow(dialog, userGesture) }
             if (shouldBlockNewWindow) {
-                onBlockedDialog()
+                onBlockedDialog(!dialog)
                 return null
             }
             val tab = WebTabState(incognito = config.incognitoMode)

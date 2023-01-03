@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:maxWidth="@dimen/notification_max_width"
+    android:background="@color/day_night_background_color"
+    android:paddingStart="@dimen/notification_horizontal_padding"
+    android:paddingEnd="@dimen/notification_horizontal_padding"
+    android:paddingTop="@dimen/notification_vertical_padding"
+    android:paddingBottom="@dimen/notification_vertical_padding"
+    android:layout_margin="@dimen/notification_margin"
+    android:orientation="horizontal">
+    <ImageView android:id="@+id/ivIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:layout_margin="10dp"
+        tools:src="@drawable/ic_block_popups"/>
+    <TextView android:id="@+id/tvMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:ellipsize="end"
+        android:lines="1"
+        android:textSize="@dimen/notification_text_size"
+        android:textColor="@color/day_night_text_color"
+        tools:text="Test test test"/>
+</LinearLayout>

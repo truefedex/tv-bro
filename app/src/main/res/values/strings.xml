@@ -130,6 +130,8 @@
     <string name="clear_web_cache">Clear web cache</string>
     <string name="block_popups">Popups blocking</string>
     <string name="block_popups_s">Popups blocking (%s)</string>
+    <string name="popup_dialog_blocked">Popup dialog blocked</string>
+    <string name="new_tab_blocked">New tab blocked</string>
     <array name="popup_blocking_level">
         <item>Not block</item>
         <item>Block dialogs</item>
