@@ -94,6 +94,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         fun closeWindow(window: WebView)
         fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long)
         fun onScaleChanged(oldScale: Float, newScale: Float)
+        fun onCopyTextToClipboardRequested(url: String)
+        fun onShareUrlRequested(url: String)
+        fun onOpenInExternalAppRequested(url: String)
     }
 
     init {
@@ -358,7 +361,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 Log.d(TAG, "shouldOverrideUrlLoading url: ${request.url}")
-                return callback.shouldOverrideUrlLoading(request.url.toString()) ?: false
+                return callback.shouldOverrideUrlLoading(request.url.toString())
             }
 
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -456,23 +459,25 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             val lp = FrameLayout.LayoutParams(1, 1)
             lp.setMargins(lastTouchX, lastTouchY, 0, 0)
             parent.addView(anchor, lp)
-            actionsMenu = PopupMenu(context, anchor, Gravity.BOTTOM)
-            val miNewTab = actionsMenu!!.menu.add(R.string.open_in_new_tab)
-            actionsMenu!!.menu.add(R.string.download)
-            actionsMenu!!.setOnMenuItemClickListener { menuItem ->
-                if (menuItem === miNewTab) {
-                    callback.onOpenInNewTabRequested(url)
-                } else {
-                    callback.onDownloadRequested(url)
+            actionsMenu = PopupMenu(context, anchor, Gravity.BOTTOM).also {
+                it.inflate(R.menu.menu_link)
+                it.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.miOpenInNewTab -> callback.onOpenInNewTabRequested(url)
+                        R.id.miOpenInExternalApp -> callback.onOpenInExternalAppRequested(url)
+                        R.id.miDownload -> callback.onDownloadRequested(url)
+                        R.id.miCopyToClipboard -> callback.onCopyTextToClipboardRequested(url)
+                        R.id.miShare -> callback.onShareUrlRequested(url)
+                    }
+                    true
                 }
-                true
-            }
 
-            actionsMenu!!.setOnDismissListener {
-                parent.removeView(anchor)
-                actionsMenu = null
+                it.setOnDismissListener {
+                    parent.removeView(anchor)
+                    actionsMenu = null
+                }
+                it.show()
             }
-            actionsMenu!!.show()
         }
     }
 

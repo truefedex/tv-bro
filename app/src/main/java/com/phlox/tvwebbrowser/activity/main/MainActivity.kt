@@ -22,6 +22,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
 import android.webkit.*
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -1205,6 +1206,42 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 Log.d(TAG, "Auto zoom by: $zoomBy")
                 tab.changingScale = true
                 tab.webView?.zoomBy(zoomBy)
+            }
+        }
+
+        override fun onCopyTextToClipboardRequested(url: String) {
+            val clipBoard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipData = ClipData.newPlainText("URL", url)
+            clipBoard.setPrimaryClip(clipData)
+            Toast.makeText(this@MainActivity, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+        }
+
+        override fun onShareUrlRequested(url: String) {
+            val share = Intent(Intent.ACTION_SEND)
+            share.type = "text/plain"
+            share.putExtra(Intent.EXTRA_SUBJECT, R.string.share_url)
+            share.putExtra(Intent.EXTRA_TEXT, url)
+            try {
+                startActivity(Intent.createChooser(share, getString(R.string.share_url)))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        override fun onOpenInExternalAppRequested(url: String) {
+            val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+            intent.addCategory(Intent.CATEGORY_BROWSABLE)
+            val activityComponent = intent.resolveActivity(this@MainActivity.packageManager)
+            if (activityComponent != null && activityComponent.packageName == this@MainActivity.packageName) {
+                Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
+                return
+            }
+            try {
+                startActivity(Intent.createChooser(intent, getString(R.string.share_url)))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -138,4 +138,9 @@
         <item>Also block new tab popups (script-initiated)</item>
         <item>Block any new windows (maximal blocking)</item>
     </array>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="share_url">Share URL</string>
+    <string name="open_in_external_application">Open in external application</string>
+    <string name="external_app_open_error">Can not find suitable application</string>
 </resources>

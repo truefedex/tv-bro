@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/miOpenInNewTab"
+        android:title="@string/open_in_new_tab" />
+    <item
+        android:id="@+id/miOpenInExternalApp"
+        android:title="@string/open_in_external_application" />
+    <item
+        android:id="@+id/miCopyToClipboard"
+        android:title="@string/copy_to_clipboard" />
+    <item
+        android:id="@+id/miDownload"
+        android:title="@string/download" />
+    <item
+        android:id="@+id/miShare"
+        android:title="@string/share_url" />
+</menu>
