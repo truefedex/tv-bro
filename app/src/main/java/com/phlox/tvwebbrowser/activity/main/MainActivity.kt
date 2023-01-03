@@ -39,19 +39,15 @@ import com.phlox.tvwebbrowser.activity.main.view.Scripts
 import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
-import com.phlox.tvwebbrowser.model.AndroidJSInterface
-import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.model.FavoriteItem
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.phlox.tvwebbrowser.widgets.NotificationView
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
+import java.net.URL
 import java.net.URLEncoder
 import java.util.*
 
@@ -133,6 +129,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         })
 
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
+        vb.ibPopupBlock.setOnClickListener { lifecycleScope.launch(Dispatchers.Main) { showPopupBlockOptions() } }
         vb.ibHome.setOnClickListener { navigate(settingsModel.homePage.value) }
         vb.ibBack.setOnClickListener { navigateBack() }
         vb.ibForward.setOnClickListener {
@@ -565,10 +562,14 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.ibZoomOut.visibility = if (zoomPossible) View.VISIBLE else View.GONE
         vb.ibZoomIn.isEnabled = tab.webView?.canZoomIn() == true
         vb.ibZoomOut.isEnabled = tab.webView?.canZoomOut() == true
+
         val adblockEnabled = tab.adblock ?: adblockModel.adBlockEnabled
         vb.ibAdBlock.setImageResource(if (adblockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
-        vb.tvBlockedAdCounter.visibility = if (adblockEnabled && tab.webView?.blockedAds != 0) View.VISIBLE else View.GONE
-        vb.tvBlockedAdCounter.text = tab.webView?.blockedAds?.toString() ?: ""
+        vb.tvBlockedAdCounter.visibility = if (adblockEnabled && tab.blockedAds != 0) View.VISIBLE else View.GONE
+        vb.tvBlockedAdCounter.text = tab.blockedAds.toString()
+
+        vb.tvBlockedPopupCounter.visibility = if (tab.blockedPopups != 0) View.VISIBLE else View.GONE
+        vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
     }
 
     private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
@@ -673,6 +674,22 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             onWebViewUpdated(this)
             refresh()
         }
+    }
+
+    private suspend fun showPopupBlockOptions() {
+        val tab = tabsModel.currentTab.value ?: return
+        val currentHostConfig = tab.findHostConfig(false)
+        val currentBlockPopupsLevelValue = currentHostConfig?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE
+        val hostName = currentHostConfig?.hostName ?: try { URL(tab.url).host } catch (e: Exception) { "" }
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.block_popups_s, hostName))
+            .setSingleChoiceItems(R.array.popup_blocking_level, currentBlockPopupsLevelValue) {
+                    dialog, itemId -> lifecycleScope.launch {
+                        tab.changePopupBlockingLevel(itemId)
+                        dialog.dismiss()
+                    }
+            }
+            .show()
     }
 
     fun navigate(url: String) {
@@ -1014,9 +1031,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun requestPermissions(array: Array<String>, geo: Boolean) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(array, if (geo) MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS else MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS)
-            }
+            requestPermissions(array, if (geo) MY_PERMISSIONS_REQUEST_WEB_PAGE_GEO_PERMISSIONS else MY_PERMISSIONS_REQUEST_WEB_PAGE_PERMISSIONS)
         }
 
         override fun onShowFileChooser(intent: Intent): Boolean {
@@ -1074,7 +1089,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             if (tabByTitleIndex(vb.vTabs.current) == tab) {
                 vb.vActionBar.setAddressBoxText(tab.url)
             }
-            tab.hasAutoOpenedWindows = false
+            tab.blockedAds = 0
+            tab.blockedPopups = 0
         }
 
         override fun onPageFinished(url: String?) {
@@ -1125,18 +1141,31 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return  adblockModel.adBlockEnabled
         }
 
-        override fun onBlockedAdsCountChanged(blockedAds: Int) {
+        override fun isDialogsBlockingEnabled(): Boolean {
+            return runBlocking(Dispatchers.Main.immediate) { tab.shouldBlockNewWindow(true, false) }
+        }
+
+        override fun onBlockedAd(url: Uri) {
             if (!adblockModel.adBlockEnabled) return
-            vb.tvBlockedAdCounter.visibility = if (blockedAds > 0) View.VISIBLE else View.GONE
-            vb.tvBlockedAdCounter.text = blockedAds.toString()
+            tab.blockedAds++
+            vb.tvBlockedAdCounter.visibility = if (tab.blockedAds > 0) View.VISIBLE else View.GONE
+            vb.tvBlockedAdCounter.text = tab.blockedAds.toString()
+        }
+
+        override fun onBlockedDialog(newTab: Boolean) {
+            tab.blockedPopups++
+            runOnUiThread {
+                vb.tvBlockedPopupCounter.visibility = if (tab.blockedPopups > 0) View.VISIBLE else View.GONE
+                vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
+                val msg = getString(if (newTab) R.string.new_tab_blocked else R.string.popup_dialog_blocked)
+                NotificationView.showBottomRight(vb.rlRoot, R.drawable.ic_block_popups, msg)
+            }
         }
 
         override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx? {
-            if (isAdBlockingEnabled() && tab.hasAutoOpenedWindows) {
-                tab.webView?.apply {
-                    blockedAds++
-                    onBlockedAdsCountChanged(blockedAds)
-                }
+            val shouldBlockNewWindow = runBlocking(Dispatchers.Main.immediate) { tab.shouldBlockNewWindow(dialog, userGesture) }
+            if (shouldBlockNewWindow) {
+                onBlockedDialog(!dialog)
                 return null
             }
             val tab = WebTabState(incognito = config.incognitoMode)
@@ -1145,7 +1174,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             val index = tabsModel.tabsStates.indexOf(currentTab) + 1
             tabsModel.tabsStates.add(index, tab)
             changeTab(tab)
-            this.tab.hasAutoOpenedWindows = true
             return webView
         }
 

@@ -5,4 +5,10 @@
     <dimen name="web_tab_padding">20dp</dimen>
 
     <dimen name="voice_recognition_results_renderer_height">50dp</dimen>
+
+    <dimen name="notification_vertical_padding">10dp</dimen>
+    <dimen name="notification_horizontal_padding">15dp</dimen>
+    <dimen name="notification_text_size">40sp</dimen>
+    <dimen name="notification_max_width">320dp</dimen>
+    <dimen name="notification_margin">10dp</dimen>
 </resources>

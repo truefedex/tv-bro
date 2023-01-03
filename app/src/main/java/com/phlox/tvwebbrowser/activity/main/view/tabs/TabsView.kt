@@ -26,14 +26,21 @@ class TabsView @JvmOverloads constructor(
 
   private var vb = ViewTabsBinding.inflate(LayoutInflater.from(context), this)
 
-  private val tabsModel = ActiveModelsRepository.get(TabsModel::class, context as Activity)
-  private val adapter: TabsAdapter = TabsAdapter(tabsModel, this)
-  private val settingsModel: SettingsModel =
-    ActiveModelsRepository.get(SettingsModel::class, context as Activity)
+  private lateinit var tabsModel: TabsModel
+  private val adapter: TabsAdapter = TabsAdapter(this)
+  private lateinit var settingsModel: SettingsModel
   var current: Int by adapter::current
   var listener: Listener? by adapter::listener
 
   init {
+      init()
+  }
+
+  fun init() {
+    if (isInEditMode) return
+    tabsModel = ActiveModelsRepository.get(TabsModel::class, context)
+    settingsModel = ActiveModelsRepository.get(SettingsModel::class, context)
+    adapter.tabsModel = tabsModel
     vb.rvTabs.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
     vb.btnAdd.setOnClickListener{
       listener?.onAddNewTabSelected()
@@ -42,15 +49,17 @@ class TabsView @JvmOverloads constructor(
 
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
+    if (isInEditMode) return
     tabsModel.tabsStates.subscribe(listChangeObserver)
     tabsModel.currentTab.subscribe(currentTabObserver)
     vb.rvTabs.adapter = adapter
   }
 
   override fun onDetachedFromWindow() {
+    super.onDetachedFromWindow()
+    if (isInEditMode) return
     tabsModel.tabsStates.unsubscribe(listChangeObserver)
     tabsModel.currentTab.unsubscribe(currentTabObserver)
-    super.onDetachedFromWindow()
   }
 
   fun showTabOptions(tab: WebTabState) {

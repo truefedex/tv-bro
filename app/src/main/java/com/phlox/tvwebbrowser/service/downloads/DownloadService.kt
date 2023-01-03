@@ -23,7 +23,6 @@ import com.phlox.tvwebbrowser.activity.downloads.ActiveDownloadsModel
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.DownloadIntent
 import com.phlox.tvwebbrowser.singleton.AppDatabase
-import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelUser
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import java.io.File
 import java.util.*
@@ -33,7 +32,7 @@ import java.util.concurrent.Executors
  * Created by PDT on 23.01.2017.
  */
 
-class DownloadService : Service(), ActiveModelUser {
+class DownloadService : Service() {
     private lateinit var model: ActiveDownloadsModel
     private val executor = Executors.newCachedThreadPool()
     private val handler = Handler(Looper.getMainLooper())

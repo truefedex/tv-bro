@@ -10,12 +10,18 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.model.dao.*
 
-@Database(entities = [Download::class, FavoriteItem::class, HistoryItem::class, WebTabState::class], version = 16/*, exportSchema = true*/)
+@Database(entities = [
+    Download::class, FavoriteItem::class,
+    HistoryItem::class, WebTabState::class,
+    HostConfig::class
+                     ],
+    version = 17/*, exportSchema = true*/)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
     abstract fun historyDao(): HistoryDao
     abstract fun favoritesDao(): FavoritesDao
     abstract fun tabsDao(): TabsDao
+    abstract fun hostsDao(): HostsDao
 
     companion object {
         private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -122,6 +128,17 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                createHostsTable(db)
+            }
+        }
+
+        private fun createHostsTable(db: SupportSQLiteDatabase) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS `hosts` (`host_name` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `popup_block_level` INTEGER)")
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `hosts_name_idx` ON `hosts` (`host_name`)")
+        }
+
         private fun createAdBlockListTable(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS 'adblocklist' ('id' INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 'type' INTEGER NOT NULL, 'value' TEXT NOT NULL)")
             db.execSQL("CREATE INDEX IF NOT EXISTS 'type_value_idx' ON 'adblocklist' ('type', 'value')")
@@ -160,7 +177,9 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java, "main.db"
             ).addMigrations(MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9,
                 MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
-                MIGRATION_14_15, MIGRATION_15_16).build()
+                MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17)
+            .allowMainThreadQueries()
+                .build()
         }
     }
 }

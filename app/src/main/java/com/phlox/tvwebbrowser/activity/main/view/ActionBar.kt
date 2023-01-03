@@ -28,7 +28,7 @@ class ActionBar @JvmOverloads constructor(
     private val vb = ViewActionbarBinding.inflate( LayoutInflater.from(context),this)
     var callback: Callback? = null
     private var downloadAnimation: Animation? = null
-    private var downloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, context as Activity)
+    private var downloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, context)
     private var extendedAddressBarMode = false
 
     interface Callback {
@@ -80,7 +80,13 @@ class ActionBar @JvmOverloads constructor(
     }
 
     init {
+        init()
+    }
+
+    fun init() {
         orientation = HORIZONTAL
+
+        if (isInEditMode) return
 
         val incognitoMode = TVBro.config.incognitoMode
 
