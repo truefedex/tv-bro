@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
   <string name="app_name">TV Bro: TV Web Browser</string>
-  <string name="app_name_short" translatable="false">TV Bro</string>
   <string name="error">Errore</string>
   <string name="ok">OK</string>
   <string name="loading">Caricamento…</string>
@@ -25,7 +24,6 @@
   <string name="no_bookmarks_yet">Nessun segnalibro</string>
   <string name="title">Titolo</string>
   <string name="done">Fatto</string>
-  <string translatable="false" name="url">URL</string>
   <string name="search_history">Cronologia ricerche</string>
   <string name="engine">Motore di ricerca</string>
   <string name="choose_default_search_engine">Imposta il motore di ricerca predefinito</string>
