@@ -135,7 +135,7 @@
     <array name="popup_blocking_level">
         <item>Not block</item>
         <item>Block dialogs</item>
-        <item>Also block new tab popups (script-initiated)</item>
+        <item>Also block new tabs (script-initiated)</item>
         <item>Block any new windows (maximal blocking)</item>
     </array>
     <string name="copy_to_clipboard">Copy to clipboard</string>

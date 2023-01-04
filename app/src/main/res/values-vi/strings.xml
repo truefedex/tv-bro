@@ -1,127 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="app_name">TV Bro: Trình duyệt web TV</string>
-    <string name="error">Lỗi</string>
-    <string name="ok">OK</string>
-    <string name="loading">Đang tải…</string>
-    <string name="url_prompt">Nhập văn bản hoặc URL</string>
-    <string name="can_not_recognize">Không thể xác nhận</string>
-    <string name="speak">Truy vấn tìm kiếm</string>
-    <string name="open_new_tab">Mở tab mới</string>
-    <string name="close">Đóng</string>
-    <string name="web_perm_request_confirmation">Trang web này muốn sử dụng các tài nguyên sau: \n\n%s</string>
-    <string name="allow">Cho phép</string>
-    <string name="deny">Từ chối</string>
-    <string name="location">Vị trí</string>
-    <string name="open_in_new_tab">Mở trong trang mới</string>
-    <string name="download_started">Bắt đầu tải xuống… \nTệp tin sẽ được lưu trữ tại: \n%s</string>
-    <string name="downloading_file">Đang tải tệp tin…</string>
-    <string name="err_cant_open_file_chooser">Không thể mở Trình chọn tệp</string>
-    <string name="bookmarks">Dấu trang</string>
-    <string name="add">Thêm</string>
-    <string name="edit">Sửa</string>
-    <string name="new_bookmark">Dấu trang mới</string>
-    <string name="title">Tiêu đề</string>
-    <string name="search_history">Lịch sử tìm kiếm</string>
-    <string name="engine">Công cụ tìm kiếm</string>
-    <string name="choose_default_search_engine">Chọn công cụ tìm kiếm mặc định</string>
-    <string name="save">Lưu</string>
-    <string name="search_engine_url_with_query_placeholder_query">URL của công cụ tìm kiếm với trình giữ chỗ truy vấn [query]</string>
-    <string name="change_search_engine">Thay đổi Công cụ Tìm kiếm</string>
-    <string name="change_user_agent">Thay đổi User Agent</string>
-    <string name="user_agent_string">Chuỗi User Agent</string>
-    <string name="choose_user_agent_string">Chọn chuỗi User Agent</string>
-    <string name="edit_user_agent_string">Chỉnh sửa chuỗi User Agent</string>
-    <string name="nothing">Không có tải xuống</string>
-    <string name="cancelled">Đã hủy</string>
-    <string name="download">Tải xuống</string>
-    <string name="file_not_found">Không tìm thấy tệp</string>
-    <string name="no_app_for_file_type">Không tìm thấy ứng dụng nào để mở loại tệp này</string>
-    <string name="delete">Xoá</string>
-    <string name="cancel">Huỷ bỏ</string>
-    <string name="msg_delete_history">Xóa các lịch sử đã chọn?</string>
-    <string name="msg_delete_history_all">Xóa toàn bộ lịch sử?</string>
-    <string name="open_folder">Mở thư mục chứa</string>
-    <string name="no_file_explorer_msg">Có vẻ như không có bất kỳ ứng dụng quản lý tệp phù hợp nào được cài đặt trên thiết bị của bạn</string>
-    <string name="shortcuts">Phím tắt</string>
-    <string name="favorites">Yêu thích</string>
-    <string name="history">Lịch sử</string>
-    <string name="settings">Cài đặt</string>
-    <string name="shortcut">Phím tắt</string>
-    <string name="toggle_main_menu">Chuyển đổi menu chính</string>
-    <string name="navigate_back">Phím quay lại</string>
-    <string name="navigate_home">Trở về trang chủ</string>
-    <string name="refresh_page">Làm mới trang</string>
-    <string name="voice_search">Tìm kiếm bằng giọng nói</string>
-    <string name="zoom_in">Phóng to</string>
-    <string name="zoom_out">Thu nhỏ</string>
-    <string name="not_set">Không được thiết lập</string>
-    <string name="action">Hoạt động:</string>
-    <string name="current_key">Phím hiện tại:</string>
-    <string name="set_key_for_action">Đặt phím cho hành động</string>
-    <string name="press_eny_key">Nhấn phím bất kỳ...</string>
-    <string name="clear">Xoá</string>
-    <string name="install">Cài đặt</string>
-    <string name="turn_on_unknown_sources">Vui lòng bật cài đặt hệ thống \"Nguồn không xác định\"</string>
-    <string name="turn_on_unknown_sources_for_app">Vui lòng cho phép TV Bro cài đặt ứng dụng từ \"Nguồn không xác định\" trong cài đặt hệ thống</string>
-    <string name="storage_not_mounted">Bộ nhớ không được gắn kết</string>
-    <string name="can_not_create_downloads">Không thể tạo thư mục tải xuống</string>
-    <string name="voice_search_not_found">Không tìm thấy tìm kiếm bằng giọng nói</string>
-    <string name="new_version_dialog_title">Có phiên bản mới</string>
-    <string name="later">Để sau</string>
-    <string name="downloads">Tải xuống</string>
-    <string name="downloads_notifications_description">Thông báo về trạng thái tải xuống</string>
-    <string name="main">Chính</string>
-    <string name="version_and_updates"><![CDATA[Phiên bản và cập nhật]]></string>
-    <string name="version_s">Phiên bản: %s</string>
-    <string name="update_channel">Cập nhật kênh:</string>
-    <string name="auto_check_for_updates">Tự động kiểm tra các bản cập nhật</string>
-    <string name="update">Cập nhật</string>
-    <string name="new_version_available_s">Có phiên bản mới: %s</string>
-    <string name="web_browser_optimized_for_tvs">Trình duyệt web được tối ưu hóa cho TV</string>
-    <string name="warning">Cảnh báo</string>
-    <string name="unprotected_connection">Kết nối không được bảo vệ</string>
-    <string name="err_webview_can_not_link">Không thể liên kết với thành phần WebView. Trước tiên, hãy thử cài đặt thành phần WebView của hệ thống Android.</string>
-    <string name="new_tab_title">[TAB MỚI]</string>
-    <string name="open_a_new_tab_here">Mở tab mới tại đây</string>
-    <string name="tabs">Các tab</string>
-    <array name="tabs_options">
-        <item>Mở tab mới</item>
-        <item>Đóng tab hiện tại</item>
-        <item>Đóng tất cả</item>
-        <item>Chuyển sang trái</item>
-        <item>Chuyển sang phải</item>
-    </array>
-    <string name="ssl_expired">Chứng chỉ đã hết hạn</string>
-    <string name="ssl_idmismatch">Tên máy chủ không khớp</string>
-    <string name="ssl_date_invalid">Ngày tháng của chứng chỉ không hợp lệ</string>
-    <string name="ssl_invalid">Đã xảy ra lỗi</string>
-    <string name="back_to_safety">Quay lại an toàn</string>
-    <string name="go_im_aware">Tiếp tục. Tôi chấp nhận rủi ro</string>
-    <string name="connection_isnt_secure">Kết nối không an toàn</string>
-    <string name="hostname">Tên máy chủ:</string>
-    <string name="err_desk">Mô tả lỗi:</string>
-    <string name="details">Chi tiết:</string>
-    <string name="exit">Thoát</string>
-    <string name="find_in_apps_store">Tìm trong kho ứng dụng</string>
-    <string name="close_application">Đóng ứng dụng</string>
-    <string name="close_tab">Đóng tab</string>
-    <string name="navigate_forward">Điều hướng về trước</string>
-    <string name="toggle_ads_blocking">Chuyển đổi tính năng chặn quảng cáo</string>
-    <string name="never">không bao giờ</string>
-    <string name="last_update">Cập nhật cuối cùng</string>
-    <string name="update_ad_blocker_list">Làm mới danh sách trình chặn quảng cáo</string>
-    <string name="need_restart">Cần khởi động lại ứng dụng</string>
-    <string name="theme">Chủ đề</string>
-    <array name="themes">
-        <item>Hệ thống</item>
-        <item>Màu trắng</item>
-        <item>Tối</item>
-    </array>
+  <string name="app_name">TV Bro: Trình duyệt web TV</string>
+  <string name="error">Lỗi</string>
+  <string name="ok">OK</string>
+  <string name="loading">Đang tải…</string>
+  <string name="url_prompt">Nhập văn bản hoặc URL</string>
+  <string name="can_not_recognize">Không thể xác nhận</string>
+  <string name="speak">Truy vấn tìm kiếm</string>
+  <string name="open_new_tab">Mở tab mới</string>
+  <string name="close">Đóng</string>
+  <string name="web_perm_request_confirmation">Trang web này muốn sử dụng các tài nguyên sau: \n\n%s</string>
+  <string name="allow">Cho phép</string>
+  <string name="deny">Từ chối</string>
+  <string name="location">Vị trí</string>
+  <string name="open_in_new_tab">Mở trong trang mới</string>
+  <string name="download_started">Bắt đầu tải xuống… \nTệp tin sẽ được lưu trữ tại: \n%s</string>
+  <string name="downloading_file">Đang tải tệp tin…</string>
+  <string name="err_cant_open_file_chooser">Không thể mở Trình chọn tệp</string>
+  <string name="bookmarks">Dấu trang</string>
+  <string name="add">Thêm</string>
+  <string name="edit">Sửa</string>
+  <string name="new_bookmark">Dấu trang mới</string>
+  <string name="title">Tiêu đề</string>
+  <string name="search_history">Lịch sử tìm kiếm</string>
+  <string name="engine">Công cụ tìm kiếm</string>
+  <string name="choose_default_search_engine">Chọn công cụ tìm kiếm mặc định</string>
+  <string name="save">Lưu</string>
+  <string name="search_engine_url_with_query_placeholder_query">URL của công cụ tìm kiếm với trình giữ chỗ truy vấn [query]</string>
+  <string name="change_search_engine">Thay đổi Công cụ Tìm kiếm</string>
+  <string name="change_user_agent">Thay đổi User Agent</string>
+  <string name="user_agent_string">Chuỗi User Agent</string>
+  <string name="choose_user_agent_string">Chọn chuỗi User Agent</string>
+  <string name="edit_user_agent_string">Chỉnh sửa chuỗi User Agent</string>
+  <string name="nothing">Không có tải xuống</string>
+  <string name="cancelled">Đã hủy</string>
+  <string name="download">Tải xuống</string>
+  <string name="file_not_found">Không tìm thấy tệp</string>
+  <string name="no_app_for_file_type">Không tìm thấy ứng dụng nào để mở loại tệp này</string>
+  <string name="delete">Xoá</string>
+  <string name="cancel">Huỷ bỏ</string>
+  <string name="msg_delete_history">Xóa các lịch sử đã chọn?</string>
+  <string name="msg_delete_history_all">Xóa toàn bộ lịch sử?</string>
+  <string name="open_folder">Mở thư mục chứa</string>
+  <string name="no_file_explorer_msg">Có vẻ như không có bất kỳ ứng dụng quản lý tệp phù hợp nào được cài đặt trên thiết bị của bạn</string>
+  <string name="shortcuts">Phím tắt</string>
+  <string name="favorites">Yêu thích</string>
+  <string name="history">Lịch sử</string>
+  <string name="settings">Cài đặt</string>
+  <string name="shortcut">Phím tắt</string>
+  <string name="toggle_main_menu">Chuyển đổi menu chính</string>
+  <string name="navigate_back">Phím quay lại</string>
+  <string name="navigate_home">Trở về trang chủ</string>
+  <string name="refresh_page">Làm mới trang</string>
+  <string name="voice_search">Tìm kiếm bằng giọng nói</string>
+  <string name="zoom_in">Phóng to</string>
+  <string name="zoom_out">Thu nhỏ</string>
+  <string name="not_set">Không được thiết lập</string>
+  <string name="action">Hoạt động:</string>
+  <string name="current_key">Phím hiện tại:</string>
+  <string name="set_key_for_action">Đặt phím cho hành động</string>
+  <string name="press_eny_key">Nhấn phím bất kỳ...</string>
+  <string name="clear">Xoá</string>
+  <string name="install">Cài đặt</string>
+  <string name="turn_on_unknown_sources">Vui lòng bật cài đặt hệ thống \"Nguồn không xác định\"</string>
+  <string name="turn_on_unknown_sources_for_app">Vui lòng cho phép TV Bro cài đặt ứng dụng từ \"Nguồn không xác định\" trong cài đặt hệ thống</string>
+  <string name="storage_not_mounted">Bộ nhớ không được gắn kết</string>
+  <string name="can_not_create_downloads">Không thể tạo thư mục tải xuống</string>
+  <string name="voice_search_not_found">Không tìm thấy tìm kiếm bằng giọng nói</string>
+  <string name="new_version_dialog_title">Có phiên bản mới</string>
+  <string name="later">Để sau</string>
+  <string name="downloads">Tải xuống</string>
+  <string name="downloads_notifications_description">Thông báo về trạng thái tải xuống</string>
+  <string name="main">Chính</string>
+  <string name="version_and_updates">Phiên bản và cập nhật</string>
+  <string name="version_s">Phiên bản: %s</string>
+  <string name="update_channel">Cập nhật kênh:</string>
+  <string name="auto_check_for_updates">Tự động kiểm tra các bản cập nhật</string>
+  <string name="update">Cập nhật</string>
+  <string name="new_version_available_s">Có phiên bản mới: %s</string>
+  <string name="web_browser_optimized_for_tvs">Trình duyệt web được tối ưu hóa cho TV</string>
+  <string name="warning">Cảnh báo</string>
+  <string name="unprotected_connection">Kết nối không được bảo vệ</string>
+  <string name="err_webview_can_not_link">Không thể liên kết với thành phần WebView. Trước tiên, hãy thử cài đặt thành phần WebView của hệ thống Android.</string>
+  <string name="new_tab_title">[TAB MỚI]</string>
+  <string name="open_a_new_tab_here">Mở tab mới tại đây</string>
+  <string name="tabs">Các tab</string>
+  <array name="tabs_options">
+    <item>Mở tab mới</item>
+    <item>Đóng tab hiện tại</item>
+    <item>Đóng tất cả</item>
+    <item>Chuyển sang trái</item>
+    <item>Chuyển sang phải</item>
+  </array>
+  <string name="ssl_expired">Chứng chỉ đã hết hạn</string>
+  <string name="ssl_idmismatch">Tên máy chủ không khớp</string>
+  <string name="ssl_date_invalid">Ngày tháng của chứng chỉ không hợp lệ</string>
+  <string name="ssl_invalid">Đã xảy ra lỗi</string>
+  <string name="back_to_safety">Quay lại an toàn</string>
+  <string name="go_im_aware">Tiếp tục. Tôi chấp nhận rủi ro</string>
+  <string name="connection_isnt_secure">Kết nối không an toàn</string>
+  <string name="hostname">Tên máy chủ:</string>
+  <string name="err_desk">Mô tả lỗi:</string>
+  <string name="details">Chi tiết:</string>
+  <string name="exit">Thoát</string>
+  <string name="find_in_apps_store">Tìm trong kho ứng dụng</string>
+  <string name="close_application">Đóng ứng dụng</string>
+  <string name="close_tab">Đóng tab</string>
+  <string name="navigate_forward">Điều hướng về trước</string>
+  <string name="toggle_ads_blocking">Chuyển đổi tính năng chặn quảng cáo</string>
+  <string name="never">không bao giờ</string>
+  <string name="last_update">Cập nhật cuối cùng</string>
+  <string name="update_ad_blocker_list">Làm mới danh sách trình chặn quảng cáo</string>
+  <string name="need_restart">Cần khởi động lại ứng dụng</string>
+  <string name="theme">Chủ đề</string>
+  <array name="themes">
+    <item>Hệ thống</item>
+    <item>Màu trắng</item>
+    <item>Tối</item>
+  </array>
   <string name="set_search_engine_as_homepage">Đặt công cụ tìm kiếm làm trang chủ</string>
   <string name="toggle_keep_screen_on">Luôn bật màn hình</string>
   <string name="incognito_mode">Chế độ ẩn danh</string>
   <string name="incognito_mode_hint">Giờ đây, bạn có thể duyệt web một cách riêng tư và những người khác sử dụng thiết bị này sẽ không thấy hoạt động của bạn. TV Bro sẽ không lưu lịch sử duyệt web, cookie và dữ liệu trang web của bạn, thông tin đã nhập vào biểu mẫu.\n\nTuy nhiên, các bản tải xuống và dấu trang sẽ được lưu lại. Hoạt động của bạn có thể vẫn hiển thị với các trang web bạn truy cập, tổ chức của bạn hoặc nhà cung cấp dịch vụ internet.</string>
-    <string name="don_t_show_again">Không hiển thị lại</string>
-    <string name="why_icon_changed">Tại sao biểu tượng thay đổi?</string>
+  <string name="don_t_show_again">Không hiển thị lại</string>
+  <string name="why_icon_changed">Tại sao biểu tượng thay đổi?</string>
   <string name="clear_web_cache">Xóa bộ nhớ cache của web</string>
+  <string name="no_bookmarks_yet">Chưa có dấu trang nào</string>
+  <string name="done">Xong</string>
+  <string name="block_popups">Chặn cửa sổ bật lên</string>
+  <string name="block_popups_s">Chặn cửa sổ bật lên (%s)</string>
+  <string name="popup_dialog_blocked">Hộp thoại bật lên bị chặn</string>
+  <string name="new_tab_blocked">Tab mới bị chặn</string>
+  <string name="copy_to_clipboard">Sao chép vào clipboard</string>
+  <string name="copied_to_clipboard">Sao chép vào clipboard</string>
+  <string name="share_url">Chia sẻ URL</string>
+  <string name="open_in_external_application">Mở trong ứng dụng bên ngoài</string>
+  <string name="external_app_open_error">Không thể tìm thấy ứng dụng phù hợp</string>
+  <string-array name="popup_blocking_level">
+    <item>không chặn</item>
+    <item>Chặn hộp thoại</item>
+    <item>Cũng chặn các tab mới (khởi tạo tập lệnh)</item>
+    <item>Chặn mọi cửa sổ mới (chặn tối đa)</item>
+  </string-array>
 </resources>

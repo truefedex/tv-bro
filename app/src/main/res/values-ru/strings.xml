@@ -1,128 +1,145 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <resources>
-    <string name="app_name">TV Bro: Веб Браузер для ТВ</string>
-    <string name="add">Добавить</string>
-    <string name="allow">Разрешить</string>
-    <string name="bookmarks">Закладки</string>
-    <string name="can_not_recognize">Не могу распознать</string>
-    <string name="close">Закрыть</string>
-    <string name="deny">Запретить</string>
-    <string name="download_started">Загрузка начата…\nФайл будет сохранён по пути:\n%s</string>
-    <string name="downloading_file">Загрузка файла…</string>
-    <string name="edit">Редактировать</string>
-    <string name="err_cant_open_file_chooser">Не могу запустить интерфейс выбора файла</string>
-    <string name="error">Ошибка</string>
-    <string name="loading">Загрузка…</string>
-    <string name="location">Локация</string>
-    <string name="new_bookmark">Новая закладка</string>
-    <string name="ok">ОК</string>
-    <string name="open_in_new_tab">Открыть в новой вкладке</string>
-    <string name="open_new_tab">Новая вкладка</string>
-    <string name="speak">Искать запрос</string>
-    <string name="title">Название</string>
-    <string name="url_prompt">Введите искомый запрос или URL</string>
-    <string name="web_perm_request_confirmation">Эта страница запрашивает следующие ресурсы:\n\n%s</string>
-    <string name="search_history">Поиск по истории</string>
-    <string name="change_search_engine">Изменить поисковый движок</string>
-    <string name="change_user_agent">Изменить User Agent</string>
-    <string name="choose_default_search_engine">Выберите поисковый движок по-умолчанию</string>
-    <string name="engine">Поисковый движок</string>
-    <string name="set_search_engine_as_homepage">Установить поисковый движок в качестве домашней страницы</string>
-    <string name="save">Сохранить</string>
-    <string name="search_engine_url_with_query_placeholder_query">URL поискового движка (используйте параметр [query])</string>
-    <string name="cancel">Отмена</string>
-    <string name="cancelled">Отменено</string>
-    <string name="choose_user_agent_string">Выбрать строку User Agent</string>
-    <string name="delete">Удалить</string>
-    <string name="download">Скачать</string>
-    <string name="edit_user_agent_string">Редактировать строку User Agent</string>
-    <string name="file_not_found">Файл не найден</string>
-    <string name="no_app_for_file_type">Не найдено приложений для открытия такого типа файлов</string>
-    <string name="nothing">Ничего</string>
-    <string name="user_agent_string">Строка User Agent</string>
-    <string name="msg_delete_history">Удалить выделенные элементы истории?</string>
-    <string name="action">Действие:</string>
-    <string name="clear">Очистить</string>
-    <string name="current_key">Клавиша:</string>
-    <string name="favorites">Избранные</string>
-    <string name="history">История</string>
-    <string name="navigate_back">Перейти назад</string>
-    <string name="navigate_home">Навигация \"домой\"</string>
-    <string name="no_file_explorer_msg">Похоже, на вашем устройстве нет подходящего файлового менеджера</string>
-    <string name="not_set">Не задано</string>
-    <string name="open_folder">Открыть содержащую папку</string>
-    <string name="press_eny_key">Нажмите любую клавишу...</string>
-    <string name="refresh_page">Обновить страницу</string>
-    <string name="set_key_for_action">Установить клавишу для действия</string>
-    <string name="settings">Настройки</string>
-    <string name="shortcut">\"Быстрая\" клавиша</string>
-    <string name="shortcuts">\"Быстрые\" клавиши</string>
-    <string name="toggle_main_menu">Отобразить меню</string>
-    <string name="voice_search">Голосовой поиск</string>
-    <string name="install">Установить</string>
-    <string name="turn_on_unknown_sources">Пожалуйста, активируйте системную настройку \"Установка из неизвестных источников\"</string>
-    <string name="turn_on_unknown_sources_for_app">Пожалуйста, позвольте TV Bro устанавливать приложения из неизвестных источников в настройках системы</string>
-    <string name="storage_not_mounted">Хранилище файлов не найдено</string>
-    <string name="can_not_create_downloads">Не могу создать директорию для скачанных файлов</string>
-    <string name="voice_search_not_found">Приложение голосового поиска не найдено</string>
-    <string name="msg_delete_history_all">Удалить всю историю?</string>
-    <string name="downloads">Загрузки</string>
-    <string name="later">Позже</string>
-    <string name="new_version_dialog_title">Доступна новая версия</string>
-    <string name="downloads_notifications_description">Уведомления о загрузках</string>
-    <string name="auto_check_for_updates">Проверять обновления</string>
-    <string name="main">Основные</string>
-    <string name="unprotected_connection">Незащищенное соединение</string>
-    <string name="update">Обновить</string>
-    <string name="update_channel">Канал обновлений</string>
-    <string name="version_and_updates">Версия</string>
-    <string name="version_s">Версия: %s</string>
-    <string name="warning">Предупреждение</string>
-    <string name="web_browser_optimized_for_tvs">Веб-браузер, оптимизированный для телевизоров</string>
-    <string name="new_version_available_s">Доступна новая версия: %s</string>
-    <string name="err_webview_can_not_link">Не могу найти WebView компонент. Попробуйте сперва установить Android System WebView</string>
-    <string name="new_tab_title">[НОВАЯ ВКЛ.]</string>
-    <string name="open_a_new_tab_here">Открыть новую вкладку тут</string>
-    <string name="tabs">Вкладки</string>
-    <array name="tabs_options">
-        <item>Новая вкладка</item>
-        <item>Закрыть текущую</item>
-        <item>Закрыть все</item>
-        <item>Сдвинуть влево</item>
-        <item>Сдвинуть вправо</item>
-    </array>
-    <string name="ssl_expired">Срок действия сертификата истек</string>
-    <string name="ssl_idmismatch">Несоответствие имени хоста</string>
-    <string name="ssl_date_invalid">Дата сертификата недействительна</string>
-    <string name="ssl_invalid">Произошла общая ошибка</string>
-    <string name="back_to_safety">Вернуться к безопасности</string>
-    <string name="go_im_aware">Вперёд. Я осознаю риск</string>
-    <string name="connection_isnt_secure">Соединение не защищено</string>
-    <string name="hostname">Имя хоста:</string>
-    <string name="err_desk">Описание ошибки:</string>
-    <string name="details">Подробности:</string>
-    <string name="exit">Выход</string>
-    <string name="find_in_apps_store">Найти в магазине приложений</string>
-    <string name="close_application">Закрыть приложение</string>
-    <string name="close_tab">Закрыть вкладку</string>
-    <string name="navigate_forward">Перейти вперед</string>
-    <string name="zoom_in">Увеличить</string>
-    <string name="zoom_out">Уменьшить</string>
-    <string name="toggle_ads_blocking">Переключить блокировку рекламы</string>
-    <string name="never">никогда</string>
-    <string name="last_update">Последнее обновлени</string>
-    <string name="update_ad_blocker_list">Обновить список блокировщика рекламы</string>
-    <string name="need_restart">Требуется перезапуск приложения</string>
-    <string name="theme">Тема</string>
-    <array name="themes">
-        <item>Системная</item>
-        <item>Светлая</item>
-        <item>Тёмная</item>
-    </array>
+  <string name="app_name">TV Bro: Веб Браузер для ТВ</string>
+  <string name="add">Добавить</string>
+  <string name="allow">Разрешить</string>
+  <string name="bookmarks">Закладки</string>
+  <string name="can_not_recognize">Не могу распознать</string>
+  <string name="close">Закрыть</string>
+  <string name="deny">Запретить</string>
+  <string name="download_started">Загрузка начата…\nФайл будет сохранён по пути:\n%s</string>
+  <string name="downloading_file">Загрузка файла…</string>
+  <string name="edit">Редактировать</string>
+  <string name="err_cant_open_file_chooser">Не могу запустить интерфейс выбора файла</string>
+  <string name="error">Ошибка</string>
+  <string name="loading">Загрузка…</string>
+  <string name="location">Локация</string>
+  <string name="new_bookmark">Новая закладка</string>
+  <string name="ok">ОК</string>
+  <string name="open_in_new_tab">Открыть в новой вкладке</string>
+  <string name="open_new_tab">Новая вкладка</string>
+  <string name="speak">Искать запрос</string>
+  <string name="title">Название</string>
+  <string name="url_prompt">Введите искомый запрос или URL</string>
+  <string name="web_perm_request_confirmation">Эта страница запрашивает следующие ресурсы:\n\n%s</string>
+  <string name="search_history">Поиск по истории</string>
+  <string name="change_search_engine">Изменить поисковый движок</string>
+  <string name="change_user_agent">Изменить User Agent</string>
+  <string name="choose_default_search_engine">Выберите поисковый движок по-умолчанию</string>
+  <string name="engine">Поисковый движок</string>
+  <string name="set_search_engine_as_homepage">Установить поисковый движок в качестве домашней страницы</string>
+  <string name="save">Сохранить</string>
+  <string name="search_engine_url_with_query_placeholder_query">URL поискового движка (используйте параметр [query])</string>
+  <string name="cancel">Отмена</string>
+  <string name="cancelled">Отменено</string>
+  <string name="choose_user_agent_string">Выбрать строку User Agent</string>
+  <string name="delete">Удалить</string>
+  <string name="download">Скачать</string>
+  <string name="edit_user_agent_string">Редактировать строку User Agent</string>
+  <string name="file_not_found">Файл не найден</string>
+  <string name="no_app_for_file_type">Не найдено приложений для открытия такого типа файлов</string>
+  <string name="nothing">Ничего</string>
+  <string name="user_agent_string">Строка User Agent</string>
+  <string name="msg_delete_history">Удалить выделенные элементы истории?</string>
+  <string name="action">Действие:</string>
+  <string name="clear">Очистить</string>
+  <string name="current_key">Клавиша:</string>
+  <string name="favorites">Избранные</string>
+  <string name="history">История</string>
+  <string name="navigate_back">Перейти назад</string>
+  <string name="navigate_home">Навигация \"домой\"</string>
+  <string name="no_file_explorer_msg">Похоже, на вашем устройстве нет подходящего файлового менеджера</string>
+  <string name="not_set">Не задано</string>
+  <string name="open_folder">Открыть содержащую папку</string>
+  <string name="press_eny_key">Нажмите любую клавишу...</string>
+  <string name="refresh_page">Обновить страницу</string>
+  <string name="set_key_for_action">Установить клавишу для действия</string>
+  <string name="settings">Настройки</string>
+  <string name="shortcut">\"Быстрая\" клавиша</string>
+  <string name="shortcuts">\"Быстрые\" клавиши</string>
+  <string name="toggle_main_menu">Отобразить меню</string>
+  <string name="voice_search">Голосовой поиск</string>
+  <string name="install">Установить</string>
+  <string name="turn_on_unknown_sources">Пожалуйста, активируйте системную настройку \"Установка из неизвестных источников\"</string>
+  <string name="turn_on_unknown_sources_for_app">Пожалуйста, позвольте TV Bro устанавливать приложения из неизвестных источников в настройках системы</string>
+  <string name="storage_not_mounted">Хранилище файлов не найдено</string>
+  <string name="can_not_create_downloads">Не могу создать директорию для скачанных файлов</string>
+  <string name="voice_search_not_found">Приложение голосового поиска не найдено</string>
+  <string name="msg_delete_history_all">Удалить всю историю?</string>
+  <string name="downloads">Загрузки</string>
+  <string name="later">Позже</string>
+  <string name="new_version_dialog_title">Доступна новая версия</string>
+  <string name="downloads_notifications_description">Уведомления о загрузках</string>
+  <string name="auto_check_for_updates">Проверять обновления</string>
+  <string name="main">Основные</string>
+  <string name="unprotected_connection">Незащищенное соединение</string>
+  <string name="update">Обновить</string>
+  <string name="update_channel">Канал обновлений</string>
+  <string name="version_and_updates">Версия</string>
+  <string name="version_s">Версия: %s</string>
+  <string name="warning">Предупреждение</string>
+  <string name="web_browser_optimized_for_tvs">Веб-браузер, оптимизированный для телевизоров</string>
+  <string name="new_version_available_s">Доступна новая версия: %s</string>
+  <string name="err_webview_can_not_link">Не могу найти WebView компонент. Попробуйте сперва установить Android System WebView</string>
+  <string name="new_tab_title">[НОВАЯ ВКЛ.]</string>
+  <string name="open_a_new_tab_here">Открыть новую вкладку тут</string>
+  <string name="tabs">Вкладки</string>
+  <array name="tabs_options">
+    <item>Новая вкладка</item>
+    <item>Закрыть текущую</item>
+    <item>Закрыть все</item>
+    <item>Сдвинуть влево</item>
+    <item>Сдвинуть вправо</item>
+  </array>
+  <string name="ssl_expired">Срок действия сертификата истек</string>
+  <string name="ssl_idmismatch">Несоответствие имени хоста</string>
+  <string name="ssl_date_invalid">Дата сертификата недействительна</string>
+  <string name="ssl_invalid">Произошла общая ошибка</string>
+  <string name="back_to_safety">Вернуться к безопасности</string>
+  <string name="go_im_aware">Вперёд. Я осознаю риск</string>
+  <string name="connection_isnt_secure">Соединение не защищено</string>
+  <string name="hostname">Имя хоста:</string>
+  <string name="err_desk">Описание ошибки:</string>
+  <string name="details">Подробности:</string>
+  <string name="exit">Выход</string>
+  <string name="find_in_apps_store">Найти в магазине приложений</string>
+  <string name="close_application">Закрыть приложение</string>
+  <string name="close_tab">Закрыть вкладку</string>
+  <string name="navigate_forward">Перейти вперед</string>
+  <string name="zoom_in">Увеличить</string>
+  <string name="zoom_out">Уменьшить</string>
+  <string name="toggle_ads_blocking">Переключить блокировку рекламы</string>
+  <string name="never">никогда</string>
+  <string name="last_update">Последнее обновлени</string>
+  <string name="update_ad_blocker_list">Обновить список блокировщика рекламы</string>
+  <string name="need_restart">Требуется перезапуск приложения</string>
+  <string name="theme">Тема</string>
+  <array name="themes">
+    <item>Системная</item>
+    <item>Светлая</item>
+    <item>Тёмная</item>
+  </array>
   <string name="toggle_keep_screen_on">Поддерживать экран включенным</string>
   <string name="incognito_mode">Режим инкогнито</string>
-    <string name="incognito_mode_hint">Теперь вы можете просматривать сайты конфиденциально, и другие люди, использующие это устройство, не увидят вашу активность. TV Bro не сохраняет вашу историю посещений, файлы cookie и данные сайта, информацию, введенную в формах.\n\nОднако загрузки и закладки будут сохранены. Ваша активность может по-прежнему быть видна веб-сайтам, которые вы посещаете, вашей организации или интернет-провайдеру.</string>
-    <string name="don_t_show_again">Больше не показывать</string>
-    <string name="why_icon_changed">Почему иконка изменилась?</string>
+  <string name="incognito_mode_hint">Теперь вы можете просматривать сайты конфиденциально, и другие люди, использующие это устройство, не увидят вашу активность. TV Bro не сохраняет вашу историю посещений, файлы cookie и данные сайта, информацию, введенную в формах.\n\nОднако загрузки и закладки будут сохранены. Ваша активность может по-прежнему быть видна веб-сайтам, которые вы посещаете, вашей организации или интернет-провайдеру.</string>
+  <string name="don_t_show_again">Больше не показывать</string>
+  <string name="why_icon_changed">Почему иконка изменилась?</string>
   <string name="clear_web_cache">Очистить веб-кеш</string>
+  <string name="no_bookmarks_yet">Закладок пока нет</string>
+  <string name="done">Выполнено</string>
+  <string name="block_popups">Блокировка всплывающих окон</string>
+  <string name="block_popups_s">Блокировка всплывающих окон (%s)</string>
+  <string name="popup_dialog_blocked">Всплывающее диалоговое окно заблокировано</string>
+  <string name="new_tab_blocked">Новая вкладка заблокирована</string>
+  <string name="copy_to_clipboard">Скопировать в буфер обмена</string>
+  <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
+  <string name="share_url">Поделиться URL</string>
+  <string name="open_in_external_application">Открыть во внешнем приложении</string>
+  <string name="external_app_open_error">Не могу найти подходящее приложение</string>
+  <string-array name="popup_blocking_level">
+    <item>Не блокировать</item>
+    <item>Блокировать диалоги</item>
+    <item>Также блокировать новые вкладки (по инициативе скрипта)</item>
+    <item>Блокировать любые новые окна (максимальная блокировка)</item>
+  </string-array>
 </resources>

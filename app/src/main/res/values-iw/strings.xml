@@ -129,4 +129,21 @@
     <item>זוז שמאלה</item>
     <item>זוז ימינה</item>
   </string-array>
+  <string name="no_bookmarks_yet">עדיין אין סימניות</string>
+  <string name="done">בוצע</string>
+  <string name="block_popups">חסימת חלונות קופצים</string>
+  <string name="block_popups_s">חסימת חלונות קופצים (%s)</string>
+  <string name="popup_dialog_blocked">דו-שיח קופץ חסום</string>
+  <string name="new_tab_blocked">כרטיסייה חדשה נחסמה</string>
+  <string name="copy_to_clipboard">העתק ללוח</string>
+  <string name="copied_to_clipboard">הועתק ללוח</string>
+  <string name="share_url">שתף כתובת אתר</string>
+  <string name="open_in_external_application">פתח באפליקציה חיצונית</string>
+  <string name="external_app_open_error">לא מוצא יישום מתאים</string>
+  <string-array name="popup_blocking_level">
+    <item>לא לחסום</item>
+    <item>חסום דיאלוגים</item>
+    <item>חסום גם כרטיסיות חדשות (יזום סקריפט)</item>
+    <item>חסום כל חלונות חדשים (חסימה מקסימלית)</item>
+  </string-array>
 </resources>

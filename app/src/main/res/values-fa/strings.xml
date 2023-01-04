@@ -129,4 +129,21 @@
     <item>حرکت به سمت چپ</item>
     <item>برو راست</item>
   </string-array>
+  <string name="no_bookmarks_yet">هنوز هیچ نشانکی وجود ندارد</string>
+  <string name="done">انجام شده</string>
+  <string name="block_popups">مسدود شدن پنجره های بازشو</string>
+  <string name="block_popups_s">مسدود کردن پنجره های بازشو (%s)</string>
+  <string name="popup_dialog_blocked">پنجره بازشو مسدود شد</string>
+  <string name="new_tab_blocked">برگه جدید مسدود شده است</string>
+  <string name="copy_to_clipboard">کپی به کلیپ بورد</string>
+  <string name="copied_to_clipboard">در کلیپ بورد کپی شد</string>
+  <string name="share_url">URL را به اشتراک بگذارید</string>
+  <string name="open_in_external_application">در برنامه خارجی باز کنید</string>
+  <string name="external_app_open_error">نمی توان برنامه مناسب را پیدا کرد</string>
+  <string-array name="popup_blocking_level">
+    <item>مسدود نیست</item>
+    <item>مسدود کردن دیالوگ ها</item>
+    <item>همچنین برگه های جدید را مسدود کنید (شروع اسکریپت)</item>
+    <item>مسدود کردن هر پنجره جدید (حداکثر مسدود شدن)</item>
+  </string-array>
 </resources>

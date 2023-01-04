@@ -125,4 +125,21 @@
     <item>Пересунути вліво</item>
     <item>Пересунути вправо</item>
   </string-array>
+  <string name="no_bookmarks_yet">Закладок ще немає</string>
+  <string name="done">Готово</string>
+  <string name="block_popups">Блокування спливаючих вікон</string>
+  <string name="block_popups_s">Блокування спливаючих вікон (%s)</string>
+  <string name="popup_dialog_blocked">Спливаюче діалогове вікно заблоковано</string>
+  <string name="new_tab_blocked">Нова вкладка заблокована</string>
+  <string name="copy_to_clipboard">Копіювати в буфер обміну</string>
+  <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
+  <string name="share_url">Поділитися URL</string>
+  <string name="open_in_external_application">Відкрити у зовнішній програмі</string>
+  <string name="external_app_open_error">Не можу знайти відповідне застосування</string>
+  <string-array name="popup_blocking_level">
+    <item>Не блокувати</item>
+    <item>Блок діалогів</item>
+    <item>Також блокувати нові вкладки (ініційовані сценарієм)</item>
+    <item>Блокувати будь-які нові вікна (максимальне блокування)</item>
+  </string-array>
 </resources>
