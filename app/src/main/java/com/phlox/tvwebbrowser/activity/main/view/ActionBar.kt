@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
-import android.app.Activity
 import android.content.Context
 import android.transition.TransitionManager
 import android.util.AttributeSet
@@ -49,7 +48,8 @@ class ActionBar @JvmOverloads constructor(
             enterExtendedAddressBarMode()
 
             val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_FORCED)
+
+            imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_IMPLICIT)
             postDelayed(//workaround an android TV bug
                 {
                     vb.etUrl.selectAll()
@@ -65,12 +65,6 @@ class ActionBar @JvmOverloads constructor(
                     imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
                     callback?.search(vb.etUrl.text.toString())
                     dismissExtendedAddressBarMode()
-                    callback?.onUrlInputDone()
-                }
-                return@OnKeyListener true
-            }
-            KeyEvent.KEYCODE_DPAD_DOWN -> {
-                if (keyEvent.action == KeyEvent.ACTION_UP) {
                     callback?.onUrlInputDone()
                 }
                 return@OnKeyListener true
