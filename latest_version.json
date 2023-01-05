@@ -9,14 +9,19 @@
     },
     {
       "name": "beta",
-      "latestVersionName": "v1.8.5",
-      "latestVersionCode": 57,
+      "latestVersionName": "v1.8.6",
+      "latestVersionCode": 59,
       "minAPI": 23,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.5/tvbro1.8.5.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v1.8.6/tvbro1.8.6.apk"
     }
   ],
 
   "changelog": [
+    {
+      "versionCode": 59,
+      "versionName": "v1.8.6",
+      "changes": "* Popup blocking re-implemented (thank you WIStudent for implementation ideas and MR)\n* More options and fix for link context menu (thank you MailYouLater for string-case fix)\n* Several other small bugs fixed\n* Translations updated"
+    },
     {
       "versionCode": 57,
       "versionName": "v1.8.5",
