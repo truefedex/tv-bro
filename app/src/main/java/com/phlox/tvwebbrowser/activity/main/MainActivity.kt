@@ -1222,7 +1222,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             share.putExtra(Intent.EXTRA_SUBJECT, R.string.share_url)
             share.putExtra(Intent.EXTRA_TEXT, url)
             try {
-                startActivity(Intent.createChooser(share, getString(R.string.share_url)))
+                startActivity(share)
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
@@ -1238,7 +1238,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 return
             }
             try {
-                startActivity(Intent.createChooser(intent, getString(R.string.share_url)))
+                startActivity(intent)
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
