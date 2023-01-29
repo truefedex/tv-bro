@@ -44,14 +44,12 @@ android {
     buildTypes {
         getByName("debug") {
             isDebuggable = true
-            project.setProperty("crashlytics", false)
         }
         getByName("release") {
             isDebuggable = false
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig=signingConfigs.getByName("release")
-            project.setProperty("crashlytics", true)
         }
     }
 
@@ -70,9 +68,9 @@ android {
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
             manifestPlaceholders["extractNativeLibs"] = "false"
         }
-        create("amazon") {
+        create("foss") {
             dimension = "appstore"
-            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
             manifestPlaceholders["extractNativeLibs"] = "true"
         }
     }
@@ -120,10 +118,11 @@ dependencies {
 
     "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
-    if (project.property("crashlytics") == true) {
-        implementation("com.google.firebase:firebase-core:21.1.1")
-        implementation("com.google.firebase:firebase-crashlytics-ktx:18.3.2")
-    }
+    "googleImplementation"("com.google.firebase:firebase-core:21.1.1")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.3")
+
+    "genericImplementation"("com.google.firebase:firebase-core:21.1.1")
+    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.3")
 }
 
 tasks.getByName("check").dependsOn("lint")

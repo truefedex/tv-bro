@@ -1,0 +1,10 @@
+Web browser optimised to use with TV remote.
+Features:
+- working with TV remote
+- tabs and bookmarks support
+- voice search support
+- switch user agent support
+- use Android builtin web rendering engine (WebKit/Blink based)
+- built-in download manager
+- browsing history
+- shortcuts

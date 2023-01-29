@@ -1,4 +1,0 @@
-<resources>
-    <drawable name="splash_logo">@drawable/fireos_logo</drawable>
-    <drawable name="app_logo">@mipmap/fireos_launcher_icon</drawable>
-</resources>
