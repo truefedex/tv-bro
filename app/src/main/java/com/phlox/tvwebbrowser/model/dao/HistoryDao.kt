@@ -24,8 +24,8 @@ interface HistoryDao {
     @Query("SELECT COUNT(*) FROM history")
     suspend fun count(): Int
 
-    @Query("SELECT * FROM history ORDER BY time DESC LIMIT 1")
-    suspend fun last(): List<HistoryItem>
+    @Query("SELECT * FROM history ORDER BY time DESC LIMIT :limit")
+    suspend fun last(limit: Int = 1): List<HistoryItem>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Query("SELECT \"\" as id, title, url, favicon, count(url) as cnt , max(time) as time FROM history GROUP BY title, url, favicon ORDER BY cnt DESC, time DESC LIMIT 8")

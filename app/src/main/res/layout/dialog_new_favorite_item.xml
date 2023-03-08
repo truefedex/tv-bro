@@ -2,8 +2,24 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="5dp"
+    android:padding="15dp"
     android:minWidth="400dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="@string/new_bookmark"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:background="#aaa" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -83,6 +99,7 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="5dp"
         android:layout_marginTop="10dp">
 
         <Button
@@ -91,6 +108,7 @@
             android:background="@drawable/button_bg_selector"
             android:text="@string/cancel"
             android:id="@+id/btnCancel"
+            android:layout_marginEnd="10dp"
             android:layout_weight="1" />
 
         <Button
@@ -99,6 +117,7 @@
             android:background="@drawable/button_bg_selector"
             android:text="@string/done"
             android:id="@+id/btnDone"
+            android:layout_marginStart="10dp"
             android:layout_weight="1" />
 
     </LinearLayout>

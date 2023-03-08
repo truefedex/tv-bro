@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.utils.observable.Subscribable
 
 class Config(val prefs: SharedPreferences) {
     companion object {
@@ -20,19 +22,27 @@ class Config(val prefs: SharedPreferences) {
         const val KEEP_SCREEN_ON_KEY = "keep_screen_on"
         const val INCOGNITO_MODE_KEY = "incognito_mode"
         const val INCOGNITO_MODE_HINT_SUPPRESS_KEY = "incognito_mode_hint_suppress"
+        const val HOME_PAGE_MODE = "home_page_mode"
+        const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
+
+        val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Custom")
+        val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "custom")
+        val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
+            "https://search.yahoo.com/search?p=[query]", "https://duckduckgo.com/?q=[query]",
+            "https://yandex.com/search/?text=[query]", "")
     }
 
     enum class Theme {
         SYSTEM, WHITE, BLACK
     }
 
-    fun getSearchEngineURL(): String {
-        return prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, "")!!
+    enum class HomePageMode {
+        HOME_PAGE, SEARCH_ENGINE, CUSTOM, BLANK
     }
 
-    fun getSearchEngineAsHomePage() = prefs.getBoolean(SEARCH_ENGINE_AS_HOME_PAGE_KEY, false)
-
-    fun getHomePage() = prefs.getString(HOME_PAGE_KEY, DEFAULT_HOME_URL)!!
+    enum class HomePageLinksMode {
+        MIXED, RECOMMENDATIONS, BOOKMARKS, LATEST_HISTORY, MOST_VISITED
+    }
 
     fun getUserAgentString(): String {
         return prefs.getString(USER_AGENT_PREF_KEY, "")!!
@@ -77,17 +87,36 @@ class Config(val prefs: SharedPreferences) {
             }
         }
 
-    fun setSearchEngineURL(url: String) {
-        prefs.edit().putString(SEARCH_ENGINE_URL_PREF_KEY, url).apply()
-    }
+    var homePageMode: HomePageMode
+        get() = prefs.getInt(HOME_PAGE_MODE, 0)
+            .let {
+                //ignore value if search engine as home page is set
+                if (prefs.getBoolean(SEARCH_ENGINE_AS_HOME_PAGE_KEY, false)) {
+                    prefs.edit().remove(SEARCH_ENGINE_AS_HOME_PAGE_KEY).apply()
+                    HomePageMode.SEARCH_ENGINE.ordinal
+                } else it
+            }
+            .let { if (it < 0 || it >= HomePageMode.values().size) 0 else it }
+            .let { HomePageMode.values()[it] }
+        set(value) {
+            prefs.edit().putInt(HOME_PAGE_MODE, value.ordinal).apply()
+        }
 
-    fun setSearchEngineAsHomePage(searchEngineIsHomePage: Boolean) {
-        prefs.edit().putBoolean(SEARCH_ENGINE_AS_HOME_PAGE_KEY, searchEngineIsHomePage).apply()
-    }
+    var homePageLinksMode: HomePageLinksMode
+        get() = prefs.getInt(HOME_PAGE_SUGGESTIONS_MODE, 0)
+            .let { if (it < 0 || it >= HomePageLinksMode.values().size) 0 else it }
+            .let { HomePageLinksMode.values()[it] }
+        set(value) {
+            prefs.edit().putInt(HOME_PAGE_SUGGESTIONS_MODE, value.ordinal).apply()
+        }
 
-    fun setHomePage(url: String) {
-        prefs.edit().putString(HOME_PAGE_KEY, url).apply()
-    }
+    var homePage: String
+        get() = prefs.getString(HOME_PAGE_KEY, DEFAULT_HOME_URL)!!
+        set(value) {
+            prefs.edit().putString(HOME_PAGE_KEY, value).apply()
+        }
+
+    var searchEngineURL = ObservableStringPreference(SearchEnginesURLs[0], SEARCH_ENGINE_URL_PREF_KEY)
 
     fun setUserAgentString(uas: String) {
         prefs.edit().putString(USER_AGENT_PREF_KEY, uas).apply()
@@ -99,5 +128,21 @@ class Config(val prefs: SharedPreferences) {
 
     fun setUpdateChannel(channel: String) {
         prefs.edit().putString(UPDATE_CHANNEL_KEY, channel).apply()
+    }
+
+    fun guessSearchEngineName(): String {
+        val url = searchEngineURL.value
+        val index = SearchEnginesURLs.indexOf(url)
+        return if (index != -1 && index < SearchEnginesNames.size)
+            SearchEnginesNames[index] else SearchEnginesNames[SearchEnginesNames.size - 1]
+    }
+
+    inner class ObservableStringPreference(default: String, private val prefsKey: String) : ObservableValue<String>(default) {
+        override var value: String = prefs.getString(prefsKey, default)!!
+            set(value) {
+                prefs.edit().putString(prefsKey, value).apply()
+                field = value
+                notifyObservers()
+            }
     }
 }

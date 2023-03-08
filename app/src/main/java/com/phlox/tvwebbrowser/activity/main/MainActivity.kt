@@ -26,12 +26,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
-import com.phlox.tvwebbrowser.activity.main.dialogs.SearchEngineConfigDialogFactory
+import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoriteEditorDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
@@ -41,6 +42,7 @@ import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.*
+import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
@@ -76,7 +78,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private var running: Boolean = false
     private var fullScreenView: View? = null
     private lateinit var prefs: SharedPreferences
-    private lateinit var jsInterface: AndroidJSInterface
     protected val config = TVBro.config
     private val voiceSearchHelper = VoiceSearchHelper(this, VOICE_SEARCH_REQUEST_CODE,
         MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS)
@@ -103,7 +104,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
         adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
         tabsModel = ActiveModelsRepository.get(TabsModel::class, this)
-        jsInterface = AndroidJSInterface(viewModel, tabsModel)
         uiHandler = Handler()
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         vb = ActivityMainBinding.inflate(layoutInflater)
@@ -131,7 +131,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
         vb.ibPopupBlock.setOnClickListener { lifecycleScope.launch(Dispatchers.Main) { showPopupBlockOptions() } }
-        vb.ibHome.setOnClickListener { navigate(settingsModel.homePage.value) }
+        vb.ibHome.setOnClickListener { navigate(settingsModel.homePage) }
         vb.ibBack.setOnClickListener { navigateBack() }
         vb.ibForward.setOnClickListener {
             if (tabsModel.currentTab.value != null && (tabsModel.currentTab.value!!.webView?.canGoForward() == true)) {
@@ -194,8 +194,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
         }
 
-        viewModel.frequentlyUsedUrls.subscribe(this) {
-            jsInterface.setSuggestions(application, it)
+        viewModel.homePageLinks.subscribe(this) {
+            Log.i(TAG, "homePageLinks updated")
+            val currentUrl = tabsModel.currentTab.value?.url ?: return@subscribe
+            if (Config.DEFAULT_HOME_URL == currentUrl) {
+                tabsModel.currentTab.value?.webView?.evaluateJavascript("renderLinks()", null)
+            }
         }
 
         tabsModel.currentTab.subscribe(this) {
@@ -258,7 +262,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun onAddNewTabSelected() {
-            openInNewTab(settingsModel.homePage.value, tabsModel.tabsStates.size)
+            openInNewTab(settingsModel.homePage, tabsModel.tabsStates.size)
         }
 
         override fun closeTab(tabState: WebTabState?) = this@MainActivity.closeTab(tabState)
@@ -357,7 +361,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         if (tabsModel.currentTab.value != null && tabsModel.currentTab.value!!.webView?.canGoBack() == true) {
             tabsModel.currentTab.value!!.webView?.goBack()
         } else if (goHomeIfNoHistory) {
-            navigate(settingsModel.homePage.value)
+            navigate(settingsModel.homePage)
         } else if (vb.rlActionBar.visibility != View.VISIBLE) {
             showMenuOverlay()
         } else {
@@ -373,9 +377,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         Log.d(TAG, "onDestroy")
         //here properties can be uninitialized in case of wrong activity for incognito mode
         //detection and force activity restart in onCreate()
-        if (::jsInterface.isInitialized) {
-            jsInterface.setActivity(null)
-        }
         if (::tabsModel.isInitialized) {
             tabsModel.onDetachActivity()
         }
@@ -405,7 +406,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val intentUri = intent.data
         if (intentUri == null) {
             if (tabsModel.tabsStates.isEmpty()) {
-                openInNewTab(settingsModel.homePage.value)
+                openInNewTab(settingsModel.homePage)
             } else {
                 var foundSelectedTab = false
                 for (i in tabsModel.tabsStates.indices) {
@@ -424,33 +425,16 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             openInNewTab(intentUri.toString(), tabsModel.tabsStates.size)
         }
 
-        if ("" == settingsModel.searchEngineURL.value) {
-            SearchEngineConfigDialogFactory.show(this@MainActivity, settingsModel, false,
-                    object : SearchEngineConfigDialogFactory.Callback {
-                        override fun onDone(url: String) {
-                            if (settingsModel.needAutoCheckUpdates &&
-                                    settingsModel.updateChecker.versionCheckResult == null &&
-                                    !settingsModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
-                                settingsModel.checkUpdate(false){
-                                    if (settingsModel.updateChecker.hasUpdate()) {
-                                        settingsModel.showUpdateDialogIfNeeded(this@MainActivity)
-                                    }
-                                }
-                            }
-                        }
-                    })
-        } else {
-            val currentTab = tabsModel.currentTab.value
-            if (currentTab == null || currentTab.url == settingsModel.homePage.value) {
-                showMenuOverlay()
-            }
-            if (settingsModel.needAutoCheckUpdates &&
-                    settingsModel.updateChecker.versionCheckResult == null &&
-                    !settingsModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
-                settingsModel.checkUpdate(false){
-                    if (settingsModel.updateChecker.hasUpdate()) {
-                        settingsModel.showUpdateDialogIfNeeded(this@MainActivity)
-                    }
+        val currentTab = tabsModel.currentTab.value
+        if (currentTab == null || currentTab.url == settingsModel.homePage) {
+            showMenuOverlay()
+        }
+        if (settingsModel.needAutoCheckUpdates &&
+                settingsModel.updateChecker.versionCheckResult == null &&
+                !settingsModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
+            settingsModel.checkUpdate(false){
+                if (settingsModel.updateChecker.hasUpdate()) {
+                    settingsModel.showUpdateDialogIfNeeded(this@MainActivity)
                 }
             }
         }
@@ -491,7 +475,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
         tab.webView?.apply { vb.flWebViewContainer.removeView(this) }
         when {
-            tabsModel.tabsStates.size == 1 -> openInNewTab(settingsModel.homePage.value, 0)
+            tabsModel.tabsStates.size == 1 -> openInNewTab(settingsModel.homePage, 0)
 
             position > 0 -> changeTab(tabsModel.tabsStates[position - 1])
 
@@ -510,7 +494,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private fun createWebView(tab: WebTabState): WebViewEx? {
         val webView: WebViewEx
         try {
-            webView = WebViewEx(this, WebViewCallback(tab), jsInterface)
+            webView = WebViewEx(this, WebViewCallback(tab), AndroidJSInterface(this, viewModel, tabsModel, tab))
             tab.webView = webView
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -641,7 +625,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     override fun onResume() {
         running = true
         super.onResume()
-        jsInterface.setActivity(this)
         val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(mConnectivityChangeReceiver, intentFilter)
         if (tabsModel.currentTab.value != null) {
@@ -650,7 +633,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun onPause() {
-        jsInterface.setActivity(null)
         if (mConnectivityChangeReceiver != null) unregisterReceiver(mConnectivityChangeReceiver)
         tabsModel.currentTab.value?.apply {
             webView?.onPause()
@@ -931,7 +913,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private fun syncTabWithTitles() {
         val tab = tabByTitleIndex(vb.vTabs.current)
         if (tab == null) {
-            openInNewTab(settingsModel.homePage.value, if (vb.vTabs.current < 0) 0 else tabsModel.tabsStates.size)
+            openInNewTab(settingsModel.homePage, if (vb.vTabs.current < 0) 0 else tabsModel.tabsStates.size)
         } else if (!tab.selected) {
             changeTab(tab)
         }
@@ -968,6 +950,41 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 hideMenuOverlay()
             }
         })
+    }
+
+    fun onEditHomePageBookmarkSelected(index: Int) = lifecycleScope.launch {
+        val bookmark = viewModel.homePageLinks.firstOrNull { it.order == index }
+        var favoriteItem: FavoriteItem? = null
+        if (bookmark != null && bookmark.favoriteId != null) {
+            favoriteItem = AppDatabase.db.favoritesDao().getById(bookmark.favoriteId)
+        }
+        if (favoriteItem == null) {
+            favoriteItem = FavoriteItem()
+            favoriteItem.title = bookmark?.title
+            favoriteItem.url = bookmark?.url
+            favoriteItem.order = index
+            favoriteItem.homePageBookmark = true
+            onEditHomePageBookmark(favoriteItem)
+        } else {
+            AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.bookmarks)
+                    .setItems(arrayOf(getString(R.string.edit), getString(R.string.delete))) { _, which ->
+                        when (which) {
+                            0 -> onEditHomePageBookmark(favoriteItem)
+                            1 -> viewModel.removeHomePageLink(bookmark!!)
+                        }
+                    }
+                    .show()
+        }
+
+    }
+
+    fun onEditHomePageBookmark(favoriteItem: FavoriteItem) {
+        FavoriteEditorDialog(this, object : FavoriteEditorDialog.Callback {
+            override fun onDone(item: FavoriteItem) {
+                viewModel.onHomePageLinkEdited(item)
+            }
+        }, favoriteItem).show()
     }
 
     private inner class WebViewCallback(val tab: WebTabState): WebViewEx.Callback {
@@ -1052,7 +1069,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun onReceivedIcon(icon: Bitmap) {
-            tab.updateFavIcon(this@MainActivity, icon)
             vb.vTabs.onFavIconUpdated(tab)
         }
 
@@ -1064,7 +1080,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
 
             val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
-
             intent.putExtra("URL_INTENT_ORIGIN", tab.webView?.hashCode())
             intent.addCategory(Intent.CATEGORY_BROWSABLE)
             intent.component = null
@@ -1122,8 +1137,14 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
             tab.webView?.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
             tab.webPageInteractionDetected = false
-            if (settingsModel.homePage.value == url) {
-                tab.webView?.loadUrl("javascript:renderSuggestions()")
+
+            if (tab.url == Config.DEFAULT_HOME_URL &&
+                config.homePageMode == Config.HomePageMode.HOME_PAGE) {
+                tab.webView?.evaluateJavascript(
+                    "applySearchEngine(\"${config.guessSearchEngineName()}\", \"${config.searchEngineURL.value}\")", null)
+                lifecycleScope.launch {
+                    viewModel.loadHomePageLinks()
+                }
             }
         }
 
@@ -1143,6 +1164,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun isDialogsBlockingEnabled(): Boolean {
+            if (tab.url == Config.DEFAULT_HOME_URL) return false
             return runBlocking(Dispatchers.Main.immediate) { tab.shouldBlockNewWindow(true, false) }
         }
 

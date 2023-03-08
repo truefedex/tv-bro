@@ -4,18 +4,16 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical">
 
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/ibDelete"
-        android:src="@drawable/ic_delete_grey_400_24dp"
-        android:minHeight="50dp"
-        android:minWidth="50dp" />
+    <ImageView
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:id="@+id/ivIcon"
+        android:src="@drawable/ic_not_available" />
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:padding="6dp"
         android:gravity="center_vertical"
         android:layout_weight="1"
@@ -41,9 +39,11 @@
             android:ellipsize="end" />
     </LinearLayout>
 
-    <ImageView
+    <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/ivArrow"
-        android:src="@drawable/ic_keyboard_arrow_right_grey_900_18dp" />
+        android:id="@+id/ibDelete"
+        android:src="@drawable/ic_delete_grey_400_24dp"
+        android:minHeight="50dp"
+        android:minWidth="50dp" />
 </LinearLayout>

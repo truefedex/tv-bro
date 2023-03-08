@@ -70,14 +70,14 @@ class TabsView @JvmOverloads constructor(
         when (i) {
           //Open new Tab
           0 -> {
-            listener?.openInNewTab(settingsModel.homePage.value!!, tabIndex + 1)
+            listener?.openInNewTab(settingsModel.homePage, tabIndex + 1)
           }
           //Close current
           1 -> listener?.closeTab(tab)
           //Close all
           2 -> {
             tabsModel.onCloseAllTabs()
-            listener?.openInNewTab(settingsModel.homePage.value!!, 0)
+            listener?.openInNewTab(settingsModel.homePage, 0)
           }
           //Move left
           3 -> if (tabIndex > 0) {

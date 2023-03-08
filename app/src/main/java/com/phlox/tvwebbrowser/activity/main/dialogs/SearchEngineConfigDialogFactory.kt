@@ -6,6 +6,7 @@ import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
 
@@ -22,7 +23,7 @@ object SearchEngineConfigDialogFactory {
 
         var selected = 0
         if ("" != settings.searchEngineURL.value) {
-            selected = settings.SearchEnginesURLs.indexOf(settings.searchEngineURL.value)
+            selected = Config.SearchEnginesURLs.indexOf(settings.searchEngineURL.value)
         }
 
         val builder = AlertDialog.Builder(context)
@@ -31,7 +32,7 @@ object SearchEngineConfigDialogFactory {
         val etUrl = view.findViewById(R.id.etUrl) as EditText
         val llUrl = view.findViewById(R.id.llURL) as LinearLayout
 
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, settings.SearchEnginesTitles)
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, Config.SearchEnginesTitles)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
         val spEngine = view.findViewById(R.id.spEngine) as Spinner
@@ -39,21 +40,21 @@ object SearchEngineConfigDialogFactory {
 
         if (selected != -1) {
             spEngine.setSelection(selected)
-            etUrl.setText(settings.SearchEnginesURLs[selected])
+            etUrl.setText(Config.SearchEnginesURLs[selected])
         } else {
-            spEngine.setSelection(settings.SearchEnginesTitles.size - 1)
+            spEngine.setSelection(Config.SearchEnginesTitles.size - 1)
             llUrl.visibility = View.VISIBLE
             etUrl.setText(settings.searchEngineURL.value)
             etUrl.requestFocus()
         }
         spEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (position == settings.SearchEnginesTitles.size - 1 && llUrl.visibility == View.GONE) {
+                if (position == Config.SearchEnginesTitles.size - 1 && llUrl.visibility == View.GONE) {
                     llUrl.visibility = View.VISIBLE
                     llUrl.startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in))
                     etUrl.requestFocus()
                 }
-                etUrl.setText(settings.SearchEnginesURLs[position])
+                etUrl.setText(Config.SearchEnginesURLs[position])
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
@@ -66,7 +67,7 @@ object SearchEngineConfigDialogFactory {
                 .setTitle(R.string.engine)
                 .setPositiveButton(R.string.save) { dialog, which ->
                     val url = etUrl.text.toString()
-                    settings.changeSearchEngineUrl(url)
+                    settings.setSearchEngineURL(url)
                     callback.onDone(url)
                 }
                 .show()

@@ -17,7 +17,7 @@ import java.util.*
  */
 class FavoritesDialog(context: Context, val scope: CoroutineScope, private val callback: Callback, private val currentPageTitle: String?, private val currentPageUrl: String?) : Dialog(context), FavoriteItemView.Listener {
     private var items: MutableList<FavoriteItem> = ArrayList()
-    private val adapter: FavoritesListAdapter = FavoritesListAdapter(items, this)
+    private val adapter = FavoritesListAdapter(items, this)
 
     private val tvPlaceholder: TextView
     private val listView: ListView
@@ -42,7 +42,11 @@ class FavoritesDialog(context: Context, val scope: CoroutineScope, private val c
 
         btnAdd.setOnClickListener { showAddItemDialog() }
 
-        btnEdit.setOnClickListener { adapter.isEditMode = !adapter.isEditMode }
+        btnEdit.setOnClickListener {
+            adapter.isEditMode = !adapter.isEditMode
+            btnEdit.setText(if (adapter.isEditMode) R.string.done else R.string.edit)
+            listView.itemsCanFocus = adapter.isEditMode
+        }
 
         listView.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
             val item = (view as FavoriteItemView).favorite

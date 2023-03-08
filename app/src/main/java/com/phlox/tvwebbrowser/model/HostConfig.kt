@@ -17,6 +17,7 @@ class HostConfig(
     var id: Long = 0
     @ColumnInfo(name = "popup_block_level")
     var popupBlockLevel: Int? = null
+    var favicon: String? = null
 
     companion object {
         const val POPUP_BLOCK_NONE = 0

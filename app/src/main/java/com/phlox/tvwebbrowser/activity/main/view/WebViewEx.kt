@@ -28,10 +28,14 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
+import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.utils.LogUtils
+import java.net.HttpURLConnection
+import java.net.URL
 import java.net.URLEncoder
 import java.util.*
 
@@ -48,6 +52,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         const val INTERNAL_SCHEME_WARNING_DOMAIN = "warning"
         const val INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT = "certificate"
         val WIDEVINE_UUID = UUID(-0x121074568629b532L,-0x5c37d8232ae2de13L)
+        const val HOME_PAGE_URL = "https://tvbro.phlox.dev/appcontent/home/"
     }
 
     private var genericInjects: String? = null
@@ -66,7 +71,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
     var trustSsl: Boolean = false
     private var currentOriginalUrl: Uri? = null
     private val uiHandler = Handler(Looper.getMainLooper())
-    private var optimalPageFavIcon: Bitmap? = null
 
     interface Callback {
         fun getActivity(): Activity
@@ -126,6 +130,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             allowFileAccessFromFileURLs = true
             allowUniversalAccessFromFileURLs = true
             domStorageEnabled = true
+            if (BuildConfig.DEBUG) {
+                setWebContentsDebuggingEnabled(true)
+            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
@@ -340,9 +347,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             }
 
             override fun onReceivedIcon(view: WebView?, icon: Bitmap) {
-                val prevIcon = optimalPageFavIcon
-                if (prevIcon != null && prevIcon.width >= icon.width) return
-                optimalPageFavIcon = icon
+                Log.d(TAG, "onReceivedIcon: ${icon.width}x${icon.height}")
                 callback.onReceivedIcon(icon)
             }
 
@@ -366,6 +371,13 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
 
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                 //Log.d(TAG, "shouldInterceptRequest url: ${request.url}")
+                val currentOriginalUrl = currentOriginalUrl
+
+                if (currentOriginalUrl != null && currentOriginalUrl.toString() == HOME_PAGE_URL) {
+                    HomePageHelper.shouldInterceptRequest(view, request)?.let {
+                        return it
+                    }
+                }
 
                 if (!callback.isAdBlockingEnabled()) {
                     return super.shouldInterceptRequest(view, request)
@@ -382,10 +394,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 Log.d(TAG, "onPageStarted url: $url")
-                optimalPageFavIcon = favicon
-                if (favicon != null) {
-                    callback.onReceivedIcon(favicon)
-                }
                 currentOriginalUrl = Uri.parse(url)
                 callback.onPageStarted(url)
             }
@@ -495,8 +503,27 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
     override fun loadUrl(url: String) {
         when {
             Config.DEFAULT_HOME_URL == url -> {
-                val data = context.assets.open("pages/new-tab.html").bufferedReader().use { it.readText() }
-                loadDataWithBaseURL("file:///android_asset/", data, "text/html", "UTF-8", null)
+                when (TVBro.config.homePageMode) {
+                    Config.HomePageMode.BLANK -> {
+                        loadDataWithBaseURL(null, "", "text/html", "UTF-8", null)
+                    }
+                    Config.HomePageMode.CUSTOM, Config.HomePageMode.SEARCH_ENGINE -> {
+                        try {
+                            currentOriginalUrl = Uri.parse(TVBro.config.homePage)
+                            super.loadUrl(TVBro.config.homePage)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "LoadUrl error", e)
+                            loadDataWithBaseURL(null, "", "text/html", "UTF-8", null)
+                        }
+
+                    }
+                    Config.HomePageMode.HOME_PAGE -> {
+                        currentOriginalUrl = Uri.parse(HOME_PAGE_URL)
+                        val data = context.assets.open("pages/home/index.html").bufferedReader().use { it.readText() }
+                        loadDataWithBaseURL(HOME_PAGE_URL, data, "text/html", "UTF-8", null)
+                    }
+                }
+
             }
             url.startsWith(INTERNAL_SCHEME) -> {
                 val uri = Uri.parse(url)

@@ -143,4 +143,21 @@
     <string name="share_url">Share URL</string>
     <string name="open_in_external_application">Open in external application</string>
     <string name="external_app_open_error">Can not find suitable application</string>
+    <string name="home_page">Home page</string>
+    <string name="custom_home_page_url">Custom home page URL</string>
+    <string name="home_page_links">Home page links</string>
+    <array name="home_page_modes">
+        <item>TV Bro Home</item>
+        <item>Search engine</item>
+        <item>Custom</item>
+        <item>Blank</item>
+    </array>
+
+    <array name="home_page_links_modes">
+        <item>Mixed (Recommendations replaceable by the most visited)</item>
+        <item>Recommendations</item>
+        <item>Bookmarks</item>
+        <item>Latest History</item>
+        <item>Most Visited</item>
+    </array>
 </resources>

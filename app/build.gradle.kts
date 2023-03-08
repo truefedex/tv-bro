@@ -84,7 +84,11 @@ android {
         targetCompatibility to JavaVersion.VERSION_1_8
     }
 
-    lint.disable += setOf("UNUSED_PARAMETER")
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 
     kapt {
         arguments {
@@ -97,7 +101,7 @@ android {
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    implementation("androidx.appcompat:appcompat:1.6.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.webkit:webkit:1.5.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
@@ -107,7 +111,7 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
 
-    val roomVersion = "2.4.3"
+    val roomVersion = "2.5.0"
     implementation("androidx.room:room-runtime:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
@@ -116,13 +120,16 @@ dependencies {
     implementation("com.github.truefedex:ad-block:v0.0.1-ci")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
-    "debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
+    //"debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     "googleImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.3")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.5")
 
     "genericImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.3")
+    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.5")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.9")
 }
 
 tasks.getByName("check").dependsOn("lint")

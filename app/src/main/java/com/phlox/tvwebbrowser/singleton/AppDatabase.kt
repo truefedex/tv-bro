@@ -15,7 +15,7 @@ import com.phlox.tvwebbrowser.model.dao.*
     HistoryItem::class, WebTabState::class,
     HostConfig::class
                      ],
-    version = 17/*, exportSchema = true*/)
+    version = 18/*, exportSchema = true*/)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
     abstract fun historyDao(): HistoryDao
@@ -134,6 +134,19 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE favorites\n" +
+                        "ADD HOME_PAGE_BOOKMARK INTEGER NOT NULL DEFAULT 0;")
+                db.execSQL("ALTER TABLE favorites\n" +
+                        "ADD I_ORDER INTEGER NOT NULL DEFAULT 0;")
+                db.execSQL("CREATE INDEX favorites_home_page_bookmark_idx ON favorites(HOME_PAGE_BOOKMARK);")
+                db.execSQL("CREATE INDEX favorites_parent_idx ON favorites(PARENT);")
+
+                db.execSQL("ALTER TABLE `hosts` ADD `favicon` TEXT;")
+            }
+        }
+
         private fun createHostsTable(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS `hosts` (`host_name` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `popup_block_level` INTEGER)")
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `hosts_name_idx` ON `hosts` (`host_name`)")
@@ -177,7 +190,7 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java, "main.db"
             ).addMigrations(MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9,
                 MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
-                MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17)
+                MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18)
             .allowMainThreadQueries()
                 .build()
         }

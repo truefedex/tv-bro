@@ -36,7 +36,7 @@ class MainActivityViewModel: ActiveModel() {
 
     var loaded = false
     var lastHistoryItem: HistoryItem? = null
-    val frequentlyUsedUrls = ObservableList<HistoryItem>()
+    val homePageLinks = ObservableList<HomePageLink>()
     private var downloadIntent: DownloadIntent? = null
     val logCatOutput = ParameterizedEventSource<String>()
 
@@ -68,12 +68,30 @@ class MainActivityViewModel: ActiveModel() {
             e.printStackTrace()
             LogUtils.recordException(e)
         }
+    }
 
-        try {
-            frequentlyUsedUrls.addAll(AppDatabase.db.historyDao().frequentlyUsedUrls())
-        } catch (e: Exception) {
-            e.printStackTrace()
-            LogUtils.recordException(e)
+    suspend fun loadHomePageLinks() {
+        val config = TVBro.config
+        homePageLinks.clear()
+        if (config.homePageMode == Config.HomePageMode.HOME_PAGE) {
+            when (config.homePageLinksMode) {
+                Config.HomePageLinksMode.MOST_VISITED, Config.HomePageLinksMode.MIXED -> {
+                    homePageLinks.addAll(
+                        AppDatabase.db.historyDao().frequentlyUsedUrls()
+                            .map { HomePageLink.fromHistoryItem(it) })
+                }
+                Config.HomePageLinksMode.LATEST_HISTORY -> {
+                    homePageLinks.addAll(
+                        AppDatabase.db.historyDao().last(8)
+                            .map { HomePageLink.fromHistoryItem(it) })
+                }
+                Config.HomePageLinksMode.BOOKMARKS -> {
+                    homePageLinks.addAll(
+                        AppDatabase.db.favoritesDao().getHomePageBookmarks()
+                            .map { HomePageLink.fromBookmarkItem(it) })
+                }
+                else -> {}
+            }
         }
     }
 
@@ -249,6 +267,31 @@ class MainActivityViewModel: ActiveModel() {
                         WEB_VIEW_DATA_BACKUP_DIRECTORY_SUFFIX
             )
             backupedWebViewCache.renameTo(webViewCache)
+        }
+    }
+
+    override fun onClear() {
+
+    }
+
+    fun removeHomePageLink(bookmark: HomePageLink) = modelScope.launch {
+        homePageLinks.remove(bookmark)
+        bookmark.favoriteId?.let {
+            AppDatabase.db.favoritesDao().delete(it)
+        }
+    }
+
+    fun onHomePageLinkEdited(item: FavoriteItem) = modelScope.launch {
+        if (item.id == 0L) {
+            val lastInsertRowId = AppDatabase.db.favoritesDao().insert(item)
+            item.id = lastInsertRowId
+            homePageLinks.add(HomePageLink.fromBookmarkItem(item))
+        } else {
+            AppDatabase.db.favoritesDao().update(item)
+            val index = homePageLinks.indexOfFirst { it.favoriteId == item.id }
+            if (index != -1) {
+                homePageLinks[index] = HomePageLink.fromBookmarkItem(item)
+            }
         }
     }
 }

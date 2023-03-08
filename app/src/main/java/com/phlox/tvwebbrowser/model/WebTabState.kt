@@ -54,7 +54,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
 
         const val TAB_THUMBNAILS_DIR = "tabthumbs"
         const val TAB_WVSTATES_DIR = "wvstates"
-        const val FAVICONS_DIR = "favicons"
     }
 
     @Ignore
@@ -62,8 +61,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
 
     @Ignore
     var thumbnail: Bitmap? = null
-    @Ignore
-    var favicon: Bitmap? = null
     @Ignore
     var savedState: Bundle? = null
     @Ignore
@@ -87,10 +84,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             if (json.has("thumbnail")) {
                 thumbnailHash = json.getString("thumbnail")
             }
-            if (json.has("favicon")) {
-                faviconHash = json.getString("favicon")
-                loadFavicon(context)
-            }
             if (json.has("wv_state")) {
                 val state = Utils.convertJsonToBundle(json.getJSONObject("wv_state"))
                 if (state != null && !state.isEmpty) {
@@ -104,22 +97,11 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
 
     }
 
-    fun loadFavicon(context: Context) {
-        val faviconFile = File(
-          context.cacheDir.absolutePath +
-            File.separator + FAVICONS_DIR +
-            File.separator + faviconHash
-        )
-        if (faviconFile.exists()) {
-            favicon = BitmapFactory.decodeFile(faviconFile.absolutePath)
-        }
-    }
-
     private fun saveThumbnail(context: Context, scope: CoroutineScope) {
         val thumbnail = this.thumbnail
         val thumbnailHash = this.thumbnailHash
         val url = url
-        if (thumbnail == null || url == null) return
+        if (thumbnail == null) return
         scope.launch(Dispatchers.IO) {
             synchronized(this@WebTabState) {
                 val tabsThumbsDir = File(context.cacheDir.absolutePath + File.separator + TAB_THUMBNAILS_DIR)
@@ -229,44 +211,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             val state = Bundle()
             saveState(state)
             savedState = state
-        }
-    }
-
-    fun updateFavIcon(context: Context, icon: Bitmap?) {
-        favicon = icon
-        if (favicon == null) {
-            faviconHash = null
-            return
-        }
-        val favIconsDir = File(context.cacheDir.absolutePath + File.separator + WebTabState.FAVICONS_DIR)
-        if (favIconsDir.exists() || favIconsDir.mkdir()) {
-            var bitmapBytes: ByteArray? = null
-            var hash: String? = null
-            try {
-                val baos = ByteArrayOutputStream()
-                icon!!.compress(Bitmap.CompressFormat.PNG, 100, baos)
-                bitmapBytes = baos.toByteArray()
-                hash = Utils.MD5_Hash(bitmapBytes)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-            if (bitmapBytes == null || hash == null || hash == faviconHash) return
-
-            faviconHash = hash
-
-            val file = File(favIconsDir.absolutePath + File.separator + faviconHash)
-            if (!file.exists()) {
-                var fos: FileOutputStream? = null
-                try {
-                    fos = FileOutputStream(file)
-                    fos.write(bitmapBytes)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                } finally {
-                    fos?.close()
-                }
-            }
         }
     }
 

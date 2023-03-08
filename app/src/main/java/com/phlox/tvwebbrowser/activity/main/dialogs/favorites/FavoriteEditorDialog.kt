@@ -57,7 +57,12 @@ class FavoriteEditorDialog(context: Context, private val callback: Callback, pri
 
         btnDone.setOnClickListener {
             this@FavoriteEditorDialog.item.title = etTitle.text.toString()
-            this@FavoriteEditorDialog.item.url = etUrl.text.toString()
+            var urlStr = etUrl.text.toString()
+            //add https:// if url not starts with any schema
+            if (!urlStr.matches( Regex("^[A-Za-z]+://.*$"))) {
+                urlStr = "https://$urlStr"
+            }
+            this@FavoriteEditorDialog.item.url = urlStr
             callback.onDone(this@FavoriteEditorDialog.item)
             dismiss()
         }

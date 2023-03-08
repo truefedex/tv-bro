@@ -29,7 +29,7 @@ class MainSettingsView @JvmOverloads constructor(
     var adblockModel: AdblockModel = ActiveModelsRepository.get(AdblockModel::class, activity!!)
 
     init {
-        initSearchEngineConfigUI()
+        initHomePageAndSearchEngineConfigUI()
 
         initUAStringConfigUI(context)
 
@@ -153,49 +153,76 @@ class MainSettingsView @JvmOverloads constructor(
         }
     }
 
-    private fun initSearchEngineConfigUI() {
+    private fun initHomePageAndSearchEngineConfigUI() {
         var selected = 0
         if ("" != settingsModel.searchEngineURL.value) {
-            selected = settingsModel.SearchEnginesURLs.indexOf(settingsModel.searchEngineURL.value)
+            selected = Config.SearchEnginesURLs.indexOf(settingsModel.searchEngineURL.value)
         }
 
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, settingsModel.SearchEnginesTitles)
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, Config.SearchEnginesTitles)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
         vb.spEngine.adapter = adapter
 
         if (selected != -1) {
             vb.spEngine.setSelection(selected)
-            vb.etUrl.setText(settingsModel.SearchEnginesURLs[selected])
+            vb.etUrl.setText(Config.SearchEnginesURLs[selected])
         } else {
-            vb.spEngine.setSelection(settingsModel.SearchEnginesTitles.size - 1)
+            vb.spEngine.setSelection(Config.SearchEnginesTitles.size - 1)
             vb.llURL.visibility = View.VISIBLE
             vb.etUrl.setText(settingsModel.searchEngineURL.value)
             vb.etUrl.requestFocus()
         }
         vb.spEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (position == settingsModel.SearchEnginesTitles.size - 1 && vb.llURL.visibility == View.GONE) {
-                    vb.llURL.visibility = View.VISIBLE
-                    vb.llURL.startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in))
+                if (position == (Config.SearchEnginesTitles.size - 1)) {
+                    if (vb.llURL.visibility == View.GONE) {
+                        vb.llURL.visibility = View.VISIBLE
+                        vb.llURL.startAnimation(
+                            AnimationUtils.loadAnimation(context, android.R.anim.fade_in)
+                        )
+                    }
+                    vb.etUrl.setText(settingsModel.searchEngineURL.value)
                     vb.etUrl.requestFocus()
+                    return
+                } else {
+                    vb.llURL.visibility = View.GONE
+                    vb.etUrl.setText(Config.SearchEnginesURLs[position])
                 }
-                vb.etUrl.setText(settingsModel.SearchEnginesURLs[position])
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>) {
-
-            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
-        vb.scSearchEngineHomePage.isChecked = settingsModel.setSearchEngineAsHomePage
+
+        val homePageSpinnerAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, context.resources.getStringArray(R.array.home_page_modes))
+        homePageSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        vb.spHomePage.adapter = homePageSpinnerAdapter
+        vb.spHomePage.setSelection(settingsModel.homePageMode.ordinal)
+
+        vb.spHomePage.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                val homePageMode = Config.HomePageMode.values()[position]
+                vb.llCustomHomePage.visibility = if (homePageMode == Config.HomePageMode.CUSTOM) View.VISIBLE else View.GONE
+                vb.llHomePageLinksMode.visibility = if (homePageMode == Config.HomePageMode.HOME_PAGE) View.VISIBLE else View.GONE
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
+        val homePageLinksSpinnerAdapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, context.resources.getStringArray(R.array.home_page_links_modes))
+        homePageLinksSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        vb.spHomePageLinks.adapter = homePageLinksSpinnerAdapter
+        vb.spHomePageLinks.setSelection(settingsModel.homePageLinksMode.ordinal)
     }
 
     fun save() {
-        val url = vb.etUrl.text.toString()
-        settingsModel.changeSearchEngineUrl(url)
+        val customSearchEngineUrl = vb.etUrl.text.toString()
+        settingsModel.setSearchEngineURL(customSearchEngineUrl)
 
-        val searchEngineIsHomePage = vb.scSearchEngineHomePage.isChecked
-        settingsModel.setSearchEngineAsHomePage(searchEngineIsHomePage, url)
+        val homePageMode = Config.HomePageMode.values()[vb.spHomePage.selectedItemPosition]
+        val customHomePageURL = vb.etCustomHomePageUrl.text.toString()
+        val homePageLinksMode = Config.HomePageLinksMode.values()[vb.spHomePageLinks.selectedItemPosition]
+        settingsModel.setHomePageProperties(homePageMode, customHomePageURL, homePageLinksMode)
 
         val userAgent = vb.etUAString.text.toString().trim(' ')
         settingsModel.saveUAString(userAgent)

@@ -4,15 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:paddingLeft="22dp"
+    android:paddingTop="5dp"
+    android:paddingRight="22dp"
     >
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="vertical"
-      android:paddingLeft="22dp"
-      android:paddingTop="5dp"
-      android:paddingRight="22dp"
-      >
 
     <TextView
         android:layout_width="match_parent"
@@ -55,48 +50,80 @@
           />
     </LinearLayout>
 
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="@string/home_page"
         android:layout_marginTop="20dp"
-        android:orientation="horizontal"
-        android:paddingTop="5dp"
+        android:textSize="16sp"
+        />
+
+    <Spinner
+        android:id="@+id/spHomePage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:dropDownWidth="300dp"
+        />
+
+    <LinearLayout
+        android:id="@+id/llCustomHomePage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="20dp"
+        android:visibility="gone"
         >
-      <TextView
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_weight="1"
-          android:ellipsize="end"
-          android:lines="1"
-          android:text="@string/set_search_engine_as_homepage"
-          android:textSize="16sp"
-          />
-      <androidx.appcompat.widget.SwitchCompat
-          android:id="@+id/scSearchEngineHomePage"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_weight="0"
-          android:nextFocusDown="@+id/spTitles"
-          />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="@string/custom_home_page_url"
+            android:textSize="16sp"
+            />
+
+        <EditText
+            android:id="@+id/etCustomHomePageUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="@string/url"
+            android:importantForAutofill="no"
+            android:inputType="textUri"
+            />
     </LinearLayout>
 
-  </LinearLayout>
+    <LinearLayout
+        android:id="@+id/llHomePageLinksMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="20dp"
+        android:visibility="gone"
+        >
 
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="20dp"
-      android:orientation="vertical"
-      android:paddingLeft="22dp"
-      android:paddingTop="5dp"
-      android:paddingRight="22dp"
-      >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="@string/home_page_links"
+            android:textSize="16sp"
+            />
+
+        <Spinner
+            android:id="@+id/spHomePageLinks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:dropDownWidth="300dp"
+            />
+    </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/choose_user_agent_string"
         android:textSize="16sp"
+        android:layout_marginTop="20dp"
         />
 
     <Spinner
@@ -133,16 +160,12 @@
           />
     </LinearLayout>
 
-  </LinearLayout>
-
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:layout_marginTop="20dp"
       android:orientation="horizontal"
-      android:paddingLeft="22dp"
       android:paddingTop="5dp"
-      android:paddingRight="22dp"
       >
     <TextView
         android:layout_width="match_parent"
@@ -167,9 +190,7 @@
       android:layout_height="wrap_content"
       android:layout_marginTop="20dp"
       android:orientation="horizontal"
-      android:paddingLeft="22dp"
       android:paddingTop="5dp"
-      android:paddingRight="22dp"
       >
     <TextView
         android:id="@+id/tvAdBlockerListInfo"
@@ -206,9 +227,7 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:orientation="vertical"
-      android:paddingLeft="22dp"
       android:paddingTop="5dp"
-      android:paddingRight="22dp"
       >
 
     <TextView
@@ -231,9 +250,7 @@
       android:layout_height="wrap_content"
       android:layout_marginTop="20dp"
       android:orientation="horizontal"
-      android:paddingLeft="22dp"
       android:paddingTop="5dp"
-      android:paddingRight="22dp"
       >
     <TextView
         android:layout_width="match_parent"
@@ -257,7 +274,6 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginTop="10dp"
-      android:layout_marginStart="22dp"
       android:text="@string/clear_web_cache" />
   <View
       android:layout_width="match_parent"
