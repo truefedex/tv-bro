@@ -424,8 +424,12 @@ async function renderLinks() {
                 recommendationsToDisplay = JSON.parse(TVBro.homePageLinks());
                 break;
             case "MIXED": default:
-                recommendationsToDisplay = await loadRecommendations();
                 var recommendations = JSON.parse(TVBro.homePageLinks());
+                if (recommendations.length >= 8) {
+                    recommendationsToDisplay = recommendations;
+                    break;
+                }
+                recommendationsToDisplay = await loadRecommendations();
                 var i = 0;
                 while (i < recommendations.length && i < recommendationsToDisplay.length) {
                     recommendationsToDisplay[i] = recommendations[i++];
