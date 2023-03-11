@@ -2,10 +2,9 @@ package com.phlox.tvwebbrowser.activity.main
 
 import android.view.ViewGroup
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
+import com.phlox.tvwebbrowser.webengine.webview.WebViewEx
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
-import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
@@ -13,9 +12,6 @@ import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.io.File
-import java.io.FileInputStream
 
 class TabsModel : ActiveModel() {
   companion object {

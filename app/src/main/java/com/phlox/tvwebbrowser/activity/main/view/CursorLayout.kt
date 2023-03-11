@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.FrameLayout
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.webengine.webview.WebViewEx
 
 
 /**

@@ -1,13 +1,13 @@
-package com.phlox.tvwebbrowser.activity.main.view
+package com.phlox.tvwebbrowser.webengine.common
 
 import android.graphics.Bitmap
 import android.util.Log
-import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
+import com.phlox.tvwebbrowser.webengine.webview.WebViewEx
 import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection

@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.activity.main.view.tabs
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Rect
@@ -12,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.activity.main.TabsModel
-import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.databinding.ViewTabsBinding
 import com.phlox.tvwebbrowser.model.WebTabState

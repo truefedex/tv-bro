@@ -6,7 +6,6 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.Config
 
 import com.phlox.tvwebbrowser.activity.main.MainActivity
-import com.phlox.tvwebbrowser.activity.main.view.WebViewEx
 
 import java.util.HashMap
 

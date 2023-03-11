@@ -1,4 +1,4 @@
-package com.phlox.tvwebbrowser.activity.main.view
+package com.phlox.tvwebbrowser.webengine.webview
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -32,10 +32,10 @@ import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.webengine.common.HomePageHelper
+import com.phlox.tvwebbrowser.webengine.common.Scripts
 import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.utils.LogUtils
-import java.net.HttpURLConnection
-import java.net.URL
 import java.net.URLEncoder
 import java.util.*
 
