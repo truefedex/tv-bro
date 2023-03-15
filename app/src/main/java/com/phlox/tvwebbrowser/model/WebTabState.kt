@@ -11,10 +11,10 @@ import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.webengine.webview.WebViewEx
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -63,7 +63,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     @Ignore
     var savedState: Bundle? = null
     @Ignore
-    var webView: WebViewEx? = null
+    val webEngine = WebEngineFactory.createWebEngine(this)
     @Ignore
     var webPageInteractionDetected = false
     @Ignore
@@ -160,14 +160,14 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             var state = savedState
             val stateFileName = wvStateFileName
             if (state != null) {
-                webView?.restoreState(state)
+                webEngine.restoreState(state)
                 return@run true
             } else if (stateFileName != null) {
                 try {
                     val stateBytes = File(getWVStatePath(stateFileName)).readBytes()
                     state = Utils.bytesToBundle(stateBytes)
                     if (state == null) return@run false
-                    webView?.restoreState(state)
+                    webEngine.restoreState(state)
                     return@run true
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -177,7 +177,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             return@run false
         }
         if (!restored) {
-            this.url.takeIf { !TextUtils.isEmpty(url) }?.apply { webView?.loadUrl(this) }
+            this.url.takeIf { !TextUtils.isEmpty(url) }?.apply { webEngine.loadUrl(this) }
         }
     }
 
@@ -200,13 +200,13 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
         }
     }
 
-    fun recycleWebView() {
-        webView = null
+    fun trimMemory() {
+        webEngine.trimMemory()
         savedState = null
     }
 
     fun onPause() {
-        webView?.apply {
+        webEngine.apply {
             val state = Bundle()
             saveState(state)
             savedState = state

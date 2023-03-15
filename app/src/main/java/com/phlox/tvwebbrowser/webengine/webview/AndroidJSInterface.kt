@@ -1,4 +1,4 @@
-package com.phlox.tvwebbrowser.model
+package com.phlox.tvwebbrowser.webengine.webview
 
 import android.net.http.SslError
 import android.webkit.JavascriptInterface
@@ -8,35 +8,43 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.MainActivityViewModel
 import com.phlox.tvwebbrowser.activity.main.TabsModel
+import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.utils.DownloadUtils
 import org.json.JSONArray
 
 
-class AndroidJSInterface(private val activity: MainActivity,
+class AndroidJSInterface(val webEngine: WebViewWebEngine
+/*private val activity: MainActivity,
                          private val mainActivityViewModel: MainActivityViewModel,
                          private val tabsModel: TabsModel,
-                         private val tab: WebTabState) {
+                         private val tab: WebTabState
+*/) {
 
     @JavascriptInterface
-    fun navigate(string: String) {
-        activity.runOnUiThread { activity.navigate(string) }
+    fun navigate(url: String) {
+        val callback = webEngine.callback ?: return
+        callback.getActivity().runOnUiThread { webEngine.loadUrl(url) }
     }
 
     @JavascriptInterface
     fun currentUrl(): String {
-        return tab.url ?: ""
+        return webEngine.tab.url ?: ""
     }
 
     @JavascriptInterface
     fun navigateBack() {
-        activity.runOnUiThread { activity.navigateBack(true) }
+        val callback = webEngine.callback ?: return
+        callback.getActivity().runOnUiThread { webEngine.goBack() }
     }
 
     @JavascriptInterface
     fun reloadWithSslTrust() {
-        activity.runOnUiThread {
-            tab.webView?.trustSsl = true
-            tab.url.apply { tab.webView?.loadUrl(this) }
+        val callback = webEngine.callback ?: return
+        callback.getActivity().runOnUiThread {
+            val webview = webEngine.getView() as? WebViewEx ?: return@runOnUiThread
+            webview.trustSsl = true
+            webEngine.tab.url?.apply { webEngine.loadUrl(this) }
         }
     }
 
@@ -58,9 +66,10 @@ class AndroidJSInterface(private val activity: MainActivity,
 
     @JavascriptInterface
     fun homePageLinks(): String {
-        if (tab.url != Config.DEFAULT_HOME_URL) return "[]"
+        if (webEngine.tab.url != Config.DEFAULT_HOME_URL) return "[]"
+        val callback = webEngine.callback ?: return "[]"
         val jsArr = JSONArray()
-        for (item in mainActivityViewModel.homePageLinks) {
+        for (item in callback.getHomePageLinks()) {
             jsArr.put(item.toJsonObj())
         }
         return jsArr.toString()
@@ -68,20 +77,22 @@ class AndroidJSInterface(private val activity: MainActivity,
 
     @JavascriptInterface
     fun startVoiceSearch() {
-        if (tab.url != Config.DEFAULT_HOME_URL) return
-        activity.runOnUiThread { activity.initiateVoiceSearch() }
+        if (webEngine.tab.url != Config.DEFAULT_HOME_URL) return
+        val callback = webEngine.callback ?: return
+        callback.getActivity().runOnUiThread { callback.initiateVoiceSearch() }
     }
 
     @JavascriptInterface
     fun setSearchEngine(engine: String, customSearchEngineURL: String) {
-        if (tab.url != Config.DEFAULT_HOME_URL) return
+        if (webEngine.tab.url != Config.DEFAULT_HOME_URL) return
         TVBro.config.searchEngineURL.value = customSearchEngineURL
     }
 
     @JavascriptInterface
     fun onEditBookmark(index: Int) {
-        if (tab.url != Config.DEFAULT_HOME_URL) return
-        activity.runOnUiThread { activity.onEditHomePageBookmarkSelected(index) }
+        if (webEngine.tab.url != Config.DEFAULT_HOME_URL) return
+        val callback = webEngine.callback ?: return
+        callback.getActivity().runOnUiThread { callback.onEditHomePageBookmarkSelected(index) }
     }
 
     @JavascriptInterface
@@ -91,10 +102,11 @@ class AndroidJSInterface(private val activity: MainActivity,
 
     @JavascriptInterface
     fun lastSSLError(getDetails: Boolean): String {
+        val lastSSLError = (webEngine.getView() as? WebViewEx)?.lastSSLError ?: return "unknown"
         return if (getDetails) {
-            tab.webView?.lastSSLError?.toString() ?: ""
+            lastSSLError.toString()
         } else {
-            when (tab.webView?.lastSSLError?.primaryError) {
+            when (lastSSLError.primaryError) {
                 SslError.SSL_EXPIRED -> TVBro.instance.getString(R.string.ssl_expired)
                 SslError.SSL_IDMISMATCH -> TVBro.instance.getString(R.string.ssl_idmismatch)
                 SslError.SSL_DATE_INVALID -> TVBro.instance.getString(R.string.ssl_date_invalid)
@@ -106,8 +118,9 @@ class AndroidJSInterface(private val activity: MainActivity,
 
     @JavascriptInterface
     fun takeBlobDownloadData(base64BlobData: String, fileName: String?, url: String, mimetype: String) {
+        val callback = webEngine.callback ?: return
         val finalFileName = fileName ?: DownloadUtils.guessFileName(url, null, mimetype)
-        mainActivityViewModel.onDownloadRequested(activity, url, "",
+        callback.onDownloadRequested(url, "",
                 finalFileName, "TV Bro",
             mimetype, Download.OperationAfterDownload.NOP, base64BlobData)
     }

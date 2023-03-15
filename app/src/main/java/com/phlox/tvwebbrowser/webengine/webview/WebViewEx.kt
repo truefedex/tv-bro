@@ -34,7 +34,6 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.webengine.common.HomePageHelper
 import com.phlox.tvwebbrowser.webengine.common.Scripts
-import com.phlox.tvwebbrowser.model.AndroidJSInterface
 import com.phlox.tvwebbrowser.utils.LogUtils
 import java.net.URLEncoder
 import java.util.*
@@ -73,8 +72,8 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
     private val uiHandler = Handler(Looper.getMainLooper())
 
     interface Callback {
-        fun getActivity(): Activity
-        fun onOpenInNewTabRequested(s: String)
+        fun getActivity(): Activity?
+        fun onOpenInNewTabRequested(url: String)
         fun onDownloadRequested(url: String)
         fun onLongTap()
         fun onThumbnailError()
@@ -583,7 +582,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         return thumbnail
     }
 
-    fun onHideCustomView() {
+    fun hideCustomView() {
         webChromeClient_.onHideCustomView()
     }
 

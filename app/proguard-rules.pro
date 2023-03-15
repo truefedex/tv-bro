@@ -19,6 +19,10 @@
    public *;
    private *;
 }
+-keepclassmembers class com.phlox.tvwebbrowser.webengine.webview.AndroidJSInterface {
+   public *;
+   private *;
+}
 
 
 #-keepclasseswithmembers class com.phlox.tvwebbrowser.model.** {
