@@ -5,8 +5,6 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("kapt")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
 }
 
 val properties = Properties()
@@ -14,6 +12,8 @@ val localPropertiesFile: File = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { properties.load(it) }
 }
+
+var includeFirebase = true
 
 android {
     compileSdk = 33
@@ -35,7 +35,7 @@ android {
     }
     signingConfigs {
         create("release") {
-            storeFile = rootProject.file(properties.getProperty("storeFile", ""))
+            storeFile = properties.getProperty("storeFile", null)?.let { rootProject.file(this) }
             storePassword = properties.getProperty("storePassword", "")
             keyAlias = properties.getProperty("keyAlias", "")
             keyPassword = properties.getProperty("keyPassword", "")
@@ -58,9 +58,10 @@ android {
         create("generic") {
             dimension = "appstore"
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
-            //when distributing as an apk, the size of the distribution apk is more
+            //when distributing as an universal apk, the size of the distribution apk is more
             //important than the size after installation
             manifestPlaceholders["extractNativeLibs"] = "true"
+            packagingOptions.jniLibs.useLegacyPackaging = true
         }
         create("google") {
             dimension = "appstore"
@@ -70,8 +71,12 @@ android {
         }
         create("foss") {
             dimension = "appstore"
-            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
+            applicationIdSuffix = ".foss"
+            versionNameSuffix = "-foss"
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
             manifestPlaceholders["extractNativeLibs"] = "true"
+            packagingOptions.jniLibs.useLegacyPackaging = true
+            includeFirebase = false//do not include firebase in the foss build
         }
     }
 
@@ -106,10 +111,10 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.10")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.0")
 
     val roomVersion = "2.5.0"
     implementation("androidx.room:room-runtime:$roomVersion")
@@ -132,4 +137,9 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.9")
 }
 
-tasks.getByName("check").dependsOn("lint")
+if(includeFirebase) {
+    plugins {
+        id("com.google.gms.google-services")
+        id("com.google.firebase.crashlytics")
+    }
+}
