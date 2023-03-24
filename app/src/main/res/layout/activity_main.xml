@@ -20,6 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="3dp"
         android:id="@+id/progressBar"
+        android:progressTint="@color/progressbar_tint"
         android:visibility="visible" />
 
     <RelativeLayout

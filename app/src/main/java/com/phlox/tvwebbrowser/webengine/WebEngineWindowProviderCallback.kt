@@ -15,7 +15,6 @@ interface WebEngineWindowProviderCallback {
     fun onDownloadRequested(url: String)
     fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
                             operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP, base64BlobData: String? = null)
-    fun onLongTap()
     fun onProgressChanged(newProgress: Int)
     fun onReceivedTitle(title: String)
     fun requestPermissions(array: Array<String>): Int

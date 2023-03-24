@@ -62,8 +62,8 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     var thumbnail: Bitmap? = null
     @Ignore
     var savedState: Bundle? = null
-    @Ignore
-    val webEngine = WebEngineFactory.createWebEngine(this)
+    @delegate:Ignore
+    val webEngine by lazy { WebEngineFactory.createWebEngine(this) }
     @Ignore
     var webPageInteractionDetected = false
     @Ignore

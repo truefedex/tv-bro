@@ -18,6 +18,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 class WebViewWebEngine(val tab: WebTabState) : WebEngine {
     private var webView: WebViewEx? = null
     internal var callback: WebEngineWindowProviderCallback? = null
+    private var viewParent: CursorLayout? = null
     private var fullscreenViewParent: ViewGroup? = null
     private var fullScreenView: View? = null
     private val permissionsRequests = HashMap<Int, Boolean>()//request code, isGeolocationPermissionRequest
@@ -72,8 +73,8 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         webView?.zoomBy(zoomBy)
     }
 
-    override fun evaluateJavascript(script: String, resultCallback: ValueCallback<String>?) {
-        webView?.evaluateJavascript(script, resultCallback)
+    override fun evaluateJavascript(script: String) {
+        webView?.evaluateJavascript(script, null)
     }
 
     override fun setNetworkAvailable(connected: Boolean) {
@@ -142,6 +143,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         if (webView == null) {
             throw IllegalStateException("WebView is null")
         }
+        this.viewParent = parent as CursorLayout
         this.fullscreenViewParent = fullscreenViewParent
         parent.removeAllViews()
         fullscreenViewParent.removeAllViews()
@@ -186,7 +188,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         }
 
         override fun onLongTap() {
-            callback?.onLongTap()
+            viewParent?.goToFingerMode()
         }
 
         override fun onThumbnailError() {

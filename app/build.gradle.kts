@@ -85,8 +85,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility to JavaVersion.VERSION_1_8
-        targetCompatibility to JavaVersion.VERSION_1_8
+        sourceCompatibility to JavaVersion.VERSION_11
+        targetCompatibility to JavaVersion.VERSION_11
     }
 
     testOptions {
@@ -124,6 +124,10 @@ dependencies {
     implementation("com.github.truefedex:segmented-button:v1.0.0")
     implementation("com.github.truefedex:ad-block:v0.0.1-ci")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
+
+    val geckoViewChannel = "nightly"
+    val geckoViewVersion = "113.0.20230317210204"
+    implementation("org.mozilla.geckoview:geckoview-$geckoViewChannel:$geckoViewVersion")
 
     //"debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 

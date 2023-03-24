@@ -36,6 +36,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
     private lateinit var _config: Config
 
     override fun onCreate() {
+        Log.i(TAG, "onCreate")
         super.onCreate()
 
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
@@ -52,7 +53,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         threadPool = ThreadPoolExecutor(0, maxThreadsInOfflineJobsPool, 20,
                 TimeUnit.SECONDS, ArrayBlockingQueue(maxThreadsInOfflineJobsPool))
 
-        initWebView()
+        initWebEngineStuff()
 
         initNotificationChannels()
 
@@ -67,8 +68,9 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         registerActivityLifecycleCallbacks(this)
     }
 
-    private fun initWebView() {
-        Log.i(TAG, "initWebView")
+    @Suppress("KotlinConstantConditions")
+    private fun initWebEngineStuff() {
+        Log.i(TAG, "initWebEngineStuff")
         val cookieManager = CookieManager()
         CookieHandler.setDefault(cookieManager)
     }
@@ -93,6 +95,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
 
     override fun onActivityDestroyed(activity: Activity) {
+        Log.i(TAG, "onActivityDestroyed: " + activity.javaClass.simpleName)
         //we need this because in case of IncognitoModeMainActivity closed by exit button by user
         //then incognito mode becomes closed but process are still running and this lead to
         //strange problems at next time when we trying to start the incognito mode

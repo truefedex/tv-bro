@@ -13,10 +13,7 @@ import android.net.Uri
 import android.os.*
 import android.util.Log
 import android.util.Patterns
-import android.view.KeyEvent
-import android.view.MotionEvent
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -44,12 +41,16 @@ import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.webengine.common.Scripts
+import com.phlox.tvwebbrowser.webengine.gecko.GeckoViewWithVirtualCursor
+import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
+import java.lang.ref.WeakReference
 import java.net.URL
 import java.net.URLEncoder
 import java.util.*
@@ -84,6 +85,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+/*        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.hide(WindowInsets.Type.systemBars())
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
+        }*/
+
         val incognitoMode = config.incognitoMode
         Log.d(TAG, "onCreate incognitoMode: $incognitoMode")
         if (incognitoMode xor (this is IncognitoModeMainActivity)) {
@@ -107,6 +114,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb.root)
+
+        WebEngineFactory.initialize(this, vb.flWebViewContainer)
+
         AndroidBug5497Workaround.assistActivity(this)
 
         vb.ivMiniatures.visibility = View.INVISIBLE
@@ -116,17 +126,20 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         vb.vTabs.listener = tabsListener
 
-        vb.flWebViewContainer.setCallback(object : CursorLayout.Callback {
-            override fun onUserInteraction() {
-                val tab = tabsModel.currentTab.value ?: return
-                if (!tab.webPageInteractionDetected) {
-                    tab.webPageInteractionDetected = true
-                    if (!config.incognitoMode) {
-                        viewModel.logVisitedHistory(tab.title, tab.url, tab.faviconHash)
+        if (!config.isWebEngineGecko()) {
+            //this approach works well for WebView, but for GeckoView it's not needed
+            vb.flWebViewContainer.setCallback(object : CursorLayout.Callback {
+                override fun onUserInteraction() {
+                    val tab = tabsModel.currentTab.value ?: return
+                    if (!tab.webPageInteractionDetected) {
+                        tab.webPageInteractionDetected = true
+                        if (!config.incognitoMode) {
+                            viewModel.logVisitedHistory(tab.title, tab.url, tab.faviconHash)
+                        }
                     }
                 }
-            }
-        })
+            })
+        }
 
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
         vb.ibPopupBlock.setOnClickListener { lifecycleScope.launch(Dispatchers.Main) { showPopupBlockOptions() } }
@@ -198,7 +211,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             Log.i(TAG, "homePageLinks updated")
             val currentUrl = tabsModel.currentTab.value?.url ?: return@subscribe
             if (Config.DEFAULT_HOME_URL == currentUrl) {
-                tabsModel.currentTab.value?.webEngine?.evaluateJavascript("renderLinks()", null)
+                tabsModel.currentTab.value?.webEngine?.evaluateJavascript("renderLinks()")
             }
         }
 
@@ -211,7 +224,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         tabsModel.tabsStates.subscribe(this, false) {
             if (it.isEmpty()) {
-                vb.flWebViewContainer.removeAllViews()
+                if (!config.isWebEngineGecko()) {
+                    vb.flWebViewContainer.removeAllViews()
+                }
             }
         }
 
@@ -329,7 +344,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 if (keyEvent.action == KeyEvent.ACTION_UP) {
                     hideBottomPanel()
                     tabsModel.currentTab.value?.webEngine?.getView()?.requestFocus()
-                    vb.flWebViewContainer.cursorPosition
                 }
                 return@OnKeyListener true
             }
@@ -969,10 +983,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             this@MainActivity.onDownloadRequested(url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload, base64BlobData)
         }
 
-        override fun onLongTap() {
-            vb.flWebViewContainer.goToFingerMode()
-        }
-
         override fun onProgressChanged(newProgress: Int) {
             vb.progressBar.visibility = View.VISIBLE
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -1082,13 +1092,13 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 }
             }
 
-            tab.webEngine.evaluateJavascript(Scripts.INITIAL_SCRIPT, null)
+            tab.webEngine.evaluateJavascript(Scripts.INITIAL_SCRIPT)
             tab.webPageInteractionDetected = false
 
             if (tab.url == Config.DEFAULT_HOME_URL &&
                 config.homePageMode == Config.HomePageMode.HOME_PAGE) {
                 tab.webEngine.evaluateJavascript(
-                    "applySearchEngine(\"${config.guessSearchEngineName()}\", \"${config.searchEngineURL.value}\")", null)
+                    "applySearchEngine(\"${config.guessSearchEngineName()}\", \"${config.searchEngineURL.value}\")")
                 lifecycleScope.launch {
                     viewModel.loadHomePageLinks()
                 }

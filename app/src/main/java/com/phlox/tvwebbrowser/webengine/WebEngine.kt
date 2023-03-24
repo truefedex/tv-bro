@@ -22,7 +22,7 @@ interface WebEngine {
     fun canZoomOut(): Boolean
     fun zoomOut()
     fun zoomBy(zoomBy: Float)
-    fun evaluateJavascript(script: String, resultCallback: ValueCallback<String>?)
+    fun evaluateJavascript(script: String)
     fun setNetworkAvailable(connected: Boolean)
     fun getView(): View?
     @Throws(Exception::class)

@@ -1,4 +1,4 @@
-package com.phlox.tvwebbrowser.activity.main.view
+package com.phlox.tvwebbrowser.webengine.gecko
 
 import android.content.Context
 import android.graphics.*
@@ -7,15 +7,11 @@ import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.WindowManager
-import android.widget.FrameLayout
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.webview.WebViewEx
 
-
-/**
- * Created by PDT on 25.08.2016.
- */
-class CursorLayout : FrameLayout {
+class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null):
+    GeckoViewEx(context, attrs) {
     companion object {
         private const val UNCHANGED = Integer.MIN_VALUE
         private const val CURSOR_DISAPPEAR_TIMEOUT = 5000
@@ -41,6 +37,7 @@ class CursorLayout : FrameLayout {
     private val scrollHackCoords = PointF()
     private val scrollHackActiveRect = Rect()
     var fingerMode = false
+    private var downTime: Long = 0
 
     private val isCursorDissappear: Boolean
         get() {
@@ -52,11 +49,7 @@ class CursorLayout : FrameLayout {
         fun onUserInteraction()
     }
 
-    constructor(context: Context) : super(context) {
-        init()
-    }
-
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
+    init {
         init()
     }
 
@@ -97,12 +90,13 @@ class CursorLayout : FrameLayout {
         postDelayed(cursorHideRunnable, CURSOR_DISAPPEAR_TIMEOUT.toLong())
     }
 
+    override fun onGenericMotionEvent(event: MotionEvent?): Boolean {
+        return false
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (willNotDraw()) return super.dispatchKeyEvent(event)
         callback?.onUserInteraction()
-        val keyCode = event.keyCode
-        val action = event.action
-        when (keyCode) {
+        when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     handleDirectionKeyEvent(event, -1, UNCHANGED, true)
@@ -209,7 +203,9 @@ class CursorLayout : FrameLayout {
     }
 
     private fun dispatchMotionEvent(x: Float, y: Float, action: Int) {
-        val downTime = SystemClock.uptimeMillis()
+        if (action == MotionEvent.ACTION_DOWN) {
+            downTime = SystemClock.uptimeMillis()
+        }
         val eventTime = SystemClock.uptimeMillis()
         val properties = arrayOfNulls<MotionEvent.PointerProperties>(1)
         val pp1 = MotionEvent.PointerProperties()
@@ -224,8 +220,8 @@ class CursorLayout : FrameLayout {
         pc1.size = 1f
         pointerCoords[0] = pc1
         val motionEvent = MotionEvent.obtain(downTime, eventTime,
-                action, 1, properties,
-                pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0)
+            action, 1, properties,
+            pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0)
         dispatchTouchEvent(motionEvent)
     }
 
@@ -250,18 +246,18 @@ class CursorLayout : FrameLayout {
         cursorDirection.set(if (x == UNCHANGED) cursorDirection.x else x, if (y == UNCHANGED) cursorDirection.y else y)
     }
 
-    private fun scrollWebViewBy(wv: WebViewEx, scrollX: Int, scrollY: Int) {
+    private fun scrollWebViewBy(scrollX: Int, scrollY: Int) {
         if (scrollX == 0 && scrollY == 0) {
             return
         }
-        if ((scrollX != 0 && wv.canScrollHorizontally(scrollX)) || (scrollY != 0 && wv.canScrollVertically(scrollY))) {
-            wv.scrollTo(wv.scrollX + scrollX, wv.scrollY + scrollY)
+        if ((scrollX != 0 && canScrollHorizontally(scrollX)) || (scrollY != 0 && canScrollVertically(scrollY))) {
+            scrollTo(this.scrollX + scrollX, this.scrollY + scrollY)
         } else if (USE_SCROLL_HACK && !dpadCenterPressed) {
             var justStarted = false
             if (!scrollHackStarted) {
                 scrollHackCoords.set(
-                        bound(cursorPosition.x, scrollHackActiveRect.left.toFloat(), scrollHackActiveRect.right.toFloat()),
-                        bound(cursorPosition.y, scrollHackActiveRect.top.toFloat(), scrollHackActiveRect.bottom.toFloat()))
+                    bound(cursorPosition.x, scrollHackActiveRect.left.toFloat(), scrollHackActiveRect.right.toFloat()),
+                    bound(cursorPosition.y, scrollHackActiveRect.top.toFloat(), scrollHackActiveRect.bottom.toFloat()))
                 dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_DOWN)
                 scrollHackStarted = true
                 justStarted = true
@@ -269,13 +265,13 @@ class CursorLayout : FrameLayout {
             scrollHackCoords.x -= scrollX
             scrollHackCoords.y -= scrollY
             if (scrollHackCoords.x < scrollHackActiveRect.left || scrollHackCoords.x >= scrollHackActiveRect.right ||
-                    scrollHackCoords.y < scrollHackActiveRect.top || scrollHackCoords.y >= scrollHackActiveRect.bottom) {
+                scrollHackCoords.y < scrollHackActiveRect.top || scrollHackCoords.y >= scrollHackActiveRect.bottom) {
                 scrollHackCoords.x += scrollX
                 scrollHackCoords.y += scrollY
                 dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_CANCEL)
                 scrollHackStarted = false
                 if (!justStarted) {
-                    scrollWebViewBy(wv, scrollX, scrollY)
+                    scrollWebViewBy(scrollX, scrollY)
                 }
                 return
             }
@@ -303,11 +299,14 @@ class CursorLayout : FrameLayout {
         }
     }
 
-    override fun dispatchDraw(canvas: Canvas) {
+    @Suppress("NAME_SHADOWING")
+    override fun dispatchDraw(canvas: Canvas?) {
         super.dispatchDraw(canvas)
-        if (isInEditMode || willNotDraw()) {
+        if (isInEditMode) {
             return
         }
+
+        val canvas = canvas ?: return
 
         if (fingerMode || !isCursorDissappear) {
             val cx = cursorPosition.x
@@ -356,7 +355,7 @@ class CursorLayout : FrameLayout {
             val accelerationFactor = 0.05f * dTime
             //float decelerationFactor = 1 - Math.min(0.5f, 0.005f * dTime);
             cursorSpeed.set(bound(cursorSpeed.x/* * decelerationFactor*/ + bound(cursorDirection.x.toFloat(), 1f) * accelerationFactor, maxCursorSpeed),
-                    bound(cursorSpeed.y/* * decelerationFactor*/ + bound(cursorDirection.y.toFloat(), 1f) * accelerationFactor, maxCursorSpeed))
+                bound(cursorSpeed.y/* * decelerationFactor*/ + bound(cursorDirection.y.toFloat(), 1f) * accelerationFactor, maxCursorSpeed))
             if (Math.abs(cursorSpeed.x) < 0.1f) cursorSpeed.x = 0f
             if (Math.abs(cursorSpeed.y) < 0.1f) cursorSpeed.y = 0f
             if (cursorDirection.x == 0 && cursorDirection.y == 0 && cursorSpeed.x == 0f && cursorSpeed.y == 0f) {
@@ -404,10 +403,7 @@ class CursorLayout : FrameLayout {
                 }
             }
             if (dx != 0 || dy != 0) {
-                val child = getChildAt(0)
-                if (child != null && child is WebViewEx) {
-                    scrollWebViewBy(child, dx, dy)
-                }
+                scrollWebViewBy(dx, dy)
             }
 
             invalidate()

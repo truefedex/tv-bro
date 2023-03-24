@@ -24,6 +24,7 @@ class Config(val prefs: SharedPreferences) {
         const val INCOGNITO_MODE_HINT_SUPPRESS_KEY = "incognito_mode_hint_suppress"
         const val HOME_PAGE_MODE = "home_page_mode"
         const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
+        const val WEB_ENGINE = "web_engine"
 
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Custom")
         val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "custom")
@@ -117,6 +118,20 @@ class Config(val prefs: SharedPreferences) {
         }
 
     var searchEngineURL = ObservableStringPreference(SearchEnginesURLs[0], SEARCH_ENGINE_URL_PREF_KEY)
+
+    var webEngine: String
+        get() = prefs.getString(WEB_ENGINE, "gecko")!!
+        set(value) {
+            prefs.edit().putString(WEB_ENGINE, value).apply()
+        }
+
+    fun isWebEngineGecko(): Boolean {
+        return webEngine == "gecko"
+    }
+
+    fun isWebEngineSet(): Boolean {
+        return prefs.contains(WEB_ENGINE)
+    }
 
     fun setUserAgentString(uas: String) {
         prefs.edit().putString(USER_AGENT_PREF_KEY, uas).apply()

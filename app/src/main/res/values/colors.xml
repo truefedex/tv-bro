@@ -25,6 +25,8 @@
     <color name="badge_bg">#E6E6E6</color>
     <color name="badge_stroke">#afafaf</color>
 
+    <color name="progressbar_tint">#75D5FA</color>
+
     <color name="web_tab_text_color">#000</color>
     <color name="web_tab_selected_text_color">#006EC5</color>
 
