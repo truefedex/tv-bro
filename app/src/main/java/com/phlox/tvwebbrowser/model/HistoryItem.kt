@@ -25,6 +25,8 @@ class HistoryItem {
     var isDateHeader = false//used for displaying date headers inside list view
     @Ignore
     var selected = false
+    @Ignore
+    var saved = false
 
     companion object {
 

@@ -19,9 +19,7 @@ import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.observable.ParameterizedEventSource
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 
@@ -36,6 +34,7 @@ class MainActivityViewModel: ActiveModel() {
 
     var loaded = false
     var lastHistoryItem: HistoryItem? = null
+    private var lastHistoryItemSaveJob: Job? = null
     val homePageLinks = ObservableList<HomePageLink>()
     private var downloadIntent: DownloadIntent? = null
     val logCatOutput = ParameterizedEventSource<String>()
@@ -96,18 +95,44 @@ class MainActivityViewModel: ActiveModel() {
     }
 
     fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
-        if ((url == lastHistoryItem?.url) || url == Config.DEFAULT_HOME_URL) {
+        Log.d(TAG, "logVisitedHistory: $url")
+        if ((url == lastHistoryItem?.url) || url == Config.DEFAULT_HOME_URL || !url.startsWith("http")) {
             return
+        }
+
+        val now = System.currentTimeMillis()
+        val minVisitedInterval = 5000L //5 seconds
+
+        lastHistoryItem?.let {
+            if ((!it.saved) && (it.time + minVisitedInterval) > now) {
+                lastHistoryItemSaveJob?.cancel()
+            }
         }
 
         val item = HistoryItem()
         item.url = url
         item.title = title ?: ""
-        item.time = Date().time
+        item.time = now
         item.favicon = faviconHash
         lastHistoryItem = item
-        modelScope.launch(Dispatchers.Main) {
-            AppDatabase.db.historyDao().insert(item)
+        lastHistoryItemSaveJob = modelScope.launch(Dispatchers.Main) {
+            delay(minVisitedInterval)
+            item.id = AppDatabase.db.historyDao().insert(item)
+            item.saved = true
+        }
+    }
+
+    fun onTabTitleUpdated(tab: WebTabState) {
+        Log.d(TAG, "onTabTitleUpdated: ${tab.url} ${tab.title}")
+        if (TVBro.config.incognitoMode) return
+        val lastHistoryItem = lastHistoryItem ?: return
+        if (tab.url == lastHistoryItem.url) {
+            lastHistoryItem.title = tab.title
+            if (lastHistoryItem.saved) {
+                modelScope.launch(Dispatchers.Main) {
+                    AppDatabase.db.historyDao().updateTitle(lastHistoryItem.id, lastHistoryItem.title)
+                }
+            }
         }
     }
 

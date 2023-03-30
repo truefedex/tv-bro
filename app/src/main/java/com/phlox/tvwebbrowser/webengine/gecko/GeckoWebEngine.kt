@@ -7,14 +7,11 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.ValueCallback
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
-import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentDelegate
-import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyNavigationDelegate
-import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyProgressDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.*
 import org.mozilla.geckoview.*
 import java.lang.ref.WeakReference
 
@@ -23,13 +20,14 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
         lateinit var runtime: GeckoRuntime
 
         fun initialize(context: Context, webViewContainer: CursorLayout) {
-            if (this::runtime.isInitialized) return
-            val builder = GeckoRuntimeSettings.Builder()
-            if (BuildConfig.DEBUG) {
-                builder.remoteDebuggingEnabled(true)
+            if (!this::runtime.isInitialized) {
+                val builder = GeckoRuntimeSettings.Builder()
+                if (BuildConfig.DEBUG) {
+                    builder.remoteDebuggingEnabled(true)
+                }
+                builder.consoleOutput(true)
+                runtime = GeckoRuntime.create(context, builder.build())
             }
-            builder.consoleOutput(true)
-            runtime = GeckoRuntime.create(context, builder.build())
 
             val webView = GeckoViewWithVirtualCursor(context)
             webViewContainer.addView(webView)
@@ -42,10 +40,14 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     private var webView: GeckoViewWithVirtualCursor? = null
-    private val session = GeckoSession()
+    val session = GeckoSession()
     var callback: WebEngineWindowProviderCallback? = null
-    private val navigationDelegate = MyNavigationDelegate()
-    private val progressDelegate = MyProgressDelegate(this)
+    val navigationDelegate = MyNavigationDelegate(this)
+    val progressDelegate = MyProgressDelegate(this)
+    val promptDelegate = MyPromptDelegate(this)
+    val contentDelegate = MyContentDelegate(this)
+    val permissionDelegate = MyPermissionDelegate(this)
+    val historyDelegate = MyHistoryDelegate(this)
 
     override val url: String?
         get() = navigationDelegate.locationURL
@@ -55,19 +57,23 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
 
     init {
         Log.d(TAG, "init")
-        session.open(runtime)
         session.navigationDelegate = navigationDelegate
         session.progressDelegate = progressDelegate
-        session.contentDelegate = MyContentDelegate(this)
+        session.contentDelegate = contentDelegate
+        session.promptDelegate = promptDelegate
+        session.permissionDelegate = permissionDelegate
+        session.historyDelegate = historyDelegate
     }
 
     override fun saveState(outState: Bundle) {
+        Log.d(TAG, "saveState")
         progressDelegate.sessionState?.let {
             outState.putParcelable("geckoSessionState", it)
         }
     }
 
     override fun restoreState(savedInstanceState: Bundle) {
+        Log.d(TAG, "restoreState")
         savedInstanceState.classLoader = GeckoSession.SessionState::class.java.classLoader
         val sessionState = savedInstanceState.getParcelable<GeckoSession.SessionState>("geckoSessionState")
         if (sessionState != null) {
@@ -78,6 +84,9 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
 
     override fun loadUrl(url: String) {
         Log.d(TAG, "loadUrl($url)")
+        if (!session.isOpen) {
+            session.open(runtime)
+        }
         session.loadUri(url)
     }
 
@@ -148,16 +157,16 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
         session.reload()
     }
 
-    override fun onFilePicked(data: Intent) {
-        
+    override fun onFilePicked(resultCode: Int, data: Intent?) {
+        promptDelegate.onFileCallbackResult(resultCode, data)
     }
 
     override fun onResume() {
-        
+        session.setFocused(true)
     }
 
     override fun onPause() {
-        
+        session.setFocused(false)
     }
 
     override fun onUpdateAdblockSetting(newState: Boolean) {
@@ -168,8 +177,8 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
         
     }
 
-    override fun hideCustomView() {
-        
+    override fun hideFullscreenView() {
+        session.exitFullScreen()
     }
 
     override fun togglePlayback() {
@@ -182,27 +191,42 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
 
     override fun onAttachToWindow(
         callback: WebEngineWindowProviderCallback,
-        parent: ViewGroup,
-        fullscreenViewParent: ViewGroup
+        parent: ViewGroup, fullscreenViewParent: ViewGroup
     ) {
         Log.d(TAG, "onAttachToWindow()")
         this.callback = callback
-        if (webView == null) {
-            throw IllegalStateException("WebView is null")
+        val webView = this.webView ?: throw IllegalStateException("WebView is null")
+        val previousSession = webView.session
+        if (previousSession != null && previousSession != session) {
+            Log.d(TAG, "Closing previous session")
+            previousSession.setActive(false)
+            webView.releaseSession()
         }
-        webView!!.setSession(session)
+        webView.setSession(session)
+        if (session.isOpen) {
+            Log.d(TAG, "Session is already open")
+            session.setActive(true)
+            session.reload()
+        }
     }
 
     override fun onDetachFromWindow(completely: Boolean, destroyTab: Boolean) {
         Log.d(TAG, "onDetachFromWindow()")
         callback = null
+        val webView = this.webView
         if (webView != null) {
-            webView!!.releaseSession()
+            val session = webView.session
+            if (session == this.session) {
+                Log.d(TAG, "Closing session")
+                session.setActive(false)
+                webView.releaseSession()
+            }
         }
         if (completely) {
-            webView = null
+            this.webView = null
         }
         if (destroyTab) {
+            Log.d(TAG, "Closing session completely")
             session.close()
         }
     }
@@ -210,11 +234,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     override fun trimMemory() {
     }
 
-    override fun onPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ): Boolean {
-        return false
+    override fun onPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
+        return permissionDelegate.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 }

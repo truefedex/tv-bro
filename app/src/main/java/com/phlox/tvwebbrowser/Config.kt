@@ -25,6 +25,7 @@ class Config(val prefs: SharedPreferences) {
         const val HOME_PAGE_MODE = "home_page_mode"
         const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
         const val WEB_ENGINE = "web_engine"
+        const val ALLOW_AUTOPLAY_MEDIA = "allow_autoplay_media"
 
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Custom")
         val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "custom")
@@ -123,6 +124,12 @@ class Config(val prefs: SharedPreferences) {
         get() = prefs.getString(WEB_ENGINE, "gecko")!!
         set(value) {
             prefs.edit().putString(WEB_ENGINE, value).apply()
+        }
+
+    var allowAutoplayMedia: Boolean
+        get() = prefs.getBoolean(ALLOW_AUTOPLAY_MEDIA, false)
+        set(value) {
+            prefs.edit().putBoolean(ALLOW_AUTOPLAY_MEDIA, value).apply()
         }
 
     fun isWebEngineGecko(): Boolean {

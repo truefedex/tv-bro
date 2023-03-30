@@ -160,4 +160,31 @@
         <item>Latest History</item>
         <item>Most Visited</item>
     </array>
+
+    <string name="repost_confirm_message">To display this page, TV Bro must send information that will repeat any action (such as a search or order confirmation) that was performed earlier.</string>
+    <string name="repost_confirm_title">Are you sure?</string>
+    <string name="repost_confirm_resend">Resend</string>
+    <string name="before_unload_message">This page is asking you to confirm that you want to leave - data you have entered may not be saved</string>
+    <string name="before_unload_title">Are you sure?</string>
+    <string name="before_unload_leave_page">Leave Page</string>
+    <string name="before_unload_stay">Stay on Page</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="wait">Wait</string>
+    <string name="stop">Stop</string>
+    <string name="slow_script">A script on this page is causing your web browser to run slowly</string>
+    <string name="request_storage">Allow access to device storage for "%1$s"?</string>
+    <string name="request_storage_access">Allow third parties to access first party storage for "%1$s"?</string>
+    <string name="request_geolocation">Share location with "%1$s"?</string>
+    <string name="request_notification">Allow notifications for "%1$s"?</string>
+    <string name="request_video">Share video with "%1$s"</string>
+    <string name="request_audio">Share audio with "%1$s"</string>
+    <string name="request_media">Share video and audio with "%1$s"</string>
+    <string name="request_xr">Share WebXR displays with "%1$s"?</string>
+    <string name="request_autoplay">Allow video to autoplay on "%1$s"?</string>
+    <string name="request_media_key_system_access">Allow system media key access for "%1$s"?</string>
+    <string name="media_back_camera">Back camera</string>
+    <string name="media_front_camera">Front camera</string>
+    <string name="media_microphone">Microphone</string>
+    <string name="media_other">Unknown source</string>
 </resources>

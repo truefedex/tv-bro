@@ -100,6 +100,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         fun onCopyTextToClipboardRequested(url: String)
         fun onShareUrlRequested(url: String)
         fun onOpenInExternalAppRequested(url: String)
+        fun onVisited(url: String)
     }
 
     init {
@@ -428,6 +429,12 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
             override fun onScaleChanged(view: WebView?, oldScale: Float, newScale: Float) {
                 super.onScaleChanged(view, oldScale, newScale)
                 callback.onScaleChanged(oldScale, newScale)
+            }
+
+            override fun doUpdateVisitedHistory(view: WebView?, url: String, isReload: Boolean) {
+                if (!isReload) {
+                    callback.onVisited(url)
+                }
             }
         }
 

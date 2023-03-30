@@ -11,7 +11,7 @@ import com.phlox.tvwebbrowser.model.HomePageLink
 
 interface WebEngineWindowProviderCallback {
     fun getActivity(): Activity
-    fun onOpenInNewTabRequested(url: String)
+    fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine?
     fun onDownloadRequested(url: String)
     fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
                             operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP, base64BlobData: String? = null)
@@ -30,7 +30,7 @@ interface WebEngineWindowProviderCallback {
     fun onBlockedAd(url: Uri)
     fun onBlockedDialog(newTab: Boolean)
     fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View?
-    fun closeWindow(window: View)
+    fun closeWindow(internalRepresentation: Any)
     fun onDownloadStart(url: String, userAgent: String, contentDisposition: String,
         mimetype: String?, contentLength: Long)
     fun onScaleChanged(oldScale: Float, newScale: Float)
@@ -40,4 +40,7 @@ interface WebEngineWindowProviderCallback {
     fun initiateVoiceSearch()
     fun onEditHomePageBookmarkSelected(index: Int)
     fun getHomePageLinks(): List<HomePageLink>
+    fun onPrepareForFullscreen()
+    fun onExitFullscreen()
+    fun onVisited(url: String)
 }

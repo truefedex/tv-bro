@@ -65,8 +65,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     @delegate:Ignore
     val webEngine by lazy { WebEngineFactory.createWebEngine(this) }
     @Ignore
-    var webPageInteractionDetected = false
-    @Ignore
     var lastLoadingUrl: String? = null //this is last url appeared in WebViewClient.shouldOverrideUrlLoading callback
     @Ignore
     var blockedAds = 0

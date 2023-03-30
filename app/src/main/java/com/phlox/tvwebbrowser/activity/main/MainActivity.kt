@@ -41,16 +41,15 @@ import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
+import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.webengine.common.Scripts
-import com.phlox.tvwebbrowser.webengine.gecko.GeckoViewWithVirtualCursor
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.UnsupportedEncodingException
-import java.lang.ref.WeakReference
 import java.net.URL
 import java.net.URLEncoder
 import java.util.*
@@ -61,7 +60,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         private val TAG = MainActivity::class.java.simpleName
         const val VOICE_SEARCH_REQUEST_CODE = 10001
         const val MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS = 10004
-        private const val PICKFILE_REQUEST_CODE = 10005
+        const val PICK_FILE_REQUEST_CODE = 10005
         private const val REQUEST_CODE_HISTORY_ACTIVITY = 10006
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
         const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
@@ -76,6 +75,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private lateinit var adblockModel: AdblockModel
     private lateinit var uiHandler: Handler
     private var running: Boolean = false
+    private var isFullscreen: Boolean = false
     private lateinit var prefs: SharedPreferences
     protected val config = TVBro.config
     private val voiceSearchHelper = VoiceSearchHelper(this, VOICE_SEARCH_REQUEST_CODE,
@@ -125,21 +125,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.progressBar.visibility = View.GONE
 
         vb.vTabs.listener = tabsListener
-
-        if (!config.isWebEngineGecko()) {
-            //this approach works well for WebView, but for GeckoView it's not needed
-            vb.flWebViewContainer.setCallback(object : CursorLayout.Callback {
-                override fun onUserInteraction() {
-                    val tab = tabsModel.currentTab.value ?: return
-                    if (!tab.webPageInteractionDetected) {
-                        tab.webPageInteractionDetected = true
-                        if (!config.incognitoMode) {
-                            viewModel.logVisitedHistory(tab.title, tab.url, tab.faviconHash)
-                        }
-                    }
-                }
-            })
-        }
 
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
         vb.ibPopupBlock.setOnClickListener { lifecycleScope.launch(Dispatchers.Main) { showPopupBlockOptions() } }
@@ -281,7 +266,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         override fun closeTab(tabState: WebTabState?) = this@MainActivity.closeTab(tabState)
 
-        override fun openInNewTab(url: String, tabIndex: Int) = this@MainActivity.openInNewTab(url, tabIndex, false)
+        override fun openInNewTab(url: String, tabIndex: Int) {
+            this@MainActivity.openInNewTab(url, tabIndex,
+                needToHideMenuOverlay = false,
+                navigateImmediately = true
+            )
+        }
     }
 
     override fun closeWindow() {
@@ -397,7 +387,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         super.onNewIntent(intent)
         val intentUri = intent.data
         if (intentUri != null) {
-            openInNewTab(intentUri.toString(), tabsModel.tabsStates.size)
+            openInNewTab(intentUri.toString(), tabsModel.tabsStates.size,
+                needToHideMenuOverlay = true,
+                navigateImmediately = true
+            )
         }
     }
 
@@ -416,7 +409,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val intentUri = intent.data
         if (intentUri == null) {
             if (tabsModel.tabsStates.isEmpty()) {
-                openInNewTab(settingsModel.homePage)
+                openInNewTab(settingsModel.homePage, 0,
+                    needToHideMenuOverlay = true,
+                    navigateImmediately = true
+                )
             } else {
                 var foundSelectedTab = false
                 for (i in tabsModel.tabsStates.indices) {
@@ -432,7 +428,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 }
             }
         } else {
-            openInNewTab(intentUri.toString(), tabsModel.tabsStates.size)
+            openInNewTab(intentUri.toString(), tabsModel.tabsStates.size, needToHideMenuOverlay = true,
+                navigateImmediately = true)
         }
 
         val currentTab = tabsModel.currentTab.value
@@ -463,18 +460,21 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
     }
 
-    private fun openInNewTab(url: String?, index: Int = 0, needToHideMenuOverlay: Boolean = true) {
+    private fun openInNewTab(url: String?, index: Int = 0, needToHideMenuOverlay: Boolean = true, navigateImmediately: Boolean): WebEngine? {
         if (url == null) {
-            return
+            return null
         }
         val tab = WebTabState(url = url, incognito = config.incognitoMode)
-        createWebView(tab) ?: return
+        createWebView(tab) ?: return null
         tabsModel.tabsStates.add(index, tab)
         changeTab(tab)
-        navigate(url)
+        if (navigateImmediately) {
+            navigate(url)
+        }
         if (needToHideMenuOverlay && vb.rlActionBar.visibility == View.VISIBLE) {
             hideMenuOverlay(true)
         }
+        return tab.webEngine
     }
 
     private fun closeTab(tab: WebTabState?) {
@@ -484,7 +484,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             tabsModel.currentTab.value = null
         }
         when {
-            tabsModel.tabsStates.size == 1 -> openInNewTab(settingsModel.homePage, 0)
+            tabsModel.tabsStates.size == 1 -> openInNewTab(settingsModel.homePage, 0, needToHideMenuOverlay = true, navigateImmediately = true)
 
             position > 0 -> changeTab(tabsModel.tabsStates[position - 1])
 
@@ -507,26 +507,29 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         } catch (e: Throwable) {
             e.printStackTrace()
 
-            val dialogBuilder = AlertDialog.Builder(this)
+            if (!config.isWebEngineGecko()) {
+                val dialogBuilder = AlertDialog.Builder(this)
                     .setTitle(R.string.error)
                     .setCancelable(false)
                     .setMessage(R.string.err_webview_can_not_link)
                     .setNegativeButton(R.string.exit) { _, _ -> finish() }
 
-            val appPackageName = "com.google.android.webview"
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName"))
-            val activities = packageManager.queryIntentActivities(intent, 0)
-            if (activities.size > 0) {
-                dialogBuilder.setPositiveButton(R.string.find_in_apps_store) { _, _ ->
-                    try {
-                        startActivity(intent)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+                val appPackageName = "com.google.android.webview"
+                val intent =
+                    Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName"))
+                val activities = packageManager.queryIntentActivities(intent, 0)
+                if (activities.size > 0) {
+                    dialogBuilder.setPositiveButton(R.string.find_in_apps_store) { _, _ ->
+                        try {
+                            startActivity(intent)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                        finish()
                     }
-                    finish()
                 }
+                dialogBuilder.show()
             }
-            dialogBuilder.show()
             return null
         }
 
@@ -584,8 +587,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         if (voiceSearchHelper.processPermissionsResult(requestCode, permissions, grantResults)) {
             return
         }
-        if (grantResults.isEmpty()) return
         if (tabsModel.currentTab.value?.webEngine?.onPermissionsResult(requestCode, permissions, grantResults) == true) return
+        if (grantResults.isEmpty()) return
         when (requestCode) {
             MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -604,10 +607,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return
         }
         when (requestCode) {
-            PICKFILE_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK && data != null ) {
-                    tabsModel.currentTab.value?.webEngine?.onFilePicked(data)
-                }
+            PICK_FILE_REQUEST_CODE -> {
+                tabsModel.currentTab.value?.webEngine?.onFilePicked(resultCode, data)
             }
             REQUEST_CODE_HISTORY_ACTIVITY -> if (resultCode == Activity.RESULT_OK) {
                 val url = data?.getStringExtra(HistoryActivity.KEY_URL)
@@ -683,7 +684,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         if (tab != null) {
             tab.webEngine.loadUrl(url)
         } else {
-            openInNewTab(url)
+            openInNewTab(url, 0, needToHideMenuOverlay = true, navigateImmediately = true)
         }
     }
 
@@ -763,10 +764,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val shortcutMgr = ShortcutMgr.getInstance()
         val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
 
-        if (keyCode == KeyEvent.KEYCODE_BACK && vb.flFullscreenContainer.childCount > 0) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && isFullscreen) {
             if (event.action == KeyEvent.ACTION_UP) {
                 uiHandler.post {
-                    tabsModel.currentTab.value?.webEngine?.hideCustomView()
+                    tabsModel.currentTab.value?.webEngine?.hideFullscreenView()
                 }
             }
             return true
@@ -915,7 +916,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private fun syncTabWithTitles() {
         val tab = tabByTitleIndex(vb.vTabs.current)
         if (tab == null) {
-            openInNewTab(settingsModel.homePage, if (vb.vTabs.current < 0) 0 else tabsModel.tabsStates.size)
+            openInNewTab(settingsModel.homePage, if (vb.vTabs.current < 0) 0 else tabsModel.tabsStates.size,
+                needToHideMenuOverlay = true,
+                navigateImmediately = true
+            )
         } else if (!tab.selected) {
             changeTab(tab)
         }
@@ -967,10 +971,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return this@MainActivity
         }
 
-        override fun onOpenInNewTabRequested(url: String) {
+        override fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine? {
             var index = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
             index = if (index == -1) tabsModel.tabsStates.size else index + 1
-            openInNewTab(url, index)
+            return openInNewTab(url, index, true, navigateImmediately)
         }
 
         override fun onDownloadRequested(url: String) {
@@ -1001,6 +1005,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         override fun onReceivedTitle(title: String) {
             tab.title = title
             vb.vTabs.onTabTitleUpdated(tab)
+            viewModel.onTabTitleUpdated(tab)
         }
 
         override fun requestPermissions(array: Array<String>): Int {
@@ -1011,12 +1016,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         override fun onShowFileChooser(intent: Intent): Boolean {
             try {
-                startActivityForResult(intent, PICKFILE_REQUEST_CODE)
+                startActivityForResult(intent, PICK_FILE_REQUEST_CODE)
             } catch (e: ActivityNotFoundException) {
                 try {
                     //trying again with type */* (seems file pickers usually doesn't support specific types in intent filters but still can do the job)
                     intent.type = "*/*"
-                    startActivityForResult(intent, PICKFILE_REQUEST_CODE)
+                    startActivityForResult(intent, PICK_FILE_REQUEST_CODE)
                 } catch (e: ActivityNotFoundException) {
                     Utils.showToast(applicationContext, getString(R.string.err_cant_open_file_chooser))
                     return false
@@ -1093,7 +1098,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
 
             tab.webEngine.evaluateJavascript(Scripts.INITIAL_SCRIPT)
-            tab.webPageInteractionDetected = false
 
             if (tab.url == Config.DEFAULT_HOME_URL &&
                 config.homePageMode == Config.HomePageMode.HOME_PAGE) {
@@ -1157,11 +1161,20 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return webView
         }
 
-        override fun closeWindow(window: View) {
-            for (tab in tabsModel.tabsStates) {
-                if (tab.webEngine.getView() == window) {
-                    closeTab(tab)
-                    break
+        override fun closeWindow(internalRepresentation: Any) {
+            if (config.isWebEngineGecko()) {
+                for (tab in tabsModel.tabsStates) {
+                    if ((tab.webEngine as GeckoWebEngine).session == internalRepresentation) {
+                        closeTab(tab)
+                        break
+                    }
+                }
+            } else {
+                for (tab in tabsModel.tabsStates) {
+                    if (tab.webEngine.getView() == internalRepresentation) {
+                        closeTab(tab)
+                        break
+                    }
                 }
             }
         }
@@ -1174,14 +1187,14 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun onScaleChanged(oldScale: Float, newScale: Float) {
-            Log.d(MainActivity.TAG, "onScaleChanged: oldScale: $oldScale newScale: $newScale")
+            Log.d(TAG, "onScaleChanged: oldScale: $oldScale newScale: $newScale")
             val tabScale = tab.scale
             if (tab.changingScale) {
                 tab.changingScale = false
                 tab.scale = newScale
             } else if (tabScale != null && tabScale != newScale) {
                 val zoomBy = tabScale / newScale
-                Log.d(MainActivity.TAG, "Auto zoom by: $zoomBy")
+                Log.d(TAG, "Auto zoom by: $zoomBy")
                 tab.changingScale = true
                 tab.webEngine.zoomBy(zoomBy)
             }
@@ -1257,6 +1270,25 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         override fun getHomePageLinks(): List<HomePageLink> {
             return viewModel.homePageLinks
+        }
+
+        override fun onPrepareForFullscreen() {
+            window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            isFullscreen = true
+        }
+
+        override fun onExitFullscreen() {
+            window.setFlags(0, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            isFullscreen = false
+        }
+
+        override fun onVisited(url: String) {
+            val tab = tabsModel.currentTab.value ?: return
+
+            if (!config.incognitoMode) {
+                viewModel.logVisitedHistory(tab.title, url, tab.faviconHash)
+            }
         }
     }
 }

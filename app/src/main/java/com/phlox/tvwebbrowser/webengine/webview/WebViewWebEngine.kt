@@ -105,7 +105,10 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         webView?.reload()
     }
 
-    override fun onFilePicked(data: Intent) {
+    override fun onFilePicked(resultCode: Int, data: Intent?) {
+        if (resultCode != Activity.RESULT_OK || data == null) {
+            return
+        }
         webView?.onFilePicked(data)
     }
 
@@ -125,7 +128,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         webView?.clearCache(includeDiskFiles)
     }
 
-    override fun hideCustomView() {
+    override fun hideFullscreenView() {
         webView?.hideCustomView()
     }
 
@@ -170,6 +173,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
     override fun onPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
         val isGeolocationPermissionRequest = permissionsRequests[requestCode] ?: return false
         permissionsRequests.remove(requestCode)
+        if (grantResults.isEmpty()) return true
         webView?.onPermissionsResult(permissions, grantResults, isGeolocationPermissionRequest)
         return true
     }
@@ -180,7 +184,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         }
 
         override fun onOpenInNewTabRequested(url: String) {
-            callback?.onOpenInNewTabRequested(url)
+            callback?.onOpenInNewTabRequested(url, true)
         }
 
         override fun onDownloadRequested(url: String) {
@@ -196,6 +200,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         }
 
         override fun onShowCustomView(view: View) {
+            callback?.onPrepareForFullscreen()
             webView?.visibility = View.GONE
             fullscreenViewParent?.apply {
                 visibility = View.VISIBLE
@@ -219,6 +224,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
             }
             fullscreenViewParent?.visibility = View.INVISIBLE
             webView?.visibility = View.VISIBLE
+            callback?.onExitFullscreen()
         }
 
         override fun onProgressChanged(newProgress: Int) {
@@ -304,6 +310,10 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
 
         override fun onOpenInExternalAppRequested(url: String) {
             callback?.onOpenInExternalAppRequested(url)
+        }
+
+        override fun onVisited(url: String) {
+            callback?.onVisited(url)
         }
     }
 }

@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.ValueCallback
 
 interface WebEngine {
     val url: String?
@@ -30,12 +29,12 @@ interface WebEngine {
     fun canGoBack(): Boolean
     fun goBack()
     fun reload()
-    fun onFilePicked(data: Intent)
+    fun onFilePicked(resultCode: Int, data: Intent?)
     fun onResume()
     fun onPause()
     fun onUpdateAdblockSetting(newState: Boolean)
     fun clearCache(includeDiskFiles: Boolean)
-    fun hideCustomView()
+    fun hideFullscreenView()
     fun togglePlayback()
     fun renderThumbnail(thumbnail: Bitmap?): Bitmap?
     /**

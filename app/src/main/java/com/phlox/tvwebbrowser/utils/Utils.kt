@@ -1,5 +1,7 @@
 package com.phlox.tvwebbrowser.utils
 
+import android.app.ActivityManager
+import android.app.ActivityManager.RunningAppProcessInfo
 import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
@@ -12,7 +14,10 @@ import android.widget.Toast
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.*
+import java.io.BufferedInputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -267,4 +272,10 @@ object Utils {
         }
     }
 
+    fun isForeground(): Boolean {
+        val appProcessInfo = RunningAppProcessInfo()
+        ActivityManager.getMyMemoryState(appProcessInfo)
+        return (appProcessInfo.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                || appProcessInfo.importance == RunningAppProcessInfo.IMPORTANCE_VISIBLE)
+    }
 }
