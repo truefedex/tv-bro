@@ -3,7 +3,6 @@ package com.phlox.tvwebbrowser.webengine.gecko
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +12,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.*
 import org.mozilla.geckoview.*
+import org.mozilla.geckoview.GeckoSession.SessionState
 import java.lang.ref.WeakReference
 
 class GeckoWebEngine(val tab: WebTabState): WebEngine {
@@ -65,21 +65,30 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
         session.historyDelegate = historyDelegate
     }
 
-    override fun saveState(outState: Bundle) {
+    override fun saveState(): Any? {
         Log.d(TAG, "saveState")
         progressDelegate.sessionState?.let {
-            outState.putParcelable("geckoSessionState", it)
+            return it
+        }
+        return null
+    }
+
+    override fun restoreState(savedInstanceState: Any) {
+        Log.d(TAG, "restoreState")
+        if (savedInstanceState is SessionState) {
+            progressDelegate.sessionState = savedInstanceState
+            if (!session.isOpen) {
+                session.open(runtime)
+            }
+            session.restoreState(savedInstanceState)
+        } else {
+            throw IllegalArgumentException("savedInstanceState is not SessionState")
         }
     }
 
-    override fun restoreState(savedInstanceState: Bundle) {
-        Log.d(TAG, "restoreState")
-        savedInstanceState.classLoader = GeckoSession.SessionState::class.java.classLoader
-        val sessionState = savedInstanceState.getParcelable<GeckoSession.SessionState>("geckoSessionState")
-        if (sessionState != null) {
-            progressDelegate.sessionState = sessionState
-            session.restoreState(sessionState)
-        }
+    override fun stateFromBytes(bytes: ByteArray): Any? {
+        val jsString = String(bytes, Charsets.UTF_8)
+        return SessionState.fromString(jsString)
     }
 
     override fun loadUrl(url: String) {
@@ -203,8 +212,8 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
             webView.releaseSession()
         }
         webView.setSession(session)
-        if (session.isOpen) {
-            Log.d(TAG, "Session is already open")
+        if (session.isOpen && previousSession != null && previousSession != session) {
+            Log.d(TAG, "Activating session")
             session.setActive(true)
             session.reload()
         }

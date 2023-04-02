@@ -12,6 +12,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 
@@ -33,13 +34,22 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
             webView?.settings?.userAgentString = value
         }
 
-    override fun saveState(outState: Bundle) {
-        webView?.saveState(outState)
+    override fun saveState(): Any {
+        val bundle = Bundle()
+        webView?.saveState(bundle)
+        return bundle
     }
 
-    override fun restoreState(savedInstanceState: Bundle) {
-        webView?.restoreState(savedInstanceState)
+    override fun restoreState(savedInstanceState: Any) {
+        if (savedInstanceState is Bundle) {
+            webView?.restoreState(savedInstanceState)
+        } else {
+            throw IllegalArgumentException("savedInstanceState must be Bundle")
+        }
     }
+
+    override fun stateFromBytes(bytes: ByteArray): Any? =
+        Utils.bytesToBundle(bytes)
 
     override fun loadUrl(url: String) {
         webView?.loadUrl(url)

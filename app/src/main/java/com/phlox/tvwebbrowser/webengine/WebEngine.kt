@@ -11,8 +11,9 @@ interface WebEngine {
     val url: String?
     var userAgentString: String
 
-    fun saveState(outState: Bundle)
-    fun restoreState(savedInstanceState: Bundle)
+    fun saveState(): Any?//Bundle or any Object convertible to string
+    fun restoreState(savedInstanceState: Any)
+    fun stateFromBytes(bytes: ByteArray): Any?
     fun loadUrl(url: String)
     fun canGoForward(): Boolean
     fun goForward()

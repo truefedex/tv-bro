@@ -15,6 +15,8 @@ import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
+import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,6 +55,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
 
         const val TAB_THUMBNAILS_DIR = "tabthumbs"
         const val TAB_WVSTATES_DIR = "wvstates"
+        const val GECKO_SESSION_STATE_HASH_PREFIX = "gecko:"
     }
 
     @Ignore
@@ -61,7 +64,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     @Ignore
     var thumbnail: Bitmap? = null
     @Ignore
-    var savedState: Bundle? = null
+    var savedState: Any? = null
     @delegate:Ignore
     val webEngine by lazy { WebEngineFactory.createWebEngine(this) }
     @Ignore
@@ -133,8 +136,13 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     private fun getThumbnailPath(hash: String) =
         TVBro.instance.cacheDir.absolutePath + File.separator + TAB_THUMBNAILS_DIR + File.separator + hash + ".png"
 
-    private fun getWVStatePath(hash: String) =
+    private fun getWVStatePath(hash: String): String {
+        return if (hash.startsWith(GECKO_SESSION_STATE_HASH_PREFIX)) {
+            TVBro.instance.filesDir.absolutePath + File.separator + TAB_WVSTATES_DIR + File.separator + hash.substring(GECKO_SESSION_STATE_HASH_PREFIX.length)
+        } else {
             TVBro.instance.filesDir.absolutePath + File.separator + TAB_WVSTATES_DIR + File.separator + hash
+        }
+    }
 
     fun removeFiles() {
         if (thumbnailHash != null) {
@@ -163,8 +171,9 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             } else if (stateFileName != null) {
                 try {
                     val stateBytes = File(getWVStatePath(stateFileName)).readBytes()
-                    state = Utils.bytesToBundle(stateBytes)
+                    state = webEngine.stateFromBytes(stateBytes)
                     if (state == null) return@run false
+                    this.savedState = state
                     webEngine.restoreState(state)
                     return@run true
                 } catch (e: Exception) {
@@ -182,10 +191,27 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     fun saveWebViewStateToFile() {
         val state = savedState
         var stateFileName = wvStateFileName
+        if (stateFileName != null && (
+                    (webEngine is GeckoWebEngine && !stateFileName.startsWith(GECKO_SESSION_STATE_HASH_PREFIX)) ||
+                            (webEngine is WebViewWebEngine && stateFileName.startsWith(GECKO_SESSION_STATE_HASH_PREFIX))
+                    )) {
+            File(getWVStatePath(stateFileName)).delete()
+            stateFileName = null
+        }
         if (state == null) return
-        val stateBytes = Utils.bundleToBytes(state) ?: return
+        val stateBytes = when (state) {
+            is Bundle -> {
+                Utils.bundleToBytes(state) ?: return
+            }
+            else -> {
+                state.toString().toByteArray(Charsets.UTF_8)
+            }
+        }
         if (stateFileName == null) {
             stateFileName = Utils.MD5_Hash(stateBytes) ?: return
+            if (webEngine is GeckoWebEngine) {
+                stateFileName = GECKO_SESSION_STATE_HASH_PREFIX + stateFileName
+            }
         }
         try {
             val statesDir = File(TVBro.instance.filesDir.absolutePath + File.separator + TAB_WVSTATES_DIR)
@@ -204,10 +230,8 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     }
 
     fun onPause() {
-        webEngine.apply {
-            val state = Bundle()
-            saveState(state)
-            savedState = state
+        webEngine.let {
+            savedState = it.saveState()
         }
     }
 
