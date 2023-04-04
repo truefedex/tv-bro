@@ -20,6 +20,7 @@ import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -97,12 +98,12 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
 
     }
 
-    private fun saveThumbnail(context: Context, scope: CoroutineScope) {
+    private suspend fun saveThumbnail(context: Context) {
         val thumbnail = this.thumbnail
         val thumbnailHash = this.thumbnailHash
         val url = url
         if (thumbnail == null) return
-        scope.launch(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             synchronized(this@WebTabState) {
                 val tabsThumbsDir = File(context.cacheDir.absolutePath + File.separator + TAB_THUMBNAILS_DIR)
                 if (tabsThumbsDir.exists() || tabsThumbsDir.mkdir()) {
@@ -235,14 +236,14 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
         }
     }
 
-    fun updateThumbnail(context: Context, thumbnail: Bitmap, scope: CoroutineScope) {
+    suspend fun updateThumbnail(context: Context, thumbnail: Bitmap) {
         this.thumbnail = thumbnail
         val url = url
         var hash = Utils.MD5_Hash(url.toByteArray(Charset.defaultCharset()))
         if (hash != null) {
             hash += hashCode()//to make thumbnails from different tabs unique even with same url
             if (hash != thumbnailHash) {
-                saveThumbnail(context, scope)
+                saveThumbnail(context)
             }
         }
     }

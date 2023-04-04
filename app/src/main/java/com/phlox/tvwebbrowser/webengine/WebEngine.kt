@@ -37,7 +37,7 @@ interface WebEngine {
     fun clearCache(includeDiskFiles: Boolean)
     fun hideFullscreenView()
     fun togglePlayback()
-    fun renderThumbnail(thumbnail: Bitmap?): Bitmap?
+    suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap?
     /**
      * At this point of time web view should be already created but not attached to window
      */

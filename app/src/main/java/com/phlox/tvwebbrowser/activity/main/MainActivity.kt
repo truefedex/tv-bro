@@ -241,7 +241,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private val displayThumbnailRunnable = object : Runnable {
         var tabState: WebTabState? = null
         override fun run() {
-            tabState?.let { displayThumbnail(it) }
+            tabState?.let {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    displayThumbnail(it)
+                }
+            }
         }
     }
 
@@ -807,8 +811,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.flWebViewContainer.visibility = View.INVISIBLE
         val currentTab = tabsModel.currentTab.value
         if (currentTab != null) {
-            currentTab.thumbnail = currentTab.webEngine.renderThumbnail(currentTab.thumbnail)
-            displayThumbnail(currentTab)
+            lifecycleScope.launch {
+                currentTab.thumbnail = currentTab.webEngine.renderThumbnail(currentTab.thumbnail)
+                displayThumbnail(currentTab)
+            }
         }
 
         vb.llBottomPanel.translationY = vb.llBottomPanel.height.toFloat()
@@ -844,7 +850,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 .start()
     }
 
-    private fun displayThumbnail(currentTab: WebTabState?) {
+    private suspend fun displayThumbnail(currentTab: WebTabState?) {
         if (currentTab != null) {
             if (tabByTitleIndex(vb.vTabs.current) != currentTab) return
             vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
@@ -852,9 +858,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             if (currentTab.thumbnail != null) {
                 vb.ivMiniatures.setImageBitmap(currentTab.thumbnail)
             } else if (currentTab.thumbnailHash != null) {
-                lifecycleScope.launch(Dispatchers.IO) {
+                withContext(Dispatchers.IO) {
                     val thumbnail = currentTab.loadThumbnail()
-                    launch(Dispatchers.Main) {
+                    withContext(Dispatchers.Main) {
                         if (thumbnail != null) {
                             vb.ivMiniatures.setImageBitmap(currentTab.thumbnail)
                         } else {
@@ -1089,11 +1095,13 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
             //thumbnail
             tabsModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
-            val newThumbnail = tab.webEngine.renderThumbnail(tab.thumbnail)
-            if (newThumbnail != null) {
-                tab.updateThumbnail(this@MainActivity, newThumbnail, lifecycleScope)
-                if (vb.rlActionBar.visibility == View.VISIBLE && tab == tabsModel.currentTab.value) {
-                    displayThumbnail(tab)
+            lifecycleScope.launch {
+                val newThumbnail = tab.webEngine.renderThumbnail(tab.thumbnail)
+                if (newThumbnail != null) {
+                    tab.updateThumbnail(this@MainActivity, newThumbnail)
+                    if (vb.rlActionBar.visibility == View.VISIBLE && tab == tabsModel.currentTab.value) {
+                        displayThumbnail(tab)
+                    }
                 }
             }
 

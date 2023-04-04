@@ -146,8 +146,8 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         webView?.togglePlayback()
     }
 
-    override fun renderThumbnail(thumbnail: Bitmap?): Bitmap? {
-        return webView?.renderThumbnail(thumbnail)
+    override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
+        return webView?.renderThumbnail(bitmap)
     }
 
     override fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup,

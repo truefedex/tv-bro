@@ -8,12 +8,16 @@ import android.view.View
 import android.view.ViewGroup
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.*
+import kotlinx.coroutines.Dispatchers
 import org.mozilla.geckoview.*
 import org.mozilla.geckoview.GeckoSession.SessionState
 import java.lang.ref.WeakReference
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class GeckoWebEngine(val tab: WebTabState): WebEngine {
     companion object {
@@ -183,7 +187,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     override fun clearCache(includeDiskFiles: Boolean) {
-        
+
     }
 
     override fun hideFullscreenView() {
@@ -191,11 +195,11 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     override fun togglePlayback() {
-        
+
     }
 
-    override fun renderThumbnail(thumbnail: Bitmap?): Bitmap? {
-        return null
+    override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
+        return webView?.renderThumbnail(bitmap)
     }
 
     override fun onAttachToWindow(

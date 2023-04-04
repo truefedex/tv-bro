@@ -126,7 +126,7 @@ dependencies {
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
     val geckoViewChannel = "beta"
-    val geckoViewVersion = "112.0.20230326180212"
+    val geckoViewVersion = "112.0.20230330182947"
     implementation("org.mozilla.geckoview:geckoview-$geckoViewChannel:$geckoViewVersion")
 
     //"debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
