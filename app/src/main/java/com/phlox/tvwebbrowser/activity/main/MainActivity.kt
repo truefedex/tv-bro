@@ -449,19 +449,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 }
             }
         }
-
-        if (Utils.isFireTV(this@MainActivity)) {
-            //amazon blocks some downloads, this is workaround
-            viewModel.logCatOutput.subscribe(this@MainActivity) {
-                logMessage ->
-                if (logMessage.endsWith("AwContentsClientBridge: Dropping new download request.")) {
-                    tabsModel.currentTab.value?.apply {
-                        val url = this.lastLoadingUrl ?: return@apply
-                        onDownloadRequested(url, this)
-                    }
-                }
-            }
-        }
     }
 
     private fun openInNewTab(url: String?, index: Int = 0, needToHideMenuOverlay: Boolean = true, navigateImmediately: Boolean): WebEngine? {

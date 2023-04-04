@@ -37,13 +37,6 @@ class MainActivityViewModel: ActiveModel() {
     private var lastHistoryItemSaveJob: Job? = null
     val homePageLinks = ObservableList<HomePageLink>()
     private var downloadIntent: DownloadIntent? = null
-    val logCatOutput = ParameterizedEventSource<String>()
-
-    init {
-        if (Utils.isFireTV(TVBro.instance)) {
-            launchLogcatOutputCoroutine()
-        }
-    }
 
     fun loadState() = modelScope.launch(Dispatchers.Main) {
         if (loaded) return@launch
@@ -193,22 +186,6 @@ class MainActivityViewModel: ActiveModel() {
         DownloadService.startDownloading(TVBro.instance, download)
 
         activity.onDownloadStarted(download.fileName)
-    }
-
-    private fun launchLogcatOutputCoroutine() {
-        modelScope.launch(Dispatchers.IO) {
-            Runtime.getRuntime().exec("logcat -c")
-            Runtime.getRuntime().exec("logcat")
-              .inputStream
-              .bufferedReader()
-              .useLines { lines ->
-                  lines.forEach {line ->
-                      withContext(Dispatchers.Main) {
-                          logCatOutput.emit(line)
-                      }
-                  }
-              }
-        }
     }
 
     fun prepareSwitchToIncognito() {
