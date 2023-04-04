@@ -121,7 +121,7 @@ class Config(val prefs: SharedPreferences) {
     var searchEngineURL = ObservableStringPreference(SearchEnginesURLs[0], SEARCH_ENGINE_URL_PREF_KEY)
 
     var webEngine: String
-        get() = prefs.getString(WEB_ENGINE, "gecko")!!
+        get() = prefs.getString(WEB_ENGINE, "GeckoView")!!
         set(value) {
             prefs.edit().putString(WEB_ENGINE, value).apply()
         }
@@ -133,7 +133,7 @@ class Config(val prefs: SharedPreferences) {
         }
 
     fun isWebEngineGecko(): Boolean {
-        return webEngine == "gecko"
+        return webEngine == "GeckoView"
     }
 
     fun isWebEngineSet(): Boolean {

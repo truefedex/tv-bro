@@ -22,8 +22,8 @@ object SearchEngineConfigDialogFactory {
     fun show(context: Context, settings: SettingsModel, cancellable: Boolean, callback: Callback) {
 
         var selected = 0
-        if ("" != settings.searchEngineURL.value) {
-            selected = Config.SearchEnginesURLs.indexOf(settings.searchEngineURL.value)
+        if ("" != settings.config.searchEngineURL.value) {
+            selected = Config.SearchEnginesURLs.indexOf(settings.config.searchEngineURL.value)
         }
 
         val builder = AlertDialog.Builder(context)
@@ -44,7 +44,7 @@ object SearchEngineConfigDialogFactory {
         } else {
             spEngine.setSelection(Config.SearchEnginesTitles.size - 1)
             llUrl.visibility = View.VISIBLE
-            etUrl.setText(settings.searchEngineURL.value)
+            etUrl.setText(settings.config.searchEngineURL.value)
             etUrl.requestFocus()
         }
         spEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {

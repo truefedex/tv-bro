@@ -187,4 +187,11 @@
     <string name="media_front_camera">Front camera</string>
     <string name="media_microphone">Microphone</string>
     <string name="media_other">Unknown source</string>
+    <string name="web_browser_engine_temporary_setting">Web browser engine (temporary setting)</string>
+    <string name="need_restart_message">Restart app to apply changes</string>
+    <string name="restart">Restart</string>
+    <array name="web_browser_engines" translatable="false">
+        <item>GeckoView</item>
+        <item>WebView</item>
+    </array>
 </resources>

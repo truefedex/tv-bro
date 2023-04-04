@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Build
 import android.util.AttributeSet
@@ -12,6 +13,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.AdblockModel
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.databinding.ViewSettingsMainBinding
@@ -19,16 +21,19 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.system.exitProcess
 
 class MainSettingsView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ScrollView(context, attrs, defStyleAttr) {
     private var vb = ViewSettingsMainBinding.inflate(LayoutInflater.from(getContext()), this, true)
-    var settingsModel: SettingsModel =
-        ActiveModelsRepository.get(SettingsModel::class, activity!!)
-    var adblockModel: AdblockModel = ActiveModelsRepository.get(AdblockModel::class, activity!!)
+    var settingsModel = ActiveModelsRepository.get(SettingsModel::class, activity!!)
+    var adblockModel = ActiveModelsRepository.get(AdblockModel::class, activity!!)
+    var config = TVBro.config
 
     init {
+        initWebBrowserEngineSettingsUI()
+
         initHomePageAndSearchEngineConfigUI()
 
         initUAStringConfigUI(context)
@@ -42,6 +47,33 @@ class MainSettingsView @JvmOverloads constructor(
         vb.btnClearWebCache.setOnClickListener {
             WebView(context).clearCache(true)
             Toast.makeText(context, android.R.string.ok, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun initWebBrowserEngineSettingsUI() {
+        val supportedWebEngines = context.resources.getStringArray(R.array.web_browser_engines)
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, supportedWebEngines)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        vb.spWebEngine.adapter = adapter
+
+        vb.spWebEngine.setSelection(supportedWebEngines.indexOf(config.webEngine), false)
+
+        vb.spWebEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                if (config.webEngine == supportedWebEngines[position]) return
+                config.webEngine = supportedWebEngines[position]
+                AlertDialog.Builder(context)
+                        .setTitle(R.string.need_restart)
+                        .setMessage(R.string.need_restart_message)
+                        .setPositiveButton(R.string.exit) { _, _ ->
+                            exitProcess(0)
+                        }
+                        .setCancelable(false)
+                        .show()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 
@@ -155,8 +187,8 @@ class MainSettingsView @JvmOverloads constructor(
 
     private fun initHomePageAndSearchEngineConfigUI() {
         var selected = 0
-        if ("" != settingsModel.searchEngineURL.value) {
-            selected = Config.SearchEnginesURLs.indexOf(settingsModel.searchEngineURL.value)
+        if ("" != config.searchEngineURL.value) {
+            selected = Config.SearchEnginesURLs.indexOf(config.searchEngineURL.value)
         }
 
         val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, Config.SearchEnginesTitles)
@@ -170,7 +202,7 @@ class MainSettingsView @JvmOverloads constructor(
         } else {
             vb.spEngine.setSelection(Config.SearchEnginesTitles.size - 1)
             vb.llURL.visibility = View.VISIBLE
-            vb.etUrl.setText(settingsModel.searchEngineURL.value)
+            vb.etUrl.setText(config.searchEngineURL.value)
             vb.etUrl.requestFocus()
         }
         vb.spEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -182,7 +214,7 @@ class MainSettingsView @JvmOverloads constructor(
                             AnimationUtils.loadAnimation(context, android.R.anim.fade_in)
                         )
                     }
-                    vb.etUrl.setText(settingsModel.searchEngineURL.value)
+                    vb.etUrl.setText(config.searchEngineURL.value)
                     vb.etUrl.requestFocus()
                     return
                 } else {

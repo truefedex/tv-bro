@@ -697,7 +697,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 return
             }
 
-            val searchUrl = settingsModel.searchEngineURL.value.replace("[query]", query!!)
+            val searchUrl = config.searchEngineURL.value.replace("[query]", query!!)
             navigate(searchUrl)
         }
     }

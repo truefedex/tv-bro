@@ -67,7 +67,13 @@ open class GeckoViewEx @JvmOverloads constructor(context: Context, attrs: Attrib
             return null
         }
         thumbnail = suspendCoroutine {
-            val screenshotResult = screenshotBuilder.bitmap(thumbnail).capture()
+            val screenshotResult = try {
+                screenshotBuilder.bitmap(thumbnail).capture()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                it.resume(null)
+                return@suspendCoroutine
+            }
             screenshotResult.then({ bitmap ->
                 Log.d(GeckoWebEngine.TAG, "Screenshot captured")
                 it.resume(thumbnail)

@@ -26,8 +26,6 @@ class SettingsModel : ActiveModel() {
 
     val config = TVBro.config
 
-    //Search engines configuration
-    var searchEngineURL by config::searchEngineURL
     //Home page settings
     var homePage by config::homePage
     var homePageMode by config::homePageMode
@@ -73,7 +71,7 @@ class SettingsModel : ActiveModel() {
     }
 
     fun setSearchEngineURL(url: String) {
-        searchEngineURL.value = url
+        config.searchEngineURL.value = url
         if (homePageMode == Config.HomePageMode.SEARCH_ENGINE) {
             updateHomeAsSearchEngine(url)
         }
@@ -90,7 +88,7 @@ class SettingsModel : ActiveModel() {
         this.homePageLinksMode = homePageLinksMode
         when (homePageMode) {
             Config.HomePageMode.SEARCH_ENGINE -> {
-                updateHomeAsSearchEngine(searchEngineURL.value)
+                updateHomeAsSearchEngine(config.searchEngineURL.value)
             }
             Config.HomePageMode.HOME_PAGE, Config.HomePageMode.BLANK -> {
                 homePage = Config.DEFAULT_HOME_URL
