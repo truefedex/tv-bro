@@ -79,7 +79,7 @@ class SettingsModel : ActiveModel() {
 
     private fun updateHomeAsSearchEngine(url: String) {
         val regexForUrl = """^https?://[^#?/]+""".toRegex()
-        val homePageUrl = regexForUrl.find(url)?.value ?: Config.DEFAULT_HOME_URL
+        val homePageUrl = regexForUrl.find(url)?.value ?: Config.HOME_URL_ALIAS
         homePage = homePageUrl
     }
 
@@ -91,10 +91,10 @@ class SettingsModel : ActiveModel() {
                 updateHomeAsSearchEngine(config.searchEngineURL.value)
             }
             Config.HomePageMode.HOME_PAGE, Config.HomePageMode.BLANK -> {
-                homePage = Config.DEFAULT_HOME_URL
+                homePage = Config.HOME_URL_ALIAS
             }
             Config.HomePageMode.CUSTOM -> {
-                homePage = customHomePageUrl ?: Config.DEFAULT_HOME_URL
+                homePage = customHomePageUrl ?: Config.HOME_URL_ALIAS
             }
         }
     }

@@ -9,6 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.model.dao.*
+import com.phlox.tvwebbrowser.model.util.Converters
 
 @Database(entities = [
     Download::class, FavoriteItem::class,
@@ -16,6 +17,7 @@ import com.phlox.tvwebbrowser.model.dao.*
     HostConfig::class
                      ],
     version = 18/*, exportSchema = true*/)
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
     abstract fun historyDao(): HistoryDao
@@ -140,6 +142,9 @@ abstract class AppDatabase : RoomDatabase() {
                         "ADD HOME_PAGE_BOOKMARK INTEGER NOT NULL DEFAULT 0;")
                 db.execSQL("ALTER TABLE favorites\n" +
                         "ADD I_ORDER INTEGER NOT NULL DEFAULT 0;")
+                db.execSQL("ALTER TABLE favorites ADD DEST_URL TEXT;")
+                db.execSQL("ALTER TABLE favorites ADD `DESCRIPTION` TEXT;")
+                db.execSQL("ALTER TABLE favorites ADD VALID_UNTIL INTEGER;")
                 db.execSQL("CREATE INDEX favorites_home_page_bookmark_idx ON favorites(HOME_PAGE_BOOKMARK);")
                 db.execSQL("CREATE INDEX favorites_parent_idx ON favorites(PARENT);")
 

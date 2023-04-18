@@ -52,7 +52,7 @@ class FavoriteItemView @JvmOverloads constructor(context: Context, attrs: Attrib
         vb.tvUrl.text = favorite.url
         vb.ivIcon.setImageResource(R.drawable.ic_not_available)
         val url = favorite.url
-        if (url != null && url != Config.DEFAULT_HOME_URL) {
+        if (url != null && url != Config.HOME_PAGE_URL) {
             val scope = (activity as AppCompatActivity).lifecycleScope
             scope.launch(Dispatchers.Main) {
                 val favicon = FaviconsPool.get(url)

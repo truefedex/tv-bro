@@ -100,6 +100,7 @@ class FaviconExtractor {
     fun extractFavIconsFromWebManifest(manifestURL: URL?, manifest: Reader): ArrayList<IconInfo> {
         val iconInfos = ArrayList<IconInfo>()
         val jsonReader = JsonReader(manifest)
+        jsonReader.isLenient = true
         jsonReader.use {
             jsonReader.beginObject()
             while (jsonReader.hasNext()) {

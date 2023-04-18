@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
-import com.phlox.tvwebbrowser.utils.observable.Subscribable
 
 class Config(val prefs: SharedPreferences) {
     companion object {
@@ -18,7 +17,7 @@ class Config(val prefs: SharedPreferences) {
         const val AUTO_CHECK_UPDATES_KEY = "auto_check_updates"
         const val UPDATE_CHANNEL_KEY = "update_channel"
         const val TV_BRO_UA_PREFIX = "TV Bro/1.0 "
-        const val DEFAULT_HOME_URL = "about:blank"
+        const val HOME_URL_ALIAS = "about:home"
         const val KEEP_SCREEN_ON_KEY = "keep_screen_on"
         const val INCOGNITO_MODE_KEY = "incognito_mode"
         const val INCOGNITO_MODE_HINT_SUPPRESS_KEY = "incognito_mode_hint_suppress"
@@ -26,12 +25,16 @@ class Config(val prefs: SharedPreferences) {
         const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
         const val WEB_ENGINE = "web_engine"
         const val ALLOW_AUTOPLAY_MEDIA = "allow_autoplay_media"
+        //const val HOME_PAGE_VERSION_EXTRACTED = "home_page_version_extracted"
+        const val INITIAL_BOOKMARKS_SUGGESTIONS_LOADED = "initial_bookmarks_suggestions_loaded"
 
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Custom")
         val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "custom")
         val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
             "https://search.yahoo.com/search?p=[query]", "https://duckduckgo.com/?q=[query]",
             "https://yandex.com/search/?text=[query]", "")
+        const val HOME_PAGE_URL = "https://tvbro.phlox.dev/appcontent/home/"
+        //const val HOME_PAGE_URL = "http://10.0.2.2:5000/appcontent/home/"
     }
 
     enum class Theme {
@@ -43,7 +46,7 @@ class Config(val prefs: SharedPreferences) {
     }
 
     enum class HomePageLinksMode {
-        MIXED, RECOMMENDATIONS, BOOKMARKS, LATEST_HISTORY, MOST_VISITED
+        BOOKMARKS, LATEST_HISTORY, MOST_VISITED
     }
 
     fun getUserAgentString(): String {
@@ -113,7 +116,7 @@ class Config(val prefs: SharedPreferences) {
         }
 
     var homePage: String
-        get() = prefs.getString(HOME_PAGE_KEY, DEFAULT_HOME_URL)!!
+        get() = prefs.getString(HOME_PAGE_KEY, HOME_URL_ALIAS)!!
         set(value) {
             prefs.edit().putString(HOME_PAGE_KEY, value).apply()
         }
@@ -130,6 +133,18 @@ class Config(val prefs: SharedPreferences) {
         get() = prefs.getBoolean(ALLOW_AUTOPLAY_MEDIA, false)
         set(value) {
             prefs.edit().putBoolean(ALLOW_AUTOPLAY_MEDIA, value).apply()
+        }
+
+    /*var homePageVersionExtracted: Int
+        get() = prefs.getInt(HOME_PAGE_VERSION_EXTRACTED, 0)
+        set(value) {
+            prefs.edit().putInt(HOME_PAGE_VERSION_EXTRACTED, value).apply()
+        }*/
+
+    var initialBookmarksSuggestionsLoaded: Boolean
+        get() = prefs.getBoolean(INITIAL_BOOKMARKS_SUGGESTIONS_LOADED, false)
+        set(value) {
+            prefs.edit().putBoolean(INITIAL_BOOKMARKS_SUGGESTIONS_LOADED, value).apply()
         }
 
     fun isWebEngineGecko(): Boolean {

@@ -20,7 +20,6 @@ import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.databinding.ViewSettingsVersionBinding
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
-import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 
 @SuppressLint("SetTextI18n")
 class VersionSettingsView @JvmOverloads constructor(
@@ -37,16 +36,16 @@ class VersionSettingsView @JvmOverloads constructor(
     init {
         vb.tvVersion.text = context.getString(R.string.version_s, BuildConfig.VERSION_NAME)
 
-        val webViewVersion = if (settingsModel.config.isWebEngineGecko()) {
-            "GeckoView: " + org.mozilla.geckoview.BuildConfig.LIBRARY_PACKAGE_NAME + ":" +
+        val engineVersion = "Engine: " + if (settingsModel.config.isWebEngineGecko()) {
+            org.mozilla.geckoview.BuildConfig.LIBRARY_PACKAGE_NAME + ":" +
                     org.mozilla.geckoview.BuildConfig.MOZ_APP_VERSION + "." +
                     org.mozilla.geckoview.BuildConfig.MOZ_APP_BUILDID + " - " +
                     org.mozilla.geckoview.BuildConfig.MOZ_UPDATE_CHANNEL
         } else {
             val webViewPackage = WebViewCompat.getCurrentWebViewPackage(context)
-            "WebView: " + (webViewPackage?.packageName ?: "unknown") + ":" + (webViewPackage?.versionName ?: "unknown")
+            (webViewPackage?.packageName ?: "unknown") + ":" + (webViewPackage?.versionName ?: "unknown")
         }
-        vb.tvWebViewVersion.text = webViewVersion
+        vb.tvWebViewVersion.text = engineVersion
 
         vb.tvLink.text = Html.fromHtml("<p><u>https://github.com/truefedex/tv-bro</u></p>")
         vb.tvLink.setOnClickListener {

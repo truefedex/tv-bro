@@ -7,21 +7,25 @@ import android.os.Environment
 import android.util.Log
 import android.webkit.WebView
 import android.widget.Toast
+import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
-import com.phlox.tvwebbrowser.utils.FileUtils
 import com.phlox.tvwebbrowser.utils.LogUtils
-import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
-import com.phlox.tvwebbrowser.utils.observable.ParameterizedEventSource
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
+import com.phlox.tvwebbrowser.utils.deleteDirectory
 import kotlinx.coroutines.*
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
+import java.net.URL
+import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivityViewModel: ActiveModel() {
     companion object {
@@ -39,12 +43,15 @@ class MainActivityViewModel: ActiveModel() {
     private var downloadIntent: DownloadIntent? = null
 
     fun loadState() = modelScope.launch(Dispatchers.Main) {
+        Log.d(TAG, "loadState")
         if (loaded) return@launch
         initHistory()
+        loadHomePageLinks()
         loaded = true
     }
 
     private suspend fun initHistory() {
+        Log.d(TAG, "initHistory")
         val count = AppDatabase.db.historyDao().count()
         if (count > 5000) {
             val c = Calendar.getInstance()
@@ -62,34 +69,104 @@ class MainActivityViewModel: ActiveModel() {
         }
     }
 
-    suspend fun loadHomePageLinks() {
+    private suspend fun loadHomePageLinks() {
+        Log.d(TAG, "loadHomePageLinks")
         val config = TVBro.config
-        homePageLinks.clear()
         if (config.homePageMode == Config.HomePageMode.HOME_PAGE) {
             when (config.homePageLinksMode) {
-                Config.HomePageLinksMode.MOST_VISITED, Config.HomePageLinksMode.MIXED -> {
-                    homePageLinks.addAll(
+                Config.HomePageLinksMode.MOST_VISITED -> {
+                    homePageLinks.replaceAll(
                         AppDatabase.db.historyDao().frequentlyUsedUrls()
                             .map { HomePageLink.fromHistoryItem(it) })
                 }
                 Config.HomePageLinksMode.LATEST_HISTORY -> {
-                    homePageLinks.addAll(
+                    homePageLinks.replaceAll(
                         AppDatabase.db.historyDao().last(8)
                             .map { HomePageLink.fromHistoryItem(it) })
                 }
                 Config.HomePageLinksMode.BOOKMARKS -> {
-                    homePageLinks.addAll(
-                        AppDatabase.db.favoritesDao().getHomePageBookmarks()
-                            .map { HomePageLink.fromBookmarkItem(it) })
+                    val favorites = ArrayList<FavoriteItem>()
+                    favorites.addAll(AppDatabase.db.favoritesDao().getHomePageBookmarks())
+                    val hasOutdatedAffiliateLinks = favorites.any { it.validUntil != null && it.validUntil!!.before(Date()) }
+                    if ((favorites.isEmpty() && !config.initialBookmarksSuggestionsLoaded) || hasOutdatedAffiliateLinks) {
+                        val suggestions = withContext(Dispatchers.IO) {
+                            val countryCode = /*if (BuildConfig.DEBUG) "debug" else*/ try {
+                                val response = URL("http://ip-api.com/json/").readText()
+                                val jsonObject = JSONObject(response)
+                                jsonObject.getString("countryCode")
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                null
+                            } ?: Locale.getDefault().country ?: "default"
+
+                            try {
+                                val recommendationsUrl = "${Config.HOME_PAGE_URL}recommendations/$countryCode.json"
+                                val response = URL(recommendationsUrl).readText()
+                                val jsonArray = JSONArray(response)
+                                val result = mutableListOf<FavoriteItem>()
+                                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                                for (i in 0 until jsonArray.length()) {
+                                    val jsonObject = jsonArray.getJSONObject(i)
+                                    val title = jsonObject.getString("title")
+                                    val url = jsonObject.getString("url")
+                                    val favicon = jsonObject.opt("favicon") as String?
+                                    val destUrl = jsonObject.opt("dest_url") as String?
+                                    val description = jsonObject.opt("description") as String?
+                                    val validUntil = jsonObject.opt("valid_until") as String?
+                                    val favorite = FavoriteItem()
+                                    favorite.title = title
+                                    favorite.url = url
+                                    favorite.favicon = favicon
+                                    favorite.destUrl = destUrl
+                                    favorite.description = description
+                                    favorite.order = i
+                                    favorite.homePageBookmark = true
+                                    if (validUntil != null) {
+                                        favorite.validUntil = dateFormat.parse(validUntil)
+                                    }
+                                    result.add(favorite)
+                                }
+                                result
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                null
+                            }
+                        }
+
+                        if (suggestions != null) {
+                            if (hasOutdatedAffiliateLinks) {
+                                for (i in (favorites.size - 1) downTo 0) {
+                                    val f = favorites[i]
+                                    if (f.validUntil != null && f.validUntil!!.before(Date())) {
+                                        AppDatabase.db.favoritesDao().delete(f)
+                                        favorites.removeAt(i)
+                                        val replacement = suggestions.find { it.order == f.order }
+                                        if (replacement != null) {
+                                            replacement.id = AppDatabase.db.favoritesDao().insert(replacement)
+                                            favorites.add(i, replacement)
+                                            continue
+                                        }
+                                    }
+                                }
+                            } else {
+                                for (s in suggestions) {
+                                    s.id = AppDatabase.db.favoritesDao().insert(s)
+                                }
+                                config.initialBookmarksSuggestionsLoaded = true
+                            }
+                            homePageLinks.replaceAll(suggestions.map { HomePageLink.fromBookmarkItem(it) })
+                        }
+                    } else {
+                        homePageLinks.replaceAll(favorites.map { HomePageLink.fromBookmarkItem(it) })
+                    }
                 }
-                else -> {}
             }
         }
     }
 
     fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
         Log.d(TAG, "logVisitedHistory: $url")
-        if ((url == lastHistoryItem?.url) || url == Config.DEFAULT_HOME_URL || !url.startsWith("http")) {
+        if ((url == lastHistoryItem?.url) || url == Config.HOME_PAGE_URL || !url.startsWith("http", true)) {
             return
         }
 
@@ -235,7 +312,7 @@ class MainActivityViewModel: ActiveModel() {
                 TVBro.instance.filesDir.parentFile!!.absolutePath +
                         "/" + WEB_VIEW_DATA_FOLDER + "_" + INCOGNITO_DATA_DIRECTORY_SUFFIX
             )
-            FileUtils.deleteDirectory(webViewData)
+            deleteDirectory(webViewData)
             var webViewCache =
                 File(
                     TVBro.instance.cacheDir.absolutePath + "/" + WEB_VIEW_CACHE_FOLDER +
@@ -248,16 +325,16 @@ class MainActivityViewModel: ActiveModel() {
                             "_" + INCOGNITO_DATA_DIRECTORY_SUFFIX
                 )
             }
-            FileUtils.deleteDirectory(webViewCache)
+            deleteDirectory(webViewCache)
         } else {
             val webViewData = File(
                 TVBro.instance.filesDir.parentFile!!.absolutePath +
                         "/" + WEB_VIEW_DATA_FOLDER
             )
-            FileUtils.deleteDirectory(webViewData)
+            deleteDirectory(webViewData)
             val webViewCache =
                 File(TVBro.instance.cacheDir.absolutePath + "/" + WEB_VIEW_CACHE_FOLDER)
-            FileUtils.deleteDirectory(webViewCache)
+            deleteDirectory(webViewCache)
 
             val backupedWebViewData = File(
                 TVBro.instance.filesDir.parentFile!!.absolutePath +

@@ -32,9 +32,8 @@ import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.webengine.common.HomePageHelper
-import com.phlox.tvwebbrowser.webengine.common.Scripts
 import com.phlox.tvwebbrowser.utils.LogUtils
+import com.phlox.tvwebbrowser.webengine.common.Scripts
 import java.net.URLEncoder
 import java.util.*
 
@@ -51,7 +50,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         const val INTERNAL_SCHEME_WARNING_DOMAIN = "warning"
         const val INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT = "certificate"
         val WIDEVINE_UUID = UUID(-0x121074568629b532L,-0x5c37d8232ae2de13L)
-        const val HOME_PAGE_URL = "https://tvbro.phlox.dev/appcontent/home/"
     }
 
     private var genericInjects: String? = null
@@ -373,7 +371,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                 //Log.d(TAG, "shouldInterceptRequest url: ${request.url}")
                 val currentOriginalUrl = currentOriginalUrl
 
-                if (currentOriginalUrl != null && currentOriginalUrl.toString() == HOME_PAGE_URL) {
+                if (currentOriginalUrl != null && currentOriginalUrl.toString() == Config.HOME_PAGE_URL) {
                     HomePageHelper.shouldInterceptRequest(view, request)?.let {
                         return it
                     }
@@ -508,7 +506,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
 
     override fun loadUrl(url: String) {
         when {
-            Config.DEFAULT_HOME_URL == url -> {
+            Config.HOME_URL_ALIAS == url -> {
                 when (TVBro.config.homePageMode) {
                     Config.HomePageMode.BLANK -> {
                         loadDataWithBaseURL(null, "", "text/html", "UTF-8", null)
@@ -524,9 +522,10 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
 
                     }
                     Config.HomePageMode.HOME_PAGE -> {
-                        currentOriginalUrl = Uri.parse(HOME_PAGE_URL)
-                        val data = context.assets.open("pages/home/index.html").bufferedReader().use { it.readText() }
-                        loadDataWithBaseURL(HOME_PAGE_URL, data, "text/html", "UTF-8", null)
+                        currentOriginalUrl = Uri.parse(Config.HOME_PAGE_URL)
+                        super.loadUrl(Config.HOME_PAGE_URL)
+                        //val data = context.assets.open("pages/home/index.html").bufferedReader().use { it.readText() }
+                        //loadDataWithBaseURL(Config.HOME_PAGE_URL, data, "text/html", "UTF-8", null)
                     }
                 }
 

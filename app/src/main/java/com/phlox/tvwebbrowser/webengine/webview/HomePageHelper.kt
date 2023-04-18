@@ -1,13 +1,13 @@
-package com.phlox.tvwebbrowser.webengine.common
+package com.phlox.tvwebbrowser.webengine.webview
 
 import android.graphics.Bitmap
 import android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
-import com.phlox.tvwebbrowser.webengine.webview.WebViewEx
 import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
@@ -34,7 +34,7 @@ object HomePageHelper {
             } else {
                 return WebResourceResponse(null, null, 404, "Not Found", null, null)
             }
-        } else if (url.startsWith(WebViewEx.HOME_PAGE_URL) &&
+        } /*else if (url.startsWith(Config.HOME_PAGE_URL) &&
             (url.endsWith(".svg") || url.endsWith(".png"))) {
             //load images of tvbro.phlox.dev from assets for offline mode
             val data = TVBro.instance.assets.open("pages/home" + request.url.path!!.replace("/appcontent/home", "")).use { it.readBytes() }
@@ -44,13 +44,7 @@ object HomePageHelper {
             }
             return WebResourceResponse("image/" + imageType,
                 "utf-8", data.inputStream())
-        } else if (url.endsWith("ip-api/json/")) {
-            //one-time load of http://ip-api.com for country detection, but it blocked by cors policy so we use local proxy
-            val urlConnection = URL("http://ip-api.com/json/" ).openConnection() as HttpURLConnection
-            val data = urlConnection.inputStream.use { it.readBytes() }
-            return WebResourceResponse(urlConnection.contentType,
-                "utf-8", data.inputStream())
-        }
+        }*/
         return null
     }
 }

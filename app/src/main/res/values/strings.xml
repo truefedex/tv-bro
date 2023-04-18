@@ -154,8 +154,6 @@
     </array>
 
     <array name="home_page_links_modes">
-        <item>Mixed (Recommendations replaceable by the most visited)</item>
-        <item>Recommendations</item>
         <item>Bookmarks</item>
         <item>Latest History</item>
         <item>Most Visited</item>

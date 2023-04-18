@@ -1,0 +1,28 @@
+{
+  "manifest_version": 2,
+  "name": "tvbro-generic",
+  "version": "1.0",
+  "description": "TV Bro Generic Addon",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "tvbro@mock.com"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["generic.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://tvbro.phlox.dev/appcontent/home/*", "*://*/appcontent/home/*"],
+      "js": ["home.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "permissions": [
+    "nativeMessaging",
+    "nativeMessagingFromContent",
+    "geckoViewAddons"
+  ]
+}

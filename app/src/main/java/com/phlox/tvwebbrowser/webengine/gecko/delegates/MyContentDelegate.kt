@@ -73,8 +73,7 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
     }
 
     override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
-        //TODO: handle external response
-        super.onExternalResponse(session, response)
+        Log.d(TAG, "onExternalResponse: " + response.uri)
     }
 
     override fun onCrash(session: GeckoSession) {

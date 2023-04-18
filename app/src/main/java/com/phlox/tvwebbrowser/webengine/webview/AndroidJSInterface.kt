@@ -5,11 +5,7 @@ import android.webkit.JavascriptInterface
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.activity.main.MainActivity
-import com.phlox.tvwebbrowser.activity.main.MainActivityViewModel
-import com.phlox.tvwebbrowser.activity.main.TabsModel
 import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.utils.DownloadUtils
 import org.json.JSONArray
 
@@ -65,39 +61,41 @@ class AndroidJSInterface(val webEngine: WebViewWebEngine
     }
 
     @JavascriptInterface
-    fun homePageLinks(): String {
-        if (webEngine.tab.url != Config.DEFAULT_HOME_URL) return "[]"
-        val callback = webEngine.callback ?: return "[]"
-        val jsArr = JSONArray()
-        for (item in callback.getHomePageLinks()) {
-            jsArr.put(item.toJsonObj())
-        }
-        return jsArr.toString()
-    }
-
-    @JavascriptInterface
     fun startVoiceSearch() {
-        if (webEngine.tab.url != Config.DEFAULT_HOME_URL) return
+        if (webEngine.tab.url != Config.HOME_PAGE_URL) return
         val callback = webEngine.callback ?: return
         callback.getActivity().runOnUiThread { callback.initiateVoiceSearch() }
     }
 
     @JavascriptInterface
     fun setSearchEngine(engine: String, customSearchEngineURL: String) {
-        if (webEngine.tab.url != Config.DEFAULT_HOME_URL) return
+        if (webEngine.tab.url != Config.HOME_PAGE_URL) return
         TVBro.config.searchEngineURL.value = customSearchEngineURL
     }
 
     @JavascriptInterface
     fun onEditBookmark(index: Int) {
-        if (webEngine.tab.url != Config.DEFAULT_HOME_URL) return
+        if (webEngine.tab.url != Config.HOME_PAGE_URL) return
         val callback = webEngine.callback ?: return
         callback.getActivity().runOnUiThread { callback.onEditHomePageBookmarkSelected(index) }
     }
 
     @JavascriptInterface
-    fun homePageLinksMode(): String {
-        return TVBro.config.homePageLinksMode.name
+    fun onHomePageLoaded() {
+        if (webEngine.tab.url != Config.HOME_PAGE_URL) return
+        val callback = webEngine.callback ?: return
+        callback.getActivity().runOnUiThread {
+            val cfg = TVBro.config
+            val jsArr = JSONArray()
+            for (item in callback.getHomePageLinks()) {
+                jsArr.put(item.toJsonObj())
+            }
+            var links = jsArr.toString()
+            links = links.replace("'", "\\'")
+            webEngine.evaluateJavascript("renderLinks('${cfg.homePageLinksMode.name}', $links)")
+            webEngine.evaluateJavascript(
+                "applySearchEngine(\"${cfg.guessSearchEngineName()}\", \"${cfg.searchEngineURL.value}\")")
+        }
     }
 
     @JavascriptInterface

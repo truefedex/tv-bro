@@ -8,12 +8,10 @@ class HomePageLink(
     val url: String,
     val favicon: String? = null,
     val favoriteId: Long? = null,
-    val order: Int? = null
+    val order: Int? = null,
+    val dest_url: String? = null,
+    val description: String? = null
 ) {
-    fun toJson(): String {
-        return "{\"title\":\"$title\",\"url\":\"$url\",\"favicon\":\"$favicon\"}"
-    }
-
     fun toJsonObj(): JSONObject {
         return JSONObject().apply {
             put("title", title)
@@ -21,6 +19,8 @@ class HomePageLink(
             put("favicon", favicon)
             put("favoriteId", favoriteId)
             put("order", order)
+            put("dest_url", dest_url)
+            put("description", description)
         }
     }
 
@@ -30,7 +30,7 @@ class HomePageLink(
         }
 
         fun fromBookmarkItem(item: FavoriteItem): HomePageLink {
-            return HomePageLink(item.title?: "", item.url?: "", null, item.id, item.order)
+            return HomePageLink(item.title?: "", item.url?: "", null, item.id, item.order, item.destUrl, item.description)
         }
     }
 }

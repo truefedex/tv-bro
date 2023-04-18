@@ -1,13 +1,22 @@
 package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Log
+import android.webkit.WebResourceResponse
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
+import com.phlox.tvwebbrowser.webengine.webview.HomePageHelper
+import kotlinx.coroutines.runBlocking
 import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
+import org.mozilla.geckoview.GeckoSession.Loader
 import org.mozilla.geckoview.WebRequestError
 import java.io.BufferedReader
+import java.io.ByteArrayOutputStream
 
 class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession.NavigationDelegate {
     companion object {
@@ -52,6 +61,30 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
                     + request.isDirectNavigation
         )
 
+        /*if (webEngine.callback?.shouldOverrideUrlLoading(request.uri) == true) {
+            return GeckoResult.deny()
+        }*/
+
+        try {
+            val uri = Uri.parse(request.uri)
+            if (!uri.scheme.equals("http", true) && !uri.scheme.equals("https", true) &&
+                !uri.scheme.equals("javascript", true)) {
+                Log.d(TAG, "onLoadRequest: not http or https")
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                if (intent.resolveActivity(TVBro.instance.packageManager) != null) {
+                    TVBro.instance.startActivity(intent)
+                } else {
+                    Log.d(TAG, "onLoadRequest: no activity to handle intent")
+                }
+                return GeckoResult.deny()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "onLoadRequest: ", e)
+            return GeckoResult.deny()
+        }
+
+
         return GeckoResult.allow()
     }
 
@@ -70,6 +103,9 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
                     + request.isDirectNavigation
         )
 
+        /*if (webEngine.callback?.shouldOverrideUrlLoading(request.uri) == true) {
+            return GeckoResult.deny()
+        }*/
         return GeckoResult.allow()
     }
 

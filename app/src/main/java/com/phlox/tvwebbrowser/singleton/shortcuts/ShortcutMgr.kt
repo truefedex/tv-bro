@@ -67,7 +67,7 @@ class ShortcutMgr private constructor() {
                 return true
             }
             Shortcut.NAVIGATE_HOME -> {
-                mainActivity.navigate(prefs.getString(HOME_PAGE_KEY, Config.DEFAULT_HOME_URL)!!)
+                mainActivity.navigate(Config.HOME_URL_ALIAS)
                 return true
             }
             Shortcut.REFRESH_PAGE -> {

@@ -82,7 +82,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
             vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
 
             val url = tabState.url
-            if (url != Config.DEFAULT_HOME_URL) {
+            if (url != Config.HOME_PAGE_URL && url != Config.HOME_URL_ALIAS) {
                 val scope = (itemView.activity as AppCompatActivity).lifecycleScope
                 scope.launch(Dispatchers.Main) {
                     val favicon = FaviconsPool.get(url)

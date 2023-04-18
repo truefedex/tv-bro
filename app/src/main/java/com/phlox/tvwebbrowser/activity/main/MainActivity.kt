@@ -33,7 +33,6 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoriteEditorDial
 import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
-import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.*
@@ -115,9 +114,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb.root)
 
-        WebEngineFactory.initialize(this, vb.flWebViewContainer)
-
-        AndroidBug5497Workaround.assistActivity(this)
+        lifecycleScope.launch(Dispatchers.Main) {
+            WebEngineFactory.initialize(this@MainActivity, vb.flWebViewContainer)
+        }
 
         vb.ivMiniatures.visibility = View.INVISIBLE
         vb.llBottomPanel.visibility = View.INVISIBLE
@@ -195,8 +194,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         viewModel.homePageLinks.subscribe(this) {
             Log.i(TAG, "homePageLinks updated")
             val currentUrl = tabsModel.currentTab.value?.url ?: return@subscribe
-            if (Config.DEFAULT_HOME_URL == currentUrl) {
-                tabsModel.currentTab.value?.webEngine?.evaluateJavascript("renderLinks()")
+            if (Config.HOME_PAGE_URL == currentUrl) {
+                tabsModel.currentTab.value?.webEngine?.reload()
             }
         }
 
@@ -1093,15 +1092,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
 
             tab.webEngine.evaluateJavascript(Scripts.INITIAL_SCRIPT)
-
-            if (tab.url == Config.DEFAULT_HOME_URL &&
-                config.homePageMode == Config.HomePageMode.HOME_PAGE) {
-                tab.webEngine.evaluateJavascript(
-                    "applySearchEngine(\"${config.guessSearchEngineName()}\", \"${config.searchEngineURL.value}\")")
-                lifecycleScope.launch {
-                    viewModel.loadHomePageLinks()
-                }
-            }
         }
 
         override fun onPageCertificateError(url: String?) {
@@ -1120,7 +1110,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun isDialogsBlockingEnabled(): Boolean {
-            if (tab.url == Config.DEFAULT_HOME_URL) return false
+            if (tab.url == Config.HOME_PAGE_URL) return false
             return runBlocking(Dispatchers.Main.immediate) { tab.shouldBlockNewWindow(true, false) }
         }
 

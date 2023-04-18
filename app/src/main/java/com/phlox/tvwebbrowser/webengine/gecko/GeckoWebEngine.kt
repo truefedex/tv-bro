@@ -3,34 +3,51 @@ package com.phlox.tvwebbrowser.webengine.gecko
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.annotation.UiThread
+import com.phlox.tvwebbrowser.BuildConfig
+import com.phlox.tvwebbrowser.Config
+import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.model.WebTabState
-import com.phlox.tvwebbrowser.utils.LogUtils
+import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.*
-import kotlinx.coroutines.Dispatchers
+import org.json.JSONObject
 import org.mozilla.geckoview.*
 import org.mozilla.geckoview.GeckoSession.SessionState
+import org.mozilla.geckoview.WebExtension.MessageDelegate
 import java.lang.ref.WeakReference
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class GeckoWebEngine(val tab: WebTabState): WebEngine {
     companion object {
         lateinit var runtime: GeckoRuntime
+        var appWebExtension = ObservableValue<WebExtension?>(null)
 
+        @UiThread
         fun initialize(context: Context, webViewContainer: CursorLayout) {
             if (!this::runtime.isInitialized) {
                 val builder = GeckoRuntimeSettings.Builder()
                 if (BuildConfig.DEBUG) {
                     builder.remoteDebuggingEnabled(true)
+                    builder.consoleOutput(true)
                 }
-                builder.consoleOutput(true)
                 runtime = GeckoRuntime.create(context, builder.build())
+
+                runtime.webExtensionController
+                    //.installBuiltIn("resource://android/assets/extensions/generic/")
+                    .ensureBuiltIn("resource://android/assets/extensions/generic/", "tvbro@mock.com")
+                    .accept({ extension ->
+                        Log.d(TAG, "extension accepted: ${extension?.metaData?.description}")
+                        appWebExtension.value = extension
+                    }
+                    ) { e -> Log.e(TAG, "Error registering WebExtension", e) }
             }
 
             val webView = GeckoViewWithVirtualCursor(context)
@@ -52,6 +69,8 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     val contentDelegate = MyContentDelegate(this)
     val permissionDelegate = MyPermissionDelegate(this)
     val historyDelegate = MyHistoryDelegate(this)
+    var appWebExtensionPortDelegate: AppWebExtensionPortDelegate? = null
+    private lateinit var webExtObserver: (WebExtension?) -> Unit
 
     override val url: String?
         get() = navigationDelegate.locationURL
@@ -67,6 +86,33 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
         session.promptDelegate = promptDelegate
         session.permissionDelegate = permissionDelegate
         session.historyDelegate = historyDelegate
+
+        webExtObserver = { ext: WebExtension? ->
+            if (ext != null) {
+                connectToAppWebExtension(ext)
+                appWebExtension.unsubscribe(webExtObserver)
+            }
+        }
+        appWebExtension.subscribe(webExtObserver)
+    }
+
+    private fun connectToAppWebExtension(extension: WebExtension) {
+        Log.d(TAG, "connectToAppWebExtension")
+        session.webExtensionController.setMessageDelegate(extension,
+            object : MessageDelegate {
+                override fun onMessage(nativeApp: String, message: Any,
+                                       sender: WebExtension.MessageSender): GeckoResult<Any>? {
+                    Log.d(TAG, "onMessage: $nativeApp, $message, $sender")
+                    return null
+                }
+
+                override fun onConnect(port: WebExtension.Port) {
+                    Log.d(TAG, "onConnect: $port")
+                    appWebExtensionPortDelegate = AppWebExtensionPortDelegate(port, this@GeckoWebEngine).also {
+                        port.setDelegate(it)
+                    }
+                }
+            }, "tvbro")
     }
 
     override fun saveState(): Any? {
@@ -100,7 +146,25 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
         if (!session.isOpen) {
             session.open(runtime)
         }
-        session.loadUri(url)
+        if (Config.HOME_URL_ALIAS == url) {
+            when (TVBro.config.homePageMode) {
+                Config.HomePageMode.BLANK -> {
+                    //nothing to do
+                }
+                Config.HomePageMode.CUSTOM, Config.HomePageMode.SEARCH_ENGINE -> {
+                    session.loadUri(TVBro.config.homePage)
+                }
+                Config.HomePageMode.HOME_PAGE -> {
+                    //if (HomePageHelper.homePageFilesReady) {
+                        session.loadUri(Config.HOME_PAGE_URL/*HomePageHelper.HOME_PAGE_URL*/)
+                    //} else {
+                    //    Toast.makeText(TVBro.instance, R.string.error, Toast.LENGTH_SHORT).show()
+                    //}
+                }
+            }
+        } else {
+            session.loadUri(url)
+        }
     }
 
     override fun canGoForward(): Boolean {
@@ -112,19 +176,19 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     override fun canZoomIn(): Boolean {
-        return false
+        return true
     }
 
     override fun zoomIn() {
-
+        appWebExtensionPortDelegate?.port?.postMessage(JSONObject("{\"action\":\"zoomIn\"}"))
     }
 
     override fun canZoomOut(): Boolean {
-        return false
+        return true
     }
 
     override fun zoomOut() {
-        
+        appWebExtensionPortDelegate?.port?.postMessage(JSONObject("{\"action\":\"zoomOut\"}"))
     }
 
     override fun zoomBy(zoomBy: Float) {
@@ -215,6 +279,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
             previousSession.setActive(false)
             webView.releaseSession()
         }
+        webView.coverUntilFirstPaint(Color.WHITE)
         webView.setSession(session)
         if (session.isOpen && previousSession != null && previousSession != session) {
             Log.d(TAG, "Activating session")

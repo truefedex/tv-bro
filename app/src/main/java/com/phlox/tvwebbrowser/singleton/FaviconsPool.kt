@@ -31,7 +31,12 @@ object FaviconsPool {
     suspend fun get(urlOrHost: String): Bitmap? {
         Log.d(TAG, "get: $urlOrHost")
         if (!urlOrHost.startsWith("http://", true) && !urlOrHost.startsWith("https://", true)) {
-            //host passed
+            //host passed?
+            if (urlOrHost.contains("://")) {
+                //not http or https
+                return null
+            }
+            //try https first
             val httpsResult = get("https://$urlOrHost")
             if (httpsResult != null) {
                 return httpsResult
@@ -98,20 +103,22 @@ object FaviconsPool {
                     favicons.remove(icon)
                 }
                 //try to get favicon from webview
-                WebView(TVBro.instance).apply {
-                    webChromeClient = object: WebChromeClient() {
-                        override fun onReceivedIcon(view: WebView?, icon: Bitmap?) {
-                            super.onReceivedIcon(view, icon)
-                            if (icon != null) {
-                                Log.d(TAG, "get: favicon received from webview for $host")
-                                cache.put(host, icon)
-                                runBlocking {
-                                    saveFavicon(host, icon, hostConfig)
+                withContext(Dispatchers.Main) {
+                    WebView(TVBro.instance).apply {
+                        webChromeClient = object : WebChromeClient() {
+                            override fun onReceivedIcon(view: WebView?, icon: Bitmap?) {
+                                super.onReceivedIcon(view, icon)
+                                if (icon != null) {
+                                    Log.d(TAG, "get: favicon received from webview for $host")
+                                    cache.put(host, icon)
+                                    runBlocking {
+                                        saveFavicon(host, icon, hostConfig)
+                                    }
                                 }
                             }
                         }
+                        loadUrl(urlOrHost)
                     }
-                    loadUrl(urlOrHost)
                 }
             }
         } catch (e: Exception) {

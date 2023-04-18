@@ -410,4 +410,18 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
             post(this)
         }
     }
+
+    /*fun tryZoomIn() {
+        //dispatch events to simulate pinch zoom
+        val x = width / 2
+        val y = height / 2
+        val x2 = x + 100
+        val y2 = y + 100
+        dispatchMotionEvent(x.toFloat(), y.toFloat(), MotionEvent.ACTION_DOWN)
+        dispatchMotionEvent(x2.toFloat(), y2.toFloat(), MotionEvent.ACTION_POINTER_DOWN)
+        dispatchMotionEvent(x.toFloat(), y.toFloat(), MotionEvent.ACTION_MOVE)
+        dispatchMotionEvent(x2.toFloat(), y2.toFloat(), MotionEvent.ACTION_MOVE)
+        dispatchMotionEvent(x.toFloat(), y.toFloat(), MotionEvent.ACTION_POINTER_UP)
+        dispatchMotionEvent(x2.toFloat(), y2.toFloat(), MotionEvent.ACTION_UP)
+    }*/
 }
