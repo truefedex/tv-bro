@@ -6,10 +6,7 @@ import android.app.Service
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.os.Handler
-import android.os.IBinder
-import android.os.Looper
+import android.os.*
 import android.provider.Settings
 import android.text.format.Formatter
 import android.util.Log
@@ -21,7 +18,6 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.downloads.ActiveDownloadsModel
 import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.model.DownloadIntent
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import java.io.File
@@ -83,10 +79,6 @@ class DownloadService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent?.let {
-            val downloadIntent = DownloadIntent.fromAndroidIntent(it)
-            startDownloading(downloadIntent)
-        }
         return START_STICKY
     }
 
@@ -149,6 +141,7 @@ class DownloadService : Service() {
         }
         model.onDownloadEnded(task)
         if (model.activeDownloads.isEmpty()) {
+            stopForeground(true)
             stopSelf()
         }
     }
@@ -170,18 +163,55 @@ class DownloadService : Service() {
         }
     }
 
-    fun startDownloading(downloadIntent: DownloadIntent) {
-        val download = Download()
-        download.fillWith(downloadIntent)
+    fun startDownload(download: Download) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            val extPos = download.filename.lastIndexOf(".")
+            val hasExt = extPos != -1
+            var ext: String? = null
+            var prefix: String? = null
+            if (hasExt) {
+                ext = download.filename.substring(extPos + 1)
+                prefix = download.filename.substring(0, extPos)
+            }
+            var fileName = download.filename
+            var i = 0
+            while (File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath + File.separator + fileName).exists()) {
+                i++
+                if (hasExt) {
+                    fileName = prefix + "_(" + i + ")." + ext
+                } else {
+                    fileName = download.filename + "_(" + i + ")"
+                }
+            }
+            download.filename = fileName
+
+            if (Environment.MEDIA_MOUNTED != Environment.getExternalStorageState()) {
+                Toast.makeText(this, R.string.storage_not_mounted, Toast.LENGTH_SHORT).show()
+                return
+            }
+            val downloadsDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (!downloadsDir.exists() && !downloadsDir.mkdirs()) {
+                Toast.makeText(this, R.string.can_not_create_downloads, Toast.LENGTH_SHORT)
+                    .show()
+                return
+            }
+            download.filepath = downloadsDir.toString() + File.separator + fileName
+        }
+
         download.time = Date().time
         Log.d(TAG, "Start to downloading url: ${download.url}")
-        val downloadTask = if (downloadIntent.base64BlobData == null) {
-            FileDownloadTask(download, downloadIntent.userAgent, downloadTasksListener)
+        val downloadTask = if (download.base64BlobData != null) {
+            BlobDownloadTask(download, download.base64BlobData!!, downloadTasksListener)
+        } else if (download.stream != null) {
+            StreamDownloadTask(download, download.stream!!, downloadTasksListener)
         } else {
-            BlobDownloadTask(download, downloadIntent.base64BlobData, downloadTasksListener)
+            FileDownloadTask(download, download.userAgentString, downloadTasksListener)
         }
         model.activeDownloads.add(downloadTask)
         executor.execute(downloadTask)
+
+        startService(Intent(this, DownloadService::class.java))
         startForeground(DOWNLOAD_NOTIFICATION_ID, updateNotification())
     }
 
@@ -191,10 +221,6 @@ class DownloadService : Service() {
     }
 
     companion object {
-        fun startDownloading(context: Context, downloadIntent: DownloadIntent) {
-            context.startService(downloadIntent.toAndroidIntent(context))
-        }
-
         val TAG: String = DownloadService::class.java.simpleName
         const val DOWNLOAD_NOTIFICATION_ID = 101101
     }

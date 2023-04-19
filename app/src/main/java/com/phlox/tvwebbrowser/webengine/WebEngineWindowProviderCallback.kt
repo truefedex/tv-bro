@@ -8,13 +8,16 @@ import android.view.View
 import android.webkit.WebResourceRequest
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.HomePageLink
+import java.io.InputStream
 
 interface WebEngineWindowProviderCallback {
     fun getActivity(): Activity
     fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine?
     fun onDownloadRequested(url: String)
     fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
-                            operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP, base64BlobData: String? = null)
+                            operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP,
+                            base64BlobData: String? = null, stream: InputStream? = null, size: Long = 0L)
+    fun onDownloadRequested(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long)
     fun onProgressChanged(newProgress: Int)
     fun onReceivedTitle(title: String)
     fun requestPermissions(array: Array<String>): Int
@@ -31,8 +34,6 @@ interface WebEngineWindowProviderCallback {
     fun onBlockedDialog(newTab: Boolean)
     fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View?
     fun closeWindow(internalRepresentation: Any)
-    fun onDownloadStart(url: String, userAgent: String, contentDisposition: String,
-        mimetype: String?, contentLength: Long)
     fun onScaleChanged(oldScale: Float, newScale: Float)
     fun onCopyTextToClipboardRequested(url: String)
     fun onShareUrlRequested(url: String)

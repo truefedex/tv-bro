@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.ValueCallback
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
@@ -303,7 +302,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         }
 
         override fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long) {
-            callback?.onDownloadStart(url, userAgent, contentDisposition, mimetype, contentLength)
+            callback?.onDownloadRequested(url, userAgent, contentDisposition, mimetype, contentLength)
         }
 
         override fun onScaleChanged(oldScale: Float, newScale: Float) {

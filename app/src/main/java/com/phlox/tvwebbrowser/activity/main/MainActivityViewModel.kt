@@ -1,23 +1,19 @@
 package com.phlox.tvwebbrowser.activity.main
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Environment
 import android.util.Log
 import android.webkit.WebView
-import android.widget.Toast
-import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
-import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.model.*
-import com.phlox.tvwebbrowser.service.downloads.DownloadService
+import com.phlox.tvwebbrowser.model.FavoriteItem
+import com.phlox.tvwebbrowser.model.HistoryItem
+import com.phlox.tvwebbrowser.model.HomePageLink
+import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.LogUtils
-import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.deleteDirectory
+import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -25,7 +21,6 @@ import java.io.File
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 class MainActivityViewModel: ActiveModel() {
     companion object {
@@ -40,7 +35,6 @@ class MainActivityViewModel: ActiveModel() {
     var lastHistoryItem: HistoryItem? = null
     private var lastHistoryItemSaveJob: Job? = null
     val homePageLinks = ObservableList<HomePageLink>()
-    private var downloadIntent: DownloadIntent? = null
 
     fun loadState() = modelScope.launch(Dispatchers.Main) {
         Log.d(TAG, "loadState")
@@ -204,65 +198,6 @@ class MainActivityViewModel: ActiveModel() {
                 }
             }
         }
-    }
-
-    fun onDownloadRequested(activity: MainActivity, url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String? = null,
-                            operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP,
-                            base64BlobData: String? = null) {
-        downloadIntent = DownloadIntent(url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload, null, base64BlobData)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
-            activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            activity.requestPermissions(
-                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                MainActivity.MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS
-            )
-        } else {
-            startDownload(activity)
-        }
-    }
-
-    fun startDownload(activity: MainActivity) {
-        val download = this.downloadIntent ?: return
-        this.downloadIntent = null
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            val extPos = download.fileName.lastIndexOf(".")
-            val hasExt = extPos != -1
-            var ext: String? = null
-            var prefix: String? = null
-            if (hasExt) {
-                ext = download.fileName.substring(extPos + 1)
-                prefix = download.fileName.substring(0, extPos)
-            }
-            var fileName = download.fileName
-            var i = 0
-            while (File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath + File.separator + fileName).exists()) {
-                i++
-                if (hasExt) {
-                    fileName = prefix + "_(" + i + ")." + ext
-                } else {
-                    fileName = download.fileName + "_(" + i + ")"
-                }
-            }
-            download.fileName = fileName
-
-            if (Environment.MEDIA_MOUNTED != Environment.getExternalStorageState()) {
-                Toast.makeText(activity, R.string.storage_not_mounted, Toast.LENGTH_SHORT).show()
-                return
-            }
-            val downloadsDir =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            if (!downloadsDir.exists() && !downloadsDir.mkdirs()) {
-                Toast.makeText(activity, R.string.can_not_create_downloads, Toast.LENGTH_SHORT)
-                    .show()
-                return
-            }
-            download.fullDestFilePath = downloadsDir.toString() + File.separator + fileName
-        }
-
-        DownloadService.startDownloading(TVBro.instance, download)
-
-        activity.onDownloadStarted(download.fileName)
     }
 
     fun prepareSwitchToIncognito() {

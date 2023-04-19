@@ -1,7 +1,7 @@
 package com.phlox.tvwebbrowser.model
 
 import androidx.room.*
-import java.io.Serializable
+import java.io.InputStream
 
 /**
  * Created by PDT on 23.01.2017.
@@ -9,7 +9,7 @@ import java.io.Serializable
 
 @Entity(tableName = "downloads", indices = arrayOf(Index(value = ["time"], name = "downloads_time_idx"),
         Index(value = ["filename"], name = "downloads_filename_idx")))
-class Download {
+class Download() {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0
     var time: Long = 0
@@ -34,18 +34,30 @@ class Download {
     var mimeType: String? = null
     @Ignore
     var referer: String? = null
+    @Ignore
+    var userAgentString: String? = null
+    @Ignore
+    var base64BlobData: String? = null
+    @Ignore
+    var stream: InputStream? = null
 
     enum class OperationAfterDownload {
         NOP, INSTALL
     }
 
-    fun fillWith(intent: DownloadIntent) {
-        url = intent.url
-        filename = intent.fileName
-        filepath = intent.fullDestFilePath ?: ""
-        operationAfterDownload = intent.operationAfterDownload
-        mimeType = intent.mimeType
-        referer = intent.referer
+    constructor(url: String, filename: String, filepath: String?, operationAfterDownload: OperationAfterDownload,
+                mimeType: String?, referer: String?, userAgentString: String?, base64BlobData: String?,
+                stream: InputStream?, size: Long = 0L) : this() {
+        this.url = url
+        this.filename = filename
+        this.filepath = filepath ?: ""
+        this.operationAfterDownload = operationAfterDownload
+        this.mimeType = mimeType
+        this.referer = referer
+        this.userAgentString = userAgentString
+        this.base64BlobData = base64BlobData
+        this.stream = stream
+        this.size = size
     }
 
     companion object {

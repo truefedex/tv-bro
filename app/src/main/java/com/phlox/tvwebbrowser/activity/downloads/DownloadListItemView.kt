@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.downloads
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.text.format.Formatter
 import android.view.LayoutInflater
@@ -64,31 +65,42 @@ class DownloadListItemView(private val downloadsActivity: DownloadsActivity, pri
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun updateUI(download: Download) {
         if (tvTitle?.text != download.filename) {
             tvTitle?.text = download.filename
         }
         this.download?.size = download.size
         this.download?.bytesReceived = download.bytesReceived
-        progressBar!!.visibility = View.INVISIBLE
-        progressBar2!!.visibility = View.GONE
         tvSize!!.setTextColor(defaultTextColor)
         if (download.size == Download.CANCELLED_MARK) {
             tvSize!!.setText(R.string.cancelled)
+            progressBar!!.visibility = View.INVISIBLE
+            progressBar2!!.visibility = View.GONE
         } else if (download.size == Download.BROKEN_MARK) {
             tvSize!!.setText(R.string.error)
             tvSize!!.setTextColor(Color.RED)
+            progressBar!!.visibility = View.INVISIBLE
+            progressBar2!!.visibility = View.GONE
         } else if (download.size == 0L) {
             tvSize!!.text = Formatter.formatShortFileSize(context, download.bytesReceived)
+            progressBar!!.visibility = View.INVISIBLE
             progressBar2!!.visibility = View.VISIBLE
         } else if (download.size > 0) {
             if (download.size == download.bytesReceived) {
                 tvSize!!.text = Formatter.formatShortFileSize(context, download.size)
+                progressBar!!.visibility = View.INVISIBLE
+                progressBar2!!.visibility = View.GONE
             } else {
                 tvSize!!.text = Formatter.formatShortFileSize(context, download.bytesReceived) + "/\n" +
                         Formatter.formatShortFileSize(context, download.size)
                 progressBar!!.visibility = View.VISIBLE
-                progressBar!!.progress = (download.bytesReceived * 100 / download.size).toInt()
+                progressBar2!!.visibility = View.GONE
+                if (download.bytesReceived > download.size) {
+                    download.size = 0L//wrong value from server - ignore it for future updates
+                } else {
+                    progressBar!!.progress = (download.bytesReceived * 100 / download.size).toInt()
+                }
             }
         }
     }

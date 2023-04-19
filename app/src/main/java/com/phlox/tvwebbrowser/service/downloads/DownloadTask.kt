@@ -33,7 +33,7 @@ interface DownloadTask {
     }
 }
 
-class FileDownloadTask(override var downloadInfo: Download, private val userAgent: String, val callback: DownloadTask.Callback) : Runnable, DownloadTask {
+class FileDownloadTask(override var downloadInfo: Download, private val userAgent: String?, val callback: DownloadTask.Callback) : Runnable, DownloadTask {
     companion object {
         val TAG = FileDownloadTask::class.java.simpleName
     }
@@ -151,6 +151,47 @@ class BlobDownloadTask(override var downloadInfo: Download, val blobBase64Data: 
         } finally {
             cancelDownloadIfNeeded(downloadInfo)
         }
+        callback.onDone(this)
+    }
+}
+
+class StreamDownloadTask(override var downloadInfo: Download, val stream: InputStream, val callback: DownloadTask.Callback) : Runnable, DownloadTask {
+    override fun run() {
+        downloadInfo.id = AppDatabase.db.downloadDao().insert(downloadInfo)
+
+        var output: OutputStream? = null
+        try {
+            output = prepareDownloadOutput(downloadInfo)
+            val data = ByteArray(4096)
+            var total: Long = 0
+            var count = stream.read(data)
+            while (count != -1) {
+                if (downloadInfo.cancelled) {
+                    downloadInfo.bytesReceived = 0
+                    downloadInfo.size = Download.CANCELLED_MARK
+                    callback.onDone(this)
+                    return
+                }
+                total += count.toLong()
+                output.write(data, 0, count)
+                downloadInfo.bytesReceived = total
+                callback.onProgress(this)
+                count = stream.read(data)
+            }
+        } catch (e: Exception) {
+            downloadInfo.size = Download.BROKEN_MARK
+            callback.onError(this, 0, e.toString())
+            return
+        } finally {
+            try {
+                output?.close()
+                stream.close()
+            } catch (ignored: IOException) {
+            }
+
+            cancelDownloadIfNeeded(downloadInfo)
+        }
+        downloadInfo.size = downloadInfo.bytesReceived
         callback.onDone(this)
     }
 }

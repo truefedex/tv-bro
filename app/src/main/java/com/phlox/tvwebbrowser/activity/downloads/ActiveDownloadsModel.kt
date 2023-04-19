@@ -1,7 +1,15 @@
 package com.phlox.tvwebbrowser.activity.downloads
 
+import android.content.ContentValues
+import android.net.Uri
+import android.os.Build
+import android.os.ParcelFileDescriptor
+import android.provider.MediaStore
+import android.util.Log
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.service.downloads.DownloadTask
+import com.phlox.tvwebbrowser.service.downloads.FileDownloadTask
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
@@ -18,7 +26,15 @@ class ActiveDownloadsModel: ActiveModel() {
     }
 
     suspend fun deleteItem(download: Download) {
-        File(download.filepath).delete()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val contentResolver = TVBro.instance.contentResolver
+            val rowsDeleted = contentResolver.delete(Uri.parse(download.filepath), null)
+            if (rowsDeleted < 1) {
+                Log.e(FileDownloadTask.TAG, "Failed to delete file from MediaStore")
+            }
+        } else {
+            File(download.filepath).delete()
+        }
         AppDatabase.db.downloadDao().delete(download)
     }
 

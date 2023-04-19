@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
@@ -36,6 +37,7 @@ import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.*
+import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.*
@@ -48,6 +50,7 @@ import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import kotlinx.coroutines.*
 import java.io.File
+import java.io.InputStream
 import java.io.UnsupportedEncodingException
 import java.net.URL
 import java.net.URLEncoder
@@ -58,6 +61,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         const val VOICE_SEARCH_REQUEST_CODE = 10001
+        const val MY_PERMISSIONS_REQUEST_POST_NOTIFICATIONS_ACCESS = 10003
         const val MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS = 10004
         const val PICK_FILE_REQUEST_CODE = 10005
         private const val REQUEST_CODE_HISTORY_ACTIVITY = 10006
@@ -80,6 +84,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private val voiceSearchHelper = VoiceSearchHelper(this, VOICE_SEARCH_REQUEST_CODE,
         MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS)
     private var lastCommonRequestsCode = COMMON_REQUESTS_START_CODE
+    private var downloadService: DownloadService? = null
+    private var downloadIntent: Download? = null
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -531,15 +537,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         return webView
     }
 
-    private fun onDownloadRequested(url: String, tab: WebTabState) {
-        Log.i(TAG, "onDownloadRequested url: $url")
-        val fileName = Uri.parse(url).lastPathSegment
-        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
-        onDownloadRequested(url, tab.url ?: "", fileName
-                ?: "url.html", tab.webEngine.userAgentString
-                ?: getString(R.string.app_name), mimeType)
-    }
-
     private fun onWebViewUpdated(tab: WebTabState) {
         vb.ibBack.isEnabled = tab.webEngine.canGoBack() == true
         vb.ibForward.isEnabled = tab.webEngine.canGoForward() == true
@@ -558,9 +555,33 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
     }
 
-    private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
-                                    operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP, base64BlobData: String? = null) {
-        viewModel.onDownloadRequested(this, url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload, base64BlobData)
+    private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String? = null,
+                            operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP,
+                            base64BlobData: String? = null, stream: InputStream?, size: Long = 0L) {
+        downloadIntent = Download(url, originalDownloadFileName, null, operationAfterDownload,
+            mimeType, referer, userAgent, base64BlobData, stream, size)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
+            checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS
+            )
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                MY_PERMISSIONS_REQUEST_POST_NOTIFICATIONS_ACCESS
+            )
+        } else {
+            startDownload()
+        }
+    }
+
+    private fun startDownload() {
+        val download = this.downloadIntent ?: return
+        this.downloadIntent = null
+        downloadService?.startDownload(download)
+        onDownloadStarted(download.filename)
     }
 
     override fun onTrimMemory(level: Int) {
@@ -582,7 +603,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         when (requestCode) {
             MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    viewModel.startDownload(this)
+                    startDownload()
+                }
+            }
+            MY_PERMISSIONS_REQUEST_POST_NOTIFICATIONS_ACCESS -> {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startDownload()
                 }
             }
             else -> {
@@ -613,6 +639,16 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
             else -> super.onActivityResult(requestCode, resultCode, data)
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        bindService(Intent(this, DownloadService::class.java), downloadServiceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unbindService(downloadServiceConnection)
     }
 
     override fun onResume() {
@@ -930,7 +966,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 .start()
     }
 
-    fun onDownloadStarted(fileName: String) {
+    private fun onDownloadStarted(fileName: String) {
         Utils.showToast(this, getString(R.string.download_started,
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + File.separator + fileName))
         showMenuOverlay()
@@ -970,13 +1006,26 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun onDownloadRequested(url: String) {
-            onDownloadRequested(url, tab)
+            Log.i(TAG, "onDownloadRequested url: $url")
+            val fileName = Uri.parse(url).lastPathSegment
+            val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
+            onDownloadRequested(url, tab.url,
+                fileName ?: "url.html", tab.webEngine.userAgentString, mimeType)
         }
 
         override fun onDownloadRequested(url: String, referer: String,
             originalDownloadFileName: String, userAgent: String, mimeType: String?,
-            operationAfterDownload: Download.OperationAfterDownload, base64BlobData: String?) {
-            this@MainActivity.onDownloadRequested(url, referer, originalDownloadFileName, userAgent, mimeType, operationAfterDownload, base64BlobData)
+            operationAfterDownload: Download.OperationAfterDownload, base64BlobData: String?,
+                                         stream: InputStream?, size: Long) {
+            this@MainActivity.onDownloadRequested(url, referer, originalDownloadFileName,
+                userAgent, mimeType, operationAfterDownload, base64BlobData, stream, size)
+        }
+
+        override fun onDownloadRequested(url: String, userAgent: String, contentDisposition: String,
+                                         mimetype: String?, contentLength: Long ) {
+            Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
+            onDownloadRequested(url, tab.url,
+                DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent, mimetype)
         }
 
         override fun onProgressChanged(newProgress: Int) {
@@ -1164,13 +1213,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
         }
 
-        override fun onDownloadStart( url: String, userAgent: String, contentDisposition: String,
-            mimetype: String?, contentLength: Long ) {
-            Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
-            onDownloadRequested(url, tab.url,
-                DownloadUtils.guessFileName(url, contentDisposition, mimetype), userAgent, mimetype)
-        }
-
         override fun onScaleChanged(oldScale: Float, newScale: Float) {
             Log.d(TAG, "onScaleChanged: oldScale: $oldScale newScale: $newScale")
             val tabScale = tab.scale
@@ -1274,6 +1316,17 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             if (!config.incognitoMode) {
                 viewModel.logVisitedHistory(tab.title, url, tab.faviconHash)
             }
+        }
+    }
+
+    private val downloadServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, service: IBinder) {
+            val binder = service as DownloadService.Binder
+            downloadService = binder.service
+        }
+
+        override fun onServiceDisconnected(p0: ComponentName?) {
+            downloadService = null
         }
     }
 }

@@ -3,6 +3,8 @@ package com.phlox.tvwebbrowser.webengine.gecko.delegates
 import android.util.Log
 import android.view.PointerIcon
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.utils.DownloadUtils
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import org.json.JSONObject
@@ -74,6 +76,21 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
 
     override fun onExternalResponse(session: GeckoSession, response: WebResponse) {
         Log.d(TAG, "onExternalResponse: " + response.uri)
+        val contentDisposition = response.headers.get("content-disposition")
+        val mimetype = response.headers.get("content-type")
+        val fileName = DownloadUtils.guessFileName(response.uri, contentDisposition, mimetype)
+        val contentLength = response.headers.get("content-length")?.toLongOrNull() ?: 0
+        webEngine.callback?.onDownloadRequested(
+            response.uri,
+            webEngine.url ?: "",
+            fileName,
+            webEngine.userAgentString,
+            mimetype,
+            Download.OperationAfterDownload.NOP,
+            null,
+            response.body,
+            contentLength
+        )
     }
 
     override fun onCrash(session: GeckoSession) {
