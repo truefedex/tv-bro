@@ -746,15 +746,21 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val becomingIncognitoMode = !config.incognitoMode
         vb.progressBarGeneric.visibility = View.VISIBLE
         if (!becomingIncognitoMode) {
-            withContext(Dispatchers.IO) {
-                WebStorage.getInstance().deleteAllData()
-                CookieManager.getInstance().removeAllCookies(null)
-                CookieManager.getInstance().flush()
+            if (!config.isWebEngineGecko()) {
+                withContext(Dispatchers.IO) {
+                    WebStorage.getInstance().deleteAllData()
+                    CookieManager.getInstance().removeAllCookies(null)
+                    CookieManager.getInstance().flush()
+                }
+                tabsModel.currentTab.value?.webEngine?.clearCache(true)
             }
-            tabsModel.currentTab.value?.webEngine?.clearCache(true)
+
             tabsModel.onCloseAllTabs().join()
             tabsModel.currentTab.value = null
-            viewModel.clearIncognitoData().join()
+
+            if (!config.isWebEngineGecko()) {
+                viewModel.clearIncognitoData().join()
+            }
         }
         vb.progressBarGeneric.visibility = View.GONE
         config.incognitoMode = becomingIncognitoMode
@@ -774,7 +780,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             intent.putExtras(it)
         }
         startActivity(intent)
-        finish()
+        System.exit(0)
     }
 
     fun toggleMenu() {
@@ -1321,7 +1327,17 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private val downloadServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val binder = service as DownloadService.Binder
+            val binder = service as? DownloadService.Binder
+            if (binder == null) {
+                Log.e(TAG, "Download service connection failed")
+                //probably service still in another process due to incognito mode process switch
+                //so we will try to reconnect in a few seconds
+                uiHandler.postDelayed({
+                    bindService(Intent(this@MainActivity, DownloadService::class.java),
+                        this, Context.BIND_AUTO_CREATE)
+                }, 1000)
+                return
+            }
             downloadService = binder.service
         }
 

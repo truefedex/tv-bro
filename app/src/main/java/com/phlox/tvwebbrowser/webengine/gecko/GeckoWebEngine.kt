@@ -61,7 +61,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     private var webView: GeckoViewWithVirtualCursor? = null
-    val session = GeckoSession()
+    lateinit var session: GeckoSession
     var callback: WebEngineWindowProviderCallback? = null
     val navigationDelegate = MyNavigationDelegate(this)
     val progressDelegate = MyProgressDelegate(this)
@@ -80,6 +80,9 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
 
     init {
         Log.d(TAG, "init")
+        session = GeckoSession(GeckoSessionSettings.Builder()
+            .usePrivateMode(TVBro.config.incognitoMode)
+            .build())
         session.navigationDelegate = navigationDelegate
         session.progressDelegate = progressDelegate
         session.contentDelegate = contentDelegate

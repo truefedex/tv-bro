@@ -202,6 +202,7 @@ class MainActivityViewModel: ActiveModel() {
 
     fun prepareSwitchToIncognito() {
         Log.d(TAG, "prepareSwitchToIncognito")
+        if (TVBro.config.isWebEngineGecko()) return
         //to isolate incognito mode data:
         //in api >= 28 we just use another directory for WebView data
         //on earlier apis we backup-ing existing WebView data directory

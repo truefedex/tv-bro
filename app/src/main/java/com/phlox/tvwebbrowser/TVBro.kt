@@ -47,7 +47,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
 
         instance = this
 
-        _config = Config(getSharedPreferences(MAIN_PREFS_NAME, 0))
+        _config = Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_MULTI_PROCESS))
 
         val maxThreadsInOfflineJobsPool = Runtime.getRuntime().availableProcessors()
         threadPool = ThreadPoolExecutor(0, maxThreadsInOfflineJobsPool, 20,
