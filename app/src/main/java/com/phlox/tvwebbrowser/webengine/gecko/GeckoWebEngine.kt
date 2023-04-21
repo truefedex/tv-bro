@@ -22,8 +22,12 @@ import com.phlox.tvwebbrowser.webengine.gecko.delegates.*
 import org.json.JSONObject
 import org.mozilla.geckoview.*
 import org.mozilla.geckoview.GeckoSession.SessionState
+import org.mozilla.geckoview.StorageController.ClearFlags
 import org.mozilla.geckoview.WebExtension.MessageDelegate
 import java.lang.ref.WeakReference
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class GeckoWebEngine(val tab: WebTabState): WebEngine {
     companion object {
@@ -56,6 +60,19 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
             webViewContainer.setWillNotDraw(true)//use it only as a container, cursor will be drawn on WebView itself
         }
 
+        suspend fun clearCache(ctx: Context) {
+            suspendCoroutine { cont ->
+                runtime.storageController.clearData(ClearFlags.ALL_CACHES).then({
+                    cont.resume(null)
+                    GeckoResult.fromValue(null)
+                }, {
+                    it.printStackTrace()
+                    cont.resumeWithException(it)
+                    GeckoResult.fromValue(null)
+                })
+            }
+        }
+
         val TAG: String = GeckoWebEngine::class.java.simpleName
         var weakRefToSingleGeckoView: WeakReference<GeckoViewWithVirtualCursor?> = WeakReference(null)
     }
@@ -74,15 +91,18 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
 
     override val url: String?
         get() = navigationDelegate.locationURL
-    override var userAgentString: String
-        get() = session.settings.userAgentOverride ?: ""
+    override var userAgentString: String?
+        get() = session.settings.userAgentOverride
         set(value) { session.settings.userAgentOverride = value }
 
     init {
         Log.d(TAG, "init")
         session = GeckoSession(GeckoSessionSettings.Builder()
             .usePrivateMode(TVBro.config.incognitoMode)
-            .build())
+            .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE)
+            .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
+            .build()
+        )
         session.navigationDelegate = navigationDelegate
         session.progressDelegate = progressDelegate
         session.contentDelegate = contentDelegate
@@ -203,7 +223,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     override fun setNetworkAvailable(connected: Boolean) {
-
+        //nop
     }
 
     override fun getView(): View? {
@@ -251,10 +271,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
 
     override fun onUpdateAdblockSetting(newState: Boolean) {
         
-    }
-
-    override fun clearCache(includeDiskFiles: Boolean) {
-
     }
 
     override fun hideFullscreenView() {

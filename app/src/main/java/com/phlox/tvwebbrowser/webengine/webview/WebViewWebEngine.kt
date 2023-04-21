@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.utils.Utils
@@ -27,10 +28,12 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
     override val url: String?
         get() = webView?.url
 
-    override var userAgentString: String
-        get() = webView?.settings?.userAgentString ?: ""
+    override var userAgentString: String? = null
         set(value) {
-            webView?.settings?.userAgentString = value
+            field = value
+            if (value != null) {
+                webView?.settings?.userAgentString = value
+            }
         }
 
     override fun saveState(): Any {
@@ -131,10 +134,6 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
 
     override fun onUpdateAdblockSetting(newState: Boolean) {
         webView?.onUpdateAdblockSetting(newState)
-    }
-
-    override fun clearCache(includeDiskFiles: Boolean) {
-        webView?.clearCache(includeDiskFiles)
     }
 
     override fun hideFullscreenView() {
@@ -323,6 +322,12 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
 
         override fun onVisited(url: String) {
             callback?.onVisited(url)
+        }
+    }
+
+    companion object {
+        fun clearCache(ctx: Context) {
+            WebView(ctx).clearCache(true)
         }
     }
 }

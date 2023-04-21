@@ -90,12 +90,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-/*        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.insetsController?.hide(WindowInsets.Type.systemBars())
-        } else {
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
-        }*/
-
         val incognitoMode = config.incognitoMode
         Log.d(TAG, "onCreate incognitoMode: $incognitoMode")
         if (incognitoMode xor (this is IncognitoModeMainActivity)) {
@@ -179,13 +173,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             it.setOnKeyListener(bottomButtonsKeyListener)
         }
 
-        settingsModel.uaString.subscribe(this.lifecycle) {
+        config.userAgentString.subscribe(this.lifecycle) {
             for (tab in tabsModel.tabsStates) {
                 tab.webEngine.userAgentString = it
-                if (it == "") {
-                    settingsModel.saveUAString(SettingsModel.TV_BRO_UA_PREFIX +
-                            tab.webEngine.userAgentString.replace("Mobile Safari", "Safari"))
-                }
             }
         }
 
@@ -529,10 +519,14 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return null
         }
 
-        if (settingsModel.uaString.value.isBlank()) {
-            settingsModel.saveUAString("TV Bro/1.0 " + tab.webEngine.userAgentString.replace("Mobile Safari", "Safari"))
+        var ua = config.userAgentString.value
+        if (ua?.contains("TV Bro/1.0 ") == true) {//legacy ua string - now default one should be used
+            config.userAgentString.value = null
+            ua = null
         }
-        tab.webEngine.userAgentString = settingsModel.uaString.value
+        if (ua != null) {
+            tab.webEngine.userAgentString = ua
+        }
 
         return webView
     }
@@ -555,7 +549,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
     }
 
-    private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String? = null,
+    private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String?, mimeType: String? = null,
                             operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP,
                             base64BlobData: String? = null, stream: InputStream?, size: Long = 0L) {
         downloadIntent = Download(url, originalDownloadFileName, null, operationAfterDownload,
@@ -752,7 +746,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     CookieManager.getInstance().removeAllCookies(null)
                     CookieManager.getInstance().flush()
                 }
-                tabsModel.currentTab.value?.webEngine?.clearCache(true)
+
+                WebEngineFactory.clearCache(this@MainActivity)
             }
 
             tabsModel.onCloseAllTabs().join()
@@ -1020,14 +1015,14 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun onDownloadRequested(url: String, referer: String,
-            originalDownloadFileName: String, userAgent: String, mimeType: String?,
+            originalDownloadFileName: String, userAgent: String?, mimeType: String?,
             operationAfterDownload: Download.OperationAfterDownload, base64BlobData: String?,
                                          stream: InputStream?, size: Long) {
             this@MainActivity.onDownloadRequested(url, referer, originalDownloadFileName,
                 userAgent, mimeType, operationAfterDownload, base64BlobData, stream, size)
         }
 
-        override fun onDownloadRequested(url: String, userAgent: String, contentDisposition: String,
+        override fun onDownloadRequested(url: String, userAgent: String?, contentDisposition: String,
                                          mimetype: String?, contentLength: Long ) {
             Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
             onDownloadRequested(url, tab.url,

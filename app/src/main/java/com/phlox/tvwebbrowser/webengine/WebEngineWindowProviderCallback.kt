@@ -14,10 +14,10 @@ interface WebEngineWindowProviderCallback {
     fun getActivity(): Activity
     fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine?
     fun onDownloadRequested(url: String)
-    fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String, mimeType: String?,
+    fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String?, mimeType: String?,
                             operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP,
                             base64BlobData: String? = null, stream: InputStream? = null, size: Long = 0L)
-    fun onDownloadRequested(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long)
+    fun onDownloadRequested(url: String, userAgent: String?, contentDisposition: String, mimetype: String?, contentLength: Long)
     fun onProgressChanged(newProgress: Int)
     fun onReceivedTitle(title: String)
     fun requestPermissions(array: Array<String>): Int

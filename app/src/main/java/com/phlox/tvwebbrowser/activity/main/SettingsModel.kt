@@ -31,7 +31,7 @@ class SettingsModel : ActiveModel() {
     var homePageMode by config::homePageMode
     var homePageLinksMode by config::homePageLinksMode
     //User agent strings configuration
-    val userAgentStringTitles = arrayOf("TV Bro", "Chrome (Desktop)", "Chrome (Mobile)", "Chrome (Tablet)", "Firefox (Desktop)", "Firefox (Tablet)", "Edge (Desktop)", "Safari (Desktop)", "Safari (iPad)", "Apple TV", "Custom")
+    val userAgentStringTitles = arrayOf("Default (recommended)", "Chrome (Desktop)", "Chrome (Mobile)", "Chrome (Tablet)", "Firefox (Desktop)", "Firefox (Tablet)", "Edge (Desktop)", "Safari (Desktop)", "Safari (iPad)", "Apple TV", "Custom")
     val uaStrings = listOf("",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36",
             "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Mobile Safari/537.36",
@@ -43,7 +43,6 @@ class SettingsModel : ActiveModel() {
             "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Mobile/15E148 Safari/604.1",
             "AppleTV6,2/11.1",
             "")
-    var uaString = ObservableValue(config.getUserAgentString())
     //Version & updates configuration
     var needToShowUpdateDlgAgain: Boolean = false
     val updateChecker = UpdateChecker(BuildConfig.VERSION_CODE)
@@ -97,11 +96,6 @@ class SettingsModel : ActiveModel() {
                 homePage = customHomePageUrl ?: Config.HOME_URL_ALIAS
             }
         }
-    }
-
-    fun saveUAString(uas: String) {
-        config.setUserAgentString(uas)
-        uaString.value = uas
     }
 
     fun saveAutoCheckUpdates(need: Boolean) {

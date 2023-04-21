@@ -49,10 +49,6 @@ class Config(val prefs: SharedPreferences) {
         BOOKMARKS, LATEST_HISTORY, MOST_VISITED
     }
 
-    fun getUserAgentString(): String {
-        return prefs.getString(USER_AGENT_PREF_KEY, "")!!
-    }
-
     fun isNeedAutoCheckUpdates(): Boolean {
         return prefs.getBoolean(AUTO_CHECK_UPDATES_KEY, Utils.isInstalledByAPK(TVBro.instance))
     }
@@ -147,16 +143,14 @@ class Config(val prefs: SharedPreferences) {
             prefs.edit().putBoolean(INITIAL_BOOKMARKS_SUGGESTIONS_LOADED, value).apply()
         }
 
+    var userAgentString = ObservableOptStringPreference(null, USER_AGENT_PREF_KEY)
+
     fun isWebEngineGecko(): Boolean {
         return webEngine == "GeckoView"
     }
 
     fun isWebEngineSet(): Boolean {
         return prefs.contains(WEB_ENGINE)
-    }
-
-    fun setUserAgentString(uas: String) {
-        prefs.edit().putString(USER_AGENT_PREF_KEY, uas).apply()
     }
 
     fun setAutoCheckUpdates(need: Boolean) {
@@ -178,6 +172,16 @@ class Config(val prefs: SharedPreferences) {
         override var value: String = prefs.getString(prefsKey, default)!!
             set(value) {
                 prefs.edit().putString(prefsKey, value).apply()
+                field = value
+                notifyObservers()
+            }
+    }
+
+    inner class ObservableOptStringPreference(default: String?, private val prefsKey: String) : ObservableValue<String?>(default) {
+        override var value: String? = prefs.getString(prefsKey, default)
+            set(value) {
+                if (value == null) prefs.edit().remove(prefsKey).apply()
+                else prefs.edit().putString(prefsKey, value).apply()
                 field = value
                 notifyObservers()
             }

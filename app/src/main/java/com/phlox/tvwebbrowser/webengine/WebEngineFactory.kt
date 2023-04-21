@@ -29,4 +29,12 @@ object WebEngineFactory {
         else
             WebViewWebEngine(tab)
     }
+
+    suspend fun clearCache(ctx: Context) {
+        if (TVBro.config.isWebEngineGecko()) {
+            GeckoWebEngine.clearCache(ctx)
+        } else {
+            WebViewWebEngine.clearCache(ctx)
+        }
+    }
 }

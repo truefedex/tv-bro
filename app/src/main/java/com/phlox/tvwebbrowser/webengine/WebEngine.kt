@@ -9,7 +9,7 @@ import android.view.ViewGroup
 
 interface WebEngine {
     val url: String?
-    var userAgentString: String
+    var userAgentString: String?
 
     fun saveState(): Any?//Bundle or any Object convertible to string
     fun restoreState(savedInstanceState: Any)
@@ -34,7 +34,6 @@ interface WebEngine {
     fun onResume()
     fun onPause()
     fun onUpdateAdblockSetting(newState: Boolean)
-    fun clearCache(includeDiskFiles: Boolean)
     fun hideFullscreenView()
     fun togglePlayback()
     suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap?

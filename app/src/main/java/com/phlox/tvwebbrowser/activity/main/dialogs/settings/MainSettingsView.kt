@@ -10,15 +10,19 @@ import android.view.animation.AnimationUtils
 import android.webkit.WebView
 import android.widget.*
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.AdblockModel
+import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.databinding.ViewSettingsMainBinding
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.system.exitProcess
@@ -45,8 +49,10 @@ class MainSettingsView @JvmOverloads constructor(
         initKeepScreenOnUI()
 
         vb.btnClearWebCache.setOnClickListener {
-            WebView(context).clearCache(true)
-            Toast.makeText(context, android.R.string.ok, Toast.LENGTH_SHORT).show()
+            (activity as MainActivity).lifecycleScope.launch {
+                WebEngineFactory.clearCache(context)
+                Toast.makeText(context, android.R.string.ok, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -149,11 +155,13 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     private fun initUAStringConfigUI(context: Context) {
-        val selected = if (settingsModel.uaString.value == "" ||
-                settingsModel.uaString.value.startsWith(SettingsModel.TV_BRO_UA_PREFIX)) {
+        if (config.userAgentString.value?.contains("TV Bro/1.0 ") == true) {//legacy ua string - now default one should be used
+            config.userAgentString.value = null
+        }
+        val selected = if (config.userAgentString.value == null) {
             0
         } else {
-            settingsModel.uaStrings.indexOf(settingsModel.uaString.value ?: "")
+            settingsModel.uaStrings.indexOf(config.userAgentString.value ?: "")
         }
 
         val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, settingsModel.userAgentStringTitles)
@@ -166,7 +174,7 @@ class MainSettingsView @JvmOverloads constructor(
         } else {
             vb.spTitles.setSelection(settingsModel.userAgentStringTitles.size - 1, false)
             vb.llUAString.visibility = View.VISIBLE
-            vb.etUAString.setText(settingsModel.uaString.value)
+            vb.etUAString.setText(config.userAgentString.value ?: "")
             vb.etUAString.requestFocus()
         }
         vb.spTitles.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -257,6 +265,6 @@ class MainSettingsView @JvmOverloads constructor(
         settingsModel.setHomePageProperties(homePageMode, customHomePageURL, homePageLinksMode)
 
         val userAgent = vb.etUAString.text.toString().trim(' ')
-        settingsModel.saveUAString(userAgent)
+        config.userAgentString.value = userAgent.ifEmpty { null }
     }
 }
