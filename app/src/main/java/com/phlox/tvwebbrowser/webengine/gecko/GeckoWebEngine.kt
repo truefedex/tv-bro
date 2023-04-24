@@ -31,8 +31,11 @@ import kotlin.coroutines.suspendCoroutine
 
 class GeckoWebEngine(val tab: WebTabState): WebEngine {
     companion object {
+        const val APP_WEB_EXTENSION_VERSION = 1
+        val TAG: String = GeckoWebEngine::class.java.simpleName
         lateinit var runtime: GeckoRuntime
         var appWebExtension = ObservableValue<WebExtension?>(null)
+        var weakRefToSingleGeckoView: WeakReference<GeckoViewWithVirtualCursor?> = WeakReference(null)
 
         @UiThread
         fun initialize(context: Context, webViewContainer: CursorLayout) {
@@ -42,16 +45,34 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
                     builder.remoteDebuggingEnabled(true)
                     builder.consoleOutput(true)
                 }
+                builder.contentBlocking(
+                        ContentBlocking.Settings.Builder()
+                            .antiTracking(
+                                ContentBlocking.AntiTracking.DEFAULT or ContentBlocking.AntiTracking.STP)
+                    .safeBrowsing(ContentBlocking.SafeBrowsing.DEFAULT)
+                    .cookieBehavior(ContentBlocking.CookieBehavior.ACCEPT_NON_TRACKERS)
+                    .cookieBehaviorPrivateMode(ContentBlocking.CookieBehavior.ACCEPT_NON_TRACKERS)
+                    .enhancedTrackingProtectionLevel(ContentBlocking.EtpLevel.STRICT)
+                    .build())
                 runtime = GeckoRuntime.create(context, builder.build())
 
-                runtime.webExtensionController
-                    //.installBuiltIn("resource://android/assets/extensions/generic/")
-                    .ensureBuiltIn("resource://android/assets/extensions/generic/", "tvbro@mock.com")
-                    .accept({ extension ->
-                        Log.d(TAG, "extension accepted: ${extension?.metaData?.description}")
-                        appWebExtension.value = extension
-                    }
-                    ) { e -> Log.e(TAG, "Error registering WebExtension", e) }
+                val webExtInstallResult = if (APP_WEB_EXTENSION_VERSION == TVBro.config.appWebExtensionVersion) {
+                    Log.d(TAG, "appWebExtension already installed")
+                    runtime.webExtensionController.ensureBuiltIn(
+                        "resource://android/assets/extensions/generic/",
+                        "tvbro@mock.com"
+                    )
+                } else {
+                    Log.d(TAG, "installing appWebExtension")
+                    runtime.webExtensionController.installBuiltIn("resource://android/assets/extensions/generic/")
+                }
+
+                webExtInstallResult.accept({ extension ->
+                    Log.d(TAG, "extension accepted: ${extension?.metaData?.description}")
+                    appWebExtension.value = extension
+                    TVBro.config.appWebExtensionVersion = APP_WEB_EXTENSION_VERSION
+                }
+                ) { e -> Log.e(TAG, "Error registering WebExtension", e) }
             }
 
             val webView = GeckoViewWithVirtualCursor(context)
@@ -72,9 +93,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
                 })
             }
         }
-
-        val TAG: String = GeckoWebEngine::class.java.simpleName
-        var weakRefToSingleGeckoView: WeakReference<GeckoViewWithVirtualCursor?> = WeakReference(null)
     }
 
     private var webView: GeckoViewWithVirtualCursor? = null
@@ -86,6 +104,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     val contentDelegate = MyContentDelegate(this)
     val permissionDelegate = MyPermissionDelegate(this)
     val historyDelegate = MyHistoryDelegate(this)
+    val contentBlockingDelegate = MyContentBlockingDelegate(this)
     var appWebExtensionPortDelegate: AppWebExtensionPortDelegate? = null
     private lateinit var webExtObserver: (WebExtension?) -> Unit
 
@@ -101,6 +120,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
             .usePrivateMode(TVBro.config.incognitoMode)
             .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE)
             .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
+            .useTrackingProtection(tab.adblock ?: TVBro.config.adBlockEnabled)
             .build()
         )
         session.navigationDelegate = navigationDelegate
@@ -109,6 +129,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
         session.promptDelegate = promptDelegate
         session.permissionDelegate = permissionDelegate
         session.historyDelegate = historyDelegate
+        session.contentBlockingDelegate = contentBlockingDelegate
 
         webExtObserver = { ext: WebExtension? ->
             if (ext != null) {
@@ -254,6 +275,10 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     override fun reload() {
+        val adblockEnabled = tab.adblock ?: TVBro.config.adBlockEnabled
+        if (session.settings.useTrackingProtection != adblockEnabled) {
+            session.settings.useTrackingProtection = adblockEnabled
+        }
         session.reload()
     }
 

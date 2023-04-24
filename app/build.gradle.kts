@@ -125,9 +125,11 @@ dependencies {
     implementation("com.github.truefedex:ad-block:v0.0.1-ci")
     implementation("de.halfbit:pinned-section-listview:1.0.0")
 
-    val geckoViewChannel = "beta"
-    val geckoViewVersion = "112.0.20230330182947"
-    implementation("org.mozilla.geckoview:geckoview-$geckoViewChannel:$geckoViewVersion")
+    //val geckoViewChannel = "beta"
+    //val geckoViewVersion = "112.0.20230330182947"
+    //implementation("org.mozilla.geckoview:geckoview-$geckoViewChannel:$geckoViewVersion")
+    val geckoViewVersion = "112.0.20230406114409"
+    implementation("org.mozilla.geckoview:geckoview:$geckoViewVersion")
 
     //"debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 

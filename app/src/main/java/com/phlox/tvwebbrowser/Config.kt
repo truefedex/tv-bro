@@ -27,7 +27,12 @@ class Config(val prefs: SharedPreferences) {
         const val ALLOW_AUTOPLAY_MEDIA = "allow_autoplay_media"
         //const val HOME_PAGE_VERSION_EXTRACTED = "home_page_version_extracted"
         const val INITIAL_BOOKMARKS_SUGGESTIONS_LOADED = "initial_bookmarks_suggestions_loaded"
+        const val ADBLOCK_ENABLED_PREF_KEY = "adblock_enabled"
+        const val ADBLOCK_LAST_UPDATE_LIST_KEY = "adblock_last_update"
+        const val ADBLOCK_LIST_URL_KEY = "adblock_list_url"
+        const val APP_WEB_EXTENSION_VERSION_KEY = "app_web_extension_version"
 
+        const val DEFAULT_ADBLOCK_LIST_URL = "https://easylist.to/easylist/easylist.txt"
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Custom")
         val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "custom")
         val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
@@ -144,6 +149,26 @@ class Config(val prefs: SharedPreferences) {
         }
 
     var userAgentString = ObservableOptStringPreference(null, USER_AGENT_PREF_KEY)
+
+    var adBlockEnabled: Boolean = prefs.getBoolean(ADBLOCK_ENABLED_PREF_KEY, true)
+        set(value) {
+            field = value
+            prefs.edit().putBoolean(ADBLOCK_ENABLED_PREF_KEY, field).apply()
+        }
+
+    var adBlockListURL = ObservableStringPreference(DEFAULT_ADBLOCK_LIST_URL, ADBLOCK_LIST_URL_KEY)
+
+    var adBlockListLastUpdate: Long
+        get() = prefs.getLong(ADBLOCK_LAST_UPDATE_LIST_KEY, 0)
+        set(value) {
+            prefs.edit().putLong(ADBLOCK_LAST_UPDATE_LIST_KEY, value).apply()
+        }
+
+    var appWebExtensionVersion: Int
+        get() = prefs.getInt(APP_WEB_EXTENSION_VERSION_KEY, 0)
+        set(value) {
+            prefs.edit().putInt(APP_WEB_EXTENSION_VERSION_KEY, value).apply()
+        }
 
     fun isWebEngineGecko(): Boolean {
         return webEngine == "GeckoView"

@@ -540,7 +540,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.ibZoomIn.isEnabled = tab.webEngine.canZoomIn() == true
         vb.ibZoomOut.isEnabled = tab.webEngine.canZoomOut() == true
 
-        val adblockEnabled = tab.adblock ?: adblockModel.adBlockEnabled
+        val adblockEnabled = tab.adblock ?: config.adBlockEnabled
         vb.ibAdBlock.setImageResource(if (adblockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
         vb.tvBlockedAdCounter.visibility = if (adblockEnabled && tab.blockedAds != 0) View.VISIBLE else View.GONE
         vb.tvBlockedAdCounter.text = tab.blockedAds.toString()
@@ -673,7 +673,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private fun toggleAdBlockForTab() {
         tabsModel.currentTab.value?.apply {
-            val currentState = adblock ?: adblockModel.adBlockEnabled
+            val currentState = adblock ?: config.adBlockEnabled
             val newState = !currentState
             adblock = newState
             webEngine.onUpdateAdblockSetting(newState)
@@ -1079,23 +1079,39 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         override fun shouldOverrideUrlLoading(url: String): Boolean {
             tab.lastLoadingUrl = url
 
-            if (URLUtil.isNetworkUrl(url)) {
-                return false
-            }
-
-            val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
-            intent.putExtra("URL_INTENT_ORIGIN", tab.webEngine.getView()?.hashCode())
-            intent.addCategory(Intent.CATEGORY_BROWSABLE)
-            intent.component = null
-            intent.selector = null
-
-            if (intent.resolveActivity(this@MainActivity.packageManager) != null) {
-                startActivityIfNeeded(intent, -1)
-
+            val uri = try {
+                Uri.parse(url)
+            } catch (e: Exception) {
+                Log.e(TAG, "shouldOverrideUrlLoading: ", e)
                 return true
             }
 
-            return false
+            if (uri.scheme == null) {
+                Log.d(TAG, "shouldOverrideUrlLoading: no scheme: $url")
+                return true
+            }
+
+            if (URLUtil.isNetworkUrl(url) || uri.scheme.equals("javascript", true)) {
+                Log.d(TAG, "shouldOverrideUrlLoading: network url: $url")
+                return false
+            }
+
+            //try to handle intent for non-network urls by external apps
+            //TODO: ask user if he wants to open this url in external app
+            return try {
+                Log.d(TAG, "shouldOverrideUrlLoading: non-network url: $url")
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                if (intent.resolveActivity(TVBro.instance.packageManager) != null) {
+                    startActivity(intent)
+                } else {
+                    Log.d(TAG, "shouldOverrideUrlLoading: no activity to handle intent")
+                }
+                true
+            } catch (e: Exception) {
+                Log.e(TAG, "shouldOverrideUrlLoading: ", e)
+                true
+            }
         }
 
         override fun onPageStarted(url: String?) {
@@ -1148,15 +1164,15 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             vb.vActionBar.setAddressBoxTextColor(Color.RED)
         }
 
-        override fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean? {
-            return adblockModel.isAd(request, baseUri)
+        override fun isAd(url: Uri, acceptHeader: String?, baseUri: Uri): Boolean? {
+            return adblockModel.isAd(url, acceptHeader, baseUri)
         }
 
         override fun isAdBlockingEnabled(): Boolean {
             tabsModel.currentTab.value?.adblock?.apply {
                 return this
             }
-            return  adblockModel.adBlockEnabled
+            return  config.adBlockEnabled
         }
 
         override fun isDialogsBlockingEnabled(): Boolean {
@@ -1164,8 +1180,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return runBlocking(Dispatchers.Main.immediate) { tab.shouldBlockNewWindow(true, false) }
         }
 
-        override fun onBlockedAd(url: Uri) {
-            if (!adblockModel.adBlockEnabled) return
+        override fun onBlockedAd(uri: String) {
+            if (!config.adBlockEnabled) return
             tab.blockedAds++
             vb.tvBlockedAdCounter.visibility = if (tab.blockedAds > 0) View.VISIBLE else View.GONE
             vb.tvBlockedAdCounter.text = tab.blockedAds.toString()
@@ -1301,13 +1317,25 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun onPrepareForFullscreen() {
-            window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            //window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            //        WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    or View.SYSTEM_UI_FLAG_FULLSCREEN
+                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
             isFullscreen = true
         }
 
         override fun onExitFullscreen() {
-            window.setFlags(0, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            //window.setFlags(0, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            if (!config.keepScreenOn) {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+            window.decorView.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             isFullscreen = false
         }
 

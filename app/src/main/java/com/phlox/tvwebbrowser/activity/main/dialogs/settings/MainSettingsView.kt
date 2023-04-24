@@ -122,12 +122,13 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     private fun initAdBlockConfigUI() {
-        vb.scAdblock.isChecked = adblockModel.adBlockEnabled
-        vb.scAdblock.setOnCheckedChangeListener { buttonView, isChecked ->
-            adblockModel.adBlockEnabled = isChecked
-            vb.llAdBlockerDetails.visibility = if (isChecked) VISIBLE else GONE
+        vb.scAdblock.isChecked = config.adBlockEnabled
+        vb.llAdblock.setOnClickListener {
+            vb.scAdblock.isChecked = !vb.scAdblock.isChecked
+            config.adBlockEnabled = vb.scAdblock.isChecked
+            vb.llAdBlockerDetails.visibility = if (vb.scAdblock.isChecked && !config.isWebEngineGecko()) VISIBLE else GONE
         }
-        vb.llAdBlockerDetails.visibility = if (adblockModel.adBlockEnabled) VISIBLE else GONE
+        vb.llAdBlockerDetails.visibility = if (config.adBlockEnabled && !config.isWebEngineGecko()) VISIBLE else GONE
 
         adblockModel.clientLoading.subscribe(activity as FragmentActivity) {
             updateAdBlockInfo()
@@ -144,10 +145,10 @@ class MainSettingsView @JvmOverloads constructor(
 
     private fun updateAdBlockInfo() {
         val dateFormat = SimpleDateFormat("hh:mm dd MMMM yyyy", Locale.getDefault())
-        val lastUpdate = if (adblockModel.lastUpdateListTime == 0L)
+        val lastUpdate = if (config.adBlockListLastUpdate == 0L)
             context.getString(R.string.never) else
-            dateFormat.format(Date(adblockModel.lastUpdateListTime))
-        val infoText = "URL: ${adblockModel.adBlockListURL}\n${context.getString(R.string.last_update)}: $lastUpdate"
+            dateFormat.format(Date(config.adBlockListLastUpdate))
+        val infoText = "URL: ${config.adBlockListURL.value}\n${context.getString(R.string.last_update)}: $lastUpdate"
         vb.tvAdBlockerListInfo.text = infoText
         val loadingAdBlockList = adblockModel.clientLoading.value
         vb.btnAdBlockerUpdate.visibility = if (loadingAdBlockList) View.GONE else View.VISIBLE

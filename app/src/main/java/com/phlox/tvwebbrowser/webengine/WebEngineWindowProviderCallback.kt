@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.view.View
-import android.webkit.WebResourceRequest
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.HomePageLink
 import java.io.InputStream
@@ -27,10 +26,10 @@ interface WebEngineWindowProviderCallback {
     fun onPageStarted(url: String?)
     fun onPageFinished(url: String?)
     fun onPageCertificateError(url: String?)
-    fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean?
+    fun isAd(url: Uri, acceptHeader: String?, baseUri: Uri): Boolean?
     fun isAdBlockingEnabled(): Boolean
     fun isDialogsBlockingEnabled(): Boolean
-    fun onBlockedAd(url: Uri)
+    fun onBlockedAd(uri: String)
     fun onBlockedDialog(newTab: Boolean)
     fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View?
     fun closeWindow(internalRepresentation: Any)

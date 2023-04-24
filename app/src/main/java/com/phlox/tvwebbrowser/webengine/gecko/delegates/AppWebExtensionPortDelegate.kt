@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
+import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,6 +37,9 @@ class AppWebExtensionPortDelegate(val port: WebExtension.Port, val webEngine: Ge
                     }
                     var links = jsArr.toString()
                     links = links.replace("'", "\\'")
+                    if (Utils.isFireTV(TVBro.instance)) {
+                        webEngine.evaluateJavascript("hideVoiceSearchUI()")
+                    }
                     webEngine.evaluateJavascript("renderLinks('${cfg.homePageLinksMode.name}', $links)")
                     webEngine.evaluateJavascript(
                         "applySearchEngine(\"${cfg.guessSearchEngineName()}\", \"${cfg.searchEngineURL.value}\")")

@@ -273,7 +273,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         }
 
         override fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean {
-            return callback?.isAd(request, baseUri) ?: false
+            return callback?.isAd(request.url, request.requestHeaders["Accept"], baseUri) ?: false
         }
 
         override fun isAdBlockingEnabled(): Boolean {
@@ -285,7 +285,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
         }
 
         override fun onBlockedAd(url: Uri) {
-            callback?.onBlockedAd(url)
+            callback?.onBlockedAd(url.toString())
         }
 
         override fun onBlockedDialog(newTab: Boolean) {

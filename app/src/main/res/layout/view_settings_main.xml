@@ -175,29 +175,33 @@
           />
     </LinearLayout>
 
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="20dp"
-      android:orientation="horizontal"
-      android:paddingTop="5dp"
-      >
-    <TextView
+    <LinearLayout
+        android:id="@+id/llAdblock"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:ellipsize="end"
-        android:lines="1"
-        android:text="@string/toggle_ads_blocking"
-        android:textSize="16sp"
-        />
-    <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/scAdblock"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        />
-  </LinearLayout>
+        android:layout_marginTop="20dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:orientation="horizontal"
+        android:paddingTop="5dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:lines="1"
+            android:text="@string/toggle_ads_blocking"
+            android:textSize="16sp" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/scAdblock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:duplicateParentState="true" />
+    </LinearLayout>
 
   <LinearLayout
       android:id="@+id/llAdBlockerDetails"
