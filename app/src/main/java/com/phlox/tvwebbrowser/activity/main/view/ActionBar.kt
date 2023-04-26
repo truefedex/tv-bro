@@ -13,6 +13,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.downloads.ActiveDownloadsModel
@@ -122,7 +123,11 @@ class ActionBar @JvmOverloads constructor(
     }
 
     fun setAddressBoxText(text: String) {
-        vb.etUrl.setText(text)
+        if (text == Config.HOME_PAGE_URL) {
+            vb.etUrl.setText("")
+        } else {
+            vb.etUrl.setText(text)
+        }
     }
 
     fun setAddressBoxTextColor(color: Int) {

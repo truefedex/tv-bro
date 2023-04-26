@@ -68,6 +68,7 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         cursorRadiusPressed = cursorRadius + Utils.D2P(context, 5f).toInt()
         maxCursorSpeed = (displaySize.x / 25).toFloat()
         scrollStartPadding = displaySize.x / 15
+        overScrollMode = OVER_SCROLL_NEVER
     }
 
     fun setCallback(callback: Callback) {

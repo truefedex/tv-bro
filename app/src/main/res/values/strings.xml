@@ -188,6 +188,10 @@
     <string name="web_browser_engine_temporary_setting">Web browser engine (temporary setting)</string>
     <string name="need_restart_message">Restart app to apply changes</string>
     <string name="restart">Restart</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="site_asks_to_open_unknown_url">Site asks to open unknown URL</string>
+    <string name="site_asks_to_open_unknown_url_message">Do you want to open this URL in external app?</string>
     <array name="web_browser_engines" translatable="false">
         <item>GeckoView</item>
         <item>WebView</item>

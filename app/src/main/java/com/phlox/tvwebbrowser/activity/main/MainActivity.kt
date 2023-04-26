@@ -86,6 +86,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private var lastCommonRequestsCode = COMMON_REQUESTS_START_CODE
     private var downloadService: DownloadService? = null
     private var downloadIntent: Download? = null
+    var openUrlInExternalAppDialog: AlertDialog? = null
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -1091,7 +1092,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 return true
             }
 
-            if (URLUtil.isNetworkUrl(url) || uri.scheme.equals("javascript", true)) {
+            if (URLUtil.isNetworkUrl(url) || uri.scheme.equals("javascript", true) ||
+                    uri.scheme.equals("data", true) || uri.scheme.equals("about", true) ||
+                    uri.scheme.equals("blob", true)) {
                 Log.d(TAG, "shouldOverrideUrlLoading: network url: $url")
                 return false
             }
@@ -1103,11 +1106,14 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 val intent = Intent(Intent.ACTION_VIEW, uri)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 if (intent.resolveActivity(TVBro.instance.packageManager) != null) {
-                    startActivity(intent)
+                    runOnUiThread {
+                        askUserAndOpenInExternalApp(url, intent)
+                    }
+                    true
                 } else {
                     Log.d(TAG, "shouldOverrideUrlLoading: no activity to handle intent")
+                    false
                 }
-                true
             } catch (e: Exception) {
                 Log.e(TAG, "shouldOverrideUrlLoading: ", e)
                 true
@@ -1346,6 +1352,28 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 viewModel.logVisitedHistory(tab.title, url, tab.faviconHash)
             }
         }
+    }
+
+    private fun askUserAndOpenInExternalApp(url: String, intent: Intent) {
+        if (openUrlInExternalAppDialog != null) {
+            return
+        }
+        openUrlInExternalAppDialog = AlertDialog.Builder(this)
+            .setTitle(R.string.site_asks_to_open_unknown_url)
+            .setMessage(getString(R.string.site_asks_to_open_unknown_url_message) + "\n\n" + url)
+            .setPositiveButton(R.string.yes) { _, _ ->
+                try {
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(R.string.no, null)
+            .setOnDismissListener {
+                openUrlInExternalAppDialog = null
+            }
+            .show()
     }
 
     private val downloadServiceConnection = object : ServiceConnection {

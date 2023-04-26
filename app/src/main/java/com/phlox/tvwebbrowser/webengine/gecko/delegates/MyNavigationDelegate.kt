@@ -90,6 +90,12 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
     }
 
     override fun onNewSession(session: GeckoSession, uri: String): GeckoResult<GeckoSession>? {
+        Log.d(TAG, "onNewSession: $uri")
+        val callback = webEngine.callback ?: return null
+        if (runBlocking { webEngine.tab.shouldBlockNewWindow(dialog = false, userGesture = false) }) {
+            callback.onBlockedDialog(true)
+            return null
+        }
         val engine = webEngine.callback?.onOpenInNewTabRequested(uri, false)
         return if (engine == null) {
             null
