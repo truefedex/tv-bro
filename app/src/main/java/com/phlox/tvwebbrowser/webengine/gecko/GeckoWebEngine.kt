@@ -45,6 +45,8 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
                     builder.remoteDebuggingEnabled(true)
                     builder.consoleOutput(true)
                 }
+                builder.aboutConfigEnabled(true)
+                    .preferredColorScheme(TVBro.config.theme.value.toGeckoPreferredColorScheme())
                 builder.contentBlocking(
                         ContentBlocking.Settings.Builder()
                             .antiTracking(
@@ -92,6 +94,10 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
                     GeckoResult.fromValue(null)
                 })
             }
+        }
+
+        fun onThemeSettingUpdated(theme: Config.Theme) {
+            runtime.settings.preferredColorScheme = theme.toGeckoPreferredColorScheme()
         }
     }
 

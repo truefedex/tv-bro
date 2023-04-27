@@ -100,12 +100,12 @@ class MainSettingsView @JvmOverloads constructor(
 
         vb.spTheme.adapter = adapter
 
-        vb.spTheme.setSelection(settingsModel.theme.ordinal, false)
+        vb.spTheme.setSelection(config.theme.value.ordinal, false)
 
         vb.spTheme.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (settingsModel.theme.ordinal == position) return
-                settingsModel.theme = Config.Theme.values()[position]
+                if (config.theme.value.ordinal == position) return
+                config.theme.value = Config.Theme.values()[position]
                 Toast.makeText(context, context.getString(R.string.need_restart), Toast.LENGTH_SHORT).show()
             }
 

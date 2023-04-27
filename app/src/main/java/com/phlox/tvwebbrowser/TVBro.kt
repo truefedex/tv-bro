@@ -59,7 +59,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
 
         ActiveModelsRepository.init(this)
 
-        when (_config.theme) {
+        when (_config.theme.value) {
             Config.Theme.BLACK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             Config.Theme.WHITE -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)

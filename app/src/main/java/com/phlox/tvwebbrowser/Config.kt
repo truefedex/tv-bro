@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import org.mozilla.geckoview.GeckoRuntimeSettings
 
 class Config(val prefs: SharedPreferences) {
     companion object {
@@ -43,7 +45,15 @@ class Config(val prefs: SharedPreferences) {
     }
 
     enum class Theme {
-        SYSTEM, WHITE, BLACK
+        SYSTEM, WHITE, BLACK;
+
+        fun toGeckoPreferredColorScheme(): Int {
+            return when (this) {
+                SYSTEM -> GeckoRuntimeSettings.COLOR_SCHEME_SYSTEM
+                WHITE -> GeckoRuntimeSettings.COLOR_SCHEME_LIGHT
+                BLACK -> GeckoRuntimeSettings.COLOR_SCHEME_DARK
+            }
+        }
     }
 
     enum class HomePageMode {
@@ -81,17 +91,14 @@ class Config(val prefs: SharedPreferences) {
             prefs.edit().putBoolean(KEEP_SCREEN_ON_KEY, value).apply()
         }
 
-    var theme: Theme
-        get() = Theme.values()[prefs.getInt(THEME_KEY, 0)]
-        set(value) {
-            prefs.edit().putInt(THEME_KEY, value.ordinal).apply()
-
-            when (theme) {
-                Theme.BLACK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                Theme.WHITE -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+    var theme = object : ObservableValue<Theme>(Theme.SYSTEM) {
+        override var value: Theme = Theme.values()[prefs.getInt(THEME_KEY, 0)]
+            set(value) {
+                prefs.edit().putInt(THEME_KEY, value.ordinal).apply()
+                field = value
+                notifyObservers()
             }
-        }
+    }
 
     var homePageMode: HomePageMode
         get() = prefs.getInt(HOME_PAGE_MODE, 0)

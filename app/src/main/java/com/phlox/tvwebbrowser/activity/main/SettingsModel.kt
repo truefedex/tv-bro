@@ -50,7 +50,6 @@ class SettingsModel : ActiveModel() {
     var needAutoCheckUpdates: Boolean
         get() = config.isNeedAutoCheckUpdates() && BuildConfig.BUILT_IN_AUTO_UPDATE
         set(value) = config.setAutoCheckUpdates(value)
-    var theme by config::theme
     var updateChannel: String
     var keepScreenOn = object : ObservableValue<Boolean>(config.keepScreenOn) {
         override var value: Boolean = config.keepScreenOn

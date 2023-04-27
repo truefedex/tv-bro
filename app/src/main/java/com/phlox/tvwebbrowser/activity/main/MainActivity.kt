@@ -22,6 +22,7 @@ import android.view.animation.DecelerateInterpolator
 import android.webkit.*
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.Config
@@ -178,6 +179,15 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             for (tab in tabsModel.tabsStates) {
                 tab.webEngine.userAgentString = it
             }
+        }
+
+        config.theme.subscribe(this.lifecycle, false) {
+            when (it) {
+                Config.Theme.BLACK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                Config.Theme.WHITE -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            }
+            WebEngineFactory.onThemeSettingUpdated(it)
         }
 
         settingsModel.keepScreenOn.subscribe(this.lifecycle) {
