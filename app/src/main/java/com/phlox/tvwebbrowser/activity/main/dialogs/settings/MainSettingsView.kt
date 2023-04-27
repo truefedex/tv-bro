@@ -57,18 +57,17 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     private fun initWebBrowserEngineSettingsUI() {
-        val supportedWebEngines = context.resources.getStringArray(R.array.web_browser_engines)
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, supportedWebEngines)
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, Config.SupportedWebEngines)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
         vb.spWebEngine.adapter = adapter
 
-        vb.spWebEngine.setSelection(supportedWebEngines.indexOf(config.webEngine), false)
+        vb.spWebEngine.setSelection(Config.SupportedWebEngines.indexOf(config.webEngine), false)
 
         vb.spWebEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (config.webEngine == supportedWebEngines[position]) return
-                config.webEngine = supportedWebEngines[position]
+                if (config.webEngine == Config.SupportedWebEngines[position]) return
+                config.webEngine = Config.SupportedWebEngines[position]
                 AlertDialog.Builder(context)
                         .setTitle(R.string.need_restart)
                         .setMessage(R.string.need_restart_message)

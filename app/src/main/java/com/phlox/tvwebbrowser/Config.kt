@@ -2,10 +2,8 @@ package com.phlox.tvwebbrowser
 
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
-import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
-import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import org.mozilla.geckoview.GeckoRuntimeSettings
 
 class Config(val prefs: SharedPreferences) {
@@ -33,6 +31,7 @@ class Config(val prefs: SharedPreferences) {
         const val ADBLOCK_LAST_UPDATE_LIST_KEY = "adblock_last_update"
         const val ADBLOCK_LIST_URL_KEY = "adblock_list_url"
         const val APP_WEB_EXTENSION_VERSION_KEY = "app_web_extension_version"
+        const val NOTIFICATION_ABOUT_ENGINE_CHANGE_SHOWN_KEY = "notification_about_engine_change_shown"
 
         const val DEFAULT_ADBLOCK_LIST_URL = "https://easylist.to/easylist/easylist.txt"
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Startpage", "Custom")
@@ -40,6 +39,7 @@ class Config(val prefs: SharedPreferences) {
         val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
             "https://search.yahoo.com/search?p=[query]", "https://duckduckgo.com/?q=[query]",
             "https://yandex.com/search/?text=[query]", "https://www.startpage.com/sp/search?query=[query]", "")
+        val SupportedWebEngines = arrayOf("GeckoView", "WebView")
         const val HOME_PAGE_URL = "https://tvbro.phlox.dev/appcontent/home/"
         //const val HOME_PAGE_URL = "http://10.0.2.2:5000/appcontent/home/"
     }
@@ -132,7 +132,7 @@ class Config(val prefs: SharedPreferences) {
     var searchEngineURL = ObservableStringPreference(SearchEnginesURLs[0], SEARCH_ENGINE_URL_PREF_KEY)
 
     var webEngine: String
-        get() = prefs.getString(WEB_ENGINE, "GeckoView")!!
+        get() = prefs.getString(WEB_ENGINE, SupportedWebEngines[0])!!
         set(value) {
             prefs.edit().putString(WEB_ENGINE, value).apply()
         }
@@ -177,12 +177,19 @@ class Config(val prefs: SharedPreferences) {
             prefs.edit().putInt(APP_WEB_EXTENSION_VERSION_KEY, value).apply()
         }
 
+    //0 - not shown, any other value - app version code where notification already shown (to show only once after update)
+    var notificationAboutEngineChangeShown: Int
+        get() = prefs.getInt(NOTIFICATION_ABOUT_ENGINE_CHANGE_SHOWN_KEY, 0)
+        set(value) {
+            prefs.edit().putInt(NOTIFICATION_ABOUT_ENGINE_CHANGE_SHOWN_KEY, value).apply()
+        }
+
     fun isWebEngineGecko(): Boolean {
-        return webEngine == "GeckoView"
+        return webEngine == SupportedWebEngines[0]
     }
 
-    fun isWebEngineSet(): Boolean {
-        return prefs.contains(WEB_ENGINE)
+    fun isWebEngineNotSet(): Boolean {
+        return !prefs.contains(WEB_ENGINE)
     }
 
     fun setAutoCheckUpdates(need: Boolean) {

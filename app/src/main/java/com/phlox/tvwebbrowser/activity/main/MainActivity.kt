@@ -25,6 +25,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
@@ -56,6 +57,8 @@ import java.io.UnsupportedEncodingException
 import java.net.URL
 import java.net.URLEncoder
 import java.util.*
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 open class MainActivity : AppCompatActivity(), ActionBar.Callback {
@@ -116,10 +119,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb.root)
 
-        lifecycleScope.launch(Dispatchers.Main) {
-            WebEngineFactory.initialize(this@MainActivity, vb.flWebViewContainer)
-        }
-
         vb.ivMiniatures.visibility = View.INVISIBLE
         vb.llBottomPanel.visibility = View.INVISIBLE
         vb.rlActionBar.visibility = View.INVISIBLE
@@ -175,7 +174,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             it.setOnKeyListener(bottomButtonsKeyListener)
         }
 
-        config.userAgentString.subscribe(this.lifecycle) {
+        config.userAgentString.subscribe(this.lifecycle, false) {
             for (tab in tabsModel.tabsStates) {
                 tab.webEngine.userAgentString = it
             }
@@ -405,6 +404,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun loadState() = lifecycleScope.launch(Dispatchers.Main) {
+        showWebViewSunsetDialogIfNeeded()
+        WebEngineFactory.initialize(this@MainActivity, vb.flWebViewContainer)
+
         vb.progressBarGeneric.visibility = View.VISIBLE
         vb.progressBarGeneric.requestFocus()
         viewModel.loadState().join()
@@ -453,6 +455,31 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 if (settingsModel.updateChecker.hasUpdate()) {
                     settingsModel.showUpdateDialogIfNeeded(this@MainActivity)
                 }
+            }
+        }
+    }
+
+    private suspend fun showWebViewSunsetDialogIfNeeded() {
+        suspendCoroutine{ coroutine ->
+            if ((config.isWebEngineNotSet() || !config.isWebEngineGecko()) &&
+                (config.notificationAboutEngineChangeShown == 0 || config.notificationAboutEngineChangeShown != BuildConfig.VERSION_CODE)) {
+                AlertDialog.Builder(this@MainActivity)
+                    .setTitle(R.string.webview_sunset_dialog_title)
+                    .setMessage(R.string.webview_sunset_dialog_message)
+                    .setPositiveButton(R.string.webview_sunset_dialog_positive_button) { _, _ ->
+                        config.webEngine = Config.SupportedWebEngines[0]
+                    }
+                    .setNegativeButton(R.string.webview_sunset_dialog_negative_button) { _, _ ->
+                        config.webEngine = Config.SupportedWebEngines[1]
+                    }
+                    .setCancelable(false)
+                    .setOnDismissListener {
+                        config.notificationAboutEngineChangeShown = BuildConfig.VERSION_CODE
+                        coroutine.resume(Unit)
+                    }
+                    .show()
+            } else {
+                coroutine.resume(Unit)
             }
         }
     }
@@ -661,9 +688,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         super.onResume()
         val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(mConnectivityChangeReceiver, intentFilter)
-        if (tabsModel.currentTab.value != null) {
-            tabsModel.currentTab.value!!.webEngine.onResume()
-        }
+        tabsModel.currentTab.value?.webEngine?.onResume()
     }
 
     override fun onPause() {
