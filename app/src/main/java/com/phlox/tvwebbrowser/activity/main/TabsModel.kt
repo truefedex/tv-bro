@@ -119,14 +119,18 @@ class TabsModel : ActiveModel() {
         newTab.selected = true
         currentTab.value = newTab
         var wv = newTab.webEngine.getView()
+        var needReloadUrl = false
         if (wv == null) {
             wv = webViewProvider(newTab)
             if (wv == null) {
                 return
             }
-            newTab.restoreWebView()
+            needReloadUrl = !newTab.restoreWebView()
         }
         newTab.webEngine.onAttachToWindow(webEngineWindowProviderCallback, webViewParent, fullScreenViewParent)
+        if (needReloadUrl) {
+            newTab.webEngine.loadUrl(newTab.url)
+        }
         newTab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(TVBro.instance))
     }
 }

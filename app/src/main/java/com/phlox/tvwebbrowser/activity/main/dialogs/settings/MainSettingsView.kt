@@ -72,7 +72,9 @@ class MainSettingsView @JvmOverloads constructor(
                         .setTitle(R.string.need_restart)
                         .setMessage(R.string.need_restart_message)
                         .setPositiveButton(R.string.exit) { _, _ ->
-                            exitProcess(0)
+                            TVBro.instance.needToExitProcessAfterMainActivityFinish = true
+                            TVBro.instance.needRestartMainActivityAfterExitingProcess = true
+                            activity!!.finish()
                         }
                         .setCancelable(false)
                         .show()

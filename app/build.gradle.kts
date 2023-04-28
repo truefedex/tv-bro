@@ -17,15 +17,15 @@ var includeFirebase = true
 
 android {
     compileSdk = 33
-    buildToolsVersion = "33.0.1"
+    buildToolsVersion = "33.0.2"
     namespace = "com.phlox.tvwebbrowser"
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
         minSdk = 23
         targetSdk = 33
-        versionCode = 59
-        versionName = "1.8.6"
+        versionCode = 60
+        versionName = "2.0.0"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -62,12 +62,18 @@ android {
             //important than the size after installation
             manifestPlaceholders["extractNativeLibs"] = "true"
             packagingOptions.jniLibs.useLegacyPackaging = true
+            ndk {
+                abiFilters += listOf("armeabi-v7a")//TODO: implement auto-update logic for selecting right arch during update
+            }
         }
         create("google") {
             dimension = "appstore"
             //now auto-update violates Google Play policies
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
             manifestPlaceholders["extractNativeLibs"] = "false"
+            ndk {
+                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            }
         }
         create("foss") {
             dimension = "appstore"
@@ -77,6 +83,9 @@ android {
             manifestPlaceholders["extractNativeLibs"] = "true"
             packagingOptions.jniLibs.useLegacyPackaging = true
             includeFirebase = false//do not include firebase in the foss build
+            ndk {
+                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            }
         }
     }
 

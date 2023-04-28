@@ -82,8 +82,9 @@ open class ObservableValue<T>(default: T) : Subscribable<ValueObserver<T>> {
     override val observers = ArrayList<ValueObserver<T>>()
 
     override fun notifyObservers() {
-        for (observer in observers) {
-            observer(value)
+        //observers can be removed during iteration
+        for (i in observers.size - 1 downTo 0) {
+            observers[i](value)
         }
     }
 
@@ -121,8 +122,8 @@ class EventSource: Subscribable<EventObserver> {
 
     override fun notifyObservers() {
         if (!wasEmitted) return
-        for (observer in observers) {
-            observer()
+        for (i in observers.size - 1 downTo 0) {
+            observers[i]()
         }
     }
 
@@ -145,8 +146,8 @@ class ParameterizedEventSource<T>: Subscribable<ParameterizedEventObserver<T>> {
 
     override fun notifyObservers() {
         val event = lastEvent ?: return
-        for (observer in observers) {
-            observer(event)
+        for (i in observers.size - 1 downTo 0) {
+            observers[i](event)
         }
     }
 

@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 
 //Same as MainActivity but runs in separate process
@@ -19,6 +20,13 @@ class IncognitoModeMainActivity: MainActivity() {
         if (!config.incognitoModeHintSuppress) {
             showIncognitoModeHintDialog()
         }
+    }
+
+    override fun onDestroy() {
+        if (isFinishing) {
+            TVBro.instance.needToExitProcessAfterMainActivityFinish = true
+        }
+        super.onDestroy()
     }
 
     private fun showIncognitoModeHintDialog() {

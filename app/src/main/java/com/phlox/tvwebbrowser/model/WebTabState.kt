@@ -162,31 +162,29 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
         thumbnailHash = null
     }
 
-    fun restoreWebView() {
-        val restored = kotlin.run {
-            var state = savedState
-            val stateFileName = wvStateFileName
-            if (state != null) {
-                webEngine.restoreState(state)
-                return@run true
-            } else if (stateFileName != null) {
-                try {
-                    val stateBytes = File(getWVStatePath(stateFileName)).readBytes()
-                    state = webEngine.stateFromBytes(stateBytes)
-                    if (state == null) return@run false
-                    this.savedState = state
-                    webEngine.restoreState(state)
-                    return@run true
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    return@run false
-                }
+    fun restoreWebView(): Boolean {
+        var state = savedState
+        val stateFileName = wvStateFileName
+        if (state != null) {
+            webEngine.restoreState(state)
+            return true
+        } else if (stateFileName != null) {
+            if (stateFileName.startsWith(GECKO_SESSION_STATE_HASH_PREFIX) xor (webEngine is GeckoWebEngine)) {
+                return false
             }
-            return@run false
+            try {
+                val stateBytes = File(getWVStatePath(stateFileName)).readBytes()
+                state = webEngine.stateFromBytes(stateBytes)
+                if (state == null) return false
+                this.savedState = state
+                webEngine.restoreState(state)
+                return true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return false
+            }
         }
-        if (!restored) {
-            this.url.takeIf { !TextUtils.isEmpty(url) }?.apply { webEngine.loadUrl(this) }
-        }
+        return false
     }
 
     fun saveWebViewStateToFile() {

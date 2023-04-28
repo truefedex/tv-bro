@@ -4,18 +4,19 @@ import android.app.Activity
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Process
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
-import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
+import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import kotlin.system.exitProcess
 
 /**
  * Created by PDT on 09.09.2016.
@@ -34,7 +35,8 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         private set
 
     private lateinit var _config: Config
-
+    var needToExitProcessAfterMainActivityFinish = false
+    var needRestartMainActivityAfterExitingProcess = false
     override fun onCreate() {
         Log.i(TAG, "onCreate")
         super.onCreate()
@@ -96,11 +98,15 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
 
     override fun onActivityDestroyed(activity: Activity) {
         Log.i(TAG, "onActivityDestroyed: " + activity.javaClass.simpleName)
-        //we need this because in case of IncognitoModeMainActivity closed by exit button by user
-        //then incognito mode becomes closed but process are still running and this lead to
-        //strange problems at next time when we trying to start the incognito mode
-        if (activity is IncognitoModeMainActivity) {
-            Process.killProcess(Process.myPid())
+        if (needToExitProcessAfterMainActivityFinish && activity is MainActivity) {
+            Log.i(TAG, "onActivityDestroyed: exiting process")
+            if (needRestartMainActivityAfterExitingProcess) {
+                Log.i(TAG, "onActivityDestroyed: restarting main activity")
+                val intent = Intent(this@TVBro, MainActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                startActivity(intent)
+            }
+            exitProcess(0)
         }
     }
 }

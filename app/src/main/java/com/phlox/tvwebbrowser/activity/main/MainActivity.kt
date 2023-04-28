@@ -59,6 +59,7 @@ import java.net.URLEncoder
 import java.util.*
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.system.exitProcess
 
 
 open class MainActivity : AppCompatActivity(), ActionBar.Callback {
@@ -811,7 +812,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             intent.putExtras(it)
         }
         startActivity(intent)
-        System.exit(0)
+        exitProcess(0)
     }
 
     fun toggleMenu() {
