@@ -20,6 +20,8 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
 import android.webkit.*
+import android.widget.FrameLayout
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -92,6 +94,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private var downloadService: DownloadService? = null
     private var downloadIntent: Download? = null
     var openUrlInExternalAppDialog: AlertDialog? = null
+    private var linkActionsMenu: PopupMenu? = null
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -478,7 +481,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                         config.notificationAboutEngineChangeShown = BuildConfig.VERSION_CODE
                         coroutine.resume(Unit)
                     }
-                    .show()
+                    .show().getButton(DialogInterface.BUTTON_POSITIVE).requestFocus()
             } else {
                 coroutine.resume(Unit)
             }
@@ -1386,6 +1389,39 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
             if (!config.incognitoMode) {
                 viewModel.logVisitedHistory(tab.title, url, tab.faviconHash)
+            }
+        }
+
+        override fun suggestActionsForLink(href: String, x: Int, y: Int) {
+            var s = href
+            if (s.startsWith("\"") && s.endsWith("\"")) {
+                s = s.substring(1, s.length - 1)
+            }
+            val url = s
+            if (url.startsWith("http://", true) || url.startsWith("https://", true)) {
+                val anchor = View(this@MainActivity)
+                val lp = FrameLayout.LayoutParams(1, 1)
+                lp.setMargins(x, y, 0, 0)
+                vb.flWebViewContainer.addView(anchor, lp)
+                linkActionsMenu = PopupMenu(this@MainActivity, anchor, Gravity.BOTTOM).also {
+                    it.inflate(R.menu.menu_link)
+                    it.setOnMenuItemClickListener { menuItem ->
+                        when (menuItem.itemId) {
+                            R.id.miOpenInNewTab -> onOpenInNewTabRequested(url, true)
+                            R.id.miOpenInExternalApp -> onOpenInExternalAppRequested(url)
+                            R.id.miDownload -> onDownloadRequested(url)
+                            R.id.miCopyToClipboard -> onCopyTextToClipboardRequested(url)
+                            R.id.miShare -> onShareUrlRequested(url)
+                        }
+                        true
+                    }
+
+                    it.setOnDismissListener {
+                        vb.flWebViewContainer.removeView(anchor)
+                        linkActionsMenu = null
+                    }
+                    it.show()
+                }
             }
         }
     }

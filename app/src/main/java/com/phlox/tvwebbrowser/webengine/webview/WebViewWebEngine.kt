@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
-import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.CursorLayout
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.utils.Utils
@@ -322,6 +321,10 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
 
         override fun onVisited(url: String) {
             callback?.onVisited(url)
+        }
+
+        override fun suggestActionsForLink(href: String, x: Int, y: Int) {
+            callback?.suggestActionsForLink(href, x, y)
         }
     }
 

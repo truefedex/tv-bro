@@ -6,6 +6,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.DownloadUtils
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.webengine.gecko.GeckoViewWithVirtualCursor
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import org.json.JSONObject
 import org.mozilla.geckoview.GeckoResult
@@ -55,9 +56,7 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
         screenY: Int,
         element: GeckoSession.ContentDelegate.ContextElement
     ) {
-        Log.d(
-            TAG,
-            "onContextMenu screenX="
+        Log.d(TAG,"onContextMenu screenX="
                     + screenX
                     + " screenY="
                     + screenY
@@ -71,6 +70,11 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
                     + element.altText
                     + " srcUri="
                     + element.srcUri
+        )
+        val linkUri = element.linkUri ?: element.srcUri ?: return
+        val webView = webEngine.getView() as? GeckoViewWithVirtualCursor ?: return
+        webEngine.callback?.suggestActionsForLink(linkUri, webView.cursorPosition.x.toInt(),
+            webView.cursorPosition.y.toInt()
         )
     }
 

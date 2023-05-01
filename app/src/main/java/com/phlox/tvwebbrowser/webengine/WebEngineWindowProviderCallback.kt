@@ -43,4 +43,5 @@ interface WebEngineWindowProviderCallback {
     fun onPrepareForFullscreen()
     fun onExitFullscreen()
     fun onVisited(url: String)
+    fun suggestActionsForLink(href: String, x: Int, y: Int)
 }

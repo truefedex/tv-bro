@@ -18,12 +18,9 @@ import android.os.Looper
 import android.os.Message
 import android.text.TextUtils
 import android.util.Log
-import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.webkit.*
-import android.widget.FrameLayout
-import android.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.webkit.WebSettingsCompat
@@ -56,7 +53,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
     private var webChromeClient_: WebChromeClient
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
-    private var actionsMenu: PopupMenu? = null
     private var lastTouchX: Int = 0
     private var lastTouchY: Int = 0
     private var permRequestDialog: AlertDialog? = null
@@ -99,6 +95,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         fun onShareUrlRequested(url: String)
         fun onOpenInExternalAppRequested(url: String)
         fun onVisited(url: String)
+        fun suggestActionsForLink(href: String, x: Int, y: Int)
     }
 
     init {
@@ -164,9 +161,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         isScrollbarFadingEnabled = false*/
 
         setOnLongClickListener {
-            evaluateJavascript(Scripts.LONG_PRESS_SCRIPT) { s ->
-                if (s != null && "null" != s) {
-                    suggestActionsForLink(s)
+            evaluateJavascript(Scripts.LONG_PRESS_SCRIPT) { href ->
+                if (href != null && "null" != href) {
+                    callback.suggestActionsForLink(href, lastTouchX, lastTouchY)
                 } else {
                     callback.onLongTap()
                 }
@@ -457,40 +454,6 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                 "?type=" + INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT +
                 "&url=" + URLEncoder.encode(error.url, "UTF-8")
         loadUrl(url)
-    }
-
-    private fun suggestActionsForLink(href: String) {
-        var s = href
-        if (s.startsWith("\"") && s.endsWith("\"")) {
-            s = s.substring(1, s.length - 1)
-        }
-        val url = s
-        if (url.startsWith("http://", true) || url.startsWith("https://", true)) {
-            val anchor = View(context)
-            val parent = parent as FrameLayout
-            val lp = FrameLayout.LayoutParams(1, 1)
-            lp.setMargins(lastTouchX, lastTouchY, 0, 0)
-            parent.addView(anchor, lp)
-            actionsMenu = PopupMenu(context, anchor, Gravity.BOTTOM).also {
-                it.inflate(R.menu.menu_link)
-                it.setOnMenuItemClickListener { menuItem ->
-                    when (menuItem.itemId) {
-                        R.id.miOpenInNewTab -> callback.onOpenInNewTabRequested(url)
-                        R.id.miOpenInExternalApp -> callback.onOpenInExternalAppRequested(url)
-                        R.id.miDownload -> callback.onDownloadRequested(url)
-                        R.id.miCopyToClipboard -> callback.onCopyTextToClipboardRequested(url)
-                        R.id.miShare -> callback.onShareUrlRequested(url)
-                    }
-                    true
-                }
-
-                it.setOnDismissListener {
-                    parent.removeView(anchor)
-                    actionsMenu = null
-                }
-                it.show()
-            }
-        }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
