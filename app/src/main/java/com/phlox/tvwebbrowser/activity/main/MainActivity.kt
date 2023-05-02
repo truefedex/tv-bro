@@ -1426,6 +1426,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 }
             }
         }
+
+        override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
+            viewModel.markBookmarkRecommendationAsUseful(bookmarkOrder)
+        }
     }
 
     private fun askUserAndOpenInExternalApp(url: String, intent: Intent) {

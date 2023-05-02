@@ -122,4 +122,10 @@ class AndroidJSInterface(val webEngine: WebViewWebEngine
                 finalFileName, "TV Bro",
             mimetype, Download.OperationAfterDownload.NOP, base64BlobData)
     }
+
+    @JavascriptInterface
+    fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
+        val callback = webEngine.callback ?: return
+        callback.getActivity().runOnUiThread { callback.markBookmarkRecommendationAsUseful(bookmarkOrder) }
+    }
 }

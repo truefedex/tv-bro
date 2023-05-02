@@ -71,6 +71,11 @@ class AppWebExtensionPortDelegate(val port: WebExtension.Port, val webEngine: Ge
                         }
                     }
                 }
+                "markBookmarkRecommendationAsUseful" -> {
+                    val bookmarkOrder = msgJson.getInt("data")
+                    val callback = webEngine.callback ?: return
+                    callback.markBookmarkRecommendationAsUseful(bookmarkOrder)
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()

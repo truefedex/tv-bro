@@ -23,6 +23,9 @@ let TVBro = {
     },
     requestFavicon: function (url) {
         postMessageToHomePagePort("requestFavicon", url);
+    },
+    markBookmarkRecommendationAsUseful: function (bookmarkIndex) {
+        postMessageToHomePagePort("markBookmarkRecommendationAsUseful", bookmarkIndex);
     }
 }
 window.wrappedJSObject.TVBro = cloneInto(

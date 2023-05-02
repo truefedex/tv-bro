@@ -96,7 +96,16 @@ class MainActivityViewModel: ActiveModel() {
                 Config.HomePageLinksMode.BOOKMARKS -> {
                     val favorites = ArrayList<FavoriteItem>()
                     favorites.addAll(AppDatabase.db.favoritesDao().getHomePageBookmarks())
-                    val hasOutdatedAffiliateLinks = favorites.any { it.validUntil != null && it.validUntil!!.before(Date()) }
+                    val outdatedUsefulAffiliateLinks = favorites.filter { it.validUntil != null && it.validUntil!!.before(Date()) && it.useful }
+                    outdatedUsefulAffiliateLinks.forEach {
+                        it.validUntil = null
+                        //destUrl if provided is affiliate link that can be outdated.
+                        //With each affiliate link there also must be provided a direct link to the site
+                        //so we can continue to use it after affiliate link is outdated if it was useful for user at least once
+                        it.destUrl = null
+                        AppDatabase.db.favoritesDao().update(it)
+                    }
+                    val hasOutdatedAffiliateLinks = favorites.any { it.validUntil != null && it.validUntil!!.before(Date())}
                     if ((favorites.isEmpty() && !config.initialBookmarksSuggestionsLoaded) || hasOutdatedAffiliateLinks) {
                         val suggestions = withContext(Dispatchers.IO) {
                             val countryCode = /*if (BuildConfig.DEBUG) "debug" else*/ try {
@@ -322,6 +331,14 @@ class MainActivityViewModel: ActiveModel() {
             if (index != -1) {
                 homePageLinks[index] = HomePageLink.fromBookmarkItem(item)
             }
+        }
+    }
+
+    fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
+        val link = homePageLinks.find { it.order == bookmarkOrder } ?: return
+        if (link.favoriteId == null || link.validUntil == null) return
+        modelScope.launch {
+            AppDatabase.db.favoritesDao().markAsUseful(link.favoriteId)
         }
     }
 }

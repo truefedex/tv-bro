@@ -31,7 +31,7 @@ import kotlin.coroutines.suspendCoroutine
 
 class GeckoWebEngine(val tab: WebTabState): WebEngine {
     companion object {
-        const val APP_WEB_EXTENSION_VERSION = 1
+        private const val APP_WEB_EXTENSION_VERSION = 2
         val TAG: String = GeckoWebEngine::class.java.simpleName
         lateinit var runtime: GeckoRuntime
         var appWebExtension = ObservableValue<WebExtension?>(null)

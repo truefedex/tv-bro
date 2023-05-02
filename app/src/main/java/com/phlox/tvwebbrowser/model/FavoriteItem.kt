@@ -24,7 +24,8 @@ class FavoriteItem {
     @ColumnInfo(name = "I_ORDER") var order: Int = 0//used currently only for home page bookmarks because they can have blank cells in the grid
     @ColumnInfo(name = "DEST_URL") var destUrl: String? = null//used for initial recommendations for home page bookmarks to store referral url
     @ColumnInfo(name = "DESCRIPTION") var description: String? = null//used for initial recommendations for home page bookmarks if they have description
-    @ColumnInfo(name = "VALID_UNTIL") var validUntil: Date? = null//used for initial recommendations for home page bookmarks if they have description
+    @ColumnInfo(name = "VALID_UNTIL") var validUntil: Date? = null//used for initial recommendations for home page bookmarks if they have DEST_URL
+    @ColumnInfo(name = "USEFUL") var useful: Boolean = false//used for initial recommendations for home page bookmarks if they have VALID_UNTIL
     val isFolder: Boolean
         get() = url == null
 }
