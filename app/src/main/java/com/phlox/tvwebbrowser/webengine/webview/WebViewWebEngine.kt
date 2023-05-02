@@ -265,6 +265,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine {
 
         override fun onPageFinished(url: String?) {
             callback?.onPageFinished(url)
+            evaluateJavascript(Scripts.INITIAL_SCRIPT)
         }
 
         override fun onPageCertificateError(url: String?) {

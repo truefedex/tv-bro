@@ -49,7 +49,6 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
-import com.phlox.tvwebbrowser.webengine.common.Scripts
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import kotlinx.coroutines.*
@@ -1153,6 +1152,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     true
                 } else {
                     Log.d(TAG, "shouldOverrideUrlLoading: no activity to handle intent")
+                    runOnUiThread {
+                        Utils.showToast(applicationContext, getString(R.string.err_no_app_to_handle_url))
+                    }
                     false
                 }
             } catch (e: Exception) {
@@ -1203,8 +1205,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     }
                 }
             }
-
-            tab.webEngine.evaluateJavascript(Scripts.INITIAL_SCRIPT)
         }
 
         override fun onPageCertificateError(url: String?) {

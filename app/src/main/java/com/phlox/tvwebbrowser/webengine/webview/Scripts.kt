@@ -1,4 +1,4 @@
-package com.phlox.tvwebbrowser.webengine.common
+package com.phlox.tvwebbrowser.webengine.webview
 
 object Scripts {
     val INITIAL_SCRIPT = """

@@ -30,7 +30,6 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.utils.LogUtils
-import com.phlox.tvwebbrowser.webengine.common.Scripts
 import java.net.URLEncoder
 import java.util.*
 
