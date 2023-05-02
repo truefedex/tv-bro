@@ -33,6 +33,7 @@ android {
             }
         }
     }
+
     signingConfigs {
         create("release") {
             storeFile = properties.getProperty("storeFile", null)?.let { rootProject.file(it) }
@@ -41,6 +42,7 @@ android {
             keyPassword = properties.getProperty("keyPassword", "")
         }
     }
+
     buildTypes {
         getByName("debug") {
             isDebuggable = true
@@ -53,39 +55,45 @@ android {
         }
     }
 
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            isUniversalApk = false
+        }
+    }
+
+    applicationVariants.all {
+        val variant = this
+        variant.outputs
+            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+            .forEach { output ->
+                val flavour = variant.flavorName
+                //val builtType = variant.buildType.name
+                val versionName = variant.versionName
+                val arch = output.filters.first().identifier
+                output.outputFileName =
+                    "tvbro-${flavour}-${versionName}(${arch}).apk"
+            }
+    }
+
     flavorDimensions += listOf("appstore")
     productFlavors {
         create("generic") {
             dimension = "appstore"
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
-            //when distributing as an universal apk, the size of the distribution apk is more
-            //important than the size after installation
-            manifestPlaceholders["extractNativeLibs"] = "true"
-            packagingOptions.jniLibs.useLegacyPackaging = true
-            ndk {
-                abiFilters += listOf("armeabi-v7a")//TODO: implement auto-update logic for selecting right arch during update
-            }
         }
         create("google") {
             dimension = "appstore"
             //now auto-update violates Google Play policies
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
-            manifestPlaceholders["extractNativeLibs"] = "false"
-            ndk {
-                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            }
         }
         create("foss") {
             dimension = "appstore"
             applicationIdSuffix = ".foss"
-            versionNameSuffix = "-foss"
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
-            manifestPlaceholders["extractNativeLibs"] = "true"
-            packagingOptions.jniLibs.useLegacyPackaging = true
             includeFirebase = false//do not include firebase in the foss build
-            ndk {
-                abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            }
         }
     }
 
@@ -123,7 +131,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.10")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
 
     val roomVersion = "2.5.0"
     implementation("androidx.room:room-runtime:$roomVersion")
@@ -143,10 +151,10 @@ dependencies {
     //"debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     "googleImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.5")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.6")
 
     "genericImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.5")
+    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.6")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.9")

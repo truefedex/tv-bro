@@ -83,6 +83,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private lateinit var tabsModel: TabsModel
     private lateinit var settingsModel: SettingsModel
     private lateinit var adblockModel: AdblockModel
+    private lateinit var autoUpdateModel: AutoUpdateModel
     private lateinit var uiHandler: Handler
     private var running: Boolean = false
     private var isFullscreen: Boolean = false
@@ -118,6 +119,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
         adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
         tabsModel = ActiveModelsRepository.get(TabsModel::class, this)
+        autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, this)
         uiHandler = Handler()
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         vb = ActivityMainBinding.inflate(layoutInflater)
@@ -452,12 +454,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         if (currentTab == null || currentTab.url == settingsModel.homePage) {
             showMenuOverlay()
         }
-        if (settingsModel.needAutoCheckUpdates &&
-                settingsModel.updateChecker.versionCheckResult == null &&
-                !settingsModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
-            settingsModel.checkUpdate(false){
-                if (settingsModel.updateChecker.hasUpdate()) {
-                    settingsModel.showUpdateDialogIfNeeded(this@MainActivity)
+        if (autoUpdateModel.needAutoCheckUpdates &&
+            autoUpdateModel.updateChecker.versionCheckResult == null &&
+                !autoUpdateModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
+            autoUpdateModel.checkUpdate(false){
+                if (autoUpdateModel.updateChecker.hasUpdate()) {
+                    autoUpdateModel.showUpdateDialogIfNeeded(this@MainActivity)
                 }
             }
         }
@@ -669,8 +671,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 }
                 hideMenuOverlay()
             }
-            REQUEST_CODE_UNKNOWN_APP_SOURCES -> if (settingsModel.needToShowUpdateDlgAgain) {
-                settingsModel.showUpdateDialogIfNeeded(this)
+            REQUEST_CODE_UNKNOWN_APP_SOURCES -> if (autoUpdateModel.needToShowUpdateDlgAgain) {
+                autoUpdateModel.showUpdateDialogIfNeeded(this)
             }
 
             else -> super.onActivityResult(requestCode, resultCode, data)

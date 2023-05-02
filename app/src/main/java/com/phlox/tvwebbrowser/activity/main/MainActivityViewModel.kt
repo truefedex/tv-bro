@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.activity.main
 import android.os.Build
 import android.util.Log
 import android.webkit.WebView
+import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.FavoriteItem
@@ -11,6 +12,7 @@ import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.LogUtils
+import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.deleteDirectory
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
@@ -35,13 +37,26 @@ class MainActivityViewModel: ActiveModel() {
     var lastHistoryItem: HistoryItem? = null
     private var lastHistoryItemSaveJob: Job? = null
     val homePageLinks = ObservableList<HomePageLink>()
+    val config = TVBro.config
 
     fun loadState() = modelScope.launch(Dispatchers.Main) {
         Log.d(TAG, "loadState")
         if (loaded) return@launch
+        checkVersionCodeAndRunMigrations()
         initHistory()
         loadHomePageLinks()
         loaded = true
+    }
+
+    private suspend fun checkVersionCodeAndRunMigrations() {
+        Log.d(TAG, "checkVersionCodeAndRunMigrations")
+        if (config.appVersionCodeMark != BuildConfig.VERSION_CODE) {
+            Log.i(TAG, "App version code changed from ${config.appVersionCodeMark} to ${BuildConfig.VERSION_CODE}")
+            config.appVersionCodeMark = BuildConfig.VERSION_CODE
+            withContext(Dispatchers.IO) {
+                UpdateChecker.clearTempFilesIfAny(TVBro.instance)
+            }
+        }
     }
 
     private suspend fun initHistory() {

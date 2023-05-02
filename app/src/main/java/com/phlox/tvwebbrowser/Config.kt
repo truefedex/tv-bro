@@ -32,6 +32,7 @@ class Config(val prefs: SharedPreferences) {
         const val ADBLOCK_LIST_URL_KEY = "adblock_list_url"
         const val APP_WEB_EXTENSION_VERSION_KEY = "app_web_extension_version"
         const val NOTIFICATION_ABOUT_ENGINE_CHANGE_SHOWN_KEY = "notification_about_engine_change_shown"
+        const val APP_VERSION_CODE_MARK_KEY = "app_version_code_mark"
 
         const val DEFAULT_ADBLOCK_LIST_URL = "https://easylist.to/easylist/easylist.txt"
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Startpage", "Custom")
@@ -62,14 +63,6 @@ class Config(val prefs: SharedPreferences) {
 
     enum class HomePageLinksMode {
         BOOKMARKS, LATEST_HISTORY, MOST_VISITED
-    }
-
-    fun isNeedAutoCheckUpdates(): Boolean {
-        return prefs.getBoolean(AUTO_CHECK_UPDATES_KEY, Utils.isInstalledByAPK(TVBro.instance))
-    }
-
-    fun getUpdateChannel(): String {
-        return prefs.getString(UPDATE_CHANNEL_KEY, "release")!!
     }
 
     var incognitoMode: Boolean
@@ -184,20 +177,30 @@ class Config(val prefs: SharedPreferences) {
             prefs.edit().putInt(NOTIFICATION_ABOUT_ENGINE_CHANGE_SHOWN_KEY, value).apply()
         }
 
+    var autoCheckUpdates: Boolean
+        get() = prefs.getBoolean(AUTO_CHECK_UPDATES_KEY, Utils.isInstalledByAPK(TVBro.instance))
+        set(value) {
+            prefs.edit().putBoolean(AUTO_CHECK_UPDATES_KEY, value).apply()
+        }
+
+    var updateChannel: String
+        get() = prefs.getString(UPDATE_CHANNEL_KEY, "release")!!
+        set(value) {
+            prefs.edit().putString(UPDATE_CHANNEL_KEY, value).apply()
+        }
+
+    var appVersionCodeMark: Int
+        get() = prefs.getInt(APP_VERSION_CODE_MARK_KEY, 0)
+        set(value) {
+            prefs.edit().putInt(APP_VERSION_CODE_MARK_KEY, value).apply()
+        }
+
     fun isWebEngineGecko(): Boolean {
         return webEngine == SupportedWebEngines[0]
     }
 
     fun isWebEngineNotSet(): Boolean {
         return !prefs.contains(WEB_ENGINE)
-    }
-
-    fun setAutoCheckUpdates(need: Boolean) {
-        prefs.edit().putBoolean(AUTO_CHECK_UPDATES_KEY, need).apply()
-    }
-
-    fun setUpdateChannel(channel: String) {
-        prefs.edit().putString(UPDATE_CHANNEL_KEY, channel).apply()
     }
 
     fun guessSearchEngineName(): String {
