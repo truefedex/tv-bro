@@ -1,7 +1,9 @@
 package com.phlox.tvwebbrowser.utils
 
 import android.app.Activity
+import android.content.Context
 import android.content.ContextWrapper
+import android.content.res.Resources
 import android.view.View
 import android.view.ViewGroup
 import java.util.*
@@ -35,3 +37,7 @@ val ViewGroup.childs: ArrayList<View>
         }
         return result
     }
+
+fun Int.dip2px(context: Context): Float {
+    return (this * context.resources.displayMetrics.density)
+}

@@ -145,7 +145,7 @@ dependencies {
     //val geckoViewChannel = "beta"
     //val geckoViewVersion = "112.0.20230330182947"
     //implementation("org.mozilla.geckoview:geckoview-$geckoViewChannel:$geckoViewVersion")
-    val geckoViewVersion = "112.0.20230406114409"
+    val geckoViewVersion = "113.0.20230501151611"
     implementation("org.mozilla.geckoview:geckoview:$geckoViewVersion")
 
     //"debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")

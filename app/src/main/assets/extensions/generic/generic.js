@@ -11,6 +11,7 @@ port.onMessage.addListener(message => {
 //port.postMessage("Hello from WebExtension!");
 
 function zoomIn() {
+    //browser.runtime.sendMessage({ action: "zoomIn" });
     var currentZoom = 1;
     if (typeof window.TVBroZoom !== 'undefined') {
         currentZoom = window.TVBroZoom;

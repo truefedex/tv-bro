@@ -8,7 +8,9 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.WindowManager
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.dip2px
 import com.phlox.tvwebbrowser.webengine.webview.WebViewEx
+import org.mozilla.geckoview.ScreenLength
 
 class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null):
     GeckoViewEx(context, attrs) {
@@ -251,8 +253,11 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         if (scrollX == 0 && scrollY == 0) {
             return
         }
+        val session = session
         if ((scrollX != 0 && canScrollHorizontally(scrollX)) || (scrollY != 0 && canScrollVertically(scrollY))) {
             scrollTo(this.scrollX + scrollX, this.scrollY + scrollY)
+        } else if (session != null) {
+            session.panZoomController.scrollBy(ScreenLength.fromPixels(scrollX.dip2px(context).toDouble()), ScreenLength.fromPixels(scrollY.dip2px(context).toDouble()))
         } else if (USE_SCROLL_HACK && !dpadCenterPressed) {
             var justStarted = false
             if (!scrollHackStarted) {

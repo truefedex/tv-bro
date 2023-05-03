@@ -10,19 +10,34 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
-      "js": ["generic.js"],
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "generic.js"
+      ],
       "run_at": "document_start"
     },
     {
-      "matches": ["https://tvbro.phlox.dev/appcontent/home/*", "*://*/appcontent/home/*"],
-      "js": ["home.js"],
+      "matches": [
+        "https://tvbro.phlox.dev/appcontent/home/*",
+        "*://*/appcontent/home/*"
+      ],
+      "js": [
+        "home.js"
+      ],
       "run_at": "document_start"
     }
   ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
   "permissions": [
     "nativeMessaging",
     "nativeMessagingFromContent",
-    "geckoViewAddons"
+    "geckoViewAddons",
+    "tabs"
   ]
 }
