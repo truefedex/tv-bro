@@ -230,7 +230,8 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     override fun zoomIn() {
-        appWebExtensionPortDelegate?.port?.postMessage(JSONObject("{\"action\":\"zoomIn\"}"))
+        //appWebExtensionPortDelegate?.port?.postMessage(JSONObject("{\"action\":\"zoomIn\"}"))
+        webView?.tryZoomIn()
     }
 
     override fun canZoomOut(): Boolean {
@@ -238,7 +239,8 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     override fun zoomOut() {
-        appWebExtensionPortDelegate?.port?.postMessage(JSONObject("{\"action\":\"zoomOut\"}"))
+        //appWebExtensionPortDelegate?.port?.postMessage(JSONObject("{\"action\":\"zoomOut\"}"))
+        webView?.tryZoomOut()
     }
 
     override fun zoomBy(zoomBy: Float) {

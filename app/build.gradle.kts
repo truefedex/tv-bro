@@ -151,10 +151,10 @@ dependencies {
     //"debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     "googleImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.6")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.7")
 
     "genericImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.6")
+    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.7")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.9")

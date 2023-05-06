@@ -6,11 +6,12 @@ import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.MotionEvent.PointerProperties
 import android.view.WindowManager
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.dip2px
-import com.phlox.tvwebbrowser.webengine.webview.WebViewEx
 import org.mozilla.geckoview.ScreenLength
+
 
 class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null):
     GeckoViewEx(context, attrs) {
@@ -205,14 +206,14 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         return child?.dispatchKeyEvent(event) ?: super.dispatchKeyEvent(event)
     }
 
-    private fun dispatchMotionEvent(x: Float, y: Float, action: Int) {
-        if (action == MotionEvent.ACTION_DOWN) {
+    private fun dispatchMotionEvent(x: Float, y: Float, action: Int, pointerId: Int = 0) {
+        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
             downTime = SystemClock.uptimeMillis()
         }
         val eventTime = SystemClock.uptimeMillis()
         val properties = arrayOfNulls<MotionEvent.PointerProperties>(1)
         val pp1 = MotionEvent.PointerProperties()
-        pp1.id = 0
+        pp1.id = pointerId
         pp1.toolType = MotionEvent.TOOL_TYPE_FINGER
         properties[0] = pp1
         val pointerCoords = arrayOfNulls<MotionEvent.PointerCoords>(1)
@@ -417,17 +418,184 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         }
     }
 
-    /*fun tryZoomIn() {
-        //dispatch events to simulate pinch zoom
-        val x = width / 2
-        val y = height / 2
-        val x2 = x + 100
-        val y2 = y + 100
-        dispatchMotionEvent(x.toFloat(), y.toFloat(), MotionEvent.ACTION_DOWN)
-        dispatchMotionEvent(x2.toFloat(), y2.toFloat(), MotionEvent.ACTION_POINTER_DOWN)
-        dispatchMotionEvent(x.toFloat(), y.toFloat(), MotionEvent.ACTION_MOVE)
-        dispatchMotionEvent(x2.toFloat(), y2.toFloat(), MotionEvent.ACTION_MOVE)
-        dispatchMotionEvent(x.toFloat(), y.toFloat(), MotionEvent.ACTION_POINTER_UP)
-        dispatchMotionEvent(x2.toFloat(), y2.toFloat(), MotionEvent.ACTION_UP)
-    }*/
+    fun tryZoomIn() {
+        generateZoomGesture(true)
+    }
+
+    fun tryZoomOut() {
+        generateZoomGesture(false)
+    }
+
+    //https://stackoverflow.com/questions/11523423/how-to-generate-zoom-pinch-gesture-for-testing-for-android
+    var pinchZoomStartTime = 0L
+    val pinchZoomDuration = 2000
+    var pinchZoomIn = true
+    val zoomFactor = 0.01f
+    private fun generateZoomGesture(pinchZoomIn: Boolean) {
+        if (pinchZoomStartTime != 0L) {
+            return
+        }
+        this.pinchZoomIn = pinchZoomIn
+        this.pinchZoomStartTime = System.currentTimeMillis()
+        val deltaX = zoomFactor / 2f * width
+        val deltaY = zoomFactor / 2f * height
+        val startPoint1: PointF = if (pinchZoomIn) {
+            PointF(width / 2f, height / 2f)
+        } else {
+            PointF(width / 2f - deltaX, height / 2f - deltaY)
+        }
+        val startPoint2: PointF = if (pinchZoomIn) {
+            PointF(width / 2f, height / 2f)
+        } else {
+            PointF(width / 2f + deltaX, height / 2f + deltaY)
+        }
+        var event: MotionEvent?
+        val eventX1: Float = startPoint1.x
+        val eventY1: Float = startPoint1.y
+        val eventX2: Float = startPoint2.x
+        val eventY2: Float = startPoint2.y
+
+        // specify the property for the two touch points
+        val properties = arrayOfNulls<PointerProperties>(2)
+        val pp1 = PointerProperties()
+        pp1.id = 0
+        pp1.toolType = MotionEvent.TOOL_TYPE_FINGER
+        val pp2 = PointerProperties()
+        pp2.id = 1
+        pp2.toolType = MotionEvent.TOOL_TYPE_FINGER
+        properties[0] = pp1
+        properties[1] = pp2
+
+        //specify the coordinations of the two touch points
+        //NOTE: you MUST set the pressure and size value, or it doesn't work
+        val pointerCoords = arrayOfNulls<MotionEvent.PointerCoords>(2)
+        val pc1 = MotionEvent.PointerCoords()
+        pc1.x = eventX1
+        pc1.y = eventY1
+        pc1.pressure = 1f
+        pc1.size = 1f
+        val pc2 = MotionEvent.PointerCoords()
+        pc2.x = eventX2
+        pc2.y = eventY2
+        pc2.pressure = 1f
+        pc2.size = 1f
+        pointerCoords[0] = pc1
+        pointerCoords[1] = pc2
+
+        //////////////////////////////////////////////////////////////
+        // events sequence of zoom gesture
+        // 1. send ACTION_DOWN event of one start point
+        // 2. send ACTION_POINTER_2_DOWN of two start points
+        // 3. send ACTION_MOVE of two middle points
+        // 4. repeat step 3 with updated middle points (x,y),
+        //      until reach the end points
+        // 5. send ACTION_POINTER_2_UP of two end points
+        // 6. send ACTION_UP of one end point
+        //////////////////////////////////////////////////////////////
+
+        // step 1
+        event = MotionEvent.obtain(
+            pinchZoomStartTime, pinchZoomStartTime,
+            MotionEvent.ACTION_DOWN, 1, properties,
+            pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
+        )
+        dispatchTouchEvent(event)
+
+        //step 2
+        event = MotionEvent.obtain(
+            pinchZoomStartTime, pinchZoomStartTime,
+            MotionEvent.ACTION_POINTER_2_DOWN, 2,
+            properties, pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
+        )
+        dispatchTouchEvent(event)
+
+        post(pinchZoomRunnable)
+    }
+
+    private val pinchZoomRunnable: Runnable by lazy {
+        object : Runnable {
+            override fun run() {
+                if (pinchZoomStartTime == 0L) {
+                    return
+                }
+                val deltaX = zoomFactor / 2 * width
+                val deltaY = zoomFactor / 2 * height
+                val startPoint1: PointF = if (pinchZoomIn) {
+                    PointF(width / 2f, height / 2f)
+                } else {
+                    PointF(width / 2f - deltaX, height / 2f - deltaY)
+                }
+                val startPoint2: PointF = if (pinchZoomIn) {
+                    PointF(width / 2f, height / 2f)
+                } else {
+                    PointF(width / 2f + deltaX, height / 2f + deltaY)
+                }
+                val endPoint1: PointF = if (pinchZoomIn) {
+                    PointF(width / 2f + deltaX, height / 2f + deltaY)
+                } else {
+                    PointF(width / 2f, height / 2f)
+                }
+                val endPoint2: PointF = if (pinchZoomIn) {
+                    PointF(width / 2f - deltaX, height / 2f - deltaY)
+                } else {
+                    PointF(width / 2f, height / 2f)
+                }
+
+                val properties = arrayOfNulls<PointerProperties>(2)
+                val pp1 = PointerProperties()
+                pp1.id = 0
+                pp1.toolType = MotionEvent.TOOL_TYPE_FINGER
+                val pp2 = PointerProperties()
+                pp2.id = 1
+                pp2.toolType = MotionEvent.TOOL_TYPE_FINGER
+                properties[0] = pp1
+                properties[1] = pp2
+                val pointerCoords = arrayOfNulls<MotionEvent.PointerCoords>(2)
+                val pc1 = MotionEvent.PointerCoords()
+                val pc2 = MotionEvent.PointerCoords()
+                val now = System.currentTimeMillis()
+                if (now - pinchZoomStartTime < pinchZoomDuration) {
+                    val progress = (now - pinchZoomStartTime).toFloat() / pinchZoomDuration
+                    //step 3, 4
+                    // update the move events
+                    pc1.x = startPoint1.x + (endPoint1.x - startPoint1.x) * progress
+                    pc1.y = startPoint1.y + (endPoint1.y - startPoint1.y) * progress
+                    pc2.x = startPoint2.x + (endPoint2.x - startPoint2.x) * progress
+                    pc2.y = startPoint2.y + (endPoint2.y - startPoint2.y) * progress
+                    pointerCoords[0] = pc1
+                    pointerCoords[1] = pc2
+                    val event = MotionEvent.obtain(
+                        pinchZoomStartTime, now,
+                        MotionEvent.ACTION_MOVE, 2, properties,
+                        pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
+                    )
+                    dispatchTouchEvent(event)
+                    postDelayed(pinchZoomRunnable, 10)
+                } else {
+                    //step 5
+                    pc1.x = endPoint1.x
+                    pc1.y = endPoint1.y
+                    pc2.x = endPoint2.x
+                    pc2.y = endPoint2.y
+                    pointerCoords[0] = pc1
+                    pointerCoords[1] = pc2
+                    var event = MotionEvent.obtain(
+                        pinchZoomStartTime, now,
+                        MotionEvent.ACTION_POINTER_2_UP, 2, properties,
+                        pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
+                    )
+                    dispatchTouchEvent(event)
+
+                    // step 6
+                    event = MotionEvent.obtain(
+                        pinchZoomStartTime, now,
+                        MotionEvent.ACTION_UP, 1, properties,
+                        pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
+                    )
+                    dispatchTouchEvent(event)
+                    pinchZoomStartTime = 0
+                }
+            }
+        }
+    }
 }

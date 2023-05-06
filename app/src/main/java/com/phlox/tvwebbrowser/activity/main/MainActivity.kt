@@ -26,6 +26,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.os.postDelayed
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
@@ -154,7 +155,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     this.zoomIn()
                 }
                 onWebViewUpdated(tab)
-                if (!this.canZoomIn()) {
+                if (config.isWebEngineGecko()) {
+                    uiHandler.postDelayed({
+                        vb.ibZoomIn.requestFocus()
+                    }, 150)
+                } else if (!this.canZoomIn()) {
                     vb.ibZoomOut.requestFocus()
                 }
             }
@@ -167,7 +172,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     this.zoomOut()
                 }
                 onWebViewUpdated(tab)
-                if (!this.canZoomOut()) {
+                if (config.isWebEngineGecko()) {
+                    uiHandler.postDelayed({
+                        vb.ibZoomOut.requestFocus()
+                    }, 150)
+                } else if (!this.canZoomOut()) {
                     vb.ibZoomIn.requestFocus()
                 }
             }
@@ -854,9 +863,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 uiHandler.post { shortcutMgr.process(keyCode, this) }
             }
             return true
-        } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY ||
+        } else if ((keyCode == KeyEvent.KEYCODE_MEDIA_PLAY ||
             keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE ||
-            keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+            keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) && !config.isWebEngineGecko()) {
             //trick to make play/pause media buttons work
             //TODO: remove this if someday webview starts handling media keys by himself
             if (event.action == KeyEvent.ACTION_UP) {
