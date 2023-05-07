@@ -12,9 +12,9 @@
       "latestVersionName": "v2.0.0",
       "latestVersionCode": 60,
       "minAPI": 23,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.0.0-alpha/tvbro2.0.0-alpha.apk",
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.0.0-rc1/tvbro-generic-2.0.0.armeabi-v7a.apk",
       "urls": [
-        "https://github.com/truefedex/tv-bro/releases/download/v2.0.0-alpha/tvbro-generic-2.0.0.arm64-v8a.apk"
+        "https://github.com/truefedex/tv-bro/releases/download/v2.0.0-rc1/tvbro-generic-2.0.0.arm64-v8a.apk"
         ]
     }
   ],
