@@ -142,4 +142,58 @@
     <item>Blocca anche nuove schede (avviato da script)</item>
     <item>Blocca eventuali nuove finestre (blocco massimo)</item>
   </string-array>
+  <string name="home_page">Pagina iniziale</string>
+  <string name="custom_home_page_url">URL personalizzato della home page</string>
+  <string-array name="home_page_modes">
+    <item>TV fratello casa</item>
+    <item>Motore di ricerca</item>
+    <item>Costume</item>
+    <item>Vuoto</item>
+  </string-array>
+  <string-array name="home_page_links_modes">
+    <item>Segnalibri</item>
+    <item>Storia più recente</item>
+    <item>Più visitato</item>
+  </string-array>
+  <string name="repost_confirm_message">Per visualizzare questa pagina, TV Bro deve inviare informazioni che ripetano qualsiasi azione (come una ricerca o una conferma d&amp;#39;ordine) eseguita in precedenza.</string>
+  <string name="repost_confirm_title">Sei sicuro?</string>
+  <string name="repost_confirm_resend">Invia di nuovo</string>
+  <string name="before_unload_message">Questa pagina ti chiede di confermare che vuoi uscire - i dati che hai inserito potrebbero non essere salvati</string>
+  <string name="before_unload_title">Sei sicuro?</string>
+  <string name="before_unload_leave_page">Lasciare la pagina</string>
+  <string name="before_unload_stay">Rimanere sulla pagina</string>
+  <string name="username">Nome utente</string>
+  <string name="password">Parola d&amp;#39;ordine</string>
+  <string name="wait">Aspettare</string>
+  <string name="stop">Fermare</string>
+  <string name="slow_script">Uno script in questa pagina sta rallentando l&amp;#39;esecuzione del tuo browser web</string>
+  <string name="request_storage">Consentire l&amp;#39;accesso alla memoria del dispositivo per "%1$s"?</string>
+  <string name="request_storage_access">Consentire a terze parti di accedere all&amp;#39;archiviazione proprietaria per "%1$s"?</string>
+  <string name="request_geolocation">Condividere la posizione con "%1$s"?</string>
+  <string name="request_notification">Consentire le notifiche per "%1$s"?</string>
+  <string name="request_video">Condividi video con "%1$s"</string>
+  <string name="request_audio">Condividi l&amp;#39;audio con "%1$s"</string>
+  <string name="request_media">Condividi video e audio con "%1$s"</string>
+  <string name="request_xr">Condividere i display WebXR con "%1$s"?</string>
+  <string name="request_autoplay">Consentire la riproduzione automatica del video su "%1$s"?</string>
+  <string name="request_media_key_system_access">Consentire l&amp;#39;accesso alla chiave multimediale di sistema per "%1$s"?</string>
+  <string name="media_back_camera">Fotocamera posteriore</string>
+  <string name="media_front_camera">Fotocamera frontale</string>
+  <string name="media_microphone">Microfono</string>
+  <string name="media_other">Fonte sconosciuta</string>
+  <string name="web_browser_engine_temporary_setting">Motore del browser Web (impostazione temporanea)</string>
+  <string name="need_restart_message">Riavvia l&amp;#39;app per applicare le modifiche</string>
+  <string name="restart">Ricomincia</string>
+  <string name="yes">SÌ</string>
+  <string name="no">NO</string>
+  <string name="site_asks_to_open_unknown_url">Il sito chiede di aprire un URL sconosciuto</string>
+  <string name="site_asks_to_open_unknown_url_message">Vuoi aprire questo URL in un&amp;#39;app esterna?</string>
+  <string name="webview_sunset_dialog_title">TV Bro cambia motore.</string>
+  <string name="webview_sunset_dialog_message">Ciao! TV Bro cambia motore. Per tutto questo tempo, TV Bro ha utilizzato il componente di sistema WebView per visualizzare i contenuti web. Ma questo ha sempre portato a vari problemi dovuti al fatto che WebView viene aggiornato in modo indipendente e spesso presenta i propri bug. Ora TV Bro sta cambiando il motore in GeckoView, che può essere integrato, quindi non ci saranno problemi di questo tipo. Sfortunatamente, il formato dei dati interni di questi motori non è compatibile, quindi i dati delle sessioni aperte andranno persi durante la transizione. Pertanto, per qualche tempo TV Bro supporterà ancora entrambi i motori (puoi cambiare le impostazioni).
+
+Quindi sei pronto per utilizzare la versione GeckoView o vuoi rimanere su WebView per ora?</string>
+  <string name="webview_sunset_dialog_positive_button">Sì, iniziamo a utilizzare il nuovo motore</string>
+  <string name="webview_sunset_dialog_negative_button">No, usa quello vecchio per ora</string>
+  <string name="err_no_app_to_handle_url">Impossibile trovare un&amp;#39;applicazione adatta per gestire questo URL</string>
+  <string name="home_page_links">Link in home page</string>
 </resources>

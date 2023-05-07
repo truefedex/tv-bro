@@ -142,4 +142,58 @@
   <string name="share_url">分享网址</string>
   <string name="open_in_external_application">在外部应用程序中打开</string>
   <string name="external_app_open_error">找不到合适的应用</string>
+  <string name="home_page">Home page</string>
+  <string name="custom_home_page_url">Custom home page URL</string>
+  <string-array name="home_page_modes">
+    <item>TV Bro Home</item>
+    <item>Search engine</item>
+    <item>Custom</item>
+    <item>Blank</item>
+  </string-array>
+  <string-array name="home_page_links_modes">
+    <item>Bookmarks</item>
+    <item>Latest History</item>
+    <item>Most Visited</item>
+  </string-array>
+  <string name="repost_confirm_message">To display this page, TV Bro must send information that will repeat any action (such as a search or order confirmation) that was performed earlier.</string>
+  <string name="repost_confirm_title">Are you sure?</string>
+  <string name="repost_confirm_resend">Resend</string>
+  <string name="before_unload_message">This page is asking you to confirm that you want to leave - data you have entered may not be saved</string>
+  <string name="before_unload_title">Are you sure?</string>
+  <string name="before_unload_leave_page">Leave Page</string>
+  <string name="before_unload_stay">Stay on Page</string>
+  <string name="username">Username</string>
+  <string name="password">Password</string>
+  <string name="wait">Wait</string>
+  <string name="stop">Stop</string>
+  <string name="slow_script">A script on this page is causing your web browser to run slowly</string>
+  <string name="request_storage">Allow access to device storage for "%1$s"?</string>
+  <string name="request_storage_access">Allow third parties to access first party storage for "%1$s"?</string>
+  <string name="request_geolocation">Share location with "%1$s"?</string>
+  <string name="request_notification">Allow notifications for "%1$s"?</string>
+  <string name="request_video">Share video with "%1$s"</string>
+  <string name="request_audio">Share audio with "%1$s"</string>
+  <string name="request_media">Share video and audio with "%1$s"</string>
+  <string name="request_xr">Share WebXR displays with "%1$s"?</string>
+  <string name="request_autoplay">Allow video to autoplay on "%1$s"?</string>
+  <string name="request_media_key_system_access">Allow system media key access for "%1$s"?</string>
+  <string name="media_back_camera">Back camera</string>
+  <string name="media_front_camera">Front camera</string>
+  <string name="media_microphone">Microphone</string>
+  <string name="media_other">Unknown source</string>
+  <string name="web_browser_engine_temporary_setting">Web browser engine (temporary setting)</string>
+  <string name="need_restart_message">Restart app to apply changes</string>
+  <string name="restart">Restart</string>
+  <string name="yes">Yes</string>
+  <string name="no">No</string>
+  <string name="site_asks_to_open_unknown_url">Site asks to open unknown URL</string>
+  <string name="site_asks_to_open_unknown_url_message">Do you want to open this URL in external app?</string>
+  <string name="webview_sunset_dialog_title">TV Bro changes engine.</string>
+  <string name="webview_sunset_dialog_message">Hello!  TV Bro changes engine.  All this time, TV Bro has been using the WebView system component to display web content.  But this all the time led to various problems due to the fact that the WebView is updated independently and often has own bugs.  Now TV Bro is changing the engine to GeckoView which can be built in so there will be no such problems.  Unfortunately, the internal data format of these engines is not compatible, so the data of open sessions will be lost during the transition.  Therefore, for some time TV Bro will still support both engines (you can switch in the settings).
+
+So are you ready to use the GeckoView version or want to stay on the WebView for now?</string>
+  <string name="webview_sunset_dialog_positive_button">Yes, let&amp;#39;s start using new engine</string>
+  <string name="webview_sunset_dialog_negative_button">No, use old one for now</string>
+  <string name="err_no_app_to_handle_url">Can not find suitable application to handle this URL</string>
+  <string name="home_page_links">Links on home page</string>
 </resources>

@@ -142,4 +142,58 @@
     <item>Blokuj także nowe karty (inicjowane przez skrypt)</item>
     <item>Zablokuj wszystkie nowe okna (blokowanie maksymalne)</item>
   </string-array>
+  <string name="home_page">Strona główna</string>
+  <string name="custom_home_page_url">Niestandardowy adres URL strony głównej</string>
+  <string-array name="home_page_modes">
+    <item>TV Bro Home</item>
+    <item>Wyszukiwarka</item>
+    <item>Zwyczaj</item>
+    <item>Pusty</item>
+  </string-array>
+  <string-array name="home_page_links_modes">
+    <item>Zakładki</item>
+    <item>Najnowsza historia</item>
+    <item>Najczęściej odwiedzany</item>
+  </string-array>
+  <string name="repost_confirm_message">Aby wyświetlić tę stronę, TV Bro musi wysłać informacje, które powtórzą wszelkie działania (takie jak wyszukiwanie lub potwierdzenie zamówienia), które zostały wykonane wcześniej.</string>
+  <string name="repost_confirm_title">Jesteś pewny?</string>
+  <string name="repost_confirm_resend">Wysłać ponownie</string>
+  <string name="before_unload_message">Ta strona prosi o potwierdzenie, że chcesz wyjść - wprowadzone dane mogą nie zostać zapisane</string>
+  <string name="before_unload_title">Jesteś pewny?</string>
+  <string name="before_unload_leave_page">Opuść stronę</string>
+  <string name="before_unload_stay">Zostań na stronie</string>
+  <string name="username">Nazwa użytkownika</string>
+  <string name="password">Hasło</string>
+  <string name="wait">Czekać</string>
+  <string name="stop">Zatrzymywać się</string>
+  <string name="slow_script">Skrypt na tej stronie powoduje powolne działanie przeglądarki internetowej</string>
+  <string name="request_storage">Zezwolić na dostęp do pamięci urządzenia dla „%1$s”?</string>
+  <string name="request_storage_access">Zezwolić innym firmom na dostęp do własnej pamięci masowej „%1$s”?</string>
+  <string name="request_geolocation">Udostępnić lokalizację „%1$s”?</string>
+  <string name="request_notification">Zezwolić na powiadomienia dla „%1$s”?</string>
+  <string name="request_video">Udostępnij film „%1$s”</string>
+  <string name="request_audio">Udostępnij dźwięk „%1$s”</string>
+  <string name="request_media">Udostępnij wideo i audio „%1$s”</string>
+  <string name="request_xr">Udostępnij ekrany WebXR „%1$s”?</string>
+  <string name="request_autoplay">Zezwolić na automatyczne odtwarzanie wideo w „%1$s”?</string>
+  <string name="request_media_key_system_access">Zezwolić na dostęp do systemowego klucza multimedialnego dla „%1$s”?</string>
+  <string name="media_back_camera">Tylna kamera</string>
+  <string name="media_front_camera">Przednia kamera</string>
+  <string name="media_microphone">Mikrofon</string>
+  <string name="media_other">Nieznane źródło</string>
+  <string name="web_browser_engine_temporary_setting">Silnik przeglądarki internetowej (ustawienie tymczasowe)</string>
+  <string name="need_restart_message">Uruchom ponownie aplikację, aby zastosować zmiany</string>
+  <string name="restart">Uruchom ponownie</string>
+  <string name="yes">Tak</string>
+  <string name="no">NIE</string>
+  <string name="site_asks_to_open_unknown_url">Witryna prosi o otwarcie nieznanego adresu URL</string>
+  <string name="site_asks_to_open_unknown_url_message">Czy chcesz otworzyć ten adres URL w aplikacji zewnętrznej?</string>
+  <string name="webview_sunset_dialog_title">TV Bro zmienia silnik.</string>
+  <string name="webview_sunset_dialog_message">Cześć! TV Bro zmienia silnik. Przez cały ten czas TV Bro używał komponentu systemu WebView do wyświetlania treści internetowych. Ale to cały czas prowadziło do różnych problemów ze względu na fakt, że WebView jest aktualizowany niezależnie i często ma własne błędy. Teraz TV Bro zmienia silnik na GeckoView, który można wbudować, więc nie będzie takich problemów. Niestety wewnętrzny format danych tych wyszukiwarek nie jest zgodny, więc dane otwartych sesji zostaną utracone podczas przenoszenia. Dlatego przez jakiś czas TV Bro będzie nadal obsługiwał oba silniki (można to przełączyć w ustawieniach).
+
+Czy jesteś gotowy do korzystania z wersji GeckoView, czy chcesz na razie pozostać przy WebView?</string>
+  <string name="webview_sunset_dialog_positive_button">Tak, zacznijmy używać nowego silnika</string>
+  <string name="webview_sunset_dialog_negative_button">Nie, na razie użyj starego</string>
+  <string name="err_no_app_to_handle_url">Nie można znaleźć odpowiedniej aplikacji do obsługi tego adresu URL</string>
+  <string name="home_page_links">Linki na stronie głównej</string>
 </resources>

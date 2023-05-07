@@ -142,4 +142,58 @@
     <item>Cũng chặn các tab mới (khởi tạo tập lệnh)</item>
     <item>Chặn mọi cửa sổ mới (chặn tối đa)</item>
   </string-array>
+  <string name="home_page">trang chủ</string>
+  <string name="custom_home_page_url">URL trang chủ tùy chỉnh</string>
+  <string-array name="home_page_modes">
+    <item>Trang chủ TV Bro</item>
+    <item>Máy tìm kiếm</item>
+    <item>Phong tục</item>
+    <item>Trống</item>
+  </string-array>
+  <string-array name="home_page_links_modes">
+    <item>Dấu trang</item>
+    <item>Lịch sử mới nhất</item>
+    <item>Truy cập nhiều nhất</item>
+  </string-array>
+  <string name="repost_confirm_message">Để hiển thị trang này, TV Bro phải gửi thông tin sẽ lặp lại bất kỳ hành động nào (chẳng hạn như tìm kiếm hoặc xác nhận đơn hàng) đã được thực hiện trước đó.</string>
+  <string name="repost_confirm_title">Bạn có chắc không?</string>
+  <string name="repost_confirm_resend">gửi lại</string>
+  <string name="before_unload_message">Trang này yêu cầu bạn xác nhận rằng bạn muốn rời khỏi - dữ liệu bạn đã nhập có thể không được lưu</string>
+  <string name="before_unload_title">Bạn có chắc không?</string>
+  <string name="before_unload_leave_page">Rời khỏi trang</string>
+  <string name="before_unload_stay">Ở lại trang</string>
+  <string name="username">tên tài khoản</string>
+  <string name="password">Mật khẩu</string>
+  <string name="wait">Chờ đợi</string>
+  <string name="stop">Dừng lại</string>
+  <string name="slow_script">Một tập lệnh trên trang này đang khiến trình duyệt web của bạn chạy chậm</string>
+  <string name="request_storage">Cho phép truy cập vào bộ nhớ thiết bị cho "%1$s"?</string>
+  <string name="request_storage_access">Cho phép bên thứ ba truy cập bộ nhớ của bên thứ nhất cho "%1$s"?</string>
+  <string name="request_geolocation">Chia sẻ vị trí với "%1$s"?</string>
+  <string name="request_notification">Cho phép thông báo cho "%1$s"?</string>
+  <string name="request_video">Chia sẻ video với "%1$s"</string>
+  <string name="request_audio">Chia sẻ âm thanh với "%1$s"</string>
+  <string name="request_media">Chia sẻ video và âm thanh với "%1$s"</string>
+  <string name="request_xr">Chia sẻ màn hình WebXR với "%1$s"?</string>
+  <string name="request_autoplay">Cho phép video tự động phát trên "%1$s"?</string>
+  <string name="request_media_key_system_access">Cho phép truy cập khóa phương tiện hệ thống cho "%1$s"?</string>
+  <string name="media_back_camera">Máy ảnh sau</string>
+  <string name="media_front_camera">Camera phía trước</string>
+  <string name="media_microphone">Cái mic cờ rô</string>
+  <string name="media_other">Nguồn không rõ</string>
+  <string name="web_browser_engine_temporary_setting">Công cụ trình duyệt web (cài đặt tạm thời)</string>
+  <string name="need_restart_message">Khởi động lại ứng dụng để áp dụng các thay đổi</string>
+  <string name="restart">Khởi động lại</string>
+  <string name="yes">Đúng</string>
+  <string name="no">KHÔNG</string>
+  <string name="site_asks_to_open_unknown_url">Trang web yêu cầu mở URL không xác định</string>
+  <string name="site_asks_to_open_unknown_url_message">Bạn có muốn mở URL này trong ứng dụng bên ngoài không?</string>
+  <string name="webview_sunset_dialog_title">TV Bro thay đổi động cơ.</string>
+  <string name="webview_sunset_dialog_message">Xin chào! TV Bro thay đổi động cơ. Tất cả thời gian này, TV Bro đã sử dụng thành phần hệ thống WebView để hiển thị nội dung web. Nhưng điều này luôn dẫn đến nhiều vấn đề khác nhau do WebView được cập nhật độc lập và thường có lỗi riêng. Bây giờ TV Bro đang thay đổi công cụ thành GeckoView có thể được tích hợp sẵn nên sẽ không có vấn đề như vậy. Rất tiếc, định dạng dữ liệu nội bộ của các công cụ này không tương thích nên dữ liệu của các phiên mở sẽ bị mất trong quá trình chuyển đổi. Do đó, trong một thời gian, TV Bro vẫn sẽ hỗ trợ cả hai công cụ (bạn có thể chuyển đổi trong phần cài đặt).
+
+Vì vậy, bạn đã sẵn sàng sử dụng phiên bản GeckoView hay muốn tiếp tục sử dụng WebView ngay bây giờ?</string>
+  <string name="webview_sunset_dialog_positive_button">Vâng, hãy bắt đầu sử dụng công cụ mới</string>
+  <string name="webview_sunset_dialog_negative_button">Không, sử dụng cái cũ cho bây giờ</string>
+  <string name="err_no_app_to_handle_url">Không thể tìm thấy ứng dụng phù hợp để xử lý URL này</string>
+  <string name="home_page_links">Liên kết trên trang chủ</string>
 </resources>

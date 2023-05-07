@@ -142,4 +142,58 @@
     <item>Також блокувати нові вкладки (ініційовані сценарієм)</item>
     <item>Блокувати будь-які нові вікна (максимальне блокування)</item>
   </string-array>
+  <string name="home_page">Домашня сторінка</string>
+  <string name="custom_home_page_url">Користувацька URL-адреса домашньої сторінки</string>
+  <string-array name="home_page_modes">
+    <item>Домашня TV Bro</item>
+    <item>Пошукова система</item>
+    <item>Користувацька</item>
+    <item>Пуста</item>
+  </string-array>
+  <string-array name="home_page_links_modes">
+    <item>Закладки</item>
+    <item>Історія</item>
+    <item>Найбільш відвідувані</item>
+  </string-array>
+  <string name="repost_confirm_message">Щоб відобразити цю сторінку, TV Bro має надіслати інформацію, яка повторюватиме будь-яку дію (наприклад, пошук або підтвердження замовлення), виконану раніше.</string>
+  <string name="repost_confirm_title">Ви впевнені?</string>
+  <string name="repost_confirm_resend">Надіслати повторно</string>
+  <string name="before_unload_message">Ця сторінка просить вас підтвердити, що ви хочете вийти - дані, які ви ввели, можуть не зберегтися</string>
+  <string name="before_unload_title">Ви впевнені?</string>
+  <string name="before_unload_leave_page">Покинути сторінку</string>
+  <string name="before_unload_stay">Залишатись на сторінці</string>
+  <string name="username">Ім\'я користувача</string>
+  <string name="password">Пароль</string>
+  <string name="wait">Зачекайте</string>
+  <string name="stop">Стоп</string>
+  <string name="slow_script">Сценарій на цій сторінці спричиняє повільну роботу веб-переглядача</string>
+  <string name="request_storage">Дозволити доступ до пам’яті пристрою для "%1$s"?</string>
+  <string name="request_storage_access">Дозволити третім сторонам отримати доступ до основного сховища для "%1$s"?</string>
+  <string name="request_geolocation">Поділитися місцезнаходженням із "%1$s"?</string>
+  <string name="request_notification">Дозволити сповіщення для "%1$s"?</string>
+  <string name="request_video">Поділіться відео з "%1$s"</string>
+  <string name="request_audio">Поділіться аудіо з "%1$s"</string>
+  <string name="request_media">Поділіться відео та аудіо з "%1$s"</string>
+  <string name="request_xr">Поділитися дисплеями WebXR із "%1$s"?</string>
+  <string name="request_autoplay">Дозволити автоматичне відтворення відео на "%1$s"?</string>
+  <string name="request_media_key_system_access">Дозволити доступ до системного мультимедійного ключа для "%1$s"?</string>
+  <string name="media_back_camera">Задня камера</string>
+  <string name="media_front_camera">Фронтальна камера</string>
+  <string name="media_microphone">Мікрофон</string>
+  <string name="media_other">Невідоме джерело</string>
+  <string name="web_browser_engine_temporary_setting">"Двигун" веб-браузера (тимчасове налаштування)</string>
+  <string name="need_restart_message">Перезапустіть програму, щоб застосувати зміни</string>
+  <string name="restart">Перезапустити</string>
+  <string name="yes">Так</string>
+  <string name="no">Немає</string>
+  <string name="site_asks_to_open_unknown_url">Сайт просить відкрити невідому URL-адресу</string>
+  <string name="site_asks_to_open_unknown_url_message">Відкрити цю URL-адресу в зовнішній програмі?</string>
+  <string name="webview_sunset_dialog_title">TV Bro змінює "двигун".</string>
+  <string name="webview_sunset_dialog_message">Привіт! TV Bro змінює "двигун". Весь цей час для відображення веб-контенту TV Bro використовував системний компонент WebView. Але це весь час призводило до різних проблем через те, що WebView оновлюється самостійно і часто має власні баги. Тепер TV Bro змінює двигун на GeckoView, який можна вбудувати, тому таких проблем не буде. На жаль, внутрішній формат даних цих механізмів несумісний, тому дані відкритих сеансів буде втрачено під час переходу. Тому ще деякий час TV Bro підтримуватиме обидва двигуни (можна перемкнути в налаштуваннях).
+
+Отже, ви готові використовувати версію GeckoView чи хочете поки що залишитися на WebView?</string>
+  <string name="webview_sunset_dialog_positive_button">Так, давайте почнемо використовувати новий механізм</string>
+  <string name="webview_sunset_dialog_negative_button">Ні, поки використовувати старий</string>
+  <string name="err_no_app_to_handle_url">Неможливо знайти відповідну програму для обробки цієї URL-адреси</string>
+  <string name="home_page_links">Посилання на домашній сторінці</string>
 </resources>

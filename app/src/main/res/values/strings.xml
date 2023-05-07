@@ -145,7 +145,7 @@
     <string name="external_app_open_error">Can not find suitable application</string>
     <string name="home_page">Home page</string>
     <string name="custom_home_page_url">Custom home page URL</string>
-    <string name="home_page_links">Home page links</string>
+    <string name="home_page_links">Links on home page</string>
     <array name="home_page_modes">
         <item>TV Bro Home</item>
         <item>Search engine</item>
