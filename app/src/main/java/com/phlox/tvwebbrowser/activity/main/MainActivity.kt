@@ -1148,6 +1148,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 return false
             }
 
+            if (uri.scheme.equals("intent", true)) {
+                Log.d(TAG, "shouldOverrideUrlLoading: intent url: $url")
+                onOpenInExternalAppRequested(url)
+                return true
+            }
+
             //try to handle intent for non-network urls by external apps
             //TODO: ask user if he wants to open this url in external app
             return try {
