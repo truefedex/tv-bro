@@ -43,7 +43,7 @@
   <string name="msg_delete_history_all">删除所有历史记录项？</string>
   <string name="open_folder">打开包含文件夹</string>
   <string name="no_file_explorer_msg">您的设备上似乎没有安装任何合适的文件浏览器应用程序</string>
-  <string name="shortcuts">捷径</string>
+  <string name="shortcuts">快捷键</string>
   <string name="favorites">收藏夹</string>
   <string name="history">历史</string>
   <string name="settings">设置</string>
@@ -107,7 +107,7 @@
   <string name="close_application">关闭应用</string>
   <string name="close_tab">关闭标签页</string>
   <string name="navigate_forward">前进</string>
-  <string name="toggle_ads_blocking">切换广告屏蔽</string>
+  <string name="toggle_ads_blocking">广告屏蔽</string>
   <string name="never">从不</string>
   <string name="last_update">最后更新</string>
   <string name="update_ad_blocker_list">更新广告拦截器列表</string>
