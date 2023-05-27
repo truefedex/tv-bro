@@ -2,23 +2,23 @@
 <resources>
   <string name="app_name">TV Bro: 电视网络浏览器</string>
   <string name="error">错误</string>
-  <string name="ok">好</string>
-  <string name="loading">载入中...</string>
-  <string name="url_prompt">输入查询文字或网址</string>
+  <string name="ok">OK</string>
+  <string name="loading">载入中…</string>
+  <string name="url_prompt">输入搜索查询文字或网址</string>
   <string name="can_not_recognize">无法识别</string>
   <string name="speak">搜索查询</string>
-  <string name="open_new_tab">开启新分页</string>
-  <string name="close">关</string>
-  <string name="web_perm_request_confirmation">该网页要使用以下资源:\n\n%s</string>
+  <string name="open_new_tab">新建标签页</string>
+  <string name="close">关闭</string>
+  <string name="web_perm_request_confirmation">该网页想要使用以下资源:\n\n%s</string>
   <string name="allow">允许</string>
   <string name="deny">拒绝</string>
-  <string name="location">位置</string>
+  <string name="location">位置信息</string>
   <string name="open_in_new_tab">在新标签页中打开</string>
   <string name="download_started">开始下载…\n文件将存储在:\n%s</string>
   <string name="downloading_file">正在下载文件…</string>
   <string name="err_cant_open_file_chooser">无法打开文件选择器</string>
   <string name="bookmarks">书签</string>
-  <string name="add">加</string>
+  <string name="add">添加</string>
   <string name="edit">编辑</string>
   <string name="new_bookmark">新书签</string>
   <string name="title">标题</string>
@@ -26,13 +26,13 @@
   <string name="engine">搜索引擎</string>
   <string name="choose_default_search_engine">选择默认搜索引擎</string>
   <string name="save">保存</string>
-  <string name="search_engine_url_with_query_placeholder_query">带有查询占位符的搜索引擎网址[query]</string>
-  <string name="change_search_engine">变更搜寻引擎</string>
+  <string name="search_engine_url_with_query_placeholder_query">带有查询占位符 [query] 的搜索引擎网址</string>
+  <string name="change_search_engine">更改搜索引擎</string>
   <string name="change_user_agent">更改用户代理</string>
   <string name="user_agent_string">用户代理字符串</string>
   <string name="choose_user_agent_string">选择用户代理字符串</string>
   <string name="edit_user_agent_string">编辑用户代理字符串</string>
-  <string name="nothing">没有</string>
+  <string name="nothing">没有记录</string>
   <string name="cancelled">取消</string>
   <string name="download">下载</string>
   <string name="file_not_found">文件未找到</string>
@@ -42,37 +42,37 @@
   <string name="msg_delete_history">删除选定的历史项目？</string>
   <string name="msg_delete_history_all">删除所有历史记录项？</string>
   <string name="open_folder">打开包含文件夹</string>
-  <string name="no_file_explorer_msg">似乎您的设备上没有安装任何合适的文件浏览器应用程序</string>
-  <string name="shortcuts">捷径</string>
+  <string name="no_file_explorer_msg">您的设备上似乎没有安装任何合适的文件浏览器应用程序</string>
+  <string name="shortcuts">快捷键</string>
   <string name="favorites">收藏夹</string>
   <string name="history">历史</string>
-  <string name="settings">设定值</string>
+  <string name="settings">设置</string>
   <string name="shortcut">捷径</string>
   <string name="toggle_main_menu">切换主菜单</string>
-  <string name="navigate_back">向后导航</string>
-  <string name="navigate_home">导航到家</string>
+  <string name="navigate_back">后退</string>
+  <string name="navigate_home">转到主页</string>
   <string name="refresh_page">刷新页面</string>
-  <string name="voice_search">声音搜索</string>
+  <string name="voice_search">语音搜索</string>
   <string name="zoom_in">放大</string>
   <string name="zoom_out">缩小</string>
   <string name="not_set">没有设置</string>
-  <string name="action">行动：</string>
-  <string name="current_key">当前密钥：</string>
-  <string name="set_key_for_action">设定行动关键</string>
+  <string name="action">动作：</string>
+  <string name="current_key">当前按键：</string>
+  <string name="set_key_for_action">更改按键</string>
   <string name="press_eny_key">按任意键...</string>
-  <string name="clear">明确</string>
+  <string name="clear">清除</string>
   <string name="install">安装</string>
   <string name="turn_on_unknown_sources">请打开“未知来源”系统设置</string>
-  <string name="turn_on_unknown_sources_for_app">请允许TV Bro在系统设置中从“未知来源”安装应用</string>
-  <string name="storage_not_mounted">存储未安装</string>
+  <string name="turn_on_unknown_sources_for_app">请允许 TV Bro 在系统设置中从“未知来源”安装应用</string>
+  <string name="storage_not_mounted">存储未挂载</string>
   <string name="can_not_create_downloads">无法创建下载目录</string>
   <string name="voice_search_not_found">找不到语音搜索</string>
   <string name="new_version_dialog_title">新版本可用</string>
-  <string name="later">后来</string>
-  <string name="downloads">资料下载</string>
+  <string name="later">稍后提醒</string>
+  <string name="downloads">下载</string>
   <string name="downloads_notifications_description">关于下载状态的通知</string>
   <string name="main">主要</string>
-  <string name="version_and_updates">版</string>
+  <string name="version_and_updates">版本与更新</string>
   <string name="version_s">版本: %s</string>
   <string name="update_channel">更新频道：</string>
   <string name="auto_check_for_updates">自动检查更新</string>
@@ -81,119 +81,117 @@
   <string name="web_browser_optimized_for_tvs">针对电视进行了优化的网络浏览器</string>
   <string name="warning">警告</string>
   <string name="unprotected_connection">未保护的连接</string>
-  <string name="err_webview_can_not_link">无法链接到WebView组件。尝试先安装Android系统WebView组件。</string>
-  <string name="new_tab_title">[新标签]</string>
+  <string name="err_webview_can_not_link">无法链接到 WebView 组件。尝试先安装 Android 系统 WebView 组件。</string>
+  <string name="new_tab_title">[新标签页]</string>
   <string name="open_a_new_tab_here">在这里打开一个新标签</string>
-  <string name="tabs">标签</string>
+  <string name="tabs">标签页</string>
   <array name="tabs_options">
-    <item>开启新分页</item>
-    <item>关闭电流</item>
-    <item>关闭所有</item>
+    <item>新标签页</item>
+    <item>关闭当前</item>
+    <item>关闭全部</item>
     <item>向左移动</item>
-    <item>向右移</item>
+    <item>向右移动</item>
   </array>
   <string name="ssl_expired">证书已过期</string>
   <string name="ssl_idmismatch">主机名不匹配</string>
   <string name="ssl_date_invalid">证书日期无效</string>
   <string name="ssl_invalid">发生一般错误</string>
-  <string name="back_to_safety">回到安全</string>
-  <string name="go_im_aware">走。我知道风险</string>
+  <string name="back_to_safety">返回到安全连接</string>
+  <string name="go_im_aware">我已知晓风险，继续</string>
   <string name="connection_isnt_secure">连接不安全</string>
   <string name="hostname">主机名：</string>
   <string name="err_desk">错误说明：</string>
   <string name="details">细节：</string>
-  <string name="exit">出口</string>
+  <string name="exit">退出</string>
   <string name="find_in_apps_store">在应用商店中查找</string>
-  <string name="close_application">关闭申请</string>
-  <string name="close_tab">关闭标签</string>
-  <string name="navigate_forward">向前导航</string>
-  <string name="toggle_ads_blocking">切换广告屏蔽</string>
-  <string name="never">绝不</string>
+  <string name="close_application">关闭应用</string>
+  <string name="close_tab">关闭标签页</string>
+  <string name="navigate_forward">前进</string>
+  <string name="toggle_ads_blocking">广告屏蔽</string>
+  <string name="never">从不</string>
   <string name="last_update">最后更新</string>
-  <string name="update_ad_blocker_list">刷新广告拦截器列表</string>
+  <string name="update_ad_blocker_list">更新广告拦截器列表</string>
   <string name="need_restart">需要重启应用</string>
   <string name="theme">主题</string>
   <array name="themes">
-    <item>系统</item>
-    <item>白色</item>
+    <item>由系统决定</item>
+    <item>明亮</item>
     <item>黑暗</item>
   </array>
   <string name="set_search_engine_as_homepage">将搜索引擎设为首页</string>
   <string name="toggle_keep_screen_on">保持屏幕开启</string>
   <string name="incognito_mode">隐身模式</string>
-  <string name="incognito_mode_hint">现在您可以私下浏览，其他使用此设备的人将看不到您的活动。 TV Bro 不会保存您的浏览历史记录、cookie 和网站数据以及在表格中输入的信息。\n\n但是，下载和书签将被保存。 您访问的网站、您的组织或互联网服务提供商可能仍然可以看到您的活动。</string>
+  <string name="incognito_mode_hint">现在您可以浏览隐私内容，其他使用此设备的人将看不到您的活动。 TV Bro 不会保存您的浏览历史记录、cookie 和网站数据以及在表格中输入的信息。\n\n但是，下载和书签将被保存。 您访问的网站、您的组织或互联网服务提供商可能仍然可以看到您的活动。</string>
   <string name="don_t_show_again">不再显示</string>
   <string name="why_icon_changed">为什么图标变了？</string>
   <string name="clear_web_cache">清除网络缓存</string>
   <string name="no_bookmarks_yet">还没有书签</string>
-  <string name="done">完毕</string>
+  <string name="done">完成</string>
   <string name="block_popups">弹出窗口阻止</string>
   <string name="block_popups_s">弹出窗口阻止 (%s)</string>
   <string name="popup_dialog_blocked">弹出对话框被阻止</string>
-  <string name="new_tab_blocked">新标签被阻止</string>
+  <string name="new_tab_blocked">新标签页被阻止</string>
   <string-array name="popup_blocking_level">
     <item>不阻止</item>
     <item>阻止对话框</item>
-    <item>同时阻止新标签页（脚本启动）</item>
-    <item>阻止任何新窗口（最大阻止）</item>
+    <item>同时阻止新标签页 (由脚本启动的)</item>
+    <item>阻止任何新窗口 (最大阻止)</item>
   </string-array>
   <string name="copy_to_clipboard">复制到剪贴板</string>
-  <string name="copied_to_clipboard">复制到剪贴板</string>
+  <string name="copied_to_clipboard">已复制到剪贴板</string>
   <string name="share_url">分享网址</string>
   <string name="open_in_external_application">在外部应用程序中打开</string>
   <string name="external_app_open_error">找不到合适的应用</string>
-  <string name="home_page">Home page</string>
-  <string name="custom_home_page_url">Custom home page URL</string>
+  <string name="home_page">主页</string>
+  <string name="custom_home_page_url">自定义主页 URL</string>
   <string-array name="home_page_modes">
-    <item>TV Bro Home</item>
-    <item>Search engine</item>
-    <item>Custom</item>
-    <item>Blank</item>
+    <item>TV Bro 主页</item>
+    <item>搜索引擎</item>
+    <item>自定义</item>
+    <item>空白页</item>
   </string-array>
   <string-array name="home_page_links_modes">
-    <item>Bookmarks</item>
-    <item>Latest History</item>
-    <item>Most Visited</item>
+    <item>书签</item>
+    <item>近期历史记录</item>
+    <item>最常访问</item>
   </string-array>
-  <string name="repost_confirm_message">To display this page, TV Bro must send information that will repeat any action (such as a search or order confirmation) that was performed earlier.</string>
-  <string name="repost_confirm_title">Are you sure?</string>
-  <string name="repost_confirm_resend">Resend</string>
-  <string name="before_unload_message">This page is asking you to confirm that you want to leave - data you have entered may not be saved</string>
-  <string name="before_unload_title">Are you sure?</string>
-  <string name="before_unload_leave_page">Leave Page</string>
-  <string name="before_unload_stay">Stay on Page</string>
-  <string name="username">Username</string>
-  <string name="password">Password</string>
-  <string name="wait">Wait</string>
-  <string name="stop">Stop</string>
-  <string name="slow_script">A script on this page is causing your web browser to run slowly</string>
-  <string name="request_storage">Allow access to device storage for "%1$s"?</string>
-  <string name="request_storage_access">Allow third parties to access first party storage for "%1$s"?</string>
-  <string name="request_geolocation">Share location with "%1$s"?</string>
-  <string name="request_notification">Allow notifications for "%1$s"?</string>
-  <string name="request_video">Share video with "%1$s"</string>
-  <string name="request_audio">Share audio with "%1$s"</string>
-  <string name="request_media">Share video and audio with "%1$s"</string>
-  <string name="request_xr">Share WebXR displays with "%1$s"?</string>
-  <string name="request_autoplay">Allow video to autoplay on "%1$s"?</string>
-  <string name="request_media_key_system_access">Allow system media key access for "%1$s"?</string>
-  <string name="media_back_camera">Back camera</string>
-  <string name="media_front_camera">Front camera</string>
-  <string name="media_microphone">Microphone</string>
-  <string name="media_other">Unknown source</string>
-  <string name="web_browser_engine_temporary_setting">Web browser engine (temporary setting)</string>
-  <string name="need_restart_message">Restart app to apply changes</string>
-  <string name="restart">Restart</string>
-  <string name="yes">Yes</string>
-  <string name="no">No</string>
-  <string name="site_asks_to_open_unknown_url">Site asks to open unknown URL</string>
-  <string name="site_asks_to_open_unknown_url_message">Do you want to open this URL in external app?</string>
-  <string name="webview_sunset_dialog_title">TV Bro changes engine.</string>
-  <string name="webview_sunset_dialog_message">Hello!  TV Bro changes engine.  All this time, TV Bro has been using the WebView system component to display web content.  But this all the time led to various problems due to the fact that the WebView is updated independently and often has own bugs.  Now TV Bro is changing the engine to GeckoView which can be built in so there will be no such problems.  Unfortunately, the internal data format of these engines is not compatible, so the data of open sessions will be lost during the transition.  Therefore, for some time TV Bro will still support both engines (you can switch in the settings).
-
-So are you ready to use the GeckoView version or want to stay on the WebView for now?</string>
-  <string name="webview_sunset_dialog_positive_button">Yes, let&amp;#39;s start using new engine</string>
-  <string name="webview_sunset_dialog_negative_button">No, use old one for now</string>
-  <string name="err_no_app_to_handle_url">Can not find suitable application to handle this URL</string>
-  <string name="home_page_links">Links on home page</string>
+  <string name="repost_confirm_message">为了显示这个页面，TV Bro必须发送将重复此前操作(如搜索或确认订单)的信息。</string>
+  <string name="repost_confirm_title">您确定吗?</string>
+  <string name="repost_confirm_resend">重新发送</string>
+  <string name="before_unload_message">此页面询问您是否要离开 —— 您输入的信息可能不会被保存。</string>
+  <string name="before_unload_title">您确定吗?</string>
+  <string name="before_unload_leave_page">离开页面</string>
+  <string name="before_unload_stay">留在页面</string>
+  <string name="username">用户名</string>
+  <string name="password">密码</string>
+  <string name="wait">等待</string>
+  <string name="stop">停止</string>
+  <string name="slow_script">此页面上正在运行的一个脚本拖慢了您的浏览器。</string>
+  <string name="request_storage">允许 "%1$s" 访问您的设备存储吗?</string>
+  <string name="request_storage_access">允许第三方访问来自 "%1$s" 的第一方存储吗?</string>
+  <string name="request_geolocation">允许 "%1$s" 访问您的位置信息吗?</string>
+  <string name="request_notification">允许 "%1$s" 向您发送通知吗?</string>
+  <string name="request_video">允许 "%1$s" 访问相机吗?</string>
+  <string name="request_audio">允许 "%1$s" 访问话筒吗?</string>
+  <string name="request_media">允许 "%1$s" 访问相机与话筒吗？</string>
+  <string name="request_xr">允许 "%1$s" 访问您的 WebXR 显示器吗?</string>
+  <string name="request_autoplay">允许在 "%1$s" 的视频自动播放吗?</string>
+  <string name="request_media_key_system_access">允许 "%1$s" 访问您的媒体解密密钥吗?</string>
+  <string name="media_back_camera">后置相机</string>
+  <string name="media_front_camera">前置相机</string>
+  <string name="media_microphone">话筒</string>
+  <string name="media_other">未知媒体来源</string>
+  <string name="web_browser_engine_temporary_setting">浏览器引擎 (临时设置)</string>
+  <string name="need_restart_message">重新启动应用以应用此更改</string>
+  <string name="restart">重新启动</string>
+  <string name="yes">是</string>
+  <string name="no">否</string>
+  <string name="site_asks_to_open_unknown_url">此站点想要打开一个未知的 URL</string>
+  <string name="site_asks_to_open_unknown_url_message">您想允许此站点使用外部应用打开此 URL 吗?</string>
+  <string name="webview_sunset_dialog_title">TV Bro 更换了浏览器引擎</string>
+  <string name="webview_sunset_dialog_message">您好!  TV Bro更换了浏览器引擎。 一直以来，TV Bro 都是使用 WebView 系统组件来显示网页内容。 但这一直以来都导致了各种问题，因为 WebView 是独立更新的，而且经常有自己的 bug。 现在，TV Bro 正在将引擎改为 GeckoView，它可以被内置到应用中，所以不会有这样的问题。 不幸的是，这些引擎的内部数据格式并不兼容，所以在过渡期间，打开的会话数据会丢失。 因此，在一段时间内，TV Bro 仍将支持这两种引擎 (您可以在设置中切换)。\n\n那么您是准备使用新的 GeckoView 版本还是想暂时停留在旧的 WebView 上？</string>
+  <string name="webview_sunset_dialog_positive_button">是，开始使用新浏览器引擎</string>
+  <string name="webview_sunset_dialog_negative_button">否，暂时先用旧浏览器引擎</string>
+  <string name="err_no_app_to_handle_url">找不到合适的应用来处理此 URL</string>
+  <string name="home_page_links">主页上的链接</string>
 </resources>
