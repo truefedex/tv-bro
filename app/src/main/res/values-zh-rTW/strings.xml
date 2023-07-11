@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TV Bro：電視網頁瀏覽器</string>
+    <string name="error">錯誤</string>
+    <string name="ok">OK</string>
+    <string name="loading">載入中...</string>
+    <string name="url_prompt">輸入關鍵字或網址</string>
+    <string name="can_not_recognize">無法辨識</string>
+    <string name="speak">搜尋查詢</string>
+    <string name="open_new_tab">開啟新分頁</string>
+    <string name="close">關閉</string>
+    <string name="web_perm_request_confirmation">此網頁想要使用下列資源：\n\n%s</string>
+    <string name="allow">允許</string>
+    <string name="deny">拒絕</string>
+    <string name="location">位置</string>
+    <string name="open_in_new_tab">在新分頁開啟</string>
+    <string name="download_started">已開始下載...\n檔案將儲存到：\n%s</string>
+    <string name="downloading_file">正在下載檔案...</string>
+    <string name="err_cant_open_file_chooser">無法開啟檔案選擇器</string>
+    <string name="bookmarks">書籤</string>
+    <string name="add">新增</string>
+    <string name="edit">編輯</string>
+    <string name="no_bookmarks_yet">沒有書籤</string>
+    <string name="new_bookmark">新書籤</string>
+    <string name="done">完成</string>
+    <string name="title">標題</string>
+    <string name="search_history">搜尋紀錄</string>
+    <string name="engine">搜尋引擎</string>
+    <string name="choose_default_search_engine">選擇預設搜尋引擎</string>
+    <string name="set_search_engine_as_homepage">將搜尋引擎設為首頁</string>
+    <string name="save">儲存</string>
+    <string name="search_engine_url_with_query_placeholder_query">帶有查詢預留位置的搜尋引擎網址 [query]</string>
+    <string name="change_search_engine">變更搜尋引擎</string>
+    <string name="change_user_agent">變更使用者代理</string>
+    <string name="user_agent_string">使用者代理字串</string>
+    <string name="choose_user_agent_string">選擇使用者代理字串</string>
+    <string name="edit_user_agent_string">編輯使用者代理字串</string>
+    <string name="nothing">無</string>
+    <string name="cancelled">已取消</string>
+    <string name="download">下載</string>
+    <string name="file_not_found">找不到檔案</string>
+    <string name="no_app_for_file_type">找不到能夠開啟此檔案類型的應用程式</string>
+    <string name="delete">刪除</string>
+    <string name="cancel">取消</string>
+    <string name="msg_delete_history">要刪除所選的歷史紀錄項目嗎？</string>
+    <string name="msg_delete_history_all">要刪除所有歷史紀錄項目嗎？</string>
+    <string name="open_folder">開啟儲存資料夾</string>
+    <string name="no_file_explorer_msg">您的裝置似乎沒有安裝任何可用的檔案瀏覽器應用程式</string>
+    <string name="shortcuts">快捷鍵</string>
+    <string name="favorites">我的最愛</string>
+    <string name="history">歷史紀錄</string>
+    <string name="settings">設定</string>
+    <string name="shortcut">快捷鍵</string>
+    <string name="toggle_main_menu">切換主選單</string>
+    <string name="navigate_back">向後瀏覽</string>
+    <string name="navigate_home">返回首頁</string>
+    <string name="refresh_page">重新整理頁面</string>
+    <string name="voice_search">語音搜尋</string>
+    <string name="zoom_in">放大</string>
+    <string name="zoom_out">縮小</string>
+    <string name="not_set">未設定</string>
+    <string name="action">操作：</string>
+    <string name="current_key">目前按鍵：</string>
+    <string name="set_key_for_action">設定操作按鍵</string>
+    <string name="press_eny_key">點擊任意按鍵...</string>
+    <string name="clear">清除</string>
+    <string name="install">安裝</string>
+    <string name="turn_on_unknown_sources">請在系統設定中啟用 \"未知來源\"</string>
+    <string name="turn_on_unknown_sources_for_app">請在系統設定中允許 TV Bro 安裝來自 \"未知來源\" 的應用程式</string>
+    <string name="storage_not_mounted">儲存空間未掛接</string>
+    <string name="can_not_create_downloads">無法建立下載目錄</string>
+    <string name="voice_search_not_found">找不到語音搜尋</string>
+    <string name="new_version_dialog_title">有可用的新版本</string>
+    <string name="later">稍後</string>
+    <string name="downloads">下載</string>
+    <string name="downloads_notifications_description">下載狀態通知</string>
+    <string name="main">主要</string>
+    <string name="version_and_updates"><![CDATA[版本 & 更新]]></string>
+    <string name="version_s">版本：%s</string>
+    <string name="update_channel">更新頻道：</string>
+    <string name="auto_check_for_updates">自動檢查更新</string>
+    <string name="update">更新</string>
+    <string name="new_version_available_s">有可用的新版本：%s</string>
+    <string name="web_browser_optimized_for_tvs">針對電視強化的網頁瀏覽器</string>
+    <string name="warning">警告</string>
+    <string name="unprotected_connection">未保護的連線</string>
+    <string name="err_webview_can_not_link">無法連結至 WebView 套件。請先嘗試安裝 Android System WebView 套件。</string>
+    <string name="new_tab_title">[新分頁]</string>
+    <string name="open_a_new_tab_here">在此開啟新分頁</string>
+    <string name="tabs">分頁</string>
+    <string name="ssl_expired">證書已過期</string>
+    <string name="ssl_idmismatch">主機名稱不相符</string>
+    <string name="ssl_date_invalid">證書日期無效</string>
+    <string name="ssl_invalid">發生一般錯誤</string>
+    <string name="back_to_safety">返回安全瀏覽</string>
+    <string name="go_im_aware">繼續。我了解風險</string>
+    <string name="connection_isnt_secure">連線不安全</string>
+    <string name="hostname">主機名稱：</string>
+    <string name="err_desk">錯誤說明：</string>
+    <string name="details">詳細資訊：</string>
+    <string name="exit">退出</string>
+    <string name="find_in_apps_store">在應用程式商店搜尋</string>
+    <string name="close_application">關閉應用程式</string>
+    <string name="close_tab">關閉分頁</string>
+    <string name="navigate_forward">向前瀏覽</string>
+    <string name="toggle_ads_blocking">切換廣告封鎖</string>
+    <string name="never">永不</string>
+    <string name="last_update">最後更新於</string>
+    <string name="update_ad_blocker_list">更新廣告封鎖器列表</string>
+    <string name="toggle_keep_screen_on">保持螢幕開啟</string>
+    <string name="need_restart">需要重新啟動應用程式</string>
+    <string name="theme">主題</string>
+    <string name="incognito_mode">無痕模式</string>
+    <string name="incognito_mode_hint">您現在可以私密瀏覽，其他使用此裝置的人無法看到您的活動。TV Bro 不會儲存您的歷史紀錄、Cookies、網站資料，以及輸入表單的資訊。\n\n然而，下載和書籤仍會被儲存。您的活動仍可能會被您造訪的網站、您的組織，或是網路服務供應商看到。</string>
+    <string name="don_t_show_again">不再顯示</string>
+    <string name="why_icon_changed">為什麼圖示變了？</string>
+    <string name="clear_web_cache">清除網路快取</string>
+    <string name="block_popups">阻擋彈出式視窗</string>
+    <string name="block_popups_s">阻擋彈出式視窗 (%s)</string>
+    <string name="popup_dialog_blocked">已阻擋彈出式視窗</string>
+    <string name="new_tab_blocked">已阻擋新分頁</string>
+    <string name="copy_to_clipboard">複製到剪貼簿</string>
+    <string name="copied_to_clipboard">已複製到剪貼簿</string>
+    <string name="share_url">分享網址</string>
+    <string name="open_in_external_application">在外部應用程式開啟</string>
+    <string name="external_app_open_error">找不到合適的應用程式</string>
+    <string name="home_page">首頁</string>
+    <string name="custom_home_page_url">自訂首頁網址</string>
+    <string name="home_page_links">首頁顯示連結</string>
+    <string name="repost_confirm_message">若要顯示此頁面，TV Bro 需要傳送資訊以重複之前執行的操作 (如搜尋或訂單確認)。</string>
+    <string name="repost_confirm_title">您確定嗎？</string>
+    <string name="repost_confirm_resend">重新傳送</string>
+    <string name="before_unload_message">此頁面正在詢問您是否要離開 - 您輸入的資料可能尚未儲存</string>
+    <string name="before_unload_title">您確定嗎？</string>
+    <string name="before_unload_leave_page">離開頁面</string>
+    <string name="before_unload_stay">返回頁面</string>
+    <string name="username">使用者名稱</string>
+    <string name="password">密碼</string>
+    <string name="wait">等候</string>
+    <string name="stop">停止</string>
+    <string name="slow_script">此頁面的腳本導致了您的網頁瀏覽器執行速度降低</string>
+    <string name="request_storage">要允許 %1$s 存取裝置儲存空間嗎？</string>
+    <string name="request_storage_access">要為 %1$s 允許第三方存取第一方儲存空間嗎？</string>
+    <string name="request_geolocation">要與 %1$s 分享位置資訊嗎？</string>
+    <string name="request_notification">要允許來自 %1$s 的通知嗎？</string>
+    <string name="request_video">與 %1$s 分享視訊</string>
+    <string name="request_audio">與 %1$s 分享音訊</string>
+    <string name="request_media">與 %1$s 分享視訊及音訊</string>
+    <string name="request_xr">要與 %1$s 分享 WebXR 顯示嗎？</string>
+    <string name="request_autoplay">要允許在 %1$s 自動播放影片嗎？</string>
+    <string name="request_media_key_system_access">要允許 %1$s 存取系統媒體鍵嗎？</string>
+    <string name="media_back_camera">後置鏡頭</string>
+    <string name="media_front_camera">前置鏡頭</string>
+    <string name="media_microphone">麥克風</string>
+    <string name="media_other">未知來源</string>
+    <string name="web_browser_engine_temporary_setting">網頁瀏覽器引擎 (暫時設定)</string>
+    <string name="need_restart_message">重新啟動應用程式以套用變更</string>
+    <string name="restart">重新啟動</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="site_asks_to_open_unknown_url">網站要求開啟未知網址</string>
+    <string name="site_asks_to_open_unknown_url_message">您要在外部應用程式開啟此網址嗎？</string>
+    <string name="webview_sunset_dialog_title">TV Bro 更換引擎了。</string>
+    <string name="webview_sunset_dialog_message">哈囉！TV Bro 更換引擎了。一直以來，TV Bro 使用的是 WebView 系統套件來顯示網頁內容。但因為 WebView 的更新是獨立的，還常常帶有錯誤，導致許多問題。為解決此問題，TV Bro 將改用可內建的 GeckoView 引擎。不幸的是，這倆引擎的內部資料格式不通用，所以已開啟工作階段的資料會在轉換時遺失。所以 TV Bro 仍會同時支援兩個引擎一段時間 (您可以在設定切換)。\n\n您準備好使用 GeckoView 了嗎？還是要暫時繼續使用 WebView？</string>
+    <string name="webview_sunset_dialog_positive_button">開始使用新引擎</string>
+    <string name="webview_sunset_dialog_negative_button">繼續使用舊引擎</string>
+    <string name="err_no_app_to_handle_url">找不到能夠處理此網址的合適應用程式</string>
+    <string-array name="home_page_links_modes">
+        <item>書籤</item>
+        <item>歷史紀錄</item>
+        <item>最常造訪</item>
+    </string-array>
+    <string-array name="home_page_modes">
+        <item>TV Bro 首頁</item>
+        <item>搜尋引擎</item>
+        <item>自訂</item>
+        <item>空白</item>
+    </string-array>
+    <string-array name="popup_blocking_level">
+        <item>不阻擋</item>
+        <item>阻擋對話框</item>
+        <item>同時阻擋新分頁（腳本啟動）</item>
+        <item>阻擋任何新視窗（最高等級）</item>
+    </string-array>
+    <array name="themes">
+        <item>系统預設</item>
+        <item>亮色</item>
+        <item>暗色</item>
+    </array>
+    <array name="tabs_options">
+        <item>開啟新分頁</item>
+        <item>關閉目前分頁</item>
+        <item>關閉所有分頁</item>
+        <item>向左移動</item>
+        <item>向右移動</item>
+    </array>
+</resources>
