@@ -71,7 +71,7 @@
   <string name="later">Để sau</string>
   <string name="downloads">Tải xuống</string>
   <string name="downloads_notifications_description">Thông báo về trạng thái tải xuống</string>
-  <string name="main">Chính</string>
+  <string name="main">Cài đặt chính</string>
   <string name="version_and_updates">Phiên bản và cập nhật</string>
   <string name="version_s">Phiên bản: %s</string>
   <string name="update_channel">Cập nhật kênh:</string>
@@ -109,14 +109,14 @@
   <string name="navigate_forward">Điều hướng về trước</string>
   <string name="toggle_ads_blocking">Chuyển đổi tính năng chặn quảng cáo</string>
   <string name="never">không bao giờ</string>
-  <string name="last_update">Cập nhật cuối cùng</string>
+  <string name="last_update">Cập nhật mới nhất</string>
   <string name="update_ad_blocker_list">Làm mới danh sách trình chặn quảng cáo</string>
   <string name="need_restart">Cần khởi động lại ứng dụng</string>
   <string name="theme">Chủ đề</string>
   <array name="themes">
-    <item>Hệ thống</item>
-    <item>Màu trắng</item>
-    <item>Tối</item>
+    <item>Mặc định hệ thống</item>
+    <item>Chủ đề sáng</item>
+    <item>Chủ đề tối</item>
   </array>
   <string name="set_search_engine_as_homepage">Đặt công cụ tìm kiếm làm trang chủ</string>
   <string name="toggle_keep_screen_on">Luôn bật màn hình</string>
@@ -132,7 +132,7 @@
   <string name="popup_dialog_blocked">Hộp thoại bật lên bị chặn</string>
   <string name="new_tab_blocked">Tab mới bị chặn</string>
   <string name="copy_to_clipboard">Sao chép vào clipboard</string>
-  <string name="copied_to_clipboard">Sao chép vào clipboard</string>
+  <string name="copied_to_clipboard">Đã chép vào clipboard</string>
   <string name="share_url">Chia sẻ URL</string>
   <string name="open_in_external_application">Mở trong ứng dụng bên ngoài</string>
   <string name="external_app_open_error">Không thể tìm thấy ứng dụng phù hợp</string>
@@ -142,12 +142,12 @@
     <item>Cũng chặn các tab mới (khởi tạo tập lệnh)</item>
     <item>Chặn mọi cửa sổ mới (chặn tối đa)</item>
   </string-array>
-  <string name="home_page">trang chủ</string>
+  <string name="home_page">Trang chủ</string>
   <string name="custom_home_page_url">URL trang chủ tùy chỉnh</string>
   <string-array name="home_page_modes">
     <item>Trang chủ TV Bro</item>
-    <item>Máy tìm kiếm</item>
-    <item>Phong tục</item>
+    <item>Công cụ tìm kiếm</item>
+    <item>Tùy chỉnh</item>
     <item>Trống</item>
   </string-array>
   <string-array name="home_page_links_modes">
@@ -157,14 +157,14 @@
   </string-array>
   <string name="repost_confirm_message">Để hiển thị trang này, TV Bro phải gửi thông tin sẽ lặp lại bất kỳ hành động nào (chẳng hạn như tìm kiếm hoặc xác nhận đơn hàng) đã được thực hiện trước đó.</string>
   <string name="repost_confirm_title">Bạn có chắc không?</string>
-  <string name="repost_confirm_resend">gửi lại</string>
+  <string name="repost_confirm_resend">Gửi lại</string>
   <string name="before_unload_message">Trang này yêu cầu bạn xác nhận rằng bạn muốn rời khỏi - dữ liệu bạn đã nhập có thể không được lưu</string>
   <string name="before_unload_title">Bạn có chắc không?</string>
   <string name="before_unload_leave_page">Rời khỏi trang</string>
   <string name="before_unload_stay">Ở lại trang</string>
-  <string name="username">tên tài khoản</string>
+  <string name="username">Tên tài khoản</string>
   <string name="password">Mật khẩu</string>
-  <string name="wait">Chờ đợi</string>
+  <string name="wait">Chờ</string>
   <string name="stop">Dừng lại</string>
   <string name="slow_script">Một tập lệnh trên trang này đang khiến trình duyệt web của bạn chạy chậm</string>
   <string name="request_storage">Cho phép truy cập vào bộ nhớ thiết bị cho "%1$s"?</string>
@@ -177,21 +177,19 @@
   <string name="request_xr">Chia sẻ màn hình WebXR với "%1$s"?</string>
   <string name="request_autoplay">Cho phép video tự động phát trên "%1$s"?</string>
   <string name="request_media_key_system_access">Cho phép truy cập khóa phương tiện hệ thống cho "%1$s"?</string>
-  <string name="media_back_camera">Máy ảnh sau</string>
-  <string name="media_front_camera">Camera phía trước</string>
-  <string name="media_microphone">Cái mic cờ rô</string>
-  <string name="media_other">Nguồn không rõ</string>
-  <string name="web_browser_engine_temporary_setting">Công cụ trình duyệt web (cài đặt tạm thời)</string>
+  <string name="media_back_camera">Camera sau</string>
+  <string name="media_front_camera">Camera trước</string>
+  <string name="media_microphone">Micro</string>
+  <string name="media_other">Không rõ nguồn</string>
+  <string name="web_browser_engine_temporary_setting">Web browser engine (cài đặt tạm thời)</string>
   <string name="need_restart_message">Khởi động lại ứng dụng để áp dụng các thay đổi</string>
   <string name="restart">Khởi động lại</string>
-  <string name="yes">Đúng</string>
+  <string name="yes">CÓ</string>
   <string name="no">KHÔNG</string>
   <string name="site_asks_to_open_unknown_url">Trang web yêu cầu mở URL không xác định</string>
   <string name="site_asks_to_open_unknown_url_message">Bạn có muốn mở URL này trong ứng dụng bên ngoài không?</string>
   <string name="webview_sunset_dialog_title">TV Bro thay đổi động cơ.</string>
-  <string name="webview_sunset_dialog_message">Xin chào! TV Bro thay đổi động cơ. Tất cả thời gian này, TV Bro đã sử dụng thành phần hệ thống WebView để hiển thị nội dung web. Nhưng điều này luôn dẫn đến nhiều vấn đề khác nhau do WebView được cập nhật độc lập và thường có lỗi riêng. Bây giờ TV Bro đang thay đổi công cụ thành GeckoView có thể được tích hợp sẵn nên sẽ không có vấn đề như vậy. Rất tiếc, định dạng dữ liệu nội bộ của các công cụ này không tương thích nên dữ liệu của các phiên mở sẽ bị mất trong quá trình chuyển đổi. Do đó, trong một thời gian, TV Bro vẫn sẽ hỗ trợ cả hai công cụ (bạn có thể chuyển đổi trong phần cài đặt).
-
-Vì vậy, bạn đã sẵn sàng sử dụng phiên bản GeckoView hay muốn tiếp tục sử dụng WebView ngay bây giờ?</string>
+  <string name="webview_sunset_dialog_message">Xin chào! TV Bro đang thay đổi engine. Cho đến nay, TV Bro đã sử dụng thành phần WebView hệ thống để hiển thị nội dung web. Nhưng điều này dẫn đến nhiều vấn đề do WebView được cập nhật độc lập và thường có lỗi riêng. Bây giờ, TV Bro đang thay đổi engine sang GeckoView, có thể được tích hợp sẵn, vì vậy sẽ không có các vấn đề như trước. Tuy nhiên, định dạng dữ liệu nội bộ của hai engine này không tương thích, do đó dữ liệu của các phiên đang mở sẽ bị mất trong quá trình chuyển đổi. Do đó, trong một thời gian, TV Bro vẫn sẽ hỗ trợ cả hai engine (bạn có thể chuyển đổi trong các cài đặt).\n\nVậy bạn sẵn sàng sử dụng phiên bản GeckoView hay muốn tiếp tục sử dụng WebView trong lúc này?</string>
   <string name="webview_sunset_dialog_positive_button">Vâng, hãy bắt đầu sử dụng công cụ mới</string>
   <string name="webview_sunset_dialog_negative_button">Không, sử dụng cái cũ cho bây giờ</string>
   <string name="err_no_app_to_handle_url">Không thể tìm thấy ứng dụng phù hợp để xử lý URL này</string>
