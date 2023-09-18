@@ -68,7 +68,7 @@
             android:configChanges="uiMode"
             android:screenOrientation="sensorLandscape"
             android:logo="@drawable/banner"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
