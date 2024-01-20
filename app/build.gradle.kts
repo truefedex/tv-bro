@@ -4,7 +4,7 @@ import java.util.*
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("kapt")
+    id("com.google.devtools.ksp")
 }
 
 val properties = Properties()
@@ -16,20 +16,24 @@ if (localPropertiesFile.exists()) {
 var includeFirebase = true
 
 android {
-    compileSdk = 33
-    buildToolsVersion = "33.0.2"
+    compileSdk = 34
+    buildToolsVersion = "34.0.0"
     namespace = "com.phlox.tvwebbrowser"
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        minSdk = 23
-        targetSdk = 33
+        minSdk = 24
+        targetSdk = 34
         versionCode = 60
         versionName = "2.0.0"
 
         javaCompileOptions {
             annotationProcessorOptions {
-                argument("room.incremental", "true")
+                arguments += mapOf(
+                    "room.incremental" to "true",
+                    //used when AppDatabase @Database annotation exportSchema = true. Useful for migrations
+                    "room.schemaLocation" to "$projectDir/schemas"
+                )
             }
         }
     }
@@ -99,23 +103,17 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     compileOptions {
-        sourceCompatibility to JavaVersion.VERSION_11
-        targetCompatibility to JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
-        }
-    }
-
-    kapt {
-        arguments {
-            //used when AppDatabase @Database annotation exportSchema = true. Useful for migrations
-            arg("room.schemaLocation", "$projectDir/schemas")
         }
     }
 }
@@ -124,18 +122,19 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.webkit:webkit:1.5.0")
+    implementation("androidx.webkit:webkit:1.6.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.recyclerview:recyclerview:1.2.1")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.10")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
 
-    val roomVersion = "2.5.0"
+    val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
-    kapt("androidx.room:room-compiler:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
 
     implementation("com.github.truefedex:segmented-button:v1.0.0")
@@ -145,16 +144,16 @@ dependencies {
     //val geckoViewChannel = "beta"
     //val geckoViewVersion = "112.0.20230330182947"
     //implementation("org.mozilla.geckoview:geckoview-$geckoViewChannel:$geckoViewVersion")
-    val geckoViewVersion = "113.0.20230501151611"
+    val geckoViewVersion = "121.0.20240108143603"
     implementation("org.mozilla.geckoview:geckoview:$geckoViewVersion")
 
     //"debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     "googleImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.7")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.6.1")
 
     "genericImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.3.7")
+    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.6.1")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.9")

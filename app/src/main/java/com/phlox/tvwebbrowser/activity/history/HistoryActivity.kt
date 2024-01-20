@@ -118,6 +118,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         return super.dispatchKeyEvent(event)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (!voiceSearchHelper.processActivityResult(requestCode, resultCode, data)) {
             super.onActivityResult(requestCode, resultCode, data)
