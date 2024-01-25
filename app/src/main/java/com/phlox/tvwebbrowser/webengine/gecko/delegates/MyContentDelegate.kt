@@ -104,18 +104,18 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
 
     override fun onKill(session: GeckoSession) {
         if (webEngine.session != session || !webEngine.tab.selected) {
-            Log.e(TAG, "Background session killed")
+            Log.w(TAG, "Background session killed")
             return
-        }
-
-        if (Utils.isForeground()) {
-            throw IllegalStateException("Foreground content process unexpectedly killed by OS!")
         }
 
         Log.e(TAG, "Current session killed, reopening")
 
         webEngine.session.open(GeckoWebEngine.runtime)
-        webEngine.url?.let { webEngine.session.loadUri(it) }
+        webEngine.progressDelegate.sessionState?.let {
+            webEngine.session.restoreState(it)
+        } ?: run {
+            webEngine.url?.let { webEngine.session.loadUri(it) }
+        }
     }
 
     override fun onFirstComposite(session: GeckoSession) {

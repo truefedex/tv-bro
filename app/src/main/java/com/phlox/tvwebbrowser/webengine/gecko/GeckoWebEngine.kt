@@ -47,6 +47,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
                 }
                 builder.aboutConfigEnabled(true)
                     .preferredColorScheme(TVBro.config.theme.value.toGeckoPreferredColorScheme())
+                    .forceUserScalableEnabled(true)
                 builder.contentBlocking(
                         ContentBlocking.Settings.Builder()
                             .antiTracking(
@@ -295,6 +296,12 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     override fun onResume() {
+        if (!session.isOpen) {
+            session.open(runtime)
+            progressDelegate.sessionState?.let {
+                session.restoreState(it)
+            }
+        }
         session.setFocused(true)
     }
 

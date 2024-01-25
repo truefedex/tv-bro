@@ -122,14 +122,14 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.webkit:webkit:1.6.1")
+    implementation("androidx.webkit:webkit:1.10.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.10")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")

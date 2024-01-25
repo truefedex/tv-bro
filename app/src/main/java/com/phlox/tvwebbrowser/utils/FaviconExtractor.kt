@@ -152,13 +152,18 @@ class FaviconExtractor {
 
         val headerPartOfHTML = StringBuilder()
         var line = html.readLine()
-        while (line != null) {
-            headerPartOfHTML.appendLine(line)
-            val matcher = headerClosingTagsPattern.matcher(line)
-            if (matcher.find()) {
-                break
+        try {
+            while (line != null) {
+                headerPartOfHTML.appendLine(line)
+                val matcher = headerClosingTagsPattern.matcher(line)
+                if (matcher.find()) {
+                    break
+                }
+                line = html.readLine()
             }
-            line = html.readLine()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return Pair(iconInfos, null)
         }
 
         val matcher = tagsPattern.matcher(headerPartOfHTML.toString())
