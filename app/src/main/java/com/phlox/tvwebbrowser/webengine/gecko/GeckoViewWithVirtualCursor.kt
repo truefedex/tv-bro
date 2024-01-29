@@ -1,13 +1,20 @@
 package com.phlox.tvwebbrowser.webengine.gecko
 
 import android.content.Context
-import android.graphics.*
+import android.content.Context.INPUT_METHOD_SERVICE
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Point
+import android.graphics.PointF
+import android.graphics.Rect
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.MotionEvent.PointerProperties
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.dip2px
 import org.mozilla.geckoview.ScreenLength
@@ -22,6 +29,7 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         private const val SCROLL_HACK_PADDING = 300
     }
 
+    private var inputMethodManager: InputMethodManager? = null
     private var cursorRadius: Int = 0
     private var cursorRadiusPressed: Int = 0
     private var maxCursorSpeed: Float = 0f
@@ -72,6 +80,7 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         maxCursorSpeed = (displaySize.x / 25).toFloat()
         scrollStartPadding = displaySize.x / 15
         overScrollMode = OVER_SCROLL_NEVER
+        inputMethodManager = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager?
     }
 
     fun setCallback(callback: Callback) {
@@ -100,7 +109,15 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         callback?.onUserInteraction()
+
+        if (inputMethodManager?.isAcceptingText == true && event.keyCode == KeyEvent.KEYCODE_ESCAPE) {
+            return super.dispatchKeyEvent(event)
+        }
+
         when (event.keyCode) {
+            KeyEvent.KEYCODE_ESCAPE -> {
+                return false
+            }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     handleDirectionKeyEvent(event, -1, UNCHANGED, true)
@@ -202,8 +219,7 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
             }
         }
 
-        val child = getChildAt(0)
-        return child?.dispatchKeyEvent(event) ?: super.dispatchKeyEvent(event)
+        return super.dispatchKeyEvent(event)
     }
 
     private fun dispatchMotionEvent(x: Float, y: Float, action: Int, pointerId: Int = 0) {
