@@ -444,24 +444,26 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
 
     //https://stackoverflow.com/questions/11523423/how-to-generate-zoom-pinch-gesture-for-testing-for-android
     var pinchZoomStartTime = 0L
-    val pinchZoomDuration = 2000
+    val pinchZoomDuration = 1000
     var pinchZoomIn = true
-    val zoomFactor = 0.01f
+    val zoomFactor = 0.1f
     private fun generateZoomGesture(pinchZoomIn: Boolean) {
         if (pinchZoomStartTime != 0L) {
             return
         }
         this.pinchZoomIn = pinchZoomIn
         this.pinchZoomStartTime = System.currentTimeMillis()
-        val deltaX = zoomFactor / 2f * width
+        val deltaX = zoomFactor / 2f * height
         val deltaY = zoomFactor / 2f * height
+        val deltaX2 = deltaX / 2f
+        val deltaY2 = deltaY / 2f
         val startPoint1: PointF = if (pinchZoomIn) {
-            PointF(width / 2f, height / 2f)
+            PointF(width / 2f - deltaX2, height / 2f - deltaY2)
         } else {
             PointF(width / 2f - deltaX, height / 2f - deltaY)
         }
         val startPoint2: PointF = if (pinchZoomIn) {
-            PointF(width / 2f, height / 2f)
+            PointF(width / 2f + deltaX2, height / 2f + deltaY2)
         } else {
             PointF(width / 2f + deltaX, height / 2f + deltaY)
         }
@@ -534,27 +536,29 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
                 if (pinchZoomStartTime == 0L) {
                     return
                 }
-                val deltaX = zoomFactor / 2 * width
+                val deltaX = zoomFactor / 2 * height
                 val deltaY = zoomFactor / 2 * height
+                val deltaX2 = deltaX / 2
+                val deltaY2 = deltaY / 2
                 val startPoint1: PointF = if (pinchZoomIn) {
-                    PointF(width / 2f, height / 2f)
+                    PointF(width / 2f - deltaX2, height / 2f - deltaY2)
                 } else {
                     PointF(width / 2f - deltaX, height / 2f - deltaY)
                 }
                 val startPoint2: PointF = if (pinchZoomIn) {
-                    PointF(width / 2f, height / 2f)
+                    PointF(width / 2f + deltaX2, height / 2f + deltaY2)
                 } else {
                     PointF(width / 2f + deltaX, height / 2f + deltaY)
                 }
                 val endPoint1: PointF = if (pinchZoomIn) {
-                    PointF(width / 2f + deltaX, height / 2f + deltaY)
-                } else {
-                    PointF(width / 2f, height / 2f)
-                }
-                val endPoint2: PointF = if (pinchZoomIn) {
                     PointF(width / 2f - deltaX, height / 2f - deltaY)
                 } else {
-                    PointF(width / 2f, height / 2f)
+                    PointF(width / 2f - deltaX2, height / 2f - deltaY2)
+                }
+                val endPoint2: PointF = if (pinchZoomIn) {
+                    PointF(width / 2f + deltaX, height / 2f + deltaY)
+                } else {
+                    PointF(width / 2f + deltaX2, height / 2f + deltaY2)
                 }
 
                 val properties = arrayOfNulls<PointerProperties>(2)
@@ -586,7 +590,7 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
                         pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
                     )
                     dispatchTouchEvent(event)
-                    postDelayed(pinchZoomRunnable, 10)
+                    post(pinchZoomRunnable)
                 } else {
                     //step 5
                     pc1.x = endPoint1.x
