@@ -112,6 +112,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     val permissionDelegate = MyPermissionDelegate(this)
     val historyDelegate = MyHistoryDelegate(this)
     val contentBlockingDelegate = MyContentBlockingDelegate(this)
+    val mediaSessionDelegate = MyMediaSessionDelegate()
     var appWebExtensionPortDelegate: AppWebExtensionPortDelegate? = null
     private lateinit var webExtObserver: (WebExtension?) -> Unit
 
@@ -137,6 +138,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
         session.permissionDelegate = permissionDelegate
         session.historyDelegate = historyDelegate
         session.contentBlockingDelegate = contentBlockingDelegate
+        session.mediaSessionDelegate = mediaSessionDelegate
 
         webExtObserver = { ext: WebExtension? ->
             if (ext != null) {
@@ -307,6 +309,11 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
 
     override fun onPause() {
         session.setFocused(false)
+        mediaSessionDelegate.mediaSession?.let {
+            if (!mediaSessionDelegate.paused) {
+                it.pause()
+            }
+        }
     }
 
     override fun onUpdateAdblockSetting(newState: Boolean) {
@@ -318,7 +325,13 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     }
 
     override fun togglePlayback() {
-
+        mediaSessionDelegate.mediaSession?.let {
+            if (mediaSessionDelegate.paused) {
+                it.play()
+            } else {
+                it.pause()
+            }
+        }
     }
 
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
@@ -364,6 +377,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
         }
         if (destroyTab) {
             Log.d(TAG, "Closing session completely")
+            mediaSessionDelegate.mediaSession?.stop()
             session.close()
         }
     }
