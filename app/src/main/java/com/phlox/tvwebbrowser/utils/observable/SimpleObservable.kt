@@ -34,9 +34,9 @@ interface Subscribable<O> {
     }
 
     fun subscribe(lifecycle: Lifecycle, notifyOnSubscribe: Boolean = true, observer: O) {
-        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+        /*if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
             subscribe(observer, notifyOnSubscribe)
-        }
+        }*/
 
         lifecycle.addObserver(object : LifecycleEventObserver {
             override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
@@ -44,14 +44,16 @@ interface Subscribable<O> {
                     Lifecycle.State.INITIALIZED, Lifecycle.State.CREATED -> {
                         unsubscribe(observer)
                     }
-                    Lifecycle.State.STARTED, Lifecycle.State.RESUMED -> {
+                    Lifecycle.State.RESUMED -> {
                         subscribe(observer, notifyOnSubscribe)
+                    }
+                    Lifecycle.State.STARTED -> {
+                        unsubscribe(observer)
                     }
                     Lifecycle.State.DESTROYED -> {
                         lifecycle.removeObserver(this)
                         unsubscribe(observer)
                     }
-
                 }
             }
         })

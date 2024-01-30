@@ -115,7 +115,7 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         }
 
         when (event.keyCode) {
-            KeyEvent.KEYCODE_ESCAPE -> {
+            KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BUTTON_B -> {
                 return false
             }
             KeyEvent.KEYCODE_DPAD_LEFT -> {

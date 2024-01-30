@@ -752,6 +752,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.vActionBar.setAddressBoxTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
         val tab = tabsModel.currentTab.value
         if (tab != null) {
+            tab.url = url
             tab.webEngine.loadUrl(url)
         } else {
             openInNewTab(url, 0, needToHideMenuOverlay = true, navigateImmediately = true)
