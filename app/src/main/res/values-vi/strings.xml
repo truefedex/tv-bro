@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="app_name">TV Bro: Trình duyệt web TV</string>
   <string name="error">Lỗi</string>
@@ -188,10 +188,8 @@
   <string name="no">KHÔNG</string>
   <string name="site_asks_to_open_unknown_url">Trang web yêu cầu mở URL không xác định</string>
   <string name="site_asks_to_open_unknown_url_message">Bạn có muốn mở URL này trong ứng dụng bên ngoài không?</string>
-  <string name="webview_sunset_dialog_title">TV Bro thay đổi động cơ.</string>
-  <string name="webview_sunset_dialog_message">Xin chào! TV Bro đang thay đổi engine. Cho đến nay, TV Bro đã sử dụng thành phần WebView hệ thống để hiển thị nội dung web. Nhưng điều này dẫn đến nhiều vấn đề do WebView được cập nhật độc lập và thường có lỗi riêng. Bây giờ, TV Bro đang thay đổi engine sang GeckoView, có thể được tích hợp sẵn, vì vậy sẽ không có các vấn đề như trước. Tuy nhiên, định dạng dữ liệu nội bộ của hai engine này không tương thích, do đó dữ liệu của các phiên đang mở sẽ bị mất trong quá trình chuyển đổi. Do đó, trong một thời gian, TV Bro vẫn sẽ hỗ trợ cả hai engine (bạn có thể chuyển đổi trong các cài đặt).\n\nVậy bạn sẵn sàng sử dụng phiên bản GeckoView hay muốn tiếp tục sử dụng WebView trong lúc này?</string>
-  <string name="webview_sunset_dialog_positive_button">Vâng, hãy bắt đầu sử dụng công cụ mới</string>
-  <string name="webview_sunset_dialog_negative_button">Không, sử dụng cái cũ cho bây giờ</string>
   <string name="err_no_app_to_handle_url">Không thể tìm thấy ứng dụng phù hợp để xử lý URL này</string>
   <string name="home_page_links">Liên kết trên trang chủ</string>
+  <string name="settings_engine_change_gecko_msg">Yêu cầu hệ thống được GeckoView đề xuất: RAM 3 GB, CPU lõi tám 64 bit. Bạn có muốn tiếp tục\?</string>
+  <string name="settings_engine_change_webview_msg">WebView sẽ có ít tính năng hơn trong các bản cập nhật trong tương lai. Bạn có muốn tiếp tục\?</string>
 </resources>

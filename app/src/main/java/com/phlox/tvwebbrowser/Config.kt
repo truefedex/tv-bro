@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser
 
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
+import android.os.Build
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import org.mozilla.geckoview.GeckoRuntimeSettings
@@ -34,15 +35,30 @@ class Config(val prefs: SharedPreferences) {
         const val NOTIFICATION_ABOUT_ENGINE_CHANGE_SHOWN_KEY = "notification_about_engine_change_shown"
         const val APP_VERSION_CODE_MARK_KEY = "app_version_code_mark"
 
+        const val ENGINE_GECKO_VIEW = "GeckoView"
+        const val ENGINE_WEB_VIEW = "WebView"
+
         const val DEFAULT_ADBLOCK_LIST_URL = "https://easylist.to/easylist/easylist.txt"
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Startpage", "Custom")
         val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "startpage", "custom")
         val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
             "https://search.yahoo.com/search?p=[query]", "https://duckduckgo.com/?q=[query]",
             "https://yandex.com/search/?text=[query]", "https://www.startpage.com/sp/search?query=[query]", "")
-        val SupportedWebEngines = arrayOf("GeckoView", "WebView")
+        val SupportedWebEngines = arrayOf(ENGINE_GECKO_VIEW, ENGINE_WEB_VIEW)
         const val HOME_PAGE_URL = "https://tvbro.phlox.dev/appcontent/home/"
         //const val HOME_PAGE_URL = "http://10.0.2.2:5000/appcontent/home/"
+
+        fun canRecommendGeckoView(): Boolean {
+            var recommendedGeckoView = false
+            val deviceRAM = Utils.memInfo(TVBro.instance).totalMem
+            val cpuHas64Bit = Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()
+            val cpuCores = Runtime.getRuntime().availableProcessors()
+            val threeGB = 3000000000L//~3GB minus protected memory
+            if (deviceRAM >= threeGB && cpuHas64Bit && cpuCores >= 6) {
+                recommendedGeckoView = true
+            }
+            return recommendedGeckoView
+        }
     }
 
     enum class Theme {
@@ -125,7 +141,14 @@ class Config(val prefs: SharedPreferences) {
     var searchEngineURL = ObservableStringPreference(SearchEnginesURLs[0], SEARCH_ENGINE_URL_PREF_KEY)
 
     var webEngine: String
-        get() = prefs.getString(WEB_ENGINE, SupportedWebEngines[0])!!
+        get() {
+            if (!prefs.contains(WEB_ENGINE)) {
+                prefs.edit().putString(WEB_ENGINE, if (canRecommendGeckoView())
+                    SupportedWebEngines[0] else SupportedWebEngines[1]).apply()
+            }
+
+            return prefs.getString(WEB_ENGINE, SupportedWebEngines[0])!!
+        }
         set(value) {
             prefs.edit().putString(WEB_ENGINE, value).apply()
         }

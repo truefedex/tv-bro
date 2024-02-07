@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="app_name">"TV Bro: דפדפן לטלויזיה"</string>
   <string name="error">"שגיאה"</string>
-  <!-- Fuzzy -->
   <string name="ok">"OK"</string>
   <string name="loading">"טוען..."</string>
   <string name="url_prompt">"הכנס טקסט לחיפוש או URL"</string>
@@ -192,12 +191,8 @@
   <string name="no">לא</string>
   <string name="site_asks_to_open_unknown_url">האתר מבקש לפתוח כתובת URL לא ידועה</string>
   <string name="site_asks_to_open_unknown_url_message">האם ברצונך לפתוח את כתובת האתר הזו באפליקציה חיצונית?</string>
-  <string name="webview_sunset_dialog_title">TV Bro מחליף מנוע.</string>
-  <string name="webview_sunset_dialog_message">שלום! TV Bro מחליף מנוע. כל הזמן הזה, TV Bro השתמש ברכיב מערכת WebView כדי להציג תוכן אינטרנט. אבל זה כל הזמן הוביל לבעיות שונות בגלל העובדה שה-WebView מתעדכן באופן עצמאי ולעתים קרובות יש לו באגים משלו. כעת TV Bro משנה את המנוע ל- GeckoView שניתן לבנות כך שלא יהיו בעיות כאלה. למרבה הצער, פורמט הנתונים הפנימי של המנועים הללו אינו תואם, כך שהנתונים של הפעלות פתוחות יאבדו במהלך המעבר. לכן, במשך זמן מה TV Bro עדיין יתמוך בשני המנועים (תוכל לעבור בהגדרות).
-
-אז האם אתה מוכן להשתמש בגרסת GeckoView או רוצה להישאר ב-WebView לעת עתה?</string>
-  <string name="webview_sunset_dialog_positive_button">כן, בואו נתחיל להשתמש במנוע חדש</string>
-  <string name="webview_sunset_dialog_negative_button">לא, השתמש בישן לעת עתה</string>
   <string name="err_no_app_to_handle_url">לא ניתן למצוא אפליקציה מתאימה לטיפול בכתובת האתר הזו</string>
   <string name="home_page_links">קישורים בעמוד הבית</string>
+  <string name="settings_engine_change_gecko_msg">דרישות מערכת מומלצות של GeckoView: 3GB RAM, מעבד מתומן ליבות של 64 סיביות. האם אתה רוצה להמשיך\?</string>
+  <string name="settings_engine_change_webview_msg">ל-WebView יהיו פחות תכונות בעדכונים עתידיים. האם אתה רוצה להמשיך\?</string>
 </resources>

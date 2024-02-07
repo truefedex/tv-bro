@@ -67,21 +67,52 @@ class MainSettingsView @JvmOverloads constructor(
         vb.spWebEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 if (config.webEngine == Config.SupportedWebEngines[position]) return
-                config.webEngine = Config.SupportedWebEngines[position]
-                AlertDialog.Builder(context)
-                        .setTitle(R.string.need_restart)
-                        .setMessage(R.string.need_restart_message)
-                        .setPositiveButton(R.string.exit) { _, _ ->
-                            TVBro.instance.needToExitProcessAfterMainActivityFinish = true
-                            TVBro.instance.needRestartMainActivityAfterExitingProcess = true
-                            activity!!.finish()
+                if (Config.SupportedWebEngines[position] == Config.ENGINE_GECKO_VIEW && !Config.canRecommendGeckoView()) {
+                    AlertDialog.Builder(context)
+                        .setTitle(R.string.warning)
+                        .setMessage(R.string.settings_engine_change_gecko_msg)
+                        .setPositiveButton(R.string.ok) { _, _ ->
+                            config.webEngine = Config.SupportedWebEngines[position]
+                            showRestartDialog()
                         }
-                        .setCancelable(false)
+                        .setNegativeButton(R.string.cancel) { _, _ ->
+                            vb.spWebEngine.setSelection(Config.SupportedWebEngines.indexOf(config.webEngine), false)
+                        }
                         .show()
+                    return
+                } else if (Config.SupportedWebEngines[position] == Config.ENGINE_WEB_VIEW) {
+                    AlertDialog.Builder(context)
+                        .setTitle(R.string.warning)
+                        .setMessage(R.string.settings_engine_change_webview_msg)
+                        .setPositiveButton(R.string.ok) { _, _ ->
+                            config.webEngine = Config.SupportedWebEngines[position]
+                            showRestartDialog()
+                        }
+                        .setNegativeButton(R.string.cancel) { _, _ ->
+                            vb.spWebEngine.setSelection(Config.SupportedWebEngines.indexOf(config.webEngine), false)
+                        }
+                        .show()
+                    return
+                }
+                config.webEngine = Config.SupportedWebEngines[position]
+                showRestartDialog()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
+    }
+
+    private fun showRestartDialog() {
+        AlertDialog.Builder(context)
+            .setTitle(R.string.need_restart)
+            .setMessage(R.string.need_restart_message)
+            .setPositiveButton(R.string.exit) { _, _ ->
+                TVBro.instance.needToExitProcessAfterMainActivityFinish = true
+                TVBro.instance.needRestartMainActivityAfterExitingProcess = true
+                activity!!.finish()
+            }
+            .setCancelable(false)
+            .show()
     }
 
     private fun initThemeSettingsUI() {

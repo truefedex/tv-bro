@@ -160,10 +160,6 @@
     <string name="no">否</string>
     <string name="site_asks_to_open_unknown_url">網站要求開啟未知網址</string>
     <string name="site_asks_to_open_unknown_url_message">您要在外部應用程式開啟此網址嗎？</string>
-    <string name="webview_sunset_dialog_title">TV Bro 更換引擎了。</string>
-    <string name="webview_sunset_dialog_message">哈囉！TV Bro 更換引擎了。一直以來，TV Bro 使用的是 WebView 系統套件來顯示網頁內容。但因為 WebView 的更新是獨立的，還常常帶有錯誤，導致許多問題。為解決此問題，TV Bro 將改用可內建的 GeckoView 引擎。不幸的是，這倆引擎的內部資料格式不通用，所以已開啟工作階段的資料會在轉換時遺失。所以 TV Bro 仍會同時支援兩個引擎一段時間 (您可以在設定切換)。\n\n您準備好使用 GeckoView 了嗎？還是要暫時繼續使用 WebView？</string>
-    <string name="webview_sunset_dialog_positive_button">開始使用新引擎</string>
-    <string name="webview_sunset_dialog_negative_button">繼續使用舊引擎</string>
     <string name="err_no_app_to_handle_url">找不到能夠處理此網址的合適應用程式</string>
     <string-array name="home_page_links_modes">
         <item>書籤</item>

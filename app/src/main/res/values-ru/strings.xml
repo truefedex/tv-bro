@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="app_name">TV Bro: Веб Браузер для ТВ</string>
   <string name="add">Добавить</string>
@@ -188,12 +188,8 @@
   <string name="no">Нет</string>
   <string name="site_asks_to_open_unknown_url">Сайт просит открыть неизвестный URL</string>
   <string name="site_asks_to_open_unknown_url_message">Вы хотите открыть этот URL-адрес во внешнем приложении?</string>
-  <string name="webview_sunset_dialog_title">TV Bro меняет движок.</string>
-  <string name="webview_sunset_dialog_message">Привет! TV Bro меняет движок. Все это время TV Bro использовал системный компонент WebView для отображения веб-контента. Но это все время приводило к различным проблемам из-за того, что WebView обновляется самостоятельно и часто имеет свои баги. Сейчас TV Bro меняет движок на GeckoView, который можно встроить, чтобы таких проблем не было. К сожалению, внутренний формат данных этих движков несовместим, поэтому при переходе данные открытых сессий будут утеряны. Поэтому какое-то время TV Bro все еще будет поддерживать оба движка (переключаться можно в настройках).
-
-Итак, вы готовы использовать версию GeckoView или хотите пока остаться на WebView?</string>
-  <string name="webview_sunset_dialog_positive_button">Да, давайте начнем использовать новый двигатель</string>
-  <string name="webview_sunset_dialog_negative_button">Нет, пока используем старый</string>
   <string name="err_no_app_to_handle_url">Не удаётся найти подходящее приложение для обработки этого URL-адреса</string>
   <string name="home_page_links">Ссылки на главной странице</string>
+  <string name="settings_engine_change_gecko_msg">Рекомендуемые системные требования GeckoView: 3 ГБ ОЗУ, 64-битный восьмиядерный процессор. Вы хотите продолжать\?</string>
+  <string name="settings_engine_change_webview_msg">В будущих обновлениях WebView будет меньше функций. Вы хотите продолжать\?</string>
 </resources>
