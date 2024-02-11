@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="app_name">TV Bro: Przęglądarka internetowa dla TV</string>
   <string name="error">Błąd</string>
@@ -188,12 +188,8 @@
   <string name="no">NIE</string>
   <string name="site_asks_to_open_unknown_url">Witryna prosi o otwarcie nieznanego adresu URL</string>
   <string name="site_asks_to_open_unknown_url_message">Czy chcesz otworzyć ten adres URL w aplikacji zewnętrznej?</string>
-  <string name="webview_sunset_dialog_title">TV Bro zmienia silnik.</string>
-  <string name="webview_sunset_dialog_message">Cześć! TV Bro zmienia silnik. Przez cały ten czas TV Bro używał komponentu systemu WebView do wyświetlania treści internetowych. Ale to cały czas prowadziło do różnych problemów ze względu na fakt, że WebView jest aktualizowany niezależnie i często ma własne błędy. Teraz TV Bro zmienia silnik na GeckoView, który można wbudować, więc nie będzie takich problemów. Niestety wewnętrzny format danych tych wyszukiwarek nie jest zgodny, więc dane otwartych sesji zostaną utracone podczas przenoszenia. Dlatego przez jakiś czas TV Bro będzie nadal obsługiwał oba silniki (można to przełączyć w ustawieniach).
-
-Czy jesteś gotowy do korzystania z wersji GeckoView, czy chcesz na razie pozostać przy WebView?</string>
-  <string name="webview_sunset_dialog_positive_button">Tak, zacznijmy używać nowego silnika</string>
-  <string name="webview_sunset_dialog_negative_button">Nie, na razie użyj starego</string>
   <string name="err_no_app_to_handle_url">Nie można znaleźć odpowiedniej aplikacji do obsługi tego adresu URL</string>
   <string name="home_page_links">Linki na stronie głównej</string>
+  <string name="settings_engine_change_gecko_msg">Zalecane wymagania systemowe GeckoView: 3 GB RAM, 64-bitowy ośmiordzeniowy procesor. Czy chcesz kontynuować\?</string>
+  <string name="settings_engine_change_webview_msg">W przyszłych aktualizacjach WebView będzie miał mniej funkcji. Czy chcesz kontynuować\?</string>
 </resources>

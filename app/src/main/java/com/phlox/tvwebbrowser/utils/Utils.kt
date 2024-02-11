@@ -278,4 +278,11 @@ object Utils {
         return (appProcessInfo.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND
                 || appProcessInfo.importance == RunningAppProcessInfo.IMPORTANCE_VISIBLE)
     }
+
+    fun memInfo(ctx: Context): ActivityManager.MemoryInfo {
+        val actManager = ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val memInfo = ActivityManager.MemoryInfo()
+        actManager.getMemoryInfo(memInfo)
+        return memInfo
+    }
 }

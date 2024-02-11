@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="app_name">TV Bro: Webbrowser für TVs</string>
   <string name="error">Fehler</string>
@@ -188,12 +188,8 @@
   <string name="no">NEIN</string>
   <string name="site_asks_to_open_unknown_url">Die Website fordert zum Öffnen einer unbekannten URL auf</string>
   <string name="site_asks_to_open_unknown_url_message">Möchten Sie diese URL in einer externen App öffnen?</string>
-  <string name="webview_sunset_dialog_title">TV Bro wechselt die Engine.</string>
-  <string name="webview_sunset_dialog_message">Hallo! TV Bro wechselt die Engine. Seit jeher verwendet TV Bro die Systemkomponente WebView, um Webinhalte anzuzeigen. Dies führte jedoch immer wieder zu diversen Problemen, da das WebView selbstständig aktualisiert wird und oft eigene Fehler aufweist. Jetzt ändert TV Bro die Engine auf GeckoView, das eingebaut werden kann, damit es solche Probleme nicht mehr gibt. Leider ist das interne Datenformat dieser Engines nicht kompatibel, sodass die Daten offener Sessions bei der Umstellung verloren gehen. Daher wird TV Bro noch einige Zeit beide Engines unterstützen (man kann in den Einstellungen umschalten).
-
-Sind Sie also bereit, die GeckoView-Version zu verwenden, oder möchten Sie vorerst auf der WebView bleiben?</string>
-  <string name="webview_sunset_dialog_positive_button">Ja, beginnen wir mit der Verwendung einer neuen Engine</string>
-  <string name="webview_sunset_dialog_negative_button">Nein, verwende vorerst die alte</string>
   <string name="err_no_app_to_handle_url">Kann keine geeignete Anwendung finden, um diese URL zu verarbeiten</string>
   <string name="home_page_links">Links auf der Homepage</string>
+  <string name="settings_engine_change_gecko_msg">Von GeckoView empfohlene Systemanforderungen: 3 GB RAM, 64-Bit-Octa-Core-CPU. Möchtest du fortfahren\?</string>
+  <string name="settings_engine_change_webview_msg">WebView wird in zukünftigen Updates weniger Funktionen haben. Möchtest du fortfahren\?</string>
 </resources>

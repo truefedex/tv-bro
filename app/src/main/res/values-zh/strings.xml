@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="app_name">TV Bro: 电视网络浏览器</string>
   <string name="error">错误</string>
@@ -188,10 +188,8 @@
   <string name="no">否</string>
   <string name="site_asks_to_open_unknown_url">此站点想要打开一个未知的 URL</string>
   <string name="site_asks_to_open_unknown_url_message">您想允许此站点使用外部应用打开此 URL 吗?</string>
-  <string name="webview_sunset_dialog_title">TV Bro 更换了浏览器引擎</string>
-  <string name="webview_sunset_dialog_message">您好!  TV Bro更换了浏览器引擎。 一直以来，TV Bro 都是使用 WebView 系统组件来显示网页内容。 但这一直以来都导致了各种问题，因为 WebView 是独立更新的，而且经常有自己的 bug。 现在，TV Bro 正在将引擎改为 GeckoView，它可以被内置到应用中，所以不会有这样的问题。 不幸的是，这些引擎的内部数据格式并不兼容，所以在过渡期间，打开的会话数据会丢失。 因此，在一段时间内，TV Bro 仍将支持这两种引擎 (您可以在设置中切换)。\n\n那么您是准备使用新的 GeckoView 版本还是想暂时停留在旧的 WebView 上？</string>
-  <string name="webview_sunset_dialog_positive_button">是，开始使用新浏览器引擎</string>
-  <string name="webview_sunset_dialog_negative_button">否，暂时先用旧浏览器引擎</string>
   <string name="err_no_app_to_handle_url">找不到合适的应用来处理此 URL</string>
   <string name="home_page_links">主页上的链接</string>
+  <string name="settings_engine_change_gecko_msg">GeckoView 推荐的系统要求：3GB RAM、64 位八核 CPU。 你想继续吗\?</string>
+  <string name="settings_engine_change_webview_msg">WebView 在未来的更新中将会减少功能。 你想继续吗\?</string>
 </resources>

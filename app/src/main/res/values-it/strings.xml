@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="app_name">TV Bro: TV Web Browser</string>
   <string name="error">Errore</string>
@@ -188,12 +188,8 @@
   <string name="no">NO</string>
   <string name="site_asks_to_open_unknown_url">Il sito chiede di aprire un URL sconosciuto</string>
   <string name="site_asks_to_open_unknown_url_message">Vuoi aprire questo URL in un&amp;#39;app esterna?</string>
-  <string name="webview_sunset_dialog_title">TV Bro cambia motore.</string>
-  <string name="webview_sunset_dialog_message">Ciao! TV Bro cambia motore. Per tutto questo tempo, TV Bro ha utilizzato il componente di sistema WebView per visualizzare i contenuti web. Ma questo ha sempre portato a vari problemi dovuti al fatto che WebView viene aggiornato in modo indipendente e spesso presenta i propri bug. Ora TV Bro sta cambiando il motore in GeckoView, che può essere integrato, quindi non ci saranno problemi di questo tipo. Sfortunatamente, il formato dei dati interni di questi motori non è compatibile, quindi i dati delle sessioni aperte andranno persi durante la transizione. Pertanto, per qualche tempo TV Bro supporterà ancora entrambi i motori (puoi cambiare le impostazioni).
-
-Quindi sei pronto per utilizzare la versione GeckoView o vuoi rimanere su WebView per ora?</string>
-  <string name="webview_sunset_dialog_positive_button">Sì, iniziamo a utilizzare il nuovo motore</string>
-  <string name="webview_sunset_dialog_negative_button">No, usa quello vecchio per ora</string>
   <string name="err_no_app_to_handle_url">Impossibile trovare un&amp;#39;applicazione adatta per gestire questo URL</string>
   <string name="home_page_links">Link in home page</string>
+  <string name="settings_engine_change_gecko_msg">Requisiti di sistema consigliati da GeckoView: 3 GB di RAM, CPU octa-core a 64 bit. Vuoi continuare\?</string>
+  <string name="settings_engine_change_webview_msg">WebView avrà meno funzionalità negli aggiornamenti futuri. Vuoi continuare\?</string>
 </resources>

@@ -418,7 +418,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun loadState() = lifecycleScope.launch(Dispatchers.Main) {
-        showWebViewSunsetDialogIfNeeded()
         WebEngineFactory.initialize(this@MainActivity, vb.flWebViewContainer)
 
         vb.progressBarGeneric.visibility = View.VISIBLE
@@ -469,31 +468,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 if (autoUpdateModel.updateChecker.hasUpdate()) {
                     autoUpdateModel.showUpdateDialogIfNeeded(this@MainActivity)
                 }
-            }
-        }
-    }
-
-    private suspend fun showWebViewSunsetDialogIfNeeded() {
-        suspendCoroutine{ coroutine ->
-            if ((config.isWebEngineNotSet() || !config.isWebEngineGecko()) &&
-                (config.notificationAboutEngineChangeShown == 0 || config.notificationAboutEngineChangeShown != BuildConfig.VERSION_CODE)) {
-                AlertDialog.Builder(this@MainActivity)
-                    .setTitle(R.string.webview_sunset_dialog_title)
-                    .setMessage(R.string.webview_sunset_dialog_message)
-                    .setPositiveButton(R.string.webview_sunset_dialog_positive_button) { _, _ ->
-                        config.webEngine = Config.SupportedWebEngines[0]
-                    }
-                    .setNegativeButton(R.string.webview_sunset_dialog_negative_button) { _, _ ->
-                        config.webEngine = Config.SupportedWebEngines[1]
-                    }
-                    .setCancelable(false)
-                    .setOnDismissListener {
-                        config.notificationAboutEngineChangeShown = BuildConfig.VERSION_CODE
-                        coroutine.resume(Unit)
-                    }
-                    .show().getButton(DialogInterface.BUTTON_POSITIVE).requestFocus()
-            } else {
-                coroutine.resume(Unit)
             }
         }
     }
