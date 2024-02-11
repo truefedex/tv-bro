@@ -24,8 +24,8 @@ android {
         applicationId = "com.phlox.tvwebbrowser"
         minSdk = 24
         targetSdk = 34
-        versionCode = 60
-        versionName = "2.0.0"
+        versionCode = 61
+        versionName = "2.0.1"
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -150,10 +150,10 @@ dependencies {
     //"debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.7")
 
     "googleImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.6.1")
+    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.6.2")
 
     "genericImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.6.1")
+    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:18.6.2")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.9")
