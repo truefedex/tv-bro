@@ -1,12 +1,10 @@
 console.log("TV Bro home content extension loaded");
 
 const homeExtPort = browser.runtime.connectNative("tvbro");
-
 function postMessageToHomePagePort(action, data) {
-    console.log("Sending message to native app: " + action);
+    //console.log("Sending message to native app: " + action);
     homeExtPort.postMessage({ action: action, data: data });
 }
-
 
 let TVBro = {
     startVoiceSearch: function () {
@@ -34,7 +32,6 @@ window.wrappedJSObject.TVBro = cloneInto(
     { cloneFunctions: true });
 
 homeExtPort.onMessage.addListener(message => {
-    console.log("Received message from native app: " + message.action);
     switch (message.action) {
         case "favicon": {
             let favicon = message.data;

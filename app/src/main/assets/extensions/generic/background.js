@@ -1,37 +1,54 @@
 console.log("TV Bro background extension loaded");
 
-//listen for messages from the content script
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log("Received message from content script: " + message.action);
-    switch (message.action) {
-        case "zoomIn": zoomIn(); break;
-        case "zoomOut": zoomOut(); break;
+let requests = new Map();
+let tvBroPort = browser.runtime.connectNative("tvbro_bg");
+
+tvBroPort.onMessage.addListener(response => {
+    //console.log("Received: " + JSON.stringify(response));
+    if (response.action === "onResolveRequest") {
+        let id = response.data.requestId;
+        let block = response.data.block;
+        //console.log("Requests contents: " + JSON.stringify(Array.from(requests.keys())));
+        if (requests.has(id.toString())) {
+            let request = requests.get(id.toString());
+            //console.log("Request resolved id: " + id);
+            requests.delete(id.toString());
+            //console.log("Requests size: " + requests.size);
+            request.resolverRef({ cancel: block });
+        }
     }
 });
+//tvBroPort.postMessage("Hello from WebExtension!");
 
-async function zoomIn() {
-    // get the active tab
-    let tabs = await browser.tabs.query({ });
-    console.log("tabs: " + tabs);
-    for (const tab of tabs) {
-        // tab.url requires the `tabs` permission or a matching host permission.
-        console.log(JSON.stringify(tab));
-      }
-    let tab = tabs[0];
-    // array of default zoom levels
-    let zoomLevels = [.3, .5, .67, .8, .9, 1, 1.1, 1.2, 1.33, 1.5, 1.7, 2, 2.4, 3];
-    // maximal zoom level
-    let maxZoom = 3, newZoom;
+browser.webRequest.onBeforeRequest.addListener(
+    function (details) {
+        let id = details.requestId;
+        let resolverRef = null;
+        let promise = new Promise((resolve, reject) => {
+            resolverRef = resolve;
+            setTimeout(() => {
+                if (requests.has(id)) {
+                    let request = requests.get(id);
+                    let time = new Date() - request.time;
+                    //console.log("Request block timeout id: " + id);
+                    requests.delete(id);
+                    resolve({ cancel: false });
+                } else {
+                    //console.log("Request processed by blocking rules id: " + id);
+                }
+            }, 1500);
+        });
+        requests.set(id, {
+            details: details,
+            time: new Date(),
+            promise: promise,
+            resolverRef: resolverRef
+        });
 
-    //const currentZoom = await browser.tabs.getZoom(tab.id);
-
-    //newZoom = zoomLevels.reduce((acc, cur) => cur > currentZoom && cur < acc ? cur : acc, maxZoom);
-
-    if (/*newZoom > currentZoom*/true) {
-        await browser.tabs.setZoom(tab.id, 3/*newZoom*/);
-        // confirm success
-        return true;
-    }
-
-    return false;
-}
+        //console.log('onBeforeRequest url: ' + details.url);
+        tvBroPort.postMessage({ action: "onBeforeRequest", details: details });
+        return promise;
+    },
+    { urls: ["<all_urls>"] },
+    ["blocking"]
+);

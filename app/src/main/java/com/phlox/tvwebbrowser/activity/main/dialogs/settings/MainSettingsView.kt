@@ -127,9 +127,9 @@ class MainSettingsView @JvmOverloads constructor(
         vb.llAdblock.setOnClickListener {
             vb.scAdblock.isChecked = !vb.scAdblock.isChecked
             config.adBlockEnabled = vb.scAdblock.isChecked
-            vb.llAdBlockerDetails.visibility = if (vb.scAdblock.isChecked && !config.isWebEngineGecko()) VISIBLE else GONE
+            vb.llAdBlockerDetails.visibility = if (vb.scAdblock.isChecked) VISIBLE else GONE
         }
-        vb.llAdBlockerDetails.visibility = if (config.adBlockEnabled && !config.isWebEngineGecko()) VISIBLE else GONE
+        vb.llAdBlockerDetails.visibility = if (config.adBlockEnabled) VISIBLE else GONE
 
         adblockModel.clientLoading.subscribe(activity as FragmentActivity) {
             updateAdBlockInfo()

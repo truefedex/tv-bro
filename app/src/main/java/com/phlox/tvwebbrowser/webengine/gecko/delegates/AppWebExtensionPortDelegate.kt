@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
 import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Base64
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -19,7 +20,7 @@ import java.io.ByteArrayOutputStream
 
 class AppWebExtensionPortDelegate(val port: WebExtension.Port, val webEngine: GeckoWebEngine): WebExtension.PortDelegate {
     override fun onPortMessage(message: Any, port: WebExtension.Port) {
-        Log.d("AppWebExtensionPortDelegate", "onPortMessage: $message")
+        //Log.d(TAG, "onPortMessage: $message")
         try {
             val msgJson = message as JSONObject
             when (msgJson.getString("action")) {
@@ -83,6 +84,11 @@ class AppWebExtensionPortDelegate(val port: WebExtension.Port, val webEngine: Ge
     }
 
     override fun onDisconnect(port: WebExtension.Port) {
+        Log.d(TAG, "onDisconnect")
         webEngine.appWebExtensionPortDelegate = null
+    }
+
+    companion object {
+        val TAG: String = AppWebExtensionPortDelegate::class.java.simpleName
     }
 }

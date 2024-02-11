@@ -381,7 +381,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
                 return if (ad) {
                     Log.d(TAG, "Blocked ads request: ${request.url}")
                     uiHandler.post { callback.onBlockedAd(request.url) }
-                    WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
+                    val response = WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
+                    response.setStatusCodeAndReasonPhrase(403, "Blocked")
+                    response
                 } else super.shouldInterceptRequest(view, request)
             }
 

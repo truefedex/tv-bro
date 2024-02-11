@@ -33,7 +33,7 @@ class AdblockModel : ActiveModel() {
 
     @Suppress("BlockingMethodInNonBlockingContext")
     fun loadAdBlockList(forceReload: Boolean) = modelScope.launch {
-        if (clientLoading.value || config.isWebEngineGecko()) return@launch
+        if (clientLoading.value) return@launch
         val checkDate = Calendar.getInstance()
         checkDate.timeInMillis = config.adBlockListLastUpdate
         checkDate.add(Calendar.MINUTE, AUTO_UPDATE_INTERVAL_MINUTES)
@@ -65,11 +65,11 @@ class AdblockModel : ActiveModel() {
         clientLoading.value = false
     }
 
-    fun isAd(url: Uri, acceptHeader: String?, baseUri: Uri): Boolean {
+    fun isAd(url: Uri, type: String?, baseUri: Uri): Boolean {
         val client = client ?: return false
         val baseHost = baseUri.host
         val filterOption = try {
-            mapRequestToFilterOption(url, acceptHeader)
+            mapRequestToFilterOption(url, type)
         } catch (e: Exception) {
             return false
         }
@@ -82,18 +82,18 @@ class AdblockModel : ActiveModel() {
         return result
     }
 
-    private fun mapRequestToFilterOption(url: Uri?, acceptHeader: String?): FilterOption? {
-        if (acceptHeader != null) {
-            if (acceptHeader.contains("image/")) {
+    private fun mapRequestToFilterOption(url: Uri?, type: String?): FilterOption? {
+        if (type != null) {
+            if (type == "image" || type.contains("image/")) {
                 return FilterOption.IMAGE
             }
-            if (acceptHeader.contains("/css")) {
+            if (type == "style" || type.contains("/css")) {
                 return FilterOption.CSS
             }
-            if (acceptHeader.contains("javascript")) {
+            if (type == "script" || type.contains("javascript")) {
                 return FilterOption.SCRIPT
             }
-            if (acceptHeader.contains("video/")) {
+            if (type.contains("video/")) {
                 return FilterOption.OBJECT
             }
         }

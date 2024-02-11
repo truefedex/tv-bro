@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -31,11 +33,12 @@ import kotlin.coroutines.suspendCoroutine
 
 class GeckoWebEngine(val tab: WebTabState): WebEngine {
     companion object {
-        private const val APP_WEB_EXTENSION_VERSION = 2
+        private const val APP_WEB_EXTENSION_VERSION = 3
         val TAG: String = GeckoWebEngine::class.java.simpleName
         lateinit var runtime: GeckoRuntime
         var appWebExtension = ObservableValue<WebExtension?>(null)
         var weakRefToSingleGeckoView: WeakReference<GeckoViewWithVirtualCursor?> = WeakReference(null)
+        val uiHandler = Handler(Looper.getMainLooper())
 
         @UiThread
         fun initialize(context: Context, webViewContainer: CursorLayout) {
@@ -114,6 +117,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
     val contentBlockingDelegate = MyContentBlockingDelegate(this)
     val mediaSessionDelegate = MyMediaSessionDelegate()
     var appWebExtensionPortDelegate: AppWebExtensionPortDelegate? = null
+    var appWebExtensionBackgroundPortDelegate: AppWebExtensionBackgroundPortDelegate? = null
     private lateinit var webExtObserver: (WebExtension?) -> Unit
 
     override val url: String?
@@ -142,7 +146,9 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
 
         webExtObserver = { ext: WebExtension? ->
             if (ext != null) {
-                connectToAppWebExtension(ext)
+                uiHandler.post {
+                    connectToAppWebExtension(ext)
+                }
                 appWebExtension.unsubscribe(webExtObserver)
             }
         }
@@ -166,6 +172,21 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine {
                     }
                 }
             }, "tvbro")
+
+        extension.setMessageDelegate(object : MessageDelegate {
+            override fun onMessage(nativeApp: String, message: Any,
+                                   sender: WebExtension.MessageSender): GeckoResult<Any>? {
+                Log.d(TAG, "onMessage: $nativeApp, $message, $sender")
+                return null
+            }
+
+            override fun onConnect(port: WebExtension.Port) {
+                Log.d(TAG, "onConnect: $port")
+                appWebExtensionBackgroundPortDelegate = AppWebExtensionBackgroundPortDelegate(port, this@GeckoWebEngine).also {
+                    port.setDelegate(it)
+                }
+            }
+        }, "tvbro_bg")
     }
 
     override fun saveState(): Any? {

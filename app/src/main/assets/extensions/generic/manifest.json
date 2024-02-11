@@ -32,12 +32,16 @@
   "background": {
     "scripts": [
       "background.js"
-    ]
+    ],
+    "persistent": false
   },
   "permissions": [
     "nativeMessaging",
     "nativeMessagingFromContent",
     "geckoViewAddons",
-    "tabs"
+    "tabs",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
   ]
 }
