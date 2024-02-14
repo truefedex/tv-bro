@@ -2,27 +2,32 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v2.0.0",
-      "latestVersionCode": 60,
-      "minAPI": 23,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.0.0-rc1/tvbro-generic-2.0.0.armeabi-v7a.apk",
+      "latestVersionName": "v2.0.1",
+      "latestVersionCode": 61,
+      "minAPI": 24,
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.0.1/tvbro-generic-2.0.1.armeabi-v7a.apk",
       "urls": [
-        "https://github.com/truefedex/tv-bro/releases/download/v2.0.0-rc1/tvbro-generic-2.0.0.arm64-v8a.apk"
+        "https://github.com/truefedex/tv-bro/releases/download/v2.0.1/tvbro-generic-2.0.1.arm64-v8a.apk"
       ]
     },
     {
       "name": "beta",
-      "latestVersionName": "v2.0.0",
-      "latestVersionCode": 60,
-      "minAPI": 23,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.0.0-rc1/tvbro-generic-2.0.0.armeabi-v7a.apk",
+      "latestVersionName": "v2.0.1",
+      "latestVersionCode": 61,
+      "minAPI": 24,
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.0.1/tvbro-generic-2.0.1.armeabi-v7a.apk",
       "urls": [
-        "https://github.com/truefedex/tv-bro/releases/download/v2.0.0-rc1/tvbro-generic-2.0.0.arm64-v8a.apk"
+        "https://github.com/truefedex/tv-bro/releases/download/v2.0.1/tvbro-generic-2.0.1.arm64-v8a.apk"
         ]
     }
   ],
 
   "changelog": [
+    {
+      "versionCode": 61,
+      "versionName": "v2.0.1",
+      "changes": "* Various bugfixes and update for GeckoView engine\n* Localization updates\n* It was decided to leave support for WebView engine and recommend it for weaker devices"
+    },
     {
       "versionCode": 60,
       "versionName": "v2.0.0",
@@ -37,11 +42,6 @@
       "versionCode": 57,
       "versionName": "v1.8.5",
       "changes": "* Some crashes fixed\n* Do not log temporary history in incognito mode (even temporary)\n* Trick to make play/pause remote media button work (experimental)\n* Fixed one problem of not opening magnet links on Android 11 and below\n* Fixed downloading in private folder problem on Android 12\n* Dropped support of Android 5.x"
-    },
-    {
-      "versionCode": 56,
-      "versionName": "v1.8.4",
-      "changes": "* Fixed crash on incognito mode switch\n* Fixed History delete function (thank you @shark-yn)\n* DRM content support fix\n* Added Polish translation (thank you @BadOmen)\n* Added Italian translation (thank you @Vladi69)\n* Added some other minor missing translations\n* Dependency & target android API level update"
     }
   ]
 }
