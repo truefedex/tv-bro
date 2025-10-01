@@ -1143,7 +1143,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     runOnUiThread {
                         Utils.showToast(applicationContext, getString(R.string.err_no_app_to_handle_url))
                     }
-                    false
+                    true
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "shouldOverrideUrlLoading: ", e)
