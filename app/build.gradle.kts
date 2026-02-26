@@ -3,7 +3,6 @@ import java.util.*
 
 plugins {
     id("com.android.application")
-    kotlin("android")
     id("com.google.devtools.ksp")
 }
 
@@ -16,8 +15,7 @@ if (localPropertiesFile.exists()) {
 var includeFirebase = true
 
 android {
-    compileSdk = 34
-    buildToolsVersion = "34.0.0"
+    compileSdk = 36
     namespace = "com.phlox.tvwebbrowser"
 
     defaultConfig {
@@ -68,20 +66,6 @@ android {
         }
     }
 
-    applicationVariants.all {
-        val variant = this
-        variant.outputs
-            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
-            .forEach { output ->
-                val flavour = variant.flavorName
-                //val builtType = variant.buildType.name
-                val versionName = variant.versionName
-                val arch = output.filters.first().identifier
-                output.outputFileName =
-                    "tvbro-${flavour}-${versionName}(${arch}).apk"
-            }
-    }
-
     flavorDimensions += listOf("appstore", "webengine")
     productFlavors {
         create("generic") {
@@ -125,23 +109,29 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 dependencies {
     implementation(project(":app:common"))
     "geckoIncludedImplementation"(project(":app:gecko"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.webkit:webkit:1.11.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("androidx.webkit:webkit:1.15.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.20")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.3.10")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
 
-    val roomVersion = "2.6.1"
+    val roomVersion = "2.8.4"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
@@ -160,7 +150,7 @@ dependencies {
     "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:19.0.1")
 
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.9")
+    testImplementation("org.robolectric:robolectric:4.16.1")
 }
 
 if(includeFirebase) {

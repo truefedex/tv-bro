@@ -1,12 +1,11 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
 }
 
 android {
     namespace = "com.phlox.tvwebbrowser.common"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 24
@@ -29,10 +28,16 @@ android {
     }
 }
 
-dependencies {
-    implementation("androidx.appcompat:appcompat:1.6.1")
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
 
-    val roomVersion = "2.6.1"
+dependencies {
+    implementation("androidx.appcompat:appcompat:1.7.1")
+
+    val roomVersion = "2.8.4"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")

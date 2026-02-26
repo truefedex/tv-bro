@@ -103,7 +103,7 @@ object DownloadUtils {
                 }
             }
             if (extension == null) {
-                if (mimeType != null && mimeType.toLowerCase(Locale.ROOT).startsWith("text/")) {
+                if (mimeType != null && mimeType.lowercase().startsWith("text/")) {
                     if (mimeType.equals("text/html", ignoreCase = true)) {
                         extension = ".html"
                     } else {
