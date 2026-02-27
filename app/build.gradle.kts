@@ -2,8 +2,8 @@ import java.util.*
 
 
 plugins {
-    id("com.android.application")
-    id("com.google.devtools.ksp")
+    id("tvbro.android.application")
+    alias(libs.plugins.ksp)
 }
 
 val properties = Properties()
@@ -15,13 +15,10 @@ if (localPropertiesFile.exists()) {
 var includeFirebase = true
 
 android {
-    compileSdk = 36
     namespace = "com.phlox.tvwebbrowser"
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        minSdk = 24
-        targetSdk = 34
         versionCode = 61
         versionName = "2.0.1"
 
@@ -97,21 +94,10 @@ android {
         buildConfig = true
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
         }
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
@@ -121,41 +107,36 @@ dependencies {
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.webkit:webkit:1.15.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
-    implementation("androidx.recyclerview:recyclerview:1.4.0")
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.webkit)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.3.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
+    implementation(libs.segmented.button)
+    implementation(libs.ad.block)
+    implementation(libs.pinned.section.listview)
 
-    val roomVersion = "2.8.4"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    annotationProcessor("androidx.room:room-compiler:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
+    implementation(platform(libs.firebase.bom))
+    "googleImplementation"(libs.firebase.core)
+    "googleImplementation"(libs.firebase.crashlytics.ktx)
+    "genericImplementation"(libs.firebase.core)
+    "genericImplementation"(libs.firebase.crashlytics.ktx)
 
-    implementation("com.github.truefedex:segmented-button:v1.0.0")
-    implementation("com.github.truefedex:ad-block:v0.0.1-ci")
-    implementation("de.halfbit:pinned-section-listview:1.0.0")
-
-    //"debugImplementation"("com.squareup.leakcanary:leakcanary-android:2.14")
-
-    "googleImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "googleImplementation"("com.google.firebase:firebase-crashlytics-ktx:19.0.1")
-
-    "genericImplementation"("com.google.firebase:firebase-core:21.1.1")
-    "genericImplementation"("com.google.firebase:firebase-crashlytics-ktx:19.0.1")
-
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.16.1")
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
 }
 
-if(includeFirebase) {
+if (includeFirebase) {
     plugins {
-        id("com.google.gms.google-services")
-        id("com.google.firebase.crashlytics")
+        alias(libs.plugins.google.services)
+        alias(libs.plugins.firebase.crashlytics)
     }
 }

@@ -7,3 +7,4 @@
 /captures
 *.keystore
 *.hprof
+/buildSrc/build
