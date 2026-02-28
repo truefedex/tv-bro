@@ -160,7 +160,7 @@
     <item>بیشترین بازدید</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">موتور مرورگر وب (تنظیم موقت)</string>
+  <string name="web_browser_engine_temporary_setting">موتور مرورگر وب</string>
   <string name="need_restart_message">برای اعمال تغییرات، برنامه را مجددا راه اندازی کنید</string>
   <string name="restart">راه اندازی مجدد</string>
   <string name="yes">آره</string>

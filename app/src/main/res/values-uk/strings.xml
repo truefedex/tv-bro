@@ -156,7 +156,7 @@
     <item>Найбільш відвідувані</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">"Двигун" веб-браузера (тимчасове налаштування)</string>
+  <string name="web_browser_engine_temporary_setting">"Двигун" веб-браузера</string>
   <string name="need_restart_message">Перезапустіть програму, щоб застосувати зміни</string>
   <string name="restart">Перезапустити</string>
   <string name="yes">Так</string>

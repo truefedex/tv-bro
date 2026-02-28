@@ -156,7 +156,7 @@
     <item>Самые посещаемые</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">"Движок" веб-браузера (временная настройка)</string>
+  <string name="web_browser_engine_temporary_setting">"Движок" веб-браузера</string>
   <string name="need_restart_message">Перезапустите приложение, чтобы применить изменения</string>
   <string name="restart">Перезапуск</string>
   <string name="yes">Да</string>

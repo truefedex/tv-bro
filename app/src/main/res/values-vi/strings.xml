@@ -156,7 +156,7 @@
     <item>Truy cập nhiều nhất</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">Web browser engine (cài đặt tạm thời)</string>
+  <string name="web_browser_engine_temporary_setting">Web browser engine</string>
   <string name="need_restart_message">Khởi động lại ứng dụng để áp dụng các thay đổi</string>
   <string name="restart">Khởi động lại</string>
   <string name="yes">CÓ</string>

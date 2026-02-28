@@ -155,7 +155,7 @@
     <item>Neueste Geschichte</item>
     <item>Meist besuchte</item>
   </string-array>
-  <string name="web_browser_engine_temporary_setting">Webbrowser-Engine (vorübergehende Einstellung)</string>
+  <string name="web_browser_engine_temporary_setting">Webbrowser-Engine</string>
   <string name="need_restart_message">Starten Sie die App neu, um die Änderungen zu übernehmen</string>
   <string name="restart">Neu starten</string>
   <string name="yes">Ja</string>

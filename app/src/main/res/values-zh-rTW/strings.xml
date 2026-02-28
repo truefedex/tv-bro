@@ -128,7 +128,7 @@
     <string name="custom_home_page_url">自訂首頁網址</string>
     <string name="home_page_links">首頁顯示連結</string>
 
-    <string name="web_browser_engine_temporary_setting">網頁瀏覽器引擎 (暫時設定)</string>
+    <string name="web_browser_engine_temporary_setting">網頁瀏覽器引擎</string>
     <string name="need_restart_message">重新啟動應用程式以套用變更</string>
     <string name="restart">重新啟動</string>
     <string name="yes">是</string>

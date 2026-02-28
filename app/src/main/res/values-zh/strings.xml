@@ -156,7 +156,7 @@
     <item>最常访问</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">浏览器引擎 (临时设置)</string>
+  <string name="web_browser_engine_temporary_setting">浏览器引擎</string>
   <string name="need_restart_message">重新启动应用以应用此更改</string>
   <string name="restart">重新启动</string>
   <string name="yes">是</string>

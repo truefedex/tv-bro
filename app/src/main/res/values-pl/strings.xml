@@ -157,7 +157,7 @@
     <item>Najczęściej odwiedzane</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">Silnik przeglądarki internetowej (ustawienie tymczasowe)</string>
+  <string name="web_browser_engine_temporary_setting">Silnik przeglądarki internetowej</string>
   <string name="need_restart_message">Uruchom ponownie aplikację, aby zastosować zmiany</string>
   <string name="restart">Uruchom ponownie</string>
   <string name="yes">Tak</string>

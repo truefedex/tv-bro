@@ -159,7 +159,7 @@
     <item>הכי ביקר</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">מנוע דפדפן אינטרנט (הגדרה זמנית)</string>
+  <string name="web_browser_engine_temporary_setting">מנוע דפדפן אינטרנט</string>
   <string name="need_restart_message">הפעל מחדש את האפליקציה כדי להחיל שינויים</string>
   <string name="restart">איתחול</string>
   <string name="yes">כן</string>
