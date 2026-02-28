@@ -20,7 +20,7 @@ room = "2.8.4"
 
 junit = "4.13.2"
 robolectric = "4.16.1"
-geckoview = "121.0.20240108143603"
+geckoview = "143.0.20251003115653"
 
 [libraries]
 # build logic (buildSrc)

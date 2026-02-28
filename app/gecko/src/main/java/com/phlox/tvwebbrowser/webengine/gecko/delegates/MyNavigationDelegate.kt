@@ -32,7 +32,8 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
     override fun onLocationChange(
         session: GeckoSession,
         url: String?,
-        perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>
+        perms: List<GeckoSession.PermissionDelegate.ContentPermission?>,
+        hasUserGesture: Boolean
     ) {
         Log.d(TAG, "onLocationChange: $url")
         locationURL = url
