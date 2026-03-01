@@ -98,11 +98,11 @@ class ShortcutMgr private constructor() {
         }
     }
 
-    private fun shortCutsForEvent(keyEvent: KeyEvent): List<Shortcut> {
+    private fun shortCutsForEvent(keyCode: Int, modifiers: Int): List<Shortcut> {
         val findings = ArrayList<Shortcut>()
         for (shortcut in shortcuts) {
-            if (shortcut.keyCode == keyEvent.keyCode) {
-                if (shortcut.modifiers == keyEvent.modifiers) {
+            if (shortcut.keyCode == keyCode) {
+                if (shortcut.modifiers == modifiers) {
                     findings.add(shortcut)
                 }
             }
@@ -110,22 +110,10 @@ class ShortcutMgr private constructor() {
         return findings
     }
 
-    private fun isAnyShortcutForEvent(keyEvent: KeyEvent): Boolean {
-        for (shortcut in shortcuts) {
-            if (shortcut.keyCode == keyEvent.keyCode) {
-                if (shortcut.modifiers == keyEvent.modifiers) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
     private fun onKeyDown(event: KeyEvent, mainActivity: MainActivity, tab: WebTabState?): Boolean {
-        if (!isAnyShortcutForEvent(event)) {
-            return false
-        }
-        trackingShortcuts = shortCutsForEvent(event)
+        val shortcuts = shortCutsForEvent(event.keyCode, event.modifiers)
+        if (shortcuts.isEmpty()) return false
+        trackingShortcuts = shortcuts
         if (event.repeatCount == 0) {
             event.startTracking()
         }
@@ -167,6 +155,13 @@ class ShortcutMgr private constructor() {
             KeyEvent.ACTION_UP -> onKeyUp(event, mainActivity, value)
             else -> false
         }
+    }
+
+    fun tryHandleEmulatedSimpleKeyPress(keyCode: Int, mainActivity: MainActivity, tab: WebTabState?): Boolean {
+        val shortcuts = shortCutsForEvent(keyCode, 0)
+        if (shortcuts.isEmpty()) return false
+        uiHandler.post { process(shortcuts.first(), mainActivity, tab?.webEngine) }
+        return true
     }
 
     companion object {

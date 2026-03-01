@@ -4,6 +4,7 @@
     android:id="@+id/activity_downloads"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:background="@color/day_night_background_color"
     tools:context="com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity">
 

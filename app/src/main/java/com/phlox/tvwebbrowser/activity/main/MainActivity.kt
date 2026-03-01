@@ -22,6 +22,7 @@ import android.webkit.*
 import android.widget.FrameLayout
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -60,6 +61,8 @@ import java.net.URL
 import java.net.URLEncoder
 import java.util.*
 import kotlin.system.exitProcess
+import androidx.core.view.isVisible
+import androidx.core.view.isInvisible
 
 
 open class MainActivity : AppCompatActivity(), ActionBar.Callback {
@@ -196,6 +199,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 }
             }
         }
+
+        onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
         loadState()
     }
@@ -763,10 +768,28 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     fun toggleMenu() {
-        if (vb.rlActionBar.visibility == View.INVISIBLE) {
+        if (vb.rlActionBar.isInvisible) {
             showMenuOverlay()
         } else {
             hideMenuOverlay()
+        }
+    }
+
+    val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            if (vb.flWebViewContainer.cursorDrawerDelegate.canHandleBackNavigation()) {
+                vb.flWebViewContainer.cursorDrawerDelegate.handleBackNavigation()
+            } else if (isFullscreen) {
+                tabsModel.currentTab.value?.webEngine?.hideFullscreenView()
+            } else if (vb.llBottomPanel.isVisible && !vb.rlActionBar.isVisible) {
+                hideBottomPanel()
+            } else if (vb.vCursorMenu.isVisible) {
+                vb.vCursorMenu.close(CursorMenuView.CloseAnimation.ROTATE_OUT)
+            } else {
+                ShortcutMgr.getInstance()
+                    .tryHandleEmulatedSimpleKeyPress(KeyEvent.KEYCODE_BACK,
+                        this@MainActivity, tabsModel.currentTab.value)
+            }
         }
     }
 
@@ -774,25 +797,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
         val shortcutMgr = ShortcutMgr.getInstance()
+        val keyCodeBackNavigation = keyCode == KeyEvent.KEYCODE_ESCAPE ||
+                keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_BACK
 
-        if (keyCode == KeyEvent.KEYCODE_BACK && isFullscreen) {
-            if (event.action == KeyEvent.ACTION_UP) {
-                uiHandler.post {
-                    tabsModel.currentTab.value?.webEngine?.hideFullscreenView()
-                }
-            }
-            return true
-        } else if (keyCode == KeyEvent.KEYCODE_BACK && vb.llBottomPanel.visibility == View.VISIBLE && vb.rlActionBar.visibility != View.VISIBLE) {
-            if (event.action == KeyEvent.ACTION_UP) {
-                uiHandler.post { hideBottomPanel() }
-            }
-            return true
-        } else if (keyCode == KeyEvent.KEYCODE_BACK && vb.vCursorMenu.visibility == View.VISIBLE) {
-            if (event.action == KeyEvent.ACTION_UP) {
-                uiHandler.post { vb.vCursorMenu.close(CursorMenuView.CloseAnimation.ROTATE_OUT) }
-            }
-            return true
-        } else if (shortcutMgr.handle(event, this, tabsModel.currentTab.value)) {
+        if ((!keyCodeBackNavigation) &&
+            shortcutMgr.handle(event, this, tabsModel.currentTab.value)) {
             return true
         }
         return super.dispatchKeyEvent(event)

@@ -88,20 +88,20 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         surface.postDelayed(cursorHideRunnable, CURSOR_DISAPPEAR_TIMEOUT.toLong())
     }
 
+    fun canHandleBackNavigation(): Boolean {
+        return grabMode || textSelectionMode
+    }
+
+    fun handleBackNavigation() {
+        if (grabMode) {
+            exitGrabMode()
+        } else if (textSelectionMode) {
+            exitTextSelectionMode(cancel = true)
+        }
+    }
+
     fun dispatchKeyEvent(event: KeyEvent): Boolean {
         when (event.keyCode) {
-            KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK -> {
-                if (grabMode || textSelectionMode) {
-                    if (event.action == KeyEvent.ACTION_UP) {
-                        if (grabMode) {
-                            exitGrabMode()
-                        } else if (textSelectionMode) {
-                            exitTextSelectionMode(cancel = true)
-                        }
-                    }
-                    return true
-                }
-            }
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     handleDirectionKeyEvent(event, -1, UNCHANGED, true)
