@@ -9,10 +9,6 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
 
-internal object TvBroAndroidModuleConfig {
-    val javaVersion = JavaVersion.VERSION_17
-}
-
 internal enum class AndroidModuleType { APPLICATION, LIBRARY }
 
 internal object TvBroAndroidModulePlugin {
@@ -38,10 +34,6 @@ internal object TvBroAndroidModulePlugin {
                         minSdk = findVersion("android-minSdk")
                         targetSdk = findVersion("android-targetSdk")
                     }
-                    compileOptions {
-                        sourceCompatibility = TvBroAndroidModuleConfig.javaVersion
-                        targetCompatibility = TvBroAndroidModuleConfig.javaVersion
-                    }
                 }
                 AndroidModuleType.LIBRARY -> extensions.configure<LibraryExtension> {
                     compileSdk = findVersion("android-compileSdk")
@@ -57,10 +49,6 @@ internal object TvBroAndroidModulePlugin {
                                 "proguard-rules.pro"
                             )
                         }
-                    }
-                    compileOptions {
-                        sourceCompatibility = TvBroAndroidModuleConfig.javaVersion
-                        targetCompatibility = TvBroAndroidModuleConfig.javaVersion
                     }
                 }
             }

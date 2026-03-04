@@ -1,6 +1,6 @@
 [versions]
 android-compileSdk = "36"
-android-minSdk = "24"
+android-minSdk = "26"
 android-targetSdk = "36"
 agp = "9.0.1"
 kotlin = "2.3.10"
@@ -20,7 +20,10 @@ room = "2.8.4"
 
 junit = "4.13.2"
 robolectric = "4.16.1"
-geckoview = "143.0.20251003115653"
+geckoview = "147.0.20260212191108"
+ad-block = "0.0.4"
+segmented-button = "v1.0.0"
+pinned-section-listview = "1.0.0"
 
 [libraries]
 # build logic (buildSrc)
@@ -49,9 +52,9 @@ firebase-core = { group = "com.google.firebase", name = "firebase-core" }
 firebase-crashlytics-ktx = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
 
 # Third-party
-segmented-button = { group = "com.github.truefedex", name = "segmented-button", version = "v1.0.0" }
-ad-block = { group = "com.github.truefedex", name = "ad-block", version = "v0.0.1-ci" }
-pinned-section-listview = { group = "de.halfbit", name = "pinned-section-listview", version = "1.0.0" }
+segmented-button = { group = "com.github.truefedex", name = "segmented-button", version.ref = "segmented-button" }
+ad-block = { group = "com.github.truefedex", name = "ad-block", version.ref = "ad-block" }
+pinned-section-listview = { group = "de.halfbit", name = "pinned-section-listview", version.ref = "pinned-section-listview" }
 
 # Gecko
 geckoview = { group = "org.mozilla.geckoview", name = "geckoview", version.ref = "geckoview" }
