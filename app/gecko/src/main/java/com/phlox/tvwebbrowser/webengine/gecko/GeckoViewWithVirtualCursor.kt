@@ -15,6 +15,7 @@ import android.view.MotionEvent
 import android.view.MotionEvent.PointerProperties
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.dip2px
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
@@ -23,9 +24,17 @@ import org.mozilla.geckoview.ScreenLength
 
 class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null):
     GeckoViewEx(context, attrs) {
+    var virtualCursorMode: Boolean = true
+        set(value) {
+            field = value
+            inputEventsAdapter.resetState()
+        }
     lateinit var cursorDrawerDelegate: CursorDrawerDelegate
 
     private var inputMethodManager: InputMethodManager? = null
+    private val inputEventsAdapter = DPADNavigationEventsAdapter(onEmulatedKeyEvent = { keyEvent ->
+        cursorDrawerDelegate.dispatchKeyEvent(keyEvent)
+    })
 
     init {
         init()
@@ -58,23 +67,16 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         cursorDrawerDelegate.onSizeChanged(w, h, ow, oh)
     }
 
-    override fun onGenericMotionEvent(event: MotionEvent?): Boolean {
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        if (virtualCursorMode) {
+            return inputEventsAdapter.dispatchGenericMotionEvent(event)
+        }
         return false
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (inputMethodManager?.isAcceptingText == true && event.keyCode == KeyEvent.KEYCODE_ESCAPE) {
-            return super.dispatchKeyEvent(event)
-        }
-
-        if (cursorDrawerDelegate.dispatchKeyEvent(event)) {
-            return true
-        }
-
-        when (event.keyCode) {
-            KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK -> {
-                return false//prevent capturing this keys by geckoview and let activity handle them
-            }
+        if (virtualCursorMode) {
+            return inputEventsAdapter.dispatchKeyEvent(event)
         }
 
         return super.dispatchKeyEvent(event)

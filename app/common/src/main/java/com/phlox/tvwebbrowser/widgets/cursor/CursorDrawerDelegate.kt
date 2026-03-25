@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.widgets.cursor
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -18,6 +19,7 @@ import com.phlox.tvwebbrowser.utils.Utils
 class CursorDrawerDelegate(val context: Context, val surface: View) {
     private var cursorRadius: Int = 0
     private var cursorRadiusPressed: Int = 0
+    private var cursorRadiusAnimationMultiplier: Float = 1f
     private var maxCursorSpeed: Float = 0f
     private var scrollStartPadding = 100
     private var cursorStrokeWidth: Float = 0f
@@ -313,7 +315,8 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         if (grabMode || textSelectionMode || !isCursorDisappear) {
             val cx = cursorPosition.x
             val cy = cursorPosition.y
-            val radius = if (dpadCenterPressed) cursorRadiusPressed else cursorRadius
+            val radius = if (dpadCenterPressed) cursorRadiusPressed else
+                    (cursorRadius * cursorRadiusAnimationMultiplier)
 
             paint.color = when {
                 grabMode -> Color.argb(128, 200, 200, 255)
@@ -446,6 +449,18 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         generateZoomGesture(false)
     }
 
+    fun animateAppearing() {
+        lastCursorUpdate = System.currentTimeMillis()
+        cursorRadiusAnimationMultiplier = 2f
+        val animator = ValueAnimator.ofFloat(2f, 1f)
+        animator.duration = 300
+        animator.addUpdateListener { valueAnimator ->
+            cursorRadiusAnimationMultiplier = valueAnimator.animatedValue as Float
+            surface.postInvalidate()
+        }
+        animator.start()
+    }
+
     //https://stackoverflow.com/questions/11523423/how-to-generate-zoom-pinch-gesture-for-testing-for-android
     var pinchZoomStartTime = 0L
     val pinchZoomDuration = 1000
@@ -532,6 +547,17 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         surface.dispatchTouchEvent(event)
 
         surface.post(pinchZoomRunnable)
+    }
+
+    fun hideCursor() {
+        if (dpadCenterPressed) {
+            dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
+            dpadCenterPressed = false
+        }
+        grabMode = false
+        textSelectionMode = false
+        lastCursorUpdate = System.currentTimeMillis() - CURSOR_DISAPPEAR_TIMEOUT
+        surface.postInvalidate()
     }
 
     private val pinchZoomRunnable: Runnable by lazy {

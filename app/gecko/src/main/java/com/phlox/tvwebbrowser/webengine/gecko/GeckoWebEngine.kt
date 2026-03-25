@@ -506,4 +506,19 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, CursorDrawerDelegate.Text
         callback?.onContextMenu(webView!!.cursorDrawerDelegate, navigationDelegate.locationURL,
             null, null, null, null, null, x, y)
     }
+
+    override fun isVirtualCursorMode(): Boolean {
+        return webView?.virtualCursorMode ?: true
+    }
+
+    override fun setVirtualCursorMode(enabled: Boolean) {
+        if (enabled) {
+            webView?.cursorDrawerDelegate?.animateAppearing()
+        }
+        webView?.virtualCursorMode = enabled
+    }
+
+    override fun getCursorDrawerDelegate(): CursorDrawerDelegate? {
+        return webView?.cursorDrawerDelegate
+    }
 }

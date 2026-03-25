@@ -277,6 +277,22 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         }
     }
 
+    override fun isVirtualCursorMode(): Boolean {
+        return viewParent?.cursorEnabled ?: true
+    }
+
+    override fun setVirtualCursorMode(enabled: Boolean) {
+        viewParent?.cursorEnabled = enabled
+        if (enabled) {
+            viewParent?.cursorDrawerDelegate?.animateAppearing()
+        }
+        webView?.setVirtualCursorMode(enabled)
+    }
+
+    override fun getCursorDrawerDelegate(): CursorDrawerDelegate? {
+        return viewParent?.cursorDrawerDelegate
+    }
+
     private val webViewCallback = object : WebViewEx.Callback {
         override fun getActivity(): Activity? {
             return callback?.getActivity()
@@ -304,7 +320,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
                 if (previousCursorPosition != null) {
                     (this as? CursorLayout)?.cursorDrawerDelegate?.cursorPosition?.set(previousCursorPosition)
                 }
-            }            
+            }
             fullScreenView = view
         }
 

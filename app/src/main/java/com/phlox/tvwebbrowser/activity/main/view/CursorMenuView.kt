@@ -3,7 +3,10 @@ package com.phlox.tvwebbrowser.activity.main.view
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
@@ -13,6 +16,7 @@ import com.phlox.tvwebbrowser.databinding.ViewCursorMenuBinding
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
+import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 
 class CursorMenuView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -21,6 +25,8 @@ class CursorMenuView @JvmOverloads constructor(
     private var vb: ViewCursorMenuBinding =
         ViewCursorMenuBinding.inflate(LayoutInflater.from(context), this, true)
     private var menuContext: MenuContext? = null
+    private var handler = Handler(Looper.getMainLooper())
+    private var lastShowTime = 0L
 
     init {
         vb.btnGrabMode.setOnClickListener {
@@ -29,7 +35,7 @@ class CursorMenuView @JvmOverloads constructor(
         }
         vb.btnGrabMode.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus && menuContext != null &&
-                !(vb.btnContextMenu.hasFocus() || vb.btnTextSelection.hasFocus() ||
+                !(vb.btnContextMenu.hasFocus() || vb.btnDPADMode.hasFocus() ||
                         vb.btnZoomIn.hasFocus() || vb.btnZoomOut.hasFocus())){
                 handler.postDelayed({
                     vb.btnGrabMode.requestFocus()
@@ -49,10 +55,12 @@ class CursorMenuView @JvmOverloads constructor(
                 }, 100)
             }
         }
-        vb.btnTextSelection.setOnFocusChangeListener { _, hasFocus ->
+        vb.btnDPADMode.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 postDelayed({
-                    menuContext?.cursorDrawerDelegate?.goToTextSelectionMode()
+                    menuContext?.tab?.webEngine?.setVirtualCursorMode(false)
+                    menuContext?.backNavigationEventsAdapter
+                        ?.gameControllersLongPressBForBackNavigation = true
                     close(CloseAnimation.FADE_OUT)
                 }, 100)
             }
@@ -86,15 +94,22 @@ class CursorMenuView @JvmOverloads constructor(
         altText: String?,
         textContent: String?,
         x: Int,
-        y: Int
+        y: Int,
+        backNavigationEventsAdapter: BackNavigationEventsAdapter
     ) {
-        if (visibility == VISIBLE) {
+        Log.d("CursorMenuView", "show: $baseUri, $linkUri, $srcUri, $title, $altText, $textContent, x=$x, y=$y")
+        val now = System.currentTimeMillis()
+        if (menuContext != null && now - lastShowTime < 1000) {
             return
         }
+        lastShowTime = now
         this.menuContext = MenuContext(tab, windowProvider, cursorDrawerDelegate,
-            baseUri, linkUri, srcUri, title, altText, textContent, x, y)
+            baseUri, linkUri, srcUri, title, altText, textContent, x, y, backNavigationEventsAdapter)
         visibility = VISIBLE
-        vb.btnGrabMode.requestFocus()
+        handler.postDelayed( {
+            vb.btnGrabMode.requestFocus()
+            tab.webEngine.getCursorDrawerDelegate()?.hideCursor()
+        }, 100)
         //set position
         val params = layoutParams as ViewGroup.MarginLayoutParams
         params.leftMargin = x - vb.root.width / 2
@@ -108,18 +123,19 @@ class CursorMenuView @JvmOverloads constructor(
             val animatedValue = valueAnimator.animatedValue as Float
             vb.root.alpha = animatedValue
             vb.btnZoomOut.x = (vb.root.width * 0.5f - vb.btnZoomOut.width * 0.5f) * (1 - animatedValue)
-            vb.btnZoomOut.y = (vb.root.height * 0.25f - vb.btnTextSelection.height * 0.5f) * (1 - animatedValue) + vb.root.height * 0.5f - vb.btnTextSelection.height * 0.5f
+            vb.btnZoomOut.y = (vb.root.height * 0.25f - vb.btnDPADMode.height * 0.5f) * (1 - animatedValue) + vb.root.height * 0.5f - vb.btnDPADMode.height * 0.5f
             vb.btnZoomIn.x = (vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f) * animatedValue + vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f
             vb.btnZoomIn.y = (vb.root.height * 0.25f - vb.btnContextMenu.height * 0.5f) * animatedValue + vb.root.height * 0.25f
             vb.btnContextMenu.y = (vb.root.height * 0.5f - vb.btnContextMenu.height * 0.5f) * (1 - animatedValue)
             vb.btnContextMenu.x = (vb.root.width * 0.25f - vb.btnZoomOut.width * 0.5f) * animatedValue + vb.root.width * 0.25f
-            vb.btnTextSelection.y = (vb.root.height * 0.5f - vb.btnTextSelection.height * 0.5f) * animatedValue + vb.root.height * 0.5f - vb.btnTextSelection.height * 0.5f
-            vb.btnTextSelection.x = (vb.root.width * 0.25f - vb.btnZoomIn.width * 0.5f) * (1 - animatedValue) + vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f
+            vb.btnDPADMode.y = (vb.root.height * 0.5f - vb.btnDPADMode.height * 0.5f) * animatedValue + vb.root.height * 0.5f - vb.btnDPADMode.height * 0.5f
+            vb.btnDPADMode.x = (vb.root.width * 0.25f - vb.btnZoomIn.width * 0.5f) * (1 - animatedValue) + vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f
         }
         animator.start()
     }
 
     fun close(animation: CloseAnimation = CloseAnimation.FADE_OUT) {
+        Log.d("CursorMenuView", "close")
         menuContext = null
         val animator = ObjectAnimator.ofFloat(vb.root, "alpha", 1f, 0f)
         animator.duration = 250
@@ -174,6 +190,7 @@ class CursorMenuView @JvmOverloads constructor(
         val altText: String?,
         val textContent: String?,
         val x: Int,
-        val y: Int
+        val y: Int,
+        val backNavigationEventsAdapter: BackNavigationEventsAdapter
     )
 }

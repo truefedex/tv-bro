@@ -50,4 +50,7 @@ interface WebEngine: CursorDrawerDelegate.TextSelectionCallback {
     fun stopPlayback()
     fun rewind()
     fun fastForward()
+    fun setVirtualCursorMode(enabled: Boolean)
+    fun isVirtualCursorMode(): Boolean
+    fun getCursorDrawerDelegate(): CursorDrawerDelegate?
 }

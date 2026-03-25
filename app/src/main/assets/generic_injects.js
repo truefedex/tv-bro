@@ -34,19 +34,12 @@ Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
 })
 
 window.tvBroTogglePlayback = function() {
-  var video = document.querySelector('video');
-  var audio = document.querySelector('audio');
-  if (video) {
-      if (video.playing) {
-        video.pause();
+  var media = document.querySelector('video') || document.querySelector('audio');
+  if (media) {
+      if (media.playing) {
+        media.pause();
       } else {
-        video.play();
-      }
-  } else if (audio) {
-      if (audio.playing) {
-        audio.pause();
-      } else {
-        audio.play();
+        media.play();
       }
   }
 }

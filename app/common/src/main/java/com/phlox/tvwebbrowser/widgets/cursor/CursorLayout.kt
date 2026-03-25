@@ -2,19 +2,13 @@ package com.phlox.tvwebbrowser.widgets.cursor
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Point
-import android.graphics.PointF
-import android.graphics.Rect
-import android.os.SystemClock
 import android.util.AttributeSet
+import android.util.Log
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
-import android.view.View
-import android.view.WindowManager
 import android.widget.FrameLayout
-import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 
 
 /**
@@ -22,7 +16,15 @@ import com.phlox.tvwebbrowser.utils.Utils
  */
 class CursorLayout @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null):
     FrameLayout(context, attrs) {
+    var cursorEnabled: Boolean
+        get() = !willNotDraw()
+        set(value) {
+            setWillNotDraw(!value)
+        }
     lateinit var cursorDrawerDelegate: CursorDrawerDelegate
+    private val inputEventsAdapter = DPADNavigationEventsAdapter(onEmulatedKeyEvent = { keyEvent ->
+        cursorDrawerDelegate.dispatchKeyEvent(keyEvent)
+    })
 
     init {
         init()
@@ -45,15 +47,33 @@ class CursorLayout @JvmOverloads constructor(context: Context, attrs: AttributeS
         cursorDrawerDelegate.onSizeChanged(w, h, ow, oh)
     }
 
+    override fun setWillNotDraw(willNotDraw: Boolean) {
+        inputEventsAdapter.resetState()
+        super.setWillNotDraw(willNotDraw)
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        Log.d("CursorLayout", "dispatchKeyEvent: $event")
+
         if (willNotDraw()) return super.dispatchKeyEvent(event)
 
-        if (cursorDrawerDelegate.dispatchKeyEvent(event)) {
+        if (inputEventsAdapter.dispatchKeyEvent(event)) {
             return true
         }
 
-        val child = getChildAt(0)
-        return child?.dispatchKeyEvent(event) ?: super.dispatchKeyEvent(event)
+        return super.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        Log.d("CursorLayout", "dispatchGenericMotionEvent: $event")
+
+        if (willNotDraw()) return super.dispatchGenericMotionEvent(event)
+
+        if (inputEventsAdapter.dispatchGenericMotionEvent(event)) {
+            return true
+        }
+
+        return super.dispatchGenericMotionEvent(event)
     }
 
     override fun dispatchDraw(canvas: Canvas) {

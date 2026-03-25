@@ -6,9 +6,8 @@ import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
 import androidx.annotation.UiThread
-import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.Config
-
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.webengine.WebEngine
@@ -68,9 +67,6 @@ class ShortcutMgr private constructor() {
     @UiThread
     fun process(shortcut: Shortcut, mainActivity: MainActivity, webEngine: WebEngine?) {
         when (shortcut) {
-            Shortcut.MENU -> {
-                mainActivity.toggleMenu()
-            }
             Shortcut.NAVIGATE_BACK -> {
                 mainActivity.navigateBack()
             }

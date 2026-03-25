@@ -777,34 +777,64 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            if (vb.flWebViewContainer.cursorDrawerDelegate.canHandleBackNavigation()) {
-                vb.flWebViewContainer.cursorDrawerDelegate.handleBackNavigation()
-            } else if (isFullscreen) {
-                tabsModel.currentTab.value?.webEngine?.hideFullscreenView()
-            } else if (vb.llBottomPanel.isVisible && !vb.rlActionBar.isVisible) {
-                hideBottomPanel()
-            } else if (vb.vCursorMenu.isVisible) {
-                vb.vCursorMenu.close(CursorMenuView.CloseAnimation.ROTATE_OUT)
-            } else {
-                ShortcutMgr.getInstance()
-                    .tryHandleEmulatedSimpleKeyPress(KeyEvent.KEYCODE_BACK,
-                        this@MainActivity, tabsModel.currentTab.value)
+            backNavigationEventsAdapter.dispatchSystemBackNavigationEvent()
+        }
+    }
+
+    private val backNavigationEventsAdapter = BackNavigationEventsAdapter(
+        onEmulatedBackEvent = { handleBackNavigation() }
+    )
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        val localCallback = window.callback
+        window.callback = object : Window.Callback by localCallback {
+            override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+                //Log.d(TAG, "dispatchKeyEvent event: $event")
+                backNavigationEventsAdapter.dispatchKeyEvent(event)
+
+                val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
+                val keyCodeBackNavigation = keyCode == KeyEvent.KEYCODE_ESCAPE ||
+                        keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_BACK
+                val shortcutMgr = ShortcutMgr.getInstance()
+                val currentTab = tabsModel.currentTab.value
+                if (!keyCodeBackNavigation &&
+                    shortcutMgr.handle(event, this@MainActivity, currentTab)) {
+                    return true
+                }
+
+                return localCallback.dispatchKeyEvent(event)
+            }
+
+            override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+                //Log.d(TAG, "dispatchGenericMotionEvent event: $event")
+                if (backNavigationEventsAdapter.dispatchGenericMotionEvent(event)) {
+                    return true
+                }
+                return localCallback.dispatchGenericMotionEvent(event)
             }
         }
     }
 
-    @SuppressLint("RestrictedApi")
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
-        val shortcutMgr = ShortcutMgr.getInstance()
-        val keyCodeBackNavigation = keyCode == KeyEvent.KEYCODE_ESCAPE ||
-                keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_BACK
-
-        if ((!keyCodeBackNavigation) &&
-            shortcutMgr.handle(event, this, tabsModel.currentTab.value)) {
-            return true
+    private fun handleBackNavigation() {
+        Log.d(TAG, "handleBackNavigation")
+        if (tabsModel.currentTab.value?.webEngine?.isVirtualCursorMode() == false) {
+            tabsModel.currentTab.value?.webEngine?.setVirtualCursorMode(true)
+            backNavigationEventsAdapter.gameControllersLongPressBForBackNavigation = false
+            return
         }
-        return super.dispatchKeyEvent(event)
+
+        if (vb.vCursorMenu.isVisible) {
+            vb.vCursorMenu.close(CursorMenuView.CloseAnimation.ROTATE_OUT)
+        } else if (vb.flWebViewContainer.cursorDrawerDelegate.canHandleBackNavigation()) {
+            vb.flWebViewContainer.cursorDrawerDelegate.handleBackNavigation()
+        } else if (isFullscreen) {
+            tabsModel.currentTab.value?.webEngine?.hideFullscreenView()
+        } else if (vb.llBottomPanel.isVisible && !vb.rlActionBar.isVisible) {
+            hideBottomPanel()
+        } else {
+            toggleMenu()
+        }
     }
 
     private fun showMenuOverlay() {
@@ -1346,12 +1376,15 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             x: Int,
             y: Int
         ) {
-            vb.vCursorMenu.show(
-                tab,this, cursorDrawer,
-                baseUri, linkUri, srcUri,
-                title, altText, textContent,
-                x, y
-            )
+            uiHandler.post {
+                vb.vCursorMenu.show(
+                    tab,this, cursorDrawer,
+                    baseUri, linkUri, srcUri,
+                    title, altText, textContent,
+                    x, y,
+                    backNavigationEventsAdapter
+                )
+            }
         }
 
         override fun suggestActionsForLink(baseUri: String?, linkUri: String?, srcUri: String?,
