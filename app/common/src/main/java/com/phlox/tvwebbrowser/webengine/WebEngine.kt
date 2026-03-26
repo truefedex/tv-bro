@@ -41,7 +41,7 @@ interface WebEngine: CursorDrawerDelegate.TextSelectionCallback {
     /**
      * At this point of time web view should be already created but not attached to window
      */
-    fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup, fullscreenViewParent: ViewGroup)
+    fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup)
     fun onDetachFromWindow(completely: Boolean, destroyTab: Boolean)
     fun trimMemory()
     fun onPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean

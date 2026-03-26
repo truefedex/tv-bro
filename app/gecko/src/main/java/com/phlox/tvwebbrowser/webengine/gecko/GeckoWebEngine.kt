@@ -426,7 +426,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, CursorDrawerDelegate.Text
 
     override fun onAttachToWindow(
         callback: WebEngineWindowProviderCallback,
-        parent: ViewGroup, fullscreenViewParent: ViewGroup
+        parent: ViewGroup
     ) {
         Log.d(TAG, "onAttachToWindow()")
         this.callback = callback

@@ -477,7 +477,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun changeTab(newTab: WebTabState) {
-        tabsModel.changeTab(newTab, { tab: WebTabState -> createWebView(tab) }, vb.flWebViewContainer, vb.flFullscreenContainer, WebEngineCallback(newTab))
+        tabsModel.changeTab(newTab, { tab: WebTabState -> createWebView(tab) }, vb.flWebViewContainer, WebEngineCallback(newTab))
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -528,7 +528,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private fun onWebViewUpdated(tab: WebTabState) {
         vb.flWebViewContainer.cursorDrawerDelegate.textSelectionCallback = tab.webEngine
-        vb.flFullscreenContainer.cursorDrawerDelegate.textSelectionCallback = tab.webEngine
 
         vb.ibBack.isEnabled = tab.webEngine.canGoBack() == true
         vb.ibForward.isEnabled = tab.webEngine.canGoForward() == true
