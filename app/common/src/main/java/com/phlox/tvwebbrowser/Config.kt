@@ -19,8 +19,11 @@ class Config(val prefs: SharedPreferences) {
         const val TV_BRO_UA_PREFIX = "TV Bro/1.0 "
         const val HOME_URL_ALIAS = "about:home"
         const val KEEP_SCREEN_ON_KEY = "keep_screen_on"
+        /** When true, analog stick / hat axes from generic motion events are not translated to DPAD keys. */
+        const val DISABLE_MOTION_AXES_DPAD_NAVIGATION_KEY = "disable_motion_axes_dpad_navigation"
         const val INCOGNITO_MODE_KEY = "incognito_mode"
         const val INCOGNITO_MODE_HINT_SUPPRESS_KEY = "incognito_mode_hint_suppress"
+        const val DIRECT_NAVIGATION_MODE_HINT_SUPPRESS_KEY = "direct_navigation_mode_hint_suppress"
         const val HOME_PAGE_MODE = "home_page_mode"
         const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
         const val WEB_ENGINE = "web_engine"
@@ -85,10 +88,22 @@ class Config(val prefs: SharedPreferences) {
             prefs.edit().putBoolean(INCOGNITO_MODE_HINT_SUPPRESS_KEY, value).apply()
         }
 
+    var directNavigationModeHintSuppress: Boolean
+        get() = prefs.getBoolean(DIRECT_NAVIGATION_MODE_HINT_SUPPRESS_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(DIRECT_NAVIGATION_MODE_HINT_SUPPRESS_KEY, value).apply()
+        }
+
     var keepScreenOn: Boolean
         get() = prefs.getBoolean(KEEP_SCREEN_ON_KEY, false)
         set(value) {
             prefs.edit().putBoolean(KEEP_SCREEN_ON_KEY, value).apply()
+        }
+
+    var disableMotionAxesDpadNavigation: Boolean
+        get() = prefs.getBoolean(DISABLE_MOTION_AXES_DPAD_NAVIGATION_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(DISABLE_MOTION_AXES_DPAD_NAVIGATION_KEY, value).apply()
         }
 
     var theme = object : ObservableValue<Theme>(Theme.SYSTEM) {

@@ -220,14 +220,6 @@
             tools:visibility="visible"
             tools:text="1" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
-        android:id="@+id/flFullscreenContainer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#000"
-        android:visibility="invisible"
-        />
     
     <com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
         android:id="@+id/vCursorMenu"

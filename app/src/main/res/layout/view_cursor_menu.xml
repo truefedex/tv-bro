@@ -11,6 +11,7 @@
         android:background="@android:color/transparent"
         android:src="@drawable/ic_circle_plus"
         app:tint="#60768E"
+        android:defaultFocusHighlightEnabled="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -50,12 +51,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
     <ImageButton
-        android:id="@+id/btnTextSelection"
+        android:id="@+id/btnDPADMode"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:scaleType="fitCenter"
         android:background="@drawable/button_bg_selector"
-        android:src="@drawable/text_select_start_24"
+        android:src="@drawable/gamepad_circle_up_24px"
         app:tint="#60768E"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -290,7 +290,33 @@
         android:id="@+id/scKeepScreenOn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:nextFocusDown="@+id/scNavigateWithJoystickAxes"
         android:nextFocusUp="@+id/spTheme"
+        android:layout_weight="0"
+        />
+  </LinearLayout>
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="20dp"
+      android:orientation="horizontal"
+      android:paddingTop="5dp"
+      >
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="@string/navigate_with_joystick_axes"
+        android:textSize="16sp"
+        />
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/scNavigateWithJoystickAxes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:nextFocusDown="@+id/btnClearWebCache"
+        android:nextFocusUp="@+id/scKeepScreenOn"
         android:layout_weight="0"
         />
   </LinearLayout>
@@ -299,6 +325,7 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginTop="10dp"
+      android:nextFocusUp="@+id/scNavigateWithJoystickAxes"
       android:text="@string/clear_web_cache" />
   <View
       android:layout_width="match_parent"

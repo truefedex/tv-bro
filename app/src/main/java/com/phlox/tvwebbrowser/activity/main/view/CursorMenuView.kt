@@ -2,17 +2,26 @@ package com.phlox.tvwebbrowser.activity.main.view
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.AlertDialog
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
+import android.widget.CheckBox
 import android.widget.FrameLayout
+import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ViewCursorMenuBinding
+import com.phlox.tvwebbrowser.utils.dip2px
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
+import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 
 class CursorMenuView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -21,6 +30,8 @@ class CursorMenuView @JvmOverloads constructor(
     private var vb: ViewCursorMenuBinding =
         ViewCursorMenuBinding.inflate(LayoutInflater.from(context), this, true)
     private var menuContext: MenuContext? = null
+    private var handler = Handler(Looper.getMainLooper())
+    private var lastShowTime = 0L
 
     init {
         vb.btnGrabMode.setOnClickListener {
@@ -29,7 +40,7 @@ class CursorMenuView @JvmOverloads constructor(
         }
         vb.btnGrabMode.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus && menuContext != null &&
-                !(vb.btnContextMenu.hasFocus() || vb.btnTextSelection.hasFocus() ||
+                !(vb.btnContextMenu.hasFocus() || vb.btnDPADMode.hasFocus() ||
                         vb.btnZoomIn.hasFocus() || vb.btnZoomOut.hasFocus())){
                 handler.postDelayed({
                     vb.btnGrabMode.requestFocus()
@@ -49,11 +60,19 @@ class CursorMenuView @JvmOverloads constructor(
                 }, 100)
             }
         }
-        vb.btnTextSelection.setOnFocusChangeListener { _, hasFocus ->
+        vb.btnDPADMode.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 postDelayed({
-                    menuContext?.cursorDrawerDelegate?.goToTextSelectionMode()
-                    close(CloseAnimation.FADE_OUT)
+                    val mc = menuContext ?: return@postDelayed
+                    if (AppContext.provideConfig().directNavigationModeHintSuppress) {
+                        enterDirectNavigationMode(mc)
+                        close(CloseAnimation.FADE_OUT)
+                    } else {
+                        closeWithoutAnimation()
+                        post {
+                            showDirectNavigationModeDialog(mc)
+                        }
+                    }
                 }, 100)
             }
         }
@@ -86,15 +105,22 @@ class CursorMenuView @JvmOverloads constructor(
         altText: String?,
         textContent: String?,
         x: Int,
-        y: Int
+        y: Int,
+        backNavigationEventsAdapter: BackNavigationEventsAdapter
     ) {
-        if (visibility == VISIBLE) {
+        Log.d("CursorMenuView", "show: $baseUri, $linkUri, $srcUri, $title, $altText, $textContent, x=$x, y=$y")
+        val now = System.currentTimeMillis()
+        if (menuContext != null && now - lastShowTime < 1000) {
             return
         }
+        lastShowTime = now
         this.menuContext = MenuContext(tab, windowProvider, cursorDrawerDelegate,
-            baseUri, linkUri, srcUri, title, altText, textContent, x, y)
+            baseUri, linkUri, srcUri, title, altText, textContent, x, y, backNavigationEventsAdapter)
         visibility = VISIBLE
-        vb.btnGrabMode.requestFocus()
+        handler.postDelayed( {
+            vb.btnGrabMode.requestFocus()
+            tab.webEngine.getCursorDrawerDelegate()?.hideCursor()
+        }, 100)
         //set position
         val params = layoutParams as ViewGroup.MarginLayoutParams
         params.leftMargin = x - vb.root.width / 2
@@ -108,18 +134,30 @@ class CursorMenuView @JvmOverloads constructor(
             val animatedValue = valueAnimator.animatedValue as Float
             vb.root.alpha = animatedValue
             vb.btnZoomOut.x = (vb.root.width * 0.5f - vb.btnZoomOut.width * 0.5f) * (1 - animatedValue)
-            vb.btnZoomOut.y = (vb.root.height * 0.25f - vb.btnTextSelection.height * 0.5f) * (1 - animatedValue) + vb.root.height * 0.5f - vb.btnTextSelection.height * 0.5f
+            vb.btnZoomOut.y = (vb.root.height * 0.25f - vb.btnDPADMode.height * 0.5f) * (1 - animatedValue) + vb.root.height * 0.5f - vb.btnDPADMode.height * 0.5f
             vb.btnZoomIn.x = (vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f) * animatedValue + vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f
             vb.btnZoomIn.y = (vb.root.height * 0.25f - vb.btnContextMenu.height * 0.5f) * animatedValue + vb.root.height * 0.25f
             vb.btnContextMenu.y = (vb.root.height * 0.5f - vb.btnContextMenu.height * 0.5f) * (1 - animatedValue)
             vb.btnContextMenu.x = (vb.root.width * 0.25f - vb.btnZoomOut.width * 0.5f) * animatedValue + vb.root.width * 0.25f
-            vb.btnTextSelection.y = (vb.root.height * 0.5f - vb.btnTextSelection.height * 0.5f) * animatedValue + vb.root.height * 0.5f - vb.btnTextSelection.height * 0.5f
-            vb.btnTextSelection.x = (vb.root.width * 0.25f - vb.btnZoomIn.width * 0.5f) * (1 - animatedValue) + vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f
+            vb.btnDPADMode.y = (vb.root.height * 0.5f - vb.btnDPADMode.height * 0.5f) * animatedValue + vb.root.height * 0.5f - vb.btnDPADMode.height * 0.5f
+            vb.btnDPADMode.x = (vb.root.width * 0.25f - vb.btnZoomIn.width * 0.5f) * (1 - animatedValue) + vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f
         }
         animator.start()
     }
 
+    /** Hides the menu immediately (no animation). Used before showing a dialog so focus does not re-trigger menu actions. */
+    private fun closeWithoutAnimation() {
+        Log.d("CursorMenuView", "closeWithoutAnimation")
+        menuContext = null
+        visibility = GONE
+        vb.root.alpha = 1f
+        vb.root.rotation = 0f
+        vb.root.scaleX = 1f
+        vb.root.scaleY = 1f
+    }
+
     fun close(animation: CloseAnimation = CloseAnimation.FADE_OUT) {
+        Log.d("CursorMenuView", "close")
         menuContext = null
         val animator = ObjectAnimator.ofFloat(vb.root, "alpha", 1f, 0f)
         animator.duration = 250
@@ -163,6 +201,33 @@ class CursorMenuView @JvmOverloads constructor(
         EXPLODE_OUT
     }
 
+    private fun enterDirectNavigationMode(mc: MenuContext) {
+        mc.tab.webEngine?.setVirtualCursorMode(false)
+        mc.backNavigationEventsAdapter?.gameControllersLongPressBForBackNavigation = true
+    }
+
+    private fun showDirectNavigationModeDialog(mc: MenuContext) {
+        val pad = 24.dip2px(context).toInt()
+        val checkBox = CheckBox(context).apply {
+            text = context.getString(R.string.don_t_show_again)
+        }
+        val container = FrameLayout(context).apply {
+            setPadding(pad, pad, pad, pad)
+            addView(checkBox)
+        }
+        AlertDialog.Builder(context)
+            .setTitle(R.string.direct_navigation_mode_title)
+            .setMessage(R.string.direct_navigation_mode_message)
+            .setView(container)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                if (checkBox.isChecked) {
+                    AppContext.provideConfig().directNavigationModeHintSuppress = true
+                }
+                enterDirectNavigationMode(mc)
+            }
+            .show()
+    }
+
     private data class MenuContext (
         val tab: WebTabState,
         val windowProvider: WebEngineWindowProviderCallback,
@@ -174,6 +239,7 @@ class CursorMenuView @JvmOverloads constructor(
         val altText: String?,
         val textContent: String?,
         val x: Int,
-        val y: Int
+        val y: Int,
+        val backNavigationEventsAdapter: BackNavigationEventsAdapter
     )
 }

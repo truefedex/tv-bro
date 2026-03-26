@@ -1,7 +1,8 @@
 package com.phlox.tvwebbrowser.webengine.webview
 
 import android.app.Activity
-import android.content.*
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -27,7 +28,6 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
     private var webView: WebViewEx? = null
     internal var callback: WebEngineWindowProviderCallback? = null
     private var viewParent: CursorLayout? = null
-    private var fullscreenViewParent: ViewGroup? = null
     private var fullScreenView: View? = null
     private val permissionsRequests = HashMap<Int, Boolean>()//request code, isGeolocationPermissionRequest
     private val jsInterface = AndroidJSInterface(this)
@@ -173,16 +173,13 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         return webView?.renderThumbnail(bitmap)
     }
 
-    override fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup,
-                                  fullscreenViewParent: ViewGroup) {
+    override fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup) {
         this.callback = callback
         if (webView == null) {
             throw IllegalStateException("WebView is null")
         }
         this.viewParent = parent as CursorLayout
-        this.fullscreenViewParent = fullscreenViewParent
         parent.removeAllViews()
-        fullscreenViewParent.removeAllViews()
         parent.addView(webView)
         viewParent?.cursorDrawerDelegate?.callback = this
         onResume()
@@ -212,59 +209,6 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         return true
     }
 
-    override fun onTextSelectionStart(x: Int, y: Int) {
-        webView?. let {
-            it.evaluateJavascript("TVBRO_clearSelection();TVBRO_updateSelection($x, $y, ${it.width}, ${it.height});") {
-                //nop
-            }
-        }
-    }
-
-    override fun onTextSelectionMove(x: Int, y: Int) {
-        webView?. let {
-            it.evaluateJavascript("TVBRO_updateSelection($x, $y, ${it.width}, ${it.height});") {
-                //nop
-            }
-        }
-    }
-
-    override fun onTextSelectionEnd(x: Int, y: Int) {
-        //detect is selection in editable field (with js standard way)
-        webView?. let {
-            it.evaluateJavascript("TVBRO_processSelection()") { resultStr ->
-                val unescaped: String = resultStr.trim('"')
-                    .replace("\\\\", "\\") // unescape \\ -> \
-                    .replace("\\\"", "\"")
-                val result = Utils.jsonToMap(unescaped)
-                val selectedText = result["selectedText"] as String
-                val editable = result["editable"] as Boolean
-                callback?.onSelectedTextActionRequested(selectedText, editable)
-            }
-        }
-    }
-
-    override fun onTextSelectionCancel() {
-        webView?.let {
-            it.evaluateJavascript("TVBRO_clearSelection();") {
-                //nop
-            }
-        }
-    }
-
-    override fun replaceSelection(newText: String) {
-        val escapedText = newText.replace("'", "\\'")
-        webView?.let {
-            it.evaluateJavascript("""
-                let selection = window.getSelection();
-                let range = selection.getRangeAt(0);
-                range.deleteContents();
-                range.insertNode(document.createTextNode('$escapedText'));
-            """.trimIndent()) {
-                //nop
-            }
-        }
-    }
-
     override fun onLongPress(x: Int, y: Int) {
         webView?.let {
             it.evaluateJavascript(Scripts.LONG_PRESS_SCRIPT) { href ->
@@ -275,6 +219,22 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
                 )
             }
         }
+    }
+
+    override fun isVirtualCursorMode(): Boolean {
+        return viewParent?.cursorEnabled ?: true
+    }
+
+    override fun setVirtualCursorMode(enabled: Boolean) {
+        viewParent?.cursorEnabled = enabled
+        if (enabled) {
+            viewParent?.cursorDrawerDelegate?.animateAppearing()
+        }
+        webView?.setVirtualCursorMode(enabled)
+    }
+
+    override fun getCursorDrawerDelegate(): CursorDrawerDelegate? {
+        return viewParent?.cursorDrawerDelegate
     }
 
     private val webViewCallback = object : WebViewEx.Callback {
@@ -297,27 +257,17 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         override fun onShowCustomView(view: View) {
             callback?.onPrepareForFullscreen()
             webView?.visibility = View.GONE
-            fullscreenViewParent?.apply {
-                visibility = View.VISIBLE
+            viewParent?.apply {
                 addView(view)
-                val previousCursorPosition = (webView?.parent as? CursorLayout)?.cursorDrawerDelegate?.cursorPosition
-                if (previousCursorPosition != null) {
-                    (this as? CursorLayout)?.cursorDrawerDelegate?.cursorPosition?.set(previousCursorPosition)
-                }
-            }            
+            }
             fullScreenView = view
         }
 
         override fun onHideCustomView() {
             if (fullScreenView != null) {
-                fullscreenViewParent?.removeView(fullScreenView)
+                viewParent?.removeView(fullScreenView)
                 fullScreenView = null
             }
-            val previousCursorPosition = (fullscreenViewParent as? CursorLayout)?.cursorDrawerDelegate?.cursorPosition
-            if (previousCursorPosition != null) {
-                (webView?.parent as? CursorLayout)?.cursorDrawerDelegate?.cursorPosition?.set(previousCursorPosition)
-            }
-            fullscreenViewParent?.visibility = View.INVISIBLE
             webView?.visibility = View.VISIBLE
             callback?.onExitFullscreen()
         }

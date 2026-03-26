@@ -11,7 +11,6 @@ import com.phlox.tvwebbrowser.R
 
 enum class Shortcut private constructor(var titleResId: Int, var prefsKey: String,
           var keyCode: Int, var modifiers: Int = 0, var longPressFlag: Boolean = false) {
-    MENU(R.string.toggle_main_menu, "shortcut_menu", KeyEvent.KEYCODE_BACK),
     NAVIGATE_BACK(R.string.navigate_back,  "shortcut_nav_back", 0),
     NAVIGATE_HOME(R.string.navigate_home,  "shortcut_nav_home", 0),
     REFRESH_PAGE(R.string.refresh_page,  "shortcut_refresh_page", 285),//KEYCODE_REFRESH

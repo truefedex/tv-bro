@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 
-interface WebEngine: CursorDrawerDelegate.TextSelectionCallback {
+interface WebEngine {
     val url: String?
     var userAgentString: String?
 
@@ -41,13 +41,15 @@ interface WebEngine: CursorDrawerDelegate.TextSelectionCallback {
     /**
      * At this point of time web view should be already created but not attached to window
      */
-    fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup, fullscreenViewParent: ViewGroup)
+    fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup)
     fun onDetachFromWindow(completely: Boolean, destroyTab: Boolean)
     fun trimMemory()
     fun onPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean
     fun isSameSession(internalRepresentation: Any): Boolean
-    fun replaceSelection(newText: String)
     fun stopPlayback()
     fun rewind()
     fun fastForward()
+    fun setVirtualCursorMode(enabled: Boolean)
+    fun isVirtualCursorMode(): Boolean
+    fun getCursorDrawerDelegate(): CursorDrawerDelegate?
 }

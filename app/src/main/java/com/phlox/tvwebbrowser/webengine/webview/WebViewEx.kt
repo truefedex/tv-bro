@@ -19,6 +19,7 @@ import android.os.Looper
 import android.os.Message
 import android.text.TextUtils
 import android.util.Log
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.webkit.*
@@ -41,7 +42,7 @@ import java.util.*
  * Copyright (c) 2016 Fedir Tsapana.
  */
 @SuppressLint("SetJavaScriptEnabled", "ViewConstructor")
-class WebViewEx(context: Context, val callback: Callback, val jsInterface: AndroidJSInterface) : WebView(context) {
+open class WebViewEx(context: Context, val callback: Callback, val jsInterface: AndroidJSInterface) : WebView(context) {
     companion object {
         val TAG = WebViewEx::class.java.simpleName
         const val WEB_VIEW_TAG = "TV Bro WebView"
@@ -51,6 +52,7 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         val WIDEVINE_UUID = UUID(-0x121074568629b532L,-0x5c37d8232ae2de13L)
     }
 
+    private var virtualCursorMode: Boolean = true
     private var genericInjects: String? = null
     private var webChromeClient_: WebChromeClient
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
@@ -471,6 +473,16 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         addJavascriptInterface(jsInterface, "TVBro")
     }
 
+    override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
+        if (virtualCursorMode) return false
+        return super.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent?): Boolean {
+        if (virtualCursorMode) return false
+        return super.dispatchGenericMotionEvent(event)
+    }
+
     private fun showCertificateErrorPage(error: SslError) {
         callback.onPageCertificateError(error.url)
         lastSSLError = error
@@ -617,5 +629,9 @@ class WebViewEx(context: Context, val callback: Callback, val jsInterface: Andro
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.safeBrowsingEnabled = adblockEnabled
         }
+    }
+
+    fun setVirtualCursorMode(enabled: Boolean) {
+        this.virtualCursorMode = enabled
     }
 }

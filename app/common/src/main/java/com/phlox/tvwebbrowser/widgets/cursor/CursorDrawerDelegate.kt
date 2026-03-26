@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.widgets.cursor
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -18,6 +19,7 @@ import com.phlox.tvwebbrowser.utils.Utils
 class CursorDrawerDelegate(val context: Context, val surface: View) {
     private var cursorRadius: Int = 0
     private var cursorRadiusPressed: Int = 0
+    private var cursorRadiusAnimationMultiplier: Float = 1f
     private var maxCursorSpeed: Float = 0f
     private var scrollStartPadding = 100
     private var cursorStrokeWidth: Float = 0f
@@ -30,13 +32,11 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     internal var tmpPointF = PointF()
     var callback: Callback? = null
     var customScrollCallback: CustomScrollCallback? = null
-    var textSelectionCallback: TextSelectionCallback? = null
     private val cursorHideRunnable = Runnable { surface.invalidate() }
     private var scrollHackStarted = false
     private val scrollHackCoords = PointF()
     private val scrollHackActiveRect = Rect()
     private var grabMode = false
-    var textSelectionMode = false
     private var downTime: Long = 0L
 
     //handle long press
@@ -61,13 +61,6 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         fun onScroll(scrollX: Int, scrollY: Int): Boolean
     }
 
-    interface TextSelectionCallback {
-        fun onTextSelectionStart(x: Int, y: Int)
-        fun onTextSelectionMove(x: Int, y: Int)
-        fun onTextSelectionEnd(x: Int, y: Int)
-        fun onTextSelectionCancel()
-    }
-
     fun init() {
         paint.isAntiAlias = true
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -89,14 +82,12 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     }
 
     fun canHandleBackNavigation(): Boolean {
-        return grabMode || textSelectionMode
+        return grabMode
     }
 
     fun handleBackNavigation() {
         if (grabMode) {
             exitGrabMode()
-        } else if (textSelectionMode) {
-            exitTextSelectionMode(cancel = true)
         }
     }
 
@@ -175,8 +166,6 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
                     if (grabMode) {
                         exitGrabMode()
                         return false
-                    } else if (textSelectionMode) {
-                        return true
                     } else {
                         surface.keyDispatcherState.startTracking(event, this)
                         if (!isCursorDisappear) {
@@ -191,8 +180,6 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
                     surface.removeCallbacks(longPressRunnable)
                     if (grabMode) {
                         //nop
-                    } else if (textSelectionMode) {
-                        exitTextSelectionMode(cancel = false)
                     } else if (isCursorDisappear) {
                         lastCursorUpdate = System.currentTimeMillis()
                         surface.postInvalidate()
@@ -310,14 +297,14 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     }
 
     fun dispatchDraw(canvas: Canvas) {
-        if (grabMode || textSelectionMode || !isCursorDisappear) {
+        if (grabMode || !isCursorDisappear) {
             val cx = cursorPosition.x
             val cy = cursorPosition.y
-            val radius = if (dpadCenterPressed) cursorRadiusPressed else cursorRadius
+            val radius = if (dpadCenterPressed) cursorRadiusPressed else
+                    (cursorRadius * cursorRadiusAnimationMultiplier)
 
             paint.color = when {
                 grabMode -> Color.argb(128, 200, 200, 255)
-                textSelectionMode -> Color.argb(128, 200, 255, 200)
                 else -> Color . argb (128, 255, 255, 255)
             }
             paint.style = Paint.Style.FILL
@@ -345,26 +332,6 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
         dpadCenterPressed = false
         grabMode = false
-        surface.postInvalidate()
-    }
-
-    fun goToTextSelectionMode() {
-        textSelectionMode = true
-        dpadCenterPressed = false
-        textSelectionCallback?.onTextSelectionStart(cursorPosition.x.toInt(), cursorPosition.y.toInt())
-        surface.postInvalidate()
-    }
-
-    fun exitTextSelectionMode(cancel: Boolean) {
-        textSelectionMode = false
-        if (cancel) {
-            textSelectionCallback?.onTextSelectionCancel()
-        } else {
-            textSelectionCallback?.onTextSelectionEnd(
-                cursorPosition.x.toInt(),
-                cursorPosition.y.toInt()
-            )
-        }
         surface.postInvalidate()
     }
 
@@ -402,8 +369,6 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             if (tmpPointF != cursorPosition) {
                 if (dpadCenterPressed) {
                     dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_MOVE)
-                } else if (textSelectionMode) {
-                    textSelectionCallback?.onTextSelectionMove(cursorPosition.x.toInt(), cursorPosition.y.toInt())
                 } else {
                     dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_HOVER_MOVE);
                 }
@@ -444,6 +409,18 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
 
     fun tryZoomOut() {
         generateZoomGesture(false)
+    }
+
+    fun animateAppearing() {
+        lastCursorUpdate = System.currentTimeMillis()
+        cursorRadiusAnimationMultiplier = 2f
+        val animator = ValueAnimator.ofFloat(2f, 1f)
+        animator.duration = 300
+        animator.addUpdateListener { valueAnimator ->
+            cursorRadiusAnimationMultiplier = valueAnimator.animatedValue as Float
+            surface.postInvalidate()
+        }
+        animator.start()
     }
 
     //https://stackoverflow.com/questions/11523423/how-to-generate-zoom-pinch-gesture-for-testing-for-android
@@ -532,6 +509,16 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         surface.dispatchTouchEvent(event)
 
         surface.post(pinchZoomRunnable)
+    }
+
+    fun hideCursor() {
+        if (dpadCenterPressed) {
+            dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
+            dpadCenterPressed = false
+        }
+        grabMode = false
+        lastCursorUpdate = System.currentTimeMillis() - CURSOR_DISAPPEAR_TIMEOUT
+        surface.postInvalidate()
     }
 
     private val pinchZoomRunnable: Runnable by lazy {

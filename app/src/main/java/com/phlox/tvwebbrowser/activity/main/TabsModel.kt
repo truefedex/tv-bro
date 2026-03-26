@@ -110,7 +110,6 @@ class TabsModel : ActiveModel() {
         newTab: WebTabState,
         webViewProvider: (tab: WebTabState) -> View?,
         webViewParent: ViewGroup,
-        fullScreenViewParent: ViewGroup,
         webEngineWindowProviderCallback: WebEngineWindowProviderCallback
     ) {
         if (currentTab.value == newTab && newTab.webEngine.getView() != null) return
@@ -136,7 +135,7 @@ class TabsModel : ActiveModel() {
             }
             needReloadUrl = !newTab.restoreWebView()
         }
-        newTab.webEngine.onAttachToWindow(webEngineWindowProviderCallback, webViewParent, fullScreenViewParent)
+        newTab.webEngine.onAttachToWindow(webEngineWindowProviderCallback, webViewParent)
         if (needReloadUrl) {
             newTab.webEngine.loadUrl(newTab.url)
         }

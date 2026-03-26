@@ -54,6 +54,4 @@ interface WebEngineWindowProviderCallback {
         title: String?, altText: String?,
         textContent: String?, x: Int, y: Int
     )
-
-    fun onSelectedTextActionRequested(selectedText: String, editable: Boolean)
 }

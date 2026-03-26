@@ -12,7 +12,6 @@ import android.view.ViewGroup
 import androidx.annotation.UiThread
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
-import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.WebEngine
@@ -20,17 +19,37 @@ import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
-import com.phlox.tvwebbrowser.webengine.gecko.delegates.*
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppContentScriptPortDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppHomeContentScriptPortDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppWebExtensionBackgroundPortDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentBlockingDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyHistoryDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyMediaSessionDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyNavigationDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyPermissionDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyProgressDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyPromptDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.MySelectionActionDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
-import org.mozilla.geckoview.*
+import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
+import org.mozilla.geckoview.BuildConfig
+import org.mozilla.geckoview.ContentBlocking
+import org.mozilla.geckoview.GeckoResult
+import org.mozilla.geckoview.GeckoRuntime
+import org.mozilla.geckoview.GeckoRuntimeSettings
+import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoSession.SessionState
+import org.mozilla.geckoview.GeckoSessionSettings
+import org.mozilla.geckoview.StorageController
+import org.mozilla.geckoview.WebExtension
 import org.mozilla.geckoview.WebExtension.MessageDelegate
 import java.lang.ref.WeakReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class GeckoWebEngine(val tab: WebTabState): WebEngine, CursorDrawerDelegate.TextSelectionCallback,
+class GeckoWebEngine(val tab: WebTabState): WebEngine,
     CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
@@ -344,7 +363,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, CursorDrawerDelegate.Text
             } else {
                 geckoView
             }.also { wv ->
-                wv.cursorDrawerDelegate.textSelectionCallback = this
                 wv.cursorDrawerDelegate.callback = this
             }
         }
@@ -426,7 +444,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, CursorDrawerDelegate.Text
 
     override fun onAttachToWindow(
         callback: WebEngineWindowProviderCallback,
-        parent: ViewGroup, fullscreenViewParent: ViewGroup
+        parent: ViewGroup
     ) {
         Log.d(TAG, "onAttachToWindow()")
         this.callback = callback
@@ -479,31 +497,23 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, CursorDrawerDelegate.Text
         return internalRepresentation is GeckoSession && internalRepresentation == session
     }
 
-    override fun onTextSelectionStart(x: Int, y: Int) {
-        appContentScriptPortDelegate?.clearSelection()
-        appContentScriptPortDelegate?.updateSelection(x, y, webView!!.width, webView!!.height)
-    }
-
-    override fun onTextSelectionMove(x: Int, y: Int) {
-        appContentScriptPortDelegate?.updateSelection(x, y, webView!!.width, webView!!.height)
-    }
-
-    override fun onTextSelectionEnd(x: Int, y: Int) {
-        appContentScriptPortDelegate?.processSelection { selectedText: String, editable: Boolean ->
-            callback?.onSelectedTextActionRequested(selectedText, editable)
-        }
-    }
-
-    override fun onTextSelectionCancel() {
-        appContentScriptPortDelegate?.clearSelection()
-    }
-
-    override fun replaceSelection(newText: String) {
-        appContentScriptPortDelegate?.replaceSelection(newText)
-    }
-
     override fun onLongPress(x: Int, y: Int) {
         callback?.onContextMenu(webView!!.cursorDrawerDelegate, navigationDelegate.locationURL,
             null, null, null, null, null, x, y)
+    }
+
+    override fun isVirtualCursorMode(): Boolean {
+        return webView?.virtualCursorMode ?: true
+    }
+
+    override fun setVirtualCursorMode(enabled: Boolean) {
+        if (enabled) {
+            webView?.cursorDrawerDelegate?.animateAppearing()
+        }
+        webView?.virtualCursorMode = enabled
+    }
+
+    override fun getCursorDrawerDelegate(): CursorDrawerDelegate? {
+        return webView?.cursorDrawerDelegate
     }
 }
