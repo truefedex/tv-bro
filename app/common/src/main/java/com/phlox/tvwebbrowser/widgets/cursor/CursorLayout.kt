@@ -8,6 +8,7 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.FrameLayout
+import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 
 
@@ -22,9 +23,12 @@ class CursorLayout @JvmOverloads constructor(context: Context, attrs: AttributeS
             setWillNotDraw(!value)
         }
     lateinit var cursorDrawerDelegate: CursorDrawerDelegate
-    private val inputEventsAdapter = DPADNavigationEventsAdapter(onEmulatedKeyEvent = { keyEvent ->
-        cursorDrawerDelegate.dispatchKeyEvent(keyEvent)
-    })
+    private val inputEventsAdapter = DPADNavigationEventsAdapter(
+        onEmulatedKeyEvent = { keyEvent ->
+            cursorDrawerDelegate.dispatchKeyEvent(keyEvent)
+        },
+        motionAxesTranslationEnabled = { !AppContext.provideConfig().disableMotionAxesDpadNavigation },
+    )
 
     init {
         init()

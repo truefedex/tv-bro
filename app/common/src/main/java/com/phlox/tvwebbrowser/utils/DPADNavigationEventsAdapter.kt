@@ -17,6 +17,7 @@ import kotlin.math.abs
  * duplicates with the same (eventTime, action, keyCode) signature.
  *
  * Motion-to-key translation still uses dead-zone and discretization to avoid axis spam.
+ * Axis translation can be turned off via the `motionAxesTranslationEnabled` callback (e.g. user setting).
  */
 class DPADNavigationEventsAdapter(
     /**
@@ -42,6 +43,13 @@ class DPADNavigationEventsAdapter(
      * - otherwise analog stick axes ([MotionEvent.AXIS_X]/[MotionEvent.AXIS_Y])
      */
     private val preferHatAxes: Boolean = true,
+
+    /**
+     * When false, [handleAxes] is skipped (no stick/hat → DPAD translation from the motion channel).
+     * Buttons and directional DPAD button bits are unaffected. Use a live lambda so preferences
+     * apply without recreating the adapter.
+     */
+    private val motionAxesTranslationEnabled: () -> Boolean = { true },
 ) {
     init {
         require(deadZone >= 0f) { "deadZone must be >= 0" }
@@ -121,6 +129,10 @@ class DPADNavigationEventsAdapter(
     fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         var emittedAnyKey = false
 
+        if (!motionAxesTranslationEnabled()) {
+            emittedAnyKey = releaseAxisHeldDirectionIfNeeded(event) || emittedAnyKey
+        }
+
         // Prefer directional D-pad *buttons* over axes if they are actively pressed, otherwise
         // the axis "center jitter" could release a direction while the button is still held.
         val buttonState = event.buttonState
@@ -136,11 +148,30 @@ class DPADNavigationEventsAdapter(
         emittedAnyKey = handleDirectionalDpadButtons(event) || emittedAnyKey
         emittedAnyKey = handleButtons(event) || emittedAnyKey
 
-        if (!dpadButtonsPressedNow) {
+        if (!dpadButtonsPressedNow && motionAxesTranslationEnabled()) {
             emittedAnyKey = handleAxes(event) || emittedAnyKey
         }
 
         return emittedAnyKey
+    }
+
+    /**
+     * If axis translation is off but we still hold a direction that came from axes, emit KEY_UP
+     * once so navigation does not stay stuck.
+     */
+    private fun releaseAxisHeldDirectionIfNeeded(event: MotionEvent): Boolean {
+        if (lastDpadFromButtons || lastDpadKeyCode == 0) return false
+        if (!isKeyAllowed(lastDpadKeyCode)) {
+            lastDpadKeyCode = 0
+            lastDirX = 0
+            lastDirY = 0
+            return false
+        }
+        val emitted = emitKeyEvent(event, action = KeyEvent.ACTION_UP, keyCode = lastDpadKeyCode)
+        lastDpadKeyCode = 0
+        lastDirX = 0
+        lastDirY = 0
+        return emitted
     }
 
     /**
@@ -402,8 +433,8 @@ class DPADNavigationEventsAdapter(
 
     companion object {
         private const val TAG = "DPADNavigationEventsAdapter"
-        private const val DEFAULT_DEAD_ZONE: Float = 0.25f
-        private const val DEFAULT_RELEASE_DEAD_ZONE: Float = 0.18f
+        private const val DEFAULT_DEAD_ZONE: Float = 0.4f
+        private const val DEFAULT_RELEASE_DEAD_ZONE: Float = 0.28f
 
         private fun readMotionEventStaticInt(fieldName: String): Int? {
             return try {

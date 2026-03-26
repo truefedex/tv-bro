@@ -15,6 +15,7 @@ import android.view.MotionEvent
 import android.view.MotionEvent.PointerProperties
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.dip2px
@@ -32,9 +33,12 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
     lateinit var cursorDrawerDelegate: CursorDrawerDelegate
 
     private var inputMethodManager: InputMethodManager? = null
-    private val inputEventsAdapter = DPADNavigationEventsAdapter(onEmulatedKeyEvent = { keyEvent ->
-        cursorDrawerDelegate.dispatchKeyEvent(keyEvent)
-    })
+    private val inputEventsAdapter = DPADNavigationEventsAdapter(
+        onEmulatedKeyEvent = { keyEvent ->
+            cursorDrawerDelegate.dispatchKeyEvent(keyEvent)
+        },
+        motionAxesTranslationEnabled = { !AppContext.provideConfig().disableMotionAxesDpadNavigation },
+    )
 
     init {
         init()

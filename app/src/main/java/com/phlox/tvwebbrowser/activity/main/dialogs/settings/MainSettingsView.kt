@@ -47,6 +47,8 @@ class MainSettingsView @JvmOverloads constructor(
 
         initKeepScreenOnUI()
 
+        initJoystickAxesNavigationUI()
+
         vb.btnClearWebCache.setOnClickListener {
             (activity as MainActivity).lifecycleScope.launch {
                 WebEngineFactory.clearCache(context)
@@ -143,6 +145,13 @@ class MainSettingsView @JvmOverloads constructor(
 
         vb.scKeepScreenOn.setOnCheckedChangeListener { buttonView, isChecked ->
             settingsModel.keepScreenOn.value = isChecked
+        }
+    }
+
+    private fun initJoystickAxesNavigationUI() {
+        vb.scNavigateWithJoystickAxes.isChecked = !config.disableMotionAxesDpadNavigation
+        vb.scNavigateWithJoystickAxes.setOnCheckedChangeListener { _, isChecked ->
+            config.disableMotionAxesDpadNavigation = !isChecked
         }
     }
 
