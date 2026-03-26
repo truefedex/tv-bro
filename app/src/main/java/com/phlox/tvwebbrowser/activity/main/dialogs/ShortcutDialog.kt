@@ -6,10 +6,12 @@ import android.util.Log
 import android.view.KeyEvent
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
+import com.phlox.tvwebbrowser.utils.NavigationReservedShortcutKeyCodes
 
 /**
  * Created by PDT on 06.08.2017.
@@ -63,6 +65,9 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
         btnSetKey.setText(if (keyListenMode) R.string.press_eny_key else R.string.set_key_for_action)
     }
 
+    private fun resolveKeyCode(keyCode: Int, event: KeyEvent): Int =
+        if (keyCode != 0) keyCode else event.scanCode
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (!keyListenMode) {
             return super.onKeyDown(keyCode, event)
@@ -78,7 +83,13 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
             return super.onKeyUp(keyCode, event)
         }
         Log.d(TAG, "onKeyUp: keyCode = $keyCode, event = $event")
-        shortcut.keyCode = if (keyCode != 0) keyCode else event.scanCode
+        val resolved = resolveKeyCode(keyCode, event)
+        if (resolved in NavigationReservedShortcutKeyCodes.reservedForUserShortcuts) {
+            Toast.makeText(context, R.string.shortcut_key_reserved_for_navigation, Toast.LENGTH_SHORT).show()
+            toggleKeyListenState()
+            return true
+        }
+        shortcut.keyCode = resolved
         shortcut.modifiers = event.modifiers
         ShortcutMgr.getInstance().save(shortcut)
         toggleKeyListenState()
@@ -91,7 +102,13 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
             return super.onKeyLongPress(keyCode, event)
         }
         Log.d(TAG, "onKeyLongPress: keyCode = $keyCode, event = $event")
-        shortcut.keyCode = if (keyCode != 0) keyCode else event.scanCode
+        val resolved = resolveKeyCode(keyCode, event)
+        if (resolved in NavigationReservedShortcutKeyCodes.reservedForUserShortcuts) {
+            Toast.makeText(context, R.string.shortcut_key_reserved_for_navigation, Toast.LENGTH_SHORT).show()
+            toggleKeyListenState()
+            return true
+        }
+        shortcut.keyCode = resolved
         shortcut.modifiers = event.modifiers
         shortcut.longPressFlag = true
         ShortcutMgr.getInstance().save(shortcut)

@@ -69,20 +69,7 @@ class DPADNavigationEventsAdapter(
     private val dpadButtonBits = DpadButtonBits.fromMotionEvent()
 
     // Keys DPADNavigationEventsAdapter is responsible for.
-    private val allowedKeyCodes: Set<Int> = intArrayOf(
-        KeyEvent.KEYCODE_DPAD_LEFT,
-        KeyEvent.KEYCODE_DPAD_RIGHT,
-        KeyEvent.KEYCODE_DPAD_UP,
-        KeyEvent.KEYCODE_DPAD_DOWN,
-        KeyEvent.KEYCODE_DPAD_UP_LEFT,
-        KeyEvent.KEYCODE_DPAD_UP_RIGHT,
-        KeyEvent.KEYCODE_DPAD_DOWN_LEFT,
-        KeyEvent.KEYCODE_DPAD_DOWN_RIGHT,
-        KeyEvent.KEYCODE_DPAD_CENTER,
-        KeyEvent.KEYCODE_ENTER,
-        KeyEvent.KEYCODE_NUMPAD_ENTER,
-        KeyEvent.KEYCODE_BUTTON_A
-    ).toHashSet()
+    private val allowedKeyCodes: Set<Int> = NavigationReservedShortcutKeyCodes.dpadNavigationKeys
 
     private fun isKeyAllowed(keyCode: Int): Boolean = allowedKeyCodes.contains(keyCode)
 

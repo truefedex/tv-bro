@@ -52,7 +52,7 @@ class BackNavigationEventsAdapter(
         }
     }
 
-    private val allowedKeyCodes: Set<Int> = intArrayOf(KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B).toHashSet()
+    private val allowedKeyCodes: Set<Int> = NavigationReservedShortcutKeyCodes.backNavigationKeys
 
     private fun isKeyAllowed(keyCode: Int): Boolean = allowedKeyCodes.contains(keyCode)
 
