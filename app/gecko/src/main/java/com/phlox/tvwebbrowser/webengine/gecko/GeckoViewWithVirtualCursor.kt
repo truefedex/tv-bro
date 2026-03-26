@@ -15,6 +15,8 @@ import android.view.MotionEvent
 import android.view.MotionEvent.PointerProperties
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.Utils
@@ -38,6 +40,9 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
             cursorDrawerDelegate.dispatchKeyEvent(keyEvent)
         },
         motionAxesTranslationEnabled = { !AppContext.provideConfig().disableMotionAxesDpadNavigation },
+        isSoftwareKeyboardVisible = {
+            ViewCompat.getRootWindowInsets(rootView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+        },
     )
 
     init {

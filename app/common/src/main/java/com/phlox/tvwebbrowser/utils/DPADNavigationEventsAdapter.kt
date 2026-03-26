@@ -18,6 +18,8 @@ import kotlin.math.abs
  *
  * Motion-to-key translation still uses dead-zone and discretization to avoid axis spam.
  * Axis translation can be turned off via the `motionAxesTranslationEnabled` callback (e.g. user setting).
+ *
+ * When [isSoftwareKeyboardVisible] returns true, DPAD navigation input is ignored (not forwarded).
  */
 class DPADNavigationEventsAdapter(
     /**
@@ -50,6 +52,12 @@ class DPADNavigationEventsAdapter(
      * apply without recreating the adapter.
      */
     private val motionAxesTranslationEnabled: () -> Boolean = { true },
+
+    /**
+     * When true, DPAD navigation keys and motion-emulated navigation are not forwarded; use while
+     * the IME is shown so typing / keyboard navigation is not overridden by cursor logic.
+     */
+    private val isSoftwareKeyboardVisible: () -> Boolean = { false },
 ) {
     init {
         require(deadZone >= 0f) { "deadZone must be >= 0" }
@@ -75,6 +83,10 @@ class DPADNavigationEventsAdapter(
 
     fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (!isKeyAllowed(event.keyCode)) return false
+
+        if (isSoftwareKeyboardVisible()) {
+            return false
+        }
 
         val sig = KeyDispatchSignature(event.eventTime, event.action, event.keyCode)
         if (sentEmulatedHistory.lastOrNull() == sig) {
@@ -114,6 +126,10 @@ class DPADNavigationEventsAdapter(
      * dispatchGenericMotionEvent to prevent the WebView from consuming joystick axis motions.
      */
     fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        if (isSoftwareKeyboardVisible()) {
+            return false
+        }
+
         var emittedAnyKey = false
 
         if (!motionAxesTranslationEnabled()) {

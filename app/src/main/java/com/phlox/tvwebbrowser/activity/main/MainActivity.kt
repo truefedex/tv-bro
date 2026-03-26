@@ -33,6 +33,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -48,6 +49,8 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -815,7 +818,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private val backNavigationEventsAdapter = BackNavigationEventsAdapter(
-        onEmulatedBackEvent = { handleBackNavigation() }
+        onEmulatedBackEvent = {
+            if (!hideSoftwareKeyboardIfVisible()) {
+                handleBackNavigation()
+            }
+        }
     )
 
     override fun onAttachedToWindow() {
@@ -847,6 +854,24 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 return localCallback.dispatchGenericMotionEvent(event)
             }
         }
+    }
+
+    /**
+     * When the IME is visible, the first back press should only dismiss it; this mirrors standard
+     * Android behavior and avoids navigating away while the user is typing.
+     *
+     * @return true if the IME was visible and a hide was requested.
+     */
+    private fun hideSoftwareKeyboardIfVisible(): Boolean {
+        val root = window.decorView.rootView
+        val insets = ViewCompat.getRootWindowInsets(root) ?: return false
+        if (!insets.isVisible(WindowInsetsCompat.Type.ime())) {
+            return false
+        }
+        val view = currentFocus ?: root
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+        return true
     }
 
     private fun handleBackNavigation() {

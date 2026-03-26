@@ -8,6 +8,8 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.FrameLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 
@@ -28,6 +30,9 @@ class CursorLayout @JvmOverloads constructor(context: Context, attrs: AttributeS
             cursorDrawerDelegate.dispatchKeyEvent(keyEvent)
         },
         motionAxesTranslationEnabled = { !AppContext.provideConfig().disableMotionAxesDpadNavigation },
+        isSoftwareKeyboardVisible = {
+            ViewCompat.getRootWindowInsets(rootView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+        },
     )
 
     init {
