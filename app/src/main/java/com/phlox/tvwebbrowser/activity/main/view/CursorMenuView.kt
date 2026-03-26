@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.activity.main.view
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -11,8 +12,12 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
+import android.widget.CheckBox
 import android.widget.FrameLayout
+import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ViewCursorMenuBinding
+import com.phlox.tvwebbrowser.utils.dip2px
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
@@ -58,10 +63,16 @@ class CursorMenuView @JvmOverloads constructor(
         vb.btnDPADMode.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 postDelayed({
-                    menuContext?.tab?.webEngine?.setVirtualCursorMode(false)
-                    menuContext?.backNavigationEventsAdapter
-                        ?.gameControllersLongPressBForBackNavigation = true
-                    close(CloseAnimation.FADE_OUT)
+                    val mc = menuContext ?: return@postDelayed
+                    if (AppContext.provideConfig().directNavigationModeHintSuppress) {
+                        enterDirectNavigationMode(mc)
+                        close(CloseAnimation.FADE_OUT)
+                    } else {
+                        closeWithoutAnimation()
+                        post {
+                            showDirectNavigationModeDialog(mc)
+                        }
+                    }
                 }, 100)
             }
         }
@@ -134,6 +145,17 @@ class CursorMenuView @JvmOverloads constructor(
         animator.start()
     }
 
+    /** Hides the menu immediately (no animation). Used before showing a dialog so focus does not re-trigger menu actions. */
+    private fun closeWithoutAnimation() {
+        Log.d("CursorMenuView", "closeWithoutAnimation")
+        menuContext = null
+        visibility = GONE
+        vb.root.alpha = 1f
+        vb.root.rotation = 0f
+        vb.root.scaleX = 1f
+        vb.root.scaleY = 1f
+    }
+
     fun close(animation: CloseAnimation = CloseAnimation.FADE_OUT) {
         Log.d("CursorMenuView", "close")
         menuContext = null
@@ -177,6 +199,33 @@ class CursorMenuView @JvmOverloads constructor(
         FADE_OUT,
         ROTATE_OUT,
         EXPLODE_OUT
+    }
+
+    private fun enterDirectNavigationMode(mc: MenuContext) {
+        mc.tab.webEngine?.setVirtualCursorMode(false)
+        mc.backNavigationEventsAdapter?.gameControllersLongPressBForBackNavigation = true
+    }
+
+    private fun showDirectNavigationModeDialog(mc: MenuContext) {
+        val pad = 24.dip2px(context).toInt()
+        val checkBox = CheckBox(context).apply {
+            text = context.getString(R.string.don_t_show_again)
+        }
+        val container = FrameLayout(context).apply {
+            setPadding(pad, pad, pad, pad)
+            addView(checkBox)
+        }
+        AlertDialog.Builder(context)
+            .setTitle(R.string.direct_navigation_mode_title)
+            .setMessage(R.string.direct_navigation_mode_message)
+            .setView(container)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                if (checkBox.isChecked) {
+                    AppContext.provideConfig().directNavigationModeHintSuppress = true
+                }
+                enterDirectNavigationMode(mc)
+            }
+            .show()
     }
 
     private data class MenuContext (
