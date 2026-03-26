@@ -4,21 +4,43 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.*
+import android.content.ActivityNotFoundException
+import android.content.BroadcastReceiver
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.ServiceConnection
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Uri
-import android.os.*
+import android.os.Build
+import android.os.Bundle
+import android.os.Environment
+import android.os.Handler
+import android.os.IBinder
+import android.os.Process
 import android.util.Log
 import android.util.Patterns
-import android.view.*
+import android.view.Gravity
+import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.View
+import android.view.Window
+import android.view.WindowManager
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
-import android.webkit.*
+import android.webkit.CookieManager
+import android.webkit.MimeTypeMap
+import android.webkit.URLUtil
+import android.webkit.WebStorage
 import android.widget.FrameLayout
 import android.widget.PopupMenu
 import android.widget.Toast
@@ -26,6 +48,8 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.webkit.URLUtilCompat
 import com.phlox.tvwebbrowser.AppContext
@@ -42,27 +66,39 @@ import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
-import com.phlox.tvwebbrowser.model.*
+import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.model.FavoriteItem
+import com.phlox.tvwebbrowser.model.HomePageLink
+import com.phlox.tvwebbrowser.model.HostConfig
+import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
-import com.phlox.tvwebbrowser.utils.*
+import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
+import com.phlox.tvwebbrowser.utils.BaseAnimationListener
+import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
+import com.phlox.tvwebbrowser.utils.childs
+import com.phlox.tvwebbrowser.utils.sameDay
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
 import java.io.UnsupportedEncodingException
 import java.net.URL
 import java.net.URLEncoder
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 import kotlin.system.exitProcess
-import androidx.core.view.isVisible
-import androidx.core.view.isInvisible
 
 
 open class MainActivity : AppCompatActivity(), ActionBar.Callback {
@@ -527,8 +563,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun onWebViewUpdated(tab: WebTabState) {
-        vb.flWebViewContainer.cursorDrawerDelegate.textSelectionCallback = tab.webEngine
-
         vb.ibBack.isEnabled = tab.webEngine.canGoBack() == true
         vb.ibForward.isEnabled = tab.webEngine.canGoForward() == true
 
@@ -1428,63 +1462,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
             viewModel.markBookmarkRecommendationAsUseful(bookmarkOrder)
-        }
-
-        override fun onSelectedTextActionRequested(selectedText: String, editable: Boolean) {
-            //show alert dialog with actions: copy, [cut, delete, paste - if editable, paste only if clipboard contains text], share, [search - if one line]
-            val clipBoard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val actions = mutableListOf(R.string.copy)
-            var textInClipboard: String? = null
-            if (editable) {
-                actions.add(R.string.cut)
-                actions.add(R.string.delete)
-                val primaryClip = clipBoard.primaryClip
-                if (primaryClip != null && primaryClip.itemCount > 0) {
-                    actions.add(R.string.paste)
-                    textInClipboard = primaryClip.getItemAt(0).text.toString()
-                }
-            }
-            actions.add(R.string.share)
-            if (!selectedText.contains("\n")) {
-                actions.add(R.string.search)
-            }
-            AlertDialog.Builder(this@MainActivity)
-                .setItems(actions.map { getString(it) }.toTypedArray()) { _: DialogInterface, which: Int ->
-                    val action = actions[which]
-                    when (action) {
-                        R.string.copy -> {
-                            val clipData = ClipData.newPlainText("text", selectedText)
-                            clipBoard.setPrimaryClip(clipData)
-                            Toast.makeText(this@MainActivity, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
-                        }
-                        R.string.cut -> {
-                            val clipData = ClipData.newPlainText("text", selectedText)
-                            clipBoard.setPrimaryClip(clipData)
-                            tab.webEngine.replaceSelection("")
-                        }
-                        R.string.delete -> {
-                            tab.webEngine.replaceSelection("")
-                        }
-                        R.string.paste -> {
-                            tab.webEngine.replaceSelection(textInClipboard!!)
-                        }
-                        R.string.share -> {
-                            val share = Intent(Intent.ACTION_SEND)
-                            share.type = "text/plain"
-                            share.putExtra(Intent.EXTRA_TEXT, selectedText)
-                            try {
-                                startActivity(share)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                                Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                        R.string.search -> {
-                            search(selectedText)
-                        }
-                    }
-                }
-                .show()
         }
     }
 

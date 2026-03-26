@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 
-interface WebEngine: CursorDrawerDelegate.TextSelectionCallback {
+interface WebEngine {
     val url: String?
     var userAgentString: String?
 
@@ -46,7 +46,6 @@ interface WebEngine: CursorDrawerDelegate.TextSelectionCallback {
     fun trimMemory()
     fun onPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean
     fun isSameSession(internalRepresentation: Any): Boolean
-    fun replaceSelection(newText: String)
     fun stopPlayback()
     fun rewind()
     fun fastForward()

@@ -209,59 +209,6 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         return true
     }
 
-    override fun onTextSelectionStart(x: Int, y: Int) {
-        webView?. let {
-            it.evaluateJavascript("TVBRO_clearSelection();TVBRO_updateSelection($x, $y, ${it.width}, ${it.height});") {
-                //nop
-            }
-        }
-    }
-
-    override fun onTextSelectionMove(x: Int, y: Int) {
-        webView?. let {
-            it.evaluateJavascript("TVBRO_updateSelection($x, $y, ${it.width}, ${it.height});") {
-                //nop
-            }
-        }
-    }
-
-    override fun onTextSelectionEnd(x: Int, y: Int) {
-        //detect is selection in editable field (with js standard way)
-        webView?. let {
-            it.evaluateJavascript("TVBRO_processSelection()") { resultStr ->
-                val unescaped: String = resultStr.trim('"')
-                    .replace("\\\\", "\\") // unescape \\ -> \
-                    .replace("\\\"", "\"")
-                val result = Utils.jsonToMap(unescaped)
-                val selectedText = result["selectedText"] as String
-                val editable = result["editable"] as Boolean
-                callback?.onSelectedTextActionRequested(selectedText, editable)
-            }
-        }
-    }
-
-    override fun onTextSelectionCancel() {
-        webView?.let {
-            it.evaluateJavascript("TVBRO_clearSelection();") {
-                //nop
-            }
-        }
-    }
-
-    override fun replaceSelection(newText: String) {
-        val escapedText = newText.replace("'", "\\'")
-        webView?.let {
-            it.evaluateJavascript("""
-                let selection = window.getSelection();
-                let range = selection.getRangeAt(0);
-                range.deleteContents();
-                range.insertNode(document.createTextNode('$escapedText'));
-            """.trimIndent()) {
-                //nop
-            }
-        }
-    }
-
     override fun onLongPress(x: Int, y: Int) {
         webView?.let {
             it.evaluateJavascript(Scripts.LONG_PRESS_SCRIPT) { href ->
