@@ -91,6 +91,7 @@ import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -125,7 +126,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private lateinit var adblockModel: AdblockModel
     private lateinit var autoUpdateModel: AutoUpdateModel
     private lateinit var uiHandler: Handler
-    private var running: Boolean = false
     private var isFullscreen: Boolean = false
     private lateinit var prefs: SharedPreferences
     protected val config = AppContext.provideConfig()
@@ -416,16 +416,13 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     @SuppressLint("MissingSuperCall")
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        val intentUri = intent.data
-        if (intentUri != null) {
-            openInNewTab(intentUri.toString(), tabsModel.tabsStates.size,
-                needToHideMenuOverlay = true,
-                navigateImmediately = true
-            )
+        if (intent.data != null) {
+            handleIntent(intent)
         }
     }
 
     private fun loadState() = lifecycleScope.launch(Dispatchers.Main) {
+        Log.d(TAG, "loadState")
         WebEngineFactory.initialize(this@MainActivity, vb.flWebViewContainer)
 
         vb.progressBarGeneric.visibility = View.VISIBLE
@@ -433,14 +430,13 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         viewModel.loadState().join()
         tabsModel.loadState().join()
 
-        if (!running) {
+        if (!isActive) {
             return@launch
         }
 
         vb.progressBarGeneric.visibility = View.GONE
 
-        val intentUri = intent.data
-        if (intentUri == null) {
+        if (intent.data == null) {
             if (tabsModel.tabsStates.isEmpty()) {
                 openInNewTab(settingsModel.homePage, 0,
                     needToHideMenuOverlay = true,
@@ -461,8 +457,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 }
             }
         } else {
-            openInNewTab(intentUri.toString(), tabsModel.tabsStates.size, needToHideMenuOverlay = true,
-                navigateImmediately = true)
+            handleIntent(intent)
         }
 
         val currentTab = tabsModel.currentTab.value
@@ -480,7 +475,25 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
     }
 
+    private fun handleIntent(intent: Intent) {
+        Log.d(TAG, "handleIntent: " + intent.data)
+        if (intent.getBooleanExtra("com.phlox.tvwebbrowser.EXTRA_OPEN_IN_SAME_TAB", false) &&
+            tabsModel.tabsStates.isNotEmpty()) {
+            if (tabsModel.currentTab.value == null) {
+                changeTab(tabsModel.tabsStates[0])
+            }
+            navigate(intent.data.toString())
+            return
+        }
+
+        openInNewTab(
+            intent.data.toString(), tabsModel.tabsStates.size, needToHideMenuOverlay = true,
+            navigateImmediately = true
+        )
+    }
+
     private fun openInNewTab(url: String?, index: Int = 0, needToHideMenuOverlay: Boolean = true, navigateImmediately: Boolean): WebEngine? {
+        Log.d(TAG, "openInNewTab: url: $url, index: $index, needToHideMenuOverlay: $needToHideMenuOverlay, navigateImmediately: $navigateImmediately")
         if (url == null) {
             return null
         }
@@ -676,7 +689,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun onResume() {
-        running = true
         super.onResume()
         val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(mConnectivityChangeReceiver, intentFilter)
@@ -690,9 +702,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             onPause()
             runBlocking { tabsModel.saveTab(this@apply) }
         }
-
         super.onPause()
-        running = false
     }
 
     private fun toggleAdBlockForTab() {
@@ -723,6 +733,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     fun navigate(url: String) {
+        Log.d(TAG, "navigate: $url")
         vb.vActionBar.setAddressBoxTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
         val tab = tabsModel.currentTab.value
         if (tab != null) {
