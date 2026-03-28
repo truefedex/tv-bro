@@ -63,6 +63,7 @@
   <string name="current_key">Obecnie wybrany klawisz:</string>
   <string name="set_key_for_action">Ustaw klawisz do akcji</string>
   <string name="press_eny_key">Naciśnij dowolny klawisz...</string>
+  <string name="shortcut_key_reserved_for_navigation">Ten klawisz jest zarezerwowany do nawigacji w przeglądarce</string>
   <string name="clear">Wyczyść</string>
   <string name="install">Zainstaluj</string>
   <string name="turn_on_unknown_sources">Proszę włączyć ustawienie w systemie \"Instalacja z nieznanych źródeł\"</string>
@@ -77,6 +78,10 @@
   <string name="main">Ustawienia główne</string>
   <string name="version_and_updates">Wersja i aktualizacje</string>
   <string name="version_s">Wersja: %s</string>
+  <string name="build_flavor_s">Wariant kompilacji: %1$s · %2$s</string>
+  <string name="support_the_author">☕ Wesprzyj autora</string>
+  <string name="view_license">📃 Licencja</string>
+  <string name="privacy_policy">🔒 Polityka prywatności</string>
   <string name="update_channel">Kanał aktualizacji:</string>
   <string name="auto_check_for_updates">Automatycznie sprawdzaj aktualizacje</string>
   <string name="update">Aktualizacja</string>
@@ -115,6 +120,9 @@
   <string name="last_update">Ostatnia aktualizacja</string>
   <string name="update_ad_blocker_list">Zaktualizuj listę blokowania reklam</string>
   <string name="toggle_keep_screen_on">Utrzymuj wyświetlacz włączony</string>
+  <string name="navigate_with_joystick_axes">Nawigacja osiami joysticka</string>
+  <string name="direct_navigation_mode_title">Tryb bezpośredniej nawigacji</string>
+  <string name="direct_navigation_mode_message">Bezpośrednia nawigacja ukrywa kursor na ekranie i przekazuje naciśnięcia z pilota lub pada bezpośrednio do strony, dzięki czemu witryny obsługujące fokus TV lub klawiatury mogą podświetlać linki i elementy sterujące.\n\nAby wyjść z tego trybu: naciśnij Wstecz na pilocie telewizora lub przytrzymaj przycisk B na padzie.\n\nTryb ten najlepiej działa z silnikiem WebView: WebView obsługuje przesuwanie fokusu po stronie za pomocą krzyżaka.</string>
   <string name="need_restart">Aplikacja potrzebuje restartu</string>
   <string name="theme">Motyw</string>
   <array name="themes">
@@ -167,4 +175,10 @@
   <string name="err_no_app_to_handle_url">Nie można znaleźć odpowiedniej aplikacji do obsługi tego adresu URL</string>
   <string name="settings_engine_change_gecko_msg">Zalecane wymagania systemowe GeckoView: 3 GB RAM, 64-bitowy ośmiordzeniowy procesor. Czy chcesz kontynuować\?</string>
   <string name="settings_engine_change_webview_msg">W przyszłych aktualizacjach WebView będzie miał mniej funkcji. Czy chcesz kontynuować\?</string>
+  <string name="http_auth_title">Wymagane uwierzytelnianie</string>
+  <string name="play_pause">Odtwórz/Wstrzymaj</string>
+  <string name="media_stop">Zatrzymaj multimedia</string>
+  <string name="media_rewind">Przewiń do tyłu</string>
+  <string name="media_fast_forward">Przewiń do przodu</string>
+  <string name="long_press">Długie naciśnięcie</string>
 </resources>

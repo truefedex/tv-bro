@@ -26,7 +26,6 @@
         android:layout_below="@+id/tvDescription"
         tools:text="https://test.com"
         android:lines="1"
-        android:ellipsize="end"
         android:background="@drawable/text_link_background_selector"
         android:focusable="true"
         android:clickable="true"/>
@@ -38,19 +37,61 @@
         android:layout_below="@+id/tvLink"
         android:layout_marginTop="20dp"
         android:text="@string/version_s" />
+
+    <TextView
+        android:id="@+id/tvBuildFlavor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvVersion"
+        tools:text="Build flavor: generic · geckoIncluded" />
+
     <TextView
         android:id="@+id/tvWebViewVersion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/tvVersion"
+        android:layout_below="@+id/tvBuildFlavor"
         tools:text="WebView Version: 10.0.1" />
+
+    <TextView
+        android:id="@+id/tvSupportAuthor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvWebViewVersion"
+        android:layout_marginTop="10dp"
+        android:lines="1"
+        android:background="@drawable/text_link_background_selector"
+        android:focusable="true"
+        android:clickable="true"
+        tools:text="Support the author" />
+
+    <TextView
+        android:id="@+id/tvLicense"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvSupportAuthor"
+        android:lines="1"
+        android:background="@drawable/text_link_background_selector"
+        android:focusable="true"
+        android:clickable="true"
+        tools:text="License" />
+
+    <TextView
+        android:id="@+id/tvPrivacy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvLicense"
+        android:lines="1"
+        android:background="@drawable/text_link_background_selector"
+        android:focusable="true"
+        android:clickable="true"
+        tools:text="Privacy policy" />
 
     <TextView
         android:id="@+id/tvUkraine"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/tvWebViewVersion"
+        android:layout_below="@+id/tvPrivacy"
         android:text="@string/why_icon_changed"
         android:lines="1"
         android:ellipsize="end"
@@ -63,7 +104,7 @@
         android:layout_height="32dp"
         android:layout_marginStart="10dp"
         android:src="@drawable/banner"
-        android:layout_below="@+id/tvWebViewVersion"
+        android:layout_alignTop="@+id/tvUkraine"
         android:layout_toEndOf="@+id/tvUkraine" />
 
     <CheckBox

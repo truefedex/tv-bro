@@ -51,6 +51,7 @@
   <string name="not_set">Не задано</string>
   <string name="open_folder">Відкрити папку</string>
   <string name="press_eny_key">Натисніть будь-яку клавішу...</string>
+  <string name="shortcut_key_reserved_for_navigation">Ця клавіша зарезервована для навігації в браузері</string>
   <string name="refresh_page">Оновити сторінку</string>
   <string name="set_key_for_action">Встановити клавішу для дії</string>
   <string name="settings">Налаштунки</string>
@@ -76,6 +77,10 @@
   <string name="update_channel">Канал оновлень</string>
   <string name="version_and_updates">Версія</string>
   <string name="version_s">Версія: %s</string>
+  <string name="build_flavor_s">Варіант збірки: %1$s · %2$s</string>
+  <string name="support_the_author">☕ Підтримати автора</string>
+  <string name="view_license">📃 Ліцензія</string>
+  <string name="privacy_policy">🔒 Політика конфіденційності</string>
   <string name="warning">Увага</string>
   <string name="web_browser_optimized_for_tvs">Веб-браузер, оптимізований для телевізорів</string>
   <string name="new_version_available_s">Доступна нова версія: %s</string>
@@ -113,6 +118,9 @@
   </array>
   <string name="set_search_engine_as_homepage">Встановити пошукову систему як домашню сторінку</string>
   <string name="toggle_keep_screen_on">Підтримувати екран увімкненим</string>
+  <string name="navigate_with_joystick_axes">Навігація осями джойстика</string>
+  <string name="direct_navigation_mode_title">Режим прямої навігації</string>
+  <string name="direct_navigation_mode_message">Пряма навігація приховує курсор на екрані й передає натискання з пульта чи геймпада безпосередньо на веб-сторінку, щоб сайти з підтримкою ТВ або клавіатурного фокусу могли виділяти посилання та елементи керування.\n\nЩоб вийти з цього режиму: натисніть «Назад» на пульті ТВ або утримуйте кнопку B на геймпаді.\n\nЦей режим найкраще працює з рушієм WebView: WebView підтримує переміщення фокусу сторінкою за допомогою D-pad.</string>
   <string name="incognito_mode">Режим анонімного перегляду</string>
   <string name="incognito_mode_hint">Тепер ви можете переглядати приватно, і інші люди, які використовують цей пристрій, не бачитимуть вашу активність. TV Bro не зберігатиме вашу історію переглядів, файли cookie та дані сайту, інформацію, введену у форми.\n\nОднак завантаження та закладки будуть збережені. Вашу активність можуть бачити веб-сайти, які ви відвідуєте, ваша організація чи постачальник послуг Інтернету.</string>
   <string name="don_t_show_again">Не показувати знову</string>
@@ -167,4 +175,10 @@
   <string name="home_page_links">Посилання на домашній сторінці</string>
   <string name="settings_engine_change_gecko_msg">Системні вимоги, рекомендовані GeckoView: 3 ГБ оперативної пам’яті, 64-розрядний восьмиядерний процесор. Ви хочете продовжити\?</string>
   <string name="settings_engine_change_webview_msg">WebView матиме менше функцій у майбутніх оновленнях. Ви хочете продовжити\?</string>
+  <string name="http_auth_title">Потрібна автентифікація</string>
+  <string name="play_pause">Відтворення/Пауза</string>
+  <string name="media_stop">Зупинити медіа</string>
+  <string name="media_rewind">Перемотка назад</string>
+  <string name="media_fast_forward">Перемотка вперед</string>
+  <string name="long_press">Довге натискання</string>
 </resources>

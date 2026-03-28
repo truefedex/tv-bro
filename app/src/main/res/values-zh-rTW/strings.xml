@@ -63,6 +63,7 @@
     <string name="current_key">目前按鍵：</string>
     <string name="set_key_for_action">設定操作按鍵</string>
     <string name="press_eny_key">點擊任意按鍵...</string>
+    <string name="shortcut_key_reserved_for_navigation">此按鍵已保留供瀏覽器導覽使用</string>
     <string name="clear">清除</string>
     <string name="install">安裝</string>
     <string name="turn_on_unknown_sources">請在系統設定中啟用 \"未知來源\"</string>
@@ -77,6 +78,10 @@
     <string name="main">主要</string>
     <string name="version_and_updates"><![CDATA[版本 & 更新]]></string>
     <string name="version_s">版本：%s</string>
+    <string name="build_flavor_s">建構變體：%1$s · %2$s</string>
+    <string name="support_the_author">☕ 支持作者</string>
+    <string name="view_license">📃 授權條款</string>
+    <string name="privacy_policy">🔒 隱私權政策</string>
     <string name="update_channel">更新頻道：</string>
     <string name="auto_check_for_updates">自動檢查更新</string>
     <string name="update">更新</string>
@@ -108,6 +113,9 @@
     <string name="last_update">最後更新於</string>
     <string name="update_ad_blocker_list">更新廣告封鎖器列表</string>
     <string name="toggle_keep_screen_on">保持螢幕開啟</string>
+    <string name="navigate_with_joystick_axes">使用搖桿軸導覽</string>
+    <string name="direct_navigation_mode_title">直接導覽模式</string>
+    <string name="direct_navigation_mode_message">直接導覽會隱藏螢幕游標，並將遙控器或遊戲手把的按鍵直接傳給網頁，讓支援電視或鍵盤焦點的網站能突顯連結與控制項。\n\n若要離開此模式：在電視遙控器上按「返回」，或在遊戲手把上長按 B 鍵。\n\n此模式以 WebView 引擎效果最佳：WebView 支援用方向鍵在頁面內移動焦點。</string>
     <string name="need_restart">需要重新啟動應用程式</string>
     <string name="theme">主題</string>
     <string name="incognito_mode">無痕模式</string>
@@ -165,4 +173,10 @@
         <item>向左移動</item>
         <item>向右移動</item>
     </array>
+    <string name="http_auth_title">需要驗證</string>
+    <string name="play_pause">播放/暫停</string>
+    <string name="media_stop">停止媒體</string>
+    <string name="media_rewind">倒轉媒體</string>
+    <string name="media_fast_forward">快轉媒體</string>
+    <string name="long_press">長按</string>
 </resources>

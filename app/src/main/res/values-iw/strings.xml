@@ -63,6 +63,7 @@
   <string name="current_key">"מקש נוכחי:"</string>
   <string name="set_key_for_action">"הגדר מקש לפעולה:"</string>
   <string name="press_eny_key">"לחץ על כל מקש..."</string>
+  <string name="shortcut_key_reserved_for_navigation">מקש זה שמור לניווט בדפדפן</string>
   <string name="clear">"נקה"</string>
   <string name="install">"התקן"</string>
   <string name="turn_on_unknown_sources">"אנא הפעל את \"התקן ממקורות לא ידועים\" בהגדרות המערכת"</string>
@@ -77,6 +78,10 @@
   <string name="main">"ראשי"</string>
   <string name="version_and_updates">גרסא ועדכונים</string>
   <string name="version_s">"גרסא: %s"</string>
+  <string name="build_flavor_s">גרסת בנייה: %1$s · %2$s</string>
+  <string name="support_the_author">☕ תמיכה במחבר</string>
+  <string name="view_license">📃 רישיון</string>
+  <string name="privacy_policy">🔒 מדיניות פרטיות</string>
   <string name="update_channel">"ערוץ עדכונים:"</string>
   <string name="auto_check_for_updates">"בדוק אוטומטית לעדכונים:"</string>
   <string name="update">"עדכן:"</string>
@@ -116,6 +121,9 @@
   </array>
   <string name="set_search_engine_as_homepage">הפוך מנוע חיפוש לדף הבית שלך</string>
   <string name="toggle_keep_screen_on">השאר מסך דלוק</string>
+  <string name="navigate_with_joystick_axes">ניווט עם צירי ג\'ויסטיק</string>
+  <string name="direct_navigation_mode_title">מצב ניווט ישיר</string>
+  <string name="direct_navigation_mode_message">ניווט ישיר מסתיר את סמן המסך ומעביר לחיצות מהשלט או מבקר המשחק ישירות לדף האינטרנט, כך שאתרים שתומכים במיקוד לטלוויזיה או במקלדת יכולים להדגיש קישורים ופקדים.\n\nליציאה מהמצב: לחץ חזור בשלט הטלוויזיה או החזק את כפתור B בבקר.\n\nהמצב עובד הכי טוב עם מנוע WebView: WebView תומך בהזזת המיקוד בדף באמצעות D-pad.</string>
   <string name="incognito_mode">מצב גלישה בסתר</string>
   <string name="incognito_mode_hint">עכשיו אתה יכול לגלוש באופן פרטי, ואנשים אחרים שמשתמשים במכשיר הזה לא יראו את הפעילות שלך. TV Bro לא ישמור את היסטוריית הגלישה שלך, קובצי Cookie ונתוני אתר, מידע שהוזן בטפסים.  עם זאת, הורדות וסימניות יישמרו. ייתכן שהפעילות שלך עדיין תהיה גלויה לאתרים שבהם אתה מבקר, לארגון או לספק שירותי האינטרנט שלך.</string>
   <string name="don_t_show_again">אל תראה שוב</string>
@@ -170,4 +178,10 @@
   <string name="home_page_links">קישורים בעמוד הבית</string>
   <string name="settings_engine_change_gecko_msg">דרישות מערכת מומלצות של GeckoView: 3GB RAM, מעבד מתומן ליבות של 64 סיביות. האם אתה רוצה להמשיך\?</string>
   <string name="settings_engine_change_webview_msg">ל-WebView יהיו פחות תכונות בעדכונים עתידיים. האם אתה רוצה להמשיך\?</string>
+  <string name="http_auth_title">נדרש אימות</string>
+  <string name="play_pause">נגן / השהה</string>
+  <string name="media_stop">עצור מדיה</string>
+  <string name="media_rewind">הרצה אחורה במדיה</string>
+  <string name="media_fast_forward">הרצה קדימה במדיה</string>
+  <string name="long_press">לחיצה ארוכה</string>
 </resources>

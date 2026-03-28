@@ -52,6 +52,7 @@
   <string name="not_set">Не задано</string>
   <string name="open_folder">Открыть содержащую папку</string>
   <string name="press_eny_key">Нажмите любую клавишу...</string>
+  <string name="shortcut_key_reserved_for_navigation">Эта клавиша зарезервирована для навигации в браузере</string>
   <string name="refresh_page">Обновить страницу</string>
   <string name="set_key_for_action">Установить клавишу для действия</string>
   <string name="settings">Настройки</string>
@@ -77,6 +78,10 @@
   <string name="update_channel">Канал обновлений</string>
   <string name="version_and_updates">Версия</string>
   <string name="version_s">Версия: %s</string>
+  <string name="build_flavor_s">Вариант сборки: %1$s · %2$s</string>
+  <string name="support_the_author">☕ Поддержать автора</string>
+  <string name="view_license">📃 Лицензия</string>
+  <string name="privacy_policy">🔒 Политика конфиденциальности</string>
   <string name="warning">Предупреждение</string>
   <string name="web_browser_optimized_for_tvs">Веб-браузер, оптимизированный для телевизоров</string>
   <string name="new_version_available_s">Доступна новая версия: %s</string>
@@ -120,6 +125,9 @@
     <item>Тёмная</item>
   </array>
   <string name="toggle_keep_screen_on">Поддерживать экран включенным</string>
+  <string name="navigate_with_joystick_axes">Навигация осями джойстика</string>
+  <string name="direct_navigation_mode_title">Режим прямой навигации</string>
+  <string name="direct_navigation_mode_message">Прямая навигация скрывает курсор на экране и передаёт нажатия с пульта или геймпада прямо на веб-страницу, чтобы сайты с поддержкой ТВ или клавиатурного фокуса могли выделять ссылки и элементы управления.\n\nЧтобы выйти из этого режима: нажмите «Назад» на пульте ТВ или удерживайте кнопку B на геймпаде.\n\nЭтот режим лучше всего работает с движком WebView: WebView поддерживает перемещение фокуса по странице с помощью D-pad.</string>
   <string name="incognito_mode">Режим инкогнито</string>
   <string name="incognito_mode_hint">Теперь вы можете просматривать сайты конфиденциально, и другие люди, использующие это устройство, не увидят вашу активность. TV Bro не сохраняет вашу историю посещений, файлы cookie и данные сайта, информацию, введенную в формах.\n\nОднако загрузки и закладки будут сохранены. Ваша активность может по-прежнему быть видна веб-сайтам, которые вы посещаете, вашей организации или интернет-провайдеру.</string>
   <string name="don_t_show_again">Больше не показывать</string>
@@ -167,4 +175,10 @@
   <string name="home_page_links">Ссылки на главной странице</string>
   <string name="settings_engine_change_gecko_msg">Рекомендуемые системные требования GeckoView: 3 ГБ ОЗУ, 64-битный восьмиядерный процессор. Вы хотите продолжать\?</string>
   <string name="settings_engine_change_webview_msg">В будущих обновлениях WebView будет меньше функций. Вы хотите продолжать\?</string>
+  <string name="http_auth_title">Требуется аутентификация</string>
+  <string name="play_pause">Воспроизведение/Пауза</string>
+  <string name="media_stop">Остановить воспроизведение</string>
+  <string name="media_rewind">Перемотка назад</string>
+  <string name="media_fast_forward">Перемотка вперёд</string>
+  <string name="long_press">Долгое нажатие</string>
 </resources>

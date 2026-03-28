@@ -64,6 +64,7 @@
   <string name="current_key">"کلید فعلی:"</string>
   <string name="set_key_for_action">"کلید را برای اقدام تنظیم کنید"</string>
   <string name="press_eny_key">"هر کلید را فشار دهید…"</string>
+  <string name="shortcut_key_reserved_for_navigation">این کلید برای پیمایش مرورگر رزرو شده است</string>
   <string name="clear">"پاک کردن"</string>
   <string name="install">"نصب"</string>
   <string name="turn_on_unknown_sources">"لطفاً تنظیمات سیستم \"منابع ناشناخته\" را فعال کنید"</string>
@@ -78,6 +79,10 @@
   <string name="main">"اصلی"</string>
   <string name="version_and_updates">نسخه و به روزرسانی ها</string>
   <string name="version_s">"نسخه: %s"</string>
+  <string name="build_flavor_s">نوع ساخت: %1$s · %2$s</string>
+  <string name="support_the_author">☕ حمایت از نویسنده</string>
+  <string name="view_license">📃 مجوز</string>
+  <string name="privacy_policy">🔒 سیاست حریم خصوصی</string>
   <string name="update_channel">"کانال ترجمه:"</string>
   <string name="auto_check_for_updates">"بررسی خودکار برای به روزرسانی ها"</string>
   <string name="update">"به روز رسانی"</string>
@@ -117,6 +122,9 @@
   </array>
   <string name="set_search_engine_as_homepage">موتور جستجو را به عنوان صفحه اصلی تنظیم کنید</string>
   <string name="toggle_keep_screen_on">صفحه نمایش را روشن بگذارید</string>
+  <string name="navigate_with_joystick_axes">پیمایش با محورهای جوی‌استیک</string>
+  <string name="direct_navigation_mode_title">حالت پیمایش مستقیم</string>
+  <string name="direct_navigation_mode_message">پیمایش مستقیم مکان‌نما را پنهان می‌کند و فشردن کلیدهای ریموت یا دسته بازی را مستقیماً به صفحه وب می‌فرستد تا سایت‌هایی که فوکوس تلویزیونی یا صفحه‌کلید را پشتیبانی می‌کنند بتوانند پیوندها و کنترل‌ها را برجسته کنند.\n\nبرای خروج از این حالت: «برگشت» را روی ریموت تلویزیون بزنید یا دکمه B دسته را نگه دارید.\n\nاین حالت با موتور WebView بهتر کار می‌کند: WebView جابه‌جایی فوکوس در صفحه با D-pad را پشتیبانی می‌کند.</string>
   <string name="incognito_mode">حالت ناشناس</string>
   <string name="incognito_mode_hint">اکنون می توانید به صورت خصوصی مرور کنید و سایر افرادی که از این دستگاه استفاده می کنند فعالیت شما را نخواهند دید. TV Bro تاریخچه مرور، کوکی ها و داده های سایت، اطلاعات وارد شده در فرم ها را ذخیره نمی کند.  با این حال، دانلودها و نشانک ها ذخیره خواهند شد. ممکن است فعالیت شما همچنان برای وب‌سایت‌هایی که بازدید می‌کنید، سازمان یا ارائه‌دهنده خدمات اینترنتی شما قابل مشاهده باشد.</string>
   <string name="don_t_show_again">دیگر نشان نده</string>
@@ -171,4 +179,10 @@
   <string name="home_page_links">لینک ها در صفحه اصلی</string>
   <string name="settings_engine_change_gecko_msg">سیستم مورد نیاز توصیه شده GeckoView: 3 گیگابایت رم، CPU هشت هسته ای 64 بیتی. می خواهید ادامه دهید؟</string>
   <string name="settings_engine_change_webview_msg">WebView در به روز رسانی های بعدی ویژگی های کمتری خواهد داشت. می خواهید ادامه دهید؟</string>
+  <string name="http_auth_title">احراز هویت لازم است</string>
+  <string name="play_pause">پخش/توقف</string>
+  <string name="media_stop">توقف رسانه</string>
+  <string name="media_rewind">عقب بردن رسانه</string>
+  <string name="media_fast_forward">جلو بردن سریع رسانه</string>
+  <string name="long_press">فشار طولانی</string>
 </resources>

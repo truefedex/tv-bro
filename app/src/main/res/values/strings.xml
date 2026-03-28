@@ -79,6 +79,10 @@
     <string name="main">Main</string>
     <string name="version_and_updates"><![CDATA[Version & updates]]></string>
     <string name="version_s">Version: %s</string>
+    <string name="build_flavor_s">Build flavor: %1$s · %2$s</string>
+    <string name="support_the_author">☕ Support the author</string>
+    <string name="view_license">📃 License</string>
+    <string name="privacy_policy">🔒 Privacy policy</string>
     <string name="update_channel">Update channel:</string>
     <string name="auto_check_for_updates">Auto check for updates</string>
     <string name="update">Update</string>
@@ -173,11 +177,6 @@
     <string name="err_no_app_to_handle_url">Can not find suitable application to handle this URL</string>
     <string name="settings_engine_change_gecko_msg">GeckoView recommended system requirements: 3GB RAM, 64-bit octa-core CPU. Do you want to continue?</string>
     <string name="settings_engine_change_webview_msg">WebView will have less features in future updates. Do you want to continue?</string>
-    <string name="copy">Copy</string>
-    <string name="paste">Paste</string>
-    <string name="cut">Cut</string>
-    <string name="share">Share</string>
-    <string name="search">Search</string>
     <string name="http_auth_title">Authentication required</string>
     <string name="play_pause">Play/Pause</string>
     <string name="media_stop">Stop Media</string>

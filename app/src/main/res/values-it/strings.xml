@@ -63,6 +63,7 @@
   <string name="current_key">Tasto impostato:</string>
   <string name="set_key_for_action">Imposta tasto</string>
   <string name="press_eny_key">Premi tasto…</string>
+  <string name="shortcut_key_reserved_for_navigation">Questo tasto è riservato alla navigazione del browser</string>
   <string name="clear">Pulisci</string>
   <string name="install">Installa</string>
   <string name="turn_on_unknown_sources">Attiva \"Fonti sconosciute\"</string>
@@ -77,6 +78,10 @@
   <string name="main">Principale</string>
   <string name="version_and_updates">Versione &amp; Info</string>
   <string name="version_s">Versione: %s</string>
+  <string name="build_flavor_s">Variante build: %1$s · %2$s</string>
+  <string name="support_the_author">☕ Sostieni l\'autore</string>
+  <string name="view_license">📃 Licenza</string>
+  <string name="privacy_policy">🔒 Informativa sulla privacy</string>
   <string name="update_channel">Canale aggiornamenti:</string>
   <string name="auto_check_for_updates">Verifica aggiornamenti</string>
   <string name="update">Aggiorna</string>
@@ -115,6 +120,9 @@
   <string name="last_update">Ultimo aggiornamento</string>
   <string name="update_ad_blocker_list">Aggiorna lista blocco pubblicità</string>
   <string name="toggle_keep_screen_on">Mantieni schermo acceso</string>
+  <string name="navigate_with_joystick_axes">Naviga con gli assi del joystick</string>
+  <string name="direct_navigation_mode_title">Modalità navigazione diretta</string>
+  <string name="direct_navigation_mode_message">La navigazione diretta nasconde il cursore sullo schermo e invia i tasti del telecomando o del controller di gioco direttamente alla pagina web, così i siti che supportano il focus TV o da tastiera possono evidenziare link e controlli.\n\nPer uscire da questa modalità: premi Indietro sul telecomando del TV oppure tieni premuto il pulsante B su un controller di gioco.\n\nQuesta modalità funziona meglio con il motore WebView: WebView consente di spostare il focus nella pagina con il D-pad.</string>
   <string name="need_restart">È necessario riavviare l\'app</string>
   <string name="theme">Tema</string>
   <array name="themes">
@@ -167,4 +175,10 @@
   <string name="home_page_links">Link in home page</string>
   <string name="settings_engine_change_gecko_msg">Requisiti di sistema consigliati da GeckoView: 3 GB di RAM, CPU octa-core a 64 bit. Vuoi continuare\?</string>
   <string name="settings_engine_change_webview_msg">WebView avrà meno funzionalità negli aggiornamenti futuri. Vuoi continuare\?</string>
+  <string name="http_auth_title">Autenticazione richiesta</string>
+  <string name="play_pause">Riproduci/Pausa</string>
+  <string name="media_stop">Arresta riproduzione multimediale</string>
+  <string name="media_rewind">Riavvolgi</string>
+  <string name="media_fast_forward">Avanza veloce</string>
+  <string name="long_press">Pressione prolungata</string>
 </resources>
