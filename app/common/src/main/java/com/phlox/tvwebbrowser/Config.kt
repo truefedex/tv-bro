@@ -51,15 +51,10 @@ class Config(val prefs: SharedPreferences) {
         //const val HOME_PAGE_URL = "http://10.0.2.2:5000/appcontent/home/"
 
         fun canRecommendGeckoView(): Boolean {
-            var recommendedGeckoView = false
-            val deviceRAM = Utils.memInfo(AppContext.get()).totalMem
-            val cpuHas64Bit = Build.SUPPORTED_64_BIT_ABIS.isNotEmpty()
-            val cpuCores = Runtime.getRuntime().availableProcessors()
-            val threeGB = 3000000000L//~3GB minus protected memory
-            if (deviceRAM >= threeGB && cpuHas64Bit && cpuCores >= 6) {
-                recommendedGeckoView = true
-            }
-            return recommendedGeckoView
+            //disable recommendation for now
+            //There are plans to keep its support, but user reports and internal testing show
+            // that, at least for now, in terms of performance and stability, it is inferior to WebView.
+            return false
         }
     }
 
