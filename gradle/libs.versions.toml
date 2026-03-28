@@ -6,9 +6,6 @@ agp = "9.1.0"
 kotlin = "2.3.10"
 kotlin-stdlib = "2.3.10"
 ksp = "2.3.6"
-google-services = "4.4.4"
-firebase-crashlytics-gradle = "3.0.6"
-firebase-bom = "34.10.0"
 
 appcompat = "1.7.1"
 webkit = "1.15.0"
@@ -46,11 +43,6 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
-# Firebase (versions from firebase-bom)
-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
-firebase-core = { group = "com.google.firebase", name = "firebase-core" }
-firebase-crashlytics-ktx = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
-
 # Third-party
 segmented-button = { group = "com.github.truefedex", name = "segmented-button", version.ref = "segmented-button" }
 ad-block = { group = "com.github.truefedex", name = "ad-block", version.ref = "ad-block" }
@@ -68,5 +60,3 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-gradle" }

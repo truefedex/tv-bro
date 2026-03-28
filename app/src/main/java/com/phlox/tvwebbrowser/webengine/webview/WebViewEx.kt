@@ -22,7 +22,20 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
-import android.webkit.*
+import android.webkit.ConsoleMessage
+import android.webkit.GeolocationPermissions
+import android.webkit.HttpAuthHandler
+import android.webkit.JsPromptResult
+import android.webkit.JsResult
+import android.webkit.PermissionRequest
+import android.webkit.SslErrorHandler
+import android.webkit.ValueCallback
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
@@ -33,9 +46,8 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.utils.LogUtils
 import java.net.URLEncoder
-import java.util.*
+import java.util.UUID
 
 
 /**
@@ -556,12 +568,10 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 thumbnail = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             } catch (e: Throwable) {
                 e.printStackTrace()
-                LogUtils.recordException(e)
                 try {
                     thumbnail = Bitmap.createBitmap(width / 2, height / 2, Bitmap.Config.ARGB_8888)
                 } catch (e: OutOfMemoryError) {
                     e.printStackTrace()
-                    LogUtils.recordException(e)
                 }
             }
         }

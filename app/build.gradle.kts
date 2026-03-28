@@ -12,8 +12,6 @@ if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { properties.load(it) }
 }
 
-var includeFirebase = true
-
 android {
     namespace = "com.phlox.tvwebbrowser"
 
@@ -78,7 +76,6 @@ android {
             dimension = "appstore"
             applicationIdSuffix = ".foss"
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
-            includeFirebase = false//do not include firebase in the foss build
         }
 
         create("geckoIncluded") {
@@ -124,19 +121,6 @@ dependencies {
     implementation(libs.ad.block)
     implementation(libs.pinned.section.listview)
 
-    implementation(platform(libs.firebase.bom))
-    "googleImplementation"(libs.firebase.core)
-    "googleImplementation"(libs.firebase.crashlytics.ktx)
-    "genericImplementation"(libs.firebase.core)
-    "genericImplementation"(libs.firebase.crashlytics.ktx)
-
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
-}
-
-if (includeFirebase) {
-    plugins {
-        alias(libs.plugins.google.services)
-        alias(libs.plugins.firebase.crashlytics)
-    }
 }

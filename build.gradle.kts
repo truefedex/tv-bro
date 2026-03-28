@@ -4,6 +4,4 @@
 // Only declare here plugins that subprojects apply via the version catalog and are not on buildSrc classpath.
 plugins {
     alias(libs.plugins.ksp) apply false
-    alias(libs.plugins.google.services) apply false
-    alias(libs.plugins.firebase.crashlytics) apply false
 }

@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.AttributeSet
 import android.util.Log
-import com.phlox.tvwebbrowser.utils.LogUtils
 import org.mozilla.geckoview.GeckoDisplay
 import org.mozilla.geckoview.GeckoDisplay.ScreenshotBuilder
 import org.mozilla.geckoview.GeckoResult
@@ -53,12 +52,10 @@ open class GeckoViewEx @JvmOverloads constructor(context: Context, attrs: Attrib
                 thumbnail = Bitmap.createBitmap(width / 2, height / 2, Bitmap.Config.ARGB_8888)
             } catch (e: Throwable) {
                 e.printStackTrace()
-                LogUtils.recordException(e)
                 try {
                     thumbnail = Bitmap.createBitmap(width / 4, height / 4, Bitmap.Config.ARGB_8888)
                 } catch (e: OutOfMemoryError) {
                     e.printStackTrace()
-                    LogUtils.recordException(e)
                 }
             }
         }

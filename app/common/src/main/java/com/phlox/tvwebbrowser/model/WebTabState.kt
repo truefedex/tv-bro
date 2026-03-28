@@ -4,13 +4,11 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.phlox.tvwebbrowser.AppContext
-import com.phlox.tvwebbrowser.utils.LogUtils
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.isGecko
@@ -20,7 +18,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
-import java.net.URL
 import java.nio.charset.Charset
 
 
@@ -85,7 +82,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             }
         } catch (e: JSONException) {
             e.printStackTrace()
-            LogUtils.recordException(e)
         }
 
     }
