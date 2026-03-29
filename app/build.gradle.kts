@@ -1,15 +1,6 @@
-import java.util.*
-
-
 plugins {
     id("tvbro.android.application")
     alias(libs.plugins.ksp)
-}
-
-val properties = Properties()
-val localPropertiesFile: File = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.inputStream().use { properties.load(it) }
 }
 
 android {
@@ -17,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        versionCode = 62
+        versionCode = 63
         versionName = "2.1.0"
 
         javaCompileOptions {
@@ -33,10 +24,13 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = properties.getProperty("storeFile", null)?.let { rootProject.file(it) }
-            storePassword = properties.getProperty("storePassword", "")
-            keyAlias = properties.getProperty("keyAlias", "")
-            keyPassword = properties.getProperty("keyPassword", "")
+            val keystorePath = System.getenv("KEYSTORE_PATH")
+            if (keystorePath != null) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
         }
     }
 
@@ -46,9 +40,10 @@ android {
         }
         getByName("release") {
             isDebuggable = false
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig=signingConfigs.getByName("release")
+            signingConfig = if (System.getenv("KEYSTORE_PATH") != null)
+                signingConfigs.getByName("release") else null
         }
     }
 
@@ -56,7 +51,7 @@ android {
         abi {
             isEnable = true
             reset()
-            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+            include("armeabi-v7a", "arm64-v8a", "x86_64")
             isUniversalApk = false
         }
     }
