@@ -6,9 +6,6 @@ on:
       version:
         description: 'Version (e.g. 1.2.3)'
         required: true
-      release_notes:
-        description: 'Release notes'
-        required: true
       prerelease:
         description: 'Release type'
         required: true
@@ -53,7 +50,7 @@ jobs:
         with:
           tag_name: v${{ inputs.version }}
           name: v${{ inputs.version }}
-          body: ${{ inputs.release_notes }}
+          body_path: RELEASE_NOTES.md
           prerelease: ${{ inputs.prerelease == 'pre-release' }}
           files: |
             app/build/outputs/apk/genericGeckoIncluded/release/*.apk
