@@ -4,6 +4,9 @@ plugins {
 
 android {
     namespace = "com.phlox.tvwebbrowser.webengine.gecko"
+    defaultConfig {
+        minSdk = 26
+    }
 }
 
 dependencies {

@@ -49,7 +49,7 @@ android {
 
     splits {
         abi {
-            isEnable = true
+            isEnable = project.hasProperty("enableAbiSplits")
             reset()
             include("armeabi-v7a", "arm64-v8a", "x86_64")
             isUniversalApk = false
@@ -75,6 +75,7 @@ android {
 
         create("geckoIncluded") {
             dimension = "webengine"
+            minSdk = 26 // geckoview requires minSdk 26
         }
         create("geckoExcluded") {
             dimension = "webengine"
