@@ -45,6 +45,15 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      - name: Rename artifacts
+        run: |
+          for dir in genericGeckoIncluded genericGeckoExcluded; do
+            for f in app/build/outputs/apk/${dir}/release/app-*.apk; do
+              new="${f/app-/tvbro-${{ inputs.version }}-}"
+              mv "$f" "${new/-release.apk/.apk}"
+            done
+          done
+
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
