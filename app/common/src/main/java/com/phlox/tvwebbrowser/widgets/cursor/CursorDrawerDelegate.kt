@@ -8,6 +8,8 @@ import android.graphics.Paint
 import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -33,6 +35,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     var callback: Callback? = null
     var customScrollCallback: CustomScrollCallback? = null
     private val cursorHideRunnable = Runnable { surface.invalidate() }
+    private val mainHandler = Handler(Looper.getMainLooper())
     private var scrollHackStarted = false
     private val scrollHackCoords = PointF()
     private val scrollHackActiveRect = Rect()
@@ -52,6 +55,11 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             val newTime = System.currentTimeMillis()
             return newTime - lastCursorUpdate > CURSOR_DISAPPEAR_TIMEOUT
         }
+
+    private fun scheduleCursorHide() {
+        mainHandler.removeCallbacks(cursorHideRunnable)
+        mainHandler.postDelayed(cursorHideRunnable, CURSOR_DISAPPEAR_TIMEOUT.toLong())
+    }
 
     interface Callback {
         fun onLongPress(x: Int, y: Int)
@@ -78,7 +86,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         cursorPosition.set(w / 2.0f, h / 2.0f)
         scrollHackActiveRect.set(0, 0, surface.width, surface.height)
         scrollHackActiveRect.inset(SCROLL_HACK_PADDING, SCROLL_HACK_PADDING)
-        surface.postDelayed(cursorHideRunnable, CURSOR_DISAPPEAR_TIMEOUT.toLong())
+        scheduleCursorHide()
     }
 
     fun canHandleBackNavigation(): Boolean {
@@ -183,6 +191,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
                     } else if (isCursorDisappear) {
                         lastCursorUpdate = System.currentTimeMillis()
                         surface.postInvalidate()
+                        scheduleCursorHide()
                     } else {
                         dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
                         dpadCenterPressed = false
@@ -337,7 +346,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
 
     private val cursorUpdateRunnable = object : Runnable {
         override fun run() {
-            surface.removeCallbacks(cursorHideRunnable)
+            mainHandler.removeCallbacks(cursorHideRunnable)
 
             val newTime = System.currentTimeMillis()
             val dTime = newTime - lastCursorUpdate
@@ -350,7 +359,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             if (Math.abs(cursorSpeed.x) < 0.1f) cursorSpeed.x = 0f
             if (Math.abs(cursorSpeed.y) < 0.1f) cursorSpeed.y = 0f
             if (cursorDirection.x == 0 && cursorDirection.y == 0 && cursorSpeed.x == 0f && cursorSpeed.y == 0f) {
-                surface.postDelayed(cursorHideRunnable, CURSOR_DISAPPEAR_TIMEOUT.toLong())
+                scheduleCursorHide()
                 return
             }
             tmpPointF.set(cursorPosition)
@@ -413,6 +422,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
 
     fun animateAppearing() {
         lastCursorUpdate = System.currentTimeMillis()
+        scheduleCursorHide()
         cursorRadiusAnimationMultiplier = 2f
         val animator = ValueAnimator.ofFloat(2f, 1f)
         animator.duration = 300
