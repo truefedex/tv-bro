@@ -91,7 +91,8 @@ class DPADNavigationEventsAdapter(
         val sig = KeyDispatchSignature(event.eventTime, event.action, event.keyCode)
         if (sentEmulatedHistory.lastOrNull() == sig) {
             // Avoid feeding duplicates that may arrive from both dispatch channels.
-            return false
+            // Even if suppressed, report "handled" so callers can consistently consume it.
+            return true
         }
 
         return try {
@@ -406,7 +407,8 @@ class DPADNavigationEventsAdapter(
         if (sentEmulatedHistory.lastOrNull() == sig) {
             // If the same event arrives from both dispatch channels at the same time,
             // drop the duplicate to avoid double-handling.
-            return false
+            // Even if suppressed, report "handled" so callers can consistently consume it.
+            return true
         }
 
         // Preserve the originating [MotionEvent] source (e.g. joystick / gamepad).
