@@ -12,8 +12,8 @@
     },
     {
       "name": "beta",
-      "latestVersionName": "v2.1.0",
-      "latestVersionCode": 63,
+      "latestVersionName": "v2.1.1",
+      "latestVersionCode": 64,
       "minAPI": 26,
       "url": "https://github.com/truefedex/tv-bro/releases/download/v2.1.0/tvbro-2.1.0-generic-geckoIncluded-armeabi-v7a.apk",
       "urls": [
@@ -25,8 +25,8 @@
 
   "changelog": [
     {
-      "versionCode": 63,
-      "versionName": "v2.1.0",
+      "versionCode": 64,
+      "versionName": "v2.1.1",
       "changes": "* Contextual menu on long press\n* Direct navigation mode (activated by new contextual menu)\n* All dependencies updated \n* Target latest android versions\n* Dropped Android 7.x support (only GeckoView-containing build)\n* Improvement of the Polish translation (thanks to @ChuckMichael)\n* Various bugfixes (thanks to @usman.hafeez for one)"
     },
     {
