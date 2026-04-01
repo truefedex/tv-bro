@@ -175,8 +175,8 @@
     <string name="site_asks_to_open_unknown_url">Site asks to open unknown URL</string>
     <string name="site_asks_to_open_unknown_url_message">Do you want to open this URL in external app?</string>
     <string name="err_no_app_to_handle_url">Can not find suitable application to handle this URL</string>
-    <string name="settings_engine_change_gecko_msg">GeckoView recommended system requirements: 3GB RAM, 64-bit octa-core CPU. Do you want to continue?</string>
-    <string name="settings_engine_change_webview_msg">WebView will have less features in future updates. Do you want to continue?</string>
+    <string name="settings_engine_change_gecko_msg">GeckoView loads a bit slower than WebView. Do you want to continue?</string>
+    <string name="settings_engine_change_webview_msg">WebView is updated separately from the main app. Do you want to continue?</string>
     <string name="http_auth_title">Authentication required</string>
     <string name="play_pause">Play/Pause</string>
     <string name="media_stop">Stop Media</string>

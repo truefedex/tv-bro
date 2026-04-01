@@ -173,8 +173,8 @@
   <string name="site_asks_to_open_unknown_url">Witryna prosi o otwarcie nieznanego adresu URL</string>
   <string name="site_asks_to_open_unknown_url_message">Czy chcesz otworzyć ten adres URL w aplikacji zewnętrznej?</string>
   <string name="err_no_app_to_handle_url">Nie można znaleźć odpowiedniej aplikacji do obsługi tego adresu URL</string>
-  <string name="settings_engine_change_gecko_msg">Zalecane wymagania systemowe GeckoView: 3 GB RAM, 64-bitowy ośmiordzeniowy procesor. Czy chcesz kontynuować\?</string>
-  <string name="settings_engine_change_webview_msg">W przyszłych aktualizacjach WebView będzie miał mniej funkcji. Czy chcesz kontynuować\?</string>
+  <string name="settings_engine_change_gecko_msg">GeckoView ładuje się nieco wolniej niż WebView. Czy chcesz kontynuować\?</string>
+  <string name="settings_engine_change_webview_msg">WebView jest aktualizowany niezależnie od głównej aplikacji. Czy chcesz kontynuować\?</string>
   <string name="http_auth_title">Wymagane uwierzytelnianie</string>
   <string name="play_pause">Odtwórz/Wstrzymaj</string>
   <string name="media_stop">Zatrzymaj multimedia</string>

@@ -177,8 +177,8 @@
   <string name="site_asks_to_open_unknown_url_message">آیا می خواهید این URL را در برنامه خارجی باز کنید؟</string>
   <string name="err_no_app_to_handle_url">نمی توان برنامه مناسبی برای مدیریت این URL پیدا کرد</string>
   <string name="home_page_links">لینک ها در صفحه اصلی</string>
-  <string name="settings_engine_change_gecko_msg">سیستم مورد نیاز توصیه شده GeckoView: 3 گیگابایت رم، CPU هشت هسته ای 64 بیتی. می خواهید ادامه دهید؟</string>
-  <string name="settings_engine_change_webview_msg">WebView در به روز رسانی های بعدی ویژگی های کمتری خواهد داشت. می خواهید ادامه دهید؟</string>
+  <string name="settings_engine_change_gecko_msg">GeckoView کمی کندتر از WebView بارگذاری می‌شود. می‌خواهید ادامه دهید؟</string>
+  <string name="settings_engine_change_webview_msg">WebView به‌صورت جداگانه از برنامهٔ اصلی به‌روزرسانی می‌شود. می‌خواهید ادامه دهید؟</string>
   <string name="http_auth_title">احراز هویت لازم است</string>
   <string name="play_pause">پخش/توقف</string>
   <string name="media_stop">توقف رسانه</string>

@@ -173,8 +173,8 @@
   <string name="site_asks_to_open_unknown_url_message">Bạn có muốn mở URL này trong ứng dụng bên ngoài không?</string>
   <string name="err_no_app_to_handle_url">Không thể tìm thấy ứng dụng phù hợp để xử lý URL này</string>
   <string name="home_page_links">Liên kết trên trang chủ</string>
-  <string name="settings_engine_change_gecko_msg">Yêu cầu hệ thống được GeckoView đề xuất: RAM 3 GB, CPU lõi tám 64 bit. Bạn có muốn tiếp tục\?</string>
-  <string name="settings_engine_change_webview_msg">WebView sẽ có ít tính năng hơn trong các bản cập nhật trong tương lai. Bạn có muốn tiếp tục\?</string>
+  <string name="settings_engine_change_gecko_msg">GeckoView tải chậm hơn một chút so với WebView. Bạn có muốn tiếp tục không\?</string>
+  <string name="settings_engine_change_webview_msg">WebView được cập nhật độc lập với ứng dụng chính. Bạn có muốn tiếp tục không\?</string>
   <string name="http_auth_title">Yêu cầu xác thực</string>
   <string name="play_pause">Phát/Tạm dừng</string>
   <string name="media_stop">Dừng phương tiện</string>

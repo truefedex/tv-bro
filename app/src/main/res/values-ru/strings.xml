@@ -173,8 +173,8 @@
   <string name="site_asks_to_open_unknown_url_message">Вы хотите открыть этот URL-адрес во внешнем приложении?</string>
   <string name="err_no_app_to_handle_url">Не удаётся найти подходящее приложение для обработки этого URL-адреса</string>
   <string name="home_page_links">Ссылки на главной странице</string>
-  <string name="settings_engine_change_gecko_msg">Рекомендуемые системные требования GeckoView: 3 ГБ ОЗУ, 64-битный восьмиядерный процессор. Вы хотите продолжать\?</string>
-  <string name="settings_engine_change_webview_msg">В будущих обновлениях WebView будет меньше функций. Вы хотите продолжать\?</string>
+  <string name="settings_engine_change_gecko_msg">GeckoView загружается немного медленнее, чем WebView. Вы хотите продолжить\?</string>
+  <string name="settings_engine_change_webview_msg">WebView обновляется отдельно от основного приложения. Вы хотите продолжить\?</string>
   <string name="http_auth_title">Требуется аутентификация</string>
   <string name="play_pause">Воспроизведение/Пауза</string>
   <string name="media_stop">Остановить воспроизведение</string>

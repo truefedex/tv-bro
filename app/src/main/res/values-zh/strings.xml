@@ -173,8 +173,8 @@
   <string name="site_asks_to_open_unknown_url_message">您想允许此站点使用外部应用打开此 URL 吗?</string>
   <string name="err_no_app_to_handle_url">找不到合适的应用来处理此 URL</string>
   <string name="home_page_links">主页上的链接</string>
-  <string name="settings_engine_change_gecko_msg">GeckoView 推荐的系统要求：3GB RAM、64 位八核 CPU。 你想继续吗\?</string>
-  <string name="settings_engine_change_webview_msg">WebView 在未来的更新中将会减少功能。 你想继续吗\?</string>
+  <string name="settings_engine_change_gecko_msg">GeckoView 的加载速度比 WebView 稍慢。你想继续吗？</string>
+  <string name="settings_engine_change_webview_msg">WebView 会独立于主应用进行更新。你想继续吗？</string>
   <string name="http_auth_title">需要身份验证</string>
   <string name="play_pause">播放/暂停</string>
   <string name="media_stop">停止媒体</string>
