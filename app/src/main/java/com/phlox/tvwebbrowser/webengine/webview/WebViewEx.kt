@@ -495,6 +495,13 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         return super.dispatchGenericMotionEvent(event)
     }
 
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        /*if (event.action != MotionEvent.ACTION_MOVE) {
+            Log.d(TAG, "onTouchEvent: $event")
+        }*/
+        return super.onTouchEvent(event)
+    }
+
     private fun showCertificateErrorPage(error: SslError) {
         callback.onPageCertificateError(error.url)
         lastSSLError = error

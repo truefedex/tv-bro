@@ -11,6 +11,7 @@ import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -100,6 +101,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     }
 
     fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        //Log.d(TAG, "dispatchKeyEvent: $event")
         when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (event.action == KeyEvent.ACTION_DOWN) {
@@ -170,13 +172,16 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
                 return true
             }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
+                // [DPADNavigationEventsAdapter] may emit several selection key codes for one physical
+                // click; each is a distinct KeyEvent so keyDispatcherState.isTracking is per-key.
+                // Map them to a single touch DOWN/UP stream.
                 if (event.action == KeyEvent.ACTION_DOWN && !surface.keyDispatcherState.isTracking(event)) {
                     if (grabMode) {
                         exitGrabMode()
                         return false
                     } else {
                         surface.keyDispatcherState.startTracking(event, this)
-                        if (!isCursorDisappear) {
+                        if (!isCursorDisappear && !dpadCenterPressed) {
                             dpadCenterPressed = true
                             dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_DOWN)
                             surface.postInvalidate()
@@ -193,8 +198,10 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
                         surface.postInvalidate()
                         scheduleCursorHide()
                     } else {
-                        dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
-                        dpadCenterPressed = false
+                        if (dpadCenterPressed) {
+                            dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
+                            dpadCenterPressed = false
+                        }
                         surface.postInvalidate()
                     }
                 }
@@ -225,7 +232,11 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         val motionEvent = MotionEvent.obtain(downTime, eventTime,
             action, 1, properties,
             pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0)
-        surface.dispatchTouchEvent(motionEvent)
+        try {
+            surface.dispatchTouchEvent(motionEvent)
+        } finally {
+            motionEvent.recycle()
+        }
     }
 
     private fun handleDirectionKeyEvent(event: KeyEvent, x: Int, y: Int, keyDown: Boolean) {
@@ -284,6 +295,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_MOVE)
         }
     }
+
 
     private fun bound(value: Float, max: Float): Float {
         return if (value > max) {
@@ -359,6 +371,10 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             if (Math.abs(cursorSpeed.x) < 0.1f) cursorSpeed.x = 0f
             if (Math.abs(cursorSpeed.y) < 0.1f) cursorSpeed.y = 0f
             if (cursorDirection.x == 0 && cursorDirection.y == 0 && cursorSpeed.x == 0f && cursorSpeed.y == 0f) {
+                if (scrollHackStarted) {
+                    dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_CANCEL)
+                    scrollHackStarted = false
+                }
                 scheduleCursorHide()
                 return
             }
@@ -375,14 +391,6 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             } else if (cursorPosition.y > surface.height - 1) {
                 cursorPosition.y = (surface.height - 1).toFloat()
             }
-            if (tmpPointF != cursorPosition) {
-                if (dpadCenterPressed) {
-                    dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_MOVE)
-                } else {
-                    dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_HOVER_MOVE);
-                }
-            }
-
             var dx = 0
             var dy = 0
             if (cursorPosition.y > surface.height - scrollStartPadding) {
@@ -405,6 +413,12 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             }
             if (dx != 0 || dy != 0) {
                 scrollWebViewBy(dx, dy)
+            }
+            // Touch MOVE only while "click" is held (scroll-hack uses its own touch at scrollHackCoords).
+            if (dpadCenterPressed &&
+                (tmpPointF.x != cursorPosition.x || tmpPointF.y != cursorPosition.y)
+            ) {
+                dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_MOVE)
             }
 
             surface.invalidate()
@@ -621,6 +635,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     }
 
     companion object {
+        private val TAG = CursorDrawerDelegate::class.java.simpleName
         private const val UNCHANGED = Integer.MIN_VALUE
         private const val CURSOR_DISAPPEAR_TIMEOUT = 5000
         private const val USE_SCROLL_HACK = true

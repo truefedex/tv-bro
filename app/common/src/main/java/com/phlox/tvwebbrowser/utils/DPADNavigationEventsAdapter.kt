@@ -16,6 +16,13 @@ import kotlin.math.abs
  * the adapter keeps a small history of recently forwarded events and suppresses consecutive
  * duplicates with the same (eventTime, action, keyCode) signature.
  *
+ * Hardware often reports DPAD as both [KeyEvent]s and joystick [MotionEvent]s (hat / DPAD
+ * button bits). Those streams use different timestamps, so signature dedupe alone is not enough:
+ * we track the navigation key currently held according to the key channel and suppress
+ * motion-emulated DOWN/UP for that key while the framework reports it held, and we clear
+ * motion axis/button state when a matching framework UP arrives so a later axis "release"
+ * does not emit a second UP.
+ *
  * Motion-to-key translation still uses dead-zone and discretization to avoid axis spam.
  * Axis translation can be turned off via the `motionAxesTranslationEnabled` callback (e.g. user setting).
  *
@@ -71,6 +78,12 @@ class DPADNavigationEventsAdapter(
 
     private var lastPrimaryDown: Boolean = false
 
+    /**
+     * [KeyEvent.KEYCODE_DPAD_*] currently held according to the framework key channel
+     * ([dispatchKeyEvent]), or 0. Used to avoid emitting the same DOWN/UP again from motion.
+     */
+    private var frameworkHeldNavigationKeyCode: Int = 0
+
     // Some controllers report DPAD directions as "button bits" instead of (or in addition to)
     // hat/axis values. Android does not guarantee consistent constants across devices/levels,
     // so we detect them via reflection and only use them when present.
@@ -88,6 +101,30 @@ class DPADNavigationEventsAdapter(
             return false
         }
 
+        if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+            frameworkHeldNavigationKeyCode = event.keyCode
+        }
+
+        // If motion already synthesized DOWN for this key, the framework key DOWN is redundant.
+        if (event.action == KeyEvent.ACTION_DOWN &&
+            event.repeatCount == 0 &&
+            lastDpadKeyCode == event.keyCode
+        ) {
+            val sig = KeyDispatchSignature(event.eventTime, event.action, event.keyCode)
+            recordSentSignature(sig)
+            return true
+        }
+
+        if (event.action == KeyEvent.ACTION_UP) {
+            // So a later motion "release" does not emit a second UP for the same press.
+            if (lastDpadKeyCode == event.keyCode) {
+                lastDpadKeyCode = 0
+                lastDirX = 0
+                lastDirY = 0
+                lastDpadFromButtons = false
+            }
+        }
+
         val sig = KeyDispatchSignature(event.eventTime, event.action, event.keyCode)
         if (sentEmulatedHistory.lastOrNull() == sig) {
             // Avoid feeding duplicates that may arrive from both dispatch channels.
@@ -102,6 +139,9 @@ class DPADNavigationEventsAdapter(
             false
         } finally {
             recordSentSignature(sig)
+            if (event.action == KeyEvent.ACTION_UP && event.keyCode == frameworkHeldNavigationKeyCode) {
+                frameworkHeldNavigationKeyCode = 0
+            }
         }
     }
 
@@ -188,6 +228,7 @@ class DPADNavigationEventsAdapter(
         lastDpadKeyCode = 0
         lastDpadFromButtons = false
         lastPrimaryDown = false
+        frameworkHeldNavigationKeyCode = 0
         sentEmulatedHistory.clear()
     }
 
@@ -402,6 +443,14 @@ class DPADNavigationEventsAdapter(
     ): Boolean {
         if (keyCode == 0) return false
         if (!isKeyAllowed(keyCode)) return false
+
+        if (frameworkHeldNavigationKeyCode == keyCode &&
+            (action == KeyEvent.ACTION_DOWN || action == KeyEvent.ACTION_UP)
+        ) {
+            // Framework key channel already (or will) deliver this; motion uses different
+            // eventTime so signature dedupe alone does not catch it.
+            return true
+        }
 
         val sig = KeyDispatchSignature(event.eventTime, action, keyCode)
         if (sentEmulatedHistory.lastOrNull() == sig) {
