@@ -12,22 +12,22 @@
     },
     {
       "name": "beta",
-      "latestVersionName": "v2.1.1",
-      "latestVersionCode": 64,
+      "latestVersionName": "v2.1.2",
+      "latestVersionCode": 65,
       "minAPI": 26,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.1.1/tvbro-2.1.1-generic-geckoIncluded-armeabi-v7a.apk",
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.1.2/tvbro-2.1.2-generic-geckoIncluded-armeabi-v7a.apk",
       "urls": [
-        "https://github.com/truefedex/tv-bro/releases/download/v2.1.1/tvbro-2.1.1-generic-geckoIncluded-arm64-v8a.apk",
-        "https://github.com/truefedex/tv-bro/releases/download/v2.1.1/tvbro-2.1.1-generic-geckoIncluded-x86_64.apk"
+        "https://github.com/truefedex/tv-bro/releases/download/v2.1.2/tvbro-2.1.2-generic-geckoIncluded-arm64-v8a.apk",
+        "https://github.com/truefedex/tv-bro/releases/download/v2.1.2/tvbro-2.1.2-generic-geckoIncluded-x86_64.apk"
         ]
     }
   ],
 
   "changelog": [
     {
-      "versionCode": 64,
-      "versionName": "v2.1.1",
-      "changes": "* Contextual menu on long press\n* Direct navigation mode (activated by new contextual menu)\n* All dependencies updated \n* Target latest android versions\n* Dropped Android 7.x support (only GeckoView-containing build)\n* Improvement of the Polish translation (thanks to @ChuckMichael)\n* Various bugfixes (thanks to @usman.hafeez for one)"
+      "versionCode": 65,
+      "versionName": "v2.1.2",
+      "changes": "* Contextual menu on long press\n* Direct navigation mode (activated by new contextual menu)\n* All dependencies updated \n* Target latest android versions\n* Dropped Android 7.x support (only GeckoView-containing build)\n* Improvement of the Polish translation (thanks to @ChuckMichael)\n* Various bugfixes (thanks to @usman.hafeez for one)\n* v2.1.1-2.1.2 Stabilization (thanks to V1v1X for testing/reporting about bugs)"
     },
     {
       "versionCode": 61,
