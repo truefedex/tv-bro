@@ -45,8 +45,14 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
 
     //handle long press
     private val longPressRunnable = Runnable {
+        // End the synthetic finger stream before clearing state. Otherwise WebView still has an
+        // active pointer while dpadCenterPressed is false — scroll-hack or the next frame can inject
+        // another ACTION_DOWN, which yields ACTION_CANCEL + ACTION_DOWN and a spurious tap.
+        if (dpadCenterPressed) {
+            dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_CANCEL)
+            dpadCenterPressed = false
+        }
         surface.keyDispatcherState.reset(this@CursorDrawerDelegate)
-        dpadCenterPressed = false
         grabMode = false
         callback?.onLongPress(cursorPosition.x.toInt(), cursorPosition.y.toInt())
     }
@@ -175,7 +181,10 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
                 // [DPADNavigationEventsAdapter] may emit several selection key codes for one physical
                 // click; each is a distinct KeyEvent so keyDispatcherState.isTracking is per-key.
                 // Map them to a single touch DOWN/UP stream.
-                if (event.action == KeyEvent.ACTION_DOWN && !surface.keyDispatcherState.isTracking(event)) {
+                if (event.action == KeyEvent.ACTION_DOWN &&
+                    event.repeatCount == 0 &&
+                    !surface.keyDispatcherState.isTracking(event)
+                ) {
                     if (grabMode) {
                         exitGrabMode()
                         return false
