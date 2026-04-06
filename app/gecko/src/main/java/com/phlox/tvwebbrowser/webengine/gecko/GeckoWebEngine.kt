@@ -498,8 +498,14 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
     }
 
     override fun onLongPress(x: Int, y: Int) {
-        callback?.onContextMenu(webView!!.cursorDrawerDelegate, navigationDelegate.locationURL,
-            null, null, null, null, null, x, y)
+        // There is a small delay so that if MyContentDelegate.onContextMenu (with more contextual data) is triggered first,
+        // this "second" call will be ignored by the CursorMenuView.
+        uiHandler.postDelayed(
+            {
+                callback?.onContextMenu(webView!!.cursorDrawerDelegate, navigationDelegate.locationURL,
+                    null, null, null, null, null, x, y)
+            }, 100
+        )
     }
 
     override fun isVirtualCursorMode(): Boolean {
