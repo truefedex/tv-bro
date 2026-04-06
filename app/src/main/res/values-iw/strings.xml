@@ -122,6 +122,9 @@
   <string name="set_search_engine_as_homepage">הפוך מנוע חיפוש לדף הבית שלך</string>
   <string name="toggle_keep_screen_on">השאר מסך דלוק</string>
   <string name="navigate_with_joystick_axes">ניווט עם צירי ג\'ויסטיק</string>
+  <string name="cursor_max_speed">מהירות מקסימלית של הסמן הווירטואלי</string>
+  <string name="cursor_acceleration">האצה של הסמן הווירטואלי</string>
+  <string name="cursor_physics_percent">%d%% מברירת המחדל</string>
   <string name="direct_navigation_mode_title">מצב ניווט ישיר</string>
   <string name="direct_navigation_mode_message">ניווט ישיר מסתיר את סמן המסך ומעביר לחיצות מהשלט או מבקר המשחק ישירות לדף האינטרנט, כך שאתרים שתומכים במיקוד לטלוויזיה או במקלדת יכולים להדגיש קישורים ופקדים.\n\nליציאה מהמצב: לחץ חזור בשלט הטלוויזיה או החזק את כפתור B בבקר.\n\nהמצב עובד הכי טוב עם מנוע WebView: WebView תומך בהזזת המיקוד בדף באמצעות D-pad.</string>
   <string name="incognito_mode">מצב גלישה בסתר</string>

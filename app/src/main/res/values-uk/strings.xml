@@ -119,6 +119,9 @@
   <string name="set_search_engine_as_homepage">Встановити пошукову систему як домашню сторінку</string>
   <string name="toggle_keep_screen_on">Підтримувати екран увімкненим</string>
   <string name="navigate_with_joystick_axes">Навігація осями джойстика</string>
+  <string name="cursor_max_speed">Максимальна швидкість віртуального курсора</string>
+  <string name="cursor_acceleration">Прискорення віртуального курсора</string>
+  <string name="cursor_physics_percent">%d%% від типових значень</string>
   <string name="direct_navigation_mode_title">Режим прямої навігації</string>
   <string name="direct_navigation_mode_message">Пряма навігація приховує курсор на екрані й передає натискання з пульта чи геймпада безпосередньо на веб-сторінку, щоб сайти з підтримкою ТВ або клавіатурного фокусу могли виділяти посилання та елементи керування.\n\nЩоб вийти з цього режиму: натисніть «Назад» на пульті ТВ або утримуйте кнопку B на геймпаді.\n\nЦей режим найкраще працює з рушієм WebView: WebView підтримує переміщення фокусу сторінкою за допомогою D-pad.</string>
   <string name="incognito_mode">Режим анонімного перегляду</string>

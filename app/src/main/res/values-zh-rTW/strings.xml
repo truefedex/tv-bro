@@ -114,6 +114,9 @@
     <string name="update_ad_blocker_list">更新廣告封鎖器列表</string>
     <string name="toggle_keep_screen_on">保持螢幕開啟</string>
     <string name="navigate_with_joystick_axes">使用搖桿軸導覽</string>
+    <string name="cursor_max_speed">虛擬游標最大速度</string>
+    <string name="cursor_acceleration">虛擬游標加速度</string>
+    <string name="cursor_physics_percent">預設值的 %d%%</string>
     <string name="direct_navigation_mode_title">直接導覽模式</string>
     <string name="direct_navigation_mode_message">直接導覽會隱藏螢幕游標，並將遙控器或遊戲手把的按鍵直接傳給網頁，讓支援電視或鍵盤焦點的網站能突顯連結與控制項。\n\n若要離開此模式：在電視遙控器上按「返回」，或在遊戲手把上長按 B 鍵。\n\n此模式以 WebView 引擎效果最佳：WebView 支援用方向鍵在頁面內移動焦點。</string>
     <string name="need_restart">需要重新啟動應用程式</string>

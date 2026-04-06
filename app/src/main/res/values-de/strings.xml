@@ -126,6 +126,9 @@
   </array>
   <string name="toggle_keep_screen_on">Bildschirm eingeschaltet lassen</string>
   <string name="navigate_with_joystick_axes">Mit Joystick-Achsen navigieren</string>
+  <string name="cursor_max_speed">Maximale Geschwindigkeit des virtuellen Cursors</string>
+  <string name="cursor_acceleration">Beschleunigung des virtuellen Cursors</string>
+  <string name="cursor_physics_percent">%d%% des Standardwerts</string>
   <string name="direct_navigation_mode_title">Direkter Navigationsmodus</string>
   <string name="direct_navigation_mode_message">Direkte Navigation blendet den Bildschirm-Cursor aus und leitet Tasten von Ihrer Fernbedienung oder Ihrem Gamecontroller direkt an die Webseite weiter, sodass Seiten mit TV- oder Tastaturfokus Links und Steuerelemente hervorheben können.\n\nUm diesen Modus zu beenden: Drücken Sie Zurück auf der TV-Fernbedienung oder halten Sie die B-Taste am Gamecontroller gedrückt.\n\nDieser Modus funktioniert am besten mit der WebView-Engine: WebView unterstützt das Verschieben des Fokus durch die Seite mit dem Steuerkreuz.</string>
   <string name="incognito_mode">Inkognito-Modus</string>

@@ -126,6 +126,9 @@
   </array>
   <string name="toggle_keep_screen_on">Поддерживать экран включенным</string>
   <string name="navigate_with_joystick_axes">Навигация осями джойстика</string>
+  <string name="cursor_max_speed">Максимальная скорость виртуального курсора</string>
+  <string name="cursor_acceleration">Ускорение виртуального курсора</string>
+  <string name="cursor_physics_percent">%d%% от значений по умолчанию</string>
   <string name="direct_navigation_mode_title">Режим прямой навигации</string>
   <string name="direct_navigation_mode_message">Прямая навигация скрывает курсор на экране и передаёт нажатия с пульта или геймпада прямо на веб-страницу, чтобы сайты с поддержкой ТВ или клавиатурного фокуса могли выделять ссылки и элементы управления.\n\nЧтобы выйти из этого режима: нажмите «Назад» на пульте ТВ или удерживайте кнопку B на геймпаде.\n\nЭтот режим лучше всего работает с движком WebView: WebView поддерживает перемещение фокуса по странице с помощью D-pad.</string>
   <string name="incognito_mode">Режим инкогнито</string>

@@ -126,6 +126,9 @@
   <string name="set_search_engine_as_homepage">将搜索引擎设为首页</string>
   <string name="toggle_keep_screen_on">保持屏幕开启</string>
   <string name="navigate_with_joystick_axes">使用摇杆轴导航</string>
+  <string name="cursor_max_speed">虚拟光标最大速度</string>
+  <string name="cursor_acceleration">虚拟光标加速度</string>
+  <string name="cursor_physics_percent">默认值的 %d%%</string>
   <string name="direct_navigation_mode_title">直接导航模式</string>
   <string name="direct_navigation_mode_message">直接导航会隐藏屏幕光标，并将遥控器或游戏手柄的按键直接传给网页，从而支持电视或键盘焦点模式的网站高亮链接和控件。\n\n退出此模式：在电视遥控器上按“返回”，或在游戏手柄上长按 B 键。\n\n此模式在 WebView 引擎下效果最佳：WebView 支持用方向键在页面内移动焦点。</string>
   <string name="incognito_mode">隐身模式</string>

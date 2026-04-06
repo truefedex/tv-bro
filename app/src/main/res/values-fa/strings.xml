@@ -123,6 +123,9 @@
   <string name="set_search_engine_as_homepage">موتور جستجو را به عنوان صفحه اصلی تنظیم کنید</string>
   <string name="toggle_keep_screen_on">صفحه نمایش را روشن بگذارید</string>
   <string name="navigate_with_joystick_axes">پیمایش با محورهای جوی‌استیک</string>
+  <string name="cursor_max_speed">حداکثر سرعت مکان‌نمای مجازی</string>
+  <string name="cursor_acceleration">شتاب مکان‌نمای مجازی</string>
+  <string name="cursor_physics_percent">%d%% از پیش‌فرض</string>
   <string name="direct_navigation_mode_title">حالت پیمایش مستقیم</string>
   <string name="direct_navigation_mode_message">پیمایش مستقیم مکان‌نما را پنهان می‌کند و فشردن کلیدهای ریموت یا دسته بازی را مستقیماً به صفحه وب می‌فرستد تا سایت‌هایی که فوکوس تلویزیونی یا صفحه‌کلید را پشتیبانی می‌کنند بتوانند پیوندها و کنترل‌ها را برجسته کنند.\n\nبرای خروج از این حالت: «برگشت» را روی ریموت تلویزیون بزنید یا دکمه B دسته را نگه دارید.\n\nاین حالت با موتور WebView بهتر کار می‌کند: WebView جابه‌جایی فوکوس در صفحه با D-pad را پشتیبانی می‌کند.</string>
   <string name="incognito_mode">حالت ناشناس</string>

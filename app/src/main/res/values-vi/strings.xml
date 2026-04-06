@@ -126,6 +126,9 @@
   <string name="set_search_engine_as_homepage">Đặt công cụ tìm kiếm làm trang chủ</string>
   <string name="toggle_keep_screen_on">Luôn bật màn hình</string>
   <string name="navigate_with_joystick_axes">Điều hướng bằng trục joystick</string>
+  <string name="cursor_max_speed">Tốc độ tối đa của con trỏ ảo</string>
+  <string name="cursor_acceleration">Gia tốc con trỏ ảo</string>
+  <string name="cursor_physics_percent">%d%% so với mặc định</string>
   <string name="direct_navigation_mode_title">Chế độ điều hướng trực tiếp</string>
   <string name="direct_navigation_mode_message">Điều hướng trực tiếp ẩn con trỏ trên màn hình và gửi phím từ điều khiển từ xa hoặc tay cầm chơi game thẳng tới trang web, để các trang hỗ trợ tiêu điểm TV hoặc bàn phím có thể làm nổi bật liên kết và điều khiển.\n\nĐể thoát: nhấn Quay lại trên điều khiển TV hoặc giữ nút B trên tay cầm.\n\nChế độ này hoạt động tốt nhất với engine WebView: WebView hỗ trợ di chuyển tiêu điểm trong trang bằng D-pad.</string>
   <string name="incognito_mode">Chế độ ẩn danh</string>

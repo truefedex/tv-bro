@@ -121,6 +121,9 @@
   <string name="update_ad_blocker_list">Aggiorna lista blocco pubblicità</string>
   <string name="toggle_keep_screen_on">Mantieni schermo acceso</string>
   <string name="navigate_with_joystick_axes">Naviga con gli assi del joystick</string>
+  <string name="cursor_max_speed">Velocità massima del cursore virtuale</string>
+  <string name="cursor_acceleration">Accelerazione del cursore virtuale</string>
+  <string name="cursor_physics_percent">%d%% del valore predefinito</string>
   <string name="direct_navigation_mode_title">Modalità navigazione diretta</string>
   <string name="direct_navigation_mode_message">La navigazione diretta nasconde il cursore sullo schermo e invia i tasti del telecomando o del controller di gioco direttamente alla pagina web, così i siti che supportano il focus TV o da tastiera possono evidenziare link e controlli.\n\nPer uscire da questa modalità: premi Indietro sul telecomando del TV oppure tieni premuto il pulsante B su un controller di gioco.\n\nQuesta modalità funziona meglio con il motore WebView: WebView consente di spostare il focus nella pagina con il D-pad.</string>
   <string name="need_restart">È necessario riavviare l\'app</string>

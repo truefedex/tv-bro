@@ -121,6 +121,9 @@
   <string name="update_ad_blocker_list">Zaktualizuj listę blokowania reklam</string>
   <string name="toggle_keep_screen_on">Utrzymuj wyświetlacz włączony</string>
   <string name="navigate_with_joystick_axes">Nawigacja osiami joysticka</string>
+  <string name="cursor_max_speed">Maksymalna prędkość wirtualnego kursora</string>
+  <string name="cursor_acceleration">Przyspieszenie wirtualnego kursora</string>
+  <string name="cursor_physics_percent">%d%% wartości domyślnych</string>
   <string name="direct_navigation_mode_title">Tryb bezpośredniej nawigacji</string>
   <string name="direct_navigation_mode_message">Bezpośrednia nawigacja ukrywa kursor na ekranie i przekazuje naciśnięcia z pilota lub pada bezpośrednio do strony, dzięki czemu witryny obsługujące fokus TV lub klawiatury mogą podświetlać linki i elementy sterujące.\n\nAby wyjść z tego trybu: naciśnij Wstecz na pilocie telewizora lub przytrzymaj przycisk B na padzie.\n\nTryb ten najlepiej działa z silnikiem WebView: WebView obsługuje przesuwanie fokusu po stronie za pomocą krzyżaka.</string>
   <string name="need_restart">Aplikacja potrzebuje restartu</string>
