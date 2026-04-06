@@ -7,7 +7,13 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AnimationUtils
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.ScrollView
+import android.widget.SeekBar
+import android.widget.Spinner
+import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebViewFeature
@@ -48,6 +54,8 @@ class MainSettingsView @JvmOverloads constructor(
         initKeepScreenOnUI()
 
         initJoystickAxesNavigationUI()
+
+        initVirtualCursorPhysicsSettingsUI()
 
         vb.btnClearWebCache.setOnClickListener {
             (activity as MainActivity).lifecycleScope.launch {
@@ -153,6 +161,37 @@ class MainSettingsView @JvmOverloads constructor(
         vb.scNavigateWithJoystickAxes.setOnCheckedChangeListener { _, isChecked ->
             config.disableMotionAxesDpadNavigation = !isChecked
         }
+    }
+
+    private fun initVirtualCursorPhysicsSettingsUI() {
+        val minP = Config.CURSOR_PHYSICS_PERCENT_MIN
+        val maxP = Config.CURSOR_PHYSICS_PERCENT_MAX
+        val range = maxP - minP
+        vb.sbCursorMaxSpeed.max = range
+        vb.sbCursorAcceleration.max = range
+        fun refreshValueLabels() {
+            vb.tvCursorMaxSpeedValue.text = context.getString(R.string.cursor_physics_percent, config.cursorMaxSpeedPercent)
+            vb.tvCursorAccelerationValue.text = context.getString(R.string.cursor_physics_percent, config.cursorAccelerationPercent)
+        }
+        vb.sbCursorMaxSpeed.progress = config.cursorMaxSpeedPercent - minP
+        vb.sbCursorAcceleration.progress = config.cursorAccelerationPercent - minP
+        refreshValueLabels()
+        vb.sbCursorMaxSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                config.cursorMaxSpeedPercent = minP + progress
+                refreshValueLabels()
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+        vb.sbCursorAcceleration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                config.cursorAccelerationPercent = minP + progress
+                refreshValueLabels()
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
     }
 
     private fun initAdBlockConfigUI() {

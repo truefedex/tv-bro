@@ -17,13 +17,16 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
+import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.utils.Utils
 
 class CursorDrawerDelegate(val context: Context, val surface: View) {
     private var cursorRadius: Int = 0
     private var cursorRadiusPressed: Int = 0
     private var cursorRadiusAnimationMultiplier: Float = 1f
-    private var maxCursorSpeed: Float = 0f
+    /** Pixels/sec cap baseline from display width (see [init]); scaled by [Config.cursorMaxSpeedPercent]. */
+    private var maxSpeedBaselinePx: Float = 0f
     private var scrollStartPadding = 100
     private var cursorStrokeWidth: Float = 0f
     private val cursorDirection = Point(0, 0)
@@ -85,7 +88,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         cursorStrokeWidth = (displaySize.x / 400).toFloat()
         cursorRadius = displaySize.x / 100
         cursorRadiusPressed = cursorRadius - Utils.D2P(context, 5f).toInt()
-        maxCursorSpeed = (displaySize.x / 25).toFloat()
+        maxSpeedBaselinePx = (displaySize.x / 25).toFloat()
         scrollStartPadding = displaySize.x / 15
     }
 
@@ -373,10 +376,12 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             val dTime = newTime - lastCursorUpdate
             lastCursorUpdate = newTime
 
-            val accelerationFactor = 0.05f * dTime
+            val cfg = AppContext.provideConfig()
+            val speedCap = maxSpeedBaselinePx * (cfg.cursorMaxSpeedPercent / 100f)
+            val accelerationFactor = 0.05f * (cfg.cursorAccelerationPercent / 100f) * dTime
             //float decelerationFactor = 1 - Math.min(0.5f, 0.005f * dTime);
-            cursorSpeed.set(bound(cursorSpeed.x/* * decelerationFactor*/ + bound(cursorDirection.x.toFloat(), 1f) * accelerationFactor, maxCursorSpeed),
-                bound(cursorSpeed.y/* * decelerationFactor*/ + bound(cursorDirection.y.toFloat(), 1f) * accelerationFactor, maxCursorSpeed))
+            cursorSpeed.set(bound(cursorSpeed.x/* * decelerationFactor*/ + bound(cursorDirection.x.toFloat(), 1f) * accelerationFactor, speedCap),
+                bound(cursorSpeed.y/* * decelerationFactor*/ + bound(cursorDirection.y.toFloat(), 1f) * accelerationFactor, speedCap))
             if (Math.abs(cursorSpeed.x) < 0.1f) cursorSpeed.x = 0f
             if (Math.abs(cursorSpeed.y) < 0.1f) cursorSpeed.y = 0f
             if (cursorDirection.x == 0 && cursorDirection.y == 0 && cursorSpeed.x == 0f && cursorSpeed.y == 0f) {

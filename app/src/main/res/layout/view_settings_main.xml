@@ -315,9 +315,73 @@
         android:id="@+id/scNavigateWithJoystickAxes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:nextFocusDown="@+id/btnClearWebCache"
+        android:nextFocusDown="@+id/sbCursorMaxSpeed"
         android:nextFocusUp="@+id/scKeepScreenOn"
         android:layout_weight="0"
+        />
+  </LinearLayout>
+  <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="20dp"
+      android:text="@string/cursor_max_speed"
+      android:textSize="16sp"
+      />
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:gravity="center_vertical"
+      android:orientation="horizontal"
+      >
+    <SeekBar
+        android:id="@+id/sbCursorMaxSpeed"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:max="175"
+        android:nextFocusDown="@+id/sbCursorAcceleration"
+        android:nextFocusUp="@+id/scNavigateWithJoystickAxes"
+        />
+    <TextView
+        android:id="@+id/tvCursorMaxSpeedValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="72dp"
+        android:gravity="end"
+        android:textSize="14sp"
+        tools:text="100%"
+        />
+  </LinearLayout>
+  <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="12dp"
+      android:text="@string/cursor_acceleration"
+      android:textSize="16sp"
+      />
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:gravity="center_vertical"
+      android:orientation="horizontal"
+      >
+    <SeekBar
+        android:id="@+id/sbCursorAcceleration"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:max="175"
+        android:nextFocusDown="@+id/btnClearWebCache"
+        android:nextFocusUp="@+id/sbCursorMaxSpeed"
+        />
+    <TextView
+        android:id="@+id/tvCursorAccelerationValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="72dp"
+        android:gravity="end"
+        android:textSize="14sp"
+        tools:text="100%"
         />
   </LinearLayout>
   <Button
@@ -325,7 +389,7 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginTop="10dp"
-      android:nextFocusUp="@+id/scNavigateWithJoystickAxes"
+      android:nextFocusUp="@+id/sbCursorAcceleration"
       android:text="@string/clear_web_cache" />
   <View
       android:layout_width="match_parent"

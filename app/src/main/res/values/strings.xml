@@ -122,6 +122,9 @@
     <string name="update_ad_blocker_list">Update ad-blocker list</string>
     <string name="toggle_keep_screen_on">Keep screen on</string>
     <string name="navigate_with_joystick_axes">Navigate with joystick axes</string>
+    <string name="cursor_max_speed">Virtual cursor max speed</string>
+    <string name="cursor_acceleration">Virtual cursor acceleration</string>
+    <string name="cursor_physics_percent">%d%% of default</string>
     <string name="direct_navigation_mode_title">Direct navigation mode</string>
     <string name="direct_navigation_mode_message">Direct navigation hides the on-screen cursor and sends keys from your remote or game controller straight to the web page, so sites that support TV or keyboard focus can highlight links and controls.\n\nTo exit this mode: press Back on your TV remote, or press and hold the B button on a game controller.\n\nThis mode works best with the WebView engine: WebView supports moving focus through the page with the D-pad.</string>
     <string name="need_restart">Need application restart</string>
