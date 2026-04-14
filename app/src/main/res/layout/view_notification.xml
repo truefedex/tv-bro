@@ -10,10 +10,11 @@
     android:paddingTop="@dimen/notification_vertical_padding"
     android:paddingBottom="@dimen/notification_vertical_padding"
     android:layout_margin="@dimen/notification_margin"
+    android:gravity="center_vertical"
     android:orientation="horizontal">
     <ImageView android:id="@+id/ivIcon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:layout_gravity="center"
         android:layout_margin="10dp"
         tools:src="@drawable/ic_block_popups"/>
