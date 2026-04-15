@@ -185,4 +185,6 @@
   <string name="media_fast_forward">Przewiń do przodu</string>
   <string name="long_press">Długie naciśnięcie</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorytmiczne przyciemnianie stron WWW (ciemny motyw, tylko WebView, wymagany restart)</string>
+  <string name="web_engine_debug">Debugowanie silnika webowego (wymagany restart)</string>
+  <string name="web_engine_debug_warning_message">Wlaczenie debugowania silnika webowego moze ujawnic zawartosc stron, pliki cookie oraz wrazliwe dane sesji kazdej osobie z dostepem do debugowania urzadzenia. Wlaczaj tylko na zaufanych urzadzeniach do diagnozowania problemow.</string>
 </resources>

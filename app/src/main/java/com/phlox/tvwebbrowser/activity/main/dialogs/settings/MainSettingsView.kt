@@ -54,6 +54,8 @@ class MainSettingsView @JvmOverloads constructor(
 
         initWebViewAlgorithmicDarkeningWithDarkUiModeUI()
 
+        initWebEngineDebugUI()
+
         initKeepScreenOnUI()
 
         initJoystickAxesNavigationUI()
@@ -156,6 +158,31 @@ class MainSettingsView @JvmOverloads constructor(
             config.webviewUseAlgorithmicDarkeningWithDarkUiMode
         vb.scWebViewAlgorithmicDarkeningWithDarkUiMode.setOnCheckedChangeListener { _, isChecked ->
             config.webviewUseAlgorithmicDarkeningWithDarkUiMode = isChecked
+        }
+    }
+
+    private fun initWebEngineDebugUI() {
+        vb.scWebEngineDebug.isChecked = config.webEngineDebug
+        vb.scWebEngineDebug.setOnCheckedChangeListener { _, isChecked ->
+            if (!isChecked) {
+                config.webEngineDebug = false
+                return@setOnCheckedChangeListener
+            }
+
+            AlertDialog.Builder(context)
+                .setTitle(R.string.warning)
+                .setMessage(R.string.web_engine_debug_warning_message)
+                .setPositiveButton(R.string.ok) { _, _ ->
+                    config.webEngineDebug = true
+                    Toast.makeText(context, context.getString(R.string.need_restart), Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton(R.string.cancel) { _, _ ->
+                    vb.scWebEngineDebug.isChecked = false
+                }
+                .setOnCancelListener {
+                    vb.scWebEngineDebug.isChecked = false
+                }
+                .show()
         }
     }
 

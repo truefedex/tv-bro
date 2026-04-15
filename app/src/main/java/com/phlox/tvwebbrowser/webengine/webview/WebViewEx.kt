@@ -43,7 +43,6 @@ import androidx.core.content.ContextCompat
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
-import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import java.net.URLEncoder
@@ -138,7 +137,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             allowFileAccessFromFileURLs = true
             allowUniversalAccessFromFileURLs = true
             domStorageEnabled = true
-            if (BuildConfig.DEBUG) {
+            if (AppContext.provideConfig().webEngineDebug) {
                 setWebContentsDebuggingEnabled(true)
             }
 

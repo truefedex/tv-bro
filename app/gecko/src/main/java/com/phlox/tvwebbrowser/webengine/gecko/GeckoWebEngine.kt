@@ -33,7 +33,6 @@ import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyPromptDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MySelectionActionDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
-import org.mozilla.geckoview.BuildConfig
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
@@ -64,7 +63,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
         fun initialize(context: Context, webViewContainer: CursorLayout) {
             if (!this::runtime.isInitialized) {
                 val builder = GeckoRuntimeSettings.Builder()
-                if (BuildConfig.DEBUG) {
+                if (AppContext.provideConfig().webEngineDebug) {
                     builder.remoteDebuggingEnabled(true)
                     builder.consoleOutput(true)
                 }

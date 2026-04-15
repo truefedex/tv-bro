@@ -184,4 +184,6 @@
   <string name="media_fast_forward">Medien vorspulen</string>
   <string name="long_press">Langer Druck</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorithmische Abdunkelung für Webseiten (dunkles Design, nur WebView, Neustart erforderlich)</string>
+  <string name="web_engine_debug">Web-Engine-Debugging (Neustart erforderlich)</string>
+  <string name="web_engine_debug_warning_message">Das Aktivieren des Web-Engine-Debuggings kann Seiteninhalte, Cookies und sensible Sitzungsdaten fuer jeden mit Zugriff auf das Geraetedebugging offenlegen. Nur auf vertrauenswuerdigen Geraeten zur Fehlersuche aktivieren.</string>
 </resources>
