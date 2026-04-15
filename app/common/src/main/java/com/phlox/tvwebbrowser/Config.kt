@@ -33,6 +33,8 @@ class Config(val prefs: SharedPreferences) {
         const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
         const val WEB_ENGINE = "web_engine"
         const val ALLOW_AUTOPLAY_MEDIA = "allow_autoplay_media"
+        const val WEBVIEW_USE_ALGORITHMIC_DARKENING_WITH_DARK_UI_MODE_KEY =
+            "webview_use_algorithmic_darkening_with_dark_ui_mode"
         //const val HOME_PAGE_VERSION_EXTRACTED = "home_page_version_extracted"
         const val INITIAL_BOOKMARKS_SUGGESTIONS_LOADED = "initial_bookmarks_suggestions_loaded"
         const val ADBLOCK_ENABLED_PREF_KEY = "adblock_enabled"
@@ -186,6 +188,12 @@ class Config(val prefs: SharedPreferences) {
         get() = prefs.getBoolean(ALLOW_AUTOPLAY_MEDIA, false)
         set(value) {
             prefs.edit().putBoolean(ALLOW_AUTOPLAY_MEDIA, value).apply()
+        }
+
+    var webviewUseAlgorithmicDarkeningWithDarkUiMode: Boolean
+        get() = prefs.getBoolean(WEBVIEW_USE_ALGORITHMIC_DARKENING_WITH_DARK_UI_MODE_KEY, true)
+        set(value) {
+            prefs.edit().putBoolean(WEBVIEW_USE_ALGORITHMIC_DARKENING_WITH_DARK_UI_MODE_KEY, value).apply()
         }
 
     /*var homePageVersionExtracted: Int

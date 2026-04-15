@@ -184,4 +184,5 @@
   <string name="media_rewind">Tua lại phương tiện</string>
   <string name="media_fast_forward">Tua nhanh phương tiện</string>
   <string name="long_press">Nhấn giữ</string>
+  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Làm tối theo thuật toán cho trang web (giao diện tối, chỉ WebView, cần khởi động lại)</string>
 </resources>

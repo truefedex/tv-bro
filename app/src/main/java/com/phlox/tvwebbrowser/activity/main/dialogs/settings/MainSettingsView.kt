@@ -28,6 +28,7 @@ import com.phlox.tvwebbrowser.databinding.ViewSettingsMainBinding
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -50,6 +51,8 @@ class MainSettingsView @JvmOverloads constructor(
         initAdBlockConfigUI()
 
         initThemeSettingsUI()
+
+        initWebViewAlgorithmicDarkeningWithDarkUiModeUI()
 
         initKeepScreenOnUI()
 
@@ -145,6 +148,14 @@ class MainSettingsView @JvmOverloads constructor(
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+    }
+
+    private fun initWebViewAlgorithmicDarkeningWithDarkUiModeUI() {
+        vb.scWebViewAlgorithmicDarkeningWithDarkUiMode.isChecked =
+            config.webviewUseAlgorithmicDarkeningWithDarkUiMode
+        vb.scWebViewAlgorithmicDarkeningWithDarkUiMode.setOnCheckedChangeListener { _, isChecked ->
+            config.webviewUseAlgorithmicDarkeningWithDarkUiMode = isChecked
         }
     }
 

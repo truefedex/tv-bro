@@ -182,4 +182,5 @@
     <string name="media_rewind">倒轉媒體</string>
     <string name="media_fast_forward">快轉媒體</string>
     <string name="long_press">長按</string>
+  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">網頁演算法變暗（深色主題，僅 WebView，需要重新啟動）</string>
 </resources>

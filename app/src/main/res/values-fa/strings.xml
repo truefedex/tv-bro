@@ -188,4 +188,5 @@
   <string name="media_rewind">عقب بردن رسانه</string>
   <string name="media_fast_forward">جلو بردن سریع رسانه</string>
   <string name="long_press">فشار طولانی</string>
+  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">تیره‌سازی الگوریتمی برای صفحات وب (تم تیره، فقط WebView، نیاز به راه‌اندازی مجدد)</string>
 </resources>

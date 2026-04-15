@@ -184,4 +184,5 @@
   <string name="media_rewind">Przewiń do tyłu</string>
   <string name="media_fast_forward">Przewiń do przodu</string>
   <string name="long_press">Długie naciśnięcie</string>
+  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorytmiczne przyciemnianie stron WWW (ciemny motyw, tylko WebView, wymagany restart)</string>
 </resources>

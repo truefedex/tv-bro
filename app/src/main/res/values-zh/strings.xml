@@ -184,4 +184,5 @@
   <string name="media_rewind">快退</string>
   <string name="media_fast_forward">快进</string>
   <string name="long_press">长按</string>
+  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">网页算法变暗（深色主题，仅 WebView，需要重启）</string>
 </resources>

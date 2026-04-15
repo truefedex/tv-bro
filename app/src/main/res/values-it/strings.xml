@@ -184,4 +184,5 @@
   <string name="media_rewind">Riavvolgi</string>
   <string name="media_fast_forward">Avanza veloce</string>
   <string name="long_press">Pressione prolungata</string>
+  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Oscuramento algoritmico per le pagine web (tema scuro, solo WebView, riavvio necessario)</string>
 </resources>

@@ -184,4 +184,5 @@
   <string name="media_rewind">Перемотка назад</string>
   <string name="media_fast_forward">Перемотка вперед</string>
   <string name="long_press">Довге натискання</string>
+  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Алгоритмічне затемнення вебсторінок (темна тема, лише WebView, потрібен перезапуск)</string>
 </resources>
