@@ -116,13 +116,11 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 safeBrowsingEnabled = callback.isAdBlockingEnabled()
             }
             javaScriptEnabled = true
-            databaseEnabled = true
             useWideViewPort = true
             loadWithOverviewMode = true
             setSupportZoom(true)
             builtInZoomControls = true
             displayZoomControls = false
-            saveFormData = true
             setSupportZoom(true)
             domStorageEnabled = true
             allowContentAccess = false
@@ -133,9 +131,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             setSupportMultipleWindows(true)
             setNeedInitialFocus(false)
 
-            allowFileAccess = true
-            allowFileAccessFromFileURLs = true
-            allowUniversalAccessFromFileURLs = true
             domStorageEnabled = true
             if (AppContext.provideConfig().webEngineDebug) {
                 setWebContentsDebuggingEnabled(true)
