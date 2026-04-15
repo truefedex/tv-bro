@@ -8,8 +8,8 @@ android {
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        versionCode = 66
-        versionName = "2.1.3"
+        versionCode = 67
+        versionName = "2.1.4"
 
         javaCompileOptions {
             annotationProcessorOptions {
