@@ -2,7 +2,7 @@
 android-compileSdk = "36"
 android-minSdk = "24"
 android-targetSdk = "36"
-agp = "9.1.1"
+agp = "9.2.0"
 kotlin = "2.3.10"
 kotlin-stdlib = "2.3.10"
 ksp = "2.3.6"

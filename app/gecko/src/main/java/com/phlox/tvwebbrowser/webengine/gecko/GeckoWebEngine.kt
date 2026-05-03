@@ -106,19 +106,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
             webViewContainer.setWillNotDraw(true)//use it only as a container, cursor will be drawn on WebView itself
         }
 
-        suspend fun clearCache(ctx: Context) {
-            suspendCoroutine { cont ->
-                runtime.storageController.clearData(StorageController.ClearFlags.ALL_CACHES).then({
-                    cont.resume(null)
-                    GeckoResult.fromValue(null)
-                }, {
-                    it.printStackTrace()
-                    cont.resumeWithException(it)
-                    GeckoResult.fromValue(null)
-                })
-            }
-        }
-
         fun onThemeSettingUpdated(theme: Config.Theme) {
             runtime.settings.preferredColorScheme = theme.toGeckoPreferredColorScheme()
         }
@@ -134,7 +121,16 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
                 }
 
                 override suspend fun clearCache(ctx: Context) {
-                    clearCache(ctx)
+                    suspendCoroutine { cont ->
+                        runtime.storageController.clearData(StorageController.ClearFlags.ALL_CACHES).then({
+                            cont.resume(null)
+                            GeckoResult.fromValue(null)
+                        }, {
+                            it.printStackTrace()
+                            cont.resumeWithException(it)
+                            GeckoResult.fromValue(null)
+                        })
+                    }
                 }
 
                 override fun onThemeSettingUpdated(value: Config.Theme) {
