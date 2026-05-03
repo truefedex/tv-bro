@@ -45,6 +45,7 @@ import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import java.net.URLEncoder
 import java.util.UUID
 
@@ -477,7 +478,10 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         return super.dispatchKeyEvent(event)
     }
 
-    override fun dispatchGenericMotionEvent(event: MotionEvent?): Boolean {
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        if (!DPADNavigationEventsAdapter.isNavigationGenericMotionSource(event.source)) {
+            return super.dispatchGenericMotionEvent(event)
+        }
         if (virtualCursorMode) return false
         return super.dispatchGenericMotionEvent(event)
     }

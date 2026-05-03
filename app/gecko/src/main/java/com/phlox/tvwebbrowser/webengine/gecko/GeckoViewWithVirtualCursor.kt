@@ -76,11 +76,14 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         cursorDrawerDelegate.onSizeChanged(w, h, ow, oh)
     }
 
-    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        if (!DPADNavigationEventsAdapter.isNavigationGenericMotionSource(event.source)) {
+            return super.dispatchGenericMotionEvent(event)
+        }
         if (virtualCursorMode) {
             return inputEventsAdapter.dispatchGenericMotionEvent(event)
         }
-        return false
+        return super.dispatchGenericMotionEvent(event)
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {

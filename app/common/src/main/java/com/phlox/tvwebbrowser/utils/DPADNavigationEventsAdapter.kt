@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.utils
 
 import android.util.Log
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import kotlin.math.abs
@@ -10,7 +11,8 @@ import kotlin.math.abs
  *
  * - [dispatchKeyEvent] forwards allowed framework [KeyEvent]s to [onEmulatedKeyEvent].
  * - [dispatchGenericMotionEvent] translates selected motion axes/buttons into emulated key events
- *   and forwards them to [onEmulatedKeyEvent].
+ *   and forwards them to [onEmulatedKeyEvent]. Events whose source is not a joystick, gamepad, or
+ *   hardware DPAD (e.g. mouse, touchpad) are ignored so pointer motion is not mistaken for sticks.
  *
  * To avoid duplicate handling when the same physical action is delivered through both channels,
  * the adapter keeps a small history of recently forwarded events and suppresses consecutive
@@ -162,12 +164,21 @@ class DPADNavigationEventsAdapter(
     /**
      * Process a MotionEvent (from View/Activity dispatch) and emit emulated KeyEvents as needed.
      *
-     * @return true if the event matched the supported joystick/gamepad inputs and we emitted at
-     * least one KeyEvent. Callers should typically return this value from their
+     * @return true if the event matched the supported joystick/gamepad/DPAD motion sources and we
+     * emitted at least one KeyEvent (or axis translation was off and we released a prior axis-held
+     * direction). Callers should typically return this value from their
      * dispatchGenericMotionEvent to prevent the WebView from consuming joystick axis motions.
      */
     fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         if (isSoftwareKeyboardVisible()) {
+            return false
+        }
+
+        if (!isNavigationGenericMotionSource(event.source)) {
+            // Mice/touchpads reuse generic motion, axes, and BUTTON_PRIMARY; never treat them as DPAD.
+            if (!motionAxesTranslationEnabled()) {
+                return releaseAxisHeldDirectionIfNeeded(event)
+            }
             return false
         }
 
@@ -497,6 +508,16 @@ class DPADNavigationEventsAdapter(
             } catch (_: Throwable) {
                 null
             }
+        }
+
+        /**
+         * True for sources that legitimately deliver joystick/DPAD-style generic motion.
+         * Pointer-class devices (mouse, touchpad, etc.) are excluded.
+         */
+        fun isNavigationGenericMotionSource(source: Int): Boolean {
+            return (source and InputDevice.SOURCE_JOYSTICK) != 0 ||
+                    (source and InputDevice.SOURCE_GAMEPAD) != 0 ||
+                    (source and InputDevice.SOURCE_DPAD) != 0
         }
     }
 
