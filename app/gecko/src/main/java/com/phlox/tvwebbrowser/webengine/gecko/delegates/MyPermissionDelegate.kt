@@ -59,11 +59,6 @@ class MyPermissionDelegate(private val webEngine: GeckoWebEngine): PermissionDel
         // as we will have already have requested device permissions before getting to this point
         // and if we've reached here and we don't have permissions then that means that the user
         // denied them.
-
-        // If we don't have device permissions at this point, just automatically reject the request
-        // as we will have already have requested device permissions before getting to this point
-        // and if we've reached here and we don't have permissions then that means that the user
-        // denied them.
         val activity = webEngine.callback?.getActivity()
         if (activity == null) {
             callback.reject()

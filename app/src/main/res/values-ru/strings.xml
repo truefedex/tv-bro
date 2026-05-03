@@ -185,6 +185,7 @@
   <string name="media_fast_forward">Перемотка вперёд</string>
   <string name="long_press">Долгое нажатие</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Алгоритмическое затемнение веб-страниц (тёмная тема, только WebView, требуется перезапуск)</string>
+  <string name="allow_autoplay_media">Разрешить автовоспроизведение медиа</string>
   <string name="web_engine_debug">Отладка веб-движка (требуется перезапуск)</string>
   <string name="web_engine_debug_warning_message">Включение отладки веб-движка может раскрыть содержимое страниц, cookie и чувствительные данные сессии любому, у кого есть доступ к отладке устройства. Включайте только на доверенных устройствах для устранения неполадок.</string>
 </resources>

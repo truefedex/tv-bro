@@ -185,6 +185,7 @@
   <string name="media_fast_forward">Перемотка вперед</string>
   <string name="long_press">Довге натискання</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Алгоритмічне затемнення вебсторінок (темна тема, лише WebView, потрібен перезапуск)</string>
+  <string name="allow_autoplay_media">Дозволити автовідтворення медіа</string>
   <string name="web_engine_debug">Налагодження вебрушія (потрібен перезапуск)</string>
   <string name="web_engine_debug_warning_message">Увімкнення налагодження вебрушія може розкрити вміст сторінок, cookie та чутливі дані сесії будь-кому, хто має доступ до налагодження пристрою. Вмикайте лише на довірених пристроях для усунення несправностей.</string>
 </resources>

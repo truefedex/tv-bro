@@ -130,6 +130,7 @@
     <string name="need_restart">Need application restart</string>
     <string name="theme">Theme</string>
     <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorithmic darkening for web pages (dark theme, WebView only, need restart)</string>
+    <string name="allow_autoplay_media">Allow autoplay for media</string>
     <string name="web_engine_debug">Web engine debugging (need restart)</string>
     <string name="web_engine_debug_warning_message">Enabling web engine debugging can expose page content, cookies, and sensitive session data to anyone with device debugging access. Enable only on trusted devices for troubleshooting.</string>
     <array name="themes">

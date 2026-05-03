@@ -78,6 +78,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     var trustSsl: Boolean = false
     var currentOriginalUrl: Uri? = null
     private val uiHandler = Handler(Looper.getMainLooper())
+    private val config = AppContext.provideConfig()
 
     interface Callback {
         fun getActivity(): Activity?
@@ -126,18 +127,18 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             domStorageEnabled = true
             allowContentAccess = false
             cacheMode = WebSettings.LOAD_DEFAULT
-            mediaPlaybackRequiresUserGesture = false
+            mediaPlaybackRequiresUserGesture = !config.allowAutoplayMedia
             setGeolocationEnabled(true)
             javaScriptCanOpenWindowsAutomatically = false
             setSupportMultipleWindows(true)
             setNeedInitialFocus(false)
 
             domStorageEnabled = true
-            if (AppContext.provideConfig().webEngineDebug) {
+            if (config.webEngineDebug) {
                 setWebContentsDebuggingEnabled(true)
             }
 
-            val allowDarkening = AppContext.provideConfig().webviewUseAlgorithmicDarkeningWithDarkUiMode
+            val allowDarkening = config.webviewUseAlgorithmicDarkeningWithDarkUiMode
             val uiNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
@@ -505,14 +506,14 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     override fun loadUrl(url: String) {
         when {
             Config.HOME_URL_ALIAS == url -> {
-                when (AppContext.provideConfig().homePageMode) {
+                when (config.homePageMode) {
                     Config.HomePageMode.BLANK -> {
                         loadDataWithBaseURL(null, "", "text/html", "UTF-8", null)
                     }
                     Config.HomePageMode.CUSTOM, Config.HomePageMode.SEARCH_ENGINE -> {
                         try {
-                            currentOriginalUrl = Uri.parse(AppContext.provideConfig().homePage)
-                            super.loadUrl(AppContext.provideConfig().homePage)
+                            currentOriginalUrl = Uri.parse(config.homePage)
+                            super.loadUrl(config.homePage)
                         } catch (e: Exception) {
                             Log.e(TAG, "LoadUrl error", e)
                             loadDataWithBaseURL(null, "", "text/html", "UTF-8", null)

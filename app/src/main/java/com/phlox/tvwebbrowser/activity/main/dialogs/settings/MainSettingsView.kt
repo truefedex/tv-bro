@@ -54,6 +54,8 @@ class MainSettingsView @JvmOverloads constructor(
 
         initWebViewAlgorithmicDarkeningWithDarkUiModeUI()
 
+        initAllowAutoplayMediaUI()
+
         initWebEngineDebugUI()
 
         initKeepScreenOnUI()
@@ -158,6 +160,13 @@ class MainSettingsView @JvmOverloads constructor(
             config.webviewUseAlgorithmicDarkeningWithDarkUiMode
         vb.scWebViewAlgorithmicDarkeningWithDarkUiMode.setOnCheckedChangeListener { _, isChecked ->
             config.webviewUseAlgorithmicDarkeningWithDarkUiMode = isChecked
+        }
+    }
+
+    private fun initAllowAutoplayMediaUI() {
+        vb.scAllowAutoplayMedia.isChecked = config.allowAutoplayMedia
+        vb.scAllowAutoplayMedia.setOnCheckedChangeListener { _, isChecked ->
+            config.allowAutoplayMedia = isChecked
         }
     }
 

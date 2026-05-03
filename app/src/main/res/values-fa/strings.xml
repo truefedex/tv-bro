@@ -189,6 +189,7 @@
   <string name="media_fast_forward">جلو بردن سریع رسانه</string>
   <string name="long_press">فشار طولانی</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">تیره‌سازی الگوریتمی برای صفحات وب (تم تیره، فقط WebView، نیاز به راه‌اندازی مجدد)</string>
+  <string name="allow_autoplay_media">اجازه پخش خودکار رسانه</string>
   <string name="web_engine_debug">اشکال‌زدایی موتور وب (نیاز به راه‌اندازی مجدد)</string>
   <string name="web_engine_debug_warning_message">فعال‌سازی اشکال‌زدایی موتور وب می‌تواند محتوای صفحات، کوکی‌ها و داده‌های حساس نشست را برای هر کسی که به اشکال‌زدایی دستگاه دسترسی دارد افشا کند. فقط برای رفع اشکال و روی دستگاه‌های مورداعتماد فعال کنید.</string>
 </resources>

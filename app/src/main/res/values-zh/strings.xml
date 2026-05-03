@@ -185,6 +185,7 @@
   <string name="media_fast_forward">快进</string>
   <string name="long_press">长按</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">网页算法变暗（深色主题，仅 WebView，需要重启）</string>
+  <string name="allow_autoplay_media">允许媒体自动播放</string>
   <string name="web_engine_debug">Web 引擎调试（需要重启）</string>
   <string name="web_engine_debug_warning_message">启用 Web 引擎调试可能会将页面内容、Cookie 和敏感会话数据暴露给任何具有设备调试访问权限的人。仅在受信任设备上用于故障排查时启用。</string>
 </resources>

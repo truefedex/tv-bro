@@ -185,6 +185,7 @@
   <string name="media_fast_forward">Avanza veloce</string>
   <string name="long_press">Pressione prolungata</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Oscuramento algoritmico per le pagine web (tema scuro, solo WebView, riavvio necessario)</string>
+  <string name="allow_autoplay_media">Consenti riproduzione automatica dei contenuti multimediali</string>
   <string name="web_engine_debug">Debug del motore web (riavvio necessario)</string>
   <string name="web_engine_debug_warning_message">L\'attivazione del debug del motore web puo esporre contenuti delle pagine, cookie e dati di sessione sensibili a chiunque abbia accesso al debug del dispositivo. Abilita solo su dispositivi attendibili per la risoluzione dei problemi.</string>
 </resources>

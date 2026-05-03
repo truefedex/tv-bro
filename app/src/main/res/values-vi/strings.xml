@@ -185,6 +185,7 @@
   <string name="media_fast_forward">Tua nhanh phương tiện</string>
   <string name="long_press">Nhấn giữ</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Làm tối theo thuật toán cho trang web (giao diện tối, chỉ WebView, cần khởi động lại)</string>
+  <string name="allow_autoplay_media">Cho phép tự động phát phương tiện</string>
   <string name="web_engine_debug">Gỡ lỗi công cụ web (cần khởi động lại)</string>
   <string name="web_engine_debug_warning_message">Việc bật gỡ lỗi công cụ web có thể làm lộ nội dung trang, cookie và dữ liệu phiên nhạy cảm cho bất kỳ ai có quyền truy cập gỡ lỗi thiết bị. Chỉ bật trên thiết bị đáng tin cậy để khắc phục sự cố.</string>
 </resources>

@@ -305,8 +305,34 @@
         android:id="@+id/scWebViewAlgorithmicDarkeningWithDarkUiMode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:nextFocusDown="@+id/scWebEngineDebug"
+        android:nextFocusDown="@+id/scAllowAutoplayMedia"
         android:nextFocusUp="@+id/spTheme"
+        android:layout_weight="0"
+        />
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="20dp"
+      android:orientation="horizontal"
+      android:paddingTop="5dp"
+      >
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="@string/allow_autoplay_media"
+        android:textSize="16sp"
+        />
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/scAllowAutoplayMedia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:nextFocusDown="@+id/scWebEngineDebug"
+        android:nextFocusUp="@+id/scWebViewAlgorithmicDarkeningWithDarkUiMode"
         android:layout_weight="0"
         />
   </LinearLayout>
@@ -332,7 +358,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:nextFocusDown="@+id/scKeepScreenOn"
-        android:nextFocusUp="@+id/scWebViewAlgorithmicDarkeningWithDarkUiMode"
+        android:nextFocusUp="@+id/scAllowAutoplayMedia"
         android:layout_weight="0"
         />
   </LinearLayout>

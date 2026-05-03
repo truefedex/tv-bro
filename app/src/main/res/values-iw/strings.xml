@@ -188,6 +188,7 @@
   <string name="media_fast_forward">הרצה קדימה במדיה</string>
   <string name="long_press">לחיצה ארוכה</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">הכהיה אלגוריתמית עבור דפי אינטרנט (ערכת נושא כהה, WebView בלבד, נדרשת הפעלה מחדש)</string>
+  <string name="allow_autoplay_media">לאפשר הפעלה אוטומטית של מדיה</string>
   <string name="web_engine_debug">ניפוי שגיאות מנוע ווב (נדרשת הפעלה מחדש)</string>
   <string name="web_engine_debug_warning_message">הפעלת ניפוי שגיאות של מנוע הווב עלולה לחשוף תוכן דפים, עוגיות ונתוני סשן רגישים לכל מי שיש לו גישה לניפוי שגיאות במכשיר. יש להפעיל רק במכשירים מהימנים לצורכי פתרון תקלות.</string>
 </resources>
