@@ -54,7 +54,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import androidx.webkit.URLUtilCompat
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
@@ -78,6 +77,7 @@ import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
+import com.phlox.tvwebbrowser.utils.DownloadUtils
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
@@ -1096,9 +1096,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                                          originalDownloadFileName: String?, userAgent: String?, mimeType: String?,
                                          operationAfterDownload: Download.OperationAfterDownload, base64BlobData: String?,
                                          stream: InputStream?, size: Long, contentDisposition: String?) {
-            val fileName = (if (contentDisposition != null)
-                URLUtilCompat.getFilenameFromContentDisposition(contentDisposition) else null) ?:
-                URLUtilCompat.guessFileName(url, null, mimeType)
+            val fileName = DownloadUtils.guessFileName(url, contentDisposition, mimeType)
 
             this@MainActivity.onDownloadRequested(url, referer, fileName,
                 userAgent, mimeType, operationAfterDownload, base64BlobData, stream, size)

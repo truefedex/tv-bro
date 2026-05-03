@@ -2,12 +2,12 @@ package com.phlox.tvwebbrowser.webengine.webview
 
 import android.net.http.SslError
 import android.webkit.JavascriptInterface
-import androidx.webkit.URLUtilCompat
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.utils.DownloadUtils
 import org.json.JSONArray
 
 
@@ -102,7 +102,7 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
     @JavascriptInterface
     fun takeBlobDownloadData(base64BlobData: String, fileName: String?, url: String, mimetype: String) {
         val callback = webEngine.callback ?: return
-        val finalFileName = fileName ?: URLUtilCompat.guessFileName(url, null, mimetype)
+        val finalFileName = fileName ?: DownloadUtils.guessFileName(url, null, mimetype)
         callback.onDownloadRequested(url, "",
                 finalFileName, "TV Bro",
             mimetype, Download.OperationAfterDownload.NOP, base64BlobData)

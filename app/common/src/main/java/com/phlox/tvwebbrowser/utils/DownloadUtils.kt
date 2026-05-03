@@ -33,10 +33,10 @@ import java.util.regex.Pattern
 object DownloadUtils {
 
     /**
-     * Format as defined in RFC 2616 and RFC 5987
-     * Only the attachment type is supported.
+     * Format as defined in RFC 2616 and RFC 5987 / RFC 6266.
+     * Both attachment and inline disposition types are supported.
      */
-    private val CONTENT_DISPOSITION_PATTERN = Pattern.compile("attachment\\s*;\\s*filename\\s*=\\s*" +
+    private val CONTENT_DISPOSITION_PATTERN = Pattern.compile("(?:attachment|inline)\\s*;\\s*filename\\s*=\\s*" +
             "(\"((?:\\\\.|[^\"\\\\])*)\"|[^;]*)\\s*" +
             "(?:;\\s*filename\\*\\s*=\\s*(utf-8|iso-8859-1)'[^']*'(\\S*))?",
             Pattern.CASE_INSENSITIVE)
