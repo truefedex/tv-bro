@@ -2,29 +2,34 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v2.1.4",
-      "latestVersionCode": 67,
+      "latestVersionName": "v2.1.5",
+      "latestVersionCode": 68,
       "minAPI": 26,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.1.4/tvbro-2.1.4-generic-geckoIncluded-armeabi-v7a.apk",
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.1.5/tvbro-2.1.5-generic-geckoIncluded-armeabi-v7a.apk",
       "urls": [
-        "https://github.com/truefedex/tv-bro/releases/download/v2.1.4/tvbro-2.1.4-generic-geckoIncluded-arm64-v8a.apk",
-        "https://github.com/truefedex/tv-bro/releases/download/v2.1.4/tvbro-2.1.4-generic-geckoIncluded-x86_64.apk"
+        "https://github.com/truefedex/tv-bro/releases/download/v2.1.5/tvbro-2.1.5-generic-geckoIncluded-arm64-v8a.apk",
+        "https://github.com/truefedex/tv-bro/releases/download/v2.1.5/tvbro-2.1.5-generic-geckoIncluded-x86_64.apk"
       ]
     },
     {
       "name": "beta",
-      "latestVersionName": "v2.1.4",
-      "latestVersionCode": 67,
+      "latestVersionName": "v2.1.5",
+      "latestVersionCode": 68,
       "minAPI": 26,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.1.4/tvbro-2.1.4-generic-geckoIncluded-armeabi-v7a.apk",
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v2.1.5/tvbro-2.1.5-generic-geckoIncluded-armeabi-v7a.apk",
       "urls": [
-        "https://github.com/truefedex/tv-bro/releases/download/v2.1.4/tvbro-2.1.4-generic-geckoIncluded-arm64-v8a.apk",
-        "https://github.com/truefedex/tv-bro/releases/download/v2.1.4/tvbro-2.1.4-generic-geckoIncluded-x86_64.apk"
+        "https://github.com/truefedex/tv-bro/releases/download/v2.1.5/tvbro-2.1.5-generic-geckoIncluded-arm64-v8a.apk",
+        "https://github.com/truefedex/tv-bro/releases/download/v2.1.5/tvbro-2.1.5-generic-geckoIncluded-x86_64.apk"
         ]
     }
   ],
 
   "changelog": [
+    {
+      "versionCode": 68,
+      "versionName": "v2.1.5",
+      "changes": "* Various bugfixes (anonymous mode crash, clear cache crash, broken mouse etc...)"
+    },
     {
       "versionCode": 67,
       "versionName": "v2.1.4",
@@ -44,11 +49,6 @@
       "versionCode": 59,
       "versionName": "v1.8.6",
       "changes": "* Popup blocking re-implemented (thank you WIStudent for implementation ideas and MR)\n* More options and fix for link context menu (thank you MailYouLater for string-case fix)\n* Several other small bugs fixed\n* Translations updated"
-    },
-    {
-      "versionCode": 57,
-      "versionName": "v1.8.5",
-      "changes": "* Some crashes fixed\n* Do not log temporary history in incognito mode (even temporary)\n* Trick to make play/pause remote media button work (experimental)\n* Fixed one problem of not opening magnet links on Android 11 and below\n* Fixed downloading in private folder problem on Android 12\n* Dropped support of Android 5.x"
     }
   ]
 }
