@@ -433,6 +433,10 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
         mediaSessionDelegate.mediaSession?.seekForward()
     }
 
+    override fun castCurrentVideo() {
+        //not supported by the GeckoView engine yet
+    }
+
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
         return webView?.renderThumbnail(bitmap)
     }

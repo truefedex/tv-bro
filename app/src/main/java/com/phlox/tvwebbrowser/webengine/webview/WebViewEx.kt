@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.webengine.webview
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -23,6 +24,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.webkit.ConsoleMessage
+import android.webkit.CookieManager
 import android.webkit.GeolocationPermissions
 import android.webkit.HttpAuthHandler
 import android.webkit.JsPromptResult
@@ -39,6 +41,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
@@ -48,6 +51,7 @@ import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.activity.player.ExoPlayerActivity
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.Utils
 import java.net.URLEncoder
@@ -65,6 +69,11 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         const val INTERNAL_SCHEME = "internal://"
         const val INTERNAL_SCHEME_WARNING_DOMAIN = "warning"
         const val INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT = "certificate"
+        const val MAX_DETECTED_MEDIA = 30
+        //if no stream is caught the page is reloaded and retried; capped to avoid a loop
+        const val MAX_CAST_ATTEMPTS = 3
+        const val CAST_POLL_INTERVAL = 700
+        const val CAST_WAIT_TIMEOUT = 15000
         val WIDEVINE_UUID = UUID(-0x121074568629b532L,-0x5c37d8232ae2de13L)
     }
 
@@ -81,6 +90,11 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     var lastSSLError: SslError? = null
     var trustSsl: Boolean = false
     var currentOriginalUrl: Uri? = null
+    //Media stream candidates detected at the network layer (m3u8/mpd/mp4...).
+    //Insertion order is preserved, which matters: see the sniffing code below.
+    val detectedMediaUrls = LinkedHashSet<String>()
+    //poll loop waiting for a stream to appear after a reload, if any
+    private var pendingCastPoll: Runnable? = null
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
 
@@ -362,6 +376,32 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                 Log.d(TAG, "shouldInterceptRequest url: ${request.url}")
+                run {
+                    //Collect media stream candidates. These are generic patterns,
+                    //not per-site rules. Order is kept (LinkedHashSet) because with
+                    //HLS the master playlist is usually requested first, so it ends
+                    //up first in the list and is the best pick.
+                    val u = request.url.toString()
+                    val path = u.substringBefore('?').lowercase()
+                    //Some sites disguise the HLS manifest behind a harmless extension
+                    //(e.g. .../hls/.../txt/master.txt), so treat those as manifests too.
+                    val isMaskedManifest = (path.endsWith(".txt") || path.endsWith(".json")) &&
+                        (path.contains("/hls/") || path.contains("master") ||
+                         path.contains("playlist") || path.contains("manifest") ||
+                         path.contains("sublist") || path.contains("chunklist"))
+                    //Some player services serve the manifest with no extension at all,
+                    //behind a path like .../q/<n> and a text/html content type.
+                    val qIdx = path.lastIndexOf("/q/")
+                    val isUrlManifest = qIdx >= 0 && path.substring(qIdx + 3).toIntOrNull() != null
+                    val isMediaCandidate = path.endsWith(".m3u8") || path.endsWith(".mpd") ||
+                        path.endsWith(".mp4") || path.endsWith(".webm") || path.endsWith(".mkv") ||
+                        path.endsWith(".m4v") || path.endsWith(".mov") ||
+                        isMaskedManifest || isUrlManifest ||
+                        u.contains("action=redirect") || path.contains("/api/er/get")
+                    if (isMediaCandidate && detectedMediaUrls.size < MAX_DETECTED_MEDIA) {
+                        detectedMediaUrls.add(u)
+                    }
+                }
                 val currentPageUrl = currentOriginalUrl
 
                 if (currentPageUrl != null && currentPageUrl.toString().startsWith(Config.HOME_PAGE_URL,
@@ -404,6 +444,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 super.onPageStarted(view, url, favicon)
                 Log.d(TAG, "onPageStarted url: $url")
                 currentOriginalUrl = url.toUri()
+                detectedMediaUrls.clear()
                 callback.onPageStarted(url)
             }
 
@@ -647,5 +688,146 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
     fun setVirtualCursorMode(enabled: Boolean) {
         this.virtualCursorMode = enabled
+    }
+
+    /**
+     * Entry point for the "play video in a player" shortcut. Asks which player to
+     * use, then resolves the stream in the background. If no stream can be found
+     * the page is reloaded and the lookup is retried.
+     */
+    fun castMedia(domUrl: String?) {
+        val activity = callback.getActivity() ?: return
+        cancelPendingCast()
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.cast_choose_player)
+            .setItems(arrayOf(
+                context.getString(R.string.cast_player_internal),
+                context.getString(R.string.cast_player_external)
+            )) { _, which -> resolveAndPlay(domUrl, which == 1, 0) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    fun cancelPendingCast() {
+        pendingCastPoll?.let { uiHandler.removeCallbacks(it) }
+        pendingCastPoll = null
+    }
+
+    /**
+     * Picks the most suitable candidate. No per-site rules: prefer a manifest
+     * (HLS/DASH - the master playlist normally loads first), otherwise fall back
+     * to the first candidate we have.
+     */
+    private fun pickBestStream(domUrl: String?): String? {
+        val candidates = LinkedHashSet<String>()
+        domUrl?.takeIf { it.isNotEmpty() && !it.startsWith("blob:") }?.let { candidates.add(it) }
+        candidates.addAll(detectedMediaUrls)
+        if (candidates.isEmpty()) return null
+        return candidates.firstOrNull { !isProgressiveFile(it) } ?: candidates.first()
+    }
+
+    private fun isProgressiveFile(u: String): Boolean {
+        val p = u.substringBefore('?').lowercase()
+        return p.endsWith(".mp4") || p.endsWith(".m4v") || p.endsWith(".webm") ||
+                p.endsWith(".mkv") || p.endsWith(".mov")
+    }
+
+    private fun resolveAndPlay(domUrl: String?, external: Boolean, attempt: Int) {
+        val url = pickBestStream(domUrl)
+        if (url != null) {
+            if (external) playInExternalPlayer(url) else playInInternalPlayer(url)
+            return
+        }
+        if (attempt >= MAX_CAST_ATTEMPTS) {
+            Toast.makeText(context, R.string.cast_no_media, Toast.LENGTH_LONG).show()
+            return
+        }
+        //nothing caught yet: reload and wait for the media to start
+        Toast.makeText(context, R.string.cast_reloading, Toast.LENGTH_LONG).show()
+        reload()
+        waitForStream(external, attempt)
+    }
+
+    /** Polls for a stream after a reload until one shows up or we time out. */
+    private fun waitForStream(external: Boolean, attempt: Int) {
+        var waited = 0
+        val poll = object : Runnable {
+            override fun run() {
+                if (pendingCastPoll !== this) return//superseded or cancelled
+                val url = pickBestStream(null)
+                if (url != null) {
+                    pendingCastPoll = null
+                    if (external) playInExternalPlayer(url) else playInInternalPlayer(url)
+                    return
+                }
+                waited += CAST_POLL_INTERVAL
+                if (waited >= CAST_WAIT_TIMEOUT) {
+                    pendingCastPoll = null
+                    resolveAndPlay(null, external, attempt + 1)
+                    return
+                }
+                uiHandler.postDelayed(this, CAST_POLL_INTERVAL.toLong())
+            }
+        }
+        pendingCastPoll = poll
+        uiHandler.postDelayed(poll, CAST_POLL_INTERVAL.toLong())
+    }
+
+    /** Opens the stream in TV Bro's built-in (ExoPlayer) player. */
+    fun playInInternalPlayer(rawUrl: String) {
+        val activity = callback.getActivity() ?: return
+        val ua = settings.userAgentString
+        val referer = currentOriginalUrl?.toString()
+        val cookie = try {
+            CookieManager.getInstance().getCookie(rawUrl)
+        } catch (e: Exception) { null }
+        val intent = Intent(activity, ExoPlayerActivity::class.java).apply {
+            putExtra(ExoPlayerActivity.EXTRA_URL, rawUrl)
+            if (ua != null) putExtra(ExoPlayerActivity.EXTRA_UA, ua)
+            if (referer != null) putExtra(ExoPlayerActivity.EXTRA_REFERER, referer)
+            if (cookie != null) putExtra(ExoPlayerActivity.EXTRA_COOKIE, cookie)
+        }
+        activity.startActivity(intent)
+    }
+
+    /** Hands the stream over to an external player (VLC, MX Player...). */
+    fun playInExternalPlayer(rawUrl: String) {
+        val activity = callback.getActivity() ?: return
+        val uri = Uri.parse(rawUrl)
+        val ua = settings.userAgentString
+        val referer = currentOriginalUrl?.toString()
+        val cookie = try {
+            CookieManager.getInstance().getCookie(rawUrl)
+        } catch (e: Exception) { null }
+
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, guessMediaMime(rawUrl))
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            val headers = ArrayList<String>()
+            if (ua != null) { headers.add("User-Agent"); headers.add(ua) }
+            if (referer != null) { headers.add("Referer"); headers.add(referer) }
+            if (cookie != null) { headers.add("Cookie"); headers.add(cookie) }
+            if (headers.isNotEmpty()) putExtra("headers", headers.toTypedArray())
+            if (ua != null) putExtra("User-Agent", ua)
+            putExtra("secure_uri", true)
+        }
+        try {
+            activity.startActivity(
+                Intent.createChooser(intent, context.getString(R.string.cast_open_with)))
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(activity, R.string.cast_no_player, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun guessMediaMime(u: String): String {
+        val p = u.substringBefore('?').lowercase()
+        return when {
+            p.endsWith(".m3u8") -> "application/x-mpegURL"
+            p.endsWith(".txt")  -> "application/x-mpegURL" //HLS manifest behind a .txt name
+            p.endsWith(".mpd")  -> "application/dash+xml"
+            p.endsWith(".mp4") || p.endsWith(".m4v") -> "video/mp4"
+            p.endsWith(".webm") -> "video/webm"
+            else -> "video/*"
+        }
     }
 }

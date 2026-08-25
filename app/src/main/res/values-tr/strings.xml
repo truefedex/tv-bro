@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cast_media">Videoyu oynatıcıda aç</string>
+    <string name="cast_choose_player">Oynatıcı seç</string>
+    <string name="cast_player_internal">Dahili oynatıcı</string>
+    <string name="cast_player_external">Harici oynatıcı (VLC, MX Player…)</string>
+    <string name="cast_open_with">Videoyu şununla aç</string>
+    <string name="cast_reloading">Sayfa yenileniyor — medya oynatılana kadar lütfen bekleyin</string>
+    <string name="cast_no_media">Bu sayfada oynatılabilir medya bulunamadı</string>
+    <string name="cast_no_player">Uyumlu oynatıcı bulunamadı (VLC veya MX Player kurun)</string>
+    <string name="player_error">Oynatma hatası: %1$s</string>
+</resources>
