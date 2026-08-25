@@ -87,7 +87,6 @@ import com.phlox.tvwebbrowser.utils.sameDay
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
-import com.phlox.tvwebbrowser.webengine.webview.WebViewEx
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
@@ -888,8 +887,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private fun handleBackNavigation() {
         Log.d(TAG, "handleBackNavigation")
-        //let the user cancel a pending media lookup with the Back button
-        (tabsModel.currentTab.value?.webEngine?.getView() as? WebViewEx)?.cancelPendingCast()
         if (tabsModel.currentTab.value?.webEngine?.isVirtualCursorMode() == false) {
             tabsModel.currentTab.value?.webEngine?.setVirtualCursorMode(true)
             backNavigationEventsAdapter.gameControllersLongPressBForBackNavigation = false

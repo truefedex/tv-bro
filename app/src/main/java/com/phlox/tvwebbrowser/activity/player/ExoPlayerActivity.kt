@@ -11,6 +11,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
@@ -66,7 +67,13 @@ class ExoPlayerActivity : Activity() {
         if (headers.isNotEmpty()) httpFactory.setDefaultRequestProperties(headers)
         val dataSourceFactory = DefaultDataSource.Factory(this, httpFactory)
 
-        val exo = ExoPlayer.Builder(this)
+        //Cheap TV boxes often ship a broken hardware decoder. Allow ExoPlayer to
+        //fall back to another (usually software) decoder when the first one fails
+        //to initialise or misbehaves, instead of giving up on the stream.
+        val renderersFactory = DefaultRenderersFactory(this)
+            .setEnableDecoderFallback(true)
+
+        val exo = ExoPlayer.Builder(this, renderersFactory)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
             .build()
         playerView.player = exo
@@ -90,8 +97,13 @@ class ExoPlayerActivity : Activity() {
 
         exo.addListener(object : Player.Listener {
             override fun onPlayerError(error: PlaybackException) {
+                //Typically ERROR_CODE_IO_BAD_HTTP_STATUS: the auto-picked stream is
+                //protected or wrong. Report it and close, so the browser can offer
+                //the other candidates instead of leaving a black screen behind.
                 Toast.makeText(this@ExoPlayerActivity,
                     getString(R.string.player_error, error.errorCodeName), Toast.LENGTH_LONG).show()
+                PlaybackFailure.last = error.errorCodeName
+                finish()
             }
         })
         exo.setMediaItem(mediaItemBuilder.build())
