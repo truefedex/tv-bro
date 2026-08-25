@@ -119,6 +119,14 @@
             android:windowSoftInputMode="adjustResize"
             tools:ignore="DiscouragedApi"/>
 
+        <activity android:name=".activity.player.SystemPlayerActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation|smallestScreenSize|uiMode"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            tools:ignore="DiscouragedApi"/>
+
         <activity android:name=".activity.player.ExoPlayerActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation|smallestScreenSize|uiMode"
             android:launchMode="singleTask"

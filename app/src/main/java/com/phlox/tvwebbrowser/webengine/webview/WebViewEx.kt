@@ -54,6 +54,7 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.player.ExoPlayerActivity
 import com.phlox.tvwebbrowser.activity.player.PlaybackFailure
+import com.phlox.tvwebbrowser.activity.player.SystemPlayerActivity
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.Utils
 import java.net.URLEncoder
@@ -61,7 +62,7 @@ import java.util.UUID
 
 
 /** Players a detected stream can be handed to. Order matches the chooser menu. */
-enum class PlayerKind { BUILT_IN, EXTERNAL }
+enum class PlayerKind { SYSTEM, BUILT_IN, EXTERNAL }
 
 /**
  * Copyright (c) 2016 Fedir Tsapana.
@@ -106,7 +107,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     //candidates of the current attempt, tried one after another on failure
     private var castCandidates: List<String> = emptyList()
     private var castIndex = 0
-    private var castPlayer = PlayerKind.BUILT_IN
+    private var castPlayer = PlayerKind.SYSTEM
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
 
@@ -727,6 +728,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         val activity = callback.getActivity() ?: return
         val kinds = PlayerKind.entries
         val labels = arrayOf(
+            context.getString(R.string.cast_player_system),
             context.getString(R.string.cast_player_internal),
             context.getString(R.string.cast_player_external)
         )
@@ -771,6 +773,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
     private fun playCandidate(url: String) = when (castPlayer) {
         PlayerKind.BUILT_IN -> playInInternalPlayer(url)
+        PlayerKind.SYSTEM -> playInSystemPlayer(url)
         PlayerKind.EXTERNAL -> playInExternalPlayer(url)
     }
 
@@ -802,6 +805,23 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             if (ua != null) putExtra(ExoPlayerActivity.EXTRA_UA, ua)
             if (referer != null) putExtra(ExoPlayerActivity.EXTRA_REFERER, referer)
             if (cookie != null) putExtra(ExoPlayerActivity.EXTRA_COOKIE, cookie)
+        }
+        internalPlayerUrl = rawUrl
+        PlaybackFailure.last = null
+        activity.startActivity(intent)
+    }
+
+    /** Opens the stream in the platform MediaPlayer based fallback player. */
+    fun playInSystemPlayer(rawUrl: String) {
+        val activity = callback.getActivity() ?: return
+        val cookie = try {
+            CookieManager.getInstance().getCookie(rawUrl)
+        } catch (e: Exception) { null }
+        val intent = Intent(activity, SystemPlayerActivity::class.java).apply {
+            putExtra(SystemPlayerActivity.EXTRA_URL, rawUrl)
+            settings.userAgentString?.let { putExtra(SystemPlayerActivity.EXTRA_UA, it) }
+            currentOriginalUrl?.toString()?.let { putExtra(SystemPlayerActivity.EXTRA_REFERER, it) }
+            cookie?.let { putExtra(SystemPlayerActivity.EXTRA_COOKIE, it) }
         }
         internalPlayerUrl = rawUrl
         PlaybackFailure.last = null

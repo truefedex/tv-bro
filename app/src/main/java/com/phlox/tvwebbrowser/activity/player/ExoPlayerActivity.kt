@@ -1,19 +1,25 @@
 package com.phlox.tvwebbrowser.activity.player
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.phlox.tvwebbrowser.R
 
@@ -36,9 +42,17 @@ class ExoPlayerActivity : Activity() {
         const val EXTRA_REFERER = "referer"
         const val EXTRA_UA = "ua"
         const val EXTRA_COOKIE = "cookie"
+
+        private val RESIZE_MODES = intArrayOf(
+            AspectRatioFrameLayout.RESIZE_MODE_FIT,
+            AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+            AspectRatioFrameLayout.RESIZE_MODE_FILL
+        )
     }
 
     private var player: ExoPlayer? = null
+    private var playerView: PlayerView? = null
+    private var resizeModeIndex = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +70,7 @@ class ExoPlayerActivity : Activity() {
         val playerView = PlayerView(this)
         playerView.keepScreenOn = true
         setContentView(playerView)
+        this.playerView = playerView
 
         val headers = HashMap<String, String>()
         if (!referer.isNullOrEmpty()) headers["Referer"] = referer
@@ -70,8 +85,12 @@ class ExoPlayerActivity : Activity() {
         //Cheap TV boxes often ship a broken hardware decoder. Allow ExoPlayer to
         //fall back to another (usually software) decoder when the first one fails
         //to initialise or misbehaves, instead of giving up on the stream.
+        //EXTENSION_RENDERER_MODE_ON keeps the platform decoders first and brings in
+        //the bundled FFmpeg audio decoders only for formats the device cannot
+        //handle itself (AC3, E-AC3, DTS...), which otherwise play without sound.
         val renderersFactory = DefaultRenderersFactory(this)
             .setEnableDecoderFallback(true)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
 
         val exo = ExoPlayer.Builder(this, renderersFactory)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSourceFactory))
@@ -111,6 +130,100 @@ class ExoPlayerActivity : Activity() {
         exo.prepare()
     }
 
+    /**
+     * Subtitles, audio tracks and video scaling, reachable with the menu key.
+     * ExoPlayer renders subtitles by itself once a text track is selected, but it
+     * does not pick one on its own, so this is how the user turns them on.
+     */
+    private fun showSettings() {
+        if (player == null) return
+        val labels = arrayOf(
+            getString(R.string.player_subtitles),
+            getString(R.string.player_audio_track),
+            getString(R.string.player_video_scale)
+        )
+        AlertDialog.Builder(this)
+            .setItems(labels) { _, which ->
+                when (which) {
+                    0 -> showTrackChooser(C.TRACK_TYPE_TEXT)
+                    1 -> showTrackChooser(C.TRACK_TYPE_AUDIO)
+                    2 -> cycleResizeMode()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showTrackChooser(trackType: Int) {
+        val exo = player ?: return
+        //flatten the selectable tracks of this type into a single list
+        val entries = ArrayList<Pair<Tracks.Group, Int>>()
+        for (group in exo.currentTracks.groups) {
+            if (group.type != trackType) continue
+            for (i in 0 until group.length) {
+                if (group.isTrackSupported(i)) entries.add(group to i)
+            }
+        }
+        if (entries.isEmpty()) {
+            Toast.makeText(this, R.string.player_no_tracks, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val offLabel = getString(R.string.player_track_off)
+        val labels = ArrayList<String>()
+        if (trackType == C.TRACK_TYPE_TEXT) labels.add(offLabel)
+        for ((group, i) in entries) {
+            val format = group.getTrackFormat(i)
+            val name = format.label ?: format.language ?: format.sampleMimeType ?: "?"
+            labels.add(name)
+        }
+        val title = if (trackType == C.TRACK_TYPE_TEXT) R.string.player_subtitles
+            else R.string.player_audio_track
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setItems(labels.toTypedArray()) { _, which ->
+                val offset = if (trackType == C.TRACK_TYPE_TEXT) 1 else 0
+                if (trackType == C.TRACK_TYPE_TEXT && which == 0) {
+                    exo.trackSelectionParameters = exo.trackSelectionParameters.buildUpon()
+                        .clearOverridesOfType(trackType)
+                        .setTrackTypeDisabled(trackType, true)
+                        .build()
+                    return@setItems
+                }
+                val (group, index) = entries[which - offset]
+                exo.trackSelectionParameters = exo.trackSelectionParameters.buildUpon()
+                    .setTrackTypeDisabled(trackType, false)
+                    .setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, index))
+                    .build()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun cycleResizeMode() {
+        resizeModeIndex = (resizeModeIndex + 1) % RESIZE_MODES.size
+        playerView?.resizeMode = RESIZE_MODES[resizeModeIndex]
+        val name = when (RESIZE_MODES[resizeModeIndex]) {
+            AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> R.string.player_scale_zoom
+            AspectRatioFrameLayout.RESIZE_MODE_FILL -> R.string.player_scale_fill
+            else -> R.string.player_scale_fit
+        }
+        Toast.makeText(this, name, Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * PlayerView swallows key events for its own control bar, so onKeyDown never
+     * sees them. dispatchKeyEvent runs before the view hierarchy, which is the
+     * only reliable place to catch the settings key.
+     */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val isSettingsKey = event.keyCode in PlayerKeys.SETTINGS
+        if (isSettingsKey) {
+            if (event.action == KeyEvent.ACTION_DOWN) showSettings()
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
     override fun onStop() {
         super.onStop()
         player?.pause()
@@ -120,5 +233,6 @@ class ExoPlayerActivity : Activity() {
         super.onDestroy()
         player?.release()
         player = null
+        playerView = null
     }
 }
