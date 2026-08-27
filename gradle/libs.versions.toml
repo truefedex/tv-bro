@@ -14,6 +14,9 @@ recyclerview = "1.4.0"
 coroutines-android = "1.10.2"
 lifecycle-runtime-ktx = "2.10.0"
 room = "2.8.4"
+media3 = "1.6.1"
+#prebuilt FFmpeg decoders for media3, published by the Jellyfin project
+ffmpeg-decoder = "1.6.1+1"
 
 junit = "4.13.2"
 robolectric = "4.16.1"
@@ -42,6 +45,13 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+
+# Media3 / ExoPlayer (dahili video oynatici)
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+androidx-media3-exoplayer-hls = { group = "androidx.media3", name = "media3-exoplayer-hls", version.ref = "media3" }
+androidx-media3-exoplayer-dash = { group = "androidx.media3", name = "media3-exoplayer-dash", version.ref = "media3" }
+androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
+media3-ffmpeg-decoder = { group = "org.jellyfin.media3", name = "media3-ffmpeg-decoder", version.ref = "ffmpeg-decoder" }
 
 # Third-party
 segmented-button = { group = "com.github.truefedex", name = "segmented-button", version.ref = "segmented-button" }

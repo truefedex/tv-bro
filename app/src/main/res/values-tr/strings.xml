@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cast_media">Videoyu oynatıcıda aç</string>
+    <string name="cast_choose_player">Oynatıcı seç</string>
+    <string name="cast_player_internal">Dahili oynatıcı (alternatif)</string>
+    <string name="cast_player_system">Sistem oynatıcısı (önerilir)</string>
+    <string name="cast_player_external">Harici oynatıcı (VLC, MX Player…)</string>
+    <string name="cast_choose_external_player">Harici oynatıcı seç</string>
+    <string name="cast_open_builtin">Dahili oynatıcıda aç</string>
+    <string name="cast_trying_next">Başka bir akış deneniyor…</string>
+    <string name="external_playback_failed_title">Video oynatılmadı mı?</string>
+    <string name="external_playback_failed_message">Bazı akışlar yalnızca dahili oynatıcıda çalışır; çünkü her istekte tarayıcının kendini tanıtmasını gerektirirler ve harici oynatıcılar bunu yapamaz.</string>
+    <string name="cast_start_video_title">Henüz video algılanmadı</string>
+    <string name="cast_start_video_message">Önce sayfadaki videoyu başlatın, sonra oynatıcı seçmek için tuşa tekrar basın.</string>
+    <string name="cast_no_media">Bu sayfada oynatılabilir medya bulunamadı</string>
+    <string name="cast_no_player">Uyumlu oynatıcı bulunamadı (VLC veya MX Player kurun)</string>
+    <string name="player_error">Oynatma hatası: %1$s</string>
+    <string name="player_subtitles">Altyazı</string>
+    <string name="player_audio_track">Ses parçası</string>
+    <string name="player_video_scale">Görüntü ölçeği</string>
+    <string name="player_track_off">Kapalı</string>
+    <string name="player_no_tracks">Bu akışta böyle bir parça yok</string>
+    <string name="player_scale_fit">Ölçek: sığdır</string>
+    <string name="player_scale_zoom">Ölçek: yakınlaştır</string>
+    <string name="player_scale_fill">Ölçek: doldur</string>
+</resources>
