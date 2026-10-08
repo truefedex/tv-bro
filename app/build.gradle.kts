@@ -92,6 +92,14 @@ android {
             isIncludeAndroidResources = true
         }
     }
+
+    //https://github.com/robolectric/robolectric/issues/7642
+    tasks.withType<Test>().configureEach {
+        jvmArgs(
+            "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+            "--add-opens=java.base/java.io=ALL-UNNAMED"
+        )
+    }
 }
 
 dependencies {

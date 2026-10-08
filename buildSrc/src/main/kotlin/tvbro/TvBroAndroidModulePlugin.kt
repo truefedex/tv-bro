@@ -30,6 +30,7 @@ internal object TvBroAndroidModulePlugin {
             when (type) {
                 AndroidModuleType.APPLICATION -> extensions.configure<ApplicationExtension> {
                     compileSdk = findVersion("android-compileSdk")
+                    compileSdkMinor = findVersion("android-compileSdkMinor")
                     defaultConfig {
                         minSdk = findVersion("android-minSdk")
                         targetSdk = findVersion("android-targetSdk")

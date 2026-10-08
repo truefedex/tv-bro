@@ -78,7 +78,7 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
             element.srcUri,
             element.title,
             element.altText,
-            element.textContent,
+            element.linkText,
             webView.cursorDrawerDelegate.cursorPosition.x.toInt(),
             webView.cursorDrawerDelegate.cursorPosition.y.toInt()
         )
@@ -163,9 +163,9 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
                 activeAlert = true
                 prompt.onSlowScriptPrompt(geckoSession, activity.getString(R.string.slow_script), result)
             }
-            return result.then<SlowScriptResponse?> { value: SlowScriptResponse? ->
+            return result.then { value: SlowScriptResponse? ->
                 activeAlert = false
-                GeckoResult.fromValue<SlowScriptResponse?>(value)
+                GeckoResult.fromValue(value)
             }
         }
         return null
@@ -175,11 +175,7 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
         super.onShowDynamicToolbar(geckoSession)
     }
 
-    override fun onCookieBannerDetected(session: GeckoSession) {
-        super.onCookieBannerDetected(session)
-    }
-
-    override fun onCookieBannerHandled(session: GeckoSession) {
-        super.onCookieBannerHandled(session)
+    override fun onHideDynamicToolbar(geckoSession: GeckoSession) {
+        super.onHideDynamicToolbar(geckoSession)
     }
 }
