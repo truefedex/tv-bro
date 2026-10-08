@@ -67,6 +67,9 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         Utils.bytesToBundle(bytes)
 
     override fun loadUrl(url: String) {
+        if (callback?.shouldOverrideUrlLoading(url) == true) {
+            return
+        }
         webView?.loadUrl(url)
     }
 

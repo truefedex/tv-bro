@@ -103,6 +103,7 @@ import java.net.URLEncoder
 import java.util.Calendar
 import java.util.Locale
 import kotlin.system.exitProcess
+import androidx.core.net.toUri
 
 
 open class MainActivity : AppCompatActivity(), ActionBar.Callback {
@@ -116,6 +117,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
         const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
         private const val MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS = 10008
+        private const val MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS = 10009
         private const val COMMON_REQUESTS_START_CODE = 10100
     }
 
@@ -647,6 +649,16 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     startDownload()
                 }
             }
+            MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS -> {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    val currentTab = tabsModel.currentTab.value
+                    if (currentTab != null) {
+                        navigate(currentTab.url)
+                    }
+                } else {
+                    Utils.showToast(this, R.string.local_network_access_denied)
+                }
+            }
             else -> {
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults)
             }
@@ -1160,7 +1172,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             tab.lastLoadingUrl = url
 
             val uri = try {
-                Uri.parse(url)
+                url.toUri()
             } catch (e: Exception) {
                 Log.e(TAG, "shouldOverrideUrlLoading: ", e)
                 return true
@@ -1168,6 +1180,13 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
             if (uri.scheme == null) {
                 Log.d(TAG, "shouldOverrideUrlLoading: no scheme: $url")
+                return true
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN &&
+                Utils.isLocalNetworkUrl(url) &&
+                checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS)
                 return true
             }
 
@@ -1245,7 +1264,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 val newThumbnail = tab.webEngine.renderThumbnail(tab.thumbnail)
                 if (newThumbnail != null) {
                     tab.updateThumbnail(this@MainActivity, newThumbnail)
-                    if (vb.rlActionBar.visibility == View.VISIBLE && tab == tabsModel.currentTab.value) {
+                    if (vb.rlActionBar.isVisible && tab == tabsModel.currentTab.value) {
                         displayThumbnail(tab)
                     }
                 }

@@ -184,6 +184,7 @@
   <string name="media_rewind">快退</string>
   <string name="media_fast_forward">快进</string>
   <string name="long_press">长按</string>
+  <string name="local_network_access_denied">已拒绝本地网络访问</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">网页算法变暗（深色主题，仅 WebView，需要重启）</string>
   <string name="allow_autoplay_media">允许媒体自动播放</string>
   <string name="web_engine_debug">Web 引擎调试（需要重启）</string>

@@ -184,6 +184,7 @@
   <string name="media_rewind">Tua lại phương tiện</string>
   <string name="media_fast_forward">Tua nhanh phương tiện</string>
   <string name="long_press">Nhấn giữ</string>
+  <string name="local_network_access_denied">Đã từ chối truy cập mạng cục bộ</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Làm tối theo thuật toán cho trang web (giao diện tối, chỉ WebView, cần khởi động lại)</string>
   <string name="allow_autoplay_media">Cho phép tự động phát phương tiện</string>
   <string name="web_engine_debug">Gỡ lỗi công cụ web (cần khởi động lại)</string>

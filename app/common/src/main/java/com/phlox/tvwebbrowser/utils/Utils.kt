@@ -5,11 +5,10 @@ import android.app.ActivityManager.RunningAppProcessInfo
 import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.Point
 import android.net.ConnectivityManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Parcel
-import android.view.WindowManager
 import android.webkit.WebResourceResponse
 import android.widget.Toast
 import org.json.JSONArray
@@ -21,26 +20,17 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.math.BigInteger
+import java.net.InetAddress
 import java.net.URLConnection
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+import androidx.core.net.toUri
 
 
 object Utils {
-
-    /**
-     * Returns the screen/display size
-     */
-    fun getDisplaySize(context: Context): Point {
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val display = wm.defaultDisplay
-        val size = Point()
-        display.getSize(size)
-        return size
-    }
 
     /**
      * Shows a (long) toast
@@ -61,36 +51,7 @@ object Utils {
         return dp * density
     }
 
-    /**
-     * Formats time in milliseconds to hh:mm:ss string format.
-     */
-    fun formatMillis(millis: Int): String {
-        var millis = millis
-        var result = ""
-        val hr = millis / 3600000
-        millis %= 3600000
-        val min = millis / 60000
-        millis %= 60000
-        val sec = millis / 1000
-        if (hr > 0) {
-            result += hr.toString() + ":"
-        }
-        if (min >= 0) {
-            if (min > 9) {
-                result += min.toString() + ":"
-            } else {
-                result += "0$min:"
-            }
-        }
-        if (sec > 9) {
-            result += sec
-        } else {
-            result += "0$sec"
-        }
-        return result
-    }
-
-    fun MD5_Hash(bytes: ByteArray): String? {
+    fun hashMD5(bytes: ByteArray): String? {
         try {
             val m = MessageDigest.getInstance("MD5")
             m.update(bytes, 0, bytes.size)
@@ -144,13 +105,6 @@ object Utils {
 
     fun isFireTV(context: Context): Boolean {
         return context.packageManager.hasSystemFeature("amazon.hardware.fire_tv")
-    }
-
-    fun isInstalledByGooglePlay(context: Context): Boolean {
-        // A list with valid installers package name
-        val validInstallers = ArrayList(Arrays.asList("com.android.vending", "com.google.android.feedback"))
-        val installer = context.packageManager.getInstallerPackageName(context.packageName)
-        return installer != null && validInstallers.contains(installer)
     }
 
     fun isInstalledByAPK(context: Context): Boolean {
@@ -230,65 +184,6 @@ object Utils {
         }
     }
 
-    fun unzipFile(zipFile: File, targetDirectory: File, progress: (progress: Int, fileName: String) -> Unit) {
-        val totalLen = zipFile.length()
-        var alreadyUncompressed: Long = 0
-        val zis = ZipInputStream(BufferedInputStream(FileInputStream(zipFile)))
-        try {
-            var ze: ZipEntry?
-            var count: Int
-            val buffer = ByteArray(1024)
-            while (true) {
-                ze = zis.nextEntry
-                if (ze == null) break
-                val file = File(targetDirectory, ze.name)
-                val canonicalPath = file.canonicalPath
-                if (!canonicalPath.startsWith(targetDirectory.canonicalPath)) {
-                    throw SecurityException("Zip Path Traversal attack!")
-                }
-                val dir = if (ze.isDirectory) file else file.parentFile
-                if (!dir.isDirectory && !dir.mkdirs()) throw FileSystemException(dir, null, "Failed to ensure directory: " + dir.absolutePath)
-                if (ze.isDirectory) continue
-                var readen = 0
-                FileOutputStream(file).use {
-                    while (zis.read(buffer).also { count = it } != -1) {
-                        it.write(buffer, 0, count)
-                        if (ze.size > 0) {
-                            readen += count
-                            val entryPercents = readen * ze.compressedSize * 100 / (ze.size * totalLen)
-                            val percent = (alreadyUncompressed * 100 / totalLen + entryPercents).toInt()
-                            progress(percent, ze.name)
-                        }
-                    }
-                }
-
-                alreadyUncompressed += ze.compressedSize
-                val percent = (alreadyUncompressed * 100 / totalLen).toInt()
-                progress(percent, ze.name)
-
-                // if time should be restored as well
-                val time: Long = ze.time
-                if (time > 0) file.setLastModified(time)
-            }
-        } finally {
-            zis.close()
-        }
-    }
-
-    fun isForeground(): Boolean {
-        val appProcessInfo = RunningAppProcessInfo()
-        ActivityManager.getMyMemoryState(appProcessInfo)
-        return (appProcessInfo.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-                || appProcessInfo.importance == RunningAppProcessInfo.IMPORTANCE_VISIBLE)
-    }
-
-    fun memInfo(ctx: Context): ActivityManager.MemoryInfo {
-        val actManager = ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val memInfo = ActivityManager.MemoryInfo()
-        actManager.getMemoryInfo(memInfo)
-        return memInfo
-    }
-
     fun jsonToMap(json: String): Map<String, Any?> {
         val map: MutableMap<String, Any?> = HashMap()
         try {
@@ -336,6 +231,18 @@ object Utils {
             WebResourceResponse(mimeType, "UTF-8", inputStream)
         } catch (e: IOException) {
             null
+        }
+    }
+
+    fun isLocalNetworkUrl(urlString: String): Boolean {
+        val uri = try { urlString.toUri() } catch (_: Exception) { null } ?: return false
+        val host = uri.host ?: return false
+
+        return host.endsWith(".local", ignoreCase = true) || host.equals("localhost", ignoreCase = true) || try {
+            val address = InetAddress.getByName(host)
+            address.isSiteLocalAddress || address.isLoopbackAddress || address.isLinkLocalAddress
+        } catch (_: Exception) {
+            false
         }
     }
 }

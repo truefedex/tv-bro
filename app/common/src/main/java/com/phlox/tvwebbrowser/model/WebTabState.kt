@@ -96,7 +96,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
                 val tabsThumbsDir = File(context.cacheDir.absolutePath + File.separator + TAB_THUMBNAILS_DIR)
                 if (tabsThumbsDir.exists() || tabsThumbsDir.mkdir()) {
                     try {
-                        val hash = Utils.MD5_Hash(url.toByteArray(Charset.defaultCharset()))
+                        val hash = Utils.hashMD5(url.toByteArray(Charset.defaultCharset()))
                         if (hash != null && hash != thumbnailHash) {
                             if (thumbnailHash != null) {
                                 removeThumbnailFile()
@@ -200,7 +200,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
             }
         }
         if (stateFileName == null) {
-            stateFileName = Utils.MD5_Hash(stateBytes) ?: return
+            stateFileName = Utils.hashMD5(stateBytes) ?: return
             if (webEngine.isGecko()) {
                 stateFileName = GECKO_SESSION_STATE_HASH_PREFIX + stateFileName
             }
@@ -230,7 +230,7 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     suspend fun updateThumbnail(context: Context, thumbnail: Bitmap) {
         this.thumbnail = thumbnail
         val url = url
-        var hash = Utils.MD5_Hash(url.toByteArray(Charset.defaultCharset()))
+        var hash = Utils.hashMD5(url.toByteArray(Charset.defaultCharset()))
         if (hash != null) {
             hash += hashCode()//to make thumbnails from different tabs unique even with same url
             if (hash != thumbnailHash) {

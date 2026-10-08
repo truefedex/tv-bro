@@ -187,6 +187,7 @@
   <string name="media_rewind">הרצה אחורה במדיה</string>
   <string name="media_fast_forward">הרצה קדימה במדיה</string>
   <string name="long_press">לחיצה ארוכה</string>
+  <string name="local_network_access_denied">הגישה לרשת המקומית נדחתה</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">הכהיה אלגוריתמית עבור דפי אינטרנט (ערכת נושא כהה, WebView בלבד, נדרשת הפעלה מחדש)</string>
   <string name="allow_autoplay_media">לאפשר הפעלה אוטומטית של מדיה</string>
   <string name="web_engine_debug">ניפוי שגיאות מנוע ווב (נדרשת הפעלה מחדש)</string>

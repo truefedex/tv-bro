@@ -182,6 +182,7 @@
     <string name="media_rewind">倒轉媒體</string>
     <string name="media_fast_forward">快轉媒體</string>
     <string name="long_press">長按</string>
+    <string name="local_network_access_denied">已拒絕本機網路存取</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">網頁演算法變暗（深色主題，僅 WebView，需要重新啟動）</string>
   <string name="allow_autoplay_media">允許媒體自動播放</string>
   <string name="web_engine_debug">Web 引擎偵錯（需要重新啟動）</string>

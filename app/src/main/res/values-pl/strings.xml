@@ -184,6 +184,7 @@
   <string name="media_rewind">Przewiń do tyłu</string>
   <string name="media_fast_forward">Przewiń do przodu</string>
   <string name="long_press">Długie naciśnięcie</string>
+  <string name="local_network_access_denied">Odmowa dostępu do sieci lokalnej</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorytmiczne przyciemnianie stron WWW (ciemny motyw, tylko WebView, wymagany restart)</string>
   <string name="allow_autoplay_media">Zezwól na automatyczne odtwarzanie multimediów</string>
   <string name="web_engine_debug">Debugowanie silnika webowego (wymagany restart)</string>

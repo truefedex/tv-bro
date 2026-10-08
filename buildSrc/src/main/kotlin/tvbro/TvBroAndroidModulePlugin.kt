@@ -38,6 +38,7 @@ internal object TvBroAndroidModulePlugin {
                 }
                 AndroidModuleType.LIBRARY -> extensions.configure<LibraryExtension> {
                     compileSdk = findVersion("android-compileSdk")
+                    compileSdkMinor = findVersion("android-compileSdkMinor")
                     defaultConfig {
                         minSdk = findVersion("android-minSdk")
                         consumerProguardFiles("consumer-rules.pro")

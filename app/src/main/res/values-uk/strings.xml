@@ -184,6 +184,7 @@
   <string name="media_rewind">Перемотка назад</string>
   <string name="media_fast_forward">Перемотка вперед</string>
   <string name="long_press">Довге натискання</string>
+  <string name="local_network_access_denied">Доступ до локальної мережі заборонено</string>
   <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Алгоритмічне затемнення вебсторінок (темна тема, лише WebView, потрібен перезапуск)</string>
   <string name="allow_autoplay_media">Дозволити автовідтворення медіа</string>
   <string name="web_engine_debug">Налагодження вебрушія (потрібен перезапуск)</string>

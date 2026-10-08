@@ -190,4 +190,5 @@
     <string name="media_rewind">Rewind Media</string>
     <string name="media_fast_forward">Fast Forward Media</string>
     <string name="long_press">Long press</string>
+    <string name="local_network_access_denied">Local network access denied</string>
 </resources>
