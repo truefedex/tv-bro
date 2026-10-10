@@ -88,6 +88,8 @@ android {
         buildConfig = true
     }
 
+    dynamicFeatures += setOf(":app:gecko")
+
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
@@ -105,7 +107,6 @@ android {
 
 dependencies {
     implementation(project(":app:common"))
-    "geckoIncludedImplementation"(project(":app:gecko"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
@@ -121,6 +122,21 @@ dependencies {
     annotationProcessor(libs.androidx.room.compiler)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
+
+    implementation(libs.google.feature.delivery)
+    implementation(libs.google.feature.delivery.ktx)
+
+    // GeckoView brings Guava into the dynamic feature, which also defines
+    // ListenableFuture. The 1.0 jar pulled in by AndroidX would make R8 see
+    // that type twice; this artifact is empty and replaces it.
+    implementation(libs.guava.listenablefuture)
+
+    constraints {
+        // feature-delivery pulls older Play services than GeckoView. R8 ships
+        // the base module's copies, so they must be new enough for the feature.
+        implementation(libs.play.services.basement)
+        implementation(libs.play.services.tasks)
+    }
 
     implementation(libs.segmented.button)
     implementation(libs.ad.block)
