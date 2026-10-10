@@ -3,12 +3,9 @@
     <string name="app_name">TV Bro: navegador web para TV</string>
     <string name="error">Erro</string>
     <string name="ok">OK</string>
-    <string name="loading">Carregando&#8230;</string>
     <string name="url_prompt">Digite o texto da pesquisa ou o URL</string>
     <string name="can_not_recognize">Não foi possível reconhecer</string>
     <string name="speak">Pesquisa</string>
-    <string name="open_new_tab">Abrir nova aba</string>
-    <string name="close">Fechar</string>
     <string name="web_perm_request_confirmation">Esta página quer usar os seguintes recursos:\n\n%s</string>
     <string name="allow">Permitir</string>
     <string name="deny">Negar</string>
@@ -24,14 +21,10 @@
     <string name="new_bookmark">Novo favorito</string>
     <string name="done">Concluído</string>
     <string name="title">Título</string>
-    <string name="search_history">Histórico de pesquisa</string>
     <string name="engine">Mecanismo de pesquisa</string>
     <string name="choose_default_search_engine">Escolha o mecanismo de pesquisa padrão</string>
-    <string name="set_search_engine_as_homepage">Usar o mecanismo de pesquisa como página inicial</string>
     <string name="save">Salvar</string>
     <string name="search_engine_url_with_query_placeholder_query">URL do mecanismo de pesquisa com o marcador de consulta [query]</string>
-    <string name="change_search_engine">Alterar mecanismo de pesquisa</string>
-    <string name="change_user_agent">Alterar user agent</string>
     <string name="user_agent_string">String do user agent</string>
     <string name="choose_user_agent_string">Escolha a string do user agent</string>
     <string name="edit_user_agent_string">Editar string do user agent</string>
@@ -51,18 +44,15 @@
     <string name="history">Histórico</string>
     <string name="settings">Configurações</string>
     <string name="shortcut">Atalho</string>
-    <string name="toggle_main_menu">Mostrar/ocultar menu principal</string>
     <string name="navigate_back">Voltar</string>
     <string name="navigate_home">Ir para a página inicial</string>
     <string name="refresh_page">Recarregar página</string>
     <string name="voice_search">Pesquisa por voz</string>
-    <string name="zoom_in">Aumentar zoom</string>
-    <string name="zoom_out">Diminuir zoom</string>
     <string name="not_set">Não definido</string>
     <string name="action">Ação:</string>
     <string name="current_key">Tecla atual:</string>
     <string name="set_key_for_action">Definir tecla para a ação</string>
-    <string name="press_eny_key">Pressione qualquer tecla...</string>
+    <string name="press_any_key">Pressione qualquer tecla...</string>
     <string name="shortcut_key_reserved_for_navigation">Esta tecla é reservada para a navegação do navegador</string>
     <string name="clear">Limpar</string>
     <string name="install">Instalar</string>
@@ -88,9 +78,7 @@
     <string name="new_version_available_s">Nova versão disponível: %s</string>
     <string name="web_browser_optimized_for_tvs">Navegador web otimizado para TVs</string>
     <string name="warning">Aviso</string>
-    <string name="unprotected_connection">Conexão não protegida</string>
     <string name="err_webview_can_not_link">Não é possível vincular ao componente WebView. Tente instalar primeiro o Android System WebView.</string>
-    <string name="new_tab_title">[NOVA ABA]</string>
     <string name="open_a_new_tab_here">Abrir uma nova aba aqui</string>
     <string name="tabs">Abas</string>
     <array name="tabs_options">
@@ -175,7 +163,6 @@
 
     <string name="web_browser_engine_temporary_setting">Mecanismo do navegador</string>
     <string name="need_restart_message">Reinicie o aplicativo para aplicar as alterações</string>
-    <string name="restart">Reiniciar</string>
     <string name="yes">Sim</string>
     <string name="no">Não</string>
     <string name="site_asks_to_open_unknown_url">O site quer abrir um URL desconhecido</string>

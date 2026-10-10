@@ -3,12 +3,9 @@
     <string name="app_name">TV Bro: Πρόγραμμα περιήγησης για τηλεόραση</string>
     <string name="error">Σφάλμα</string>
     <string name="ok">OK</string>
-    <string name="loading">Φόρτωση&#8230;</string>
     <string name="url_prompt">Εισαγάγετε κείμενο αναζήτησης ή URL</string>
     <string name="can_not_recognize">Δεν ήταν δυνατή η αναγνώριση</string>
     <string name="speak">Αναζήτηση</string>
-    <string name="open_new_tab">Άνοιγμα νέας καρτέλας</string>
-    <string name="close">Κλείσιμο</string>
     <string name="web_perm_request_confirmation">Αυτή η ιστοσελίδα θέλει να χρησιμοποιήσει τους παρακάτω πόρους:\n\n%s</string>
     <string name="allow">Να επιτρέπεται</string>
     <string name="deny">Άρνηση</string>
@@ -24,14 +21,10 @@
     <string name="new_bookmark">Νέος σελιδοδείκτης</string>
     <string name="done">Τέλος</string>
     <string name="title">Τίτλος</string>
-    <string name="search_history">Ιστορικό αναζητήσεων</string>
     <string name="engine">Μηχανή αναζήτησης</string>
     <string name="choose_default_search_engine">Επιλέξτε την προεπιλεγμένη μηχανή αναζήτησης</string>
-    <string name="set_search_engine_as_homepage">Ορισμός της μηχανής αναζήτησης ως αρχικής σελίδας</string>
     <string name="save">Αποθήκευση</string>
     <string name="search_engine_url_with_query_placeholder_query">URL μηχανής αναζήτησης με το σύμβολο θέσης ερωτήματος [query]</string>
-    <string name="change_search_engine">Αλλαγή μηχανής αναζήτησης</string>
-    <string name="change_user_agent">Αλλαγή User Agent</string>
     <string name="user_agent_string">Συμβολοσειρά User Agent</string>
     <string name="choose_user_agent_string">Επιλέξτε συμβολοσειρά User Agent</string>
     <string name="edit_user_agent_string">Επεξεργασία συμβολοσειράς User Agent</string>
@@ -51,18 +44,15 @@
     <string name="history">Ιστορικό</string>
     <string name="settings">Ρυθμίσεις</string>
     <string name="shortcut">Συντόμευση</string>
-    <string name="toggle_main_menu">Εμφάνιση/απόκρυψη κύριου μενού</string>
     <string name="navigate_back">Πίσω</string>
     <string name="navigate_home">Μετάβαση στην αρχική σελίδα</string>
     <string name="refresh_page">Ανανέωση σελίδας</string>
     <string name="voice_search">Φωνητική αναζήτηση</string>
-    <string name="zoom_in">Μεγέθυνση</string>
-    <string name="zoom_out">Σμίκρυνση</string>
     <string name="not_set">Δεν έχει οριστεί</string>
     <string name="action">Ενέργεια:</string>
     <string name="current_key">Τρέχον πλήκτρο:</string>
     <string name="set_key_for_action">Ορισμός πλήκτρου για την ενέργεια</string>
-    <string name="press_eny_key">Πατήστε οποιοδήποτε πλήκτρο...</string>
+    <string name="press_any_key">Πατήστε οποιοδήποτε πλήκτρο...</string>
     <string name="shortcut_key_reserved_for_navigation">Αυτό το πλήκτρο είναι δεσμευμένο για την πλοήγηση του προγράμματος περιήγησης</string>
     <string name="clear">Εκκαθάριση</string>
     <string name="install">Εγκατάσταση</string>
@@ -88,9 +78,7 @@
     <string name="new_version_available_s">Νέα διαθέσιμη έκδοση: %s</string>
     <string name="web_browser_optimized_for_tvs">Πρόγραμμα περιήγησης βελτιστοποιημένο για τηλεοράσεις</string>
     <string name="warning">Προειδοποίηση</string>
-    <string name="unprotected_connection">Μη προστατευμένη σύνδεση</string>
     <string name="err_webview_can_not_link">Δεν είναι δυνατή η σύνδεση με το στοιχείο WebView. Δοκιμάστε πρώτα να εγκαταστήσετε το Android System WebView.</string>
-    <string name="new_tab_title">[ΝΕΑ ΚΑΡΤΕΛΑ]</string>
     <string name="open_a_new_tab_here">Άνοιγμα νέας καρτέλας εδώ</string>
     <string name="tabs">Καρτέλες</string>
     <array name="tabs_options">
@@ -175,7 +163,6 @@
 
     <string name="web_browser_engine_temporary_setting">Μηχανή προγράμματος περιήγησης</string>
     <string name="need_restart_message">Επανεκκινήστε την εφαρμογή για να εφαρμοστούν οι αλλαγές</string>
-    <string name="restart">Επανεκκίνηση</string>
     <string name="yes">Ναι</string>
     <string name="no">Όχι</string>
     <string name="site_asks_to_open_unknown_url">Ο ιστότοπος ζητά να ανοίξει άγνωστο URL</string>

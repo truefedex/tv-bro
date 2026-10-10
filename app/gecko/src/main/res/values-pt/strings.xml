@@ -19,7 +19,6 @@
     <string name="request_audio">Compartilhar áudio com “%1$s”</string>
     <string name="request_media">Compartilhar vídeo e áudio com “%1$s”</string>
     <string name="request_xr">Compartilhar telas WebXR com “%1$s”?</string>
-    <string name="request_autoplay">Permitir reprodução automática de vídeo em “%1$s”?</string>
     <string name="request_media_key_system_access">Permitir acesso ao sistema de chaves de mídia para “%1$s”?</string>
     <string name="media_back_camera">Câmera traseira</string>
     <string name="media_front_camera">Câmera frontal</string>

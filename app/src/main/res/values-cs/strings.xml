@@ -3,12 +3,9 @@
     <string name="app_name">TV Bro: webový prohlížeč pro TV</string>
     <string name="error">Chyba</string>
     <string name="ok">OK</string>
-    <string name="loading">Načítání&#8230;</string>
     <string name="url_prompt">Zadejte hledaný text nebo URL</string>
     <string name="can_not_recognize">Nepodařilo se rozpoznat</string>
     <string name="speak">Vyhledávací dotaz</string>
-    <string name="open_new_tab">Otevřít novou kartu</string>
-    <string name="close">Zavřít</string>
     <string name="web_perm_request_confirmation">Tato webová stránka chce použít následující prostředky:\n\n%s</string>
     <string name="allow">Povolit</string>
     <string name="deny">Zamítnout</string>
@@ -24,14 +21,10 @@
     <string name="new_bookmark">Nová záložka</string>
     <string name="done">Hotovo</string>
     <string name="title">Název</string>
-    <string name="search_history">Historie vyhledávání</string>
     <string name="engine">Vyhledávač</string>
     <string name="choose_default_search_engine">Vyberte výchozí vyhledávač</string>
-    <string name="set_search_engine_as_homepage">Nastavit vyhledávač jako domovskou stránku</string>
     <string name="save">Uložit</string>
     <string name="search_engine_url_with_query_placeholder_query">URL vyhledávače se zástupným symbolem dotazu [query]</string>
-    <string name="change_search_engine">Změnit vyhledávač</string>
-    <string name="change_user_agent">Změnit User Agent</string>
     <string name="user_agent_string">Řetězec User Agent</string>
     <string name="choose_user_agent_string">Vyberte řetězec User Agent</string>
     <string name="edit_user_agent_string">Upravit řetězec User Agent</string>
@@ -51,18 +44,15 @@
     <string name="history">Historie</string>
     <string name="settings">Nastavení</string>
     <string name="shortcut">Zkratka</string>
-    <string name="toggle_main_menu">Zobrazit/skrýt hlavní nabídku</string>
     <string name="navigate_back">Zpět</string>
     <string name="navigate_home">Přejít na domovskou stránku</string>
     <string name="refresh_page">Obnovit stránku</string>
     <string name="voice_search">Hlasové vyhledávání</string>
-    <string name="zoom_in">Přiblížit</string>
-    <string name="zoom_out">Oddálit</string>
     <string name="not_set">Nenastaveno</string>
     <string name="action">Akce:</string>
     <string name="current_key">Aktuální klávesa:</string>
     <string name="set_key_for_action">Nastavit klávesu pro akci</string>
-    <string name="press_eny_key">Stiskněte libovolnou klávesu...</string>
+    <string name="press_any_key">Stiskněte libovolnou klávesu...</string>
     <string name="shortcut_key_reserved_for_navigation">Tato klávesa je vyhrazena pro navigaci v prohlížeči</string>
     <string name="clear">Vymazat</string>
     <string name="install">Instalovat</string>
@@ -88,9 +78,7 @@
     <string name="new_version_available_s">K dispozici je nová verze: %s</string>
     <string name="web_browser_optimized_for_tvs">Webový prohlížeč optimalizovaný pro televizory</string>
     <string name="warning">Upozornění</string>
-    <string name="unprotected_connection">Nezabezpečené připojení</string>
     <string name="err_webview_can_not_link">Nelze se propojit s komponentou WebView. Zkuste nejprve nainstalovat Android System WebView.</string>
-    <string name="new_tab_title">[NOVÁ KARTA]</string>
     <string name="open_a_new_tab_here">Otevřít zde novou kartu</string>
     <string name="tabs">Karty</string>
     <array name="tabs_options">
@@ -175,7 +163,6 @@
 
     <string name="web_browser_engine_temporary_setting">Jádro webového prohlížeče</string>
     <string name="need_restart_message">Pro použití změn restartujte aplikaci</string>
-    <string name="restart">Restartovat</string>
     <string name="yes">Ano</string>
     <string name="no">Ne</string>
     <string name="site_asks_to_open_unknown_url">Web žádá o otevření neznámé URL</string>

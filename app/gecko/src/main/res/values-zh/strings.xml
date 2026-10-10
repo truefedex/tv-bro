@@ -1,28 +1,27 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
   <string name="clear">清除</string>
-  <string name="repost_confirm_message">为了显示这个页面，TV Bro必须发送将重复此前操作(如搜索或确认订单)的信息。</string>
-  <string name="repost_confirm_title">您确定吗?</string>
+  <string name="repost_confirm_message">为了显示此页面，TV Bro 必须重新发送信息，这将重复之前执行的操作（如搜索或确认订单）。</string>
+  <string name="repost_confirm_title">您确定吗？</string>
   <string name="repost_confirm_resend">重新发送</string>
-  <string name="before_unload_message">此页面询问您是否要离开 —— 您输入的信息可能不会被保存。</string>
-  <string name="before_unload_title">您确定吗?</string>
+  <string name="before_unload_message">此页面要求您确认是否离开——您输入的信息可能不会被保存。</string>
+  <string name="before_unload_title">您确定吗？</string>
   <string name="before_unload_leave_page">离开页面</string>
   <string name="before_unload_stay">留在页面</string>
   <string name="wait">等待</string>
   <string name="stop">停止</string>
   <string name="slow_script">此页面上正在运行的一个脚本拖慢了您的浏览器。</string>
-  <string name="request_storage">允许 "%1$s" 访问您的设备存储吗?</string>
-  <string name="request_storage_access">允许第三方访问来自 "%1$s" 的第一方存储吗?</string>
-  <string name="request_geolocation">允许 "%1$s" 访问您的位置信息吗?</string>
-  <string name="request_notification">允许 "%1$s" 向您发送通知吗?</string>
-  <string name="request_video">允许 "%1$s" 访问相机吗?</string>
-  <string name="request_audio">允许 "%1$s" 访问话筒吗?</string>
-  <string name="request_media">允许 "%1$s" 访问相机与话筒吗？</string>
-  <string name="request_xr">允许 "%1$s" 访问您的 WebXR 显示器吗?</string>
-  <string name="request_autoplay">允许在 "%1$s" 的视频自动播放吗?</string>
-  <string name="request_media_key_system_access">允许 "%1$s" 访问您的媒体解密密钥吗?</string>
+  <string name="request_storage">允许“%1$s”访问您的设备存储吗？</string>
+  <string name="request_storage_access">允许第三方访问“%1$s”的第一方存储吗？</string>
+  <string name="request_geolocation">允许“%1$s”访问您的位置信息吗？</string>
+  <string name="request_notification">允许“%1$s”向您发送通知吗？</string>
+  <string name="request_video">允许“%1$s”访问相机吗？</string>
+  <string name="request_audio">允许“%1$s”访问麦克风吗？</string>
+  <string name="request_media">允许“%1$s”访问相机和麦克风吗？</string>
+  <string name="request_xr">允许“%1$s”访问您的 WebXR 显示设备吗？</string>
+  <string name="request_media_key_system_access">允许“%1$s”访问您的媒体解密密钥吗？</string>
   <string name="media_back_camera">后置相机</string>
   <string name="media_front_camera">前置相机</string>
-  <string name="media_microphone">话筒</string>
+  <string name="media_microphone">麦克风</string>
   <string name="media_other">未知媒体来源</string>
 </resources>

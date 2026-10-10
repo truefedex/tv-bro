@@ -1,100 +1,91 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-  <string name="app_name">TV Bro: Веб Браузер для ТБ</string>
+  <string name="app_name">TV Bro: браузер для ТБ</string>
   <string name="add">Додати</string>
   <string name="allow">Дозволити</string>
   <string name="bookmarks">Закладки</string>
-  <string name="can_not_recognize">Не можу розпізнати</string>
-  <string name="close">Закрити</string>
+  <string name="can_not_recognize">Не вдалося розпізнати</string>
   <string name="deny">Заборонити</string>
-  <string name="download_started">Завантаження розпочато…\nФайл буде збережено по шляху:\n%s</string>
-  <string name="downloading_file">Завантаження файла…</string>
+  <string name="download_started">Завантаження розпочато…\nФайл буде збережено в:\n%s</string>
+  <string name="downloading_file">Завантаження файлу…</string>
   <string name="edit">Редагувати</string>
-  <string name="err_cant_open_file_chooser">Не можу запустити інтерфейс вибора файлу</string>
+  <string name="err_cant_open_file_chooser">Не вдалося відкрити вибір файлів</string>
   <string name="error">Помилка</string>
-  <string name="loading">Завантаження…</string>
-  <string name="location">Локація</string>
+  <string name="location">Місцезнаходження</string>
   <string name="new_bookmark">Нова закладка</string>
   <string name="ok">ОК</string>
   <string name="open_in_new_tab">Відкрити у новій вкладці</string>
-  <string name="open_new_tab">Нова вкладка</string>
-  <string name="speak">Шукати запит</string>
+  <string name="speak">Пошуковий запит</string>
   <string name="title">Назва</string>
-  <string name="url_prompt">Введіть шуканий запит або URL</string>
-  <string name="web_perm_request_confirmation">Ця сторінка запитує наступні ресурси:\n\n%s</string>
-  <string name="search_history">Пошук в історії</string>
-  <string name="search_engine_url_with_query_placeholder_query">URL пошукової системи (використовуйте параметер [query])</string>
+  <string name="url_prompt">Введіть пошуковий запит або URL</string>
+  <string name="web_perm_request_confirmation">Ця вебсторінка хоче використати такі ресурси:\n\n%s</string>
+  <string name="search_engine_url_with_query_placeholder_query">URL пошукової системи з параметром запиту [query]</string>
   <string name="save">Зберегти</string>
   <string name="engine">Пошукова система</string>
-  <string name="change_search_engine">Змінити пошукову систему</string>
-  <string name="change_user_agent">Змінити User Agent</string>
-  <string name="choose_default_search_engine">Виберіть пошукову систему за-замовчанням</string>
-  <string name="cancel">Відміна</string>
-  <string name="cancelled">Відмінено</string>
-  <string name="choose_user_agent_string">Обрати рядок User Agent</string>
+  <string name="choose_default_search_engine">Виберіть типову пошукову систему</string>
+  <string name="cancel">Скасувати</string>
+  <string name="cancelled">Скасовано</string>
+  <string name="choose_user_agent_string">Виберіть рядок User Agent</string>
   <string name="delete">Видалити</string>
   <string name="download">Завантажити</string>
   <string name="edit_user_agent_string">Редагувати рядок User Agent</string>
   <string name="file_not_found">Файл не знайдено</string>
-  <string name="no_app_for_file_type">Не знайдено додатків для відкриття файлів такого типу</string>
+  <string name="no_app_for_file_type">Не знайдено додатків для відкриття файлів цього типу</string>
   <string name="nothing">Нічого</string>
   <string name="user_agent_string">Рядок User Agent</string>
-  <string name="msg_delete_history">Видалити виділені елементи історії?</string>
+  <string name="msg_delete_history">Видалити вибрані елементи історії?</string>
   <string name="action">Дія:</string>
   <string name="clear">Очистити</string>
-  <string name="current_key">Кнопка:</string>
-  <string name="favorites">Вибрані</string>
+  <string name="current_key">Поточна клавіша:</string>
+  <string name="favorites">Вибране</string>
   <string name="history">Історія</string>
-  <string name="navigate_back">Навігація назад</string>
-  <string name="navigate_home">Навігація \"додому\"</string>
+  <string name="navigate_back">Назад</string>
+  <string name="navigate_home">На домашню сторінку</string>
   <string name="no_file_explorer_msg">Схоже, на вашому пристрої немає відповідного файлового менеджера</string>
   <string name="not_set">Не задано</string>
   <string name="open_folder">Відкрити папку</string>
-  <string name="press_eny_key">Натисніть будь-яку клавішу...</string>
+  <string name="press_any_key">Натисніть будь-яку клавішу...</string>
   <string name="shortcut_key_reserved_for_navigation">Ця клавіша зарезервована для навігації в браузері</string>
   <string name="refresh_page">Оновити сторінку</string>
   <string name="set_key_for_action">Встановити клавішу для дії</string>
-  <string name="settings">Налаштунки</string>
-  <string name="shortcut">\"Швидка\" клавіша</string>
-  <string name="shortcuts">\"Швидкі\" клавіші</string>
-  <string name="toggle_main_menu">Відобразити меню</string>
+  <string name="settings">Налаштування</string>
+  <string name="shortcut">Швидка клавіша</string>
+  <string name="shortcuts">Швидкі клавіші</string>
   <string name="voice_search">Голосовий пошук</string>
   <string name="install">Встановити</string>
-  <string name="turn_on_unknown_sources">Будь-ласка, активуйте системну настройку \"Невідомі джерела\"</string>
-  <string name="turn_on_unknown_sources_for_app">Будь-ласка, дозвольте TV Bro встановлювати додатки з невідомих джерел у системних налаштунках</string>
-  <string name="storage_not_mounted">Сховище файлів не знайдено</string>
-  <string name="can_not_create_downloads">Не можу створити директорію для завантажених файлів</string>
+  <string name="turn_on_unknown_sources">Будь ласка, увімкніть системне налаштування «Невідомі джерела»</string>
+  <string name="turn_on_unknown_sources_for_app">Будь ласка, дозвольте TV Bro встановлювати додатки з «Невідомих джерел» у системних налаштуваннях</string>
+  <string name="storage_not_mounted">Сховище не змонтовано</string>
+  <string name="can_not_create_downloads">Не вдалося створити папку для завантажень</string>
   <string name="voice_search_not_found">Додаток голосового пошуку не знайдено</string>
   <string name="msg_delete_history_all">Видалити усю історію?</string>
   <string name="new_version_dialog_title">Доступна нова версія</string>
   <string name="later">Пізніше</string>
   <string name="downloads_notifications_description">Сповіщення про завантаження</string>
   <string name="downloads">Завантаження</string>
-  <string name="auto_check_for_updates">Перевіряти поновлення</string>
-  <string name="main">Головні</string>
-  <string name="unprotected_connection">Незахищене з\'єднання</string>
+  <string name="auto_check_for_updates">Автоматично перевіряти оновлення</string>
+  <string name="main">Основні</string>
   <string name="update">Оновити</string>
-  <string name="update_channel">Канал оновлень</string>
-  <string name="version_and_updates">Версія</string>
+  <string name="update_channel">Канал оновлень:</string>
+  <string name="version_and_updates">Версія та оновлення</string>
   <string name="version_s">Версія: %s</string>
   <string name="build_flavor_s">Варіант збірки: %1$s · %2$s</string>
   <string name="support_the_author">☕ Підтримати автора</string>
   <string name="view_license">📃 Ліцензія</string>
   <string name="privacy_policy">🔒 Політика конфіденційності</string>
   <string name="warning">Увага</string>
-  <string name="web_browser_optimized_for_tvs">Веб-браузер, оптимізований для телевізорів</string>
+  <string name="web_browser_optimized_for_tvs">Браузер, оптимізований для телевізорів</string>
   <string name="new_version_available_s">Доступна нова версія: %s</string>
-  <string name="err_webview_can_not_link">Не можу знайти WebView компонент. Спробуйте спочатку встановити Android System WebView</string>
-  <string name="new_tab_title">[НОВА ВКЛ.]</string>
+  <string name="err_webview_can_not_link">Не вдалося підключитися до компонента WebView. Спробуйте спочатку встановити Android System WebView.</string>
   <string name="open_a_new_tab_here">Відкрити нову вкладку тут</string>
   <string name="tabs">Вкладки</string>
-  <string name="ssl_expired">Термін дії сертифікату минув</string>
+  <string name="ssl_expired">Термін дії сертифіката минув</string>
   <string name="ssl_idmismatch">Невідповідність імені хоста</string>
   <string name="ssl_date_invalid">Дата сертифіката недійсна</string>
   <string name="ssl_invalid">Виникла загальна помилка</string>
-  <string name="back_to_safety">Повернення до безпеки</string>
-  <string name="go_im_aware">Вперед. Я знаю про ризик</string>
-  <string name="connection_isnt_secure">Підключення не захищено</string>
+  <string name="back_to_safety">Назад у безпечне місце</string>
+  <string name="go_im_aware">Продовжити. Я усвідомлюю ризик</string>
+  <string name="connection_isnt_secure">З\'єднання не захищене</string>
   <string name="hostname">Ім\'я хоста:</string>
   <string name="err_desk">Опис помилки:</string>
   <string name="details">Деталі:</string>
@@ -102,33 +93,30 @@
   <string name="find_in_apps_store">Знайти у магазині додатків</string>
   <string name="close_application">Закрити додаток</string>
   <string name="close_tab">Закрити вкладку</string>
-  <string name="navigate_forward">Навігація вперед</string>
-  <string name="zoom_in">Збільшити</string>
-  <string name="zoom_out">Зменшити</string>
-  <string name="toggle_ads_blocking">Увімкнути / вимкнути блокування реклами</string>
+  <string name="navigate_forward">Вперед</string>
+  <string name="toggle_ads_blocking">Увімкнути/вимкнути блокування реклами</string>
   <string name="never">ніколи</string>
   <string name="last_update">Останнє оновлення</string>
   <string name="update_ad_blocker_list">Оновити список блокувальника реклами</string>
-  <string name="need_restart">Потрібен перезапуск програми</string>
+  <string name="need_restart">Потрібен перезапуск додатка</string>
   <string name="theme">Тема</string>
   <array name="themes">
     <item>Системна</item>
-    <item>Біла</item>
+    <item>Світла</item>
     <item>Темна</item>
   </array>
-  <string name="set_search_engine_as_homepage">Встановити пошукову систему як домашню сторінку</string>
-  <string name="toggle_keep_screen_on">Підтримувати екран увімкненим</string>
+  <string name="toggle_keep_screen_on">Не вимикати екран</string>
   <string name="navigate_with_joystick_axes">Навігація осями джойстика</string>
   <string name="cursor_max_speed">Максимальна швидкість віртуального курсора</string>
   <string name="cursor_acceleration">Прискорення віртуального курсора</string>
-  <string name="cursor_physics_percent">%d%% від типових значень</string>
+  <string name="cursor_physics_percent">%d%% від типового значення</string>
   <string name="direct_navigation_mode_title">Режим прямої навігації</string>
-  <string name="direct_navigation_mode_message">Пряма навігація приховує курсор на екрані й передає натискання з пульта чи геймпада безпосередньо на веб-сторінку, щоб сайти з підтримкою ТВ або клавіатурного фокусу могли виділяти посилання та елементи керування.\n\nЩоб вийти з цього режиму: натисніть «Назад» на пульті ТВ або утримуйте кнопку B на геймпаді.\n\nЦей режим найкраще працює з рушієм WebView: WebView підтримує переміщення фокусу сторінкою за допомогою D-pad.</string>
+  <string name="direct_navigation_mode_message">Пряма навігація приховує курсор на екрані й передає натискання з пульта чи геймпада безпосередньо на вебсторінку, щоб сайти з підтримкою фокусу для ТБ або клавіатури могли виділяти посилання та елементи керування.\n\nЩоб вийти з цього режиму: натисніть «Назад» на пульті телевізора або утримуйте кнопку B на геймпаді.\n\nЦей режим найкраще працює з рушієм WebView: WebView підтримує переміщення фокусу сторінкою за допомогою D-pad.</string>
   <string name="incognito_mode">Режим анонімного перегляду</string>
-  <string name="incognito_mode_hint">Тепер ви можете переглядати приватно, і інші люди, які використовують цей пристрій, не бачитимуть вашу активність. TV Bro не зберігатиме вашу історію переглядів, файли cookie та дані сайту, інформацію, введену у форми.\n\nОднак завантаження та закладки будуть збережені. Вашу активність можуть бачити веб-сайти, які ви відвідуєте, ваша організація чи постачальник послуг Інтернету.</string>
+  <string name="incognito_mode_hint">Тепер ви можете переглядати сторінки приватно, і інші люди, які використовують цей пристрій, не бачитимуть ваших дій. TV Bro не зберігатиме історію переглядів, файли cookie, дані сайтів та інформацію, введену у форми.\n\nОднак завантаження та закладки буде збережено. Ваші дії все ще можуть бачити вебсайти, які ви відвідуєте, ваша організація чи інтернет-провайдер.</string>
   <string name="don_t_show_again">Не показувати знову</string>
-  <string name="why_icon_changed">Чому іконка змінилася?</string>
-  <string name="clear_web_cache">Очистити веб-кеш</string>
+  <string name="why_icon_changed">Чому змінився значок?</string>
+  <string name="clear_web_cache">Очистити вебкеш</string>
   <string-array name="tabs_options">
     <item>Відкрити нову вкладку</item>
     <item>Закрити поточну</item>
@@ -141,43 +129,42 @@
   <string name="block_popups">Блокування спливаючих вікон</string>
   <string name="block_popups_s">Блокування спливаючих вікон (%s)</string>
   <string name="popup_dialog_blocked">Спливаюче діалогове вікно заблоковано</string>
-  <string name="new_tab_blocked">Нова вкладка заблокована</string>
+  <string name="new_tab_blocked">Нову вкладку заблоковано</string>
   <string name="copy_to_clipboard">Копіювати в буфер обміну</string>
   <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
   <string name="share_url">Поділитися URL</string>
-  <string name="open_in_external_application">Відкрити у зовнішній програмі</string>
-  <string name="external_app_open_error">Не можу знайти відповідне застосування</string>
+  <string name="open_in_external_application">Відкрити в зовнішньому додатку</string>
+  <string name="external_app_open_error">Не вдалося знайти відповідний додаток</string>
   <string-array name="popup_blocking_level">
     <item>Не блокувати</item>
-    <item>Блок діалогів</item>
-    <item>Також блокувати нові вкладки (ініційовані сценарієм)</item>
+    <item>Блокувати діалоги</item>
+    <item>Також блокувати нові вкладки (відкриті сценаріями)</item>
     <item>Блокувати будь-які нові вікна (максимальне блокування)</item>
   </string-array>
   <string name="home_page">Домашня сторінка</string>
-  <string name="custom_home_page_url">Користувацька URL-адреса домашньої сторінки</string>
+  <string name="custom_home_page_url">URL власної домашньої сторінки</string>
   <string-array name="home_page_modes">
-    <item>Домашня TV Bro</item>
+    <item>Домашня сторінка TV Bro</item>
     <item>Пошукова система</item>
-    <item>Користувацька</item>
-    <item>Пуста</item>
+    <item>Власна</item>
+    <item>Порожня</item>
   </string-array>
   <string-array name="home_page_links_modes">
     <item>Закладки</item>
-    <item>Історія</item>
-    <item>Найбільш відвідувані</item>
+    <item>Нещодавня історія</item>
+    <item>Найчастіше відвідувані</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">"Двигун" веб-браузера</string>
-  <string name="need_restart_message">Перезапустіть програму, щоб застосувати зміни</string>
-  <string name="restart">Перезапустити</string>
+  <string name="web_browser_engine_temporary_setting">Рушій браузера</string>
+  <string name="need_restart_message">Перезапустіть додаток, щоб застосувати зміни</string>
   <string name="yes">Так</string>
-  <string name="no">Немає</string>
+  <string name="no">Ні</string>
   <string name="site_asks_to_open_unknown_url">Сайт просить відкрити невідому URL-адресу</string>
-  <string name="site_asks_to_open_unknown_url_message">Відкрити цю URL-адресу в зовнішній програмі?</string>
-  <string name="err_no_app_to_handle_url">Неможливо знайти відповідну програму для обробки цієї URL-адреси</string>
+  <string name="site_asks_to_open_unknown_url_message">Відкрити цю URL-адресу в зовнішньому додатку?</string>
+  <string name="err_no_app_to_handle_url">Не вдалося знайти відповідний додаток для обробки цієї URL-адреси</string>
   <string name="home_page_links">Посилання на домашній сторінці</string>
-  <string name="settings_engine_change_gecko_msg">GeckoView завантажується дещо повільніше, ніж WebView. Ви хочете продовжити\?</string>
-  <string name="settings_engine_change_webview_msg">WebView оновлюється окремо від основної програми. Ви хочете продовжити\?</string>
+  <string name="settings_engine_change_gecko_msg">GeckoView завантажується дещо повільніше, ніж WebView. Продовжити?</string>
+  <string name="settings_engine_change_webview_msg">WebView оновлюється окремо від основного додатка. Продовжити?</string>
   <string name="http_auth_title">Потрібна автентифікація</string>
   <string name="play_pause">Відтворення/Пауза</string>
   <string name="media_stop">Зупинити медіа</string>

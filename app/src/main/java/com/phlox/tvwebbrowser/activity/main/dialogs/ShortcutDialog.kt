@@ -62,7 +62,7 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
 
     private fun toggleKeyListenState() {
         keyListenMode = !keyListenMode
-        btnSetKey.setText(if (keyListenMode) R.string.press_eny_key else R.string.set_key_for_action)
+        btnSetKey.setText(if (keyListenMode) R.string.press_any_key else R.string.set_key_for_action)
     }
 
     private fun resolveKeyCode(keyCode: Int, event: KeyEvent): Int =

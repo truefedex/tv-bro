@@ -19,7 +19,6 @@
     <string name="request_audio">Sdílet zvuk s „%1$s“</string>
     <string name="request_media">Sdílet video a zvuk s „%1$s“</string>
     <string name="request_xr">Sdílet displeje WebXR s „%1$s“?</string>
-    <string name="request_autoplay">Povolit automatické přehrávání videa na „%1$s“?</string>
     <string name="request_media_key_system_access">Povolit přístup k systému klíčů médií pro „%1$s“?</string>
     <string name="media_back_camera">Zadní fotoaparát</string>
     <string name="media_front_camera">Přední fotoaparát</string>

@@ -3,12 +3,9 @@
     <string name="app_name">TV Bro : navigateur web pour TV</string>
     <string name="error">Erreur</string>
     <string name="ok">OK</string>
-    <string name="loading">Chargement&#8230;</string>
     <string name="url_prompt">Saisissez une recherche ou une URL</string>
     <string name="can_not_recognize">Reconnaissance impossible</string>
     <string name="speak">Recherche</string>
-    <string name="open_new_tab">Ouvrir un nouvel onglet</string>
-    <string name="close">Fermer</string>
     <string name="web_perm_request_confirmation">Cette page web souhaite utiliser les ressources suivantes :\n\n%s</string>
     <string name="allow">Autoriser</string>
     <string name="deny">Refuser</string>
@@ -24,14 +21,10 @@
     <string name="new_bookmark">Nouveau favori</string>
     <string name="done">Terminé</string>
     <string name="title">Titre</string>
-    <string name="search_history">Historique des recherches</string>
     <string name="engine">Moteur de recherche</string>
     <string name="choose_default_search_engine">Choisissez le moteur de recherche par défaut</string>
-    <string name="set_search_engine_as_homepage">Utiliser le moteur de recherche comme page d’accueil</string>
     <string name="save">Enregistrer</string>
     <string name="search_engine_url_with_query_placeholder_query">URL du moteur de recherche avec l’espace réservé [query]</string>
-    <string name="change_search_engine">Changer de moteur de recherche</string>
-    <string name="change_user_agent">Changer l’agent utilisateur</string>
     <string name="user_agent_string">Chaîne d’agent utilisateur</string>
     <string name="choose_user_agent_string">Choisissez la chaîne d’agent utilisateur</string>
     <string name="edit_user_agent_string">Modifier la chaîne d’agent utilisateur</string>
@@ -51,18 +44,15 @@
     <string name="history">Historique</string>
     <string name="settings">Paramètres</string>
     <string name="shortcut">Raccourci</string>
-    <string name="toggle_main_menu">Afficher/masquer le menu principal</string>
     <string name="navigate_back">Page précédente</string>
     <string name="navigate_home">Aller à la page d’accueil</string>
     <string name="refresh_page">Actualiser la page</string>
     <string name="voice_search">Recherche vocale</string>
-    <string name="zoom_in">Zoom avant</string>
-    <string name="zoom_out">Zoom arrière</string>
     <string name="not_set">Non défini</string>
     <string name="action">Action :</string>
     <string name="current_key">Touche actuelle :</string>
     <string name="set_key_for_action">Définir la touche de l’action</string>
-    <string name="press_eny_key">Appuyez sur une touche...</string>
+    <string name="press_any_key">Appuyez sur une touche...</string>
     <string name="shortcut_key_reserved_for_navigation">Cette touche est réservée à la navigation du navigateur</string>
     <string name="clear">Effacer</string>
     <string name="install">Installer</string>
@@ -88,9 +78,7 @@
     <string name="new_version_available_s">Nouvelle version disponible : %s</string>
     <string name="web_browser_optimized_for_tvs">Navigateur web optimisé pour les TV</string>
     <string name="warning">Avertissement</string>
-    <string name="unprotected_connection">Connexion non protégée</string>
     <string name="err_webview_can_not_link">Impossible de se connecter au composant WebView. Essayez d’abord d’installer Android System WebView.</string>
-    <string name="new_tab_title">[NOUVEL ONGLET]</string>
     <string name="open_a_new_tab_here">Ouvrir un nouvel onglet ici</string>
     <string name="tabs">Onglets</string>
     <array name="tabs_options">
@@ -175,7 +163,6 @@
 
     <string name="web_browser_engine_temporary_setting">Moteur du navigateur web</string>
     <string name="need_restart_message">Redémarrez l’application pour appliquer les modifications</string>
-    <string name="restart">Redémarrer</string>
     <string name="yes">Oui</string>
     <string name="no">Non</string>
     <string name="site_asks_to_open_unknown_url">Le site demande à ouvrir une URL inconnue</string>

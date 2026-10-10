@@ -19,7 +19,6 @@
     <string name="request_audio">Κοινοποίηση ήχου στο «%1$s»</string>
     <string name="request_media">Κοινοποίηση βίντεο και ήχου στο «%1$s»</string>
     <string name="request_xr">Κοινοποίηση οθονών WebXR στο «%1$s»;</string>
-    <string name="request_autoplay">Να επιτρέπεται η αυτόματη αναπαραγωγή βίντεο στο «%1$s»;</string>
     <string name="request_media_key_system_access">Να επιτρέπεται η πρόσβαση στο σύστημα κλειδιών πολυμέσων για το «%1$s»;</string>
     <string name="media_back_camera">Πίσω κάμερα</string>
     <string name="media_front_camera">Μπροστινή κάμερα</string>
