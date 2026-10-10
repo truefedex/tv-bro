@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TV Bro : navigateur web pour TV</string>
+    <string name="error">Erreur</string>
+    <string name="ok">OK</string>
+    <string name="loading">Chargement&#8230;</string>
+    <string name="url_prompt">Saisissez une recherche ou une URL</string>
+    <string name="can_not_recognize">Reconnaissance impossible</string>
+    <string name="speak">Recherche</string>
+    <string name="open_new_tab">Ouvrir un nouvel onglet</string>
+    <string name="close">Fermer</string>
+    <string name="web_perm_request_confirmation">Cette page web souhaite utiliser les ressources suivantes :\n\n%s</string>
+    <string name="allow">Autoriser</string>
+    <string name="deny">Refuser</string>
+    <string name="location">Position</string>
+    <string name="open_in_new_tab">Ouvrir dans un nouvel onglet</string>
+    <string name="download_started">Téléchargement commencé…\nLe fichier sera enregistré dans :\n%s</string>
+    <string name="downloading_file">Téléchargement du fichier…</string>
+    <string name="err_cant_open_file_chooser">Impossible d’ouvrir le sélecteur de fichiers</string>
+    <string name="bookmarks">Favoris</string>
+    <string name="add">Ajouter</string>
+    <string name="edit">Modifier</string>
+    <string name="no_bookmarks_yet">Aucun favori pour l’instant</string>
+    <string name="new_bookmark">Nouveau favori</string>
+    <string name="done">Terminé</string>
+    <string name="title">Titre</string>
+    <string name="search_history">Historique des recherches</string>
+    <string name="engine">Moteur de recherche</string>
+    <string name="choose_default_search_engine">Choisissez le moteur de recherche par défaut</string>
+    <string name="set_search_engine_as_homepage">Utiliser le moteur de recherche comme page d’accueil</string>
+    <string name="save">Enregistrer</string>
+    <string name="search_engine_url_with_query_placeholder_query">URL du moteur de recherche avec l’espace réservé [query]</string>
+    <string name="change_search_engine">Changer de moteur de recherche</string>
+    <string name="change_user_agent">Changer l’agent utilisateur</string>
+    <string name="user_agent_string">Chaîne d’agent utilisateur</string>
+    <string name="choose_user_agent_string">Choisissez la chaîne d’agent utilisateur</string>
+    <string name="edit_user_agent_string">Modifier la chaîne d’agent utilisateur</string>
+    <string name="nothing">Rien</string>
+    <string name="cancelled">Annulé</string>
+    <string name="download">Télécharger</string>
+    <string name="file_not_found">Fichier introuvable</string>
+    <string name="no_app_for_file_type">Aucune application trouvée pour ouvrir ce type de fichier</string>
+    <string name="delete">Supprimer</string>
+    <string name="cancel">Annuler</string>
+    <string name="msg_delete_history">Supprimer les éléments sélectionnés de l’historique ?</string>
+    <string name="msg_delete_history_all">Supprimer tout l’historique ?</string>
+    <string name="open_folder">Ouvrir le dossier</string>
+    <string name="no_file_explorer_msg">Il semble qu’aucun gestionnaire de fichiers adapté ne soit installé sur votre appareil</string>
+    <string name="shortcuts">Raccourcis</string>
+    <string name="favorites">Favoris</string>
+    <string name="history">Historique</string>
+    <string name="settings">Paramètres</string>
+    <string name="shortcut">Raccourci</string>
+    <string name="toggle_main_menu">Afficher/masquer le menu principal</string>
+    <string name="navigate_back">Page précédente</string>
+    <string name="navigate_home">Aller à la page d’accueil</string>
+    <string name="refresh_page">Actualiser la page</string>
+    <string name="voice_search">Recherche vocale</string>
+    <string name="zoom_in">Zoom avant</string>
+    <string name="zoom_out">Zoom arrière</string>
+    <string name="not_set">Non défini</string>
+    <string name="action">Action :</string>
+    <string name="current_key">Touche actuelle :</string>
+    <string name="set_key_for_action">Définir la touche de l’action</string>
+    <string name="press_eny_key">Appuyez sur une touche...</string>
+    <string name="shortcut_key_reserved_for_navigation">Cette touche est réservée à la navigation du navigateur</string>
+    <string name="clear">Effacer</string>
+    <string name="install">Installer</string>
+    <string name="turn_on_unknown_sources">Veuillez activer le paramètre système « Sources inconnues »</string>
+    <string name="turn_on_unknown_sources_for_app">Veuillez autoriser TV Bro à installer des applications de « Sources inconnues » dans les paramètres système</string>
+    <string name="storage_not_mounted">Stockage non monté</string>
+    <string name="can_not_create_downloads">Impossible de créer le dossier de téléchargements</string>
+    <string name="voice_search_not_found">Recherche vocale introuvable</string>
+    <string name="new_version_dialog_title">Nouvelle version disponible</string>
+    <string name="later">Plus tard</string>
+    <string name="downloads">Téléchargements</string>
+    <string name="downloads_notifications_description">Notifications sur l’état des téléchargements</string>
+    <string name="main">Général</string>
+    <string name="version_and_updates">Version et mises à jour</string>
+    <string name="version_s">Version : %s</string>
+    <string name="build_flavor_s">Variante de compilation : %1$s · %2$s</string>
+    <string name="support_the_author">☕ Soutenir l’auteur</string>
+    <string name="view_license">📃 Licence</string>
+    <string name="privacy_policy">🔒 Politique de confidentialité</string>
+    <string name="update_channel">Canal de mise à jour :</string>
+    <string name="auto_check_for_updates">Rechercher automatiquement les mises à jour</string>
+    <string name="update">Mettre à jour</string>
+    <string name="new_version_available_s">Nouvelle version disponible : %s</string>
+    <string name="web_browser_optimized_for_tvs">Navigateur web optimisé pour les TV</string>
+    <string name="warning">Avertissement</string>
+    <string name="unprotected_connection">Connexion non protégée</string>
+    <string name="err_webview_can_not_link">Impossible de se connecter au composant WebView. Essayez d’abord d’installer Android System WebView.</string>
+    <string name="new_tab_title">[NOUVEL ONGLET]</string>
+    <string name="open_a_new_tab_here">Ouvrir un nouvel onglet ici</string>
+    <string name="tabs">Onglets</string>
+    <array name="tabs_options">
+        <item>Ouvrir un nouvel onglet</item>
+        <item>Fermer l’onglet actuel</item>
+        <item>Tout fermer</item>
+        <item>Déplacer à gauche</item>
+        <item>Déplacer à droite</item>
+    </array>
+    <string name="ssl_expired">Le certificat a expiré</string>
+    <string name="ssl_idmismatch">Le nom d’hôte ne correspond pas</string>
+    <string name="ssl_date_invalid">La date du certificat n’est pas valide</string>
+    <string name="ssl_invalid">Une erreur générique s’est produite</string>
+    <string name="back_to_safety">Retour en lieu sûr</string>
+    <string name="go_im_aware">Continuer. Je suis conscient du risque</string>
+    <string name="connection_isnt_secure">La connexion n’est pas sécurisée</string>
+    <string name="hostname">Nom d’hôte :</string>
+    <string name="err_desk">Description de l’erreur :</string>
+    <string name="details">Détails :</string>
+    <string name="exit">Quitter</string>
+    <string name="find_in_apps_store">Rechercher dans la boutique d’applications</string>
+    <string name="close_application">Fermer l’application</string>
+    <string name="close_tab">Fermer l’onglet</string>
+    <string name="navigate_forward">Page suivante</string>
+    <string name="toggle_ads_blocking">Activer/désactiver le blocage des publicités</string>
+    <string name="never">jamais</string>
+    <string name="last_update">Dernière mise à jour</string>
+    <string name="update_ad_blocker_list">Mettre à jour la liste du bloqueur de publicités</string>
+    <string name="toggle_keep_screen_on">Garder l’écran allumé</string>
+    <string name="navigate_with_joystick_axes">Naviguer avec les axes du joystick</string>
+    <string name="cursor_max_speed">Vitesse maximale du curseur virtuel</string>
+    <string name="cursor_acceleration">Accélération du curseur virtuel</string>
+    <string name="cursor_physics_percent">%d %% de la valeur par défaut</string>
+    <string name="direct_navigation_mode_title">Mode de navigation directe</string>
+    <string name="direct_navigation_mode_message">La navigation directe masque le curseur à l’écran et envoie les touches de votre télécommande ou de votre manette de jeu directement à la page web, afin que les sites compatibles avec le focus TV ou clavier puissent mettre en évidence les liens et les commandes.\n\nPour quitter ce mode : appuyez sur Retour sur la télécommande de votre TV, ou maintenez enfoncé le bouton B de la manette de jeu.\n\nCe mode fonctionne mieux avec le moteur WebView : WebView permet de déplacer le focus dans la page avec le pavé directionnel.</string>
+    <string name="need_restart">Redémarrage de l’application nécessaire</string>
+    <string name="theme">Thème</string>
+    <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Assombrissement algorithmique des pages web (thème sombre, WebView uniquement, redémarrage nécessaire)</string>
+    <string name="allow_autoplay_media">Autoriser la lecture automatique des médias</string>
+    <string name="web_engine_debug">Débogage du moteur web (redémarrage nécessaire)</string>
+    <string name="web_engine_debug_warning_message">L’activation du débogage du moteur web peut exposer le contenu des pages, les cookies et des données de session sensibles à toute personne ayant un accès de débogage à l’appareil. Ne l’activez que sur des appareils de confiance, pour le dépannage.</string>
+    <array name="themes">
+        <item>Système</item>
+        <item>Clair</item>
+        <item>Sombre</item>
+    </array>
+    <string name="incognito_mode">Mode navigation privée</string>
+    <string name="incognito_mode_hint">Vous pouvez maintenant naviguer en privé : les autres personnes qui utilisent cet appareil ne verront pas votre activité. TV Bro n’enregistrera pas votre historique de navigation, les cookies et données de sites, ni les informations saisies dans les formulaires.\n\nToutefois, les téléchargements et les favoris seront enregistrés. Votre activité peut rester visible par les sites web que vous consultez, votre organisation ou votre fournisseur d’accès à Internet.</string>
+    <string name="don_t_show_again">Ne plus afficher</string>
+    <string name="why_icon_changed">Pourquoi l’icône a-t-elle changé ?</string>
+    <string name="clear_web_cache">Vider le cache web</string>
+    <string name="block_popups">Blocage des fenêtres pop-up</string>
+    <string name="block_popups_s">Blocage des fenêtres pop-up (%s)</string>
+    <string name="popup_dialog_blocked">Boîte de dialogue pop-up bloquée</string>
+    <string name="new_tab_blocked">Nouvel onglet bloqué</string>
+    <array name="popup_blocking_level">
+        <item>Ne pas bloquer</item>
+        <item>Bloquer les boîtes de dialogue</item>
+        <item>Bloquer aussi les nouveaux onglets (ouverts par script)</item>
+        <item>Bloquer toute nouvelle fenêtre (blocage maximal)</item>
+    </array>
+    <string name="copy_to_clipboard">Copier dans le presse-papiers</string>
+    <string name="copied_to_clipboard">Copié dans le presse-papiers</string>
+    <string name="share_url">Partager l’URL</string>
+    <string name="open_in_external_application">Ouvrir dans une application externe</string>
+    <string name="external_app_open_error">Aucune application adaptée trouvée</string>
+    <string name="home_page">Page d’accueil</string>
+    <string name="custom_home_page_url">URL de page d’accueil personnalisée</string>
+    <string name="home_page_links">Liens de la page d’accueil</string>
+    <array name="home_page_modes">
+        <item>Accueil TV Bro</item>
+        <item>Moteur de recherche</item>
+        <item>Personnalisée</item>
+        <item>Page vierge</item>
+    </array>
+
+    <array name="home_page_links_modes">
+        <item>Favoris</item>
+        <item>Historique récent</item>
+        <item>Les plus visités</item>
+    </array>
+
+    <string name="web_browser_engine_temporary_setting">Moteur du navigateur web</string>
+    <string name="need_restart_message">Redémarrez l’application pour appliquer les modifications</string>
+    <string name="restart">Redémarrer</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+    <string name="site_asks_to_open_unknown_url">Le site demande à ouvrir une URL inconnue</string>
+    <string name="site_asks_to_open_unknown_url_message">Voulez-vous ouvrir cette URL dans une application externe ?</string>
+    <string name="err_no_app_to_handle_url">Aucune application adaptée trouvée pour ouvrir cette URL</string>
+    <string name="settings_engine_change_gecko_msg">GeckoView charge un peu plus lentement que WebView. Voulez-vous continuer ?</string>
+    <string name="settings_engine_change_webview_msg">WebView est mis à jour indépendamment de l’application principale. Voulez-vous continuer ?</string>
+    <string name="http_auth_title">Authentification requise</string>
+    <string name="play_pause">Lecture/Pause</string>
+    <string name="media_stop">Arrêter le média</string>
+    <string name="media_rewind">Retour rapide</string>
+    <string name="media_fast_forward">Avance rapide</string>
+    <string name="long_press">Appui long</string>
+    <string name="local_network_access_denied">Accès au réseau local refusé</string>
+</resources>
