@@ -23,3 +23,4 @@ rootProject.name = "tv-bro"
 include(":app")
 include(":app:common")
 include(":app:gecko")
+include(":app:player")

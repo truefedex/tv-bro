@@ -67,9 +67,9 @@ android {
             //now auto-update violates Google Play policies
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
         }
-        create("foss") {
+        create("p403n1x87") {
             dimension = "appstore"
-            applicationIdSuffix = ".foss"
+            applicationIdSuffix = ".p403n1x87"
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
         }
 
@@ -96,6 +96,7 @@ android {
 
 dependencies {
     implementation(project(":app:common"))
+    implementation(project(":app:player"))
     "geckoIncludedImplementation"(project(":app:gecko"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="native_playback_unavailable">Native playback is unavailable, continuing in the browser</string>
     <string name="clear">Clear</string>
     <string name="repost_confirm_message">To display this page, TV Bro must send information that will repeat any action (such as a search or order confirmation) that was performed earlier.</string>
     <string name="repost_confirm_title">Are you sure?</string>

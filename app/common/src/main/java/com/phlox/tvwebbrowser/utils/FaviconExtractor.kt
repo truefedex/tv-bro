@@ -4,6 +4,8 @@ import android.util.JsonReader
 import android.webkit.MimeTypeMap
 import java.io.BufferedReader
 import java.io.Reader
+import java.io.StringReader
+import java.net.HttpURLConnection
 import java.net.URL
 import java.util.regex.Pattern
 
@@ -14,9 +16,11 @@ class FaviconExtractor {
         const val DEFAULT_ICON_TYPE = "image/x-icon"
         const val DEFAULT_ICON_SIZE = 16
         const val DEFAULT_ICON_SIZE_STRING = "${DEFAULT_ICON_SIZE}x$DEFAULT_ICON_SIZE"
+        const val MAX_METADATA_CHARS = 64 * 1024
+        private const val NETWORK_TIMEOUT_MS = 5000
     }
 
-    private val headerClosingTagsPattern: Pattern = Pattern.compile("<\\s*(?:body|/\\s*head)(?:\\s+|>)")
+    private val headerClosingTagsPattern: Pattern = Pattern.compile("<\\s*(?:body|/\\s*head)(?:\\s+|>)", Pattern.CASE_INSENSITIVE)
     private val tagsPattern: Pattern = Pattern.compile("<(?!!)(?!/)\\s*([a-zA-Z\\d]+)((?s:.)*?)>")
     private val attributePattern: Pattern = Pattern.compile("(\\S+)=\\s*['\"]?([^>\"'\\s]+)['\"]?")
 
@@ -73,12 +77,34 @@ class FaviconExtractor {
      * @throws java.io.IOException
      */
     fun extractFavIconsFromURL(url: URL): ArrayList<IconInfo> {
-        val (result, manifestHref) = url.openConnection().inputStream.bufferedReader().use { extractFavIconsFromHTML(url, it) }
+        val connection = url.openConnection().apply {
+            connectTimeout = NETWORK_TIMEOUT_MS
+            readTimeout = NETWORK_TIMEOUT_MS
+        }
+        val (result, manifestHref) = try {
+            val type = connection.contentType?.substringBefore(';')?.trim()?.lowercase()
+            // Direct media URLs are also passed here. Never download a movie looking for HTML icons.
+            if (type != null && type !in setOf("text/html", "application/xhtml+xml")) {
+                return arrayListOf(IconInfo(DEFAULT_ICON_SRC, DEFAULT_ICON_TYPE, null, DEFAULT_ICON_SIZE_STRING, url))
+            }
+            connection.inputStream.bufferedReader().use { extractFavIconsFromHTML(url, it) }
+        } finally {
+            (connection as? HttpURLConnection)?.disconnect()
+        }
         if (manifestHref != null) {
             val manifestURL = URL(url, manifestHref)
             try {
-                val manifestIcons = manifestURL.openConnection().inputStream.bufferedReader()
-                    .use { extractFavIconsFromWebManifest(manifestURL, it) }
+                val manifestConnection = manifestURL.openConnection().apply {
+                    connectTimeout = NETWORK_TIMEOUT_MS
+                    readTimeout = NETWORK_TIMEOUT_MS
+                }
+                val manifestIcons = try {
+                    manifestConnection.inputStream.bufferedReader().use {
+                        extractFavIconsFromWebManifest(manifestURL, StringReader(readMetadata(it, false)))
+                    }
+                } finally {
+                    (manifestConnection as? HttpURLConnection)?.disconnect()
+                }
                 result.addAll(manifestIcons)
             } catch (e: Exception) {
                 //shit happens, but I don't think it's too important here
@@ -125,6 +151,7 @@ class FaviconExtractor {
                                 "type" -> {
                                     type = jsonReader.nextString()
                                 }
+                                else -> jsonReader.skipValue()
                             }
                         }
                         jsonReader.endObject()
@@ -152,23 +179,9 @@ class FaviconExtractor {
         val iconInfos = ArrayList<IconInfo>()
         var manifestHref: String? = null
 
-        val headerPartOfHTML = StringBuilder()
-        var line = html.readLine()
-        try {
-            while (line != null) {
-                headerPartOfHTML.appendLine(line)
-                val matcher = headerClosingTagsPattern.matcher(line)
-                if (matcher.find()) {
-                    break
-                }
-                line = html.readLine()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return Pair(iconInfos, null)
-        }
+        val headerPartOfHTML = readMetadata(html, true)
 
-        val matcher = tagsPattern.matcher(headerPartOfHTML.toString())
+        val matcher = tagsPattern.matcher(headerPartOfHTML)
         while (matcher.find()) {
             val tagName = matcher.group(1) ?: continue
             //println("tag name: $tagName")
@@ -216,5 +229,21 @@ class FaviconExtractor {
 
 
         return Pair(iconInfos, manifestHref)
+    }
+
+    private fun readMetadata(reader: Reader, stopAtHeader: Boolean): String {
+        val buffer = CharArray(4096)
+        val result = StringBuilder()
+        try {
+            while (result.length < MAX_METADATA_CHARS) {
+                val read = reader.read(buffer)
+                if (read < 0) break
+                result.append(buffer, 0, read)
+                if (stopAtHeader && headerClosingTagsPattern.matcher(result).find()) break
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return if (result.length > MAX_METADATA_CHARS) result.substring(0, MAX_METADATA_CHARS) else result.toString()
     }
 }

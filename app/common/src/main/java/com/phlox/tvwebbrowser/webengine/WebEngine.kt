@@ -49,6 +49,7 @@ interface WebEngine {
     fun stopPlayback()
     fun rewind()
     fun fastForward()
+    fun castCurrentVideo()
     fun setVirtualCursorMode(enabled: Boolean)
     fun isVirtualCursorMode(): Boolean
     fun getCursorDrawerDelegate(): CursorDrawerDelegate?

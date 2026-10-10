@@ -108,6 +108,19 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
             mimetype, Download.OperationAfterDownload.NOP, base64BlobData)
     }
 
+    /**
+     * Called from the injected script when the "play video in a player" shortcut
+     * is pressed. domUrl is the source read from the page's <video> tag (empty if
+     * there is none). It is evaluated together with the streams sniffed at the
+     * network layer and the most suitable one is picked automatically.
+     */
+    @JavascriptInterface
+    fun castMedia(domUrl: String) {
+        val callback = webEngine.callback ?: return
+        val webView = webEngine.getView() as? WebViewEx ?: return
+        callback.getActivity().runOnUiThread { webView.castMedia(domUrl) }
+    }
+
     @JavascriptInterface
     fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
         if (!isHomePage()) return

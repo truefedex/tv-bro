@@ -169,6 +169,10 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         webView?.evaluateJavascript("tvBroFastForward()", null)
     }
 
+    override fun castCurrentVideo() {
+        webView?.evaluateJavascript("tvBroCastCurrentVideo()", null)
+    }
+
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
         return webView?.renderThumbnail(bitmap)
     }

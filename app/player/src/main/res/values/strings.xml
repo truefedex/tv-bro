@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="loading">Loading…</string>
+    <string name="player_error">Playback error: %1$s</string>
+    <string name="player_subtitles">Subtitles</string>
+    <string name="player_audio_track">Audio track</string>
+    <string name="player_video_scale">Video scaling</string>
+    <string name="player_track_off">Off</string>
+    <string name="player_no_tracks">This stream has no such track</string>
+    <string name="player_scale_fit">Scaling: fit</string>
+    <string name="player_scale_zoom">Scaling: zoom</string>
+    <string name="player_scale_fill">Scaling: stretch</string>
+</resources>

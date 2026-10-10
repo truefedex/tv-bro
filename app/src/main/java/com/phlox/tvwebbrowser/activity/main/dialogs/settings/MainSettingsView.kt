@@ -56,6 +56,8 @@ class MainSettingsView @JvmOverloads constructor(
 
         initAllowAutoplayMediaUI()
 
+        initAutoNativeFullscreenUI()
+
         initWebEngineDebugUI()
 
         initKeepScreenOnUI()
@@ -167,6 +169,13 @@ class MainSettingsView @JvmOverloads constructor(
         vb.scAllowAutoplayMedia.isChecked = config.allowAutoplayMedia
         vb.scAllowAutoplayMedia.setOnCheckedChangeListener { _, isChecked ->
             config.allowAutoplayMedia = isChecked
+        }
+    }
+
+    private fun initAutoNativeFullscreenUI() {
+        vb.scAutoNativeFullscreen.isChecked = config.autoNativeFullscreen
+        vb.scAutoNativeFullscreen.setOnCheckedChangeListener { _, isChecked ->
+            config.autoNativeFullscreen = isChecked
         }
     }
 

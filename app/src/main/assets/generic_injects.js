@@ -66,6 +66,24 @@ window.tvBroFastForward = function() {
     }
 }
 
+window.tvBroCastCurrentVideo = function() {
+    var v = document.querySelector('video');
+    var url = '';
+    if (v) {
+        url = v.currentSrc || v.src || '';
+        if (!url || url.indexOf('blob:') === 0) {
+            var s = v.querySelector('source');
+            if (s && s.src) url = s.src;
+        }
+        try { v.pause(); } catch (e) {}
+    }
+    if (url && url.indexOf('blob:') === 0) { url = ''; }
+    // Pass the <video> source to the app. It is combined there with the streams
+    // sniffed at the network layer (needed for cross-origin iframe players,
+    // whose DOM is not reachable from here). blob: URLs are useless, send empty.
+    TVBro.castMedia(url || '');
+}
+
 // context menu support
 window.addEventListener("touchstart", function(e) {
     window.TVBRO_activeElement = e.target;
