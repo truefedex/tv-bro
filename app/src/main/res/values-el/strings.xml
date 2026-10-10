@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TV Bro: Πρόγραμμα περιήγησης για τηλεόραση</string>
+    <string name="error">Σφάλμα</string>
+    <string name="ok">OK</string>
+    <string name="loading">Φόρτωση&#8230;</string>
+    <string name="url_prompt">Εισαγάγετε κείμενο αναζήτησης ή URL</string>
+    <string name="can_not_recognize">Δεν ήταν δυνατή η αναγνώριση</string>
+    <string name="speak">Αναζήτηση</string>
+    <string name="open_new_tab">Άνοιγμα νέας καρτέλας</string>
+    <string name="close">Κλείσιμο</string>
+    <string name="web_perm_request_confirmation">Αυτή η ιστοσελίδα θέλει να χρησιμοποιήσει τους παρακάτω πόρους:\n\n%s</string>
+    <string name="allow">Να επιτρέπεται</string>
+    <string name="deny">Άρνηση</string>
+    <string name="location">Τοποθεσία</string>
+    <string name="open_in_new_tab">Άνοιγμα σε νέα καρτέλα</string>
+    <string name="download_started">Η λήψη ξεκίνησε…\nΤο αρχείο θα αποθηκευτεί στο:\n%s</string>
+    <string name="downloading_file">Λήψη αρχείου…</string>
+    <string name="err_cant_open_file_chooser">Δεν είναι δυνατό το άνοιγμα της επιλογής αρχείων</string>
+    <string name="bookmarks">Σελιδοδείκτες</string>
+    <string name="add">Προσθήκη</string>
+    <string name="edit">Επεξεργασία</string>
+    <string name="no_bookmarks_yet">Δεν υπάρχουν ακόμη σελιδοδείκτες</string>
+    <string name="new_bookmark">Νέος σελιδοδείκτης</string>
+    <string name="done">Τέλος</string>
+    <string name="title">Τίτλος</string>
+    <string name="search_history">Ιστορικό αναζητήσεων</string>
+    <string name="engine">Μηχανή αναζήτησης</string>
+    <string name="choose_default_search_engine">Επιλέξτε την προεπιλεγμένη μηχανή αναζήτησης</string>
+    <string name="set_search_engine_as_homepage">Ορισμός της μηχανής αναζήτησης ως αρχικής σελίδας</string>
+    <string name="save">Αποθήκευση</string>
+    <string name="search_engine_url_with_query_placeholder_query">URL μηχανής αναζήτησης με το σύμβολο θέσης ερωτήματος [query]</string>
+    <string name="change_search_engine">Αλλαγή μηχανής αναζήτησης</string>
+    <string name="change_user_agent">Αλλαγή User Agent</string>
+    <string name="user_agent_string">Συμβολοσειρά User Agent</string>
+    <string name="choose_user_agent_string">Επιλέξτε συμβολοσειρά User Agent</string>
+    <string name="edit_user_agent_string">Επεξεργασία συμβολοσειράς User Agent</string>
+    <string name="nothing">Τίποτα</string>
+    <string name="cancelled">Ακυρώθηκε</string>
+    <string name="download">Λήψη</string>
+    <string name="file_not_found">Το αρχείο δεν βρέθηκε</string>
+    <string name="no_app_for_file_type">Δεν βρέθηκαν εφαρμογές για το άνοιγμα αυτού του τύπου αρχείου</string>
+    <string name="delete">Διαγραφή</string>
+    <string name="cancel">Ακύρωση</string>
+    <string name="msg_delete_history">Διαγραφή των επιλεγμένων στοιχείων ιστορικού;</string>
+    <string name="msg_delete_history_all">Διαγραφή όλου του ιστορικού;</string>
+    <string name="open_folder">Άνοιγμα φακέλου</string>
+    <string name="no_file_explorer_msg">Φαίνεται ότι δεν είναι εγκατεστημένη κατάλληλη εφαρμογή διαχείρισης αρχείων στη συσκευή σας</string>
+    <string name="shortcuts">Συντομεύσεις</string>
+    <string name="favorites">Αγαπημένα</string>
+    <string name="history">Ιστορικό</string>
+    <string name="settings">Ρυθμίσεις</string>
+    <string name="shortcut">Συντόμευση</string>
+    <string name="toggle_main_menu">Εμφάνιση/απόκρυψη κύριου μενού</string>
+    <string name="navigate_back">Πίσω</string>
+    <string name="navigate_home">Μετάβαση στην αρχική σελίδα</string>
+    <string name="refresh_page">Ανανέωση σελίδας</string>
+    <string name="voice_search">Φωνητική αναζήτηση</string>
+    <string name="zoom_in">Μεγέθυνση</string>
+    <string name="zoom_out">Σμίκρυνση</string>
+    <string name="not_set">Δεν έχει οριστεί</string>
+    <string name="action">Ενέργεια:</string>
+    <string name="current_key">Τρέχον πλήκτρο:</string>
+    <string name="set_key_for_action">Ορισμός πλήκτρου για την ενέργεια</string>
+    <string name="press_eny_key">Πατήστε οποιοδήποτε πλήκτρο...</string>
+    <string name="shortcut_key_reserved_for_navigation">Αυτό το πλήκτρο είναι δεσμευμένο για την πλοήγηση του προγράμματος περιήγησης</string>
+    <string name="clear">Εκκαθάριση</string>
+    <string name="install">Εγκατάσταση</string>
+    <string name="turn_on_unknown_sources">Ενεργοποιήστε τη ρύθμιση συστήματος «Άγνωστες πηγές»</string>
+    <string name="turn_on_unknown_sources_for_app">Επιτρέψτε στο TV Bro να εγκαθιστά εφαρμογές από «Άγνωστες πηγές» στις ρυθμίσεις συστήματος</string>
+    <string name="storage_not_mounted">Ο αποθηκευτικός χώρος δεν είναι προσαρτημένος</string>
+    <string name="can_not_create_downloads">Δεν είναι δυνατή η δημιουργία φακέλου λήψεων</string>
+    <string name="voice_search_not_found">Η φωνητική αναζήτηση δεν βρέθηκε</string>
+    <string name="new_version_dialog_title">Υπάρχει διαθέσιμη νέα έκδοση</string>
+    <string name="later">Αργότερα</string>
+    <string name="downloads">Λήψεις</string>
+    <string name="downloads_notifications_description">Ειδοποιήσεις σχετικά με την κατάσταση των λήψεων</string>
+    <string name="main">Γενικά</string>
+    <string name="version_and_updates">Έκδοση και ενημερώσεις</string>
+    <string name="version_s">Έκδοση: %s</string>
+    <string name="build_flavor_s">Παραλλαγή έκδοσης: %1$s · %2$s</string>
+    <string name="support_the_author">☕ Υποστηρίξτε τον δημιουργό</string>
+    <string name="view_license">📃 Άδεια χρήσης</string>
+    <string name="privacy_policy">🔒 Πολιτική απορρήτου</string>
+    <string name="update_channel">Κανάλι ενημερώσεων:</string>
+    <string name="auto_check_for_updates">Αυτόματος έλεγχος για ενημερώσεις</string>
+    <string name="update">Ενημέρωση</string>
+    <string name="new_version_available_s">Νέα διαθέσιμη έκδοση: %s</string>
+    <string name="web_browser_optimized_for_tvs">Πρόγραμμα περιήγησης βελτιστοποιημένο για τηλεοράσεις</string>
+    <string name="warning">Προειδοποίηση</string>
+    <string name="unprotected_connection">Μη προστατευμένη σύνδεση</string>
+    <string name="err_webview_can_not_link">Δεν είναι δυνατή η σύνδεση με το στοιχείο WebView. Δοκιμάστε πρώτα να εγκαταστήσετε το Android System WebView.</string>
+    <string name="new_tab_title">[ΝΕΑ ΚΑΡΤΕΛΑ]</string>
+    <string name="open_a_new_tab_here">Άνοιγμα νέας καρτέλας εδώ</string>
+    <string name="tabs">Καρτέλες</string>
+    <array name="tabs_options">
+        <item>Άνοιγμα νέας καρτέλας</item>
+        <item>Κλείσιμο τρέχουσας</item>
+        <item>Κλείσιμο όλων</item>
+        <item>Μετακίνηση αριστερά</item>
+        <item>Μετακίνηση δεξιά</item>
+    </array>
+    <string name="ssl_expired">Το πιστοποιητικό έχει λήξει</string>
+    <string name="ssl_idmismatch">Το όνομα κεντρικού υπολογιστή δεν ταιριάζει</string>
+    <string name="ssl_date_invalid">Η ημερομηνία του πιστοποιητικού δεν είναι έγκυρη</string>
+    <string name="ssl_invalid">Παρουσιάστηκε γενικό σφάλμα</string>
+    <string name="back_to_safety">Επιστροφή σε ασφάλεια</string>
+    <string name="go_im_aware">Συνέχεια. Γνωρίζω τον κίνδυνο</string>
+    <string name="connection_isnt_secure">Η σύνδεση δεν είναι ασφαλής</string>
+    <string name="hostname">Όνομα κεντρικού υπολογιστή:</string>
+    <string name="err_desk">Περιγραφή σφάλματος:</string>
+    <string name="details">Λεπτομέρειες:</string>
+    <string name="exit">Έξοδος</string>
+    <string name="find_in_apps_store">Αναζήτηση στο κατάστημα εφαρμογών</string>
+    <string name="close_application">Κλείσιμο εφαρμογής</string>
+    <string name="close_tab">Κλείσιμο καρτέλας</string>
+    <string name="navigate_forward">Εμπρός</string>
+    <string name="toggle_ads_blocking">Ενεργοποίηση/απενεργοποίηση αποκλεισμού διαφημίσεων</string>
+    <string name="never">ποτέ</string>
+    <string name="last_update">Τελευταία ενημέρωση</string>
+    <string name="update_ad_blocker_list">Ενημέρωση λίστας αποκλεισμού διαφημίσεων</string>
+    <string name="toggle_keep_screen_on">Η οθόνη να παραμένει ενεργή</string>
+    <string name="navigate_with_joystick_axes">Πλοήγηση με τους άξονες του joystick</string>
+    <string name="cursor_max_speed">Μέγιστη ταχύτητα εικονικού δρομέα</string>
+    <string name="cursor_acceleration">Επιτάχυνση εικονικού δρομέα</string>
+    <string name="cursor_physics_percent">%d%% της προεπιλογής</string>
+    <string name="direct_navigation_mode_title">Λειτουργία άμεσης πλοήγησης</string>
+    <string name="direct_navigation_mode_message">Η άμεση πλοήγηση κρύβει τον δρομέα από την οθόνη και στέλνει τα πλήκτρα του τηλεχειριστηρίου ή του χειριστηρίου παιχνιδιών απευθείας στην ιστοσελίδα, ώστε οι ιστότοποι που υποστηρίζουν εστίαση για τηλεόραση ή πληκτρολόγιο να μπορούν να επισημαίνουν συνδέσμους και στοιχεία ελέγχου.\n\nΓια έξοδο από αυτή τη λειτουργία: πατήστε Πίσω στο τηλεχειριστήριο της τηλεόρασης ή πατήστε παρατεταμένα το κουμπί B στο χειριστήριο παιχνιδιών.\n\nΑυτή η λειτουργία δουλεύει καλύτερα με τη μηχανή WebView: το WebView υποστηρίζει τη μετακίνηση της εστίασης στη σελίδα με τα πλήκτρα κατεύθυνσης (D-pad).</string>
+    <string name="need_restart">Απαιτείται επανεκκίνηση της εφαρμογής</string>
+    <string name="theme">Θέμα</string>
+    <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Αλγοριθμική σκίαση ιστοσελίδων (σκούρο θέμα, μόνο WebView, απαιτεί επανεκκίνηση)</string>
+    <string name="allow_autoplay_media">Να επιτρέπεται η αυτόματη αναπαραγωγή πολυμέσων</string>
+    <string name="web_engine_debug">Εντοπισμός σφαλμάτων μηχανής ιστού (απαιτεί επανεκκίνηση)</string>
+    <string name="web_engine_debug_warning_message">Η ενεργοποίηση του εντοπισμού σφαλμάτων της μηχανής ιστού μπορεί να εκθέσει το περιεχόμενο των σελίδων, τα cookies και ευαίσθητα δεδομένα συνεδρίας σε οποιονδήποτε έχει πρόσβαση εντοπισμού σφαλμάτων στη συσκευή. Ενεργοποιήστε τον μόνο σε αξιόπιστες συσκευές για την αντιμετώπιση προβλημάτων.</string>
+    <array name="themes">
+        <item>Συστήματος</item>
+        <item>Φωτεινό</item>
+        <item>Σκούρο</item>
+    </array>
+    <string name="incognito_mode">Λειτουργία ανώνυμης περιήγησης</string>
+    <string name="incognito_mode_hint">Τώρα μπορείτε να περιηγείστε ιδιωτικά και τα άλλα άτομα που χρησιμοποιούν αυτή τη συσκευή δεν θα βλέπουν τη δραστηριότητά σας. Το TV Bro δεν θα αποθηκεύει το ιστορικό περιήγησης, τα cookies και τα δεδομένα ιστοτόπων ή τις πληροφορίες που εισάγετε σε φόρμες.\n\nΩστόσο, οι λήψεις και οι σελιδοδείκτες θα αποθηκεύονται. Η δραστηριότητά σας μπορεί να εξακολουθεί να είναι ορατή στους ιστοτόπους που επισκέπτεστε, στον οργανισμό σας ή στον πάροχο υπηρεσιών διαδικτύου.</string>
+    <string name="don_t_show_again">Να μην εμφανιστεί ξανά</string>
+    <string name="why_icon_changed">Γιατί άλλαξε το εικονίδιο;</string>
+    <string name="clear_web_cache">Εκκαθάριση προσωρινής μνήμης ιστού</string>
+    <string name="block_popups">Αποκλεισμός αναδυόμενων παραθύρων</string>
+    <string name="block_popups_s">Αποκλεισμός αναδυόμενων παραθύρων (%s)</string>
+    <string name="popup_dialog_blocked">Αποκλείστηκε αναδυόμενο παράθυρο διαλόγου</string>
+    <string name="new_tab_blocked">Αποκλείστηκε νέα καρτέλα</string>
+    <array name="popup_blocking_level">
+        <item>Χωρίς αποκλεισμό</item>
+        <item>Αποκλεισμός παραθύρων διαλόγου</item>
+        <item>Αποκλεισμός και νέων καρτελών (που ανοίγουν από σενάρια)</item>
+        <item>Αποκλεισμός κάθε νέου παραθύρου (μέγιστος αποκλεισμός)</item>
+    </array>
+    <string name="copy_to_clipboard">Αντιγραφή στο πρόχειρο</string>
+    <string name="copied_to_clipboard">Αντιγράφηκε στο πρόχειρο</string>
+    <string name="share_url">Κοινοποίηση URL</string>
+    <string name="open_in_external_application">Άνοιγμα σε εξωτερική εφαρμογή</string>
+    <string name="external_app_open_error">Δεν βρέθηκε κατάλληλη εφαρμογή</string>
+    <string name="home_page">Αρχική σελίδα</string>
+    <string name="custom_home_page_url">URL προσαρμοσμένης αρχικής σελίδας</string>
+    <string name="home_page_links">Σύνδεσμοι στην αρχική σελίδα</string>
+    <array name="home_page_modes">
+        <item>Αρχική TV Bro</item>
+        <item>Μηχανή αναζήτησης</item>
+        <item>Προσαρμοσμένη</item>
+        <item>Κενή</item>
+    </array>
+
+    <array name="home_page_links_modes">
+        <item>Σελιδοδείκτες</item>
+        <item>Πρόσφατο ιστορικό</item>
+        <item>Οι πιο συχνές επισκέψεις</item>
+    </array>
+
+    <string name="web_browser_engine_temporary_setting">Μηχανή προγράμματος περιήγησης</string>
+    <string name="need_restart_message">Επανεκκινήστε την εφαρμογή για να εφαρμοστούν οι αλλαγές</string>
+    <string name="restart">Επανεκκίνηση</string>
+    <string name="yes">Ναι</string>
+    <string name="no">Όχι</string>
+    <string name="site_asks_to_open_unknown_url">Ο ιστότοπος ζητά να ανοίξει άγνωστο URL</string>
+    <string name="site_asks_to_open_unknown_url_message">Θέλετε να ανοίξετε αυτό το URL σε εξωτερική εφαρμογή;</string>
+    <string name="err_no_app_to_handle_url">Δεν βρέθηκε κατάλληλη εφαρμογή για το άνοιγμα αυτού του URL</string>
+    <string name="settings_engine_change_gecko_msg">Το GeckoView φορτώνει λίγο πιο αργά από το WebView. Θέλετε να συνεχίσετε;</string>
+    <string name="settings_engine_change_webview_msg">Το WebView ενημερώνεται ξεχωριστά από την κύρια εφαρμογή. Θέλετε να συνεχίσετε;</string>
+    <string name="http_auth_title">Απαιτείται έλεγχος ταυτότητας</string>
+    <string name="play_pause">Αναπαραγωγή/Παύση</string>
+    <string name="media_stop">Διακοπή πολυμέσων</string>
+    <string name="media_rewind">Γρήγορη επιστροφή</string>
+    <string name="media_fast_forward">Γρήγορη προώθηση</string>
+    <string name="long_press">Παρατεταμένο πάτημα</string>
+    <string name="local_network_access_denied">Δεν επιτράπηκε η πρόσβαση στο τοπικό δίκτυο</string>
+</resources>

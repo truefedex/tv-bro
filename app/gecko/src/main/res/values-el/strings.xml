@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="clear">Εκκαθάριση</string>
+    <string name="repost_confirm_message">Για να εμφανιστεί αυτή η σελίδα, το TV Bro πρέπει να στείλει πληροφορίες που θα επαναλάβουν οποιαδήποτε ενέργεια έγινε προηγουμένως (όπως μια αναζήτηση ή επιβεβαίωση παραγγελίας).</string>
+    <string name="repost_confirm_title">Είστε βέβαιοι;</string>
+    <string name="repost_confirm_resend">Επαναποστολή</string>
+    <string name="before_unload_message">Αυτή η σελίδα σάς ζητά να επιβεβαιώσετε ότι θέλετε να φύγετε· τα δεδομένα που έχετε εισαγάγει ενδέχεται να μην αποθηκευτούν</string>
+    <string name="before_unload_title">Είστε βέβαιοι;</string>
+    <string name="before_unload_leave_page">Έξοδος από τη σελίδα</string>
+    <string name="before_unload_stay">Παραμονή στη σελίδα</string>
+    <string name="wait">Αναμονή</string>
+    <string name="stop">Διακοπή</string>
+    <string name="slow_script">Ένα σενάριο σε αυτή τη σελίδα επιβραδύνει το πρόγραμμα περιήγησης</string>
+    <string name="request_storage">Να επιτρέπεται η πρόσβαση στον αποθηκευτικό χώρο της συσκευής για το «%1$s»;</string>
+    <string name="request_storage_access">Να επιτρέπεται σε τρίτους η πρόσβαση στον αποθηκευτικό χώρο πρώτου μέρους για το «%1$s»;</string>
+    <string name="request_geolocation">Κοινοποίηση τοποθεσίας στο «%1$s»;</string>
+    <string name="request_notification">Να επιτρέπονται οι ειδοποιήσεις για το «%1$s»;</string>
+    <string name="request_video">Κοινοποίηση βίντεο στο «%1$s»</string>
+    <string name="request_audio">Κοινοποίηση ήχου στο «%1$s»</string>
+    <string name="request_media">Κοινοποίηση βίντεο και ήχου στο «%1$s»</string>
+    <string name="request_xr">Κοινοποίηση οθονών WebXR στο «%1$s»;</string>
+    <string name="request_autoplay">Να επιτρέπεται η αυτόματη αναπαραγωγή βίντεο στο «%1$s»;</string>
+    <string name="request_media_key_system_access">Να επιτρέπεται η πρόσβαση στο σύστημα κλειδιών πολυμέσων για το «%1$s»;</string>
+    <string name="media_back_camera">Πίσω κάμερα</string>
+    <string name="media_front_camera">Μπροστινή κάμερα</string>
+    <string name="media_microphone">Μικρόφωνο</string>
+    <string name="media_other">Άγνωστη πηγή</string>
+</resources>
