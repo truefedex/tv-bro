@@ -3,20 +3,17 @@
     <string name="app_name_short" translatable="false">TV Bro</string>
     <string name="error">Error</string>
     <string name="ok">OK</string>
-    <string name="loading">Loading&#8230;</string>
-    <string name="url_prompt">Input query text or URL</string>
-    <string name="can_not_recognize">Can not recognize</string>
+    <string name="url_prompt">Enter search text or URL</string>
+    <string name="can_not_recognize">Cannot recognize</string>
     <string name="speak">Search query</string>
-    <string name="open_new_tab">Open new Tab</string>
-    <string name="close">Close</string>
-    <string name="web_perm_request_confirmation">This web page wants to use following resources:\n\n%s</string>
+    <string name="web_perm_request_confirmation">This web page wants to use the following resources:\n\n%s</string>
     <string name="allow">Allow</string>
     <string name="deny">Deny</string>
     <string name="location">Location</string>
     <string name="open_in_new_tab">Open in new tab</string>
     <string name="download_started">Download started…\nFile will be stored at:\n%s</string>
     <string name="downloading_file">Downloading file…</string>
-    <string name="err_cant_open_file_chooser">Cannot Open File Chooser</string>
+    <string name="err_cant_open_file_chooser">Cannot open file chooser</string>
     <string name="bookmarks">Bookmarks</string>
     <string name="add">Add</string>
     <string name="edit">Edit</string>
@@ -25,57 +22,50 @@
     <string name="done">Done</string>
     <string name="title">Title</string>
     <string name="url" translatable="false">URL</string>
-    <string name="search_history">Search history</string>
-    <string name="engine">Search Engine</string>
+    <string name="engine">Search engine</string>
     <string name="choose_default_search_engine">Choose default search engine</string>
-    <string name="set_search_engine_as_homepage">Set search engine as homepage</string>
     <string name="save">Save</string>
     <string name="search_engine_url_with_query_placeholder_query">Search engine URL with query placeholder [query]</string>
-    <string name="change_search_engine">Change Search Engine</string>
-    <string name="change_user_agent">Change User Agent</string>
-    <string name="user_agent_string">User Agent String</string>
-    <string name="choose_user_agent_string">Choose User Agent String</string>
-    <string name="edit_user_agent_string">Edit User Agent String</string>
+    <string name="user_agent_string">User agent string</string>
+    <string name="choose_user_agent_string">Choose user agent string</string>
+    <string name="edit_user_agent_string">Edit user agent string</string>
     <string name="nothing">Nothing</string>
     <string name="cancelled">Cancelled</string>
     <string name="download">Download</string>
     <string name="file_not_found">File not found</string>
-    <string name="no_app_for_file_type">No applications found to open this file type</string>
+    <string name="no_app_for_file_type">No apps found to open this file type</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="msg_delete_history">Delete selected history items?</string>
     <string name="msg_delete_history_all">Delete all history items?</string>
     <string name="open_folder">Open containing folder</string>
-    <string name="no_file_explorer_msg">Seem there is no any suitable file explorer app installed on your device</string>
+    <string name="no_file_explorer_msg">It seems there is no suitable file explorer app installed on your device</string>
     <string name="shortcuts">Shortcuts</string>
     <string name="favorites">Favorites</string>
     <string name="history">History</string>
     <string name="settings">Settings</string>
     <string name="shortcut">Shortcut</string>
-    <string name="toggle_main_menu">Toggle main menu</string>
     <string name="navigate_back">Navigate back</string>
     <string name="navigate_home">Navigate home</string>
     <string name="refresh_page">Refresh page</string>
     <string name="voice_search">Voice search</string>
-    <string name="zoom_in">Zoom in</string>
-    <string name="zoom_out">Zoom out</string>
     <string name="not_set">Not set</string>
     <string name="action">Action:</string>
     <string name="current_key">Current key:</string>
     <string name="set_key_for_action">Set key for action</string>
-    <string name="press_eny_key">Press any key...</string>
+    <string name="press_any_key">Press any key...</string>
     <string name="shortcut_key_reserved_for_navigation">This key is reserved for browser navigation</string>
     <string name="clear">Clear</string>
     <string name="install">Install</string>
     <string name="turn_on_unknown_sources">Please turn on \"Unknown sources\" system setting</string>
     <string name="turn_on_unknown_sources_for_app">Please allow TV Bro to install apps from \"Unknown sources\" in system settings</string>
     <string name="storage_not_mounted">Storage not mounted</string>
-    <string name="can_not_create_downloads">Can not create downloads dir</string>
+    <string name="can_not_create_downloads">Cannot create downloads folder</string>
     <string name="voice_search_not_found">Voice search not found</string>
     <string name="new_version_dialog_title">New version available</string>
     <string name="later">Later</string>
     <string name="downloads">Downloads</string>
-    <string name="downloads_notifications_description">Notifications regarding downloads statuses</string>
+    <string name="downloads_notifications_description">Notifications regarding download statuses</string>
     <string name="main">Main</string>
     <string name="version_and_updates"><![CDATA[Version & updates]]></string>
     <string name="version_s">Version: %s</string>
@@ -89,13 +79,11 @@
     <string name="new_version_available_s">New version available: %s</string>
     <string name="web_browser_optimized_for_tvs">Web browser optimized for TVs</string>
     <string name="warning">Warning</string>
-    <string name="unprotected_connection">Unprotected connection</string>
-    <string name="err_webview_can_not_link">Can not link to WebView component. Try to install Android System WebView component first.</string>
-    <string name="new_tab_title">[NEW TAB]</string>
+    <string name="err_webview_can_not_link">Cannot link to the WebView component. Try to install the Android System WebView component first.</string>
     <string name="open_a_new_tab_here">Open a new tab here</string>
     <string name="tabs">Tabs</string>
     <array name="tabs_options">
-        <item>Open new Tab</item>
+        <item>Open new tab</item>
         <item>Close current</item>
         <item>Close all</item>
         <item>Move left</item>
@@ -106,14 +94,14 @@
     <string name="ssl_date_invalid">The date of the certificate is invalid</string>
     <string name="ssl_invalid">A generic error occurred</string>
     <string name="back_to_safety">Back to safety</string>
-    <string name="go_im_aware">Go. I am aware of the risk</string>
+    <string name="go_im_aware">Continue. I understand the risk</string>
     <string name="connection_isnt_secure">Connection is not secure</string>
     <string name="hostname">Hostname:</string>
     <string name="err_desk">Error description:</string>
     <string name="details">Details:</string>
     <string name="exit">Exit</string>
-    <string name="find_in_apps_store">Find in applications store</string>
-    <string name="close_application">Close application</string>
+    <string name="find_in_apps_store">Find in app store</string>
+    <string name="close_application">Close app</string>
     <string name="close_tab">Close tab</string>
     <string name="navigate_forward">Navigate forward</string>
     <string name="toggle_ads_blocking">Toggle ads blocking</string>
@@ -127,37 +115,37 @@
     <string name="cursor_physics_percent">%d%% of default</string>
     <string name="direct_navigation_mode_title">Direct navigation mode</string>
     <string name="direct_navigation_mode_message">Direct navigation hides the on-screen cursor and sends keys from your remote or game controller straight to the web page, so sites that support TV or keyboard focus can highlight links and controls.\n\nTo exit this mode: press Back on your TV remote, or press and hold the B button on a game controller.\n\nThis mode works best with the WebView engine: WebView supports moving focus through the page with the D-pad.</string>
-    <string name="need_restart">Need application restart</string>
+    <string name="need_restart">App restart required</string>
     <string name="theme">Theme</string>
-    <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorithmic darkening for web pages (dark theme, WebView only, need restart)</string>
+    <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorithmic darkening for web pages (dark theme, WebView only, restart required)</string>
     <string name="allow_autoplay_media">Allow autoplay for media</string>
-    <string name="web_engine_debug">Web engine debugging (need restart)</string>
+    <string name="web_engine_debug">Web engine debugging (restart required)</string>
     <string name="web_engine_debug_warning_message">Enabling web engine debugging can expose page content, cookies, and sensitive session data to anyone with device debugging access. Enable only on trusted devices for troubleshooting.</string>
     <array name="themes">
         <item>System</item>
-        <item>White</item>
+        <item>Light</item>
         <item>Dark</item>
     </array>
     <string name="incognito_mode">Incognito mode</string>
-    <string name="incognito_mode_hint">Now you can browse privately, and other people who use this device won’t see your activity. TV Bro won’t save your browsing history, cookies and site data, information entered in forms.\n\nHowever, downloads and bookmarks will be saved. Your activity might still be visible to websites you visit, your organization or internet service provider.</string>
+    <string name="incognito_mode_hint">Now you can browse privately, and other people who use this device won’t see your activity. TV Bro won’t save your browsing history, cookies and site data, or information entered in forms.\n\nHowever, downloads and bookmarks will be saved. Your activity might still be visible to websites you visit, your organization or internet service provider.</string>
     <string name="don_t_show_again">Don\'t show again</string>
-    <string name="why_icon_changed">Why icon changed?</string>
+    <string name="why_icon_changed">Why did the icon change?</string>
     <string name="clear_web_cache">Clear web cache</string>
-    <string name="block_popups">Popups blocking</string>
-    <string name="block_popups_s">Popups blocking (%s)</string>
+    <string name="block_popups">Popup blocking</string>
+    <string name="block_popups_s">Popup blocking (%s)</string>
     <string name="popup_dialog_blocked">Popup dialog blocked</string>
     <string name="new_tab_blocked">New tab blocked</string>
     <array name="popup_blocking_level">
-        <item>Not block</item>
+        <item>Don\'t block</item>
         <item>Block dialogs</item>
         <item>Also block new tabs (script-initiated)</item>
-        <item>Block any new windows (maximal blocking)</item>
+        <item>Block any new windows (maximum blocking)</item>
     </array>
     <string name="copy_to_clipboard">Copy to clipboard</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="share_url">Share URL</string>
-    <string name="open_in_external_application">Open in external application</string>
-    <string name="external_app_open_error">Can not find suitable application</string>
+    <string name="open_in_external_application">Open in external app</string>
+    <string name="external_app_open_error">Cannot find a suitable app</string>
     <string name="home_page">Home page</string>
     <string name="custom_home_page_url">Custom home page URL</string>
     <string name="home_page_links">Links on home page</string>
@@ -170,25 +158,24 @@
 
     <array name="home_page_links_modes">
         <item>Bookmarks</item>
-        <item>Latest History</item>
-        <item>Most Visited</item>
+        <item>Recent history</item>
+        <item>Most visited</item>
     </array>
 
     <string name="web_browser_engine_temporary_setting">Web browser engine</string>
     <string name="need_restart_message">Restart app to apply changes</string>
-    <string name="restart">Restart</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="site_asks_to_open_unknown_url">Site asks to open unknown URL</string>
-    <string name="site_asks_to_open_unknown_url_message">Do you want to open this URL in external app?</string>
-    <string name="err_no_app_to_handle_url">Can not find suitable application to handle this URL</string>
+    <string name="site_asks_to_open_unknown_url_message">Do you want to open this URL in an external app?</string>
+    <string name="err_no_app_to_handle_url">Cannot find a suitable app to handle this URL</string>
     <string name="settings_engine_change_gecko_msg">GeckoView loads a bit slower than WebView. Do you want to continue?</string>
     <string name="settings_engine_change_webview_msg">WebView is updated separately from the main app. Do you want to continue?</string>
     <string name="http_auth_title">Authentication required</string>
     <string name="play_pause">Play/Pause</string>
-    <string name="media_stop">Stop Media</string>
-    <string name="media_rewind">Rewind Media</string>
-    <string name="media_fast_forward">Fast Forward Media</string>
+    <string name="media_stop">Stop media</string>
+    <string name="media_rewind">Rewind media</string>
+    <string name="media_fast_forward">Fast-forward media</string>
     <string name="long_press">Long press</string>
     <string name="local_network_access_denied">Local network access denied</string>
 </resources>

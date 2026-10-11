@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="clear">Borrar</string>
+    <string name="repost_confirm_message">Para mostrar esta página, TV Bro debe enviar información que repetirá cualquier acción realizada anteriormente (como una búsqueda o la confirmación de un pedido).</string>
+    <string name="repost_confirm_title">¿Estás seguro?</string>
+    <string name="repost_confirm_resend">Reenviar</string>
+    <string name="before_unload_message">Esta página te pide que confirmes que quieres salir; es posible que no se guarden los datos que hayas introducido</string>
+    <string name="before_unload_title">¿Estás seguro?</string>
+    <string name="before_unload_leave_page">Salir de la página</string>
+    <string name="before_unload_stay">Permanecer en la página</string>
+    <string name="wait">Esperar</string>
+    <string name="stop">Detener</string>
+    <string name="slow_script">Un script de esta página está ralentizando el navegador web</string>
+    <string name="request_storage">¿Permitir el acceso al almacenamiento del dispositivo a «%1$s»?</string>
+    <string name="request_storage_access">¿Permitir que terceros accedan al almacenamiento propio de «%1$s»?</string>
+    <string name="request_geolocation">¿Compartir la ubicación con «%1$s»?</string>
+    <string name="request_notification">¿Permitir notificaciones de «%1$s»?</string>
+    <string name="request_video">Compartir vídeo con «%1$s»</string>
+    <string name="request_audio">Compartir audio con «%1$s»</string>
+    <string name="request_media">Compartir vídeo y audio con «%1$s»</string>
+    <string name="request_xr">¿Compartir pantallas WebXR con «%1$s»?</string>
+    <string name="request_media_key_system_access">¿Permitir el acceso al sistema de claves multimedia a «%1$s»?</string>
+    <string name="media_back_camera">Cámara trasera</string>
+    <string name="media_front_camera">Cámara frontal</string>
+    <string name="media_microphone">Micrófono</string>
+    <string name="media_other">Fuente desconocida</string>
+</resources>

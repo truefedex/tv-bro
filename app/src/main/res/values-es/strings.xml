@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TV Bro: navegador web para TV</string>
+    <string name="error">Error</string>
+    <string name="ok">Aceptar</string>
+    <string name="url_prompt">Introduce el texto de búsqueda o la URL</string>
+    <string name="can_not_recognize">No se pudo reconocer</string>
+    <string name="speak">Consulta de búsqueda</string>
+    <string name="web_perm_request_confirmation">Esta página web quiere usar los siguientes recursos:\n\n%s</string>
+    <string name="allow">Permitir</string>
+    <string name="deny">Denegar</string>
+    <string name="location">Ubicación</string>
+    <string name="open_in_new_tab">Abrir en una pestaña nueva</string>
+    <string name="download_started">Descarga iniciada…\nEl archivo se guardará en:\n%s</string>
+    <string name="downloading_file">Descargando archivo…</string>
+    <string name="err_cant_open_file_chooser">No se puede abrir el selector de archivos</string>
+    <string name="bookmarks">Marcadores</string>
+    <string name="add">Añadir</string>
+    <string name="edit">Editar</string>
+    <string name="no_bookmarks_yet">Aún no hay marcadores</string>
+    <string name="new_bookmark">Nuevo marcador</string>
+    <string name="done">Hecho</string>
+    <string name="title">Título</string>
+    <string name="engine">Motor de búsqueda</string>
+    <string name="choose_default_search_engine">Elige el motor de búsqueda predeterminado</string>
+    <string name="save">Guardar</string>
+    <string name="search_engine_url_with_query_placeholder_query">URL del motor de búsqueda con el marcador de consulta [query]</string>
+    <string name="user_agent_string">Cadena de agente de usuario</string>
+    <string name="choose_user_agent_string">Elige la cadena de agente de usuario</string>
+    <string name="edit_user_agent_string">Editar cadena de agente de usuario</string>
+    <string name="nothing">Nada</string>
+    <string name="cancelled">Cancelado</string>
+    <string name="download">Descargar</string>
+    <string name="file_not_found">Archivo no encontrado</string>
+    <string name="no_app_for_file_type">No se encontraron aplicaciones para abrir este tipo de archivo</string>
+    <string name="delete">Eliminar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="msg_delete_history">¿Eliminar los elementos del historial seleccionados?</string>
+    <string name="msg_delete_history_all">¿Eliminar todo el historial?</string>
+    <string name="open_folder">Abrir carpeta contenedora</string>
+    <string name="no_file_explorer_msg">Parece que no hay ningún explorador de archivos adecuado instalado en tu dispositivo</string>
+    <string name="shortcuts">Atajos</string>
+    <string name="favorites">Favoritos</string>
+    <string name="history">Historial</string>
+    <string name="settings">Ajustes</string>
+    <string name="shortcut">Atajo</string>
+    <string name="navigate_back">Atrás</string>
+    <string name="navigate_home">Ir a la página de inicio</string>
+    <string name="refresh_page">Recargar página</string>
+    <string name="voice_search">Búsqueda por voz</string>
+    <string name="not_set">Sin asignar</string>
+    <string name="action">Acción:</string>
+    <string name="current_key">Tecla actual:</string>
+    <string name="set_key_for_action">Asignar tecla a la acción</string>
+    <string name="press_any_key">Pulsa cualquier tecla...</string>
+    <string name="shortcut_key_reserved_for_navigation">Esta tecla está reservada para la navegación del navegador</string>
+    <string name="clear">Borrar</string>
+    <string name="install">Instalar</string>
+    <string name="turn_on_unknown_sources">Activa el ajuste del sistema \"Orígenes desconocidos\"</string>
+    <string name="turn_on_unknown_sources_for_app">Permite que TV Bro instale aplicaciones de \"Orígenes desconocidos\" en los ajustes del sistema</string>
+    <string name="storage_not_mounted">Almacenamiento no montado</string>
+    <string name="can_not_create_downloads">No se puede crear la carpeta de descargas</string>
+    <string name="voice_search_not_found">Búsqueda por voz no disponible</string>
+    <string name="new_version_dialog_title">Nueva versión disponible</string>
+    <string name="later">Más tarde</string>
+    <string name="downloads">Descargas</string>
+    <string name="downloads_notifications_description">Notificaciones sobre el estado de las descargas</string>
+    <string name="main">Principal</string>
+    <string name="version_and_updates">Versión y actualizaciones</string>
+    <string name="version_s">Versión: %s</string>
+    <string name="build_flavor_s">Variante de compilación: %1$s · %2$s</string>
+    <string name="support_the_author">☕ Apoya al autor</string>
+    <string name="view_license">📃 Licencia</string>
+    <string name="privacy_policy">🔒 Política de privacidad</string>
+    <string name="update_channel">Canal de actualizaciones:</string>
+    <string name="auto_check_for_updates">Buscar actualizaciones automáticamente</string>
+    <string name="update">Actualizar</string>
+    <string name="new_version_available_s">Nueva versión disponible: %s</string>
+    <string name="web_browser_optimized_for_tvs">Navegador web optimizado para TV</string>
+    <string name="warning">Advertencia</string>
+    <string name="err_webview_can_not_link">No se puede enlazar con el componente WebView. Prueba a instalar primero Android System WebView.</string>
+    <string name="open_a_new_tab_here">Abrir una pestaña nueva aquí</string>
+    <string name="tabs">Pestañas</string>
+    <array name="tabs_options">
+        <item>Abrir nueva pestaña</item>
+        <item>Cerrar la actual</item>
+        <item>Cerrar todas</item>
+        <item>Mover a la izquierda</item>
+        <item>Mover a la derecha</item>
+    </array>
+    <string name="ssl_expired">El certificado ha caducado</string>
+    <string name="ssl_idmismatch">El nombre de host no coincide</string>
+    <string name="ssl_date_invalid">La fecha del certificado no es válida</string>
+    <string name="ssl_invalid">Se ha producido un error genérico</string>
+    <string name="back_to_safety">Volver a un lugar seguro</string>
+    <string name="go_im_aware">Continuar. Soy consciente del riesgo</string>
+    <string name="connection_isnt_secure">La conexión no es segura</string>
+    <string name="hostname">Nombre de host:</string>
+    <string name="err_desk">Descripción del error:</string>
+    <string name="details">Detalles:</string>
+    <string name="exit">Salir</string>
+    <string name="find_in_apps_store">Buscar en la tienda de aplicaciones</string>
+    <string name="close_application">Cerrar aplicación</string>
+    <string name="close_tab">Cerrar pestaña</string>
+    <string name="navigate_forward">Adelante</string>
+    <string name="toggle_ads_blocking">Activar/desactivar bloqueo de anuncios</string>
+    <string name="never">nunca</string>
+    <string name="last_update">Última actualización</string>
+    <string name="update_ad_blocker_list">Actualizar lista del bloqueador de anuncios</string>
+    <string name="toggle_keep_screen_on">Mantener la pantalla encendida</string>
+    <string name="navigate_with_joystick_axes">Navegar con los ejes del joystick</string>
+    <string name="cursor_max_speed">Velocidad máxima del cursor virtual</string>
+    <string name="cursor_acceleration">Aceleración del cursor virtual</string>
+    <string name="cursor_physics_percent">%d%% del valor predeterminado</string>
+    <string name="direct_navigation_mode_title">Modo de navegación directa</string>
+    <string name="direct_navigation_mode_message">La navegación directa oculta el cursor en pantalla y envía las teclas del mando a distancia o del mando de juegos directamente a la página web, de modo que los sitios compatibles con el foco de TV o teclado pueden resaltar enlaces y controles.\n\nPara salir de este modo: pulsa Atrás en el mando de la TV o mantén pulsado el botón B del mando de juegos.\n\nEste modo funciona mejor con el motor WebView: WebView permite mover el foco por la página con la cruceta (D-pad).</string>
+    <string name="need_restart">Es necesario reiniciar la aplicación</string>
+    <string name="theme">Tema</string>
+    <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Oscurecimiento algorítmico de páginas web (tema oscuro, solo WebView, requiere reinicio)</string>
+    <string name="allow_autoplay_media">Permitir la reproducción automática de contenido multimedia</string>
+    <string name="web_engine_debug">Depuración del motor web (requiere reinicio)</string>
+    <string name="web_engine_debug_warning_message">Activar la depuración del motor web puede exponer el contenido de las páginas, las cookies y datos de sesión sensibles a cualquier persona con acceso de depuración al dispositivo. Actívala solo en dispositivos de confianza para resolver problemas.</string>
+    <array name="themes">
+        <item>Sistema</item>
+        <item>Claro</item>
+        <item>Oscuro</item>
+    </array>
+    <string name="incognito_mode">Modo incógnito</string>
+    <string name="incognito_mode_hint">Ahora puedes navegar de forma privada y otras personas que usen este dispositivo no verán tu actividad. TV Bro no guardará tu historial de navegación, las cookies ni los datos de sitios, ni la información introducida en formularios.\n\nSin embargo, las descargas y los marcadores sí se guardarán. Tu actividad puede seguir siendo visible para los sitios web que visites, tu organización o tu proveedor de servicios de Internet.</string>
+    <string name="don_t_show_again">No volver a mostrar</string>
+    <string name="why_icon_changed">¿Por qué ha cambiado el icono?</string>
+    <string name="clear_web_cache">Borrar caché web</string>
+    <string name="block_popups">Bloqueo de ventanas emergentes</string>
+    <string name="block_popups_s">Bloqueo de ventanas emergentes (%s)</string>
+    <string name="popup_dialog_blocked">Diálogo emergente bloqueado</string>
+    <string name="new_tab_blocked">Pestaña nueva bloqueada</string>
+    <array name="popup_blocking_level">
+        <item>No bloquear</item>
+        <item>Bloquear diálogos</item>
+        <item>Bloquear también pestañas nuevas (abiertas por scripts)</item>
+        <item>Bloquear cualquier ventana nueva (bloqueo máximo)</item>
+    </array>
+    <string name="copy_to_clipboard">Copiar al portapapeles</string>
+    <string name="copied_to_clipboard">Copiado al portapapeles</string>
+    <string name="share_url">Compartir URL</string>
+    <string name="open_in_external_application">Abrir en una aplicación externa</string>
+    <string name="external_app_open_error">No se encuentra ninguna aplicación adecuada</string>
+    <string name="home_page">Página de inicio</string>
+    <string name="custom_home_page_url">URL de página de inicio personalizada</string>
+    <string name="home_page_links">Enlaces en la página de inicio</string>
+    <array name="home_page_modes">
+        <item>Inicio de TV Bro</item>
+        <item>Motor de búsqueda</item>
+        <item>Personalizada</item>
+        <item>En blanco</item>
+    </array>
+
+    <array name="home_page_links_modes">
+        <item>Marcadores</item>
+        <item>Historial reciente</item>
+        <item>Más visitados</item>
+    </array>
+
+    <string name="web_browser_engine_temporary_setting">Motor del navegador web</string>
+    <string name="need_restart_message">Reinicia la aplicación para aplicar los cambios</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
+    <string name="site_asks_to_open_unknown_url">El sitio quiere abrir una URL desconocida</string>
+    <string name="site_asks_to_open_unknown_url_message">¿Quieres abrir esta URL en una aplicación externa?</string>
+    <string name="err_no_app_to_handle_url">No se encuentra ninguna aplicación adecuada para abrir esta URL</string>
+    <string name="settings_engine_change_gecko_msg">GeckoView carga un poco más lento que WebView. ¿Quieres continuar?</string>
+    <string name="settings_engine_change_webview_msg">WebView se actualiza por separado de la aplicación principal. ¿Quieres continuar?</string>
+    <string name="http_auth_title">Se requiere autenticación</string>
+    <string name="play_pause">Reproducir/Pausar</string>
+    <string name="media_stop">Detener reproducción</string>
+    <string name="media_rewind">Retroceder</string>
+    <string name="media_fast_forward">Avance rápido</string>
+    <string name="long_press">Pulsación larga</string>
+    <string name="local_network_access_denied">Acceso a la red local denegado</string>
+</resources>

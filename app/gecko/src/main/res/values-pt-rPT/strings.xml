@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="clear">Limpar</string>
+    <string name="repost_confirm_message">Para apresentar esta página, o TV Bro tem de enviar informações que irão repetir qualquer ação efetuada anteriormente (como uma pesquisa ou a confirmação de uma encomenda).</string>
+    <string name="repost_confirm_title">Tem a certeza?</string>
+    <string name="repost_confirm_resend">Reenviar</string>
+    <string name="before_unload_message">Esta página está a pedir-lhe que confirme que pretende sair. Os dados que introduziu poderão não ser guardados</string>
+    <string name="before_unload_title">Tem a certeza?</string>
+    <string name="before_unload_leave_page">Sair da página</string>
+    <string name="before_unload_stay">Permanecer na página</string>
+    <string name="wait">Aguardar</string>
+    <string name="stop">Parar</string>
+    <string name="slow_script">Um script desta página está a tornar o navegador lento</string>
+    <string name="request_storage">Permitir o acesso ao armazenamento do dispositivo para «%1$s»?</string>
+    <string name="request_storage_access">Permitir que terceiros acedam ao armazenamento próprio de «%1$s»?</string>
+    <string name="request_geolocation">Partilhar a localização com «%1$s»?</string>
+    <string name="request_notification">Permitir notificações de «%1$s»?</string>
+    <string name="request_video">Partilhar vídeo com «%1$s»</string>
+    <string name="request_audio">Partilhar áudio com «%1$s»</string>
+    <string name="request_media">Partilhar vídeo e áudio com «%1$s»</string>
+    <string name="request_xr">Partilhar ecrãs WebXR com «%1$s»?</string>
+    <string name="request_media_key_system_access">Permitir o acesso ao sistema de chaves multimédia para «%1$s»?</string>
+    <string name="media_back_camera">Câmara traseira</string>
+    <string name="media_front_camera">Câmara frontal</string>
+    <string name="media_microphone">Microfone</string>
+    <string name="media_other">Fonte desconhecida</string>
+</resources>

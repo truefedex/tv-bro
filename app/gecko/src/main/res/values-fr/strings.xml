@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="clear">Effacer</string>
+    <string name="repost_confirm_message">Pour afficher cette page, TV Bro doit renvoyer des informations qui répéteront toute action effectuée précédemment (comme une recherche ou une confirmation de commande).</string>
+    <string name="repost_confirm_title">Êtes-vous sûr ?</string>
+    <string name="repost_confirm_resend">Renvoyer</string>
+    <string name="before_unload_message">Cette page vous demande de confirmer que vous voulez la quitter ; les données saisies pourraient ne pas être enregistrées</string>
+    <string name="before_unload_title">Êtes-vous sûr ?</string>
+    <string name="before_unload_leave_page">Quitter la page</string>
+    <string name="before_unload_stay">Rester sur la page</string>
+    <string name="wait">Attendre</string>
+    <string name="stop">Arrêter</string>
+    <string name="slow_script">Un script de cette page ralentit votre navigateur web</string>
+    <string name="request_storage">Autoriser l’accès au stockage de l’appareil pour « %1$s » ?</string>
+    <string name="request_storage_access">Autoriser des tiers à accéder au stockage propriétaire de « %1$s » ?</string>
+    <string name="request_geolocation">Partager votre position avec « %1$s » ?</string>
+    <string name="request_notification">Autoriser les notifications pour « %1$s » ?</string>
+    <string name="request_video">Partager la vidéo avec « %1$s »</string>
+    <string name="request_audio">Partager l’audio avec « %1$s »</string>
+    <string name="request_media">Partager la vidéo et l’audio avec « %1$s »</string>
+    <string name="request_xr">Partager les écrans WebXR avec « %1$s » ?</string>
+    <string name="request_media_key_system_access">Autoriser l’accès au système de clés multimédias pour « %1$s » ?</string>
+    <string name="media_back_camera">Caméra arrière</string>
+    <string name="media_front_camera">Caméra avant</string>
+    <string name="media_microphone">Microphone</string>
+    <string name="media_other">Source inconnue</string>
+</resources>

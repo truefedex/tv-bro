@@ -1,28 +1,27 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-  <string name="clear">"נקה"</string>
-  <string name="repost_confirm_message">כדי להציג עמוד זה, TV Bro חייב לשלוח מידע שיחזור על כל פעולה (כגון חיפוש או אישור הזמנה) שבוצעה קודם לכן.</string>
+  <string name="clear">נקה</string>
+  <string name="repost_confirm_message">כדי להציג דף זה, TV Bro חייב לשלוח מחדש מידע שיחזור על פעולה שבוצעה קודם לכן (כגון חיפוש או אישור הזמנה).</string>
   <string name="repost_confirm_title">האם אתה בטוח?</string>
   <string name="repost_confirm_resend">שלח שוב</string>
-  <string name="before_unload_message">עמוד זה מבקש ממך לאשר שברצונך לעזוב - ייתכן שהנתונים שהזנת לא יישמרו</string>
+  <string name="before_unload_message">דף זה מבקש ממך לאשר שברצונך לעזוב — ייתכן שהנתונים שהזנת לא יישמרו</string>
   <string name="before_unload_title">האם אתה בטוח?</string>
-  <string name="before_unload_leave_page">לעזוב דף</string>
-  <string name="before_unload_stay">תישאר בעמוד</string>
-  <string name="wait">לַחֲכוֹת</string>
-  <string name="stop">תפסיק</string>
+  <string name="before_unload_leave_page">עזוב את הדף</string>
+  <string name="before_unload_stay">הישאר בדף</string>
+  <string name="wait">המתן</string>
+  <string name="stop">עצור</string>
   <string name="slow_script">סקריפט בדף זה גורם לדפדפן האינטרנט שלך לפעול לאט</string>
-  <string name="request_storage">האם לאפשר גישה לאחסון המכשיר עבור "%1$s"?</string>
-  <string name="request_storage_access">האם לאפשר לצדדים שלישיים לגשת לאחסון צד ראשון עבור "%1$s"?</string>
-  <string name="request_geolocation">האם לשתף מיקום עם "%1$s"?</string>
-  <string name="request_notification">האם לאפשר התראות עבור "%1$s"?</string>
-  <string name="request_video">שתף סרטון עם "%1$s"</string>
-  <string name="request_audio">שתף אודיו עם "%1$s"</string>
-  <string name="request_media">שתף וידאו ואודיו עם "%1$s"</string>
-  <string name="request_xr">האם לשתף צגי WebXR עם "%1$s"?</string>
-  <string name="request_autoplay">האם לאפשר הפעלה אוטומטית של הסרטון ב-"%1$s"?</string>
-  <string name="request_media_key_system_access">האם לאפשר גישה למפתח מדיה של המערכת עבור "%1$s"?</string>
+  <string name="request_storage">האם לאפשר גישה לאחסון המכשיר עבור “%1$s”?</string>
+  <string name="request_storage_access">האם לאפשר לצדדים שלישיים לגשת לאחסון צד ראשון עבור “%1$s”?</string>
+  <string name="request_geolocation">האם לשתף מיקום עם “%1$s”?</string>
+  <string name="request_notification">האם לאפשר התראות עבור “%1$s”?</string>
+  <string name="request_video">שתף וידאו עם “%1$s”</string>
+  <string name="request_audio">שתף אודיו עם “%1$s”</string>
+  <string name="request_media">שתף וידאו ואודיו עם “%1$s”</string>
+  <string name="request_xr">האם לשתף צגי WebXR עם “%1$s”?</string>
+  <string name="request_media_key_system_access">האם לאפשר גישה למערכת מפתחות המדיה עבור “%1$s”?</string>
   <string name="media_back_camera">מצלמה אחורית</string>
   <string name="media_front_camera">מצלמה קדמית</string>
-  <string name="media_microphone">מִיקרוֹפוֹן</string>
+  <string name="media_microphone">מיקרופון</string>
   <string name="media_other">מקור לא ידוע</string>
 </resources>

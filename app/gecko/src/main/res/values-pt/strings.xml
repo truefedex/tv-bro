@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="clear">Limpar</string>
+    <string name="repost_confirm_message">Para exibir esta página, o TV Bro precisa enviar informações que repetirão qualquer ação realizada anteriormente (como uma pesquisa ou confirmação de pedido).</string>
+    <string name="repost_confirm_title">Tem certeza?</string>
+    <string name="repost_confirm_resend">Reenviar</string>
+    <string name="before_unload_message">Esta página está pedindo que você confirme que deseja sair. Os dados inseridos podem não ser salvos</string>
+    <string name="before_unload_title">Tem certeza?</string>
+    <string name="before_unload_leave_page">Sair da página</string>
+    <string name="before_unload_stay">Permanecer na página</string>
+    <string name="wait">Aguardar</string>
+    <string name="stop">Parar</string>
+    <string name="slow_script">Um script desta página está deixando o navegador lento</string>
+    <string name="request_storage">Permitir acesso ao armazenamento do dispositivo para “%1$s”?</string>
+    <string name="request_storage_access">Permitir que terceiros acessem o armazenamento primário de “%1$s”?</string>
+    <string name="request_geolocation">Compartilhar localização com “%1$s”?</string>
+    <string name="request_notification">Permitir notificações de “%1$s”?</string>
+    <string name="request_video">Compartilhar vídeo com “%1$s”</string>
+    <string name="request_audio">Compartilhar áudio com “%1$s”</string>
+    <string name="request_media">Compartilhar vídeo e áudio com “%1$s”</string>
+    <string name="request_xr">Compartilhar telas WebXR com “%1$s”?</string>
+    <string name="request_media_key_system_access">Permitir acesso ao sistema de chaves de mídia para “%1$s”?</string>
+    <string name="media_back_camera">Câmera traseira</string>
+    <string name="media_front_camera">Câmera frontal</string>
+    <string name="media_microphone">Microfone</string>
+    <string name="media_other">Fonte desconhecida</string>
+</resources>

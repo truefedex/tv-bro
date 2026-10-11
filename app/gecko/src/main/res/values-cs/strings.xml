@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="clear">Vymazat</string>
+    <string name="repost_confirm_message">Aby bylo možné tuto stránku zobrazit, musí TV Bro odeslat informace, které zopakují jakoukoli dříve provedenou akci (například vyhledávání nebo potvrzení objednávky).</string>
+    <string name="repost_confirm_title">Opravdu?</string>
+    <string name="repost_confirm_resend">Odeslat znovu</string>
+    <string name="before_unload_message">Tato stránka vás žádá o potvrzení, že ji chcete opustit. Zadané údaje nemusí být uloženy</string>
+    <string name="before_unload_title">Opravdu?</string>
+    <string name="before_unload_leave_page">Opustit stránku</string>
+    <string name="before_unload_stay">Zůstat na stránce</string>
+    <string name="wait">Počkat</string>
+    <string name="stop">Zastavit</string>
+    <string name="slow_script">Skript na této stránce zpomaluje váš webový prohlížeč</string>
+    <string name="request_storage">Povolit přístup k úložišti zařízení pro „%1$s“?</string>
+    <string name="request_storage_access">Povolit třetím stranám přístup k úložišti první strany pro „%1$s“?</string>
+    <string name="request_geolocation">Sdílet polohu s „%1$s“?</string>
+    <string name="request_notification">Povolit oznámení pro „%1$s“?</string>
+    <string name="request_video">Sdílet video s „%1$s“</string>
+    <string name="request_audio">Sdílet zvuk s „%1$s“</string>
+    <string name="request_media">Sdílet video a zvuk s „%1$s“</string>
+    <string name="request_xr">Sdílet displeje WebXR s „%1$s“?</string>
+    <string name="request_media_key_system_access">Povolit přístup k systému klíčů médií pro „%1$s“?</string>
+    <string name="media_back_camera">Zadní fotoaparát</string>
+    <string name="media_front_camera">Přední fotoaparát</string>
+    <string name="media_microphone">Mikrofon</string>
+    <string name="media_other">Neznámý zdroj</string>
+</resources>
