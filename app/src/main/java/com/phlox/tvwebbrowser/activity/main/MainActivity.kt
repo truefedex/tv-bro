@@ -292,8 +292,13 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun onTitleSelected(index: Int) {
-            syncTabWithTitles()
-            hideMenuOverlay()
+            val tab = tabByTitleIndex(index)
+            if (tab == null) {
+                syncTabWithTitles()
+            } else if (!tab.selected) {
+                changeTab(tab)
+            }
+            autoHideMenuOverlay()
         }
 
         override fun onAddNewTabSelected() {
@@ -328,7 +333,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         startActivityForResult(
                 Intent(this@MainActivity, HistoryActivity::class.java),
                 REQUEST_CODE_HISTORY_ACTIVITY)
-        hideMenuOverlay()
+        autoHideMenuOverlay()
     }
 
     override fun showFavorites() {
@@ -341,7 +346,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 navigate(item!!.url!!)
             }
         }, currentPageTitle, currentPageUrl).show()
-        hideMenuOverlay()
+        autoHideMenuOverlay()
     }
 
     private val bottomButtonsOnTouchListener = View.OnTouchListener{ v, e ->
@@ -389,7 +394,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun onUrlInputDone() {
-        hideMenuOverlay()
+        autoHideMenuOverlay()
     }
 
     fun navigateBack(goHomeIfNoHistory: Boolean = false) {
@@ -511,8 +516,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         if (navigateImmediately) {
             navigate(url)
         }
-        if (needToHideMenuOverlay && vb.rlActionBar.visibility == View.VISIBLE) {
-            hideMenuOverlay(true)
+        if (needToHideMenuOverlay) {
+            autoHideMenuOverlay(true)
         }
         return tab.webEngine
     }
@@ -531,8 +536,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             else -> changeTab(tabsModel.tabsStates[position + 1])
         }
         tabsModel.onCloseTab(tab)
-        hideMenuOverlay(true)
-        hideBottomPanel()
+        autoHideMenuOverlay(true)
     }
 
     private fun changeTab(newTab: WebTabState) {
@@ -707,7 +711,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 if (url != null) {
                     navigate(url)
                 }
-                hideMenuOverlay()
+                autoHideMenuOverlay()
             }
             REQUEST_CODE_UNKNOWN_APP_SOURCES -> if (autoUpdateModel.needToShowUpdateDlgAgain) {
                 autoUpdateModel.showUpdateDialogIfNeeded(this)
@@ -947,15 +951,30 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun showMenuOverlay() {
-        vb.ivMiniatures.visibility = View.VISIBLE
+        if (isFullscreen) return
         vb.llBottomPanel.visibility = View.VISIBLE
-        vb.flWebViewContainer.visibility = View.INVISIBLE
-        val currentTab = tabsModel.currentTab.value
-        if (currentTab != null) {
-            lifecycleScope.launch {
-                currentTab.thumbnail = currentTab.webEngine.renderThumbnail(currentTab.thumbnail)
-                displayThumbnail(currentTab)
+
+        if (!config.keepToolbarOpen) {
+            vb.ivMiniatures.visibility = View.VISIBLE
+            vb.flWebViewContainer.visibility = View.INVISIBLE
+            val currentTab = tabsModel.currentTab.value
+            if (currentTab != null) {
+                lifecycleScope.launch {
+                    currentTab.thumbnail = currentTab.webEngine.renderThumbnail(currentTab.thumbnail)
+                    displayThumbnail(currentTab)
+                }
             }
+
+            vb.ivMiniatures.layoutParams = vb.ivMiniatures.layoutParams.apply { this.height = vb.flWebViewContainer.height }
+            vb.ivMiniatures.translationY = 0f
+            vb.ivMiniatures.animate()
+                    .translationY(vb.rlActionBar.height.toFloat())
+                    .setDuration(300)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+        } else {
+            vb.ivMiniatures.visibility = View.INVISIBLE
+            vb.flWebViewContainer.visibility = View.VISIBLE
         }
 
         vb.llBottomPanel.translationY = vb.llBottomPanel.height.toFloat()
@@ -981,17 +1000,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
                 .start()
-
-        vb.ivMiniatures.layoutParams = vb.ivMiniatures.layoutParams.apply { this.height = vb.flWebViewContainer.height }
-        vb.ivMiniatures.translationY = 0f
-        vb.ivMiniatures.animate()
-                .translationY(vb.rlActionBar.height.toFloat())
-                .setDuration(300)
-                .setInterpolator(DecelerateInterpolator())
-                .start()
     }
 
     private suspend fun displayThumbnail(currentTab: WebTabState?) {
+        if (config.keepToolbarOpen) return
         if (currentTab != null) {
             if (tabByTitleIndex(vb.vTabs.current) != currentTab) return
             vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
@@ -1019,6 +1031,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
     }
 
+    private fun autoHideMenuOverlay(hideBottomButtons: Boolean = true) {
+        if (config.keepToolbarOpen) return
+        hideMenuOverlay(hideBottomButtons)
+    }
+
     private fun hideMenuOverlay(hideBottomButtons: Boolean = true) {
         if (vb.rlActionBar.visibility == View.INVISIBLE) {
             return
@@ -1034,8 +1051,15 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 .setInterpolator(DecelerateInterpolator())
                 .withEndAction {
                     vb.rlActionBar.visibility = View.INVISIBLE
+                    if (config.keepToolbarOpen && hideBottomButtons) {
+                        tabsModel.currentTab.value?.webEngine?.getView()?.requestFocus()
+                    }
                 }
                 .start()
+
+        if (config.keepToolbarOpen) {
+            return
+        }
 
         if (vb.llMiniaturePlaceholder.visibility == View.VISIBLE) {
             vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
@@ -1092,7 +1116,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun initiateVoiceSearch() {
-        hideMenuOverlay()
+        autoHideMenuOverlay()
         voiceSearchHelper.initiateVoiceSearch(object : VoiceSearchHelper.Callback {
             override fun onResult(text: String?) {
                 if (text == null) {
@@ -1100,7 +1124,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     return
                 }
                 search(text)
-                hideMenuOverlay()
+                autoHideMenuOverlay()
             }
         })
     }
@@ -1475,6 +1499,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         override fun onPrepareForFullscreen() {
             //window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
             //        WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            isFullscreen = true
+            hideMenuOverlay(true)
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -1482,7 +1508,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     or View.SYSTEM_UI_FLAG_FULLSCREEN
                     or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-            isFullscreen = true
         }
 
         override fun onExitFullscreen() {

@@ -58,6 +58,8 @@ class MainSettingsView @JvmOverloads constructor(
 
         initAutoNativeFullscreenUI()
 
+        initKeepToolbarOpenUI()
+
         initWebEngineDebugUI()
 
         initBlockAutomaticRedirectsUI()
@@ -185,6 +187,13 @@ class MainSettingsView @JvmOverloads constructor(
         vb.scBlockAutomaticRedirects.isChecked = config.blockAutomaticRedirects
         vb.scBlockAutomaticRedirects.setOnCheckedChangeListener { _, isChecked ->
             config.blockAutomaticRedirects = isChecked
+        }
+    }
+
+    private fun initKeepToolbarOpenUI() {
+        vb.scKeepToolbarOpen.isChecked = config.keepToolbarOpen
+        vb.scKeepToolbarOpen.setOnCheckedChangeListener { _, isChecked ->
+            config.keepToolbarOpen = isChecked
         }
     }
 

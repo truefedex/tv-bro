@@ -132,6 +132,7 @@
     <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorithmic darkening for web pages (dark theme, WebView only, need restart)</string>
     <string name="allow_autoplay_media">Allow autoplay for media</string>
     <string name="auto_native_fullscreen">Auto-open fullscreen videos in the native player</string>
+    <string name="keep_toolbar_open">Keep toolbar open over the page (stays visible after actions)</string>
     <string name="web_engine_debug">Web engine debugging (need restart)</string>
     <string name="block_automatic_redirects">Block automatic redirects to other sites</string>
     <string name="web_engine_debug_warning_message">Enabling web engine debugging can expose page content, cookies, and sensitive session data to anyone with device debugging access. Enable only on trusted devices for troubleshooting.</string>
