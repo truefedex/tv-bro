@@ -5,11 +5,58 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import java.io.Reader
 import java.net.URL
+import java.net.URLConnection
+import java.net.URLStreamHandler
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [26])
 class FaviconExtractorTest {
     private val extractor = FaviconExtractor()
+
+    @Test
+    fun unbrokenMediaLikeInputIsBounded() {
+        var consumed = 0
+        val endless = object : Reader() {
+            override fun read(buffer: CharArray, offset: Int, length: Int): Int {
+                check(consumed + length <= FaviconExtractor.MAX_METADATA_CHARS + 8192) {
+                    "Metadata parser attempted to consume an unbounded media response"
+                }
+                buffer.fill('x', offset, offset + length)
+                consumed += length
+                return length
+            }
+            override fun close() = Unit
+        }
+        val (icons, manifest) = extractor.extractFavIconsFromHTML(null, endless.buffered())
+        assertTrue(icons.isEmpty())
+        assertNull(manifest)
+        assertTrue(consumed <= FaviconExtractor.MAX_METADATA_CHARS + 8192)
+    }
+
+    @Test
+    fun videoResponseIsNotReadForFavicons() {
+        val url = URL(null, "https://example.com/movie.mp4", object : URLStreamHandler() {
+            override fun openConnection(url: URL) = object : URLConnection(url) {
+                override fun connect() = Unit
+                override fun getContentType() = "video/mp4"
+                override fun getInputStream(): java.io.InputStream =
+                    error("Video body must not be fetched for favicon discovery")
+            }
+        })
+        val icons = extractor.extractFavIconsFromURL(url)
+        assertEquals("https://example.com/favicon.ico", icons.single().src)
+    }
+
+    @Test
+    fun closingHeadAcrossChunksStopsBeforeBodyIcons() {
+        val header = "<link rel=\"icon\" href=\"/head.ico\" type=\"image/x-icon\">"
+        val html = header.padEnd(4093, ' ') + "</HEAD><link rel=\"icon\" href=\"/body.ico\">"
+        val (icons, _) = extractor.extractFavIconsFromHTML(null, html.reader().buffered())
+        assertEquals("/head.ico", icons.single().src)
+    }
 
     @Test
     fun iconInfoSizesParsing() {
@@ -59,7 +106,8 @@ class FaviconExtractorTest {
                 {
                   "src": "/images/icons-vector.svg",
                   "type": "image/svg+xml",
-                  "sizes": "512x512"
+                  "sizes": "512x512",
+                  "purpose": "any maskable"
                 },
                 {
                   "src": "images/icons-192.png",

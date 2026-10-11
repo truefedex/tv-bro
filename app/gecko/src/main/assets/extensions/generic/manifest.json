@@ -11,16 +11,6 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*/*"
-      ],
-      "js": [
-        "content.js"
-      ],
-      "run_at": "document_start",
-      "all_frames": true
-    },
-    {
-      "matches": [
         "https://tvbro.phlox.dev/appcontent/home/*",
         "*://*/appcontent/home/*"
       ],

@@ -179,7 +179,12 @@ class FaviconExtractor {
         val iconInfos = ArrayList<IconInfo>()
         var manifestHref: String? = null
 
-        val headerPartOfHTML = readMetadata(html, true)
+        val headerPartOfHTML = try {
+            readMetadata(html, true)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return Pair(iconInfos, null)
+        }
 
         val matcher = tagsPattern.matcher(headerPartOfHTML)
         while (matcher.find()) {
@@ -231,19 +236,21 @@ class FaviconExtractor {
         return Pair(iconInfos, manifestHref)
     }
 
-    private fun readMetadata(reader: Reader, stopAtHeader: Boolean): String {
-        val buffer = CharArray(4096)
+    private fun readMetadata(reader: Reader, stopAtBody: Boolean): String {
         val result = StringBuilder()
-        try {
-            while (result.length < MAX_METADATA_CHARS) {
-                val read = reader.read(buffer)
-                if (read < 0) break
-                result.append(buffer, 0, read)
-                if (stopAtHeader && headerClosingTagsPattern.matcher(result).find()) break
+        val buffer = CharArray(4096)
+        while (result.length < MAX_METADATA_CHARS) {
+            val count = reader.read(buffer, 0, minOf(buffer.size, MAX_METADATA_CHARS - result.length))
+            if (count <= 0) break
+            result.append(buffer, 0, count)
+            if (stopAtBody) {
+                val closingTag = headerClosingTagsPattern.matcher(result)
+                if (closingTag.find()) {
+                    result.setLength(closingTag.start())
+                    break
+                }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
-        return if (result.length > MAX_METADATA_CHARS) result.substring(0, MAX_METADATA_CHARS) else result.toString()
+        return result.toString()
     }
 }

@@ -19,7 +19,6 @@ import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
-import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppContentScriptPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppHomeContentScriptPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppWebExtensionBackgroundPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentBlockingDelegate
@@ -160,7 +159,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
     val mediaSessionDelegate = MyMediaSessionDelegate(this)
     val selectionActionDelegate = MySelectionActionDelegate()
     var appHomeContentScriptPortDelegate: AppHomeContentScriptPortDelegate? = null
-    var appContentScriptPortDelegate: AppContentScriptPortDelegate? = null
     var isForeground = true
         private set
     var nativeVideoActive = false
@@ -207,22 +205,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
 
     private fun connectToAppWebExtension(extension: WebExtension) {
         Log.d(TAG, "connectToAppWebExtension")
-        session.webExtensionController.setMessageDelegate(extension,
-            object : MessageDelegate {
-                override fun onMessage(nativeApp: String, message: Any,
-                                       sender: WebExtension.MessageSender): GeckoResult<Any>? {
-                    Log.d(TAG, "onMessage: $nativeApp, $message, $sender")
-                    return null
-                }
-
-                override fun onConnect(port: WebExtension.Port) {
-                    Log.d(TAG, "onConnect: $port")
-                    appContentScriptPortDelegate = AppContentScriptPortDelegate(port, this@GeckoWebEngine).also {
-                        port.setDelegate(it)
-                    }
-                }
-            }, "tvbro_content"
-        )
         session.webExtensionController.setMessageDelegate(extension,
             object : MessageDelegate {
                 override fun onMessage(nativeApp: String, message: Any,
