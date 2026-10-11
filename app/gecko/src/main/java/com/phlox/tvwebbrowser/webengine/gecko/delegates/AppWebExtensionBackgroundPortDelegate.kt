@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
 import android.net.Uri
 import android.util.Log
+import com.phlox.tvwebbrowser.player.MediaDiscoveryNotifier
 import com.phlox.tvwebbrowser.player.MediaRequestCatalog
 import com.phlox.tvwebbrowser.webengine.gecko.BrowserMediaBridge
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
@@ -16,7 +17,17 @@ class AppWebExtensionBackgroundPortDelegate(val port: WebExtension.Port, val web
             val msgJson = message as JSONObject
             when (msgJson.getString("action")) {
                 "activeMediaTab" -> BrowserMediaBridge.receive(msgJson)
-                "mediaNavigation" -> MediaRequestCatalog.shared.navigateTab(msgJson.getInt("tabId"), msgJson.getString("url"))
+                "mediaNavigation" -> {
+                    val tabId = msgJson.getInt("tabId")
+                    val url = msgJson.getString("url")
+                    val removed = MediaRequestCatalog.shared.navigateTab(tabId, url)
+                    Log.d(TAG, "mediaNavigation tabId=$tabId url=$url removed=$removed")
+                }
+                "mediaSkipped" -> {
+                    val data = msgJson.getJSONObject("details")
+                    Log.d(TAG, "mediaSkipped reason=${data.getString("reason")} tabId=${data.getInt("tabId")} " +
+                        "status=${data.getInt("statusCode")} method=${data.getString("method")} url=${data.getString("url")}")
+                }
                 "mediaResponse" -> {
                     val data = msgJson.getJSONObject("details")
                     val headers = data.optJSONObject("headers") ?: JSONObject()
@@ -28,6 +39,11 @@ class AppWebExtensionBackgroundPortDelegate(val port: WebExtension.Port, val web
                         headers = headers.keys().asSequence().associateWith { headers.getString(it) },
                         tabId = data.optInt("tabId", -1)
                     ))
+                    // Segment files churn constantly; only a manifest/single file changes the list.
+                    if (!url.substringBefore('?').lowercase().endsWith(".ts")) {
+                        Log.d(TAG, "mediaObserved url=$url page=${data.optString("page")} tabId=${data.optInt("tabId", -1)}")
+                        MediaDiscoveryNotifier.notifyChanged()
+                    }
                 }
                 "onBeforeRequest" -> {
                     val data = msgJson.getJSONObject("details")

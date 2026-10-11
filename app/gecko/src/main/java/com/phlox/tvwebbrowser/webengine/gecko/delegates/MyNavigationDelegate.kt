@@ -56,7 +56,9 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
 
         val callback = webEngine.callback ?: return GeckoResult.deny()
 
-        if (callback.shouldOverrideUrlLoading(request.uri)) {
+        val isAutomaticRedirect = request.target == GeckoSession.NavigationDelegate.TARGET_WINDOW_CURRENT &&
+                (!request.isDirectNavigation || request.isRedirect)
+        if (callback.shouldOverrideUrlLoading(request.uri, isAutomaticRedirect)) {
             return GeckoResult.deny()
         }
 

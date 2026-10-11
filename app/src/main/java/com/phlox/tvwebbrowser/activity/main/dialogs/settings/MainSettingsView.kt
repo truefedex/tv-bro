@@ -60,6 +60,8 @@ class MainSettingsView @JvmOverloads constructor(
 
         initWebEngineDebugUI()
 
+        initBlockAutomaticRedirectsUI()
+
         initKeepScreenOnUI()
 
         initJoystickAxesNavigationUI()
@@ -176,6 +178,13 @@ class MainSettingsView @JvmOverloads constructor(
         vb.scAutoNativeFullscreen.isChecked = config.autoNativeFullscreen
         vb.scAutoNativeFullscreen.setOnCheckedChangeListener { _, isChecked ->
             config.autoNativeFullscreen = isChecked
+        }
+    }
+
+    private fun initBlockAutomaticRedirectsUI() {
+        vb.scBlockAutomaticRedirects.isChecked = config.blockAutomaticRedirects
+        vb.scBlockAutomaticRedirects.setOnCheckedChangeListener { _, isChecked ->
+            config.blockAutomaticRedirects = isChecked
         }
     }
 

@@ -52,6 +52,7 @@ import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.player.MediaDiscoveryNotifier
 import com.phlox.tvwebbrowser.player.MediaRequestCatalog
 import com.phlox.tvwebbrowser.player.MediaRequestContext
 import com.phlox.tvwebbrowser.player.NativeVideoActivity
@@ -59,6 +60,7 @@ import com.phlox.tvwebbrowser.player.PlaybackFailure
 import com.phlox.tvwebbrowser.player.SystemPlayerActivity
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.webengine.MediaCandidate
 import java.net.URLEncoder
 import java.util.UUID
 
@@ -128,7 +130,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onShowFileChooser(intent: Intent): Boolean
         fun onReceivedIcon(icon: Bitmap)
         fun requestPermissions(array: Array<String>, geo: Boolean)
-        fun shouldOverrideUrlLoading(url: String): Boolean
+        fun shouldOverrideUrlLoading(url: String, isAutomaticRedirect: Boolean = false): Boolean
         fun onPageStarted(url: String?)
         fun onPageFinished(url: String?)
         fun onPageCertificateError(url: String?)
@@ -389,7 +391,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 Log.d(TAG, "shouldOverrideUrlLoading url: ${request.url}")
-                return callback.shouldOverrideUrlLoading(request.url.toString())
+                return callback.shouldOverrideUrlLoading(request.url.toString(), request.isRedirect)
             }
 
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -401,7 +403,9 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                     //up first in the list and is the best pick.
                     val u = request.url.toString()
                     if (isMediaCandidate(u) && detectedMedia.size < MAX_DETECTED_MEDIA) {
-                        detectedMedia.putIfAbsent(u, request.requestHeaders ?: emptyMap())
+                        if (detectedMedia.putIfAbsent(u, request.requestHeaders ?: emptyMap()) == null) {
+                            MediaDiscoveryNotifier.notifyChanged()
+                        }
                     }
                 }
                 val currentPageUrl = currentOriginalUrl
@@ -775,6 +779,22 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         //sortedBy is stable, so the detection order survives within each group
         return urls.map { CastCandidate(it, detectedMedia[it] ?: emptyMap(), inferCastKind(it)) }
             .sortedBy { if (isProgressiveFile(it.url)) 1 else 0 }
+    }
+
+    /** Public snapshot of the streams detected on the page, for the toolbar media list. */
+    fun mediaCandidates(): List<MediaCandidate> =
+        orderedCandidates(currentOriginalUrl?.toString())
+            .map { MediaCandidate(it.url, it.kind.toCandidateKind()) }
+
+    /** Plays one detected stream in the built-in native player, bypassing the page controls. */
+    fun playMediaCandidate(url: String) {
+        playInInternalPlayer(CastCandidate(url, detectedMedia[url] ?: emptyMap(), inferCastKind(url)))
+    }
+
+    private fun MediaRequestCatalog.Kind.toCandidateKind(): MediaCandidate.Kind = when (this) {
+        MediaRequestCatalog.Kind.HLS -> MediaCandidate.Kind.HLS
+        MediaRequestCatalog.Kind.DASH -> MediaCandidate.Kind.DASH
+        MediaRequestCatalog.Kind.PROGRESSIVE -> MediaCandidate.Kind.PROGRESSIVE
     }
 
     private fun resolveAndPlay(domUrl: String?, kind: PlayerKind) {

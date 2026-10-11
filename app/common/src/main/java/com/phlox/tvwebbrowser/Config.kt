@@ -37,6 +37,7 @@ class Config(val prefs: SharedPreferences) {
             "webview_use_algorithmic_darkening_with_dark_ui_mode"
         const val WEB_ENGINE_DEBUG_KEY = "web_engine_debug"
         const val AUTO_NATIVE_FULLSCREEN_KEY = "auto_native_fullscreen"
+        const val BLOCK_AUTOMATIC_REDIRECTS_KEY = "block_automatic_redirects"
         //const val HOME_PAGE_VERSION_EXTRACTED = "home_page_version_extracted"
         const val INITIAL_BOOKMARKS_SUGGESTIONS_LOADED = "initial_bookmarks_suggestions_loaded"
         const val ADBLOCK_ENABLED_PREF_KEY = "adblock_enabled"
@@ -207,6 +208,10 @@ class Config(val prefs: SharedPreferences) {
     var autoNativeFullscreen: Boolean
         get() = prefs.getBoolean(AUTO_NATIVE_FULLSCREEN_KEY, false)
         set(value) { prefs.edit().putBoolean(AUTO_NATIVE_FULLSCREEN_KEY, value).apply() }
+
+    var blockAutomaticRedirects: Boolean
+        get() = prefs.getBoolean(BLOCK_AUTOMATIC_REDIRECTS_KEY, true)
+        set(value) { prefs.edit().putBoolean(BLOCK_AUTOMATIC_REDIRECTS_KEY, value).apply() }
 
     /*var homePageVersionExtracted: Int
         get() = prefs.getInt(HOME_PAGE_VERSION_EXTRACTED, 0)

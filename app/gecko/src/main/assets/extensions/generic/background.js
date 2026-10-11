@@ -80,11 +80,18 @@ browser.webRequest.onBeforeSendHeaders.addListener(details => {
 }, {urls: ['http://*/*', 'https://*/*']}, ['requestHeaders']);
 
 browser.webRequest.onHeadersReceived.addListener(async details => {
-    if (details.tabId < 0 || details.method !== 'GET' || details.statusCode >= 400) return;
-    const mime = (details.responseHeaders || []).find(h => h.name.toLowerCase() === 'content-type')?.value || '';
     const pathname = new URL(details.url).pathname;
+    const mediaLike = /\.(mp4|webm|m3u8|mpd|m4v|ts)$/i.test(pathname);
+    if (details.tabId < 0 || details.method !== 'GET' || details.statusCode >= 400) {
+        if (mediaLike) tvBroPort.postMessage({action: 'mediaSkipped', details: {
+            url: details.url, tabId: details.tabId, statusCode: details.statusCode, method: details.method,
+            reason: details.tabId < 0 ? 'noTab' : (details.method !== 'GET' ? 'method' : 'status')
+        }});
+        return;
+    }
+    const mime = (details.responseHeaders || []).find(h => h.name.toLowerCase() === 'content-type')?.value || '';
     if (!/^(video\/|audio\/|text\/vtt|application\/(vnd\.apple\.mpegurl|x-mpegurl|dash\+xml|ttml\+xml))/i.test(mime) &&
-        !/\.(mp4|webm|m3u8|mpd|m4v|ts)$/i.test(pathname)) return;
+        !mediaLike) return;
     const headers = mediaRequestHeaders.get(details.requestId) || {};
     try {
         const tab = await browser.tabs.get(details.tabId);

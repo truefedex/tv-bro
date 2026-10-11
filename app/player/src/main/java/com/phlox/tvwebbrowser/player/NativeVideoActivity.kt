@@ -43,6 +43,10 @@ class NativeVideoActivity : Activity() {
         val textLanguage: String = "", val subtitles: List<Subtitle> = emptyList())
     companion object {
         private const val TAG = "TVBroPlayback"
+        // The web engine may still hold audio focus when we start. Re-issue play a few times
+        // until focus is available instead of leaving the user with a paused picture.
+        private const val PLAY_RETRY_MS = 600L
+        private const val MAX_PLAY_RETRIES = 12
         private val RESIZE_MODES = intArrayOf(
             AspectRatioFrameLayout.RESIZE_MODE_FIT,
             AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
@@ -75,7 +79,11 @@ class NativeVideoActivity : Activity() {
     private var returnAction = ReturnAction.BACK
     private var resizeModeIndex = 0
     private var request: PlaybackRequest? = null
+    private var playRequested = true
+    private var suppressUserIntent = false
+    private var playRetries = 0
     private val handler = Handler(Looper.getMainLooper())
+    private val ensurePlaybackRunnable = Runnable { ensurePlayback() }
     private val bufferTimeout = Runnable {
         if (player?.playbackState == Player.STATE_BUFFERING && player?.playWhenReady == true) {
             Log.w(TAG, "bufferTimeout positionMs=${player?.currentPosition}")
@@ -157,13 +165,23 @@ class NativeVideoActivity : Activity() {
                 if (playbackState == Player.STATE_ENDED) {
                     returnAction = ReturnAction.ENDED
                     finish()
+                } else if (playbackState == Player.STATE_READY) {
+                    handler.postDelayed(ensurePlaybackRunnable, PLAY_RETRY_MS)
                 }
             }
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 Log.i(TAG, "isPlaying=$isPlaying positionMs=${p.currentPosition}")
+                if (isPlaying) playRetries = 0
             }
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
                 scheduleBufferTimeout()
+                if (!suppressUserIntent && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) {
+                    playRequested = playWhenReady
+                }
+                if (!playWhenReady && playRequested &&
+                    reason != Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) {
+                    handler.postDelayed(ensurePlaybackRunnable, PLAY_RETRY_MS)
+                }
             }
             override fun onPlayerError(error: PlaybackException) {
                 Log.e(TAG, "errorCode=${error.errorCodeName}")
@@ -185,6 +203,8 @@ class NativeVideoActivity : Activity() {
         p.setPlaybackSpeed(current.speed)
         if (position >= 0) p.seekTo(position) else p.seekToDefaultPosition()
         p.prepare()
+        playRequested = playWhenReady
+        playRetries = 0
         p.playWhenReady = playWhenReady
         handler.post(sample)
     }
@@ -284,6 +304,26 @@ class NativeVideoActivity : Activity() {
             handler.postDelayed(bufferTimeout, 15000)
     }
 
+    /**
+     * Playback can be held back when the web engine has not released audio focus yet. Re-issue
+     * play (after a pause, which is what actually re-runs the focus request) until it starts.
+     */
+    private fun ensurePlayback() {
+        val p = player ?: return
+        if (!playRequested || p.isPlaying || p.playbackState != Player.STATE_READY) return
+        if (playRetries >= MAX_PLAY_RETRIES) return
+        playRetries++
+        Log.i(TAG, "rearm playback retry=$playRetries")
+        suppressUserIntent = true
+        try {
+            p.pause()
+            p.play()
+        } finally {
+            suppressUserIntent = false
+        }
+        handler.postDelayed(ensurePlaybackRunnable, PLAY_RETRY_MS)
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putLong("position", player?.currentPosition ?: position)
         outState.putBoolean("playWhenReady", player?.playWhenReady ?: playWhenReady)
@@ -293,6 +333,7 @@ class NativeVideoActivity : Activity() {
     override fun onStop() {
         handler.removeCallbacks(sample)
         handler.removeCallbacks(bufferTimeout)
+        handler.removeCallbacks(ensurePlaybackRunnable)
         player?.let { p ->
             position = p.currentPosition
             playWhenReady = p.playWhenReady

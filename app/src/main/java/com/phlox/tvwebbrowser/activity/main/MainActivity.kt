@@ -84,9 +84,11 @@ import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.childs
 import com.phlox.tvwebbrowser.utils.sameDay
+import com.phlox.tvwebbrowser.player.MediaDiscoveryNotifier
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
+import com.phlox.tvwebbrowser.webengine.MediaCandidate
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
@@ -117,6 +119,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
         private const val MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS = 10008
         private const val COMMON_REQUESTS_START_CODE = 10100
+        private const val MAX_MEDIA_LIST_ITEMS = 20
     }
 
     private lateinit var vb: ActivityMainBinding
@@ -126,6 +129,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private lateinit var adblockModel: AdblockModel
     private lateinit var autoUpdateModel: AutoUpdateModel
     private lateinit var uiHandler: Handler
+    private val mediaDiscoveryListener: () -> Unit = { uiHandler.post { updateMediaCounter() } }
     private var isFullscreen: Boolean = false
     private lateinit var prefs: SharedPreferences
     protected val config = AppContext.provideConfig()
@@ -161,6 +165,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         tabsModel = ActiveModelsRepository.get(TabsModel::class, this)
         autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, this)
         uiHandler = Handler()
+        MediaDiscoveryNotifier.addListener(mediaDiscoveryListener)
         prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb.root)
@@ -175,6 +180,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
         vb.ibPopupBlock.setOnClickListener { lifecycleScope.launch(Dispatchers.Main) { showPopupBlockOptions() } }
         vb.ibHome.setOnClickListener { navigate(settingsModel.homePage) }
+        vb.ibMedia.setOnClickListener { showMediaListDialog() }
         vb.ibBack.setOnClickListener { navigateBack() }
         vb.ibForward.setOnClickListener {
             val tab = tabsModel.currentTab.value ?: return@setOnClickListener
@@ -410,6 +416,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         if (::tabsModel.isInitialized) {
             tabsModel.onDetachActivity()
         }
+        MediaDiscoveryNotifier.removeListener(mediaDiscoveryListener)
         super.onDestroy()
     }
 
@@ -589,6 +596,39 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         vb.tvBlockedPopupCounter.visibility = if (tab.blockedPopups != 0) View.VISIBLE else View.GONE
         vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
+
+        updateMediaCounter()
+    }
+
+    private fun updateMediaCounter() {
+        val count = tabsModel.currentTab.value?.webEngine?.mediaCandidates()?.size ?: 0
+        vb.tvMediaCounter.visibility = if (count > 0) View.VISIBLE else View.GONE
+        vb.tvMediaCounter.text = count.toString()
+    }
+
+    private fun showMediaListDialog() {
+        val tab = tabsModel.currentTab.value
+        val candidates = tab?.webEngine?.mediaCandidates().orEmpty()
+        if (candidates.isEmpty()) {
+            Toast.makeText(this, R.string.media_list_empty, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val listed = candidates.take(MAX_MEDIA_LIST_ITEMS)
+        val labels = listed.map { "${it.kind}  ${candidateLabel(it)}" }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle(R.string.media_list_title)
+            .setItems(labels) { _, which ->
+                if (tab != null) tab.webEngine.playMediaCandidate(listed[which])
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun candidateLabel(candidate: MediaCandidate): String {
+        val uri = Uri.parse(candidate.url)
+        val host = uri.host ?: return candidate.url
+        val path = uri.path.orEmpty()
+        return if (path.isEmpty() || path == "/") host else "$host$path"
     }
 
     private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String?, mimeType: String? = null,
@@ -1156,7 +1196,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             vb.vTabs.onFavIconUpdated(tab)
         }
 
-        override fun shouldOverrideUrlLoading(url: String): Boolean {
+        override fun shouldOverrideUrlLoading(url: String, isAutomaticRedirect: Boolean): Boolean {
             tab.lastLoadingUrl = url
 
             val uri = try {
@@ -1174,6 +1214,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             if (URLUtil.isNetworkUrl(url) || uri.scheme.equals("javascript", true) ||
                     uri.scheme.equals("data", true) || uri.scheme.equals("about", true) ||
                     uri.scheme.equals("blob", true)) {
+                if (isAutomaticRedirect && shouldBlockAutomaticRedirect(url)) {
+                    return true
+                }
                 Log.d(TAG, "shouldOverrideUrlLoading: network url: $url")
                 return false
             }
@@ -1206,6 +1249,34 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 Log.e(TAG, "shouldOverrideUrlLoading: ", e)
                 true
             }
+        }
+
+        private fun shouldBlockAutomaticRedirect(url: String): Boolean {
+            if (!config.blockAutomaticRedirects || !config.adBlockEnabled) return false
+            val current = tab.url.takeIf { it.isNotBlank() } ?: tab.lastLoadingUrl ?: return false
+            if (!isDifferentSite(url, current)) return false
+            Log.i(TAG, "blockAutomaticRedirect: $url -> blocked")
+            onBlockedAd(url)
+            return true
+        }
+
+        private fun isDifferentSite(url: String, current: String): Boolean {
+            if (url == current) return false
+            val a = siteDomain(Uri.parse(url).host)
+            val b = siteDomain(Uri.parse(current).host)
+            return a != null && b != null && a != b
+        }
+
+        private fun siteDomain(host: String?): String? {
+            if (host.isNullOrBlank()) return null
+            val labels = host.lowercase().removePrefix("www.").split('.')
+            if (labels.size <= 2) return labels.joinToString(".")
+            val ccBase = setOf("co", "com", "org", "net", "edu", "gov", "ac", "ne", "or", "nom", "uk", "ca",
+                "us", "au", "nz", "jp", "in", "za", "br", "ar", "mx", "tr", "cn", "sg", "hk", "tw", "kr",
+                "it", "fr", "de", "es", "pl", "ru", "se", "no", "fi", "dk", "nl", "be", "ch", "at", "ie",
+                "pt", "gr", "il", "cz", "sk", "hu", "ro", "bg", "hr", "rs", "ua", "dev", "io", "app")
+            val base = if (labels[labels.size - 2] in ccBase) 3 else 2
+            return labels.takeLast(base).joinToString(".")
         }
 
         override fun onPageStarted(url: String?) {

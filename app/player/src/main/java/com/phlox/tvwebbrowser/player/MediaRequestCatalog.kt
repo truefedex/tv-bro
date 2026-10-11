@@ -91,8 +91,10 @@ class MediaRequestCatalog(private val now: () -> Long = System::currentTimeMilli
         requests.entries.removeAll { documentKey(it.value.page) == documentKey(page) }
     }
     @Synchronized
-    fun navigateTab(tabId: Int, page: String) {
+    fun navigateTab(tabId: Int, page: String): Int {
+        val before = requests.size
         requests.entries.removeAll { it.value.tabId == tabId && documentKey(it.value.page) != documentKey(page) }
+        return before - requests.size
     }
 
     private fun prune() { requests.entries.removeAll { now() - it.value.time > 30 * 60 * 1000L } }

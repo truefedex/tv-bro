@@ -50,6 +50,10 @@ interface WebEngine {
     fun rewind()
     fun fastForward()
     fun castCurrentVideo()
+    /** Streams observed on the current page, most likely real one first. */
+    fun mediaCandidates(): List<MediaCandidate>
+    /** Plays an observed stream in the built-in native player, bypassing page controls. */
+    fun playMediaCandidate(candidate: MediaCandidate)
     fun setVirtualCursorMode(enabled: Boolean)
     fun isVirtualCursorMode(): Boolean
     fun getCursorDrawerDelegate(): CursorDrawerDelegate?

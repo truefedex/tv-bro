@@ -133,6 +133,7 @@
     <string name="allow_autoplay_media">Allow autoplay for media</string>
     <string name="auto_native_fullscreen">Auto-open fullscreen videos in the native player</string>
     <string name="web_engine_debug">Web engine debugging (need restart)</string>
+    <string name="block_automatic_redirects">Block automatic redirects to other sites</string>
     <string name="web_engine_debug_warning_message">Enabling web engine debugging can expose page content, cookies, and sensitive session data to anyone with device debugging access. Enable only on trusted devices for troubleshooting.</string>
     <array name="themes">
         <item>System</item>
@@ -204,5 +205,8 @@
     <string name="cast_start_video_message">Start playing the video on the page first, then press the key again to choose a player.</string>
     <string name="cast_no_media">No playable media found on this page</string>
     <string name="cast_no_player">No compatible player found (install VLC or MX Player)</string>
+    <string name="media_list">Streams on this page</string>
+    <string name="media_list_title">Streams on this page</string>
+    <string name="media_list_empty">No playable streams detected on this page yet</string>
     <string name="long_press">Long press</string>
 </resources>

@@ -9,11 +9,15 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.UiThread
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.player.MediaRequestCatalog
+import com.phlox.tvwebbrowser.player.NativeVideoActivity
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.MediaCandidate
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
@@ -470,8 +474,44 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
         mediaSessionDelegate.castNow()
     }
 
+    override fun mediaCandidates(): List<MediaCandidate> {
+        val page = url ?: return emptyList()
+        return MediaRequestCatalog.shared.snapshot(page, session.settings.usePrivateMode)
+            // HLS/DASH segment files are not directly playable in a useful way; keep the
+            // manifests and single progressive files.
+            .filter { !it.url.substringBefore('?').lowercase().endsWith(".ts") }
+            .map { MediaCandidate(it.url, it.kind.toCandidateKind()) }
+            .distinctBy { it.url }
+            .sortedBy { if (it.kind == MediaCandidate.Kind.PROGRESSIVE) 1 else 0 }
+    }
+
+    override fun playMediaCandidate(candidate: MediaCandidate) {
+        if (nativeVideoActive) return
+        val page = url ?: return
+        val ua = userAgentString ?: GeckoSession.getDefaultUserAgent()
+        NativeMediaResolver.resolve(candidate.url, page, session.settings.usePrivateMode, ua) { resolved, reason ->
+            if (resolved == null) {
+                Log.i(TAG, "play-media-candidate: $reason")
+                Toast.makeText(AppContext.get(), R.string.native_playback_unavailable, Toast.LENGTH_SHORT).show()
+                return@resolve
+            }
+            try {
+                NativeVideoActivity.launch(AppContext.get(), NativeVideoActivity.PlaybackRequest(
+                    resolved.source, resolved.context, 0L, 1f)) { }
+            } catch (error: Exception) {
+                Log.w(TAG, "play-media-candidate failed: ${error.javaClass.simpleName}")
+            }
+        }
+    }
+
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
         return webView?.renderThumbnail(bitmap)
+    }
+
+    private fun MediaRequestCatalog.Kind.toCandidateKind(): MediaCandidate.Kind = when (this) {
+        MediaRequestCatalog.Kind.HLS -> MediaCandidate.Kind.HLS
+        MediaRequestCatalog.Kind.DASH -> MediaCandidate.Kind.DASH
+        MediaRequestCatalog.Kind.PROGRESSIVE -> MediaCandidate.Kind.PROGRESSIVE
     }
 
     override fun onAttachToWindow(

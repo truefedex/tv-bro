@@ -23,7 +23,7 @@ interface WebEngineWindowProviderCallback {
     fun requestPermissions(array: Array<String>): Int
     fun onShowFileChooser(intent: Intent): Boolean
     fun onReceivedIcon(icon: Bitmap)
-    fun shouldOverrideUrlLoading(url: String): Boolean
+    fun shouldOverrideUrlLoading(url: String, isAutomaticRedirect: Boolean = false): Boolean
     fun onPageStarted(url: String?)
     fun onPageFinished(url: String?)
     fun onPageCertificateError(url: String?)

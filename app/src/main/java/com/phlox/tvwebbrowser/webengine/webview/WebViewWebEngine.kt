@@ -17,6 +17,7 @@ import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import com.phlox.tvwebbrowser.webengine.MediaCandidate
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
@@ -173,6 +174,12 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         webView?.evaluateJavascript("tvBroCastCurrentVideo()", null)
     }
 
+    override fun mediaCandidates(): List<MediaCandidate> = webView?.mediaCandidates() ?: emptyList()
+
+    override fun playMediaCandidate(candidate: MediaCandidate) {
+        webView?.playMediaCandidate(candidate.url)
+    }
+
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
         return webView?.renderThumbnail(bitmap)
     }
@@ -297,8 +304,8 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
             callback?.onReceivedIcon(icon)
         }
 
-        override fun shouldOverrideUrlLoading(url: String): Boolean {
-            return callback?.shouldOverrideUrlLoading(url) ?: false
+        override fun shouldOverrideUrlLoading(url: String, isAutomaticRedirect: Boolean): Boolean {
+            return callback?.shouldOverrideUrlLoading(url, isAutomaticRedirect) ?: false
         }
 
         override fun onPageStarted(url: String?) {
