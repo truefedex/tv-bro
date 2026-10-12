@@ -32,6 +32,8 @@ class FavoriteEditorDialog(context: Context, private val callback: Callback, pri
         setCancelable(true)
         setTitle(if (item.id == 0L) R.string.new_bookmark else R.string.edit)
         setContentView(R.layout.dialog_new_favorite_item)
+        findViewById<TextView>(R.id.tvDialogTitle).text =
+            context.getString(if (item.id == 0L) R.string.new_bookmark else R.string.edit)
         tvTitle = findViewById<View>(R.id.tvTitle) as TextView
         tvUrl = findViewById<View>(R.id.tvUrl) as TextView
         etTitle = findViewById<View>(R.id.etTitle) as EditText

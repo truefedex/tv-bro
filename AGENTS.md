@@ -34,6 +34,24 @@
   bookmark now navigates, while a script auto-redirect (`location.href` with no gesture) is still
   blocked. Blocker only active when `blockAutomaticRedirects && adBlockEnabled`.
 
+## Feature notes
+- **Bookmarks workflow reworked into a right-side panel (star button).**
+  The star (`ibFavorites`) used to open `FavoritesDialog` (a modal popup). Replaced with a
+  right-anchored panel `rlBookmarksPanel` in `activity_main.xml` hosting
+  `view.bookmarks.BookmarksPanelView` (mirrors the left `llTabPanel`/`TabsView` pattern). First
+  entry is "Add this page" (`add_this_page`), shown only on a real page (non-null `http` url that
+  isn't `Config.isHomePageUrl`); tapping it opens `FavoriteEditorDialog` prefilled with the current
+  tab title/url. The rest of the list is all top-level bookmarks (`FavoritesDao.getAllBookmarks()`).
+  Tap navigates and closes the panel; long-press opens an Edit/Delete context menu. Edits go through
+  `MainActivityViewModel.onHomePageLinkEdited()` and deletes through the new
+  `MainActivityViewModel.deleteBookmark()` so the home page's `homePageLinks` stay in sync. The
+  overflow menu's "Add bookmark" now calls `addCurrentPageAsBookmark()` directly. Star toggles the
+  panel; BACK and entering URL-edit mode close it; opening it hides the tab panel. Also fixed
+  `dialog_new_favorite_item.xml` whose header TextView was hardcoded to `@string/new_bookmark` — it
+  now shows Edit vs New correctly. Removed the dead `FavoritesDialog`, `FavoritesListAdapter`,
+  `FavoriteItemView`, `dialog_favorites.xml`, `view_favorite_item.xml`,
+  `favorite_item_view_bg_selector.xml`.
+
 ## Build / test
 - `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
 - Unit tests: `:app:player:testDebugUnitTest`.

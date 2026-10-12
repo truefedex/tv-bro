@@ -237,6 +237,14 @@ class MainActivityViewModel: ActiveModel() {
         }
     }
 
+    fun deleteBookmark(favoriteId: Long) = modelScope.launch {
+        AppDatabase.db.favoritesDao().delete(favoriteId)
+        val index = homePageLinks.indexOfFirst { it.favoriteId == favoriteId }
+        if (index != -1) {
+            homePageLinks.removeAt(index)
+        }
+    }
+
     fun onHomePageLinkEdited(item: FavoriteItem) = modelScope.launch {
         if (item.id == 0L) {
             val lastInsertRowId = AppDatabase.db.favoritesDao().insert(item)

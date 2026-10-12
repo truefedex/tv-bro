@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="64dp"
+    android:orientation="horizontal"
+    android:focusable="true"
+    android:paddingStart="6dp"
+    android:paddingEnd="6dp"
+    android:background="@drawable/tab_panel_item_bg_selector">
+
+    <ImageView
+        android:id="@+id/ivFavicon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="8dp"
+        android:scaleType="fitCenter"
+        tools:src="@drawable/ic_not_available" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:layout_marginStart="3dp">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true"
+            android:textColor="@color/webtab_horizontal_text_selector"
+            android:textSize="20sp"
+            android:lines="1"
+            android:ellipsize="end"
+            tools:text="@string/app_name" />
+
+        <TextView
+            android:id="@+id/tvUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:duplicateParentState="true"
+            android:textColor="@color/webtab_horizontal_text_selector"
+            android:alpha="0.7"
+            android:textSize="14sp"
+            android:lines="1"
+            android:ellipsize="end"
+            tools:text="https://example.com" />
+    </LinearLayout>
+</LinearLayout>

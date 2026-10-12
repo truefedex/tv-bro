@@ -62,10 +62,10 @@ import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoriteEditorDialog
-import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
+import com.phlox.tvwebbrowser.activity.main.view.bookmarks.BookmarksPanelView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.Download
@@ -175,6 +175,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.progressBar.visibility = View.GONE
 
         vb.vTabs.listener = tabsListener
+        vb.vBookmarks.listener = bookmarksListener
 
         vb.vActionBar.callback = this
 
@@ -295,6 +296,35 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
     }
 
+    private val bookmarksListener = object : BookmarksPanelView.Listener {
+        override fun onAddThisPage() {
+            addCurrentPageAsBookmark()
+        }
+
+        override fun onBookmarkSelected(item: FavoriteItem) {
+            item.url?.let { navigate(it) }
+            hideBookmarksPanel()
+        }
+
+        override fun onEditBookmark(item: FavoriteItem) {
+            FavoriteEditorDialog(this@MainActivity, object : FavoriteEditorDialog.Callback {
+                override fun onDone(item: FavoriteItem) {
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        viewModel.onHomePageLinkEdited(item).join()
+                        loadBookmarks()
+                    }
+                }
+            }, item).show()
+        }
+
+        override fun onDeleteBookmark(item: FavoriteItem) {
+            lifecycleScope.launch(Dispatchers.Main) {
+                viewModel.deleteBookmark(item.id).join()
+                loadBookmarks()
+            }
+        }
+    }
+
     override fun closeWindow() {
         Log.d(TAG, "closeWindow")
         lifecycleScope.launch {
@@ -317,16 +347,46 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun showFavorites() {
-        val currentTab = tabsModel.currentTab.value
-        val currentPageTitle = currentTab?.title ?: ""
-        val currentPageUrl = currentTab?.url ?: ""
+        if (vb.rlBookmarksPanel.isVisible) {
+            hideBookmarksPanel()
+        } else {
+            showBookmarksPanel()
+        }
+    }
 
-        FavoritesDialog(this@MainActivity, lifecycleScope, object : FavoritesDialog.Callback {
-            override fun onFavoriteChoosen(item: FavoriteItem?) {
-                navigate(item!!.url!!)
+    private fun showBookmarksPanel() {
+        vb.llTabPanel.visibility = View.GONE
+        vb.vBookmarks.setCurrentPage(tabsModel.currentTab.value?.url)
+        loadBookmarks()
+        vb.rlBookmarksPanel.visibility = View.VISIBLE
+        vb.vBookmarks.requestFocus()
+    }
+
+    private fun hideBookmarksPanel() {
+        vb.rlBookmarksPanel.visibility = View.GONE
+    }
+
+    private fun loadBookmarks() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            vb.vBookmarks.setBookmarks(AppDatabase.db.favoritesDao().getAllBookmarks())
+        }
+    }
+
+    private fun addCurrentPageAsBookmark() {
+        val currentTab = tabsModel.currentTab.value ?: return
+        val url = currentTab.url
+        if (url.isNullOrBlank() || Config.isHomePageUrl(url)) return
+        val newItem = FavoriteItem()
+        newItem.title = currentTab.title ?: url
+        newItem.url = url
+        FavoriteEditorDialog(this, object : FavoriteEditorDialog.Callback {
+            override fun onDone(item: FavoriteItem) {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    viewModel.onHomePageLinkEdited(item).join()
+                    loadBookmarks()
+                }
             }
-        }, currentPageTitle, currentPageUrl).show()
-        autoHideMenuOverlay()
+        }, newItem).show()
     }
 
     private fun tabByTitleIndex(index: Int) =
@@ -338,6 +398,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     override fun onExtendedAddressBarMode() {
         vb.llTabPanel.visibility = View.GONE
+        vb.rlBookmarksPanel.visibility = View.GONE
     }
 
     override fun onUrlInputDone() {
@@ -371,6 +432,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             vb.llTabPanel.visibility = View.GONE
             tabsModel.currentTab.value?.webEngine?.getView()?.requestFocus()
         } else {
+            vb.rlBookmarksPanel.visibility = View.GONE
             vb.llTabPanel.visibility = View.VISIBLE
             vb.vTabs.requestFocus()
         }
@@ -398,7 +460,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 when (which) {
                     0 -> navigate(settingsModel.homePage)
                     1 -> openInNewTab(settingsModel.homePage, tabsModel.tabsStates.size, needToHideMenuOverlay = false, navigateImmediately = true)
-                    2 -> showFavorites()
+                    2 -> addCurrentPageAsBookmark()
                     3 -> toggleAdBlockForTab()
                     4 -> lifecycleScope.launch(Dispatchers.Main) { showPopupBlockOptions() }
                     5 -> showHistory()
@@ -941,6 +1003,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             vb.flWebViewContainer.cursorDrawerDelegate.handleBackNavigation()
         } else if (isFullscreen) {
             tabsModel.currentTab.value?.webEngine?.hideFullscreenView()
+        } else if (vb.rlBookmarksPanel.isVisible) {
+            hideBookmarksPanel()
+        } else if (vb.llTabPanel.isVisible) {
+            vb.llTabPanel.visibility = View.GONE
         } else {
             toggleMenu()
         }

@@ -91,6 +91,25 @@
             android:focusable="true" />
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/rlBookmarksPanel"
+        android:layout_width="400dp"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/rlActionBar"
+        android:layout_alignParentEnd="true"
+        android:background="@color/top_bar_background"
+        android:elevation="6dp"
+        android:visibility="gone"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <com.phlox.tvwebbrowser.activity.main.view.bookmarks.BookmarksPanelView
+            android:id="@+id/vBookmarks"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:focusable="true" />
+    </RelativeLayout>
+
     <com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
         android:id="@+id/vCursorMenu"
         android:layout_width="match_parent"

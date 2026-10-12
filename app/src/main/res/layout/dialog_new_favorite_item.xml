@@ -6,6 +6,7 @@
     android:minWidth="400dp">
 
     <TextView
+        android:id="@+id/tvDialogTitle"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:text="@string/new_bookmark"

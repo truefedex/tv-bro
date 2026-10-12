@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:parentTag="android.widget.RelativeLayout">
+
+    <LinearLayout
+        android:id="@+id/llAddThisPage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="64dp"
+        android:orientation="horizontal"
+        android:focusable="true"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:background="@drawable/tab_panel_item_bg_selector"
+        android:layout_alignParentTop="true">
+
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="8dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_star_border_grey_900_36dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical"
+            android:duplicateParentState="true"
+            android:textColor="@color/webtab_horizontal_text_selector"
+            android:textSize="20sp"
+            android:lines="1"
+            android:ellipsize="end"
+            android:layout_marginStart="3dp"
+            android:text="@string/add_this_page" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvBookmarks"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/llAddThisPage"
+        android:background="@color/top_bar_background" />
+
+    <TextView
+        android:id="@+id/tvNoBookmarks"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:padding="20dp"
+        android:textSize="20sp"
+        android:text="@string/no_bookmarks_yet"
+        android:visibility="gone" />
+</merge>
