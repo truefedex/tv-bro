@@ -393,7 +393,16 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             if (index >= 0 && index < tabsModel.tabsStates.size) tabsModel.tabsStates[index] else null
 
     override fun showSettings() {
-        SettingsDialog(this, settingsModel).show()
+        SettingsDialog(this, settingsModel).apply {
+            // The ad-block toggle is global (config.adBlockEnabled) while the overlay zapper is a
+            // document-start script registered per WebView; re-sync every open tab on dismiss so
+            // the zapper matches the network blocker. Per-tab overrides are preserved.
+            onDismissed = {
+                tabsModel.tabsStates.forEach {
+                    it.webEngine.onUpdateAdblockSetting(it.adblock ?: config.adBlockEnabled)
+                }
+            }
+        }.show()
     }
 
     override fun onExtendedAddressBarMode() {
@@ -1327,10 +1336,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun isAdBlockingEnabled(): Boolean {
-            tabsModel.currentTab.value?.adblock?.apply {
-                return this
-            }
-            return  config.adBlockEnabled
+            // Use this callback's own tab, not whichever tab happens to be current: the WebView
+            // callback is per-tab and is queried while a tab may not be selected yet.
+            return tab.adblock ?: config.adBlockEnabled
         }
 
         override fun isDialogsBlockingEnabled(): Boolean {

@@ -197,6 +197,10 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         parent.removeAllViews()
         parent.addView(webView)
         viewParent?.cursorDrawerDelegate?.callback = this
+        // The WebView is constructed before its callback is attached, so the ad-block state read
+        // at construction time is always false and the overlay zapper never gets registered.
+        // Re-apply now that the callback (and its per-tab adblock setting) is available.
+        webView?.onUpdateAdblockSetting(callback.isAdBlockingEnabled())
         onResume()
     }
 

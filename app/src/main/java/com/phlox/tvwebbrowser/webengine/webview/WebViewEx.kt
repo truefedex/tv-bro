@@ -47,7 +47,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
+import androidx.webkit.ScriptHandler
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
@@ -81,6 +83,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         const val INTERNAL_SCHEME = "internal://"
         const val INTERNAL_SCHEME_WARNING_DOMAIN = "warning"
         const val INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT = "certificate"
+        const val OVERLAY_ZAPPER_ASSET = "overlay_zapper.js"
         const val MAX_DETECTED_MEDIA = 30
         //coming back from an external player sooner than this means it likely failed
         const val EXTERNAL_PLAYER_FAIL_WINDOW = 15000L
@@ -95,6 +98,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
     private var virtualCursorMode: Boolean = true
     private var genericInjects: String? = null
+    private var overlayZapperHandler: ScriptHandler? = null
     private var webChromeClient_: WebChromeClient
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
@@ -202,6 +206,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         setOnLongClickListener { v ->
             true
         }
+
+        updateOverlayZapper(callback.isAdBlockingEnabled())
 
         webChromeClient_ = object : WebChromeClient() {
             override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
@@ -691,6 +697,35 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     fun onUpdateAdblockSetting(adblockEnabled: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.safeBrowsingEnabled = adblockEnabled
+        }
+        updateOverlayZapper(adblockEnabled)
+    }
+
+    /**
+     * Registers (or removes) the cosmetic ad-overlay zapper as a document-start
+     * script running in every frame. It complements the network-level ad blocking
+     * with runtime DOM cleanup of overlays/click hijackers that first-party
+     * scripts build after load. A no-op if the WebView provider is too old.
+     */
+    private fun updateOverlayZapper(enabled: Boolean) {
+        val existing = overlayZapperHandler
+        if (!enabled) {
+            existing?.remove()
+            overlayZapperHandler = null
+            return
+        }
+        if (existing != null) return
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        val script = try {
+            context.assets.open(OVERLAY_ZAPPER_ASSET).bufferedReader().use { it.readText() }
+        } catch (e: Exception) {
+            Log.w(TAG, "overlay zapper asset not available", e)
+            return
+        }
+        try {
+            overlayZapperHandler = WebViewCompat.addDocumentStartJavaScript(this, script, setOf("*"))
+        } catch (e: Exception) {
+            Log.w(TAG, "failed to register overlay zapper", e)
         }
     }
 

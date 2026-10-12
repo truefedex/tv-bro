@@ -17,6 +17,9 @@ class SettingsDialog(context: Context, val model: SettingsModel) :
     private var mainView: MainSettingsView? = null
     private var sbTabs: SegmentedButton
 
+    /** Invoked after the dialog's own [onDismiss] work, for callers that need to react to changes. */
+    var onDismissed: (() -> Unit)? = null
+
     init {
         setTitle(R.string.settings)
         setContentView(R.layout.dialog_settings)
@@ -52,6 +55,7 @@ class SettingsDialog(context: Context, val model: SettingsModel) :
 
     override fun onDismiss(dialog: DialogInterface?) {
         mainView?.save()
+        onDismissed?.invoke()
     }
 
     override fun onNeedToCloseSettings() {
