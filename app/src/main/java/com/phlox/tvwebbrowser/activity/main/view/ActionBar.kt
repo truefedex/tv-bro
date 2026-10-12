@@ -2,14 +2,12 @@ package com.phlox.tvwebbrowser.activity.main.view
 
 import android.content.Context
 import android.graphics.Color
-import android.transition.TransitionManager
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View.OnFocusChangeListener
 import android.view.View.OnKeyListener
 import android.view.inputmethod.InputMethodManager
-import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import com.phlox.tvwebbrowser.AppContext
@@ -55,6 +53,8 @@ class ActionBar @JvmOverloads constructor(
                 {
                     vb.etUrl.selectAll()
                 }, 500)
+        } else {
+            dismissExtendedAddressBarMode()
         }
     }
 
@@ -135,28 +135,22 @@ class ActionBar @JvmOverloads constructor(
         vb.tvMediaCounter.text = count.toString()
     }
 
+    /**
+     * The top bar is pinned and always reserves space, so URL-edit mode must never hide the
+     * navigation/action buttons: the address box simply expands into the free space (it has
+     * layout_weight=1). Hiding them here used to collapse the bar down to just the URL and, worse,
+     * if focus left the box without the ENTER handler running (e.g. a link opening a new page)
+     * the buttons stayed hidden for good. Entering the mode now only closes the side panels.
+     */
     private fun enterExtendedAddressBarMode() {
         if (extendedAddressBarMode) return
         extendedAddressBarMode = true
-        for (i in 0 until childCount) {
-            val child = getChildAt(i)
-            if (child is ImageButton) {
-                child.visibility = GONE
-            }
-        }
-        TransitionManager.beginDelayedTransition(this)
         callback?.onExtendedAddressBarMode()
     }
 
     fun dismissExtendedAddressBarMode() {
         if (!extendedAddressBarMode) return
         extendedAddressBarMode = false
-        for (i in 0 until childCount) {
-            val child = getChildAt(i)
-            if (child is ImageButton) {
-                child.visibility = VISIBLE
-            }
-        }
     }
 
     fun catchFocus() {
