@@ -53,6 +53,8 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.player.MediaDiscoveryNotifier
+import com.phlox.tvwebbrowser.player.MediaMetadataCache
+import com.phlox.tvwebbrowser.player.MediaMetadataPrefetcher
 import com.phlox.tvwebbrowser.player.MediaRequestCatalog
 import com.phlox.tvwebbrowser.player.MediaRequestContext
 import com.phlox.tvwebbrowser.player.NativeVideoActivity
@@ -785,6 +787,21 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     fun mediaCandidates(): List<MediaCandidate> =
         orderedCandidates(currentOriginalUrl?.toString())
             .map { MediaCandidate(it.url, it.kind.toCandidateKind()) }
+
+    /** Warms the metadata cache for manifests on the page; plain files carry no parseable metadata. */
+    fun prefetchMediaMetadata() {
+        val page = currentOriginalUrl?.toString() ?: return
+        val userAgent = settings.userAgentString ?: ""
+        detectedMedia.keys.forEach { url ->
+            val kind = inferCastKind(url)
+            if (kind != MediaRequestCatalog.Kind.PROGRESSIVE && MediaMetadataCache.get(url) == null) {
+                val request = MediaRequestCatalog.Request(
+                    url = url, page = page, frame = page, privateMode = false, kind = kind,
+                    headers = detectedMedia[url] ?: emptyMap())
+                MediaMetadataPrefetcher.prefetch(url, kind, MediaRequestContext(request, listOf(request), userAgent))
+            }
+        }
+    }
 
     /** Plays one detected stream in the built-in native player, bypassing the page controls. */
     fun playMediaCandidate(url: String) {

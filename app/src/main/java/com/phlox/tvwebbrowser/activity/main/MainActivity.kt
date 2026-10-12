@@ -62,6 +62,7 @@ import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoriteEditorDialog
+import com.phlox.tvwebbrowser.activity.main.dialogs.media.MediaListAdapter
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
@@ -88,7 +89,6 @@ import com.phlox.tvwebbrowser.player.MediaDiscoveryNotifier
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
-import com.phlox.tvwebbrowser.webengine.MediaCandidate
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
@@ -678,21 +678,17 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return
         }
         val listed = candidates.take(MAX_MEDIA_LIST_ITEMS)
-        val labels = listed.map { "${it.kind}  ${candidateLabel(it)}" }.toTypedArray()
-        AlertDialog.Builder(this)
+        val adapter = MediaListAdapter(this, listed)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.media_list_title)
-            .setItems(labels) { _, which ->
+            .setAdapter(adapter) { _, which ->
                 if (tab != null) tab.webEngine.playMediaCandidate(listed[which])
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun candidateLabel(candidate: MediaCandidate): String {
-        val uri = Uri.parse(candidate.url)
-        val host = uri.host ?: return candidate.url
-        val path = uri.path.orEmpty()
-        return if (path.isEmpty() || path == "/") host else "$host$path"
+            .create()
+        dialog.setOnDismissListener { adapter.release() }
+        dialog.show()
+        tab?.webEngine?.prefetchMediaMetadata()
     }
 
     private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String?, mimeType: String? = null,

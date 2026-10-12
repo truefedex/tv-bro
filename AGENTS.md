@@ -51,6 +51,20 @@
   now shows Edit vs New correctly. Removed the dead `FavoritesDialog`, `FavoritesListAdapter`,
   `FavoriteItemView`, `dialog_favorites.xml`, `view_favorite_item.xml`,
   `favorite_item_view_bg_selector.xml`.
+- **Stream list popup: per-row icon, short label, and background manifest metadata.**
+  The "Streams on this page" list (`MediaListAdapter` over `view_media_candidate_item.xml`) renders
+  each candidate as `[icon] last-path-segment / KIND · host` plus a right-aligned metadata column.
+  The list still builds instantly from URL+kind; opening it calls the new
+  `WebEngine.prefetchMediaMetadata()` so `MainActivity.showMediaListDialog()` never blocks. Engines
+  warm a shared `MediaMetadataCache` in the background only for HLS/DASH candidates
+  (`MediaMetadataPrefetcher`, 2-thread pool, deduped, HLS/DASH only, progressive skipped); rows
+  update live via `MediaMetadataCache.Listener` (registered on open, removed on dismiss — no
+  polling). `ManifestInspector` now also extracts HLS `RESOLUTION`/`BANDWIDTH`/`#EXT-X-MEDIA`
+  `LANGUAGE` and DASH `width`/`height`/`lang`/`bandwidth`/`mediaPresentationDuration` into
+  `MediaMetadata`; the manifest body is fetched through the existing `ScopedMediaDataSource`
+  (`MediaManifestReader`, extracted from `NativeMediaResolver.readManifest`, which now also populates
+  the cache). `MediaCandidate` itself is unchanged. Verified on emulator: local HLS master →
+  `1920×1080`, `en/fr`; DASH MPD → `1920×1080`, `en/fr · 1:02:03`.
 
 ## Build / test
 - `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.

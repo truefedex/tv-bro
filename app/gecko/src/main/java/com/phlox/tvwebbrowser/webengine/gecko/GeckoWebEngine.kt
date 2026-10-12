@@ -14,7 +14,10 @@ import androidx.annotation.UiThread
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.player.MediaMetadataCache
+import com.phlox.tvwebbrowser.player.MediaMetadataPrefetcher
 import com.phlox.tvwebbrowser.player.MediaRequestCatalog
+import com.phlox.tvwebbrowser.player.MediaRequestContext
 import com.phlox.tvwebbrowser.player.NativeVideoActivity
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.MediaCandidate
@@ -500,6 +503,19 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
                     resolved.source, resolved.context, 0L, 1f)) { }
             } catch (error: Exception) {
                 Log.w(TAG, "play-media-candidate failed: ${error.javaClass.simpleName}")
+            }
+        }
+    }
+
+    override fun prefetchMediaMetadata() {
+        val page = url ?: return
+        val catalog = MediaRequestCatalog.shared
+        val ua = userAgentString ?: GeckoSession.getDefaultUserAgent()
+        val observations = catalog.snapshot(page, session.settings.usePrivateMode)
+        observations.forEach { request ->
+            if (request.kind != MediaRequestCatalog.Kind.PROGRESSIVE &&
+                MediaMetadataCache.get(request.url) == null) {
+                MediaMetadataPrefetcher.prefetch(request.url, request.kind, MediaRequestContext(request, observations, ua))
             }
         }
     }

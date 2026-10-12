@@ -180,6 +180,10 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         webView?.playMediaCandidate(candidate.url)
     }
 
+    override fun prefetchMediaMetadata() {
+        webView?.prefetchMediaMetadata()
+    }
+
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
         return webView?.renderThumbnail(bitmap)
     }
