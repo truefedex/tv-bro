@@ -783,9 +783,14 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             .sortedBy { if (isProgressiveFile(it.url)) 1 else 0 }
     }
 
-    /** Public snapshot of the streams detected on the page, for the toolbar media list. */
+    /**
+     * Public snapshot of the streams detected on the page, for the toolbar media list.
+     * The page URL itself is only treated as a candidate when it actually points at a media
+     * file: the cast shortcut can trust a <video> source without an extension, but if the list
+     * did the same every ordinary page (e.g. the home page) would list itself as "PROGRESSIVE".
+     */
     fun mediaCandidates(): List<MediaCandidate> =
-        orderedCandidates(currentOriginalUrl?.toString())
+        orderedCandidates(currentOriginalUrl?.toString()?.takeIf(::isMediaCandidate))
             .map { MediaCandidate(it.url, it.kind.toCandidateKind()) }
 
     /** Warms the metadata cache for manifests on the page; plain files carry no parseable metadata. */
