@@ -176,4 +176,18 @@
   <string name="allow_autoplay_media">اجازه پخش خودکار رسانه</string>
   <string name="web_engine_debug">اشکال‌زدایی موتور وب (نیاز به راه‌اندازی مجدد)</string>
   <string name="web_engine_debug_warning_message">فعال‌سازی اشکال‌زدایی موتور وب می‌تواند محتوای صفحات، کوکی‌ها و داده‌های حساس نشست را برای هر کسی که به اشکال‌زدایی دستگاه دسترسی دارد افشا کند. فقط برای رفع اشکال و روی دستگاه‌های مورداعتماد فعال کنید.</string>
+  <string name="retry">تلاش مجدد</string>
+  <string name="web_engine_install_title">در حال دانلود موتور %1$s</string>
+  <string name="web_engine_install_pending">در انتظار دانلود…</string>
+  <string name="web_engine_install_progress">%1$s از %2$s</string>
+  <string name="web_engine_install_installing">در حال نصب…</string>
+  <string name="web_engine_install_restarting">در حال راه‌اندازی مجدد برنامه…</string>
+  <string name="web_engine_install_canceled">دانلود لغو شد</string>
+  <string name="web_engine_install_failed">دانلود موتور ناموفق بود</string>
+  <string name="web_engine_install_error_network">اتصال اینترنت خود را بررسی کنید</string>
+  <string name="web_engine_install_error_storage">فضای ذخیره‌سازی کافی وجود ندارد</string>
+  <string name="web_engine_install_error_no_play">موتور فقط در صورتی قابل دانلود است که برنامه از Google Play نصب شده باشد</string>
+  <string name="web_engine_install_error_code">کد خطا: %1$d</string>
+  <string name="web_engine_install_use_other">استفاده از %1$s</string>
+  <string name="settings_engine_download_on_restart">موتور پس از راه‌اندازی مجدد از Google Play دانلود خواهد شد.</string>
 </resources>

@@ -176,4 +176,18 @@
   <string name="allow_autoplay_media">Разрешить автовоспроизведение медиа</string>
   <string name="web_engine_debug">Отладка веб-движка (требуется перезапуск)</string>
   <string name="web_engine_debug_warning_message">Включение отладки веб-движка может раскрыть содержимое страниц, cookie и чувствительные данные сессии любому, у кого есть доступ к отладке устройства. Включайте только на доверенных устройствах для устранения неполадок.</string>
+  <string name="retry">Повторить</string>
+  <string name="web_engine_install_title">Загрузка движка %1$s</string>
+  <string name="web_engine_install_pending">Ожидание загрузки…</string>
+  <string name="web_engine_install_progress">%1$s из %2$s</string>
+  <string name="web_engine_install_installing">Установка…</string>
+  <string name="web_engine_install_restarting">Перезапуск приложения…</string>
+  <string name="web_engine_install_canceled">Загрузка отменена</string>
+  <string name="web_engine_install_failed">Не удалось загрузить движок</string>
+  <string name="web_engine_install_error_network">Проверьте подключение к интернету</string>
+  <string name="web_engine_install_error_storage">Недостаточно свободного места</string>
+  <string name="web_engine_install_error_no_play">Движок можно загрузить, только если приложение установлено из Google Play</string>
+  <string name="web_engine_install_error_code">Код ошибки: %1$d</string>
+  <string name="web_engine_install_use_other">Использовать %1$s</string>
+  <string name="settings_engine_download_on_restart">Движок будет загружен из Google Play после перезапуска.</string>
 </resources>
