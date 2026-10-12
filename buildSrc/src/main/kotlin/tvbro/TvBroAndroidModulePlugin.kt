@@ -53,6 +53,36 @@ internal object TvBroAndroidModulePlugin {
                     }
                 }
             }
+
+            // A dynamic feature must have the same variants as the base app: otherwise one
+            // feature variant gets paired with every base variant (wrong applicationId suffix,
+            // wrong build type), and the split APKs fail to install together.
+            if (type != AndroidModuleType.LIBRARY) {
+                extensions.configure<CommonExtension> {
+                    configureFlavors()
+
+                    // Universal APKs built from a bundle ignore splits.abi, so a per-ABI
+                    // universal APK is built with -PabiFilter=<abi> instead.
+                    findProperty("abiFilter")?.let { abi ->
+                        defaultConfig.ndk.abiFilters += abi.toString()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun CommonExtension.configureFlavors() {
+        flavorDimensions += listOf("appstore", "webengine")
+        productFlavors.apply {
+            create("generic") { dimension = "appstore" }
+            create("google") { dimension = "appstore" }
+            create("foss") { dimension = "appstore" }
+
+            create("geckoIncluded") {
+                dimension = "webengine"
+                minSdk = 26 // geckoview requires minSdk 26
+            }
+            create("geckoExcluded") { dimension = "webengine" }
         }
     }
 }

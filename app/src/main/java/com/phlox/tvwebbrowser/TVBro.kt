@@ -10,12 +10,13 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
-import com.google.android.play.core.splitcompat.SplitCompat
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
+import com.phlox.tvwebbrowser.webengine.FeatureDelivery
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
 import java.net.CookieHandler
 import java.net.CookieManager
@@ -75,7 +76,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
 
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
-        SplitCompat.install(this)
+        FeatureDelivery.install(this)
     }
 
     @Suppress("KotlinConstantConditions")
@@ -91,6 +92,10 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
             Class.forName("com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine")
         } catch (e: ClassNotFoundException) {
             Log.w(TAG, "GeckoWebEngine not found")//it is ok
+            if (BuildConfig.GECKO_SUPPORTED) {
+                //not downloaded yet, will be installed on demand if the user selects it
+                FeatureDelivery.createGeckoInstaller()?.let { WebEngineFactory.registerInstaller(it) }
+            }
         }
 
         val cookieManager = CookieManager()

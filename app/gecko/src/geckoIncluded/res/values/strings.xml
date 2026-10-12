@@ -24,5 +24,4 @@
     <string name="media_front_camera">Front camera</string>
     <string name="media_microphone">Microphone</string>
     <string name="media_other">Unknown source</string>
-    <string name="title_gecko_feature" translatable="false">Gecko</string>
 </resources>

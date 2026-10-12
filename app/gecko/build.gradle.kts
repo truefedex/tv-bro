@@ -4,10 +4,14 @@ plugins {
 
 android {
     namespace = "com.phlox.tvwebbrowser.webengine.gecko"
-    defaultConfig {
-        minSdk = 26
-        missingDimensionStrategy("appstore", "generic")
-        missingDimensionStrategy("webengine", "geckoIncluded")
+    // minSdk must match the base app in every variant, so it comes from the convention plugin
+    // (the geckoIncluded flavor raises it to 26)
+
+    buildTypes {
+        getByName("release") {
+            // R8 runs in the base module, but each feature passes its own keep rules
+            proguardFiles("proguard-rules.pro")
+        }
     }
 }
 
@@ -18,6 +22,8 @@ dependencies {
 
     implementation(project(":app:common"))
     implementation(libs.androidx.appcompat)
-    implementation(libs.geckoview)
+    // The module must exist in every variant of the base app, but in geckoExcluded variants it
+    // is empty: all its sources live in the geckoIncluded source set.
+    "geckoIncludedImplementation"(libs.geckoview)
     testImplementation(libs.junit)
 }
