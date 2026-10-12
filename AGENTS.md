@@ -33,6 +33,39 @@
   signal; the WebView path already used `request.isRedirect`). Verified on emulator: tapping a
   bookmark now navigates, while a script auto-redirect (`location.href` with no gesture) is still
   blocked. Blocker only active when `blockAutomaticRedirects && adBlockEnabled`.
+- **Focus trapped in the page: no way back to the toolbar — FIXED.**
+  With the virtual cursor on, DPAD stays inside the WebView/GeckoView, so the remote had no escape
+  hatch back to the top bar. `MainActivity.handleBackNavigation()` now has a
+  `vb.flWebViewContainer.hasFocus()` branch that calls `showMenuOverlay()` (which focuses the top
+  bar) instead of the old `toggleMenu()` fallthrough. `ActionBar.catchFocus()` previously always
+  targeted `ibBack`, but Back/Forward are disabled on a tab with no history and a disabled view
+  cannot take focus — so it now walks the button row and focuses the first enabled, visible one
+  (`ibBack → ibForward → ibRefresh → ibTabs → ibFavorites → ibMedia → ibMenu`). Nets: on a fresh tab
+  BACK still reliably moves focus out of the page.
+- **Tab-toggle and overflow icons were black-on-dark — FIXED.**
+  `ic_menu_grey_900_36dp` (`ibTabs`) and `ic_more_vert_grey_900_36dp` (`ibMenu`) hardcoded their
+  `fillColor="#212121"`, unlike the other toolbar glyphs which use the theme-aware
+  `@color/day_night_icon_color` (`#212121` in `values/`, `#FDFDFD` in `values-night/`). Both now use
+  the resource so they turn white in dark mode and match the rest of the bar.
+- **Tab panel: close "X" unreachable with the D-pad — FIXED.**
+  Opening the panel calls `vb.vTabs.requestFocus()`, but the panel is made VISIBLE and focused in the
+  same frame, so the `RecyclerView` had no laid-out rows and `TabsView.onFocusChanged`'s hand-off
+  loop matched nothing. Focus stayed on the full-size `vTabs` container (DOWN finds nothing below it,
+  RIGHT escaped to the top bar — `ibFavorites`). Moved the hand-off into a `post { focusCurrentTabRow() }`
+  from `onFocusChanged` so it runs after layout. With the row focused, `TabsAdapter`'s
+  `setOnKeyListener` (RIGHT → `ibCloseTabItem`, LEFT → row) makes the X reachable/releasable.
+  Verified on emulator: panel opens with the current row focused; RIGHT highlights the X, LEFT returns.
+- **Overlay zapper was never registered — FIXED.**
+  `WebViewEx.init()` calls `updateOverlayZapper(callback.isAdBlockingEnabled())`, but the WebView is
+  constructed before `WebViewWebEngine.onAttachToWindow()` assigns `callback`, so the internal
+  `webViewCallback` returned `false` and the document-start script was never added (page reported
+  `NOINJ`). Re-apply in `onAttachToWindow` via `webView?.onUpdateAdblockSetting(callback.isAdBlockingEnabled())`.
+  Also fixed `MainActivity.WebEngineCallback.isAdBlockingEnabled()` to read its own `tab.adblock ?: config.adBlockEnabled`
+  (it read `tabsModel.currentTab.value?.adblock`, which is wrong while a tab isn't selected yet), and
+  re-sync every open tab when the global toggle is dismissed (`SettingsDialog.onDismissed` →
+  `MainActivity.showSettings()`), since the zapper is registration-based while the network blocker
+  re-checks live. Verified on emulator: test page with a transparent click-trap, hidden popunder and
+  shadow-root video ad box now reports `INJ:CLEAN`.
 
 ## Feature notes
 - **Bookmarks workflow reworked into a right-side panel (star button).**
@@ -65,6 +98,15 @@
   (`MediaManifestReader`, extracted from `NativeMediaResolver.readManifest`, which now also populates
   the cache). `MediaCandidate` itself is unchanged. Verified on emulator: local HLS master →
   `1920×1080`, `en/fr`; DASH MPD → `1920×1080`, `en/fr · 1:02:03`.
+- **Cosmetic overlay zapper (WebView engine).**
+  `app/src/main/assets/overlay_zapper.js` is injected as a document-start script in every frame while
+  ad blocking is on, complementing the network blocker with runtime DOM cleanup of overlays that
+  first-party scripts build after load: transparent/empty max-z-index click traps, hidden off-screen
+  popunder anchors, and max-z-index ad boxes inside open shadow roots (the host is removed). It is
+  WebView-only (`WebViewCompat.addDocumentStartJavaScript`, feature-gated on
+  `WebViewFeature.DOCUMENT_START_SCRIPT`); `GeckoWebEngine.onUpdateAdblockSetting` remains an
+  intentional no-op stub. Per-tab state overrides the global default via
+  `WebEngineWindowProviderCallback.isAdBlockingEnabled()`.
 
 ## Build / test
 - macOS: `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
