@@ -67,6 +67,13 @@
   `1920×1080`, `en/fr`; DASH MPD → `1920×1080`, `en/fr · 1:02:03`.
 
 ## Build / test
-- `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
+- macOS: `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
+- Linux: JDK 21 at `/usr/lib/jvm/java-21-openjdk-amd64` (already exported from `~/.zshrc`), plus a JDK 17 at
+  `/usr/lib/jvm/java-17-openjdk-amd64` — `buildSrc` pins `jvmToolchain(17)` and only auto-detects it (no
+  foojay download for the `buildSrc` build), so both JDKs are required. Then `./gradlew <task> --console=plain`.
+  Android SDK lives at `$HOME/.android/sdk` (`ANDROID_HOME`); emulator AVD is `tvbro_tv_api36`
+  (Android TV 1080p, `system-images;android-36;android-tv;x86_64`).
+- Run Gradle tasks **serially** — two concurrent builds of the same project share `build/` and corrupt
+  the Kotlin incremental state (symptoms: bogus `Unresolved reference` errors, "multiple Kotlin daemon sessions").
 - Unit tests: `:app:player:testDebugUnitTest`.
 - Debug APKs (flavor `p403n1x87GeckoIncluded`): `./gradlew :app:assembleP403n1x87GeckoIncludedDebug -PenableAbiSplits`.

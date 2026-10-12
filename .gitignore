@@ -8,3 +8,4 @@
 *.keystore
 *.hprof
 /buildSrc/build
+.kotlin
