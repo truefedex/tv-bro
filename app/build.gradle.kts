@@ -57,6 +57,14 @@ android {
         }
     }
 
+    packaging {
+        jniLibs {
+            // GeckoView has no x86 build, and a bundle requires all modules with native
+            // libraries to support the same ABIs
+            excludes += "lib/x86/libad-block.so"
+        }
+    }
+
     // flavors themselves are declared by the tvbro.android.application convention plugin
     productFlavors {
         getByName("generic") {
