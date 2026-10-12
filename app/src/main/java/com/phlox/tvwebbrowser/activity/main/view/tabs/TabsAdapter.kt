@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.activity.main.view.tabs
 
 import android.os.Handler
 import android.os.Looper
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -124,6 +125,22 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
 
             vb.ibCloseTabItem.setOnClickListener {
                 listener?.closeTab(tabState)
+            }
+
+            //DPAD: the close button sits inside the item's bounds, so the default
+            //focus search treats it as "not to the right" and never reaches it.
+            //Move focus explicitly so the remote can highlight and use it.
+            vb.root.setOnKeyListener { _, keyCode, event ->
+                if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                    vb.ibCloseTabItem.requestFocus()
+                    true
+                } else false
+            }
+            vb.ibCloseTabItem.setOnKeyListener { _, keyCode, event ->
+                if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                    vb.root.requestFocus()
+                    true
+                } else false
             }
 
             vb.root.setOnLongClickListener {

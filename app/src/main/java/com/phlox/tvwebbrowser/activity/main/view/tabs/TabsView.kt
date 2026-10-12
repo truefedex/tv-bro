@@ -101,20 +101,25 @@ class TabsView @JvmOverloads constructor(
   }
 
   override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
-    if (gainFocus && childCount > 0) {
-      for (i in 0 until vb.rvTabs.childCount) {
-        val child = vb.rvTabs.getChildAt(i)
+    super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+    if (gainFocus) {
+      // The panel is made VISIBLE and focused in the same frame, so the RecyclerView has no
+      // laid-out rows yet. Post so the current tab row can take focus once layout has run.
+      // Without this, focus stays on this full-size container: DOWN finds nothing below it and
+      // RIGHT escapes to the top bar instead of reaching the row's close button.
+      post { focusCurrentTabRow() }
+    }
+  }
 
-        if (child.tag is WebTabState) {
-          val tab = child.tag
-          val index = tabsModel.tabsStates.indexOf(tab)
-          if (index == current && !child.hasFocus()) {
-            child.requestFocus()
-          }
-        }
+  private fun focusCurrentTabRow() {
+    if (!isAttachedToWindow) return
+    for (i in 0 until vb.rvTabs.childCount) {
+      val child = vb.rvTabs.getChildAt(i)
+      val tab = child.tag as? WebTabState ?: continue
+      if (tabsModel.tabsStates.indexOf(tab) == current) {
+        child.requestFocus()
+        return
       }
-    } else {
-      super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
     }
   }
 
