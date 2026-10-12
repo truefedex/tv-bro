@@ -1,26 +1,21 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
 import android.content.Context
+import android.graphics.Color
 import android.transition.TransitionManager
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View.OnFocusChangeListener
 import android.view.View.OnKeyListener
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.activity.downloads.ActiveDownloadsModel
 import com.phlox.tvwebbrowser.databinding.ViewActionbarBinding
-import com.phlox.tvwebbrowser.utils.Utils
-import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 
 class ActionBar @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -28,8 +23,6 @@ class ActionBar @JvmOverloads constructor(
 
     private val vb = ViewActionbarBinding.inflate( LayoutInflater.from(context),this)
     var callback: Callback? = null
-    private var downloadAnimation: Animation? = null
-    private var downloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, context)
     private var extendedAddressBarMode = false
 
     interface Callback {
@@ -43,6 +36,12 @@ class ActionBar @JvmOverloads constructor(
         fun onExtendedAddressBarMode()
         fun onUrlInputDone()
         fun toggleIncognitoMode()
+        fun onNavigateBack()
+        fun onNavigateForward()
+        fun onReload()
+        fun onShowStreams()
+        fun onToggleTabPanel()
+        fun onShowMenu()
     }
 
     private val etUrlFocusChangeListener = OnFocusChangeListener { _, focused ->
@@ -86,53 +85,54 @@ class ActionBar @JvmOverloads constructor(
 
         val incognitoMode = AppContext.provideConfig().incognitoMode
 
-        vb.ibMenu.setOnClickListener { callback?.closeWindow() }
-        vb.ibDownloads.setOnClickListener { callback?.showDownloads() }
+        vb.ibTabs.setOnClickListener { callback?.onToggleTabPanel() }
+        vb.ibBack.setOnClickListener { callback?.onNavigateBack() }
+        vb.ibForward.setOnClickListener { callback?.onNavigateForward() }
+        vb.ibRefresh.setOnClickListener { callback?.onReload() }
         vb.ibFavorites.setOnClickListener { callback?.showFavorites() }
-        vb.ibHistory.setOnClickListener { callback?.showHistory() }
-        vb.ibIncognito.setOnClickListener { callback?.toggleIncognitoMode() }
-        vb.ibSettings.setOnClickListener { callback?.showSettings() }
-
-        if (Utils.isFireTV(context)) {
-            vb.ibMenu.nextFocusRightId = R.id.ibHistory
-            removeView(vb.ibVoiceSearch)
-        } else {
-            vb.ibVoiceSearch.setOnClickListener { callback?.initiateVoiceSearch() }
-        }
-
-        vb.ibIncognito.isChecked = incognitoMode
+        vb.ibMedia.setOnClickListener { callback?.onShowStreams() }
+        vb.ibMenu.setOnClickListener { callback?.onShowMenu() }
 
         vb.etUrl.onFocusChangeListener = etUrlFocusChangeListener
 
         vb.etUrl.setOnKeyListener(etUrlKeyListener)
-
-
-        downloadsModel.activeDownloads.subscribe(context as AppCompatActivity) {
-            if (it.isNotEmpty()) {
-                if (downloadAnimation == null) {
-                    downloadAnimation = AnimationUtils.loadAnimation(context, R.anim.infinite_fadeinout_anim)
-                    vb.ibDownloads.startAnimation(downloadAnimation)
-                }
-            } else {
-                downloadAnimation?.apply {
-                    this.reset()
-                    vb.ibDownloads.clearAnimation()
-                    downloadAnimation = null
-                }
-            }
-        }
     }
 
     fun setAddressBoxText(text: String) {
-        if (text == Config.HOME_PAGE_URL) {
+        if (Config.isHomePageUrl(text)) {
             vb.etUrl.setText("")
         } else {
             vb.etUrl.setText(text)
         }
     }
 
+    /**
+     * Kept for compatibility. The top bar is now pinned and always reserves space, so it never
+     * floats over the live page. Buttons always keep their transparent background, so this only
+     * adjusts the URL box fill and never touches the button backgrounds.
+     */
+    fun setOverlayTransparency(transparent: Boolean) {
+        vb.flUrl.setBackgroundColor(
+            if (transparent) Color.TRANSPARENT
+            else ContextCompat.getColor(context, R.color.top_bar_background)
+        )
+    }
+
     fun setAddressBoxTextColor(color: Int) {
         vb.etUrl.setTextColor(color)
+    }
+
+    fun setBackEnabled(enabled: Boolean) {
+        vb.ibBack.isEnabled = enabled
+    }
+
+    fun setForwardEnabled(enabled: Boolean) {
+        vb.ibForward.isEnabled = enabled
+    }
+
+    fun setMediaCounter(count: Int) {
+        vb.tvMediaCounter.visibility = if (count > 0) VISIBLE else GONE
+        vb.tvMediaCounter.text = count.toString()
     }
 
     private fun enterExtendedAddressBarMode() {
@@ -160,6 +160,6 @@ class ActionBar @JvmOverloads constructor(
     }
 
     fun catchFocus() {
-        vb.ibMenu.requestFocus()
+        vb.ibBack.requestFocus()
     }
 }

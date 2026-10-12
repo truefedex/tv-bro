@@ -30,6 +30,16 @@ class TabsView @JvmOverloads constructor(
   var current: Int by adapter::current
   var listener: Listener? by adapter::listener
 
+  private var overlayTransparent = false
+
+  fun setOverlayTransparency(transparent: Boolean) {
+    if (overlayTransparent == transparent) return
+    overlayTransparent = transparent
+    vb.rvTabs.setBackgroundColor(if (transparent) android.graphics.Color.TRANSPARENT
+      else androidx.core.content.ContextCompat.getColor(context, R.color.top_bar_background))
+    adapter.transparentBackground = transparent
+  }
+
   init {
       init()
   }
@@ -39,7 +49,7 @@ class TabsView @JvmOverloads constructor(
     tabsModel = ActiveModelsRepository.get(TabsModel::class, context)
     settingsModel = ActiveModelsRepository.get(SettingsModel::class, context)
     adapter.tabsModel = tabsModel
-    vb.rvTabs.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+    vb.rvTabs.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
     vb.btnAdd.setOnClickListener{
       listener?.onAddNewTabSelected()
     }

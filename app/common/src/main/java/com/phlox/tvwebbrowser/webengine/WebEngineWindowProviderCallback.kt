@@ -40,8 +40,9 @@ interface WebEngineWindowProviderCallback {
     fun onShareUrlRequested(url: String)
     fun onOpenInExternalAppRequested(url: String)
     fun initiateVoiceSearch()
-    fun onEditHomePageBookmarkSelected(index: Int)
+    fun onEditHomePageBookmarkSelected(favoriteId: Long)
     fun getHomePageLinks(): List<HomePageLink>
+    fun getHomePageHistoryLinks(): List<HomePageLink>
     fun onPrepareForFullscreen()
     fun onExitFullscreen()
     fun onVisited(url: String)

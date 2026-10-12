@@ -3,97 +3,62 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.LinearLayout"
     tools:orientation="horizontal">
+
   <ImageButton
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:id="@+id/ibMenu"
-      android:src="@drawable/ic_close_grey_900_36dp"
-      android:nextFocusRight="@+id/ibVoiceSearch"
-      android:nextFocusDown="@+id/vTabs"
-      android:background="@drawable/button_bg_selector"
-      android:layout_margin="5dp"
+      android:id="@+id/ibTabs"
+      android:layout_width="@dimen/toolbar_button_size"
+      android:layout_height="@dimen/toolbar_button_size"
+      android:scaleType="fitCenter"
+      android:padding="8dp"
+      android:layout_marginStart="4dp"
+      android:layout_marginTop="4dp"
+      android:layout_marginEnd="2dp"
+      android:src="@drawable/ic_menu_grey_900_36dp"
+      android:nextFocusRight="@+id/ibBack"
+      android:background="@drawable/icon_button_bg_selector"
       android:focusable="true"
-      android:focusableInTouchMode="true"
-      android:contentDescription="@string/close_application" />
+      android:contentDescription="@string/tabs" />
 
   <ImageButton
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:id="@+id/ibVoiceSearch"
-      android:src="@drawable/ic_mic_none_grey_900_36dp"
-      android:nextFocusRight="@+id/ibHistory"
-      android:nextFocusDown="@+id/vTabs"
-      android:background="@drawable/button_bg_selector"
-      android:layout_marginEnd="5dp"
-      android:layout_marginTop="5dp"
-      android:contentDescription="@string/voice_search" />
+      android:id="@+id/ibBack"
+      android:layout_width="@dimen/toolbar_button_size"
+      android:layout_height="@dimen/toolbar_button_size"
+      android:scaleType="fitCenter"
+      android:padding="8dp"
+      android:layout_marginTop="4dp"
+      android:src="@drawable/back_icon_selector"
+      android:nextFocusRight="@+id/ibForward"
+      android:background="@drawable/icon_button_bg_selector"
+      android:contentDescription="@string/navigate_back" />
 
   <ImageButton
-      android:id="@+id/ibHistory"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="5dp"
-      android:layout_marginEnd="5dp"
-      android:background="@drawable/button_bg_selector"
-      android:contentDescription="@string/history"
-      android:nextFocusRight="@+id/ibFavorites"
-      android:nextFocusDown="@+id/vTabs"
-      android:src="@drawable/ic_history_grey_900_36dp"
-      />
+      android:id="@+id/ibForward"
+      android:layout_width="@dimen/toolbar_button_size"
+      android:layout_height="@dimen/toolbar_button_size"
+      android:scaleType="fitCenter"
+      android:padding="8dp"
+      android:layout_marginTop="4dp"
+      android:src="@drawable/forward_icon_selector"
+      android:nextFocusRight="@+id/ibRefresh"
+      android:background="@drawable/icon_button_bg_selector"
+      android:contentDescription="@string/navigate_forward" />
 
   <ImageButton
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:id="@+id/ibFavorites"
-      android:src="@drawable/ic_star_border_grey_900_36dp"
-      android:nextFocusRight="@+id/ibDownloads"
-      android:nextFocusDown="@+id/vTabs"
-      android:background="@drawable/button_bg_selector"
-      android:layout_marginEnd="5dp"
-      android:layout_marginTop="5dp"
-      android:contentDescription="@string/favorites" />
-
-  <ImageButton
-      android:id="@+id/ibDownloads"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="5dp"
-      android:layout_marginEnd="5dp"
-      android:background="@drawable/button_bg_selector"
-      android:contentDescription="@string/downloads"
-      android:nextFocusRight="@+id/ibIncognito"
-      android:nextFocusDown="@+id/vTabs"
-      android:src="@drawable/ic_file_download_grey_900"
-      />
-
-  <com.phlox.tvwebbrowser.widgets.CheckableImageButton
-      android:id="@+id/ibIncognito"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="5dp"
-      android:layout_marginEnd="5dp"
-      android:background="@drawable/button_bg_selector"
-      android:contentDescription="@string/incognito_mode"
-      android:nextFocusRight="@+id/ibSettings"
-      android:nextFocusDown="@+id/vTabs"
-      android:src="@drawable/ic_incognito"
-      />
-
-  <ImageButton
-      android:src="@drawable/ic_settings_grey_900_24dp"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
+      android:id="@+id/ibRefresh"
+      android:layout_width="@dimen/toolbar_button_size"
+      android:layout_height="@dimen/toolbar_button_size"
+      android:scaleType="fitCenter"
+      android:padding="8dp"
+      android:layout_marginTop="4dp"
+      android:src="@drawable/ic_refresh_grey_900_24dp"
       android:nextFocusRight="@+id/etUrl"
-      android:nextFocusDown="@+id/vTabs"
-      android:id="@+id/ibSettings"
-      android:background="@drawable/button_bg_selector"
-      android:layout_marginEnd="5dp"
-      android:layout_marginTop="5dp"
-      android:contentDescription="@string/settings" />
+      android:background="@drawable/icon_button_bg_selector"
+      android:contentDescription="@string/refresh_page" />
 
   <FrameLayout
-      android:layout_width="match_parent"
+      android:layout_width="0dp"
       android:layout_height="wrap_content"
+      android:layout_weight="1"
       android:layout_alignWithParentIfMissing="true"
       android:background="@color/top_bar_background"
       android:id="@+id/flUrl">
@@ -105,9 +70,67 @@
         android:textCursorDrawable="@null"
         android:textColor="@color/default_url_color"
         android:layout_marginTop="15dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
         android:imeOptions="actionSearch"
         android:hint="@string/url_prompt"
         android:inputType="textFilter|textNoSuggestions|textUri"
         android:importantForAutofill="no" />
   </FrameLayout>
+
+  <ImageButton
+      android:id="@+id/ibFavorites"
+      android:layout_width="@dimen/toolbar_button_size"
+      android:layout_height="@dimen/toolbar_button_size"
+      android:scaleType="fitCenter"
+      android:padding="8dp"
+      android:layout_marginTop="4dp"
+      android:layout_marginEnd="2dp"
+      android:src="@drawable/ic_star_border_grey_900_36dp"
+      android:nextFocusRight="@+id/ibMedia"
+      android:background="@drawable/icon_button_bg_selector"
+      android:contentDescription="@string/bookmarks" />
+
+  <FrameLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginEnd="2dp">
+    <ImageButton
+        android:id="@+id/ibMedia"
+        android:layout_width="@dimen/toolbar_button_size"
+        android:layout_height="@dimen/toolbar_button_size"
+        android:scaleType="fitCenter"
+        android:padding="8dp"
+        android:layout_marginTop="4dp"
+        android:src="@drawable/ic_media_stream"
+        android:nextFocusRight="@+id/ibMenu"
+        android:background="@drawable/icon_button_bg_selector"
+        android:contentDescription="@string/media_list" />
+    <TextView
+        android:id="@+id/tvMediaCounter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="20dp"
+        android:textSize="12sp"
+        android:layout_gravity="top|end"
+        android:background="@drawable/gray_badge_bg"
+        android:gravity="center"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="1" />
+  </FrameLayout>
+
+  <ImageButton
+      android:id="@+id/ibMenu"
+      android:layout_width="@dimen/toolbar_button_size"
+      android:layout_height="@dimen/toolbar_button_size"
+      android:scaleType="fitCenter"
+      android:padding="8dp"
+      android:layout_marginTop="4dp"
+      android:layout_marginEnd="4dp"
+      android:src="@drawable/ic_more_vert_grey_900_36dp"
+      android:nextFocusLeft="@+id/ibMedia"
+      android:background="@drawable/icon_button_bg_selector"
+      android:contentDescription="@string/menu" />
 </merge>

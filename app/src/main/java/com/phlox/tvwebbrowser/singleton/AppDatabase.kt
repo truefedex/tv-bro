@@ -16,7 +16,7 @@ import com.phlox.tvwebbrowser.model.util.Converters
     HistoryItem::class, WebTabState::class,
     HostConfig::class
                      ],
-    version = 19/*, exportSchema = true*/)
+    version = 20/*, exportSchema = true*/)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
@@ -159,6 +159,23 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_19_20 = object : Migration(19, 20) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // The home page now shows the user's real bookmarks. Remove the legacy
+                // auto-seeded affiliate recommendations that older versions inserted into
+                // the favorites table (they were only ever flagged HOME_PAGE_BOOKMARK=1).
+                db.execSQL("DELETE FROM favorites WHERE HOME_PAGE_BOOKMARK=1 AND url IN (" +
+                        "'https://www.wikipedia.org'," +
+                        "'https://www.reddit.com'," +
+                        "'https://mytuner-radio.com/'," +
+                        "'https://www.instagram.com'," +
+                        "'https://www.imdb.com/'," +
+                        "'https://www.ebay.com/'," +
+                        "'https://itch.io/games/input-gamepad/platform-web'," +
+                        "'https://www.bbc.com/news')")
+            }
+        }
+
         private fun createHostsTable(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS `hosts` (`host_name` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `popup_block_level` INTEGER)")
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `hosts_name_idx` ON `hosts` (`host_name`)")
@@ -203,7 +220,8 @@ abstract class AppDatabase : RoomDatabase() {
             ).addMigrations(
                 MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9,
                 MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
-                MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19
+                MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19,
+                MIGRATION_19_20
             )
             .allowMainThreadQueries()
                 .build()

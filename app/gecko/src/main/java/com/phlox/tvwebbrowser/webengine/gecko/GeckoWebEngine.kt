@@ -284,7 +284,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
                 }
                 Config.HomePageMode.HOME_PAGE -> {
                     //if (HomePageHelper.homePageFilesReady) {
-                        session.loadUri(Config.HOME_PAGE_URL/*HomePageHelper.HOME_PAGE_URL*/)
+                        session.loadUri(Config.currentHomePageUrl())
                     //} else {
                     //    Toast.makeText(TVBro.instance, R.string.error, Toast.LENGTH_SHORT).show()
                     //}

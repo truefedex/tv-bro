@@ -39,6 +39,7 @@ class Config(val prefs: SharedPreferences) {
         const val AUTO_NATIVE_FULLSCREEN_KEY = "auto_native_fullscreen"
         const val BLOCK_AUTOMATIC_REDIRECTS_KEY = "block_automatic_redirects"
         const val KEEP_TOOLBAR_OPEN_KEY = "keep_toolbar_open"
+        const val RESTORE_TABS_ON_STARTUP_KEY = "restore_tabs_on_startup"
         //const val HOME_PAGE_VERSION_EXTRACTED = "home_page_version_extracted"
         const val INITIAL_BOOKMARKS_SUGGESTIONS_LOADED = "initial_bookmarks_suggestions_loaded"
         const val ADBLOCK_ENABLED_PREF_KEY = "adblock_enabled"
@@ -60,6 +61,24 @@ class Config(val prefs: SharedPreferences) {
         val SupportedWebEngines = arrayOf(ENGINE_GECKO_VIEW, ENGINE_WEB_VIEW)
         const val HOME_PAGE_URL = "https://tvbro.phlox.dev/appcontent/home/"
         //const val HOME_PAGE_URL = "http://10.0.2.2:5000/appcontent/home/"
+
+        /**
+         * Set by the loopback asset server (see LocalAssetServer) when it is running. When null
+         * the remote [HOME_PAGE_URL] is used (loopback server unavailable). Engines that can not
+         * load bundled assets directly (GeckoView) load this URL instead.
+         */
+        var localHomePageUrl: String? = null
+
+        /** URL an engine should load for the built-in home page (loopback when available). */
+        fun currentHomePageUrl(): String = localHomePageUrl ?: HOME_PAGE_URL
+
+        /** True if [url] points at the built-in home page (remote, alias or loopback). */
+        fun isHomePageUrl(url: String?): Boolean {
+            if (url == null) return false
+            if (url == HOME_PAGE_URL || url == HOME_URL_ALIAS) return true
+            val local = localHomePageUrl ?: return false
+            return url.startsWith(local)
+        }
 
         fun canRecommendGeckoView(): Boolean {
             //disable recommendation for now
@@ -217,6 +236,10 @@ class Config(val prefs: SharedPreferences) {
     var keepToolbarOpen: Boolean
         get() = prefs.getBoolean(KEEP_TOOLBAR_OPEN_KEY, true)
         set(value) { prefs.edit().putBoolean(KEEP_TOOLBAR_OPEN_KEY, value).apply() }
+
+    var restoreTabsOnStartup: Boolean
+        get() = prefs.getBoolean(RESTORE_TABS_ON_STARTUP_KEY, false)
+        set(value) { prefs.edit().putBoolean(RESTORE_TABS_ON_STARTUP_KEY, value).apply() }
 
     /*var homePageVersionExtracted: Int
         get() = prefs.getInt(HOME_PAGE_VERSION_EXTRACTED, 0)

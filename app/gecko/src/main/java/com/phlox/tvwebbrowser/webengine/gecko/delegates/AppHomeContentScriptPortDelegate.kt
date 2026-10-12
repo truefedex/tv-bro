@@ -30,16 +30,19 @@ class AppHomeContentScriptPortDelegate(val port: WebExtension.Port, val webEngin
                 "onHomePageLoaded" -> {
                     val callback = webEngine.callback ?: return
                     val cfg = AppContext.provideConfig()
-                    val jsArr = JSONArray()
-                    for (item in callback.getHomePageLinks()) {
-                        jsArr.put(item.toJsonObj())
+                    fun linksToJson(links: List<com.phlox.tvwebbrowser.model.HomePageLink>): String {
+                        val jsArr = JSONArray()
+                        for (item in links) {
+                            jsArr.put(item.toJsonObj())
+                        }
+                        return jsArr.toString().replace("'", "\\'")
                     }
-                    var links = jsArr.toString()
-                    links = links.replace("'", "\\'")
+                    val bookmarks = linksToJson(callback.getHomePageLinks())
+                    val history = linksToJson(callback.getHomePageHistoryLinks())
                     if (Utils.isFireTV(AppContext.get())) {
                         webEngine.evaluateJavascript("hideVoiceSearchUI()")
                     }
-                    webEngine.evaluateJavascript("renderLinks('${cfg.homePageLinksMode.name}', $links)")
+                    webEngine.evaluateJavascript("renderSections($bookmarks, $history)")
                     webEngine.evaluateJavascript(
                         "applySearchEngine(\"${cfg.guessSearchEngineName()}\", \"${cfg.searchEngineURL.value}\")")
                 }
@@ -50,9 +53,9 @@ class AppHomeContentScriptPortDelegate(val port: WebExtension.Port, val webEngin
                     AppContext.provideConfig().searchEngineURL.value = customSearchEngineURL
                 }
                 "onEditBookmark" -> {
-                    val index = msgJson.getInt("data")
+                    val favoriteId = msgJson.getLong("data")
                     val callback = webEngine.callback ?: return
-                    callback.getActivity().runOnUiThread { callback.onEditHomePageBookmarkSelected(index) }
+                    callback.getActivity().runOnUiThread { callback.onEditHomePageBookmarkSelected(favoriteId) }
                 }
                 "requestFavicon" -> {
                     val url = msgJson.getString("data")

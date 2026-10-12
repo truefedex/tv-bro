@@ -24,6 +24,15 @@
   (`tabByTitleIndex(index)` → `changeTab`) instead of relying on the stale focused tab in
   `vb.vTabs.current`. Verified on emulator: single tap AND DPAD focus+OK both switch tabs in
   keep-toolbar-open (overlay) and modal modes.
+- **Home-page bookmark clicks did nothing (automatic-redirect blocker too greedy) — FIXED.**
+  `MyNavigationDelegate.onLoadRequest` computed `isAutomaticRedirect` with
+  `!request.isDirectNavigation`, but GeckoView's `isDirectNavigation` is true only for
+  app-initiated `GeckoSession.load()`, so *every* link/`window.open` tap was flagged as an
+  automatic redirect and the blocker denied cross-site navigations (home-page bookmarks live on a
+  different site than `127.0.0.1`). Switched to `!request.hasUserGesture` (the actual user-gesture
+  signal; the WebView path already used `request.isRedirect`). Verified on emulator: tapping a
+  bookmark now navigates, while a script auto-redirect (`location.href` with no gesture) is still
+  blocked. Blocker only active when `blockAutomaticRedirects && adBlockEnabled`.
 
 ## Build / test
 - `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.

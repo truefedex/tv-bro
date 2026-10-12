@@ -1,26 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.phlox.tvwebbrowser.widgets.CheckableContainer xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="@dimen/web_tab_width"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:minHeight="64dp"
     android:focusable="true"
-    android:nextFocusUp="@+id/ibMenu"
-    android:nextFocusDown="@+id/ibCloseTab"
-    android:paddingStart="@dimen/web_tab_padding"
-    android:paddingEnd="@dimen/web_tab_padding"
-    android:background="@drawable/webtab_horizontal_bkg_selector">
+    android:paddingStart="6dp"
+    android:paddingEnd="6dp"
+    android:background="@drawable/tab_panel_item_bg_selector">
     <ImageView
         android:id="@+id/ivFavicon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
         tools:src="@drawable/ic_launcher"
         android:scaleType="fitCenter"
-        android:layout_margin="5dp" />
+        android:layout_margin="8dp" />
+    <ImageButton
+        android:id="@+id/ibCloseTabItem"
+        android:layout_width="@dimen/toolbar_button_size"
+        android:layout_height="@dimen/toolbar_button_size"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:scaleType="fitCenter"
+        android:padding="8dp"
+        android:background="@drawable/icon_button_bg_selector"
+        android:focusable="true"
+        android:contentDescription="@string/close_tab"
+        android:src="@drawable/ic_close_grey_900_24dp" />
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_toEndOf="@+id/ivFavicon"
+        android:layout_toStartOf="@+id/ibCloseTabItem"
+        android:layout_centerVertical="true"
         android:duplicateParentState="true"
         android:textColor="@color/webtab_horizontal_text_selector"
         tools:text="@string/app_name"

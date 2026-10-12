@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.net.URL
 
 class TabsModel : ActiveModel() {
@@ -64,6 +65,18 @@ class TabsModel : ActiveModel() {
         tabsStates.replaceAll(tabsDao.getAll(config.incognitoMode))
         loaded = true
     }
+
+    fun discardSavedState() = modelScope.launch(Dispatchers.Main) {
+        loaded = true
+        val tabsDao = AppDatabase.db.tabsDao()
+        tabsDao.deleteAll(config.incognitoMode)
+        withContext(Dispatchers.IO) {
+            tabWvStatesDir()?.deleteRecursively()
+        }
+    }
+
+    private fun tabWvStatesDir() =
+        AppContext.get().filesDir?.let { File(it, WebTabState.TAB_WVSTATES_DIR) }
 
     suspend fun saveTab(tab: WebTabState) {
         val tabsDB = AppDatabase.db.tabsDao()

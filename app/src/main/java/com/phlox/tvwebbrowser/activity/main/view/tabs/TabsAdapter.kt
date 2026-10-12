@@ -34,6 +34,14 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
     var listener: Listener? = null
     val uiHandler = Handler(Looper.getMainLooper())
     var checkedView: CheckableContainer? = null
+    var transparentBackground: Boolean = false
+        set(value) {
+            if (field == value) return
+            field = value
+            notifyDataSetChanged()
+        }
+    private val tabBackgroundRes: Int
+        get() = R.drawable.tab_panel_item_bg_selector
 
     interface Listener {
         fun onTitleChanged(index: Int)
@@ -70,6 +78,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
 
         fun bind(tabState: WebTabState, position: Int) {
             vb.root.tag = tabState
+            vb.root.setBackgroundResource(tabBackgroundRes)
 
             vb.tvTitle.text = tabState.title
 
@@ -82,7 +91,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
             vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
 
             val url = tabState.url
-            if (url != Config.HOME_PAGE_URL && url != Config.HOME_URL_ALIAS) {
+            if (!Config.isHomePageUrl(url)) {
                 val scope = (itemView.activity as AppCompatActivity).lifecycleScope
                 scope.launch(Dispatchers.Main) {
                     val favicon = FaviconsPool.get(url)
@@ -111,6 +120,10 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
 
             vb.root.setOnClickListener {
                 listener?.onTitleSelected(tabState.position)
+            }
+
+            vb.ibCloseTabItem.setOnClickListener {
+                listener?.closeTab(tabState)
             }
 
             vb.root.setOnLongClickListener {

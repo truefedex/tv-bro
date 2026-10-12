@@ -8,36 +8,20 @@
       android:id="@+id/rvTabs"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:layout_above="@+id/vSpacer"
-      android:layout_toStartOf="@+id/btnAdd"
-      android:layout_weight="1"
+      android:layout_above="@+id/btnAdd"
       android:background="@color/top_bar_background"
       />
   <Button
       android:id="@+id/btnAdd"
-      android:layout_width="40dp"
-      android:layout_height="40dp"
-      android:layout_above="@+id/vSpacer"
-      android:layout_alignParentEnd="true"
-      android:layout_marginStart="5dp"
-      android:layout_marginTop="5dp"
-      android:layout_marginEnd="5dp"
-      android:layout_marginBottom="5dp"
-      android:background="@drawable/button_bg_selector"
+      android:layout_width="match_parent"
+      android:layout_height="50dp"
+      android:layout_alignParentBottom="true"
+      android:background="@drawable/icon_button_bg_selector"
       android:fontFamily="serif"
       android:padding="0dp"
       android:stateListAnimator="@null"
       android:text="+"
       android:textSize="26sp"
       tools:ignore="HardcodedText"
-      android:gravity="center"
-      android:nextFocusUp="@+id/ibMenu"
-      android:nextFocusDown="@+id/ibCloseTab"
-      />
-  <View
-      android:id="@+id/vSpacer"
-      android:layout_width="match_parent"
-      android:layout_height="10dp"
-      android:layout_alignParentBottom="true"
-      android:background="@color/top_bar_background2" />
+      android:gravity="center" />
 </merge>

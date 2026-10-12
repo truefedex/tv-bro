@@ -60,6 +60,8 @@ class MainSettingsView @JvmOverloads constructor(
 
         initKeepToolbarOpenUI()
 
+        initRestoreTabsOnStartupUI()
+
         initWebEngineDebugUI()
 
         initBlockAutomaticRedirectsUI()
@@ -194,6 +196,14 @@ class MainSettingsView @JvmOverloads constructor(
         vb.scKeepToolbarOpen.isChecked = config.keepToolbarOpen
         vb.scKeepToolbarOpen.setOnCheckedChangeListener { _, isChecked ->
             config.keepToolbarOpen = isChecked
+            (activity as? MainActivity)?.applyToolbarOverlayStyle()
+        }
+    }
+
+    private fun initRestoreTabsOnStartupUI() {
+        vb.scRestoreTabsOnStartup.isChecked = config.restoreTabsOnStartup
+        vb.scRestoreTabsOnStartup.setOnCheckedChangeListener { _, isChecked ->
+            config.restoreTabsOnStartup = isChecked
         }
     }
 

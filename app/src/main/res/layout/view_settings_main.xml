@@ -409,8 +409,34 @@
         android:id="@+id/scKeepToolbarOpen"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:nextFocusDown="@+id/scWebEngineDebug"
+        android:nextFocusDown="@+id/scRestoreTabsOnStartup"
         android:nextFocusUp="@+id/scAutoNativeFullscreen"
+        android:layout_weight="0"
+        />
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="20dp"
+      android:orientation="horizontal"
+      android:paddingTop="5dp"
+      >
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:lines="1"
+        android:text="@string/restore_tabs_on_startup"
+        android:textSize="16sp"
+        />
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/scRestoreTabsOnStartup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:nextFocusDown="@+id/scWebEngineDebug"
+        android:nextFocusUp="@+id/scKeepToolbarOpen"
         android:layout_weight="0"
         />
   </LinearLayout>
@@ -436,7 +462,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:nextFocusDown="@+id/scKeepScreenOn"
-        android:nextFocusUp="@+id/scKeepToolbarOpen"
+        android:nextFocusUp="@+id/scRestoreTabsOnStartup"
         android:layout_weight="0"
         />
   </LinearLayout>

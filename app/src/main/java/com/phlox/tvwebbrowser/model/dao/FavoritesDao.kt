@@ -11,6 +11,9 @@ interface FavoritesDao {
     @Query("SELECT * FROM favorites WHERE parent=0 AND home_page_bookmark=1 ORDER BY i_order ASC")
     suspend fun getHomePageBookmarks(): List<FavoriteItem>
 
+    @Query("SELECT * FROM favorites WHERE parent=0 AND url IS NOT NULL ORDER BY id ASC")
+    suspend fun getAllBookmarks(): List<FavoriteItem>
+
     @Insert
     suspend fun insert(item: FavoriteItem): Long
 

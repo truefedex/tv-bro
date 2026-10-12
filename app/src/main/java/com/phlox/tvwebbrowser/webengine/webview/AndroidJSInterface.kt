@@ -59,10 +59,10 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
     }
 
     @JavascriptInterface
-    fun onEditBookmark(index: Int) {
+    fun onEditBookmark(favoriteId: Long) {
         if (!isHomePage()) return
         val callback = webEngine.callback ?: return
-        callback.getActivity().runOnUiThread { callback.onEditHomePageBookmarkSelected(index) }
+        callback.getActivity().runOnUiThread { callback.onEditHomePageBookmarkSelected(favoriteId) }
     }
 
     @JavascriptInterface
@@ -71,13 +71,16 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
         val callback = webEngine.callback ?: return
         callback.getActivity().runOnUiThread {
             val cfg = AppContext.provideConfig()
-            val jsArr = JSONArray()
-            for (item in callback.getHomePageLinks()) {
-                jsArr.put(item.toJsonObj())
+            fun linksToJson(links: List<com.phlox.tvwebbrowser.model.HomePageLink>): String {
+                val jsArr = JSONArray()
+                for (item in links) {
+                    jsArr.put(item.toJsonObj())
+                }
+                return jsArr.toString().replace("'", "\\'")
             }
-            var links = jsArr.toString()
-            links = links.replace("'", "\\'")
-            webEngine.evaluateJavascript("renderLinks('${cfg.homePageLinksMode.name}', $links)")
+            val bookmarks = linksToJson(callback.getHomePageLinks())
+            val history = linksToJson(callback.getHomePageHistoryLinks())
+            webEngine.evaluateJavascript("renderSections($bookmarks, $history)")
             webEngine.evaluateJavascript(
                 "applySearchEngine(\"${cfg.guessSearchEngineName()}\", \"${cfg.searchEngineURL.value}\")")
         }
@@ -129,6 +132,6 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
     }
 
     private fun isHomePage(): Boolean {
-        return webEngine.tab.url == Config.HOME_PAGE_URL || webEngine.tab.url == Config.HOME_URL_ALIAS
+        return Config.isHomePageUrl(webEngine.tab.url)
     }
 }
