@@ -1003,6 +1003,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             hideBookmarksPanel()
         } else if (vb.llTabPanel.isVisible) {
             vb.llTabPanel.visibility = View.GONE
+        } else if (vb.flWebViewContainer.hasFocus()) {
+            //Focus is on the page: BACK must give the remote a way back to the UI,
+            //otherwise the user is stuck in the WebView with no focused control.
+            showMenuOverlay()
         } else {
             toggleMenu()
         }

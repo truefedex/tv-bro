@@ -153,7 +153,17 @@ class ActionBar @JvmOverloads constructor(
         extendedAddressBarMode = false
     }
 
+    /**
+     * Moves focus from the page into the top bar. Prefers Back (the natural "return" control), but
+     * Back/Forward are disabled when the tab has no history and a disabled view cannot take focus,
+     * so it falls back to the first enabled, visible button. Without that fallback the remote could
+     * stay stuck in the page on a fresh tab.
+     */
     fun catchFocus() {
-        vb.ibBack.requestFocus()
+        val candidates = arrayOf(
+            vb.ibBack, vb.ibForward, vb.ibRefresh, vb.ibTabs,
+            vb.ibFavorites, vb.ibMedia, vb.ibMenu
+        )
+        candidates.firstOrNull { it.isEnabled && it.visibility == VISIBLE }?.requestFocus()
     }
 }
