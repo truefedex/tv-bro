@@ -20,7 +20,10 @@ enum class Shortcut private constructor(var titleResId: Int, var prefsKey: Strin
     MEDIA_REWIND(R.string.media_rewind, "shortcut_media_rewind", KeyEvent.KEYCODE_MEDIA_REWIND),
     MEDIA_FAST_FORWARD(R.string.media_fast_forward, "shortcut_media_fast_forward", KeyEvent.KEYCODE_MEDIA_FAST_FORWARD),
     //do not change prefsKey: existing user key bindings are stored under it
-    CAST_EXTERNAL(R.string.cast_media, "shortcut_cast_external", 0);
+    CAST_EXTERNAL(R.string.cast_media, "shortcut_cast_external", 0),
+    TOGGLE_TABS_PANEL(R.string.tabs, "shortcut_toggle_tabs_panel", 0),
+    SHOW_STREAMS(R.string.media_list, "shortcut_show_streams", 0),
+    SHOW_BOOKMARKS(R.string.bookmarks, "shortcut_show_bookmarks", 0);
 
     companion object {
         private fun modifiersToString(modifiers: Int): String {

@@ -94,6 +94,15 @@ class ShortcutMgr private constructor() {
             Shortcut.CAST_EXTERNAL -> {
                 webEngine?.castCurrentVideo()
             }
+            Shortcut.TOGGLE_TABS_PANEL -> {
+                mainActivity.onToggleTabPanel()
+            }
+            Shortcut.SHOW_STREAMS -> {
+                mainActivity.onShowStreams()
+            }
+            Shortcut.SHOW_BOOKMARKS -> {
+                mainActivity.showFavorites()
+            }
         }
     }
 
