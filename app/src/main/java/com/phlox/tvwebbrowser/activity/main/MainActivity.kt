@@ -305,8 +305,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private val bookmarksListener = object : BookmarksPanelView.Listener {
-        override fun onAddThisPage() {
-            addCurrentPageAsBookmark()
+        override fun onToggleThisPageBookmark() {
+            toggleCurrentPageBookmark()
         }
 
         override fun onBookmarkSelected(item: FavoriteItem) {
@@ -320,6 +320,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     lifecycleScope.launch(Dispatchers.Main) {
                         viewModel.onHomePageLinkEdited(item).join()
                         loadBookmarks()
+                        updateBookmarkState()
                     }
                 }
             }, item).show()
@@ -329,6 +330,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             lifecycleScope.launch(Dispatchers.Main) {
                 viewModel.deleteBookmark(item.id).join()
                 loadBookmarks()
+                updateBookmarkState()
             }
         }
     }
@@ -364,10 +366,20 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private fun showBookmarksPanel() {
         vb.llTabPanel.visibility = View.GONE
-        vb.vBookmarks.setCurrentPage(tabsModel.currentTab.value?.url)
         loadBookmarks()
         vb.rlBookmarksPanel.visibility = View.VISIBLE
         vb.vBookmarks.requestFocus()
+        updateCurrentPageBookmarkEntry()
+    }
+
+    /** Refreshes the "Add this page" / "Remove from list" row for the current tab. */
+    private fun updateCurrentPageBookmarkEntry() {
+        val url = tabsModel.currentTab.value?.url
+        lifecycleScope.launch(Dispatchers.Main) {
+            val bookmarked = !url.isNullOrBlank() &&
+                    AppDatabase.db.favoritesDao().getByUrl(url) != null
+            vb.vBookmarks.setCurrentPage(url, bookmarked)
+        }
     }
 
     private fun hideBookmarksPanel() {
@@ -392,9 +404,44 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 lifecycleScope.launch(Dispatchers.Main) {
                     viewModel.onHomePageLinkEdited(item).join()
                     loadBookmarks()
+                    updateCurrentPageBookmarkEntry()
+                    updateBookmarkState()
                 }
             }
         }, newItem).show()
+    }
+
+    /**
+     * The bookmarks panel's first row: adds the current page if it is not bookmarked, or removes
+     * the existing bookmark when it already is.
+     */
+    private fun toggleCurrentPageBookmark() {
+        val currentTab = tabsModel.currentTab.value ?: return
+        val url = currentTab.url
+        if (url.isNullOrBlank() || Config.isHomePageUrl(url)) return
+        lifecycleScope.launch(Dispatchers.Main) {
+            val existing = AppDatabase.db.favoritesDao().getByUrl(url)
+            if (existing != null) {
+                viewModel.deleteBookmark(existing.id).join()
+                loadBookmarks()
+                updateCurrentPageBookmarkEntry()
+                updateBookmarkState()
+            } else {
+                addCurrentPageAsBookmark()
+            }
+        }
+    }
+
+    /** Updates the toolbar star to reflect whether the current page is bookmarked. */
+    private fun updateBookmarkState() {
+        val url = tabsModel.currentTab.value?.url
+        if (url.isNullOrBlank()) {
+            vb.vActionBar.setBookmarked(false)
+            return
+        }
+        lifecycleScope.launch(Dispatchers.Main) {
+            vb.vActionBar.setBookmarked(AppDatabase.db.favoritesDao().getByUrl(url) != null)
+        }
     }
 
     private fun tabByTitleIndex(index: Int) =
@@ -467,7 +514,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             getString(R.string.downloads),
             getString(R.string.incognito_mode),
             getString(R.string.voice_search),
-            getString(R.string.settings),
             getString(R.string.toggle_theme),
             getString(R.string.close_tab),
             getString(R.string.close_application)
@@ -485,10 +531,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     6 -> showDownloads()
                     7 -> toggleIncognitoMode()
                     8 -> initiateVoiceSearch()
-                    9 -> showSettings()
-                    10 -> toggleTheme()
-                    11 -> currentTab?.let { closeTab(it) }
-                    12 -> closeWindow()
+                    9 -> toggleTheme()
+                    10 -> currentTab?.let { closeTab(it) }
+                    11 -> closeWindow()
                 }
             }
             .show()
@@ -695,6 +740,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.vActionBar.setForwardEnabled(tab.webEngine.canGoForward() == true)
 
         updateMediaCounter()
+        updateBookmarkState()
     }
 
     private fun updateMediaCounter() {

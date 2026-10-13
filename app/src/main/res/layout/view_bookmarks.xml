@@ -18,6 +18,7 @@
         android:layout_alignParentTop="true">
 
         <ImageView
+            android:id="@+id/ivAddThisPageIcon"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_gravity="center_vertical"
@@ -26,6 +27,7 @@
             android:src="@drawable/ic_star_border_grey_900_36dp" />
 
         <TextView
+            android:id="@+id/tvAddThisPage"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"

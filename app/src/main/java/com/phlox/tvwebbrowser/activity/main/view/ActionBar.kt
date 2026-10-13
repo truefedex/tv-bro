@@ -96,6 +96,7 @@ class ActionBar @JvmOverloads constructor(
         vb.ibFavorites.setOnClickListener { callback?.showFavorites() }
         vb.ibMedia.setOnClickListener { callback?.onShowStreams() }
         vb.ibMenu.setOnClickListener { callback?.onShowMenu() }
+        vb.ibSettings.setOnClickListener { callback?.showSettings() }
 
         vb.etUrl.onFocusChangeListener = etUrlFocusChangeListener
 
@@ -135,17 +136,29 @@ class ActionBar @JvmOverloads constructor(
     }
 
     fun setMediaCounter(count: Int) {
+        // Hide the whole button (not just the badge) when there is nothing to play.
+        vb.flMediaButton.visibility = if (count > 0) VISIBLE else GONE
         vb.tvMediaCounter.visibility = if (count > 0) VISIBLE else GONE
         vb.tvMediaCounter.text = count.toString()
     }
 
     /**
-     * Shows the number of open tabs on the tab-panel button. Hidden when there is a single tab,
-     * since the count is then obvious and a permanent "1" would just be noise.
+     * Shows the number of open tabs on the tab-panel button and hides the whole button when there is
+     * only one tab: the panel is only needed to switch between tabs, and new tabs can still be
+     * created from the options menu.
      */
     fun setTabsCounter(count: Int) {
+        vb.flTabsButton.visibility = if (count > 1) VISIBLE else GONE
         vb.tvTabsCounter.visibility = if (count > 1) VISIBLE else GONE
         vb.tvTabsCounter.text = count.toString()
+    }
+
+    /** Switches the favorites button between the outline star and the filled star. */
+    fun setBookmarked(bookmarked: Boolean) {
+        vb.ibFavorites.setImageResource(
+            if (bookmarked) R.drawable.ic_star_grey_900_36dp
+            else R.drawable.ic_star_border_grey_900_36dp
+        )
     }
 
     /**
@@ -175,7 +188,7 @@ class ActionBar @JvmOverloads constructor(
     fun catchFocus() {
         val candidates = arrayOf(
             vb.ibBack, vb.ibForward, vb.ibRefresh, vb.ibTabs,
-            vb.ibFavorites, vb.ibMedia, vb.ibMenu
+            vb.ibFavorites, vb.ibMedia, vb.ibSettings, vb.ibMenu
         )
         candidates.firstOrNull { it.isEnabled && it.visibility == VISIBLE }?.requestFocus()
     }

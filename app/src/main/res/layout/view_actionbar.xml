@@ -5,6 +5,7 @@
     tools:orientation="horizontal">
 
   <FrameLayout
+      android:id="@+id/flTabsButton"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginStart="4dp"
@@ -109,6 +110,7 @@
       android:contentDescription="@string/bookmarks" />
 
   <FrameLayout
+      android:id="@+id/flMediaButton"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginEnd="2dp">
@@ -119,7 +121,7 @@
         android:scaleType="fitCenter"
         android:padding="8dp"
         android:src="@drawable/ic_media_stream"
-        android:nextFocusRight="@+id/ibMenu"
+        android:nextFocusRight="@+id/ibSettings"
         android:background="@drawable/icon_button_bg_selector"
         android:contentDescription="@string/media_list" />
     <TextView
@@ -137,6 +139,18 @@
   </FrameLayout>
 
   <ImageButton
+      android:id="@+id/ibSettings"
+      android:layout_width="@dimen/toolbar_button_size"
+      android:layout_height="@dimen/toolbar_button_size"
+      android:scaleType="fitCenter"
+      android:padding="10dp"
+      android:src="@drawable/ic_settings_grey_900_24dp"
+      android:nextFocusLeft="@+id/ibMedia"
+      android:nextFocusRight="@+id/ibMenu"
+      android:background="@drawable/icon_button_bg_selector"
+      android:contentDescription="@string/settings" />
+
+  <ImageButton
       android:id="@+id/ibMenu"
       android:layout_width="@dimen/toolbar_button_size"
       android:layout_height="@dimen/toolbar_button_size"
@@ -144,7 +158,7 @@
       android:padding="8dp"
       android:layout_marginEnd="4dp"
       android:src="@drawable/ic_more_vert_grey_900_36dp"
-      android:nextFocusLeft="@+id/ibMedia"
+      android:nextFocusLeft="@+id/ibSettings"
       android:background="@drawable/icon_button_bg_selector"
       android:contentDescription="@string/menu" />
 </merge>

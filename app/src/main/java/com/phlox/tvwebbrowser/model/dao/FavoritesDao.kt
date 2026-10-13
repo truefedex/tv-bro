@@ -29,6 +29,9 @@ interface FavoritesDao {
     @Query("SELECT * FROM favorites WHERE id=:id")
     suspend fun getById(id: Long): FavoriteItem?
 
+    @Query("SELECT * FROM favorites WHERE url=:url LIMIT 1")
+    suspend fun getByUrl(url: String): FavoriteItem?
+
     @Query("UPDATE favorites SET useful=1 WHERE id=:favoriteId")
     suspend fun markAsUseful(favoriteId: Long)
 }

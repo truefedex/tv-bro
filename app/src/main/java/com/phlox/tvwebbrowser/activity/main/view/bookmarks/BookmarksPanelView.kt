@@ -33,7 +33,8 @@ class BookmarksPanelView @JvmOverloads constructor(
     private val adapter = BookmarksAdapter(adapterListener)
 
     interface Listener {
-        fun onAddThisPage()
+        /** The first row was activated: add the current page to the bookmarks or remove it again. */
+        fun onToggleThisPageBookmark()
         fun onBookmarkSelected(item: FavoriteItem)
         fun onEditBookmark(item: FavoriteItem)
         fun onDeleteBookmark(item: FavoriteItem)
@@ -49,14 +50,24 @@ class BookmarksPanelView @JvmOverloads constructor(
         if (isInEditMode) return
         vb.rvBookmarks.layoutManager = LinearLayoutManager(context)
         vb.rvBookmarks.adapter = adapter
-        vb.llAddThisPage.setOnClickListener { listener?.onAddThisPage() }
+        vb.llAddThisPage.setOnClickListener { listener?.onToggleThisPageBookmark() }
     }
 
-    /** Shows the "Add this page" entry only when [url] is a real web page (not the home page). */
-    fun setCurrentPage(url: String?) {
+    /**
+     * Shows the first entry only when [url] is a real web page (not the home page). The entry reads
+     * "Add this page" normally, or "Remove from list" with a filled star when the page is already
+     * bookmarked.
+     */
+    fun setCurrentPage(url: String?, bookmarked: Boolean) {
         val canAdd = url != null && url.isNotBlank() &&
                 !Config.isHomePageUrl(url) && url.startsWith("http", true)
         vb.llAddThisPage.isVisible = canAdd
+        if (!canAdd) return
+        vb.tvAddThisPage.setText(if (bookmarked) R.string.remove_from_list else R.string.add_this_page)
+        vb.ivAddThisPageIcon.setImageResource(
+            if (bookmarked) R.drawable.ic_star_grey_900_36dp
+            else R.drawable.ic_star_border_grey_900_36dp
+        )
     }
 
     fun setBookmarks(items: List<FavoriteItem>) {
