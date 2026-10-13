@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/settings_row_horizontal_padding"
+    android:paddingRight="@dimen/settings_row_horizontal_padding"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="@dimen/settings_row_icon_size"
+            android:layout_height="@dimen/settings_row_icon_size"
+            android:layout_marginEnd="@dimen/settings_row_icon_margin_end"
+            android:importantForAccessibility="no"
+            tools:src="@drawable/ic_settings_mouse_24dp" />
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="16sp"
+            android:textColor="@color/day_night_text_color_contrast"
+            tools:text="Virtual cursor max speed" />
+
+        <TextView
+            android:id="@+id/tvValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:minWidth="72dp"
+            android:gravity="end"
+            android:textSize="14sp"
+            android:textColor="@color/day_night_text_color"
+            tools:text="100% of default" />
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/sbValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="44dp"
+        android:focusable="true"
+        android:background="@drawable/settings_row_bg_selector" />
+</LinearLayout>

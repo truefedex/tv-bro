@@ -217,4 +217,60 @@
     <string name="media_list_title">Streams on this page</string>
     <string name="media_list_empty">No playable streams detected on this page yet</string>
     <string name="long_press">Long press</string>
+
+    <!-- Settings categories (left rail) -->
+    <string name="settings_category_general">General</string>
+    <string name="settings_category_ads_and_privacy">Ads &amp; privacy</string>
+    <string name="settings_category_appearance">Appearance</string>
+    <string name="settings_category_playback">Playback</string>
+    <string name="settings_category_controls">Controls</string>
+    <string name="settings_category_advanced">Advanced</string>
+    <string name="settings_category_about">About</string>
+
+    <!-- Settings section headers -->
+    <string name="settings_section_browsing">Browsing</string>
+    <string name="settings_section_startup">Startup</string>
+    <string name="settings_section_ad_blocking">Ad blocking</string>
+    <string name="settings_section_protection">Protection</string>
+    <string name="settings_section_look_and_feel">Look &amp; feel</string>
+    <string name="settings_section_cursor">Virtual cursor</string>
+    <string name="settings_section_input">Input</string>
+    <string name="settings_section_about_app">About this app</string>
+    <string name="settings_section_links">Links</string>
+    <string name="settings_section_updates">Updates</string>
+
+    <!-- Settings row titles and summaries -->
+    <string name="settings_search_engine">Search engine</string>
+    <string name="settings_user_agent">User agent</string>
+    <string name="settings_restore_tabs">Restore tabs on startup</string>
+    <string name="settings_restore_tabs_summary">Start fresh when off</string>
+    <string name="settings_algorithmic_darkening">Algorithmic darkening</string>
+    <string name="settings_algorithmic_darkening_summary">Dark theme for web pages (WebView only, needs restart)</string>
+    <string name="settings_keep_toolbar_open">Keep toolbar open</string>
+    <string name="settings_keep_toolbar_open_summary">Stays visible after actions</string>
+    <string name="settings_auto_fullscreen">Auto-open videos in the native player</string>
+    <string name="settings_web_engine">Web browser engine</string>
+    <string name="settings_web_engine_summary">Temporary setting, reverted on restart</string>
+    <string name="settings_web_engine_debug">Web engine debugging</string>
+    <string name="settings_web_engine_debug_summary">Needs restart, exposes session data</string>
+    <string name="settings_ad_block_url">Ad-blocker list URL</string>
+    <string name="settings_update_ad_block_list">Update ad-blocker list</string>
+    <string name="settings_block_redirects">Block automatic redirects</string>
+    <string name="settings_block_redirects_summary">Stop pages from redirecting you to another site</string>
+    <string name="settings_block_ads">Block ads</string>
+    <string name="settings_block_ads_summary">Use the ad-blocker list below</string>
+
+    <!-- About page -->
+    <string name="settings_version">Version</string>
+    <string name="settings_build_flavor">Build flavor</string>
+    <string name="settings_build_flavor_value_s">%1$s · %2$s</string>
+    <string name="settings_engine_version">Engine version</string>
+    <string name="settings_github">GitHub repository</string>
+    <string name="settings_support_author">Support the author</string>
+    <string name="settings_license">Open source license</string>
+    <string name="settings_privacy">Privacy policy</string>
+    <string name="settings_icon_story">Why the icon changed</string>
+    <string name="settings_update_channel">Update channel</string>
+    <string name="settings_new_version">New version available</string>
+    <string name="settings_install_update">Install update</string>
 </resources>

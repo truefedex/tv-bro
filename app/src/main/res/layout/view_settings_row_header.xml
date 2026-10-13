@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tvSectionHeader"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="@dimen/settings_row_horizontal_padding"
+    android:paddingRight="@dimen/settings_row_horizontal_padding"
+    android:paddingTop="18dp"
+    android:paddingBottom="4dp"
+    android:textAllCaps="true"
+    android:letterSpacing="0.08"
+    android:textSize="12sp"
+    android:textColor="@color/day_night_text_color"
+    tools:text="Browsing" />

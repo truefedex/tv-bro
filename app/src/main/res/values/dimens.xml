@@ -6,6 +6,13 @@
     <dimen name="toolbar_button_size">48dp</dimen>
     <dimen name="url_box_height">40dp</dimen>
     <dimen name="settings_tab_width">260dp</dimen>
+    <dimen name="settings_tab_height">64dp</dimen>
+    <dimen name="settings_row_min_height">56dp</dimen>
+    <dimen name="settings_row_horizontal_padding">16dp</dimen>
+    <dimen name="settings_row_vertical_padding">8dp</dimen>
+    <dimen name="settings_row_icon_size">24dp</dimen>
+    <dimen name="settings_row_icon_margin_end">20dp</dimen>
+    <dimen name="settings_page_horizontal_padding">8dp</dimen>
 
     <dimen name="voice_recognition_results_renderer_height">50dp</dimen>
 

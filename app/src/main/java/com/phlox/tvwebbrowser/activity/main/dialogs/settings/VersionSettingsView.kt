@@ -1,46 +1,40 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.text.Html
 import android.util.AttributeSet
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.ScrollView
-import androidx.webkit.WebViewCompat
+import androidx.core.net.toUri
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.activity.main.AutoUpdateModel
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
-import com.phlox.tvwebbrowser.databinding.ViewSettingsVersionBinding
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
-import androidx.core.net.toUri
 
-@SuppressLint("SetTextI18n")
+/**
+ * "About" settings category. Renders app info, links and update controls as native TV-settings rows.
+ */
 class VersionSettingsView @JvmOverloads constructor(
-        context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
-) : ScrollView(context, attrs, defStyleAttr) {
+    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
+) : SettingsPageView(context, attrs, defStyleAttr) {
 
     companion object {
+        private const val URL_PROJECT = "https://github.com/truefedex/tv-bro"
         private const val URL_SUPPORT_AUTHOR = "https://donatello.to/truefedex"
         private const val URL_LICENSE =
             "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/LICENSE.md"
         private const val URL_PRIVACY_POLICY =
             "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/PRIVACY.md"
+        private const val URL_ICON_STORY = "https://tv-bro-3546c.web.app/msg001.html"
     }
-    private var vb = ViewSettingsVersionBinding.inflate(LayoutInflater.from(getContext()), this, true)
-    var config = AppContext.provideConfig()
-    var settingsModel = ActiveModelsRepository.get(SettingsModel::class, activity!!)
-    var autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, activity!!)
+
+    private val config = AppContext.provideConfig()
+    private val settingsModel = ActiveModelsRepository.get(SettingsModel::class, activity!!)
+    private val autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, activity!!)
     var callback: Callback? = null
 
     interface Callback {
@@ -48,81 +42,151 @@ class VersionSettingsView @JvmOverloads constructor(
     }
 
     init {
-        vb.tvVersion.text = context.getString(R.string.version_s, BuildConfig.VERSION_NAME)
+        setItems(buildItems())
+        ensureUpdateInfo()
+    }
 
-        vb.tvBuildFlavor.text = context.getString(
-            R.string.build_flavor_s,
-            BuildConfig.FLAVOR_appstore,
-            BuildConfig.FLAVOR_webengine
+    private fun buildItems(): List<SettingsItem> = mutableListOf<SettingsItem>().apply {
+        add(SettingsItem.Header(R.string.settings_section_about_app))
+        add(
+            SettingsItem.Info(
+                iconRes = R.drawable.ic_settings_tv_24dp,
+                titleRes = R.string.app_name_short,
+                value = { context.getString(R.string.web_browser_optimized_for_tvs) }
+            )
+        )
+        add(
+            SettingsItem.Info(
+                iconRes = R.drawable.ic_settings_info_24dp,
+                titleRes = R.string.settings_version,
+                value = { BuildConfig.VERSION_NAME }
+            )
+        )
+        add(
+            SettingsItem.Info(
+                iconRes = R.drawable.ic_settings_build_24dp,
+                titleRes = R.string.settings_build_flavor,
+                value = {
+                    context.getString(
+                        R.string.settings_build_flavor_value_s,
+                        BuildConfig.FLAVOR_appstore,
+                        BuildConfig.FLAVOR_webengine
+                    )
+                }
+            )
+        )
+        add(
+            SettingsItem.Info(
+                iconRes = R.drawable.ic_settings_devices_24dp,
+                titleRes = R.string.settings_engine_version,
+                value = { WebEngineFactory.getWebEngineVersionString() }
+            )
         )
 
-        val engineVersion = "Engine: " + WebEngineFactory.getWebEngineVersionString()
-        vb.tvWebViewVersion.text = engineVersion
-
-        vb.tvLink.text = Html.fromHtml("<p><u>https://github.com/truefedex/tv-bro</u></p>",
-            Html.FROM_HTML_MODE_LEGACY)
-        vb.tvLink.setOnClickListener {
-            loadUrl(vb.tvLink.text.toString())
-        }
-
-        vb.tvSupportAuthor.text = context.getString(R.string.support_the_author)
-        vb.tvSupportAuthor.setOnClickListener {
-            loadUrl(URL_SUPPORT_AUTHOR)
-        }
-
-        vb.tvLicense.text = context.getString(R.string.view_license)
-        vb.tvLicense.setOnClickListener {
-            loadUrl(URL_LICENSE)
-        }
-
-        vb.tvPrivacy.text = context.getString(R.string.privacy_policy)
-        vb.tvPrivacy.setOnClickListener {
-            loadUrl(URL_PRIVACY_POLICY)
-        }
-
-        vb.tvUkraine.setOnClickListener {
-            loadUrl("https://tv-bro-3546c.web.app/msg001.html")
-        }
+        add(SettingsItem.Header(R.string.settings_section_links))
+        add(
+            SettingsItem.Action(
+                iconRes = R.drawable.ic_settings_code_24dp,
+                titleRes = R.string.settings_github,
+                onClick = { loadUrl(URL_PROJECT) }
+            )
+        )
+        add(
+            SettingsItem.Action(
+                iconRes = R.drawable.ic_settings_favorite_24dp,
+                titleRes = R.string.settings_support_author,
+                onClick = { loadUrl(URL_SUPPORT_AUTHOR) }
+            )
+        )
+        add(
+            SettingsItem.Action(
+                iconRes = R.drawable.ic_settings_description_24dp,
+                titleRes = R.string.settings_license,
+                onClick = { loadUrl(URL_LICENSE) }
+            )
+        )
+        add(
+            SettingsItem.Action(
+                iconRes = R.drawable.ic_settings_shield_24dp,
+                titleRes = R.string.settings_privacy,
+                onClick = { loadUrl(URL_PRIVACY_POLICY) }
+            )
+        )
+        add(
+            SettingsItem.Action(
+                iconRes = R.drawable.ic_settings_flag_24dp,
+                titleRes = R.string.settings_icon_story,
+                onClick = { loadUrl(URL_ICON_STORY) }
+            )
+        )
 
         if (BuildConfig.BUILT_IN_AUTO_UPDATE) {
-            vb.chkAutoCheckUpdates.isChecked = autoUpdateModel.needAutoCheckUpdates
-
-            vb.chkAutoCheckUpdates.setOnCheckedChangeListener { _, isChecked ->
-                autoUpdateModel.saveAutoCheckUpdates(isChecked)
-
-                updateUIVisibility()
-            }
-
-            vb.spUpdateChannel.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>,
-                    view: View,
-                    position: Int,
-                    id: Long
-                ) {
-                    val selectedChannel =
-                        autoUpdateModel.updateChecker.versionCheckResult!!.availableChannels[position]
-                    if (selectedChannel == config.updateChannel) return
-                    config.updateChannel = selectedChannel
-                    autoUpdateModel.checkUpdate(true) {
-                        updateUIVisibility()
+            add(SettingsItem.Header(R.string.settings_section_updates))
+            add(
+                SettingsItem.Toggle(
+                    iconRes = R.drawable.ic_refresh_grey_900_24dp,
+                    titleRes = R.string.auto_check_for_updates,
+                    isChecked = { autoUpdateModel.needAutoCheckUpdates },
+                    onCheckedChange = { enabled ->
+                        autoUpdateModel.saveAutoCheckUpdates(enabled)
+                        if (enabled) ensureUpdateInfo()
+                        else post { rebuild() }
                     }
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>) {
-
-                }
-            }
-
-            vb.btnUpdate.setOnClickListener {
-                callback?.onNeedToCloseSettings()
-                autoUpdateModel.showUpdateDialogIfNeeded(activity as MainActivity, true)
-            }
-
-            updateUIVisibility()
-        } else {
-            vb.chkAutoCheckUpdates.visibility = View.INVISIBLE
+                )
+            )
+            add(
+                SettingsItem.Choice(
+                    iconRes = R.drawable.ic_settings_download_24dp,
+                    titleRes = R.string.settings_update_channel,
+                    value = { config.updateChannel },
+                    entries = { availableChannels().toList() },
+                    selectedIndex = { availableChannels().indexOf(config.updateChannel).coerceAtLeast(0) },
+                    onSelected = { position ->
+                        val channel = availableChannels().getOrNull(position)
+                        if (channel != null && channel != config.updateChannel) {
+                            config.updateChannel = channel
+                            autoUpdateModel.checkUpdate(true) { post { rebuild() } }
+                        } else {
+                            post { rebuild() }
+                        }
+                    },
+                    visible = { autoUpdateModel.needAutoCheckUpdates }
+                )
+            )
+            add(
+                SettingsItem.Info(
+                    iconRes = R.drawable.ic_settings_download_24dp,
+                    titleRes = R.string.settings_new_version,
+                    value = {
+                        autoUpdateModel.updateChecker.versionCheckResult?.latestVersionName ?: ""
+                    },
+                    visible = { hasUpdate() }
+                )
+            )
+            add(
+                SettingsItem.Action(
+                    iconRes = R.drawable.ic_settings_download_24dp,
+                    titleRes = R.string.settings_install_update,
+                    onClick = {
+                        callback?.onNeedToCloseSettings()
+                        autoUpdateModel.showUpdateDialogIfNeeded(activity as MainActivity, true)
+                    },
+                    visible = { hasUpdate() }
+                )
+            )
         }
+    }
+
+    private fun availableChannels(): Array<String> =
+        autoUpdateModel.updateChecker.versionCheckResult?.availableChannels ?: emptyArray()
+
+    private fun hasUpdate(): Boolean =
+        autoUpdateModel.needAutoCheckUpdates && autoUpdateModel.updateChecker.hasUpdate()
+
+    private fun ensureUpdateInfo() {
+        if (!BuildConfig.BUILT_IN_AUTO_UPDATE) return
+        if (autoUpdateModel.updateChecker.versionCheckResult != null) return
+        autoUpdateModel.checkUpdate(false) { post { rebuild() } }
     }
 
     private fun loadUrl(url: String) {
@@ -132,40 +196,5 @@ class VersionSettingsView @JvmOverloads constructor(
         val intent = Intent(activity, activityClass)
         intent.data = url.toUri()
         activity?.startActivity(intent)
-    }
-
-    private fun updateUIVisibility() {
-        if (autoUpdateModel.updateChecker.versionCheckResult == null) {
-            autoUpdateModel.checkUpdate(false) {
-                if (autoUpdateModel.updateChecker.versionCheckResult != null) {
-                    updateUIVisibility()
-                }
-            }
-            return
-        }
-
-        vb.tvUpdateChannel.visibility = if (autoUpdateModel.needAutoCheckUpdates) View.VISIBLE else View.INVISIBLE
-        vb.spUpdateChannel.visibility = if (autoUpdateModel.needAutoCheckUpdates) View.VISIBLE else View.INVISIBLE
-
-        if (autoUpdateModel.needAutoCheckUpdates) {
-            val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item,
-                autoUpdateModel.updateChecker.versionCheckResult!!.availableChannels)
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            vb.spUpdateChannel.adapter = adapter
-            val selected = autoUpdateModel.updateChecker.versionCheckResult!!.availableChannels.indexOf(config.updateChannel)
-            if (selected != -1) {
-                val tmp = vb.spUpdateChannel.onItemSelectedListener
-                vb.spUpdateChannel.onItemSelectedListener = null
-                vb.spUpdateChannel.setSelection(selected)
-                vb.spUpdateChannel.onItemSelectedListener = tmp
-            }
-        }
-
-        val hasUpdate = autoUpdateModel.updateChecker.hasUpdate()
-        vb.tvNewVersion.visibility = if (autoUpdateModel.needAutoCheckUpdates && hasUpdate) View.VISIBLE else View.INVISIBLE
-        vb.btnUpdate.visibility = if (autoUpdateModel.needAutoCheckUpdates && hasUpdate) View.VISIBLE else View.INVISIBLE
-        if (hasUpdate) {
-            vb.tvNewVersion.text = context.getString(R.string.new_version_available_s, autoUpdateModel.updateChecker.versionCheckResult!!.latestVersionName)
-        }
     }
 }

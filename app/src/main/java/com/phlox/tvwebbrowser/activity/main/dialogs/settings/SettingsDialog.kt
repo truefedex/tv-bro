@@ -14,7 +14,6 @@ import com.phlox.tvwebbrowser.widgets.SegmentedButtonTabsAdapter
 class SettingsDialog(context: Context, val model: SettingsModel) :
     Dialog(context, R.style.SettingsDialog),
     DialogInterface.OnDismissListener, VersionSettingsView.Callback {
-    private var mainView: MainSettingsView? = null
     private var sbTabs: SegmentedButton
 
     /** Invoked after the dialog's own [onDismiss] work, for callers that need to react to changes. */
@@ -29,11 +28,12 @@ class SettingsDialog(context: Context, val model: SettingsModel) :
         val tabContentAdapter = object : SegmentedButtonTabsAdapter(sbTabs, findViewById(R.id.flTabsContent)) {
             override fun createContentViewForSegmentButtonId(id: Int): View {
                 return when (id) {
-                    R.id.btnMainTab -> {
-                        mainView = MainSettingsView(context)
-                        mainView!!
-                    }
-                    R.id.btnShortcutsTab -> ShortcutsSettingsView(context)
+                    R.id.btnGeneralTab -> GeneralSettingsView(context)
+                    R.id.btnAdsTab -> AdsSettingsView(context)
+                    R.id.btnAppearanceTab -> AppearanceSettingsView(context)
+                    R.id.btnPlaybackTab -> PlaybackSettingsView(context)
+                    R.id.btnControlsTab -> ControlsSettingsView(context)
+                    R.id.btnAdvancedTab -> AdvancedSettingsView(context)
                     else -> {
                         val view = VersionSettingsView(context)
                         view.callback = this@SettingsDialog
@@ -54,7 +54,6 @@ class SettingsDialog(context: Context, val model: SettingsModel) :
     }
 
     override fun onDismiss(dialog: DialogInterface?) {
-        mainView?.save()
         onDismissed?.invoke()
     }
 
