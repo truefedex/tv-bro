@@ -10,6 +10,8 @@
                  requested but this class of devices is not supported"), so TV devices get the
                  module at install time. https://issuetracker.google.com/issues/572988451 -->
             <dist:install-time>
+                <!-- lets the user remove the engine where Play can manage modules -->
+                <dist:removable dist:value="true" />
                 <dist:conditions>
                     <dist:device-feature dist:name="android.software.leanback" />
                 </dist:conditions>

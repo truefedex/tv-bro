@@ -194,4 +194,9 @@
     <string name="web_engine_install_error_code">Error code: %1$d</string>
     <string name="web_engine_install_use_other">Use %1$s</string>
     <string name="settings_engine_download_on_restart">The engine will be downloaded from Google Play after the restart.</string>
+    <string name="settings_engine_uninstall">Remove the %1$s engine</string>
+    <string name="settings_engine_uninstall_msg">%1$s will be removed by Google Play in the background to free up storage space. You can download it again later by selecting it as the browser engine.</string>
+    <string name="settings_engine_uninstall_switch_msg">The browser will switch to %1$s.</string>
+    <string name="settings_engine_uninstall_requested">%1$s will be removed soon</string>
+    <string name="settings_engine_uninstall_failed">Failed to remove the engine</string>
 </resources>

@@ -190,4 +190,9 @@
   <string name="web_engine_install_error_code">Код ошибки: %1$d</string>
   <string name="web_engine_install_use_other">Использовать %1$s</string>
   <string name="settings_engine_download_on_restart">Движок будет загружен из Google Play после перезапуска.</string>
+  <string name="settings_engine_uninstall">Удалить движок %1$s</string>
+  <string name="settings_engine_uninstall_msg">Google Play удалит %1$s в фоновом режиме, чтобы освободить место. Позже его можно будет снова загрузить, выбрав его движком браузера.</string>
+  <string name="settings_engine_uninstall_switch_msg">Браузер переключится на %1$s.</string>
+  <string name="settings_engine_uninstall_requested">%1$s скоро будет удалён</string>
+  <string name="settings_engine_uninstall_failed">Не удалось удалить движок</string>
 </resources>

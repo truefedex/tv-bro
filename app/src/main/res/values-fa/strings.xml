@@ -190,4 +190,9 @@
   <string name="web_engine_install_error_code">کد خطا: %1$d</string>
   <string name="web_engine_install_use_other">استفاده از %1$s</string>
   <string name="settings_engine_download_on_restart">موتور پس از راه‌اندازی مجدد از Google Play دانلود خواهد شد.</string>
+  <string name="settings_engine_uninstall">حذف موتور %1$s</string>
+  <string name="settings_engine_uninstall_msg">Google Play موتور %1$s را در پس‌زمینه حذف می‌کند تا فضای ذخیره‌سازی آزاد شود. بعداً می‌توانید با انتخاب آن به‌عنوان موتور مرورگر، دوباره آن را دانلود کنید.</string>
+  <string name="settings_engine_uninstall_switch_msg">مرورگر به %1$s تغییر می‌کند.</string>
+  <string name="settings_engine_uninstall_requested">%1$s به‌زودی حذف خواهد شد</string>
+  <string name="settings_engine_uninstall_failed">حذف موتور ناموفق بود</string>
 </resources>

@@ -190,4 +190,9 @@
   <string name="web_engine_install_error_code">Kod błędu: %1$d</string>
   <string name="web_engine_install_use_other">Użyj %1$s</string>
   <string name="settings_engine_download_on_restart">Silnik zostanie pobrany z Google Play po ponownym uruchomieniu.</string>
+  <string name="settings_engine_uninstall">Usuń silnik %1$s</string>
+  <string name="settings_engine_uninstall_msg">Google Play usunie %1$s w tle, aby zwolnić miejsce. Możesz pobrać go ponownie później, wybierając go jako silnik przeglądarki.</string>
+  <string name="settings_engine_uninstall_switch_msg">Przeglądarka przełączy się na %1$s.</string>
+  <string name="settings_engine_uninstall_requested">%1$s zostanie wkrótce usunięty</string>
+  <string name="settings_engine_uninstall_failed">Nie udało się usunąć silnika</string>
 </resources>

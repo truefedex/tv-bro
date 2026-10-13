@@ -191,4 +191,9 @@
     <string name="web_engine_install_error_code">Kód chyby: %1$d</string>
     <string name="web_engine_install_use_other">Použít %1$s</string>
     <string name="settings_engine_download_on_restart">Jádro bude po restartu staženo z Google Play.</string>
+    <string name="settings_engine_uninstall">Odebrat jádro %1$s</string>
+    <string name="settings_engine_uninstall_msg">Google Play odebere %1$s na pozadí, aby uvolnil místo v úložišti. Později jej můžete znovu stáhnout tak, že jej vyberete jako jádro prohlížeče.</string>
+    <string name="settings_engine_uninstall_switch_msg">Prohlížeč přepne na %1$s.</string>
+    <string name="settings_engine_uninstall_requested">%1$s bude brzy odebráno</string>
+    <string name="settings_engine_uninstall_failed">Jádro se nepodařilo odebrat</string>
 </resources>
