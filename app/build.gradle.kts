@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        versionCode = 70
+        versionCode = 72
         versionName = "2.2.0"
 
         javaCompileOptions {
