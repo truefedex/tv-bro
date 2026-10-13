@@ -180,6 +180,22 @@
   (`MediaManifestReader`, extracted from `NativeMediaResolver.readManifest`, which now also populates
   the cache). `MediaCandidate` itself is unchanged. Verified on emulator: local HLS master →
   `1920×1080`, `en/fr`; DASH MPD → `1920×1080`, `en/fr · 1:02:03`.
+- **WebView stream detection: manifests hidden behind extensionless gateways, and signed variants.**
+  The WebView engine only sees request URLs (no response MIME, unlike Gecko), so a manifest fetched
+  from an extensionless gateway with the real file name in the query
+  (e.g. `.../secure_hls.php?path=ab12%2Findex.m3u8&e=...&sig=...`) was never listed. New
+  `WebViewEx.queryNamesManifest()` (URL-decodes the query and looks for `.m3u8`/`.mpd`) is OR'd into
+  `isMediaCandidate()`, and `inferCastKind()` classifies such URLs by the query. Since the gateway
+  re-requests the same stream with rotated `e`/`sig`/`v` tokens, every rotation used to add a row;
+  the new `MediaUrlIdentity.key()` (shared `:app:player`) collapses them. Its key is `host+path` plus
+  only the query parameters whose decoded value names a resource (contains `/` or `.m3u8`/`.mpd`),
+  sorted — if no parameter names a resource the whole query is kept verbatim, so genuinely distinct
+  variants (`v.mp4?quality=low` vs `high`, `master.m3u8?token=a` vs `b`) are never merged.
+  `WebViewEx` keeps a `detectedMediaIdentities` map and swaps a refreshed URL in place (list order
+  preserved); `GeckoWebEngine.mediaCandidates()`/`prefetchMediaMetadata()` group by the same identity
+  and keep the freshest observation. Unit-tested by `MediaUrlIdentityTest`. Verified on the emulator
+  (WebView engine): the gateway now yields a single `secure_hls.php · HLS` row across several
+  signature rotations.
 - **Cosmetic overlay zapper (WebView engine).**
   `app/src/main/assets/overlay_zapper.js` is injected as a document-start script in every frame while
   ad blocking is on, complementing the network blocker with runtime DOM cleanup of overlays that
@@ -187,7 +203,12 @@
   popunder anchors, and max-z-index ad boxes inside open shadow roots (the host is removed). It is
   WebView-only (`WebViewCompat.addDocumentStartJavaScript`, feature-gated on
   `WebViewFeature.DOCUMENT_START_SCRIPT`); `GeckoWebEngine.onUpdateAdblockSetting` remains an
-  intentional no-op stub. Per-tab state overrides the global default via
+  intentional no-op stub. WebViews older than M86 have no document-start API, so when the feature is
+  unsupported (or registration throws) `updateOverlayZapper()` sets a fallback flag and
+  `injectOverlayZapperFallback()` (called from `onPageFinished`) injects the same asset into the main
+  frame; the script self-guards, so re-injection is harmless. This restores zapping on old providers
+  but, without the document-start API, cross-origin iframes cannot be reached (they are covered on
+  WebView ≥ M86). Per-tab state overrides the global default via
   `WebEngineWindowProviderCallback.isAdBlockingEnabled()`.
 - **Settings dialog rebuilt around a declarative, native-TV row framework.**
   `dialog_settings.xml` keeps the two-pane layout (left category rail + right content) but the rail

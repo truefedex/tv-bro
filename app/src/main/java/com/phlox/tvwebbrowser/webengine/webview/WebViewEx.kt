@@ -59,6 +59,7 @@ import com.phlox.tvwebbrowser.player.MediaMetadataCache
 import com.phlox.tvwebbrowser.player.MediaMetadataPrefetcher
 import com.phlox.tvwebbrowser.player.MediaRequestCatalog
 import com.phlox.tvwebbrowser.player.MediaRequestContext
+import com.phlox.tvwebbrowser.player.MediaUrlIdentity
 import com.phlox.tvwebbrowser.player.NativeVideoActivity
 import com.phlox.tvwebbrowser.player.PlaybackFailure
 import com.phlox.tvwebbrowser.player.SystemPlayerActivity
@@ -104,6 +105,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private var virtualCursorMode: Boolean = true
     private var genericInjects: String? = null
     private var overlayZapperHandler: ScriptHandler? = null
+    private var overlayZapperScript: String? = null
+    private var overlayZapperFallback = false
     private var webChromeClient_: WebChromeClient
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
@@ -119,6 +122,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     //the headers they were requested with. Insertion order is preserved, which
     //matters: see the sniffing code below.
     val detectedMedia = LinkedHashMap<String, Map<String, String>>()
+    //Identity (see MediaUrlIdentity) -> URL, so a refreshed signed URL replaces its old entry.
+    private val detectedMediaIdentities = HashMap<String, String>()
     //set when an external player was launched, to detect a quick bounce back
     private var externalPlayerStartedAt = 0L
     private var externalPlayerUrl: String? = null
@@ -424,8 +429,27 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                     //up first in the list and is the best pick.
                     val u = request.url.toString()
                     if (isMediaCandidate(u) && detectedMedia.size < MAX_DETECTED_MEDIA) {
-                        if (detectedMedia.putIfAbsent(u, request.requestHeaders ?: emptyMap()) == null) {
-                            MediaDiscoveryNotifier.notifyChanged()
+                        val identity = MediaUrlIdentity.key(u)
+                        val previous = detectedMediaIdentities[identity]
+                        when {
+                            previous == null -> {
+                                detectedMedia[u] = request.requestHeaders ?: emptyMap()
+                                detectedMediaIdentities[identity] = u
+                                MediaDiscoveryNotifier.notifyChanged()
+                            }
+                            previous != u -> {
+                                //Same resource with rotated credentials (e.g. a new signature):
+                                //swap in the freshest URL without disturbing the list order.
+                                val headers = request.requestHeaders ?: emptyMap()
+                                val rebuilt = LinkedHashMap<String, Map<String, String>>(detectedMedia.size)
+                                for ((key, value) in detectedMedia) {
+                                    if (key == previous) rebuilt[u] = headers else rebuilt[key] = value
+                                }
+                                detectedMedia.clear()
+                                detectedMedia.putAll(rebuilt)
+                                detectedMediaIdentities[identity] = u
+                                MediaDiscoveryNotifier.notifyChanged()
+                            }
                         }
                     }
                 }
@@ -472,6 +496,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 Log.d(TAG, "onPageStarted url: $url")
                 currentOriginalUrl = url.toUri()
                 detectedMedia.clear()
+                detectedMediaIdentities.clear()
                 callback.onPageStarted(url)
             }
 
@@ -480,6 +505,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 Log.d(TAG, "onPageFinished url: $url")
                 callback.onPageFinished(url)
                 evaluateJavascript(getGenericJSInjects(), null)
+                injectOverlayZapperFallback()
             }
 
             override fun onLoadResource(view: WebView, url: String) {
@@ -721,25 +747,39 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
      * scripts build after load. A no-op if the WebView provider is too old.
      */
     private fun updateOverlayZapper(enabled: Boolean) {
-        val existing = overlayZapperHandler
         if (!enabled) {
-            existing?.remove()
+            overlayZapperHandler?.remove()
             overlayZapperHandler = null
+            overlayZapperFallback = false
             return
         }
-        if (existing != null) return
-        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
-        val script = try {
+        if (overlayZapperHandler != null || overlayZapperFallback) return
+        val script = overlayZapperScript ?: try {
             context.assets.open(OVERLAY_ZAPPER_ASSET).bufferedReader().use { it.readText() }
         } catch (e: Exception) {
             Log.w(TAG, "overlay zapper asset not available", e)
+            return
+        }.also { overlayZapperScript = it }
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            // WebView older than M86 has no document-start API. Fall back to injecting
+            // the zapper into the main frame once a page has loaded (see
+            // injectOverlayZapperFallback); it then observes the DOM from there.
+            Log.d(TAG, "overlay zapper: no document-start API, using load-time fallback")
+            overlayZapperFallback = true
             return
         }
         try {
             overlayZapperHandler = WebViewCompat.addDocumentStartJavaScript(this, script, setOf("*"))
         } catch (e: Exception) {
             Log.w(TAG, "failed to register overlay zapper", e)
+            overlayZapperFallback = true
         }
+    }
+
+    /** Runs the zapper in the main frame on old WebViews (no document-start API). */
+    fun injectOverlayZapperFallback() {
+        if (!overlayZapperFallback) return
+        overlayZapperScript?.let { evaluateJavascript(it, null) }
     }
 
     fun setVirtualCursorMode(enabled: Boolean) {
@@ -753,7 +793,18 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         val path = u.substringBefore('?').lowercase()
         return path.endsWith(".m3u8") || path.endsWith(".mpd") ||
             isProgressiveFile(u) || isMaskedManifest(path) || isUrlManifest(path) ||
-            u.contains("action=redirect") || path.contains("/api/er/get")
+            u.contains("action=redirect") || path.contains("/api/er/get") ||
+            queryNamesManifest(u)
+    }
+
+    /**
+     * Some players fetch the manifest from an extensionless gateway with the real file
+     * name tucked in the query, e.g. ".../stream.php?path=ab12/index.m3u8&sig=...".
+     */
+    private fun queryNamesManifest(u: String): Boolean {
+        if (!u.contains('?')) return false
+        val query = Uri.decode(u.substringAfter('?')).lowercase()
+        return query.contains(".m3u8") || query.contains(".mpd")
     }
 
     /** Some sites disguise the HLS manifest behind a harmless extension. */
@@ -779,6 +830,9 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         return when {
             path.endsWith(".mpd") -> MediaRequestCatalog.Kind.DASH
             path.endsWith(".m3u8") || isMaskedManifest(path) || isUrlManifest(path) -> MediaRequestCatalog.Kind.HLS
+            queryNamesManifest(u) ->
+                if (Uri.decode(u.substringAfter('?')).lowercase().contains(".mpd"))
+                    MediaRequestCatalog.Kind.DASH else MediaRequestCatalog.Kind.HLS
             else -> MediaRequestCatalog.Kind.PROGRESSIVE
         }
     }

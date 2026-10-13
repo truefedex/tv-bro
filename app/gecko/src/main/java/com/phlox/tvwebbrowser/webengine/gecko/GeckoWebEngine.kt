@@ -18,6 +18,7 @@ import com.phlox.tvwebbrowser.player.MediaMetadataCache
 import com.phlox.tvwebbrowser.player.MediaMetadataPrefetcher
 import com.phlox.tvwebbrowser.player.MediaRequestCatalog
 import com.phlox.tvwebbrowser.player.MediaRequestContext
+import com.phlox.tvwebbrowser.player.MediaUrlIdentity
 import com.phlox.tvwebbrowser.player.NativeVideoActivity
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.MediaCandidate
@@ -483,8 +484,10 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
             // HLS/DASH segment files are not directly playable in a useful way; keep the
             // manifests and single progressive files.
             .filter { !it.url.substringBefore('?').lowercase().endsWith(".ts") }
+            //Collapse signed/tokenised variants of the same resource, keeping the freshest.
+            .groupBy { MediaUrlIdentity.key(it.url) }.values
+            .map { variants -> variants.maxByOrNull { it.time } ?: variants.first() }
             .map { MediaCandidate(it.url, it.kind.toCandidateKind()) }
-            .distinctBy { it.url }
             .sortedBy { if (it.kind == MediaCandidate.Kind.PROGRESSIVE) 1 else 0 }
     }
 
@@ -512,12 +515,14 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
         val catalog = MediaRequestCatalog.shared
         val ua = userAgentString ?: GeckoSession.getDefaultUserAgent()
         val observations = catalog.snapshot(page, session.settings.usePrivateMode)
-        observations.forEach { request ->
-            if (request.kind != MediaRequestCatalog.Kind.PROGRESSIVE &&
-                MediaMetadataCache.get(request.url) == null) {
-                MediaMetadataPrefetcher.prefetch(request.url, request.kind, MediaRequestContext(request, observations, ua))
+        observations.filter { it.kind != MediaRequestCatalog.Kind.PROGRESSIVE }
+            .groupBy { MediaUrlIdentity.key(it.url) }.values
+            .map { variants -> variants.maxByOrNull { it.time } ?: variants.first() }
+            .forEach { request ->
+                if (MediaMetadataCache.get(request.url) == null) {
+                    MediaMetadataPrefetcher.prefetch(request.url, request.kind, MediaRequestContext(request, observations, ua))
+                }
             }
-        }
     }
 
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
