@@ -5,6 +5,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.io.Reader
 import java.net.URL
 
 @RunWith(RobolectricTestRunner::class)
@@ -47,6 +48,34 @@ class FaviconExtractorTest {
         assertEquals("icon", icons[0].rel)
         assertEquals("image/svg+xml", icons[0].type)
         assertNotNull(manifestHref)
+    }
+
+    @Test
+    fun extractFavIconsFromHTMLReadsLimitedAmountOfHugeInput() {
+        val head = """<html><head><link rel="icon" href="https://example.com/icon.png">"""
+        //no closing head tag and no line breaks
+        val totalChars = 16 * 1024 * 1024
+        var charsRead = 0
+        val source = object : Reader() {
+            override fun read(cbuf: CharArray, off: Int, len: Int): Int {
+                if (charsRead >= totalChars) return -1
+                val count = minOf(len, totalChars - charsRead)
+                for (i in 0 until count) {
+                    val pos = charsRead + i
+                    cbuf[off + i] = if (pos < head.length) head[pos] else 'a'
+                }
+                charsRead += count
+                return count
+            }
+
+            override fun close() {}
+        }
+
+        val (icons, _) = extractor.extractFavIconsFromHTML(null, source.buffered())
+
+        assertTrue("read $charsRead chars", charsRead <= FaviconExtractor.MAX_HTML_HEADER_CHARS + 64 * 1024)
+        assertEquals(1, icons.size)
+        assertEquals("https://example.com/icon.png", icons[0].src)
     }
 
     @Test
