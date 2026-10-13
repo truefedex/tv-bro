@@ -27,6 +27,7 @@ import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.databinding.ViewSettingsMainBinding
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
+import com.phlox.tvwebbrowser.webengine.FeatureDelivery
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
 import kotlinx.coroutines.launch
@@ -122,6 +123,48 @@ class MainSettingsView @JvmOverloads constructor(
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
+        initGeckoUninstallUI()
+    }
+
+    private fun initGeckoUninstallUI() {
+        if (!WebEngineFactory.isEngineInstalled(Config.ENGINE_GECKO_VIEW)) return
+        val activity = activity as MainActivity
+        //where Google Play can't manage feature modules (Android TV) the engine can't be removed
+        activity.lifecycleScope.launch {
+            if (FeatureDelivery.canUninstallGecko(activity)) {
+                vb.btnUninstallGecko.visibility = View.VISIBLE
+            }
+        }
+        vb.btnUninstallGecko.text = context.getString(R.string.settings_engine_uninstall, Config.ENGINE_GECKO_VIEW)
+        vb.btnUninstallGecko.setOnClickListener {
+            val switchEngine = config.webEngine == Config.ENGINE_GECKO_VIEW
+            var message = context.getString(R.string.settings_engine_uninstall_msg, Config.ENGINE_GECKO_VIEW)
+            if (switchEngine) {
+                message += "\n\n" + context.getString(R.string.settings_engine_uninstall_switch_msg, Config.ENGINE_WEB_VIEW)
+            }
+            AlertDialog.Builder(context)
+                .setTitle(vb.btnUninstallGecko.text)
+                .setMessage(message)
+                .setPositiveButton(R.string.delete) { _, _ ->
+                    activity.lifecycleScope.launch {
+                        if (!FeatureDelivery.uninstallGecko(activity)) {
+                            Toast.makeText(context, R.string.settings_engine_uninstall_failed, Toast.LENGTH_SHORT).show()
+                            return@launch
+                        }
+                        vb.btnUninstallGecko.visibility = View.GONE
+                        if (switchEngine) {
+                            config.webEngine = Config.ENGINE_WEB_VIEW
+                            showRestartDialog()
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.settings_engine_uninstall_requested,
+                                Config.ENGINE_GECKO_VIEW), Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
         }
     }
 

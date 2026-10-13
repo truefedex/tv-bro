@@ -35,7 +35,6 @@ import kotlinx.coroutines.channels.Channel
 class GeckoFeatureInstaller : WebEngineInstaller {
     companion object {
         private const val TAG = "GeckoFeatureInstaller"
-        private const val MODULE_NAME = "gecko"
     }
 
     override val name = Config.ENGINE_GECKO_VIEW
@@ -43,7 +42,7 @@ class GeckoFeatureInstaller : WebEngineInstaller {
     override suspend fun install(context: Context): Boolean {
         val activity = context as ComponentActivity
         val manager = SplitInstallManagerFactory.create(activity)
-        if (manager.installedModules.contains(MODULE_NAME)) {
+        if (manager.installedModules.contains(FeatureDelivery.GECKO_MODULE_NAME)) {
             //then its classes would be loaded on app start
             Log.e(TAG, "Gecko module is installed, but its classes are not available")
             return false
@@ -96,12 +95,12 @@ class GeckoFeatureInstaller : WebEngineInstaller {
         try {
             //the download may be still running if the app was closed during it
             val activeSession = manager.requestSessionStates()
-                .find { it.moduleNames.contains(MODULE_NAME) && !it.hasTerminalStatus }
+                .find { it.moduleNames.contains(FeatureDelivery.GECKO_MODULE_NAME) && !it.hasTerminalStatus }
             if (activeSession != null) {
                 sessionId = activeSession.sessionId
                 states.trySend(activeSession)
             } else {
-                sessionId = manager.requestInstall(listOf(MODULE_NAME))
+                sessionId = manager.requestInstall(listOf(FeatureDelivery.GECKO_MODULE_NAME))
                 if (sessionId == 0) return null //already installed
             }
 

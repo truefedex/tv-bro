@@ -190,4 +190,9 @@
   <string name="web_engine_install_error_code">Код помилки: %1$d</string>
   <string name="web_engine_install_use_other">Використовувати %1$s</string>
   <string name="settings_engine_download_on_restart">Рушій буде завантажено з Google Play після перезапуску.</string>
+  <string name="settings_engine_uninstall">Видалити рушій %1$s</string>
+  <string name="settings_engine_uninstall_msg">Google Play видалить %1$s у фоновому режимі, щоб звільнити місце. Пізніше його можна буде знову завантажити, вибравши його рушієм браузера.</string>
+  <string name="settings_engine_uninstall_switch_msg">Браузер перемкнеться на %1$s.</string>
+  <string name="settings_engine_uninstall_requested">%1$s незабаром буде видалено</string>
+  <string name="settings_engine_uninstall_failed">Не вдалося видалити рушій</string>
 </resources>

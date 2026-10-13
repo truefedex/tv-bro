@@ -6,6 +6,16 @@
         dist:instant="false"
         dist:title="@string/title_gecko_feature">
         <dist:delivery>
+            <!-- Google Play does not support on-demand delivery on Android TV ("Split install
+                 requested but this class of devices is not supported"), so TV devices get the
+                 module at install time. https://issuetracker.google.com/issues/572988451 -->
+            <dist:install-time>
+                <!-- lets the user remove the engine where Play can manage modules -->
+                <dist:removable dist:value="true" />
+                <dist:conditions>
+                    <dist:device-feature dist:name="android.software.leanback" />
+                </dist:conditions>
+            </dist:install-time>
             <dist:on-demand />
         </dist:delivery>
         <dist:fusing dist:include="true" />

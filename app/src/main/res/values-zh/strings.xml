@@ -190,4 +190,9 @@
   <string name="web_engine_install_error_code">错误代码：%1$d</string>
   <string name="web_engine_install_use_other">使用 %1$s</string>
   <string name="settings_engine_download_on_restart">重新启动后将从 Google Play 下载引擎。</string>
+  <string name="settings_engine_uninstall">移除 %1$s 引擎</string>
+  <string name="settings_engine_uninstall_msg">Google Play 将在后台移除 %1$s 以释放存储空间。之后您可以将其选为浏览器引擎来重新下载。</string>
+  <string name="settings_engine_uninstall_switch_msg">浏览器将切换到 %1$s。</string>
+  <string name="settings_engine_uninstall_requested">%1$s 即将被移除</string>
+  <string name="settings_engine_uninstall_failed">无法移除引擎</string>
 </resources>

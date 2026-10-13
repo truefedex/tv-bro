@@ -191,4 +191,9 @@
     <string name="web_engine_install_error_code">Código de erro: %1$d</string>
     <string name="web_engine_install_use_other">Usar %1$s</string>
     <string name="settings_engine_download_on_restart">O mecanismo será baixado do Google Play após o reinício.</string>
+    <string name="settings_engine_uninstall">Remover o mecanismo %1$s</string>
+    <string name="settings_engine_uninstall_msg">O Google Play removerá o %1$s em segundo plano para liberar espaço de armazenamento. Você poderá baixá-lo novamente mais tarde selecionando-o como mecanismo do navegador.</string>
+    <string name="settings_engine_uninstall_switch_msg">O navegador mudará para o %1$s.</string>
+    <string name="settings_engine_uninstall_requested">O %1$s será removido em breve</string>
+    <string name="settings_engine_uninstall_failed">Não foi possível remover o mecanismo</string>
 </resources>

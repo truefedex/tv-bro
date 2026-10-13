@@ -190,4 +190,9 @@
   <string name="web_engine_install_error_code">Codice di errore: %1$d</string>
   <string name="web_engine_install_use_other">Usa %1$s</string>
   <string name="settings_engine_download_on_restart">Il motore verrà scaricato da Google Play dopo il riavvio.</string>
+  <string name="settings_engine_uninstall">Rimuovi il motore %1$s</string>
+  <string name="settings_engine_uninstall_msg">Google Play rimuoverà %1$s in background per liberare spazio di archiviazione. Potrai scaricarlo di nuovo in seguito selezionandolo come motore del browser.</string>
+  <string name="settings_engine_uninstall_switch_msg">Il browser passerà a %1$s.</string>
+  <string name="settings_engine_uninstall_requested">%1$s verrà rimosso a breve</string>
+  <string name="settings_engine_uninstall_failed">Impossibile rimuovere il motore</string>
 </resources>

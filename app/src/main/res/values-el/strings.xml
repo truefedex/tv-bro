@@ -191,4 +191,9 @@
     <string name="web_engine_install_error_code">Κωδικός σφάλματος: %1$d</string>
     <string name="web_engine_install_use_other">Χρήση %1$s</string>
     <string name="settings_engine_download_on_restart">Η μηχανή θα ληφθεί από το Google Play μετά την επανεκκίνηση.</string>
+    <string name="settings_engine_uninstall">Αφαίρεση της μηχανής %1$s</string>
+    <string name="settings_engine_uninstall_msg">Το Google Play θα αφαιρέσει το %1$s στο παρασκήνιο για να ελευθερώσει χώρο αποθήκευσης. Μπορείτε να το κατεβάσετε ξανά αργότερα επιλέγοντάς το ως μηχανή του προγράμματος περιήγησης.</string>
+    <string name="settings_engine_uninstall_switch_msg">Το πρόγραμμα περιήγησης θα μεταβεί στο %1$s.</string>
+    <string name="settings_engine_uninstall_requested">Το %1$s θα αφαιρεθεί σύντομα</string>
+    <string name="settings_engine_uninstall_failed">Δεν ήταν δυνατή η αφαίρεση της μηχανής</string>
 </resources>

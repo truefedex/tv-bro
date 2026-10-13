@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.webengine.gecko
 
+import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.ContextWrapper
 import android.util.Log
@@ -17,6 +18,16 @@ private const val FEATURE_MODULE_NAME = "gecko"
 private class GeckoSplitContext(base: Context, private val apkPath: String) : ContextWrapper(base) {
     override fun getApplicationContext(): Context = this
     override fun getPackageResourcePath(): String = apkPath
+
+    // Before Android 12 ContextWrapper doesn't override these, and Context implements them
+    // through getApplicationContext(), which would recurse infinitely
+    override fun registerComponentCallbacks(callback: ComponentCallbacks) {
+        baseContext.registerComponentCallbacks(callback)
+    }
+
+    override fun unregisterComponentCallbacks(callback: ComponentCallbacks) {
+        baseContext.unregisterComponentCallbacks(callback)
+    }
 }
 
 /**

@@ -190,4 +190,9 @@
   <string name="web_engine_install_error_code">קוד שגיאה: %1$d</string>
   <string name="web_engine_install_use_other">השתמש ב-%1$s</string>
   <string name="settings_engine_download_on_restart">המנוע יורד מ-Google Play לאחר ההפעלה מחדש.</string>
+  <string name="settings_engine_uninstall">הסר את מנוע %1$s</string>
+  <string name="settings_engine_uninstall_msg">Google Play יסיר את %1$s ברקע כדי לפנות שטח אחסון. אפשר להוריד אותו שוב מאוחר יותר על ידי בחירתו כמנוע הדפדפן.</string>
+  <string name="settings_engine_uninstall_switch_msg">הדפדפן יעבור ל-%1$s.</string>
+  <string name="settings_engine_uninstall_requested">%1$s יוסר בקרוב</string>
+  <string name="settings_engine_uninstall_failed">הסרת המנוע נכשלה</string>
 </resources>

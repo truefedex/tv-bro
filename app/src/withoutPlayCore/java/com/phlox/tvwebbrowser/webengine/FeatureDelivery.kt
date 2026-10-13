@@ -13,4 +13,8 @@ object FeatureDelivery {
     fun installActivity(activity: Activity) {}
 
     fun createGeckoInstaller(): WebEngineInstaller? = null
+
+    suspend fun canUninstallGecko(context: Context): Boolean = false
+
+    suspend fun uninstallGecko(context: Context): Boolean = false
 }
