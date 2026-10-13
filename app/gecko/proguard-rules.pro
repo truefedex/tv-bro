@@ -24,3 +24,5 @@
 -keepclassmembers class org.mozilla.geckoview.** {
     *** mDisplay;
 }
+# removed from the manifest, created by GeckoClipboardProviderProxy in the base module
+-keep class org.mozilla.gecko.GeckoClipboardContentProvider { *; }

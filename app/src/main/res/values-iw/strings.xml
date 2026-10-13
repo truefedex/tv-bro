@@ -176,4 +176,18 @@
   <string name="allow_autoplay_media">לאפשר הפעלה אוטומטית של מדיה</string>
   <string name="web_engine_debug">ניפוי שגיאות מנוע ווב (נדרשת הפעלה מחדש)</string>
   <string name="web_engine_debug_warning_message">הפעלת ניפוי שגיאות של מנוע הווב עלולה לחשוף תוכן דפים, עוגיות ונתוני סשן רגישים לכל מי שיש לו גישה לניפוי שגיאות במכשיר. יש להפעיל רק במכשירים מהימנים לצורכי פתרון תקלות.</string>
+  <string name="retry">נסה שוב</string>
+  <string name="web_engine_install_title">מוריד את מנוע %1$s</string>
+  <string name="web_engine_install_pending">ממתין להורדה…</string>
+  <string name="web_engine_install_progress">%1$s מתוך %2$s</string>
+  <string name="web_engine_install_installing">מתקין…</string>
+  <string name="web_engine_install_restarting">מפעיל מחדש את האפליקציה…</string>
+  <string name="web_engine_install_canceled">ההורדה בוטלה</string>
+  <string name="web_engine_install_failed">הורדת המנוע נכשלה</string>
+  <string name="web_engine_install_error_network">בדוק את החיבור לאינטרנט</string>
+  <string name="web_engine_install_error_storage">אין מספיק שטח אחסון פנוי</string>
+  <string name="web_engine_install_error_no_play">ניתן להוריד את המנוע רק אם האפליקציה הותקנה מ-Google Play</string>
+  <string name="web_engine_install_error_code">קוד שגיאה: %1$d</string>
+  <string name="web_engine_install_use_other">השתמש ב-%1$s</string>
+  <string name="settings_engine_download_on_restart">המנוע יורד מ-Google Play לאחר ההפעלה מחדש.</string>
 </resources>

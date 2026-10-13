@@ -177,4 +177,18 @@
     <string name="media_fast_forward">Avance rápido</string>
     <string name="long_press">Pulsación larga</string>
     <string name="local_network_access_denied">Acceso a la red local denegado</string>
+    <string name="retry">Reintentar</string>
+    <string name="web_engine_install_title">Descargando el motor %1$s</string>
+    <string name="web_engine_install_pending">Esperando la descarga…</string>
+    <string name="web_engine_install_progress">%1$s de %2$s</string>
+    <string name="web_engine_install_installing">Instalando…</string>
+    <string name="web_engine_install_restarting">Reiniciando la aplicación…</string>
+    <string name="web_engine_install_canceled">Descarga cancelada</string>
+    <string name="web_engine_install_failed">No se pudo descargar el motor</string>
+    <string name="web_engine_install_error_network">Comprueba tu conexión a Internet</string>
+    <string name="web_engine_install_error_storage">No hay suficiente espacio de almacenamiento libre</string>
+    <string name="web_engine_install_error_no_play">El motor solo se puede descargar si la aplicación se instaló desde Google Play</string>
+    <string name="web_engine_install_error_code">Código de error: %1$d</string>
+    <string name="web_engine_install_use_other">Usar %1$s</string>
+    <string name="settings_engine_download_on_restart">El motor se descargará de Google Play después del reinicio.</string>
 </resources>

@@ -73,49 +73,51 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     private fun initWebBrowserEngineSettingsUI() {
-        if (WebEngineFactory.getProviders().size == 1) {
+        //includes engines that are not downloaded yet (dynamic feature modules)
+        val availableEngines = WebEngineFactory.getAvailableEngines()
+        val engines = Config.SupportedWebEngines.filter { availableEngines.contains(it) }
+        if (engines.size < 2) {
             vb.llWebEngine.visibility = View.GONE
             return
         }
 
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, Config.SupportedWebEngines)
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, engines)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
         vb.spWebEngine.adapter = adapter
 
-        vb.spWebEngine.setSelection(Config.SupportedWebEngines.indexOf(config.webEngine), false)
+        vb.spWebEngine.setSelection(engines.indexOf(config.webEngine), false)
 
         vb.spWebEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (config.webEngine == Config.SupportedWebEngines[position]) return
-                if (Config.SupportedWebEngines[position] == Config.ENGINE_GECKO_VIEW && !Config.canRecommendGeckoView()) {
+                val engine = engines[position]
+                if (config.webEngine == engine) return
+                var message = when {
+                    engine == Config.ENGINE_GECKO_VIEW && !Config.canRecommendGeckoView() ->
+                        context.getString(R.string.settings_engine_change_gecko_msg)
+                    engine == Config.ENGINE_WEB_VIEW ->
+                        context.getString(R.string.settings_engine_change_webview_msg)
+                    else -> null
+                }
+                if (!WebEngineFactory.isEngineInstalled(engine)) {
+                    val downloadMessage = context.getString(R.string.settings_engine_download_on_restart)
+                    message = if (message == null) downloadMessage else message + "\n\n" + downloadMessage
+                }
+                if (message != null) {
                     AlertDialog.Builder(context)
                         .setTitle(R.string.warning)
-                        .setMessage(R.string.settings_engine_change_gecko_msg)
+                        .setMessage(message)
                         .setPositiveButton(R.string.ok) { _, _ ->
-                            config.webEngine = Config.SupportedWebEngines[position]
+                            config.webEngine = engine
                             showRestartDialog()
                         }
                         .setNegativeButton(R.string.cancel) { _, _ ->
-                            vb.spWebEngine.setSelection(Config.SupportedWebEngines.indexOf(config.webEngine), false)
-                        }
-                        .show()
-                    return
-                } else if (Config.SupportedWebEngines[position] == Config.ENGINE_WEB_VIEW) {
-                    AlertDialog.Builder(context)
-                        .setTitle(R.string.warning)
-                        .setMessage(R.string.settings_engine_change_webview_msg)
-                        .setPositiveButton(R.string.ok) { _, _ ->
-                            config.webEngine = Config.SupportedWebEngines[position]
-                            showRestartDialog()
-                        }
-                        .setNegativeButton(R.string.cancel) { _, _ ->
-                            vb.spWebEngine.setSelection(Config.SupportedWebEngines.indexOf(config.webEngine), false)
+                            vb.spWebEngine.setSelection(engines.indexOf(config.webEngine), false)
                         }
                         .show()
                     return
                 }
-                config.webEngine = Config.SupportedWebEngines[position]
+                config.webEngine = engine
                 showRestartDialog()
             }
 

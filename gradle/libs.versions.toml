@@ -7,7 +7,9 @@ agp = "9.4.1"
 kotlin = "2.4.20"
 kotlin-stdlib = "2.4.20"
 ksp = "2.3.6"
+junit = "4.13.2"
 
+# AndroidX
 appcompat = "1.8.0"
 webkit = "1.17.1"
 constraintlayout = "2.2.2"
@@ -16,7 +18,18 @@ coroutines-android = "1.11.0"
 lifecycle-runtime-ktx = "2.11.0"
 room = "2.8.5"
 
-junit = "4.13.2"
+# Google
+feature-delivery = "2.1.0"
+# Empty jar so listenablefuture:1.0 does not clash with Guava's ListenableFuture.
+guava-listenablefuture = "9999.0-empty-to-avoid-conflict-with-guava"
+# Version resolved by GeckoView (through media3). The base module needs it for ListenableFuture.
+guava = "33.3.1-android"
+# Versions resolved by GeckoView. The base module must match them: R8 keeps the
+# base copy of these libraries and drops the feature module's newer ones.
+play-services-basement = "18.9.0"
+play-services-tasks = "18.3.2"
+
+# Third-party
 robolectric = "4.17"
 geckoview = "157.0.20261005135250"
 ad-block = "0.0.4"
@@ -38,6 +51,14 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 # Kotlin
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin-stdlib" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines-android" }
+
+# Google
+google-feature-delivery = { group = "com.google.android.play", name = "feature-delivery", version.ref = "feature-delivery" }
+google-feature-delivery-ktx = { group = "com.google.android.play", name = "feature-delivery-ktx", version.ref = "feature-delivery" }
+guava-listenablefuture = { group = "com.google.guava", name = "listenablefuture", version.ref = "guava-listenablefuture" }
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+play-services-basement = { group = "com.google.android.gms", name = "play-services-basement", version.ref = "play-services-basement" }
+play-services-tasks = { group = "com.google.android.gms", name = "play-services-tasks", version.ref = "play-services-tasks" }
 
 # Room
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
