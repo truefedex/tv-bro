@@ -216,9 +216,37 @@
   The dead `view_settings_version.xml` layout was removed. Verified on emulator: 7-tab rail
   (GENERAL…ABOUT, each 64dp); Controls shows Input/Virtual cursor/Shortcuts with `KEYCODE_REFRESH`,
   `KEYCODE_MEDIA_*`, etc.; the bind dialog opens and the page survives dismiss; About shows
-  `TV Bro`, `2.1.6`, `p403n1x87 · geckoIncluded`, the WebView engine version and all five links (the
-  Updates group is correctly absent for the `p403n1x87` flavor, `BUILT_IN_AUTO_UPDATE=false`); tapping
-  GitHub closed the dialog and navigated to `github.com/truefedex/tv-bro`.
+  `TV Bro`, `2.1.6`, `p403n1x87 · geckoIncluded`, the WebView engine version and all five links, plus
+  the **Updates** group (auto-check switch on by default, update channel `release`); tapping
+  GitHub closed the dialog and navigated to `github.com/P403n1x87/tv-bro`.
+- **Self-updates now come from this fork's GitHub Releases, and the fork releases the `p403n1x87`
+  flavor.**
+  `UpdateChecker.checkGitHubReleases()` replaced the old fetch of
+  `raw.githubusercontent.com/truefedex/tv-bro/master/latest_version.json`: it calls
+  `https://api.github.com/repos/<repo>/releases` (with the mandatory `User-Agent` header), skips drafts
+  and—unless the selected channel includes them—pre-releases, and picks the newest release that
+  actually ships an APK for the running build. Asset selection mirrors `.github/workflows/release.yml`:
+  match `-<appstore>-<webengine>[-<abi>].apk` using `BuildConfig.FLAVOR_appstore`,
+  `BuildConfig.FLAVOR_webengine` and `Build.SUPPORTED_ABIS[0]` (the ABI is required for
+  `geckoIncluded`, which ships native code; `geckoExcluded` releases a single universal APK). Version
+  ordering can no longer use a numeric `versionCode` (releases only carry a `vX.Y.Z` tag), so
+  `UpdateChecker.compareVersions()` compares dotted version components numerically (and ignores any
+  `-suffix`), which `hasUpdate()` and the changelog dialog both use; the release body is the changelog.
+  Channels are now `release`/`pre-release` (any non-`release` channel includes pre-releases). A
+  successful check with nothing to offer caches an empty result, so opening About repeatedly does not
+  re-hit the API. Wiring: `p403n1x87` now sets `BUILT_IN_AUTO_UPDATE=true` and
+  `UPDATE_REPO="P403n1x87/tv-bro"`; `generic`/`google` keep `UPDATE_REPO="truefedex/tv-bro"` (and
+  `google` stays `false`), so the original flavor still points upstream. Because release APKs are named
+  `<appstore>-<webengine>`, a fork release is only installable on a build with the same
+  `applicationId`+signing key, i.e. the `p403n1x87` flavor (hence the About **GitHub repository** link
+  is derived from `UPDATE_REPO`). `.github/workflows/release.yml` now builds
+  `assembleP403n1x87GeckoIncludedRelease -PenableAbiSplits` (3 ABIs) and
+  `assembleP403n1x87GeckoExcludedRelease`, renaming to `tvbro-<v>-p403n1x87-gecko{Included,Excluded}…apk`
+  and tagging `v<version>`. The old root `latest_version.json` is now unused by the app. Unit-tested by
+  `UpdateCheckerVersionTest`. Verified on emulator (`p403n1x87GeckoIncluded` debug): About shows the
+  UPDATES section with the auto-check switch on and channel `release`; the GitHub link went to
+  `github.com/P403n1x87/tv-bro`; asset/version matching validated against upstream's real releases
+  (the fork has none yet, which the checker treats as "no update").
 - **Configurable shortcuts for the tab panel, stream list and bookmarks.**
   Three entries were appended to the `Shortcut` enum — `TOGGLE_TABS_PANEL` ("Tabs"), `SHOW_STREAMS`
   ("Streams on this page") and `SHOW_BOOKMARKS` ("Bookmarks") — with fresh `prefsKey`s (appending
@@ -237,5 +265,6 @@
   (Android TV 1080p, `system-images;android-36;android-tv;x86_64`).
 - Run Gradle tasks **serially** — two concurrent builds of the same project share `build/` and corrupt
   the Kotlin incremental state (symptoms: bogus `Unresolved reference` errors, "multiple Kotlin daemon sessions").
-- Unit tests: `:app:player:testDebugUnitTest`.
+- Unit tests: `:app:player:testDebugUnitTest` and `:app:testP403n1x87GeckoIncludedDebugUnitTest`
+  (e.g. `--tests "com.phlox.tvwebbrowser.utils.UpdateCheckerVersionTest"`).
 - Debug APKs (flavor `p403n1x87GeckoIncluded`): `./gradlew :app:assembleP403n1x87GeckoIncludedDebug -PenableAbiSplits`.
