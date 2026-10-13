@@ -176,18 +176,4 @@
   <string name="allow_autoplay_media">Cho phép tự động phát phương tiện</string>
   <string name="web_engine_debug">Gỡ lỗi công cụ web (cần khởi động lại)</string>
   <string name="web_engine_debug_warning_message">Việc bật gỡ lỗi công cụ web có thể làm lộ nội dung trang, cookie và dữ liệu phiên nhạy cảm cho bất kỳ ai có quyền truy cập gỡ lỗi thiết bị. Chỉ bật trên thiết bị đáng tin cậy để khắc phục sự cố.</string>
-  <string name="retry">Thử lại</string>
-  <string name="web_engine_install_title">Đang tải công cụ %1$s</string>
-  <string name="web_engine_install_pending">Đang chờ tải xuống…</string>
-  <string name="web_engine_install_progress">%1$s / %2$s</string>
-  <string name="web_engine_install_installing">Đang cài đặt…</string>
-  <string name="web_engine_install_restarting">Đang khởi động lại ứng dụng…</string>
-  <string name="web_engine_install_canceled">Đã hủy tải xuống</string>
-  <string name="web_engine_install_failed">Không thể tải công cụ</string>
-  <string name="web_engine_install_error_network">Hãy kiểm tra kết nối Internet</string>
-  <string name="web_engine_install_error_storage">Không đủ dung lượng trống</string>
-  <string name="web_engine_install_error_no_play">Chỉ có thể tải công cụ nếu ứng dụng được cài đặt từ Google Play</string>
-  <string name="web_engine_install_error_code">Mã lỗi: %1$d</string>
-  <string name="web_engine_install_use_other">Dùng %1$s</string>
-  <string name="settings_engine_download_on_restart">Công cụ sẽ được tải từ Google Play sau khi khởi động lại.</string>
 </resources>

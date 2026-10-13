@@ -84,7 +84,6 @@ import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.childs
 import com.phlox.tvwebbrowser.utils.sameDay
-import com.phlox.tvwebbrowser.webengine.FeatureDelivery
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
@@ -139,11 +138,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private var downloadIntent: Download? = null
     var openUrlInExternalAppDialog: AlertDialog? = null
     private var linkActionsMenu: PopupMenu? = null
-
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(newBase)
-        FeatureDelivery.installActivity(this)
-    }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

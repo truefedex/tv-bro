@@ -176,18 +176,4 @@
   <string name="allow_autoplay_media">Zezwól na automatyczne odtwarzanie multimediów</string>
   <string name="web_engine_debug">Debugowanie silnika webowego (wymagany restart)</string>
   <string name="web_engine_debug_warning_message">Włączenie debugowania silnika webowego może ujawnić zawartość stron, pliki cookie oraz wrażliwe dane sesji każdej osobie z dostępem do debugowania urządzenia. Włączaj tylko na zaufanych urządzeniach do diagnozowania problemów.</string>
-  <string name="retry">Ponów</string>
-  <string name="web_engine_install_title">Pobieranie silnika %1$s</string>
-  <string name="web_engine_install_pending">Oczekiwanie na pobieranie…</string>
-  <string name="web_engine_install_progress">%1$s z %2$s</string>
-  <string name="web_engine_install_installing">Instalowanie…</string>
-  <string name="web_engine_install_restarting">Ponowne uruchamianie aplikacji…</string>
-  <string name="web_engine_install_canceled">Pobieranie anulowane</string>
-  <string name="web_engine_install_failed">Nie udało się pobrać silnika</string>
-  <string name="web_engine_install_error_network">Sprawdź połączenie z internetem</string>
-  <string name="web_engine_install_error_storage">Za mało wolnego miejsca</string>
-  <string name="web_engine_install_error_no_play">Silnik można pobrać tylko wtedy, gdy aplikacja została zainstalowana z Google Play</string>
-  <string name="web_engine_install_error_code">Kod błędu: %1$d</string>
-  <string name="web_engine_install_use_other">Użyj %1$s</string>
-  <string name="settings_engine_download_on_restart">Silnik zostanie pobrany z Google Play po ponownym uruchomieniu.</string>
 </resources>

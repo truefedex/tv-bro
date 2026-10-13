@@ -21,65 +21,25 @@ data class WebEngineProvider(
     val callback: WebEngineProviderCallback
 )
 
-/**
- * Web engine that is not present yet but can be installed on demand
- * (for example, a dynamic feature module delivered by Google Play).
- */
-interface WebEngineInstaller {
-    val name: String
 
-    /**
-     * Installs the engine. On success either the engine registers its [WebEngineProvider], or
-     * the implementation restarts the app and never returns.
-     * May show its own UI over the [context] activity.
-     * @return false if the engine was not installed (error, or the user gave up)
-     */
-    @UiThread
-    suspend fun install(context: Context): Boolean
-}
 
 object WebEngineFactory {
     const val TAG = "WebEngineFactory"
     private val engineProviders = mutableListOf<WebEngineProvider>()
-    private val engineInstallers = mutableListOf<WebEngineInstaller>()
     private lateinit var initializedProvider: WebEngineProvider
 
     fun registerProvider(provider: WebEngineProvider) {
         engineProviders.add(provider)
     }
 
-    fun registerInstaller(installer: WebEngineInstaller) {
-        engineInstallers.add(installer)
-    }
-
     fun getProviders(): List<WebEngineProvider> {
         return engineProviders
-    }
-
-    /**
-     * Names of engines the user can choose: registered ones and ones that can be installed.
-     */
-    fun getAvailableEngines(): List<String> {
-        return (engineProviders.map { it.name } + engineInstallers.map { it.name }).distinct()
-    }
-
-    fun isEngineInstalled(name: String): Boolean {
-        return engineProviders.any { it.name == name }
     }
 
     @UiThread
     suspend fun initialize(context: Context, webViewContainer: CursorLayout) {
         val config = AppContext.provideConfig()
         var webEngineProvider = engineProviders.find { it.name == config.webEngine }
-        if (webEngineProvider == null) {
-            val installer = engineInstallers.find { it.name == config.webEngine }
-            if (installer != null && installer.install(context)) {
-                webEngineProvider = engineProviders.find { it.name == config.webEngine }
-                if (webEngineProvider != null) {
-                    engineInstallers.remove(installer)
-                }
-            }
-        }
         if (webEngineProvider == null && engineProviders.isNotEmpty()) {
             webEngineProvider = engineProviders[0]
             Log.w(TAG, "WebEngineProvider with name ${config.webEngine} not found, using ${webEngineProvider.name}")

@@ -73,51 +73,49 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     private fun initWebBrowserEngineSettingsUI() {
-        //includes engines that are not downloaded yet (dynamic feature modules)
-        val availableEngines = WebEngineFactory.getAvailableEngines()
-        val engines = Config.SupportedWebEngines.filter { availableEngines.contains(it) }
-        if (engines.size < 2) {
+        if (WebEngineFactory.getProviders().size == 1) {
             vb.llWebEngine.visibility = View.GONE
             return
         }
 
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, engines)
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, Config.SupportedWebEngines)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
         vb.spWebEngine.adapter = adapter
 
-        vb.spWebEngine.setSelection(engines.indexOf(config.webEngine), false)
+        vb.spWebEngine.setSelection(Config.SupportedWebEngines.indexOf(config.webEngine), false)
 
         vb.spWebEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                val engine = engines[position]
-                if (config.webEngine == engine) return
-                var message = when {
-                    engine == Config.ENGINE_GECKO_VIEW && !Config.canRecommendGeckoView() ->
-                        context.getString(R.string.settings_engine_change_gecko_msg)
-                    engine == Config.ENGINE_WEB_VIEW ->
-                        context.getString(R.string.settings_engine_change_webview_msg)
-                    else -> null
-                }
-                if (!WebEngineFactory.isEngineInstalled(engine)) {
-                    val downloadMessage = context.getString(R.string.settings_engine_download_on_restart)
-                    message = if (message == null) downloadMessage else message + "\n\n" + downloadMessage
-                }
-                if (message != null) {
+                if (config.webEngine == Config.SupportedWebEngines[position]) return
+                if (Config.SupportedWebEngines[position] == Config.ENGINE_GECKO_VIEW && !Config.canRecommendGeckoView()) {
                     AlertDialog.Builder(context)
                         .setTitle(R.string.warning)
-                        .setMessage(message)
+                        .setMessage(R.string.settings_engine_change_gecko_msg)
                         .setPositiveButton(R.string.ok) { _, _ ->
-                            config.webEngine = engine
+                            config.webEngine = Config.SupportedWebEngines[position]
                             showRestartDialog()
                         }
                         .setNegativeButton(R.string.cancel) { _, _ ->
-                            vb.spWebEngine.setSelection(engines.indexOf(config.webEngine), false)
+                            vb.spWebEngine.setSelection(Config.SupportedWebEngines.indexOf(config.webEngine), false)
+                        }
+                        .show()
+                    return
+                } else if (Config.SupportedWebEngines[position] == Config.ENGINE_WEB_VIEW) {
+                    AlertDialog.Builder(context)
+                        .setTitle(R.string.warning)
+                        .setMessage(R.string.settings_engine_change_webview_msg)
+                        .setPositiveButton(R.string.ok) { _, _ ->
+                            config.webEngine = Config.SupportedWebEngines[position]
+                            showRestartDialog()
+                        }
+                        .setNegativeButton(R.string.cancel) { _, _ ->
+                            vb.spWebEngine.setSelection(Config.SupportedWebEngines.indexOf(config.webEngine), false)
                         }
                         .show()
                     return
                 }
-                config.webEngine = engine
+                config.webEngine = Config.SupportedWebEngines[position]
                 showRestartDialog()
             }
 

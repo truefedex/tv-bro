@@ -178,20 +178,4 @@
     <string name="media_fast_forward">Fast-forward media</string>
     <string name="long_press">Long press</string>
     <string name="local_network_access_denied">Local network access denied</string>
-    <!-- title of the on-demand gecko module, bundletool requires it in the base module -->
-    <string name="title_gecko_feature" translatable="false">GeckoView</string>
-    <string name="retry">Retry</string>
-    <string name="web_engine_install_title">Downloading the %1$s engine</string>
-    <string name="web_engine_install_pending">Waiting for download…</string>
-    <string name="web_engine_install_progress">%1$s of %2$s</string>
-    <string name="web_engine_install_installing">Installing…</string>
-    <string name="web_engine_install_restarting">Restarting the app…</string>
-    <string name="web_engine_install_canceled">Download canceled</string>
-    <string name="web_engine_install_failed">Failed to download the engine</string>
-    <string name="web_engine_install_error_network">Check your internet connection</string>
-    <string name="web_engine_install_error_storage">Not enough free storage space</string>
-    <string name="web_engine_install_error_no_play">The engine can only be downloaded if the app is installed from Google Play</string>
-    <string name="web_engine_install_error_code">Error code: %1$d</string>
-    <string name="web_engine_install_use_other">Use %1$s</string>
-    <string name="settings_engine_download_on_restart">The engine will be downloaded from Google Play after the restart.</string>
 </resources>

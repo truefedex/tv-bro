@@ -176,18 +176,4 @@
   <string name="allow_autoplay_media">允许媒体自动播放</string>
   <string name="web_engine_debug">Web 引擎调试（需要重启）</string>
   <string name="web_engine_debug_warning_message">启用 Web 引擎调试可能会将页面内容、Cookie 和敏感会话数据暴露给任何具有设备调试访问权限的人。仅在受信任设备上用于故障排查时启用。</string>
-  <string name="retry">重试</string>
-  <string name="web_engine_install_title">正在下载 %1$s 引擎</string>
-  <string name="web_engine_install_pending">正在等待下载…</string>
-  <string name="web_engine_install_progress">%1$s / %2$s</string>
-  <string name="web_engine_install_installing">正在安装…</string>
-  <string name="web_engine_install_restarting">正在重新启动应用…</string>
-  <string name="web_engine_install_canceled">下载已取消</string>
-  <string name="web_engine_install_failed">无法下载引擎</string>
-  <string name="web_engine_install_error_network">请检查网络连接</string>
-  <string name="web_engine_install_error_storage">可用存储空间不足</string>
-  <string name="web_engine_install_error_no_play">仅当应用是从 Google Play 安装时才能下载引擎</string>
-  <string name="web_engine_install_error_code">错误代码：%1$d</string>
-  <string name="web_engine_install_use_other">使用 %1$s</string>
-  <string name="settings_engine_download_on_restart">重新启动后将从 Google Play 下载引擎。</string>
 </resources>
