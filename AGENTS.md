@@ -68,6 +68,42 @@
   shadow-root video ad box now reports `INJ:CLEAN`.
 
 ## Feature notes
+- **Chrome-like URL box in the top bar.**
+  The address `EditText` (`etUrl` in `view_actionbar.xml`) no longer uses the default underline
+  background and no longer inflates the bar with `15dp/5dp` vertical margins. It is now a fixed
+  `@dimen/url_box_height` (40dp) rounded pill (`@drawable/url_box_background`, 20dp corners, filled
+  `@color/url_box_background`, accent `@color/url_box_stroke` when focused) with
+  `gravity=center_vertical` and 12dp horizontal padding. `ActionBar.init()` sets the root
+  `LinearLayout` `gravity = CENTER_VERTICAL` so the pill and the 48dp buttons share one baseline;
+  the per-button `layout_marginTop="4dp"` was removed. Net: the bar is exactly
+  `@dimen/toolbar_button_size` (48dp) tall instead of being stretched by the URL box.
+  New colors in `values/` (subtle grey `#E0E0E0` pill, white `#FFFFFF` when focused, `#006EC5`
+  stroke) and `values-night/` (`#3A3A3A` / `#454545` / `#5FACFF`).
+- **Light/dark theme toggle, applied live.**
+  `Config.Theme` (`SYSTEM/WHITE/BLACK`) already existed and was wired to
+  `AppCompatDelegate.setDefaultNightMode`, but `MainActivity` declares `uiMode` in
+  `android:configChanges`, so AppCompat never recreated the activity and the already-inflated views
+  kept the old colors (hence the old "need restart" toast). The `config.theme.subscribe { ... }`
+  block in `MainActivity.onCreate` now calls `recreate()` (guarded by `!isFinishing && !isDestroyed`)
+  after setting the night mode, so the top bar and dialogs repaint immediately. The overflow menu
+  gained a **Toggle theme** entry (`R.string.toggle_theme`, inserted at index 10 in
+  `onShowMenu()` between Settings and Close tab, shifting Close tab/Close app to 11/12) backed by
+  `toggleTheme()`, which cycles `Config.Theme` in enum order **SYSTEM → WHITE → BLACK → SYSTEM**
+  (`entries[(ordinal + 1) % size]`). The restart toast in
+  `MainSettingsView.initThemeSettingsUI()` was removed. Verified on emulator: SYSTEM(night) →
+  Toggle theme → `theme=1` (white, toolbar brightness 224/255, pill `#E0E0E0`), toggle again →
+  `theme=2` (dark, brightness 57/255, pill `#3A3A3A`), and a full cycle reads `2→0→1→2`; no crash,
+  activity stays focused.
+- **Tab-panel button shows an open-tab counter.**
+  `ibTabs` in `view_actionbar.xml` is now wrapped in a `FrameLayout` with a `tvTabsCounter`
+  `TextView` badge (`@drawable/gray_badge_bg`, `top|end`, `minWidth=20dp`), mirroring the existing
+  `tvMediaCounter` pattern. `ActionBar.setTabsCounter(count)` hides it when `count <= 1` (a lone
+  "1" is redundant) and shows the count otherwise. `MainActivity` updates it from the existing
+  `tabsModel.tabsStates.subscribe { }` block (`it.size`), plus an explicit
+  `setTabsCounter(tabsModel.tabsStates.size)` in `loadState()` because `tabsStates` is retained
+  across the activity re-creation the theme toggle performs (so the observer is not re-fired) and
+  the badge would otherwise vanish. Verified on emulator: 3 tabs → badge `3` at `[64,0][104,41]`,
+  and it survives a theme-toggle recreate.
 - **Bookmarks workflow reworked into a right-side panel (star button).**
   The star (`ibFavorites`) used to open `FavoritesDialog` (a modal popup). Replaced with a
   right-anchored panel `rlBookmarksPanel` in `activity_main.xml` hosting
