@@ -3,12 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application>
+        <!-- Predictive back (on by default at targetSdk 35+) finishes the activity from the system
+             side and bypasses dispatchKeyEvent, which the player needs for its two-press BACK.
+             Opt this fullscreen activity out so the classic key path stays authoritative. -->
         <activity
             android:name="com.phlox.tvwebbrowser.player.NativeVideoActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation|smallestScreenSize|uiMode"
             android:launchMode="singleTask"
             android:screenOrientation="sensorLandscape"
             android:exported="false"
+            android:enableOnBackInvokedCallback="false"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
             tools:ignore="DiscouragedApi" />
 

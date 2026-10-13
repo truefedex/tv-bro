@@ -79,6 +79,10 @@ class NativeVideoActivity : Activity() {
     private var returnAction = ReturnAction.BACK
     private var resizeModeIndex = 0
     private var request: PlaybackRequest? = null
+    // BACK leaves the player only on the second press: the first brings the controls up. Track the
+    // controller visibility ourselves because PlayerView exposes no plain "is the controller shown".
+    private var controlsVisible = false
+    private var backConsumedDown = false
     private var playRequested = true
     private var suppressUserIntent = false
     private var playRetries = 0
@@ -124,6 +128,11 @@ class NativeVideoActivity : Activity() {
         playerView = PlayerView(this).apply {
             controllerShowTimeoutMs = 2500
             setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
+            setControllerVisibilityListener(
+                PlayerView.ControllerVisibilityListener { visibility ->
+                    controlsVisible = visibility == View.VISIBLE
+                }
+            )
         }
         setContentView(playerView)
         playerView.requestFocus()
@@ -215,7 +224,23 @@ class NativeVideoActivity : Activity() {
             return true
         }
         if (!::playerView.isInitialized) return super.dispatchKeyEvent(event)
-        if (event.keyCode == KeyEvent.KEYCODE_BACK) return super.dispatchKeyEvent(event)
+        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+            // Two presses to close: the first only reveals the controls, so a stray BACK cannot
+            // interrupt playback; the second leaves the player and hands the position to the page.
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                if (!controlsVisible) {
+                    backConsumedDown = true
+                    playerView.showController()
+                    return true
+                }
+                return super.dispatchKeyEvent(event)
+            }
+            if (event.action == KeyEvent.ACTION_UP && backConsumedDown) {
+                backConsumedDown = false
+                return true
+            }
+            return super.dispatchKeyEvent(event)
+        }
         return playerView.dispatchKeyEvent(event) || super.dispatchKeyEvent(event)
     }
 
