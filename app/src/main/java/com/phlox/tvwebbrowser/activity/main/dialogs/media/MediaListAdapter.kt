@@ -18,6 +18,9 @@ class MediaListAdapter(context: Context, private val items: List<MediaCandidate>
 
     private val inflater = LayoutInflater.from(context)
 
+    /** URLs of the listed rows, so a metadata callback is an O(1) lookup instead of a list scan. */
+    private val listedUrls = items.mapTo(HashSet()) { it.url }
+
     init {
         MediaMetadataCache.addListener(this)
     }
@@ -34,7 +37,7 @@ class MediaListAdapter(context: Context, private val items: List<MediaCandidate>
     override fun getItemId(position: Int): Long = position.toLong()
 
     override fun onMetadataUpdated(url: String) {
-        if (items.any { it.url == url }) notifyDataSetChanged()
+        if (url in listedUrls) notifyDataSetChanged()
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {

@@ -11,7 +11,10 @@ import java.util.*
  */
 @Entity(tableName = "favorites", indices = arrayOf(
     Index(value = ["PARENT"], name = "favorites_parent_idx"),
-    Index(value = ["HOME_PAGE_BOOKMARK"], name = "favorites_home_page_bookmark_idx")
+    Index(value = ["HOME_PAGE_BOOKMARK"], name = "favorites_home_page_bookmark_idx"),
+    // Looked up by URL on every page update (the toolbar star / "Add this page" row), so it must
+    // not be a full table scan.
+    Index(value = ["URL"], name = "favorites_url_idx")
     ))
 class FavoriteItem {
     @PrimaryKey(autoGenerate = true)
