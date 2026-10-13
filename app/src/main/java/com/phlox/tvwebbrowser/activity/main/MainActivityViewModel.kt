@@ -93,14 +93,8 @@ class MainActivityViewModel: ActiveModel() {
                 AppDatabase.db.favoritesDao().getAllBookmarks()
                     .map { HomePageLink.fromBookmarkItem(it) })
             homePageHistoryLinks.replaceAll(
-                when (config.homePageLinksMode) {
-                    Config.HomePageLinksMode.MOST_VISITED ->
-                        AppDatabase.db.historyDao().frequentlyUsedUrls()
-                            .map { HomePageLink.fromHistoryItem(it) }
-                    else ->
-                        AppDatabase.db.historyDao().last(8)
-                            .map { HomePageLink.fromHistoryItem(it) }
-                })
+                AppDatabase.db.historyDao().last(8)
+                    .map { HomePageLink.fromHistoryItem(it) })
         }
     }
 

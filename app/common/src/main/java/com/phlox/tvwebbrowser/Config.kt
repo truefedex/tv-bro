@@ -30,7 +30,6 @@ class Config(val prefs: SharedPreferences) {
         const val INCOGNITO_MODE_HINT_SUPPRESS_KEY = "incognito_mode_hint_suppress"
         const val DIRECT_NAVIGATION_MODE_HINT_SUPPRESS_KEY = "direct_navigation_mode_hint_suppress"
         const val HOME_PAGE_MODE = "home_page_mode"
-        const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
         const val WEB_ENGINE = "web_engine"
         const val ALLOW_AUTOPLAY_MEDIA = "allow_autoplay_media"
         const val WEBVIEW_USE_ALGORITHMIC_DARKENING_WITH_DARK_UI_MODE_KEY =
@@ -94,10 +93,6 @@ class Config(val prefs: SharedPreferences) {
 
     enum class HomePageMode {
         HOME_PAGE, SEARCH_ENGINE, CUSTOM, BLANK
-    }
-
-    enum class HomePageLinksMode {
-        BOOKMARKS, LATEST_HISTORY, MOST_VISITED
     }
 
     var incognitoMode: Boolean
@@ -175,14 +170,6 @@ class Config(val prefs: SharedPreferences) {
             .let { HomePageMode.values()[it] }
         set(value) {
             prefs.edit().putInt(HOME_PAGE_MODE, value.ordinal).apply()
-        }
-
-    var homePageLinksMode: HomePageLinksMode
-        get() = prefs.getInt(HOME_PAGE_SUGGESTIONS_MODE, 0)
-            .let { if (it < 0 || it >= HomePageLinksMode.values().size) 0 else it }
-            .let { HomePageLinksMode.values()[it] }
-        set(value) {
-            prefs.edit().putInt(HOME_PAGE_SUGGESTIONS_MODE, value.ordinal).apply()
         }
 
     var homePage: String

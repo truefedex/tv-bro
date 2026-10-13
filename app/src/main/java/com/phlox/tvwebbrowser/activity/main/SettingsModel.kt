@@ -16,7 +16,6 @@ class SettingsModel : ActiveModel() {
     //Home page settings
     var homePage by config::homePage
     var homePageMode by config::homePageMode
-    var homePageLinksMode by config::homePageLinksMode
     //User agent strings configuration
     val userAgentStringTitles = arrayOf("Default (recommended)", "Chrome (Desktop)", "Chrome (Mobile)", "Firefox (Desktop)", "Firefox (Mobile)", "Edge (Desktop)", "Custom")
     val uaStrings = listOf("",
@@ -50,9 +49,8 @@ class SettingsModel : ActiveModel() {
         homePage = homePageUrl
     }
 
-    fun setHomePageProperties(homePageMode: Config.HomePageMode, customHomePageUrl: String?, homePageLinksMode: Config.HomePageLinksMode) {
+    fun setHomePageProperties(homePageMode: Config.HomePageMode, customHomePageUrl: String?) {
         this.homePageMode = homePageMode
-        this.homePageLinksMode = homePageLinksMode
         when (homePageMode) {
             Config.HomePageMode.SEARCH_ENGINE -> {
                 updateHomeAsSearchEngine(config.searchEngineURL.value)

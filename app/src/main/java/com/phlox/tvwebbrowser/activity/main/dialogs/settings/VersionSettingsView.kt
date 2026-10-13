@@ -4,14 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.util.AttributeSet
 import androidx.core.net.toUri
-import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.activity.main.AutoUpdateModel
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
-import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -34,7 +32,6 @@ class VersionSettingsView @JvmOverloads constructor(
         private const val URL_ICON_STORY = "https://tv-bro-3546c.web.app/msg001.html"
     }
 
-    private val config = AppContext.provideConfig()
     private val settingsModel = ActiveModelsRepository.get(SettingsModel::class, activity!!)
     private val autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, activity!!)
     var callback: Callback? = null
@@ -101,28 +98,6 @@ class VersionSettingsView @JvmOverloads constructor(
                         else post { rebuild() }
                         callback?.onUpdateStateChanged()
                     }
-                )
-            )
-            add(
-                SettingsItem.Choice(
-                    iconRes = R.drawable.ic_settings_download_24dp,
-                    titleRes = R.string.settings_update_channel,
-                    value = { config.updateChannel },
-                    entries = { availableChannels().toList() },
-                    selectedIndex = { availableChannels().indexOf(config.updateChannel).coerceAtLeast(0) },
-                    onSelected = { position ->
-                        val channel = availableChannels().getOrNull(position)
-                        if (channel != null && channel != config.updateChannel) {
-                            config.updateChannel = channel
-                            autoUpdateModel.checkUpdate(true) {
-                                callback?.onUpdateStateChanged()
-                                post { rebuild() }
-                            }
-                        } else {
-                            post { rebuild() }
-                        }
-                    },
-                    visible = { autoUpdateModel.needAutoCheckUpdates }
                 )
             )
             add(
@@ -193,8 +168,6 @@ class VersionSettingsView @JvmOverloads constructor(
             )
         )
     }
-
-    private fun availableChannels(): Array<String> = UpdateChecker.AVAILABLE_CHANNELS
 
     private fun hasUpdate(): Boolean =
         autoUpdateModel.needAutoCheckUpdates && autoUpdateModel.updateChecker.hasUpdate()

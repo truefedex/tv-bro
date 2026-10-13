@@ -30,7 +30,6 @@ class GeneralSettingsView @JvmOverloads constructor(
         add(SettingsItem.Header(R.string.settings_section_browsing))
         add(searchEngineItem())
         add(homePageItem())
-        add(homePageLinksItem())
         add(userAgentItem())
         add(SettingsItem.Header(R.string.settings_section_startup))
         add(
@@ -88,14 +87,12 @@ class GeneralSettingsView @JvmOverloads constructor(
                     settingsModel.homePage,
                     context.getString(R.string.url)
                 ) { url ->
-                    settingsModel.setHomePageProperties(
-                        Config.HomePageMode.CUSTOM, url, settingsModel.homePageLinksMode
-                    )
+                    settingsModel.setHomePageProperties(Config.HomePageMode.CUSTOM, url)
                     rebuild()
                 }
             } else {
                 settingsModel.setHomePageProperties(
-                    mode, settingsModel.homePage, settingsModel.homePageLinksMode
+                    mode, settingsModel.homePage
                 )
                 rebuild()
             }
@@ -107,25 +104,6 @@ class GeneralSettingsView @JvmOverloads constructor(
         return if (mode == Config.HomePageMode.CUSTOM) settingsModel.homePage
         else context.resources.getStringArray(R.array.home_page_modes)[mode.ordinal]
     }
-
-    private fun homePageLinksItem() = SettingsItem.Choice(
-        iconRes = R.drawable.ic_home_grey_900_24dp,
-        titleRes = R.string.home_page_links,
-        value = {
-            context.resources.getStringArray(R.array.home_page_links_modes)[settingsModel.homePageLinksMode.ordinal]
-        },
-        entries = { context.resources.getStringArray(R.array.home_page_links_modes).toList() },
-        selectedIndex = { settingsModel.homePageLinksMode.ordinal },
-        onSelected = { position ->
-            settingsModel.setHomePageProperties(
-                Config.HomePageMode.HOME_PAGE,
-                settingsModel.homePage,
-                Config.HomePageLinksMode.entries[position]
-            )
-            rebuild()
-        },
-        visible = { settingsModel.homePageMode == Config.HomePageMode.HOME_PAGE }
-    )
 
     private fun userAgentIndex(): Int {
         val value = config.userAgentString.value ?: return 0
