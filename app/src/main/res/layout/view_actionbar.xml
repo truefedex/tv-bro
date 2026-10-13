@@ -4,20 +4,35 @@
     tools:parentTag="android.widget.LinearLayout"
     tools:orientation="horizontal">
 
-  <ImageButton
-      android:id="@+id/ibTabs"
-      android:layout_width="@dimen/toolbar_button_size"
-      android:layout_height="@dimen/toolbar_button_size"
-      android:scaleType="fitCenter"
-      android:padding="8dp"
+  <FrameLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
       android:layout_marginStart="4dp"
-      android:layout_marginTop="4dp"
-      android:layout_marginEnd="2dp"
-      android:src="@drawable/ic_menu_grey_900_36dp"
-      android:nextFocusRight="@+id/ibBack"
-      android:background="@drawable/icon_button_bg_selector"
-      android:focusable="true"
-      android:contentDescription="@string/tabs" />
+      android:layout_marginEnd="2dp">
+    <ImageButton
+        android:id="@+id/ibTabs"
+        android:layout_width="@dimen/toolbar_button_size"
+        android:layout_height="@dimen/toolbar_button_size"
+        android:scaleType="fitCenter"
+        android:padding="8dp"
+        android:src="@drawable/ic_menu_grey_900_36dp"
+        android:nextFocusRight="@+id/ibBack"
+        android:background="@drawable/icon_button_bg_selector"
+        android:focusable="true"
+        android:contentDescription="@string/tabs" />
+    <TextView
+        android:id="@+id/tvTabsCounter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="20dp"
+        android:textSize="12sp"
+        android:layout_gravity="top|end"
+        android:background="@drawable/gray_badge_bg"
+        android:gravity="center"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="3" />
+  </FrameLayout>
 
   <ImageButton
       android:id="@+id/ibBack"

@@ -140,6 +140,15 @@ class ActionBar @JvmOverloads constructor(
     }
 
     /**
+     * Shows the number of open tabs on the tab-panel button. Hidden when there is a single tab,
+     * since the count is then obvious and a permanent "1" would just be noise.
+     */
+    fun setTabsCounter(count: Int) {
+        vb.tvTabsCounter.visibility = if (count > 1) VISIBLE else GONE
+        vb.tvTabsCounter.text = count.toString()
+    }
+
+    /**
      * The top bar is pinned and always reserves space, so URL-edit mode must never hide the
      * navigation/action buttons: the address box simply expands into the free space (it has
      * layout_weight=1). Hiding them here used to collapse the bar down to just the URL and, worse,

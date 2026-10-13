@@ -225,6 +225,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         tabsModel.tabsStates.subscribe(this, false) {
+            vb.vActionBar.setTabsCounter(it.size)
             if (it.isEmpty()) {
                 if (!config.isWebEngineGecko()) {
                     vb.flWebViewContainer.removeAllViews()
@@ -543,6 +544,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         vb.progressBarGeneric.visibility = View.GONE
+
+        // `tabsStates` is retained across activity re-creation (theme toggle), in which case the
+        // observer above is not re-fired, so seed the tab counter here as well.
+        vb.vActionBar.setTabsCounter(tabsModel.tabsStates.size)
 
         if (intent.data == null) {
             if (tabsModel.tabsStates.isEmpty()) {
