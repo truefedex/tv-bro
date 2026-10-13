@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  Chrome-like omnibox: a rounded, filled box instead of the default EditText underline.
+  When focused it gains a thin accent stroke so it is obvious the address box is active.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <solid android:color="@color/url_box_background_focused" />
+            <stroke android:width="1.5dp" android:color="@color/url_box_stroke" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
+            <solid android:color="@color/url_box_background" />
+        </shape>
+    </item>
+</selector>

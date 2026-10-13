@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.activity.main.view
 import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View.OnFocusChangeListener
@@ -80,6 +81,9 @@ class ActionBar @JvmOverloads constructor(
 
     fun init() {
         orientation = HORIZONTAL
+        // Center the buttons and the (shorter) URL box vertically so the bar is only as tall as
+        // its tallest control instead of being inflated by the EditText's own margins.
+        gravity = Gravity.CENTER_VERTICAL
 
         if (isInEditMode) return
 

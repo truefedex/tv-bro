@@ -6,6 +6,10 @@
   <color name="top_bar_background2">#1B1B1B</color>
   <color name="top_bar_background_overlay">#B3272727</color>
 
+  <color name="url_box_background">#3A3A3A</color>
+  <color name="url_box_background_focused">#454545</color>
+  <color name="url_box_stroke">#5FACFF</color>
+
   <color name="day_night_text_color">#bbb</color>
   <color name="day_night_text_color_contrast">#fff</color>
   <color name="day_night_background_color">#2f2f2f</color>
