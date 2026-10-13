@@ -66,6 +66,20 @@
   `MainActivity.showSettings()`), since the zapper is registration-based while the network blocker
   re-checks live. Verified on emulator: test page with a transparent click-trap, hidden popunder and
   shadow-root video ad box now reports `INJ:CLEAN`.
+- **Native player BACK never took effect (predictive back bypassed the activity) — FIXED.**
+  `NativeVideoActivity` handled BACK in `dispatchKeyEvent`, but at `targetSdk 35+` predictive back is on
+  by default: the system finished the activity on the first press through
+  `Activity$RequestFinishCallback` → `finishAfterTransition()`, never reaching `dispatchKeyEvent`
+  (and `onBackPressed()` was not called either). The activity is now opted out via
+  `android:enableOnBackInvokedCallback="false"` in the player manifest, and BACK takes two presses:
+  the first only reveals the controls, the second leaves the player and hands the position back to the
+  page. Controller visibility is tracked through `PlayerView.setControllerVisibilityListener`
+  (`PlayerView` exposes no plain "is the controller shown"; `isControllerFullyVisible()` is false while
+  the controls animate), a matching UP is swallowed via `backConsumedDown` so a single press cannot
+  leak through, and holding BACK is ignored. Verified on emulator: one BACK keeps the player open
+  (controls shown then auto-hidden after 2.5s), two quick BACKs return to `MainActivity`.
+  `SystemPlayerActivity` deliberately keeps predictive back: it does not handle BACK and wants the
+  first press to finish.
 
 ## Feature notes
 - **Chrome-like URL box in the top bar.**
