@@ -8,9 +8,9 @@
                     <solid android:color="@color/settings_tab_color_activated" />
                 </shape>
             </item>
-            <item android:gravity="bottom">
+            <item android:gravity="end">
                 <shape>
-                    <size android:height="2dp" />
+                    <size android:width="2dp" />
                     <solid android:color="@color/settings_tab_activated_underline_color" />
                 </shape>
             </item>
