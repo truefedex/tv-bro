@@ -36,6 +36,7 @@ class Config(val prefs: SharedPreferences) {
             "webview_use_algorithmic_darkening_with_dark_ui_mode"
         const val WEB_ENGINE_DEBUG_KEY = "web_engine_debug"
         const val AUTO_NATIVE_FULLSCREEN_KEY = "auto_native_fullscreen"
+        const val PLAYER_KIND_KEY = "player_kind"
         const val BLOCK_AUTOMATIC_REDIRECTS_KEY = "block_automatic_redirects"
         const val KEEP_TOOLBAR_OPEN_KEY = "keep_toolbar_open"
         const val RESTORE_TABS_ON_STARTUP_KEY = "restore_tabs_on_startup"
@@ -93,6 +94,11 @@ class Config(val prefs: SharedPreferences) {
 
     enum class HomePageMode {
         HOME_PAGE, SEARCH_ENGINE, CUSTOM, BLANK
+    }
+
+    /** Player a detected stream is handed to. Default is the built-in ExoPlayer. */
+    enum class PlayerKind {
+        BUILT_IN, SYSTEM, EXTERNAL
     }
 
     var incognitoMode: Boolean
@@ -215,6 +221,12 @@ class Config(val prefs: SharedPreferences) {
     var autoNativeFullscreen: Boolean
         get() = prefs.getBoolean(AUTO_NATIVE_FULLSCREEN_KEY, false)
         set(value) { prefs.edit().putBoolean(AUTO_NATIVE_FULLSCREEN_KEY, value).apply() }
+
+    var playerKind: PlayerKind
+        get() = prefs.getInt(PLAYER_KIND_KEY, 0)
+            .let { if (it < 0 || it >= PlayerKind.entries.size) 0 else it }
+            .let { PlayerKind.entries[it] }
+        set(value) { prefs.edit().putInt(PLAYER_KIND_KEY, value.ordinal).apply() }
 
     var blockAutomaticRedirects: Boolean
         get() = prefs.getBoolean(BLOCK_AUTOMATIC_REDIRECTS_KEY, true)

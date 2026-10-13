@@ -20,6 +20,8 @@ import com.phlox.tvwebbrowser.player.MediaRequestCatalog
 import com.phlox.tvwebbrowser.player.MediaRequestContext
 import com.phlox.tvwebbrowser.player.MediaUrlIdentity
 import com.phlox.tvwebbrowser.player.NativeVideoActivity
+import com.phlox.tvwebbrowser.player.PlaybackFailure
+import com.phlox.tvwebbrowser.player.PlayerLauncher
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.MediaCandidate
 import com.phlox.tvwebbrowser.webengine.WebEngine
@@ -381,6 +383,8 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
 
     override fun onResume() {
         isForeground = true
+        //the system player closed itself because playback failed; there is no fallback
+        PlaybackFailure.last = null
         if (nativeVideoActive) return
         if (!session.isOpen) recoverClosedSession()
         session.setActive(true)
@@ -501,11 +505,24 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
                 Toast.makeText(AppContext.get(), R.string.native_playback_unavailable, Toast.LENGTH_SHORT).show()
                 return@resolve
             }
-            try {
-                NativeVideoActivity.launch(AppContext.get(), NativeVideoActivity.PlaybackRequest(
-                    resolved.source, resolved.context, 0L, 1f)) { }
-            } catch (error: Exception) {
-                Log.w(TAG, "play-media-candidate failed: ${error.javaClass.simpleName}")
+            val source = resolved.source
+            val cookie = source.headers.entries.firstOrNull { it.key.equals("Cookie", ignoreCase = true) }?.value
+            when (AppContext.provideConfig().playerKind) {
+                Config.PlayerKind.BUILT_IN -> try {
+                    NativeVideoActivity.launch(AppContext.get(), NativeVideoActivity.PlaybackRequest(
+                        source, resolved.context, 0L, 1f)) { result ->
+                        if (result.action == NativeVideoActivity.ReturnAction.FAILED) {
+                            Toast.makeText(AppContext.get(), R.string.native_playback_unavailable, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (error: Exception) {
+                    Log.w(TAG, "play-media-candidate failed: ${error.javaClass.simpleName}")
+                }
+                Config.PlayerKind.SYSTEM -> PlayerLauncher.openSystem(
+                    callback?.getActivity() ?: AppContext.get(), source.url, ua, source.page, cookie)
+                Config.PlayerKind.EXTERNAL -> callback?.getActivity()?.let { activity ->
+                    PlayerLauncher.openExternal(activity, source.url, ua, source.page, cookie)
+                }
             }
         }
     }

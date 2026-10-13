@@ -208,6 +208,7 @@
     <string name="cast_choose_external_player">Choose external player</string>
     <string name="cast_open_builtin">Open in built-in player</string>
     <string name="cast_trying_next">Trying another stream…</string>
+    <string name="native_playback_unavailable">Native playback is unavailable, continuing in the browser</string>
     <string name="external_playback_failed_title">Did the video not play?</string>
     <string name="external_playback_failed_message">Some streams only work in the built-in player, because they require the browser to identify itself on every request and external players cannot do that.</string>
     <string name="cast_start_video_title">No video detected yet</string>
@@ -251,6 +252,8 @@
     <string name="settings_keep_toolbar_open_summary">Stays visible after actions</string>
     <string name="settings_auto_fullscreen">Auto-open fullscreen videos in the native player</string>
     <string name="settings_auto_fullscreen_summary">A page video going fullscreen opens in the built-in player</string>
+    <string name="settings_video_player">Video player</string>
+    <string name="settings_video_player_summary">Player used for detected streams and the cast shortcut</string>
     <string name="settings_web_engine">Web browser engine</string>
     <string name="settings_web_engine_summary">Temporary setting, reverted on restart</string>
     <string name="settings_web_engine_debug">Web engine debugging</string>

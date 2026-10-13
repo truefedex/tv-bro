@@ -11,4 +11,6 @@
     <string name="player_scale_fit">Scaling: fit</string>
     <string name="player_scale_zoom">Scaling: zoom</string>
     <string name="player_scale_fill">Scaling: stretch</string>
+    <string name="player_choose_external">Choose external player</string>
+    <string name="player_none_installed">No compatible player found (install VLC or MX Player)</string>
 </resources>

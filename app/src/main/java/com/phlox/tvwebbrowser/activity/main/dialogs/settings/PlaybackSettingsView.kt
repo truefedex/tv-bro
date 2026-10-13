@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 import android.content.Context
 import android.util.AttributeSet
 import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.Config.PlayerKind
 import com.phlox.tvwebbrowser.R
 
 class PlaybackSettingsView @JvmOverloads constructor(
@@ -34,5 +35,25 @@ class PlaybackSettingsView @JvmOverloads constructor(
                 onCheckedChange = { config.autoNativeFullscreen = it }
             )
         )
+        add(
+            SettingsItem.Choice(
+                iconRes = R.drawable.ic_settings_play_24dp,
+                titleRes = R.string.settings_video_player,
+                summaryRes = R.string.settings_video_player_summary,
+                value = { playerLabels()[config.playerKind.ordinal] },
+                entries = { playerLabels() },
+                selectedIndex = { config.playerKind.ordinal },
+                onSelected = {
+                    config.playerKind = PlayerKind.entries[it]
+                    rebuild()
+                }
+            )
+        )
     }
+
+    private fun playerLabels(): List<CharSequence> = listOf(
+        context.getString(R.string.cast_player_internal),
+        context.getString(R.string.cast_player_system),
+        context.getString(R.string.cast_player_external)
+    )
 }

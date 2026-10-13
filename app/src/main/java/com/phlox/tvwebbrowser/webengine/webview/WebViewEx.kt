@@ -3,12 +3,10 @@ package com.phlox.tvwebbrowser.webengine.webview
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -53,6 +51,7 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
+import com.phlox.tvwebbrowser.Config.PlayerKind
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.player.MediaDiscoveryNotifier
 import com.phlox.tvwebbrowser.player.MediaMetadataCache
@@ -62,7 +61,7 @@ import com.phlox.tvwebbrowser.player.MediaRequestContext
 import com.phlox.tvwebbrowser.player.MediaUrlIdentity
 import com.phlox.tvwebbrowser.player.NativeVideoActivity
 import com.phlox.tvwebbrowser.player.PlaybackFailure
-import com.phlox.tvwebbrowser.player.SystemPlayerActivity
+import com.phlox.tvwebbrowser.player.PlayerLauncher
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.MediaCandidate
@@ -70,9 +69,6 @@ import org.json.JSONTokener
 import java.net.URLEncoder
 import java.util.UUID
 
-
-/** Players a detected stream can be handed to. Order matches the chooser menu. */
-enum class PlayerKind { BUILT_IN, SYSTEM, EXTERNAL }
 
 /**
  * Copyright (c) 2016 Fedir Tsapana.
@@ -89,8 +85,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         const val MAX_DETECTED_MEDIA = 30
         //coming back from an external player sooner than this means it likely failed
         const val EXTERNAL_PLAYER_FAIL_WINDOW = 15000L
-        //how many candidates to try automatically before asking the user
-        const val MAX_STREAM_TRIES = 5
         //WebView delivers onShowCustomView before the page's DOM reports the fullscreen
         //element, so the element is polled briefly before giving up on the native handoff
         const val FULLSCREEN_PROBE_DELAY = 120L
@@ -127,12 +121,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     //set when an external player was launched, to detect a quick bounce back
     private var externalPlayerStartedAt = 0L
     private var externalPlayerUrl: String? = null
-    //candidates of the current attempt, tried one after another on failure
-    private var castCandidates: List<CastCandidate> = emptyList()
-    private var castIndex = 0
-    private var castPlayer = PlayerKind.BUILT_IN
-    /** Where to resume in the built-in player; set by the fullscreen handoff, else 0. */
-    private var castStartMs = 0L
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
 
@@ -838,13 +826,14 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     }
 
     /**
-     * Entry point for the "play video in a player" shortcut. Asks which player to
-     * use, then resolves the stream. If no stream can be found the user is told to
-     * start the page video first.
+     * Entry point for the "play video in a player" shortcut. Picks the most likely stream and
+     * hands it to the player selected in the settings. If no stream can be found the user is
+     * told to start the page video first.
      */
     fun castMedia(domUrl: String?) {
         val activity = callback.getActivity() ?: return
-        if (orderedCandidates(domUrl).isEmpty()) {
+        val candidates = orderedCandidates(domUrl)
+        if (candidates.isEmpty()) {
             AlertDialog.Builder(activity)
                 .setTitle(R.string.cast_start_video_title)
                 .setMessage(R.string.cast_start_video_message)
@@ -852,7 +841,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 .show()
             return
         }
-        showPlayerMenu(domUrl)
+        playCandidate(candidates[0], config.playerKind, 0L)
     }
 
     /**
@@ -884,37 +873,18 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 return@evaluateJavascript
             }
             Log.d(TAG, "fullscreen handoff: ${candidates.size} candidate(s), resumeAt=${positionMs}ms")
-            //Leave the in-page fullscreen and play the stream natively instead.
+            //Leave the in-page fullscreen and play the stream natively instead. The automatic
+            //handoff always uses the built-in player: only it can resume at a position.
             fullscreenViewCallback = null
             callback.onCustomViewHidden()
-            castCandidates = candidates
-            castIndex = 0
-            castPlayer = PlayerKind.BUILT_IN
-            castStartMs = positionMs
-            playCandidate(candidates[0])
+            playCandidate(candidates[0], PlayerKind.BUILT_IN, positionMs)
         }
-    }
-
-    private fun showPlayerMenu(domUrl: String?) {
-        val activity = callback.getActivity() ?: return
-        val kinds = PlayerKind.entries
-        val labels = arrayOf(
-            context.getString(R.string.cast_player_internal),
-            context.getString(R.string.cast_player_system),
-            context.getString(R.string.cast_player_external)
-        )
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.cast_choose_player)
-            .setItems(labels) { _, which -> resolveAndPlay(domUrl, kinds[which]) }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     /**
      * Orders the candidates by how likely they are to be the real stream. No
      * per-site rules: manifests first (HLS/DASH - the master playlist normally
-     * loads before anything else), single files last. The list is kept so that
-     * the next one can be tried automatically if playback fails.
+     * loads before anything else), single files last.
      */
     private fun orderedCandidates(domUrl: String?): List<CastCandidate> {
         val urls = LinkedHashSet<String>()
@@ -950,9 +920,10 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         }
     }
 
-    /** Plays one detected stream in the built-in native player, bypassing the page controls. */
+    /** Plays one detected stream in the configured player, bypassing the page controls. */
     fun playMediaCandidate(url: String) {
-        playInInternalPlayer(CastCandidate(url, detectedMedia[url] ?: emptyMap(), inferCastKind(url)))
+        playCandidate(CastCandidate(url, detectedMedia[url] ?: emptyMap(), inferCastKind(url)),
+            config.playerKind, 0L)
     }
 
     private fun MediaRequestCatalog.Kind.toCandidateKind(): MediaCandidate.Kind = when (this) {
@@ -961,38 +932,16 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         MediaRequestCatalog.Kind.PROGRESSIVE -> MediaCandidate.Kind.PROGRESSIVE
     }
 
-    private fun resolveAndPlay(domUrl: String?, kind: PlayerKind) {
-        val candidates = orderedCandidates(domUrl)
-        if (candidates.isEmpty()) {
-            Toast.makeText(context, R.string.cast_no_media, Toast.LENGTH_LONG).show()
-            return
-        }
-        castCandidates = candidates
-        castIndex = 0
-        castPlayer = kind
-        castStartMs = 0L
-        playCandidate(candidates[0])
-    }
-
-    private fun playCandidate(candidate: CastCandidate) = when (castPlayer) {
-        PlayerKind.BUILT_IN -> playInInternalPlayer(candidate, castStartMs)
-        PlayerKind.SYSTEM -> playInSystemPlayer(candidate.url)
-        PlayerKind.EXTERNAL -> playInExternalPlayer(candidate.url)
-    }
-
     /**
-     * The built-in player could not play the stream we picked. Move on to the next
-     * candidate on our own - the user should not have to reason about stream URLs.
-     * Once the candidates are exhausted, fall back to asking which player to use.
+     * Hands one stream to the player selected in the settings. There is no automatic fallback:
+     * a stream that does not play is the user's cue to try a different one from the stream list.
      */
-    private fun onBuiltInPlaybackFailed() {
-        castIndex++
-        if (castIndex < castCandidates.size && castIndex < MAX_STREAM_TRIES) {
-            Toast.makeText(context, R.string.cast_trying_next, Toast.LENGTH_SHORT).show()
-            playCandidate(castCandidates[castIndex])
-            return
+    private fun playCandidate(candidate: CastCandidate, kind: PlayerKind, startMs: Long) {
+        when (kind) {
+            PlayerKind.BUILT_IN -> playInInternalPlayer(candidate, startMs)
+            PlayerKind.SYSTEM -> playInSystemPlayer(candidate)
+            PlayerKind.EXTERNAL -> playInExternalPlayer(candidate)
         }
-        showPlayerMenu(null)
     }
 
     /** Opens the stream in TV Bro's built-in (ExoPlayer) player. */
@@ -1014,7 +963,9 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         try {
             NativeVideoActivity.launch(activity,
                 NativeVideoActivity.PlaybackRequest(source, requestContext, startMs, 1f)) { result ->
-                if (result.action == NativeVideoActivity.ReturnAction.FAILED) onBuiltInPlaybackFailed()
+                if (result.action == NativeVideoActivity.ReturnAction.FAILED) {
+                    Toast.makeText(context, R.string.native_playback_unavailable, Toast.LENGTH_SHORT).show()
+                }
             }
         } catch (e: Exception) {
             Toast.makeText(context, R.string.cast_no_media, Toast.LENGTH_LONG).show()
@@ -1022,82 +973,39 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     }
 
     /** Opens the stream in the platform MediaPlayer based fallback player. */
-    fun playInSystemPlayer(rawUrl: String) {
+    fun playInSystemPlayer(candidate: CastCandidate) {
         val activity = callback.getActivity() ?: return
         val cookie = try {
-            CookieManager.getInstance().getCookie(rawUrl)
+            CookieManager.getInstance().getCookie(candidate.url)
         } catch (e: Exception) { null }
-        val intent = Intent(activity, SystemPlayerActivity::class.java).apply {
-            putExtra(SystemPlayerActivity.EXTRA_URL, rawUrl)
-            settings.userAgentString?.let { putExtra(SystemPlayerActivity.EXTRA_UA, it) }
-            currentOriginalUrl?.toString()?.let { putExtra(SystemPlayerActivity.EXTRA_REFERER, it) }
-            cookie?.let { putExtra(SystemPlayerActivity.EXTRA_COOKIE, it) }
-        }
-        PlaybackFailure.last = null
-        activity.startActivity(intent)
+        PlayerLauncher.openSystem(activity, candidate.url, settings.userAgentString,
+            currentOriginalUrl?.toString(), cookie)
     }
 
-    /**
-     * Hands the stream over to an external player (VLC, MX Player...). Lists the
-     * players actually installed on the device and lets the user pick one, so the
-     * absence of any player can be reported instead of silently doing nothing.
-     */
-    fun playInExternalPlayer(rawUrl: String) {
+    /** Hands the stream over to an external player (VLC, MX Player...). */
+    fun playInExternalPlayer(candidate: CastCandidate) {
         val activity = callback.getActivity() ?: return
-        val intent = buildExternalPlayerIntent(rawUrl)
-        val pm = activity.packageManager
-
-        //Some players only declare video/*, others the concrete HLS mime type,
-        //so probe with both and merge the results per package.
-        val players = LinkedHashMap<String, ResolveInfo>()
-        for (probe in listOf(intent, buildExternalPlayerIntent(rawUrl, "video/*"))) {
-            for (info in pm.queryIntentActivities(probe, 0)) {
-                val pkg = info.activityInfo?.packageName ?: continue
-                if (pkg == activity.packageName) continue
-                players.getOrPut(pkg) { info }
-            }
-        }
-        val list = players.values.toList()
-        when {
-            list.isEmpty() ->
-                Toast.makeText(activity, R.string.cast_no_player, Toast.LENGTH_LONG).show()
-            list.size == 1 -> startExternalPlayer(activity, intent, list[0])
-            else -> {
-                val labels = list.map { it.loadLabel(pm).toString() }.toTypedArray()
-                AlertDialog.Builder(activity)
-                    .setTitle(R.string.cast_choose_external_player)
-                    .setItems(labels) { _, which -> startExternalPlayer(activity, intent, list[which]) }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            }
-        }
-    }
-
-    private fun startExternalPlayer(activity: Activity, intent: Intent, player: ResolveInfo) {
-        val explicit = Intent(intent).apply {
-            setClassName(player.activityInfo.packageName, player.activityInfo.name)
-        }
-        try {
-            activity.startActivity(explicit)
+        val cookie = try {
+            CookieManager.getInstance().getCookie(candidate.url)
+        } catch (e: Exception) { null }
+        PlayerLauncher.openExternal(activity, candidate.url, settings.userAgentString,
+            currentOriginalUrl?.toString(), cookie) {
             //There is no callback telling us whether the other app managed to play
             //the stream. Streams that need a Referer on every request keep buffering
             //there forever, and the user comes straight back. So if we are resumed
             //again after a short while, offer the built-in player, which can play them.
             externalPlayerStartedAt = System.currentTimeMillis()
-            externalPlayerUrl = intent.dataString
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(activity, R.string.cast_no_player, Toast.LENGTH_LONG).show()
+            externalPlayerUrl = candidate.url
         }
     }
 
     override fun onResume() {
         super.onResume()
-        //the system player closed itself because playback failed
-        PlaybackFailure.last?.let {
+        //the system player closed itself because playback failed; there is no fallback
+        if (PlaybackFailure.last != null) {
             PlaybackFailure.last = null
             externalPlayerStartedAt = 0L
             externalPlayerUrl = null
-            onBuiltInPlaybackFailed()
             return
         }
         val startedAt = externalPlayerStartedAt
@@ -1115,39 +1023,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
-    }
-
-    private fun buildExternalPlayerIntent(rawUrl: String, forceMime: String? = null): Intent {
-        val ua = settings.userAgentString
-        val referer = currentOriginalUrl?.toString()
-        val cookie = try {
-            CookieManager.getInstance().getCookie(rawUrl)
-        } catch (e: Exception) { null }
-
-        return Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(Uri.parse(rawUrl), forceMime ?: guessMediaMime(rawUrl))
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            val headers = ArrayList<String>()
-            if (ua != null) { headers.add("User-Agent"); headers.add(ua) }
-            if (referer != null) { headers.add("Referer"); headers.add(referer) }
-            if (cookie != null) { headers.add("Cookie"); headers.add(cookie) }
-            if (headers.isNotEmpty()) putExtra("headers", headers.toTypedArray())
-            if (ua != null) putExtra("User-Agent", ua)
-            if (referer != null) putExtra("Referer", referer)
-            putExtra("secure_uri", true)
-        }
-    }
-
-    private fun guessMediaMime(u: String): String {
-        val p = u.substringBefore('?').lowercase()
-        return when {
-            p.endsWith(".m3u8") -> "application/x-mpegURL"
-            p.endsWith(".txt") -> "application/x-mpegURL" //HLS manifest behind a .txt name
-            p.endsWith(".mpd") -> "application/dash+xml"
-            p.endsWith(".mp4") || p.endsWith(".m4v") -> "video/mp4"
-            p.endsWith(".webm") -> "video/webm"
-            else -> "video/*"
-        }
     }
 
     //endregion

@@ -4,7 +4,9 @@ import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
 import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.player.NativeVideoActivity
+import com.phlox.tvwebbrowser.player.PlayerLauncher
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import com.phlox.tvwebbrowser.webengine.gecko.NativeMediaResolver
 import com.phlox.tvwebbrowser.webengine.gecko.R
@@ -147,6 +149,24 @@ class MyMediaSessionDelegate(private val engine: GeckoWebEngine) : MediaSession.
                 launching = false
                 failedSources.add(source)
                 Log.i(TAG, "browser-retained reason=$reason")
+                return@resolve
+            }
+            if (manual && AppContext.provideConfig().playerKind != Config.PlayerKind.BUILT_IN) {
+                //The user picked a non built-in player in the settings: hand the stream over.
+                //The page media is paused by onPause while the other player is in front.
+                launching = false
+                val kind = AppContext.provideConfig().playerKind
+                val cookie = resolved.source.headers.entries
+                    .firstOrNull { it.key.equals("Cookie", ignoreCase = true) }?.value
+                val activity = engine.callback?.getActivity()
+                when (kind) {
+                    Config.PlayerKind.SYSTEM -> PlayerLauncher.openSystem(
+                        activity ?: AppContext.get(), resolved.source.url, ua, page, cookie)
+                    Config.PlayerKind.EXTERNAL -> activity?.let {
+                        PlayerLauncher.openExternal(it, resolved.source.url, ua, page, cookie)
+                    }
+                    else -> {}
+                }
                 return@resolve
             }
             val start = if (duration.isNaN() || duration.isInfinite()) -1L else positionMs()

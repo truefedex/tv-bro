@@ -387,8 +387,8 @@
   returns `"1|<positionMs>|<url>"` (empty url for MSE/`blob:`, `1|0|` for an `<iframe>`, `0|`
   otherwise) and pauses the media. `WebViewEx.probeFullscreenVideoForNative()` feeds that into
   `orderedCandidates()` and plays the first candidate in the built-in player at `positionMs` via the
-  new `playInInternalPlayer(candidate, startMs)` overload (the `castStartMs` field carries it through
-  `playCandidate`; `resolveAndPlay` resets it to 0).
+  `playInInternalPlayer(candidate, startMs)` overload (`playCandidate(candidate, PlayerKind.BUILT_IN,
+  positionMs)`; explicit cast/stream-list playback uses the configured player from 0).
   **Gotcha:** WebView delivers `onShowCustomView` *before* the page's DOM reflects the new fullscreen
   element — `document.fullscreenElement` is still `null` at callback time and only becomes the
   `<video>` ~100–250 ms later, so a one-shot read always saw "no video" and silently fell back to the
@@ -399,6 +399,23 @@
   nulls `fullscreenViewCallback`. Verified on the emulator (WebView engine): tapping fullscreen logged
   `fullscreen handoff: 1 candidate(s), resumeAt=4216ms`, `NativeVideoActivity` opened playing from that
   position, and a short clip returned to the page when it ended.
+- **No automatic stream fallback: the player is a setting (`Config.playerKind`, default built-in).**
+  The old "try the next candidate on failure, then ask which player to use" chain was removed
+  (`MAX_STREAM_TRIES`/`castCandidates`/`castIndex`/`castPlayer`/`onBuiltInPlaybackFailed`/
+  `showPlayerMenu`/`resolveAndPlay` are gone from `WebViewEx`). A stream the user taps in the stream
+  list, or the cast shortcut, plays in the player selected in **Settings → Playback → Video player**
+  (new `SettingsItem.Choice`, `Config.PlayerKind` = BUILT_IN/SYSTEM/EXTERNAL, default BUILT_IN).
+  If it fails it is up to the user to pick a different stream: the built-in player's final `FAILED`
+  result just shows `native_playback_unavailable` and returns to the page (the retry budget in
+  `NativeVideoActivity`/`PlaybackRetryPolicy` still applies first). The system/external launch code moved
+  to a shared `:app:player` `PlayerLauncher` (`openSystem`/`openExternal`, used by both engines);
+  Gecko's `GeckoWebEngine.playMediaCandidate` and the manual `MyMediaSessionDelegate.castNow` now
+  dispatch on `playerKind` too, while the automatic fullscreen handoff (`maybeOptimize` /
+  `probeFullscreenVideoForNative`) always uses the built-in player because only it can resume at a
+  position. The external-player bounce-back prompt (quick return → offer built-in) was kept, WebView
+  only. Verified on the emulator (WebView engine): Playback shows the three-way "Video player" choice
+  and persists it (`player_kind` pref); tapping an (unplayable) stream retried 3× then returned to the
+  page with no "Choose player" dialog.
 
 ## Build / test
 - macOS: `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
