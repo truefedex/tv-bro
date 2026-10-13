@@ -40,7 +40,7 @@
   bar) instead of the old `toggleMenu()` fallthrough. `ActionBar.catchFocus()` previously always
   targeted `ibBack`, but Back/Forward are disabled on a tab with no history and a disabled view
   cannot take focus — so it now walks the button row and focuses the first enabled, visible one
-  (`ibBack → ibForward → ibRefresh → ibTabs → ibFavorites → ibMedia → ibMenu`). Nets: on a fresh tab
+  (`ibBack → ibForward → ibRefresh → ibTabs → ibFavorites → ibMedia → ibSettings → ibMenu`). Nets: on a fresh tab
   BACK still reliably moves focus out of the page.
 - **Tab-toggle and overflow icons were black-on-dark — FIXED.**
   `ic_menu_grey_900_36dp` (`ibTabs`) and `ic_more_vert_grey_900_36dp` (`ibMenu`) hardcoded their
@@ -86,31 +86,42 @@
   kept the old colors (hence the old "need restart" toast). The `config.theme.subscribe { ... }`
   block in `MainActivity.onCreate` now calls `recreate()` (guarded by `!isFinishing && !isDestroyed`)
   after setting the night mode, so the top bar and dialogs repaint immediately. The overflow menu
-  gained a **Toggle theme** entry (`R.string.toggle_theme`, inserted at index 10 in
-  `onShowMenu()` between Settings and Close tab, shifting Close tab/Close app to 11/12) backed by
+  gained a **Toggle theme** entry (`R.string.toggle_theme`; after Settings moved to the toolbar it is
+  index 9 in `onShowMenu()`, ahead of Close tab/Close app at 10/11) backed by
   `toggleTheme()`, which cycles `Config.Theme` in enum order **SYSTEM → WHITE → BLACK → SYSTEM**
   (`entries[(ordinal + 1) % size]`). The restart toast in
   `MainSettingsView.initThemeSettingsUI()` was removed. Verified on emulator: SYSTEM(night) →
   Toggle theme → `theme=1` (white, toolbar brightness 224/255, pill `#E0E0E0`), toggle again →
   `theme=2` (dark, brightness 57/255, pill `#3A3A3A`), and a full cycle reads `2→0→1→2`; no crash,
   activity stays focused.
-- **Tab-panel button shows an open-tab counter.**
-  `ibTabs` in `view_actionbar.xml` is now wrapped in a `FrameLayout` with a `tvTabsCounter`
-  `TextView` badge (`@drawable/gray_badge_bg`, `top|end`, `minWidth=20dp`), mirroring the existing
-  `tvMediaCounter` pattern. `ActionBar.setTabsCounter(count)` hides it when `count <= 1` (a lone
-  "1" is redundant) and shows the count otherwise. `MainActivity` updates it from the existing
-  `tabsModel.tabsStates.subscribe { }` block (`it.size`), plus an explicit
-  `setTabsCounter(tabsModel.tabsStates.size)` in `loadState()` because `tabsStates` is retained
-  across the activity re-creation the theme toggle performs (so the observer is not re-fired) and
-  the badge would otherwise vanish. Verified on emulator: 3 tabs → badge `3` at `[64,0][104,41]`,
-  and it survives a theme-toggle recreate.
+- **Toolbar buttons appear only when useful, and Settings moved into the bar.**
+  `ibTabs` and `ibMedia` (each wrapped in a `FrameLayout` with a count badge, `flTabsButton` /
+  `flMediaButton`) are now hidden as a whole when there is nothing to act on:
+  `ActionBar.setTabsCounter(count)` hides the tab button (and its `tvTabsCounter` badge) when
+  `count <= 1` — the panel is only needed to switch between tabs, and new tabs can still be created
+  from the menu — and `setMediaCounter(count)` hides the stream button when `count <= 0`. The tab
+  count is seeded both from `MainActivity`'s `tabsModel.tabsStates.subscribe { }` and explicitly in
+  `loadState()` (the latter because `tabsStates` is retained across the activity re-creation the
+  theme toggle performs, so the observer is not re-fired and the button would otherwise stay hidden).
+  A Settings gear (`ibSettings`, `ic_settings_grey_900_24dp`) was added to the toolbar between the
+  stream and overflow buttons, bound to `callback.showSettings()`; the matching "Settings" entry was
+  removed from the overflow menu (now 12 items: Toggle theme → 9, Close tab → 10, Close app → 11) and
+  the focus chain updated (`ibMedia → ibSettings → ibMenu`). Verified on emulator: 1 tab → no tab
+  button; 2 tabs → button with badge `2` at `[8,0][104,96]`; a page with an HLS stream → stream
+  button with badge `2`; the gear opens the settings dialog.
 - **Bookmarks workflow reworked into a right-side panel (star button).**
   The star (`ibFavorites`) used to open `FavoritesDialog` (a modal popup). Replaced with a
   right-anchored panel `rlBookmarksPanel` in `activity_main.xml` hosting
   `view.bookmarks.BookmarksPanelView` (mirrors the left `llTabPanel`/`TabsView` pattern). First
-  entry is "Add this page" (`add_this_page`), shown only on a real page (non-null `http` url that
-  isn't `Config.isHomePageUrl`); tapping it opens `FavoriteEditorDialog` prefilled with the current
-  tab title/url. The rest of the list is all top-level bookmarks (`FavoritesDao.getAllBookmarks()`).
+  entry is shown only on a real page (non-null `http` url that isn't `Config.isHomePageUrl`) and
+  toggles the current page: it reads "Add this page" (`add_this_page`, outline star) when the page is
+  not bookmarked and opens `FavoriteEditorDialog` prefilled with the current tab title/url, or
+  "Remove from list" (`remove_from_list`, filled `ic_star_grey_900_36dp`) when it already is, deleting
+  it via `MainActivityViewModel.deleteBookmark()`. `MainActivity.updateBookmarkState()` flips the
+  toolbar star (`ActionBar.setBookmarked()`) between `ic_star_border_grey_900_36dp` and the filled
+  star, and is refreshed on every `onWebViewUpdated()` (page start/finish, tab switch) and after any
+  add/remove/edit. The rest of the list is all top-level bookmarks (`FavoritesDao.getAllBookmarks()`,
+  plus a new `getByUrl()` for the current-page lookup).
   Tap navigates and closes the panel; long-press opens an Edit/Delete context menu. Edits go through
   `MainActivityViewModel.onHomePageLinkEdited()` and deletes through the new
   `MainActivityViewModel.deleteBookmark()` so the home page's `homePageLinks` stay in sync. The
@@ -143,6 +154,24 @@
   `WebViewFeature.DOCUMENT_START_SCRIPT`); `GeckoWebEngine.onUpdateAdblockSetting` remains an
   intentional no-op stub. Per-tab state overrides the global default via
   `WebEngineWindowProviderCallback.isAdBlockingEnabled()`.
+- **Settings dialog section tabs moved to a left column.**
+  `dialog_settings.xml` was flipped from a vertical root (tab strip on top) to a horizontal root: the
+  `SegmentedButton` (`sbTabs`) now has `android:orientation="vertical"`, a fixed
+  `@dimen/settings_tab_width` (260dp) width and `match_parent` height, with its three buttons
+  (Main / Shortcuts / Version & updates) stacked at 88dp each, and the content `FrameLayout`
+  (`flTabsContent`) fills the rest. `SegmentedButton` extends `LinearLayout`, so vertical orientation
+  just works. `settings_tab_bg_selector.xml`'s activated indicator moved from a bottom underline to a
+  `gravity="end"` `2dp`-wide bar, so it sits on the right edge of the column facing the content.
+  Verified on emulator: `sbTabs` `[0,0][520,1080]`, content `[520,0][1920,1080]`, active indicator
+  `#5FACFF` at the column's right edge.
+- **Configurable shortcuts for the tab panel, stream list and bookmarks.**
+  Three entries were appended to the `Shortcut` enum — `TOGGLE_TABS_PANEL` ("Tabs"), `SHOW_STREAMS`
+  ("Streams on this page") and `SHOW_BOOKMARKS` ("Bookmarks") — with fresh `prefsKey`s (appending
+  keeps the existing ordinals/prefs stable). `ShortcutMgr.process()` dispatches them to
+  `MainActivity.onToggleTabPanel()`, `onShowStreams()` and `showFavorites()` respectively. The
+  existing `ShortcutsSettingsView` lists `Shortcut.entries` automatically, so the three rows appear
+  with "Not set" and can be bound through `ShortcutDialog` like any other shortcut. Verified on
+  emulator: all three appear at the bottom of the Shortcuts list.
 
 ## Build / test
 - macOS: `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
