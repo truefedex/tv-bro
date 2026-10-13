@@ -255,6 +255,36 @@
   Controls page's Shortcuts section lists `Shortcut.entries` automatically, so the three rows appear
   with "Not set" and can be bound through `ShortcutDialog` like any other shortcut. Verified on
   emulator: all three appear at the bottom of the Shortcuts section.
+- **Update alerts: badge on the settings gear and a dot on the About category.**
+  While an update is available (`needAutoCheckUpdates` on **and** the last check found something
+  newer, see the new `AutoUpdateModel.isUpdateAvailable()`), the toolbar settings button shows a small
+  accent circle (`vSettingsUpdateBadge` — an `ImageView` over `ibSettings` inside the new
+  `flSettingsButton` `FrameLayout`, `@drawable/ic_update_badge_circle`, `@color/update_badge_bg`
+  = `#006EC5` day / `#5FACFF` night; purely decorative, never focusable) and `MainActivity` updates
+  its content description. The **About** rail tab mirrors it with the same circle as a right compound
+  drawable on `btnVersionTab` (`SettingsDialog.refreshAboutTab()`), refreshed live via the new
+  `VersionSettingsView.Callback.onUpdateStateChanged()` (fired after checks, channel changes and the
+  auto-check toggle). `MainActivity.updateUpdateBadge()` is called after the startup check, on
+  `onResume`, and when Settings is dismissed (so disabling auto-check or switching channels clears the
+  badge). Verified on emulator (temporary `versionName 2.0.0` + upstream repo so `v2.1.6` matched):
+  the About tab shows a ~22px accent dot next to ABOUT once the check lands, the About page lists
+  **New version available v2.1.6** + **Install update**, and the gear badge appears after closing
+  Settings; with no update all indicators are absent.
+- **Updates section moved above Links; upstream author stays credited.**
+  In the About page (`VersionSettingsView.buildItems()`) the **Updates** group (auto-check toggle,
+  channel, new-version row, install action, only when `BUILT_IN_AUTO_UPDATE`) is now rendered directly
+  after "About this app" and before **Links**, so the update controls are the first actionable rows.
+  The **Links** group gained an **Original project** row (`URL_UPSTREAM`, `settings_upstream_project`)
+  pointing at `truefedex/tv-bro`, alongside the existing "Support the author" (truefedex donation),
+  upstream license and privacy pages — so even though the **GitHub repository** row now points at this
+  fork, the original author stays credited.
+- **Release-asset download follows GitHub's redirect and sends a User-Agent.**
+  `UpdateChecker.downloadUpdate()` now sets `instanceFollowRedirects = true` and a `User-Agent` on the
+  `HttpURLConnection`. GitHub release assets answer with a 302 to a signed `release-assets.githubusercontent.com`
+  URL (verified with curl: 302 → 200, `application/vnd.android.package-archive`); `HttpURLConnection`
+  follows GET redirects within a protocol but the explicit flag + UA make the install-from-releases
+  path robust. Direct install still relies on `REQUEST_INSTALL_PACKAGES` + the FileProvider
+  (`${applicationId}.provider`), so a debug-signed build cannot be updated by a release-signed APK.
 
 ## Build / test
 - macOS: `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
