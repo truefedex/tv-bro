@@ -5,7 +5,6 @@ import android.app.ProgressDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.text.Html
 import android.webkit.MimeTypeMap
 import android.widget.TextView
@@ -14,18 +13,18 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import com.phlox.tvwebbrowser.R
 import kotlinx.coroutines.*
-import org.json.JSONObject
+import org.json.JSONArray
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-class UpdateChecker(val currentVersionCode: Int) {
+class UpdateChecker(val currentVersionName: String) {
     var versionCheckResult: UpdateCheckResult? = null
 
-    class ChangelogEntry(val versionCode: Int, val versionName: String, val changes: String)
-    class UpdateCheckResult(val latestVersionCode: Int, val latestVersionName: String, val channel:String,
+    class ChangelogEntry(val versionName: String, val changes: String)
+    class UpdateCheckResult(val latestVersionName: String, val channel:String,
                             val url: String, val changelog: ArrayList<ChangelogEntry>, val availableChannels: Array<String>)
     interface DialogCallback {
         fun download()
@@ -33,64 +32,94 @@ class UpdateChecker(val currentVersionCode: Int) {
         fun settings()
     }
 
-    fun check(urlOfVersionFile: String, channelsToCheck: Array<String>) {
-        val urlConnection = URL(urlOfVersionFile).openConnection() as HttpURLConnection
+    /**
+     * Looks for a newer build among the GitHub Releases of [repo] ("owner/name") instead of a custom
+     * version manifest, so that a fork can ship its own releases independently from upstream.
+     *
+     * [channelsToCheck] controls pre-releases: the [CHANNEL_RELEASE] channel ignores them, while any
+     * other channel (e.g. [CHANNEL_PRERELEASE]) includes them. Only releases that expose an APK asset
+     * for the running build ([appStoreFlavor] + [webEngineFlavor], plus [abi] when the engine ships
+     * native code) are considered, mirroring the asset naming of `.github/workflows/release.yml`.
+     */
+    fun checkGitHubReleases(repo: String, channelsToCheck: Array<String>, appStoreFlavor: String,
+                            webEngineFlavor: String, abi: String) {
+        val includePrereleases = channelsToCheck.any { it != CHANNEL_RELEASE }
+        val urlConnection = URL("https://api.github.com/repos/$repo/releases?per_page=30").openConnection() as HttpURLConnection
         try {
+            //GitHub's API rejects requests without a User-Agent
+            urlConnection.setRequestProperty("User-Agent", USER_AGENT)
+            urlConnection.setRequestProperty("Accept", "application/vnd.github+json")
             val content = urlConnection.inputStream.bufferedReader().use { it.readText() }
-            val json = JSONObject(content)
-            val channelsJson = json.getJSONArray("channels")
-            var latestVersionCode = 0
-            var latestVersionName = ""
-            var url = ""
-            var latestVersionChannelName = ""
-            val availableChannels = ArrayList<String>()
-            val currentCPUArch = Build.SUPPORTED_ABIS[0]
-            for (i in 0 until channelsJson.length()) {
-                val channelJson = channelsJson.getJSONObject(i)
-                availableChannels.add(channelJson.getString("name"))
-                if (channelsToCheck.contains(channelJson.getString("name"))) {
-                    val minAPI = if (channelJson.has("minAPI")) channelJson.getInt("minAPI") else 21
-                    if (latestVersionCode < channelJson.getInt("latestVersionCode") &&
-                            minAPI <= Build.VERSION.SDK_INT) {
-                        latestVersionCode = channelJson.getInt("latestVersionCode")
-                        latestVersionName = channelJson.getString("latestVersionName")
-                        url = channelJson.getString("url")
-                        if (channelJson.has("urls")) {
-                            val urls = channelJson.getJSONArray("urls")
-                            for (j in 0 until urls.length()) {
-                                val fileUrl = urls.getString(j)
-                                if (fileUrl.endsWith("$currentCPUArch.apk")) {
-                                    url = fileUrl
-                                    break
-                                }
-                            }
-                        }
-                        latestVersionChannelName = channelJson.getString("name")
-                    }
+            val releasesJson = JSONArray(content)
+            val assetNeedle = "-$appStoreFlavor-$webEngineFlavor"
+
+            var latestVersionName: String? = null
+            var latestUrl = ""
+            var latestChannel = CHANNEL_RELEASE
+            var latestBody = ""
+            val newerReleases = ArrayList<Pair<String, String>>()
+
+            for (i in 0 until releasesJson.length()) {
+                val releaseJson = releasesJson.getJSONObject(i)
+                if (releaseJson.optBoolean("draft")) continue
+                val isPrerelease = releaseJson.optBoolean("prerelease")
+                if (isPrerelease && !includePrereleases) continue
+                val tag = releaseJson.optString("tag_name")
+                if (tag.isEmpty()) continue
+
+                val assetUrl = findAssetUrl(releaseJson.optJSONArray("assets"), assetNeedle, abi) ?: continue
+
+                if (latestVersionName == null || compareVersions(tag, latestVersionName) > 0) {
+                    latestVersionName = tag
+                    latestUrl = assetUrl
+                    latestChannel = if (isPrerelease) CHANNEL_PRERELEASE else CHANNEL_RELEASE
+                    latestBody = releaseJson.optString("body")
+                }
+                if (compareVersions(tag, currentVersionName) > 0) {
+                    newerReleases.add(tag to releaseJson.optString("body"))
                 }
             }
-            val changelogJson = json.getJSONArray("changelog")
-            val changelog = ArrayList<ChangelogEntry>()
-            for (i in 0 until changelogJson.length()) {
-                val versionChangesJson = changelogJson.getJSONObject(i)
-                changelog.add(ChangelogEntry(versionChangesJson.getInt("versionCode"),
-                        versionChangesJson.getString("versionName"),
-                        versionChangesJson.getString("changes")))
+
+            if (latestVersionName == null) {
+                //a successful check with nothing to offer: cache an empty result so we don't re-fetch
+                versionCheckResult = UpdateCheckResult("", "", "", ArrayList<ChangelogEntry>(), AVAILABLE_CHANNELS)
+                return
             }
-            versionCheckResult = UpdateCheckResult(latestVersionCode, latestVersionName, latestVersionChannelName, url, changelog, availableChannels.toTypedArray())
+
+            newerReleases.sortWith { a, b -> compareVersions(b.first, a.first) }
+            val changelog = ArrayList<ChangelogEntry>()
+            for ((tag, body) in newerReleases) {
+                changelog.add(ChangelogEntry(tag, body))
+            }
+            if (changelog.isEmpty()) {
+                changelog.add(ChangelogEntry(latestVersionName, latestBody))
+            }
+
+            versionCheckResult = UpdateCheckResult(latestVersionName, latestChannel, latestUrl, changelog, AVAILABLE_CHANNELS)
         } finally {
             urlConnection.disconnect()
         }
     }
 
+    private fun findAssetUrl(assetsJson: JSONArray?, assetNeedle: String, abi: String): String? {
+        if (assetsJson == null) return null
+        var fallback: String? = null
+        for (j in 0 until assetsJson.length()) {
+            val asset = assetsJson.getJSONObject(j)
+            val name = asset.optString("name")
+            if (!name.contains(assetNeedle)) continue
+            val assetUrl = asset.optString("browser_download_url")
+            if (name.endsWith("-$abi.apk")) return assetUrl
+            if (fallback == null) fallback = assetUrl
+        }
+        return fallback
+    }
+
     fun showUpdateDialog(context: Activity, callback: DialogCallback) {
         val version = versionCheckResult ?: return
-        if (version.latestVersionCode < currentVersionCode) {
-            throw IllegalStateException("Version less than current")
-        }
         var message = ""
         for (changelogEntry in version.changelog) {
-            if (changelogEntry.versionCode > currentVersionCode) {
+            if (compareVersions(changelogEntry.versionName, currentVersionName) > 0) {
                 message += "<b>${changelogEntry.versionName}</b><br>" +
                         changelogEntry.changes.replace("\n", "<br>") + "<br>"
             }
@@ -206,11 +235,35 @@ class UpdateChecker(val currentVersionCode: Int) {
 
     fun hasUpdate(): Boolean {
         val versionCheckResult = this.versionCheckResult ?: return false
-        return versionCheckResult.latestVersionCode > currentVersionCode
+        return compareVersions(versionCheckResult.latestVersionName, currentVersionName) > 0
     }
 
     companion object {
+        const val CHANNEL_RELEASE = "release"
+        const val CHANNEL_PRERELEASE = "pre-release"
+        val AVAILABLE_CHANNELS = arrayOf(CHANNEL_RELEASE, CHANNEL_PRERELEASE)
+        private const val USER_AGENT = "tv-bro-updater"
         private const val UPDATE_APK_FILE_NAME = "update.apk"
+
+        /**
+         * Compares two dotted version strings (a leading "v" and any suffix are ignored), returning a
+         * negative value if [a] is older than [b], zero if they are equal, and a positive value if
+         * [a] is newer. Comparison is numeric per component, so "2.1.10" is newer than "2.1.9".
+         */
+        fun compareVersions(a: String, b: String): Int {
+            val partsA = versionParts(a)
+            val partsB = versionParts(b)
+            for (i in 0 until maxOf(partsA.size, partsB.size)) {
+                val diff = partsA.getOrElse(i) { 0 } - partsB.getOrElse(i) { 0 }
+                if (diff != 0) return diff
+            }
+            return 0
+        }
+
+        private fun versionParts(version: String): List<Int> =
+            version.trim().removePrefix("v").split('.', '-', '+')
+                .map { part -> part.takeWhile(Char::isDigit).toIntOrNull() ?: 0 }
+
         fun clearTempFilesIfAny(context: Context) {
             var tempFile = File(context.cacheDir, UPDATE_APK_FILE_NAME)
             if (tempFile.exists()) {

@@ -61,16 +61,21 @@ android {
         create("generic") {
             dimension = "appstore"
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
+            //upstream project: keep updating from the original tv-bro releases
+            buildConfigField("String", "UPDATE_REPO", "\"truefedex/tv-bro\"")
         }
         create("google") {
             dimension = "appstore"
             //now auto-update violates Google Play policies
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
+            buildConfigField("String", "UPDATE_REPO", "\"truefedex/tv-bro\"")
         }
         create("p403n1x87") {
             dimension = "appstore"
             applicationIdSuffix = ".p403n1x87"
-            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
+            //this fork publishes its own releases (see .github/workflows/release.yml)
+            buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
+            buildConfigField("String", "UPDATE_REPO", "\"P403n1x87/tv-bro\"")
         }
 
         create("geckoIncluded") {

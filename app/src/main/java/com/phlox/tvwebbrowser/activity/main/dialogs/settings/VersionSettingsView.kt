@@ -11,6 +11,7 @@ import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.activity.main.AutoUpdateModel
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
+import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -23,7 +24,7 @@ class VersionSettingsView @JvmOverloads constructor(
 ) : SettingsPageView(context, attrs, defStyleAttr) {
 
     companion object {
-        private const val URL_PROJECT = "https://github.com/truefedex/tv-bro"
+        private const val URL_PROJECT = "https://github.com/${BuildConfig.UPDATE_REPO}"
         private const val URL_SUPPORT_AUTHOR = "https://donatello.to/truefedex"
         private const val URL_LICENSE =
             "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/LICENSE.md"
@@ -177,8 +178,7 @@ class VersionSettingsView @JvmOverloads constructor(
         }
     }
 
-    private fun availableChannels(): Array<String> =
-        autoUpdateModel.updateChecker.versionCheckResult?.availableChannels ?: emptyArray()
+    private fun availableChannels(): Array<String> = UpdateChecker.AVAILABLE_CHANNELS
 
     private fun hasUpdate(): Boolean =
         autoUpdateModel.needAutoCheckUpdates && autoUpdateModel.updateChecker.hasUpdate()
