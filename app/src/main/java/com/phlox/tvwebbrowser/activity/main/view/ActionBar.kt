@@ -172,6 +172,20 @@ class ActionBar @JvmOverloads constructor(
     }
 
     /**
+     * Shows a small accent dot badge on the settings button while an update is available, so the
+     * remote user can tell without opening Settings. The badge is purely decorative (never
+     * focusable), so it does not affect the D-pad chain; the content description is updated for
+     * accessibility.
+     */
+    fun setUpdateAvailable(available: Boolean) {
+        vb.vSettingsUpdateBadge.visibility = if (available) VISIBLE else GONE
+        vb.ibSettings.contentDescription = if (available)
+            context.getString(R.string.settings) + ", " + context.getString(R.string.settings_update_available)
+        else
+            context.getString(R.string.settings)
+    }
+
+    /**
      * The top bar is pinned and always reserves space, so URL-edit mode must never hide the
      * navigation/action buttons: the address box simply expands into the free space (it has
      * layout_weight=1). Hiding them here used to collapse the bar down to just the URL and, worse,

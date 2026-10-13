@@ -30,6 +30,9 @@
   <color name="badge_bg">#2D2D2D</color>
   <color name="badge_stroke">#4E4E4E</color>
 
+  <!-- "Update available" circle badge; mirrors url_box_stroke so it feels native. -->
+  <color name="update_badge_bg">#5FACFF</color>
+
   <color name="web_tab_text_color">#fff</color>
   <color name="web_tab_selected_text_color">#5FACFF</color>
 

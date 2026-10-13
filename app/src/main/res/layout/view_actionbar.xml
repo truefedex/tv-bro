@@ -138,17 +138,33 @@
         tools:text="1" />
   </FrameLayout>
 
-  <ImageButton
-      android:id="@+id/ibSettings"
-      android:layout_width="@dimen/toolbar_button_size"
-      android:layout_height="@dimen/toolbar_button_size"
-      android:scaleType="fitCenter"
-      android:padding="10dp"
-      android:src="@drawable/ic_settings_grey_900_24dp"
-      android:nextFocusLeft="@+id/ibMedia"
-      android:nextFocusRight="@+id/ibMenu"
-      android:background="@drawable/icon_button_bg_selector"
-      android:contentDescription="@string/settings" />
+  <FrameLayout
+      android:id="@+id/flSettingsButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content">
+    <ImageButton
+        android:id="@+id/ibSettings"
+        android:layout_width="@dimen/toolbar_button_size"
+        android:layout_height="@dimen/toolbar_button_size"
+        android:scaleType="fitCenter"
+        android:padding="10dp"
+        android:src="@drawable/ic_settings_grey_900_24dp"
+        android:nextFocusLeft="@+id/ibMedia"
+        android:nextFocusRight="@+id/ibMenu"
+        android:background="@drawable/icon_button_bg_selector"
+        android:contentDescription="@string/settings" />
+    <ImageView
+        android:id="@+id/vSettingsUpdateBadge"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="6dp"
+        android:src="@drawable/ic_update_badge_circle"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        tools:visibility="visible" />
+  </FrameLayout>
 
   <ImageButton
       android:id="@+id/ibMenu"

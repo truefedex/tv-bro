@@ -266,6 +266,7 @@
     <string name="settings_build_flavor_value_s">%1$s · %2$s</string>
     <string name="settings_engine_version">Engine version</string>
     <string name="settings_github">GitHub repository</string>
+    <string name="settings_upstream_project">Original project</string>
     <string name="settings_support_author">Support the author</string>
     <string name="settings_license">Open source license</string>
     <string name="settings_privacy">Privacy policy</string>
@@ -273,4 +274,5 @@
     <string name="settings_update_channel">Update channel</string>
     <string name="settings_new_version">New version available</string>
     <string name="settings_install_update">Install update</string>
+    <string name="settings_update_available">Update available</string>
 </resources>

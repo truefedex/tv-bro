@@ -156,6 +156,10 @@ class UpdateChecker(val currentVersionName: String) {
             try {
                 val url = URL(update.url)
                 connection = url.openConnection() as HttpURLConnection
+                // GitHub release assets answer with a 302 to a signed object URL; HttpURLConnection
+                // follows GET redirects, but only within a protocol, and GitHub wants a User-Agent.
+                connection.instanceFollowRedirects = true
+                connection.setRequestProperty("User-Agent", USER_AGENT)
                 connection.connect()
 
                 if (connection.responseCode != HttpURLConnection.HTTP_OK) {

@@ -456,6 +456,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 tabsModel.tabsStates.forEach {
                     it.webEngine.onUpdateAdblockSetting(it.adblock ?: config.adBlockEnabled)
                 }
+                updateUpdateBadge()
             }
         }.show()
     }
@@ -626,11 +627,18 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             autoUpdateModel.updateChecker.versionCheckResult == null &&
                 !autoUpdateModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
             autoUpdateModel.checkUpdate(false){
+                updateUpdateBadge()
                 if (autoUpdateModel.updateChecker.hasUpdate()) {
                     autoUpdateModel.showUpdateDialogIfNeeded(this@MainActivity)
                 }
             }
         }
+        updateUpdateBadge()
+    }
+
+    /** Keeps the toolbar settings dot in sync with the last update check result. */
+    private fun updateUpdateBadge() {
+        vb.vActionBar.setUpdateAvailable(autoUpdateModel.isUpdateAvailable())
     }
 
     private fun handleIntent(intent: Intent) {
@@ -868,6 +876,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     override fun onResume() {
         super.onResume()
+        updateUpdateBadge()
         val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
         registerReceiver(mConnectivityChangeReceiver, intentFilter)
         tabsModel.currentTab.value?.webEngine?.onResume()

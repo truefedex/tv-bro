@@ -118,4 +118,10 @@ class AutoUpdateModel: ActiveModel() {
     fun saveAutoCheckUpdates(need: Boolean) {
         config.autoCheckUpdates = need
     }
+
+    /**
+     * True when the user has update checking enabled and the last check found something newer. Drives
+     * the toolbar settings badge and the marked About category, so they match the About page rows.
+     */
+    fun isUpdateAvailable(): Boolean = needAutoCheckUpdates && updateChecker.hasUpdate()
 }

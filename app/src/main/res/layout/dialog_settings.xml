@@ -99,6 +99,7 @@
             android:textSize="14sp"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
+            android:drawablePadding="8dp"
             android:gravity="center_vertical|start"
             android:text="@string/settings_category_about"
             android:background="@drawable/settings_tab_bg_selector"

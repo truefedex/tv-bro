@@ -25,6 +25,7 @@ class VersionSettingsView @JvmOverloads constructor(
 
     companion object {
         private const val URL_PROJECT = "https://github.com/${BuildConfig.UPDATE_REPO}"
+        private const val URL_UPSTREAM = "https://github.com/truefedex/tv-bro"
         private const val URL_SUPPORT_AUTHOR = "https://donatello.to/truefedex"
         private const val URL_LICENSE =
             "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/LICENSE.md"
@@ -40,6 +41,9 @@ class VersionSettingsView @JvmOverloads constructor(
 
     interface Callback {
         fun onNeedToCloseSettings()
+
+        /** Called when the update state changed, so the host can refresh the About category marker. */
+        fun onUpdateStateChanged()
     }
 
     init {
@@ -84,12 +88,80 @@ class VersionSettingsView @JvmOverloads constructor(
             )
         )
 
+        if (BuildConfig.BUILT_IN_AUTO_UPDATE) {
+            add(SettingsItem.Header(R.string.settings_section_updates))
+            add(
+                SettingsItem.Toggle(
+                    iconRes = R.drawable.ic_refresh_grey_900_24dp,
+                    titleRes = R.string.auto_check_for_updates,
+                    isChecked = { autoUpdateModel.needAutoCheckUpdates },
+                    onCheckedChange = { enabled ->
+                        autoUpdateModel.saveAutoCheckUpdates(enabled)
+                        if (enabled) ensureUpdateInfo()
+                        else post { rebuild() }
+                        callback?.onUpdateStateChanged()
+                    }
+                )
+            )
+            add(
+                SettingsItem.Choice(
+                    iconRes = R.drawable.ic_settings_download_24dp,
+                    titleRes = R.string.settings_update_channel,
+                    value = { config.updateChannel },
+                    entries = { availableChannels().toList() },
+                    selectedIndex = { availableChannels().indexOf(config.updateChannel).coerceAtLeast(0) },
+                    onSelected = { position ->
+                        val channel = availableChannels().getOrNull(position)
+                        if (channel != null && channel != config.updateChannel) {
+                            config.updateChannel = channel
+                            autoUpdateModel.checkUpdate(true) {
+                                callback?.onUpdateStateChanged()
+                                post { rebuild() }
+                            }
+                        } else {
+                            post { rebuild() }
+                        }
+                    },
+                    visible = { autoUpdateModel.needAutoCheckUpdates }
+                )
+            )
+            add(
+                SettingsItem.Info(
+                    iconRes = R.drawable.ic_settings_download_24dp,
+                    titleRes = R.string.settings_new_version,
+                    value = {
+                        autoUpdateModel.updateChecker.versionCheckResult?.latestVersionName ?: ""
+                    },
+                    visible = { hasUpdate() }
+                )
+            )
+            add(
+                SettingsItem.Action(
+                    iconRes = R.drawable.ic_settings_download_24dp,
+                    titleRes = R.string.settings_install_update,
+                    onClick = {
+                        callback?.onNeedToCloseSettings()
+                        autoUpdateModel.showUpdateDialogIfNeeded(activity as MainActivity, true)
+                    },
+                    visible = { hasUpdate() }
+                )
+            )
+        }
+
         add(SettingsItem.Header(R.string.settings_section_links))
         add(
             SettingsItem.Action(
                 iconRes = R.drawable.ic_settings_code_24dp,
                 titleRes = R.string.settings_github,
                 onClick = { loadUrl(URL_PROJECT) }
+            )
+        )
+        add(
+            // Original upstream project (this is a fork); keeps the original author credited.
+            SettingsItem.Action(
+                iconRes = R.drawable.ic_settings_code_24dp,
+                titleRes = R.string.settings_upstream_project,
+                onClick = { loadUrl(URL_UPSTREAM) }
             )
         )
         add(
@@ -120,62 +192,6 @@ class VersionSettingsView @JvmOverloads constructor(
                 onClick = { loadUrl(URL_ICON_STORY) }
             )
         )
-
-        if (BuildConfig.BUILT_IN_AUTO_UPDATE) {
-            add(SettingsItem.Header(R.string.settings_section_updates))
-            add(
-                SettingsItem.Toggle(
-                    iconRes = R.drawable.ic_refresh_grey_900_24dp,
-                    titleRes = R.string.auto_check_for_updates,
-                    isChecked = { autoUpdateModel.needAutoCheckUpdates },
-                    onCheckedChange = { enabled ->
-                        autoUpdateModel.saveAutoCheckUpdates(enabled)
-                        if (enabled) ensureUpdateInfo()
-                        else post { rebuild() }
-                    }
-                )
-            )
-            add(
-                SettingsItem.Choice(
-                    iconRes = R.drawable.ic_settings_download_24dp,
-                    titleRes = R.string.settings_update_channel,
-                    value = { config.updateChannel },
-                    entries = { availableChannels().toList() },
-                    selectedIndex = { availableChannels().indexOf(config.updateChannel).coerceAtLeast(0) },
-                    onSelected = { position ->
-                        val channel = availableChannels().getOrNull(position)
-                        if (channel != null && channel != config.updateChannel) {
-                            config.updateChannel = channel
-                            autoUpdateModel.checkUpdate(true) { post { rebuild() } }
-                        } else {
-                            post { rebuild() }
-                        }
-                    },
-                    visible = { autoUpdateModel.needAutoCheckUpdates }
-                )
-            )
-            add(
-                SettingsItem.Info(
-                    iconRes = R.drawable.ic_settings_download_24dp,
-                    titleRes = R.string.settings_new_version,
-                    value = {
-                        autoUpdateModel.updateChecker.versionCheckResult?.latestVersionName ?: ""
-                    },
-                    visible = { hasUpdate() }
-                )
-            )
-            add(
-                SettingsItem.Action(
-                    iconRes = R.drawable.ic_settings_download_24dp,
-                    titleRes = R.string.settings_install_update,
-                    onClick = {
-                        callback?.onNeedToCloseSettings()
-                        autoUpdateModel.showUpdateDialogIfNeeded(activity as MainActivity, true)
-                    },
-                    visible = { hasUpdate() }
-                )
-            )
-        }
     }
 
     private fun availableChannels(): Array<String> = UpdateChecker.AVAILABLE_CHANNELS
@@ -186,7 +202,10 @@ class VersionSettingsView @JvmOverloads constructor(
     private fun ensureUpdateInfo() {
         if (!BuildConfig.BUILT_IN_AUTO_UPDATE) return
         if (autoUpdateModel.updateChecker.versionCheckResult != null) return
-        autoUpdateModel.checkUpdate(false) { post { rebuild() } }
+        autoUpdateModel.checkUpdate(false) {
+            callback?.onUpdateStateChanged()
+            post { rebuild() }
+        }
     }
 
     private fun loadUrl(url: String) {
