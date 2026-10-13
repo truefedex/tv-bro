@@ -302,6 +302,28 @@
   always 1 per URL, so the home page's "most visited" ordering degrades to recency.
   Verified on emulator: visited `example.com` → `example.org` → `example.com`; the DB holds exactly
   2 rows (one per URL) with `example.com` carrying the newest `time`.
+  With that dedup, `frequentlyUsedUrls()` (`GROUP BY title, url, favicon … ORDER BY count(url)`) is
+  now effectively `last(8)` — every group has one row — but still pays for a GROUP BY/scan over the
+  whole `history` table on each home page load. Left as-is for now (collapsing `MOST_VISITED` onto the
+  recency query would drop a user-visible setting; restoring a per-URL `visits` counter is the other
+  option), but it is the one remaining redundant query if we want to trim further.
+- **Algorithm pass: no hot-path O(n²) left; `favorites.URL` was the one unindexed lookup.**
+  A sweep of the hot paths (network sniffing, ad-block, cursor/D-pad events, settings, tabs) found the
+  structures already appropriate: `detectedMedia`/`MediaRequestCatalog`/`MediaMetadataCache` are bounded
+  `LinkedHashMap`s with `putIfAbsent`, `MyHistoryDelegate` uses a `HashSet`, `DPADNavigationEventsAdapter`
+  a `Set<Int>`, the Brave engine does the ad matching, and every other DAO lookup is covered by an index
+  (`hosts.host_name` unique, `history.time/title/url`, `downloads.time/filename`). Two fixes:
+  - `favorites` had **no** index on `URL`, yet `getByUrl()` (`WHERE url=:url LIMIT 1`) is called from
+    `updateBookmarkState()` on **every** page update (`onWebViewUpdated`), so it was a full table scan
+    per page load. Added `favorites_url_idx` (`FavoriteItem`) + `MIGRATION_20_21`; `EXPLAIN QUERY PLAN`
+    now reports `SEARCH favorites USING INDEX favorites_url_idx (URL=?)`. Verified on the emulator by
+    upgrading the installed v20 DB in place: after `force-stop` (clean WAL checkpoint) the DB is
+    `user_version 21` with the index present and data intact (favorites 2, history 29, hosts 7).
+  - `MediaListAdapter.onMetadataUpdated` did `items.any { it.url == url }` (O(n) per metadata callback,
+    O(n²) while the prefetcher warms a page). It now checks a `HashSet` built once from the listed URLs.
+  Known-acceptable small-n scans (not changed): `tabsStates.indexOf(tab)` in `TabsView`/`MainActivity`
+  (tab counts are small), `ShortcutMgr.shortCutsForEvent` (≤ `Shortcut.entries.size` per key event),
+  `SimpleObservable.addObserver`'s `contains` guard (few observers).
 - **Update download/install verified end-to-end on a real release asset.**
   On the emulator (generic geckoExcluded debug, temporary `versionName 2.0.0` + upstream repo):
   tapping DOWNLOAD on the changelog dialog downloaded `tvbro-2.1.6-generic-geckoExcluded.apk`
