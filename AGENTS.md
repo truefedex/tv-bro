@@ -94,6 +94,14 @@
   the child's own `visibility == VISIBLE`, so a button hidden by a `GONE` parent could be "picked"
   only for the focus request to fail). Verified on emulator: Back focused + Forward disabled → RIGHT →
   `ibRefresh` → `etUrl`; hidden stream button skipped both ways (`ibFavorites ↔ ibSettings`).
+- **Downloaded update APK was never cleaned up — FIXED.**
+  `UpdateChecker.downloadUpdate()` writes to a fixed-name `update.apk` in a cache dir and can't delete
+  it right after launching the installer (PackageInstaller reads the file asynchronously), but it was
+  only purged on app *version change* (`checkVersionCodeAndRunMigrations`), and a cancelled/failed
+  download left the partial file behind too. Now a failed/cancelled attempt deletes the temp file
+  immediately (after `job.join()`, when `downloaded` is false), and `MainActivityViewModel.loadState()`
+  runs `UpdateChecker.clearTempFilesIfAny()` unconditionally at startup -- so at most one stale APK
+  can linger (fixed name) and it is removed on the next launch.
 
 ## Feature notes
 - **Chrome-like URL box in the top bar.**
@@ -285,6 +293,24 @@
   follows GET redirects within a protocol but the explicit flag + UA make the install-from-releases
   path robust. Direct install still relies on `REQUEST_INSTALL_PACKAGES` + the FileProvider
   (`${applicationId}.provider`), so a debug-signed build cannot be updated by a release-signed APK.
+- **History uniqueness: each site appears once, with its latest visit time.**
+  `HistoryDao.deleteByUrl(url)` removes any existing row for the URL right before
+  `logVisitedHistory` inserts the new visit (inside the debounced save job, so a visit whose job gets
+  cancelled by a newer one never deletes the previously saved row). History storage is bounded by
+  distinct URLs instead of repeat visits, and revisiting a site moves its entry to the top with the
+  new timestamp rather than stacking a duplicate. Side effect: `frequentlyUsedUrls()` counts are
+  always 1 per URL, so the home page's "most visited" ordering degrades to recency.
+  Verified on emulator: visited `example.com` → `example.org` → `example.com`; the DB holds exactly
+  2 rows (one per URL) with `example.com` carrying the newest `time`.
+- **Update download/install verified end-to-end on a real release asset.**
+  On the emulator (generic geckoExcluded debug, temporary `versionName 2.0.0` + upstream repo):
+  tapping DOWNLOAD on the changelog dialog downloaded `tvbro-2.1.6-generic-geckoExcluded.apk`
+  (302-redirect followed in-app) to `cache/update.apk` = **6,790,605 bytes**, then
+  `ACTION_INSTALL_PACKAGE` launched PackageInstaller's **"Do you want to update this app?"**
+  (Update/Cancel) via the FileProvider URI. The install itself cannot complete on a debug-signed
+  build (the release APK carries a different signing key — expected, documented limitation), but
+  download → ProgressDialog → URI handoff all work. After dismissing the installer, `update.apk`
+  stayed in the cache until the next app launch, then was deleted by the startup purge.
 
 ## Build / test
 - macOS: `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
