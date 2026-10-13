@@ -84,6 +84,41 @@ window.tvBroCastCurrentVideo = function() {
     TVBro.castMedia(url || '');
 }
 
+// Reports the video that went fullscreen so the app can hand it over to the
+// native player. Returns "1|<positionMs>|<url>" when the fullscreen element
+// is/contains a media element (or is an iframe, whose cross-origin DOM we
+// cannot read), and "0|" otherwise. The url is empty for MSE/blob: sources;
+// the app then falls back to the streams it sniffed at the network layer. The
+// page video is paused so it does not keep playing behind the native player.
+window.tvBroFullscreenVideo = function() {
+    var el = document.fullscreenElement
+        || document.webkitFullscreenElement
+        || document.msFullscreenElement
+        || document.webkitCurrentFullScreenElement;
+    if (!el) return '0|';
+    var media = null;
+    if (el.tagName === 'VIDEO' || el.tagName === 'AUDIO') {
+        media = el;
+    } else if (el.querySelector) {
+        media = el.querySelector('video, audio');
+    }
+    if (!media) {
+        return el.tagName === 'IFRAME' ? '1|0|' : '0|';
+    }
+    var url = media.currentSrc || media.src || '';
+    if (!url) {
+        var source = media.querySelector('source');
+        if (source && source.src) url = source.src;
+    }
+    if (url.indexOf('blob:') === 0) url = '';
+    var positionMs = 0;
+    try {
+        positionMs = Math.max(0, Math.round((media.currentTime || 0) * 1000));
+        media.pause();
+    } catch (e) {}
+    return '1|' + positionMs + '|' + url;
+};
+
 // context menu support
 window.addEventListener("touchstart", function(e) {
     window.TVBRO_activeElement = e.target;

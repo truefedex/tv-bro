@@ -65,6 +65,7 @@ import com.phlox.tvwebbrowser.player.SystemPlayerActivity
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.MediaCandidate
+import org.json.JSONTokener
 import java.net.URLEncoder
 import java.util.UUID
 
@@ -89,6 +90,10 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         const val EXTERNAL_PLAYER_FAIL_WINDOW = 15000L
         //how many candidates to try automatically before asking the user
         const val MAX_STREAM_TRIES = 5
+        //WebView delivers onShowCustomView before the page's DOM reports the fullscreen
+        //element, so the element is polled briefly before giving up on the native handoff
+        const val FULLSCREEN_PROBE_DELAY = 120L
+        const val MAX_FULLSCREEN_PROBES = 5
         val WIDEVINE_UUID = UUID(-0x121074568629b532L,-0x5c37d8232ae2de13L)
     }
 
@@ -121,6 +126,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private var castCandidates: List<CastCandidate> = emptyList()
     private var castIndex = 0
     private var castPlayer = PlayerKind.BUILT_IN
+    /** Where to resume in the built-in player; set by the fullscreen handoff, else 0. */
+    private var castStartMs = 0L
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
 
@@ -235,13 +242,19 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             }
 
             override fun onShowCustomView(view: View, callback: CustomViewCallback) {
+                //Show the in-page fullscreen straight away; "Auto-open videos in the native
+                //player" then upgrades it once the page reports which video went fullscreen.
                 this@WebViewEx.callback.onShowCustomView(view)
                 fullscreenViewCallback = callback
+                if (config.autoNativeFullscreen) {
+                    probeFullscreenVideoForNative(view, callback, 0)
+                }
             }
 
             override fun onHideCustomView() {
                 callback.onHideCustomView()
                 fullscreenViewCallback?.onCustomViewHidden()
+                fullscreenViewCallback = null
             }
 
             override fun onProgressChanged(view: WebView, newProgress: Int) {
@@ -788,6 +801,46 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         showPlayerMenu(domUrl)
     }
 
+    /**
+     * "Auto-open videos in the native player" for the WebView engine: once a page video is in
+     * fullscreen its playback is handed over to the built-in player, the same way GeckoView
+     * reacts to its media session. The fullscreen media source is read back from the page;
+     * cross-origin and MSE players report nothing, in which case the streams sniffed at the
+     * network layer are used. WebView reports the fullscreen view before the page's DOM
+     * reflects the new fullscreen element, so the element is polled for a short while; when it
+     * never shows up (a fullscreen image, a menu, ...) the in-page fullscreen view is kept.
+     */
+    private fun probeFullscreenVideoForNative(view: View, callback: WebChromeClient.CustomViewCallback,
+                                              attempt: Int) {
+        evaluateJavascript("tvBroFullscreenVideo()") { raw ->
+            //The fullscreen we started from was left in the meantime.
+            if (fullscreenViewCallback !== callback) return@evaluateJavascript
+            val result = raw?.let { runCatching { JSONTokener(it).nextValue() as? String }.getOrNull() }.orEmpty()
+            val parts = result.split('|', limit = 3)
+            val mediaFullscreen = parts.firstOrNull() == "1"
+            val positionMs = parts.getOrNull(1)?.toLongOrNull() ?: 0L
+            val domUrl = parts.getOrNull(2).orEmpty()
+            val candidates = if (mediaFullscreen) orderedCandidates(domUrl.ifEmpty { null }) else emptyList()
+            if (candidates.isEmpty()) {
+                if (attempt < MAX_FULLSCREEN_PROBES) {
+                    view.postDelayed({
+                        probeFullscreenVideoForNative(view, callback, attempt + 1)
+                    }, FULLSCREEN_PROBE_DELAY)
+                }
+                return@evaluateJavascript
+            }
+            Log.d(TAG, "fullscreen handoff: ${candidates.size} candidate(s), resumeAt=${positionMs}ms")
+            //Leave the in-page fullscreen and play the stream natively instead.
+            fullscreenViewCallback = null
+            callback.onCustomViewHidden()
+            castCandidates = candidates
+            castIndex = 0
+            castPlayer = PlayerKind.BUILT_IN
+            castStartMs = positionMs
+            playCandidate(candidates[0])
+        }
+    }
+
     private fun showPlayerMenu(domUrl: String?) {
         val activity = callback.getActivity() ?: return
         val kinds = PlayerKind.entries
@@ -863,11 +916,12 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         castCandidates = candidates
         castIndex = 0
         castPlayer = kind
+        castStartMs = 0L
         playCandidate(candidates[0])
     }
 
     private fun playCandidate(candidate: CastCandidate) = when (castPlayer) {
-        PlayerKind.BUILT_IN -> playInInternalPlayer(candidate)
+        PlayerKind.BUILT_IN -> playInInternalPlayer(candidate, castStartMs)
         PlayerKind.SYSTEM -> playInSystemPlayer(candidate.url)
         PlayerKind.EXTERNAL -> playInExternalPlayer(candidate.url)
     }
@@ -888,7 +942,10 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     }
 
     /** Opens the stream in TV Bro's built-in (ExoPlayer) player. */
-    fun playInInternalPlayer(candidate: CastCandidate) {
+    fun playInInternalPlayer(candidate: CastCandidate) = playInInternalPlayer(candidate, 0L)
+
+    /** Opens the stream in TV Bro's built-in (ExoPlayer) player, resuming at [startMs]. */
+    fun playInInternalPlayer(candidate: CastCandidate, startMs: Long) {
         val activity = callback.getActivity() ?: return
         val page = currentOriginalUrl?.toString() ?: return
         val ua = settings.userAgentString.orEmpty()
@@ -902,7 +959,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         PlaybackFailure.last = null
         try {
             NativeVideoActivity.launch(activity,
-                NativeVideoActivity.PlaybackRequest(source, requestContext, 0L, 1f)) { result ->
+                NativeVideoActivity.PlaybackRequest(source, requestContext, startMs, 1f)) { result ->
                 if (result.action == NativeVideoActivity.ReturnAction.FAILED) onBuiltInPlaybackFailed()
             }
         } catch (e: Exception) {
