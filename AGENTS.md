@@ -6,8 +6,8 @@
 ## Known issues / TODO
 - **Toolbar auto-hidden after every action — FIXED.**
   Added `Config.keepToolbarOpen` (`KEEP_TOOLBAR_OPEN_KEY`, default `true`), setting string
-  `keep_toolbar_open`, switch `scKeepToolbarOpen` in `view_settings_main.xml` wired in
-  `MainSettingsView.initKeepToolbarOpenUI()`.
+  `keep_toolbar_open`, exposed as a switch on the Appearance settings page
+  (`AppearanceSettingsView`).
   When ON, `MainActivity.showMenuOverlay()` keeps `flWebViewContainer` visible (toolbar floats
   over the live page instead of swapping in the `ivMiniatures` thumbnail), and the new
   `autoHideMenuOverlay()` (a no-op when the setting is ON) replaces `hideMenuOverlay()` at all
@@ -117,8 +117,7 @@
   gained a **Toggle theme** entry (`R.string.toggle_theme`; after Settings moved to the toolbar it is
   index 9 in `onShowMenu()`, ahead of Close tab/Close app at 10/11) backed by
   `toggleTheme()`, which cycles `Config.Theme` in enum order **SYSTEM → WHITE → BLACK → SYSTEM**
-  (`entries[(ordinal + 1) % size]`). The restart toast in
-  `MainSettingsView.initThemeSettingsUI()` was removed. Verified on emulator: SYSTEM(night) →
+  (`entries[(ordinal + 1) % size]`). Verified on emulator: SYSTEM(night) →
   Toggle theme → `theme=1` (white, toolbar brightness 224/255, pill `#E0E0E0`), toggle again →
   `theme=2` (dark, brightness 57/255, pill `#3A3A3A`), and a full cycle reads `2→0→1→2`; no crash,
   activity stays focused.
@@ -182,24 +181,52 @@
   `WebViewFeature.DOCUMENT_START_SCRIPT`); `GeckoWebEngine.onUpdateAdblockSetting` remains an
   intentional no-op stub. Per-tab state overrides the global default via
   `WebEngineWindowProviderCallback.isAdBlockingEnabled()`.
-- **Settings dialog section tabs moved to a left column.**
-  `dialog_settings.xml` was flipped from a vertical root (tab strip on top) to a horizontal root: the
-  `SegmentedButton` (`sbTabs`) now has `android:orientation="vertical"`, a fixed
-  `@dimen/settings_tab_width` (260dp) width and `match_parent` height, with its three buttons
-  (Main / Shortcuts / Version & updates) stacked at 88dp each, and the content `FrameLayout`
-  (`flTabsContent`) fills the rest. `SegmentedButton` extends `LinearLayout`, so vertical orientation
-  just works. `settings_tab_bg_selector.xml`'s activated indicator moved from a bottom underline to a
-  `gravity="end"` `2dp`-wide bar, so it sits on the right edge of the column facing the content.
-  Verified on emulator: `sbTabs` `[0,0][520,1080]`, content `[520,0][1920,1080]`, active indicator
-  `#5FACFF` at the column's right edge.
+- **Settings dialog rebuilt around a declarative, native-TV row framework.**
+  `dialog_settings.xml` keeps the two-pane layout (left category rail + right content) but the rail
+  now has **7 categories** and each button is `@dimen/settings_tab_height` (64dp) tall, so the rail
+  fits a 1080p TV screen. The categories are General, Ads & privacy, Appearance, Playback, Controls,
+  Advanced and About. Every page is a `SettingsPageView` (a `ScrollView` that stacks rows inside a
+  `LinearLayout`) declared as a `List<SettingsItem>` and rendered by `SettingsRowFactory`. The
+  `SettingsItem` sealed interface has `Header` (dimmed caps group title), `Toggle` (trailing switch,
+  whole row is the click target), `Choice` (current value + chevron → single-choice dialog), `TextInput`
+  (value → text dialog), `Action` (OK runs it, optional progress spinner), `Slider` (inline seekbar
+  adjusted with LEFT/RIGHT), `KeyBinding` (bound key + chevron → `ShortcutDialog`) and `Info`
+  (non-focusable read-only row, optional leading icon). Every row except `Header`/`Info` carries a
+  leading icon drawn from `@color/day_night_icon_color` (see the new `ic_settings_*_24dp.xml` set).
+  `SettingsItem`'s `visible` lambdas make conditional rows declarative; a page calls `post { rebuild() }`
+  after a toggle that changes visibility (or after a dialog), and `SettingsPageView.rebuild()` keeps
+  the currently-focused row focused by index. There is no deferred `save()`: settings commit
+  immediately on toggle or on dialog OK (`SettingsDialog.onDismiss` now only calls `onDismissed`).
+  Page classes: `GeneralSettingsView` (browsing + startup), `AdsSettingsView` (ad blocking + details
+  + redirects), `AppearanceSettingsView` (theme/darkening/toolbar/screen-on),
+  `PlaybackSettingsView`, `ControlsSettingsView`, `AdvancedSettingsView`, `VersionSettingsView`.
+  The old `MainSettingsView`/`view_settings_main.xml` were removed.
+- **Controls page merges the shortcut bindings; "Version & updates" is now a native "About" page.**
+  `ShortcutsSettingsView` (a bare `ListView`) and `view_shortcut.xml` were deleted. Its rows are now
+  `SettingsItem.KeyBinding` entries under a **Shortcuts** section on `ControlsSettingsView`, which is
+  ordered **Input** (joystick-axes toggle) → **Virtual cursor** (two sliders) → **Shortcuts** (one row
+  per `Shortcut.entries`, showing the bound key or "Not set"); OK opens the existing `ShortcutDialog`,
+  and the row refreshes on dismiss. (The old code looked shortcuts up by list position; the new code
+  binds the enum entry directly.) The About category is `VersionSettingsView`, now a
+  `SettingsPageView`: an **About this app** group (TV Bro, version, build flavor, engine version as
+  `Info` rows), a **Links** group (GitHub repository, Support the author, Open source license, Privacy
+  policy, Why the icon changed — all `Action` rows that open the URL and close the dialog via the
+  `Callback`) and, only when `BuildConfig.BUILT_IN_AUTO_UPDATE`, an **Updates** group (auto-check
+  toggle, update-channel `Choice`, and an install-update `Action` shown when an update is available).
+  The dead `view_settings_version.xml` layout was removed. Verified on emulator: 7-tab rail
+  (GENERAL…ABOUT, each 64dp); Controls shows Input/Virtual cursor/Shortcuts with `KEYCODE_REFRESH`,
+  `KEYCODE_MEDIA_*`, etc.; the bind dialog opens and the page survives dismiss; About shows
+  `TV Bro`, `2.1.6`, `p403n1x87 · geckoIncluded`, the WebView engine version and all five links (the
+  Updates group is correctly absent for the `p403n1x87` flavor, `BUILT_IN_AUTO_UPDATE=false`); tapping
+  GitHub closed the dialog and navigated to `github.com/truefedex/tv-bro`.
 - **Configurable shortcuts for the tab panel, stream list and bookmarks.**
   Three entries were appended to the `Shortcut` enum — `TOGGLE_TABS_PANEL` ("Tabs"), `SHOW_STREAMS`
   ("Streams on this page") and `SHOW_BOOKMARKS` ("Bookmarks") — with fresh `prefsKey`s (appending
   keeps the existing ordinals/prefs stable). `ShortcutMgr.process()` dispatches them to
   `MainActivity.onToggleTabPanel()`, `onShowStreams()` and `showFavorites()` respectively. The
-  existing `ShortcutsSettingsView` lists `Shortcut.entries` automatically, so the three rows appear
+  Controls page's Shortcuts section lists `Shortcut.entries` automatically, so the three rows appear
   with "Not set" and can be bound through `ShortcutDialog` like any other shortcut. Verified on
-  emulator: all three appear at the bottom of the Shortcuts list.
+  emulator: all three appear at the bottom of the Shortcuts section.
 
 ## Build / test
 - macOS: `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
