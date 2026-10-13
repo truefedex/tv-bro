@@ -80,6 +80,20 @@
   (controls shown then auto-hidden after 2.5s), two quick BACKs return to `MainActivity`.
   `SystemPlayerActivity` deliberately keeps predictive back: it does not handle BACK and wants the
   first press to finish.
+- **D-pad could not get past a disabled Back/Forward button — FIXED.**
+  `ActionBar.setBackEnabled`/`setForwardEnabled` only set `isEnabled`, but a disabled view still
+  reports `isFocusable() == true`: the framework's `View.isFocusable()` ignores the enabled flag
+  (only `canTakeFocus()` checks it), and `FocusFinder.findNextUserSpecifiedFocus` accepts the
+  explicit `nextFocusRight` target *before* `requestFocus` fails — with no fallback. So with Back
+  enabled and Forward greyed out, `ibBack.nextFocusRight="ibForward"` trapped the remote and RIGHT
+  never reached the URL box. Both setters now also sync `isFocusable` with `isEnabled`, so the
+  explicit chain walks past the disabled button (`ibBack → ibRefresh → etUrl`). The same trap applied
+  to the hidden tab/stream buttons, whose inner `ImageButton` keeps its own `VISIBLE`/focusable flags
+  while the wrapper `FrameLayout` is `GONE`; `setTabsCounter`/`setMediaCounter` now sync the inner
+  button's `isFocusable` too, and `catchFocus()` checks `isShown && isFocusable` (it previously tested
+  the child's own `visibility == VISIBLE`, so a button hidden by a `GONE` parent could be "picked"
+  only for the focus request to fail). Verified on emulator: Back focused + Forward disabled → RIGHT →
+  `ibRefresh` → `etUrl`; hidden stream button skipped both ways (`ibFavorites ↔ ibSettings`).
 
 ## Feature notes
 - **Chrome-like URL box in the top bar.**

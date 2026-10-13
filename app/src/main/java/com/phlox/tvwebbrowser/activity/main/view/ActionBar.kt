@@ -129,16 +129,24 @@ class ActionBar @JvmOverloads constructor(
 
     fun setBackEnabled(enabled: Boolean) {
         vb.ibBack.isEnabled = enabled
+        // A disabled view is still isFocusable(), and FocusFinder's explicit nextFocus chain
+        // accepts it (only canTakeFocus() checks enabled, and there is no fallback), so a disabled
+        // Back/Forward would trap D-pad focus instead of being skipped. Clear the flag to let the
+        // chain walk on to the next button.
+        vb.ibBack.isFocusable = enabled
     }
 
     fun setForwardEnabled(enabled: Boolean) {
         vb.ibForward.isEnabled = enabled
+        vb.ibForward.isFocusable = enabled
     }
 
     fun setMediaCounter(count: Int) {
         // Hide the whole button (not just the badge) when there is nothing to play.
-        vb.flMediaButton.visibility = if (count > 0) VISIBLE else GONE
-        vb.tvMediaCounter.visibility = if (count > 0) VISIBLE else GONE
+        val visible = count > 0
+        vb.flMediaButton.visibility = if (visible) VISIBLE else GONE
+        vb.ibMedia.isFocusable = visible
+        vb.tvMediaCounter.visibility = if (visible) VISIBLE else GONE
         vb.tvMediaCounter.text = count.toString()
     }
 
@@ -148,8 +156,10 @@ class ActionBar @JvmOverloads constructor(
      * created from the options menu.
      */
     fun setTabsCounter(count: Int) {
-        vb.flTabsButton.visibility = if (count > 1) VISIBLE else GONE
-        vb.tvTabsCounter.visibility = if (count > 1) VISIBLE else GONE
+        val visible = count > 1
+        vb.flTabsButton.visibility = if (visible) VISIBLE else GONE
+        vb.ibTabs.isFocusable = visible
+        vb.tvTabsCounter.visibility = if (visible) VISIBLE else GONE
         vb.tvTabsCounter.text = count.toString()
     }
 
@@ -182,7 +192,7 @@ class ActionBar @JvmOverloads constructor(
     /**
      * Moves focus from the page into the top bar. Prefers Back (the natural "return" control), but
      * Back/Forward are disabled when the tab has no history and a disabled view cannot take focus,
-     * so it falls back to the first enabled, visible button. Without that fallback the remote could
+     * so it falls back to the first shown, focusable button. Without that fallback the remote could
      * stay stuck in the page on a fresh tab.
      */
     fun catchFocus() {
@@ -190,6 +200,6 @@ class ActionBar @JvmOverloads constructor(
             vb.ibBack, vb.ibForward, vb.ibRefresh, vb.ibTabs,
             vb.ibFavorites, vb.ibMedia, vb.ibSettings, vb.ibMenu
         )
-        candidates.firstOrNull { it.isEnabled && it.visibility == VISIBLE }?.requestFocus()
+        candidates.firstOrNull { it.isShown && it.isFocusable }?.requestFocus()
     }
 }
