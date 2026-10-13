@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -47,6 +48,9 @@ class NativeVideoActivity : Activity() {
         // until focus is available instead of leaving the user with a paused picture.
         private const val PLAY_RETRY_MS = 600L
         private const val MAX_PLAY_RETRIES = 12
+        // A stream that played for at least this long before failing counts as a new incident and
+        // gets a fresh retry budget, instead of a crash-loop burning all attempts in seconds.
+        private const val STABLE_PLAYBACK_MS = 10_000L
         private val RESIZE_MODES = intArrayOf(
             AspectRatioFrameLayout.RESIZE_MODE_FIT,
             AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
@@ -86,13 +90,24 @@ class NativeVideoActivity : Activity() {
     private var playRequested = true
     private var suppressUserIntent = false
     private var playRetries = 0
+    // Bounded re-prepare attempts for transient playback errors; see PlaybackRetryPolicy.
+    private var errorRetries = 0
+    private var playingSince = 0L
+    private var lastPlayDurationMs = 0L
+    private var errorPositionMs = -1L
+    private var resumeAfterErrorMs = 0L
     private val handler = Handler(Looper.getMainLooper())
     private val ensurePlaybackRunnable = Runnable { ensurePlayback() }
+    private val retryPlaybackRunnable = Runnable { retryPlayback() }
     private val bufferTimeout = Runnable {
         if (player?.playbackState == Player.STATE_BUFFERING && player?.playWhenReady == true) {
-            Log.w(TAG, "bufferTimeout positionMs=${player?.currentPosition}")
-            returnAction = ReturnAction.FAILED
-            finish()
+            val pos = player?.currentPosition ?: 0L
+            Log.w(TAG, "bufferTimeout positionMs=$pos")
+            noteFailure()
+            if (!scheduleRetry(pos)) {
+                returnAction = ReturnAction.FAILED
+                finish()
+            }
         }
     }
     private val sample = object : Runnable {
@@ -166,6 +181,10 @@ class NativeVideoActivity : Activity() {
                 bufferSize: Int, bufferSizeMs: Long, elapsedSinceLastFeedMs: Long) {
                 Log.w(TAG, "audioUnderrun bufferMs=$bufferSizeMs elapsedMs=$elapsedSinceLastFeedMs")
             }
+            override fun onPlayerError(eventTime: AnalyticsListener.EventTime, error: PlaybackException) {
+                // Remember where we were so a retry can resume there instead of from scratch.
+                errorPositionMs = eventTime.currentPlaybackPositionMs
+            }
         })
         p.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
@@ -180,7 +199,13 @@ class NativeVideoActivity : Activity() {
             }
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 Log.i(TAG, "isPlaying=$isPlaying positionMs=${p.currentPosition}")
-                if (isPlaying) playRetries = 0
+                if (isPlaying) {
+                    playRetries = 0
+                    if (playingSince == 0L) playingSince = SystemClock.elapsedRealtime()
+                } else if (playingSince != 0L) {
+                    lastPlayDurationMs = SystemClock.elapsedRealtime() - playingSince
+                    playingSince = 0L
+                }
             }
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
                 scheduleBufferTimeout()
@@ -194,8 +219,12 @@ class NativeVideoActivity : Activity() {
             }
             override fun onPlayerError(error: PlaybackException) {
                 Log.e(TAG, "errorCode=${error.errorCodeName}")
-                returnAction = ReturnAction.FAILED
-                finish()
+                noteFailure()
+                if (!PlaybackRetryPolicy.isTransient(error.errorCode) ||
+                    !scheduleRetry(resumePositionFor(error))) {
+                    returnAction = ReturnAction.FAILED
+                    finish()
+                }
             }
         })
         val subtitles = current.subtitles.map { subtitle ->
@@ -349,6 +378,50 @@ class NativeVideoActivity : Activity() {
         handler.postDelayed(ensurePlaybackRunnable, PLAY_RETRY_MS)
     }
 
+    /**
+     * Only a genuinely stable stretch of playback earns a fresh retry budget, so a stream that
+     * keeps failing cannot retry forever merely by outlasting the backoff.
+     */
+    private fun noteFailure() {
+        val now = SystemClock.elapsedRealtime()
+        val playedNow = if (playingSince != 0L) now - playingSince else 0L
+        if (maxOf(lastPlayDurationMs, playedNow) >= STABLE_PLAYBACK_MS) errorRetries = 0
+        playingSince = 0L
+        lastPlayDurationMs = 0L
+    }
+
+    private fun resumePositionFor(error: PlaybackException): Long =
+        if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) -1L
+        else errorPositionMs.takeIf { it >= 0 } ?: (player?.currentPosition ?: 0L)
+
+    /**
+     * Schedules a re-prepare after this attempt's backoff. Returns false when the retry budget is
+     * spent (or we are already leaving), so the caller can give up on the stream.
+     */
+    private fun scheduleRetry(resumeMs: Long): Boolean {
+        if (isFinishing || isDestroyed) return false
+        if (errorRetries >= PlaybackRetryPolicy.MAX_ATTEMPTS) return false
+        val delay = PlaybackRetryPolicy.backoffMs(errorRetries + 1)
+        errorRetries++
+        resumeAfterErrorMs = resumeMs
+        Log.w(TAG, "reconnecting attempt=$errorRetries/${PlaybackRetryPolicy.MAX_ATTEMPTS} " +
+            "delayMs=$delay resumeMs=$resumeMs")
+        Toast.makeText(this, getString(R.string.player_reconnecting, errorRetries,
+            PlaybackRetryPolicy.MAX_ATTEMPTS), Toast.LENGTH_SHORT).show()
+        handler.removeCallbacks(retryPlaybackRunnable)
+        handler.postDelayed(retryPlaybackRunnable, delay)
+        return true
+    }
+
+    private fun retryPlayback() {
+        val p = player ?: return
+        Log.i(TAG, "retrying playback resumeMs=$resumeAfterErrorMs")
+        if (resumeAfterErrorMs >= 0) p.seekTo(resumeAfterErrorMs) else p.seekToDefaultPosition()
+        p.prepare()
+        p.playWhenReady = true
+        scheduleBufferTimeout()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putLong("position", player?.currentPosition ?: position)
         outState.putBoolean("playWhenReady", player?.playWhenReady ?: playWhenReady)
@@ -359,6 +432,7 @@ class NativeVideoActivity : Activity() {
         handler.removeCallbacks(sample)
         handler.removeCallbacks(bufferTimeout)
         handler.removeCallbacks(ensurePlaybackRunnable)
+        handler.removeCallbacks(retryPlaybackRunnable)
         player?.let { p ->
             position = p.currentPosition
             playWhenReady = p.playWhenReady

@@ -196,6 +196,21 @@
   and keep the freshest observation. Unit-tested by `MediaUrlIdentityTest`. Verified on the emulator
   (WebView engine): the gateway now yields a single `secure_hls.php · HLS` row across several
   signature rotations.
+- **Native player retries transient playback interruptions, but not user stops.**
+  `NativeVideoActivity` already separated a user stop (`ReturnAction.BACK`) from a failure
+  (`ReturnAction.FAILED`); now both failure sources — `onPlayerError` and the 15s buffering stall
+  (`bufferTimeout`) — re-prepare the same source instead of leaving immediately. New
+  `PlaybackRetryPolicy` (`:app:player`) allow-lists connectivity/timeout/HTTP/behind-live-window
+  error codes as transient (codec/parsing/DRM fail fast) and defines 3 attempts with 2s/4s/8s
+  backoff; `NativeVideoActivity` resumes at the position captured from
+  `AnalyticsListener.onPlayerError` (or seeks to the live edge for `ERROR_CODE_BEHIND_LIVE_WINDOW`),
+  shows a `player_reconnecting` toast, and only sets `FAILED`/finishes when the budget is spent. A
+  fresh budget is granted only after ≥10s of genuinely stable playback (`playingSince` /
+  `lastPlayDurationMs`), so a crash-looping stream cannot retry forever by outlasting the backoff.
+  `SystemPlayerActivity` (the MediaPlayer fallback) is unchanged. Unit-tested by
+  `PlaybackRetryPolicyTest`. Verified on emulator with a connection-refused manifest:
+  `1/3`(2s) → `2/3`(4s) → `3/3`(8s) → give up; and recovery when a server came up mid-retry
+  (`state=3`, `isPlaying=true`, position advancing).
 - **Cosmetic overlay zapper (WebView engine).**
   `app/src/main/assets/overlay_zapper.js` is injected as a document-start script in every frame while
   ad blocking is on, complementing the network blocker with runtime DOM cleanup of overlays that

@@ -2,6 +2,7 @@
 <resources>
     <string name="loading">Loading…</string>
     <string name="player_error">Playback error: %1$s</string>
+    <string name="player_reconnecting">Reconnecting (attempt %1$d of %2$d)</string>
     <string name="player_subtitles">Subtitles</string>
     <string name="player_audio_track">Audio track</string>
     <string name="player_video_scale">Video scaling</string>
