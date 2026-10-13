@@ -52,6 +52,7 @@
     <string name="favorites">Favorites</string>
     <string name="history">History</string>
     <string name="settings">Settings</string>
+    <string name="toggle_theme">Toggle theme</string>
     <string name="menu">Menu</string>
     <string name="new_tab">New tab</string>
     <string name="add_bookmark">Add bookmark</string>

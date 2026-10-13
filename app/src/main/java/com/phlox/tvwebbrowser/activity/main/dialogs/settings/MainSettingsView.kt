@@ -156,7 +156,6 @@ class MainSettingsView @JvmOverloads constructor(
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 if (config.theme.value.ordinal == position) return
                 config.theme.value = Config.Theme.values()[position]
-                Toast.makeText(context, context.getString(R.string.need_restart), Toast.LENGTH_SHORT).show()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}

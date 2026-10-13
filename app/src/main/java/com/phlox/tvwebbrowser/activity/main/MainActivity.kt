@@ -186,12 +186,19 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         config.theme.subscribe(this.lifecycle, false) {
-            when (it) {
-                Config.Theme.BLACK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                Config.Theme.WHITE -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            val mode = when (it) {
+                Config.Theme.BLACK -> AppCompatDelegate.MODE_NIGHT_YES
+                Config.Theme.WHITE -> AppCompatDelegate.MODE_NIGHT_NO
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+            if (AppCompatDelegate.getDefaultNightMode() != mode) {
+                AppCompatDelegate.setDefaultNightMode(mode)
             }
             WebEngineFactory.onThemeSettingUpdated(it)
+            // MainActivity declares uiMode in android:configChanges, so AppCompat does not recreate
+            // it on a night-mode change and the already-inflated views would keep their old colors.
+            // Recreate explicitly so the top bar and dialogs repaint immediately without a restart.
+            if (!isFinishing && !isDestroyed) recreate()
         }
 
         settingsModel.keepScreenOn.subscribe(this.lifecycle) {
@@ -460,6 +467,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             getString(R.string.incognito_mode),
             getString(R.string.voice_search),
             getString(R.string.settings),
+            getString(R.string.toggle_theme),
             getString(R.string.close_tab),
             getString(R.string.close_application)
         ).toTypedArray()
@@ -477,11 +485,21 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     7 -> toggleIncognitoMode()
                     8 -> initiateVoiceSearch()
                     9 -> showSettings()
-                    10 -> currentTab?.let { closeTab(it) }
-                    11 -> closeWindow()
+                    10 -> toggleTheme()
+                    11 -> currentTab?.let { closeTab(it) }
+                    12 -> closeWindow()
                 }
             }
             .show()
+    }
+
+    /**
+     * Cycles the UI theme SYSTEM → WHITE → BLACK → SYSTEM. The actual night-mode switch and the
+     * activity repaint are handled by the `config.theme` subscriber in onCreate.
+     */
+    private fun toggleTheme() {
+        val themes = Config.Theme.entries
+        config.theme.value = themes[(config.theme.value.ordinal + 1) % themes.size]
     }
 
     fun refresh() {
