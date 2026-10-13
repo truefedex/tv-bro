@@ -1,66 +1,134 @@
 name: Release
 
 on:
+  #Pushing a "vX.Y.Z" tag cuts a release: the tag drives the version that ends up in the APK, and the
+  #signing + publish steps below only run for tags.
+  push:
+    tags:
+      - 'v*'
+  #Every PR runs the exact same build pipeline (minus signing/publishing) so a broken build or a bad
+  #version can never reach a release tag.
+  pull_request:
+  #Manual "just build it" runs (no release, no version override).
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version (e.g. 1.2.3)'
-        required: true
-      prerelease:
-        description: 'Release type'
-        required: true
-        default: 'release'
-        type: choice
-        options:
-          - release
-          - pre-release
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      #Fork PRs get no secrets, so the signing step below no-ops and the APKs come out unsigned.
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          #full history + tags so `git describe --tags` can resolve the version on untagged builds
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            #PR/manual build: leave it empty and let Gradle derive a dev version from git tags
+            version=""
+          fi
+          if [[ "$version" == *-* ]]; then prerelease=true; else prerelease=false; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+
+      - name: Validate tag version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          if [[ ! "${{ steps.version.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} is not a vX.Y.Z version"
+            exit 1
+          fi
 
       - uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+      - name: Enable release signing
+        run: |
+          if [[ -z "$KEYSTORE_BASE64" ]]; then
+            echo "No keystore secret available (e.g. a fork PR); building unsigned release APKs."
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$GITHUB_WORKSPACE/keystore.jks"
+          {
+            echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/keystore.jks"
+            echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}"
+            echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}"
+            echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}"
+          } >> "$GITHUB_ENV"
 
       - name: Build GeckoIncluded
-        run: ./gradlew assembleP403n1x87GeckoIncludedRelease -PenableAbiSplits
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/keystore.jks
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          VERSION_NAME: ${{ steps.version.outputs.version }}
+        run: ./gradlew assembleP403n1x87GeckoIncludedRelease -PenableAbiSplits ${VERSION_NAME:+-PversionName=$VERSION_NAME}
 
       - name: Build GeckoExcluded
-        run: ./gradlew assembleP403n1x87GeckoExcludedRelease
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/keystore.jks
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          VERSION_NAME: ${{ steps.version.outputs.version }}
+        run: ./gradlew assembleP403n1x87GeckoExcludedRelease ${VERSION_NAME:+-PversionName=$VERSION_NAME}
+
+      - name: Verify release APKs
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          aapt=$(ls "$sdk"/build-tools/*/aapt 2>/dev/null | sort -V | tail -1)
+          if [[ -z "$aapt" ]]; then
+            echo "::error::aapt not found under '$sdk' — cannot verify the APK version"
+            exit 1
+          fi
+          for apk in app/build/outputs/apk/p403n1x87*/release/*.apk; do
+            badging=$("$aapt" dump badging "$apk" | head -1)
+            echo "$apk -> $badging"
+            if ! grep -qF "versionName='${{ steps.version.outputs.version }}'" <<< "$badging"; then
+              echo "::error::$apk does not carry versionName ${{ steps.version.outputs.version }}"
+              exit 1
+            fi
+            #AGP names a release APK built without a signing config "*-unsigned.apk": the in-app
+            #updater could not map such a name to an ABI (it looks for "*-<abi>.apk"), and an
+            #unsigned APK is unusable anyway, so fail instead of publishing one.
+            if [[ "$apk" == *-unsigned.apk ]]; then
+              echo "::error::$apk is unsigned — are the KEYSTORE_* secrets configured?"
+              exit 1
+            fi
+          done
 
       - name: Rename artifacts
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           for dir in p403n1x87GeckoIncluded p403n1x87GeckoExcluded; do
             for f in app/build/outputs/apk/${dir}/release/app-*.apk; do
-              new="${f/app-/tvbro-${{ inputs.version }}-}"
-              mv "$f" "${new/-release.apk/.apk}"
+              new="${f/app-/tvbro-${{ steps.version.outputs.version }}-}"
+              new="${new/-release-unsigned.apk/.apk}"
+              new="${new/-release.apk/.apk}"
+              mv "$f" "$new"
             done
           done
 
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: tvbro-${{ steps.version.outputs.version || github.run_number }}
+          path: app/build/outputs/apk/**/release/*.apk
+          if-no-files-found: error
+
       - name: Create release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ inputs.version }}
-          name: v${{ inputs.version }}
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           body_path: RELEASE_NOTES.md
-          prerelease: ${{ inputs.prerelease == 'pre-release' }}
+          prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
           files: |
             app/build/outputs/apk/p403n1x87GeckoIncluded/release/*.apk
             app/build/outputs/apk/p403n1x87GeckoExcluded/release/*.apk

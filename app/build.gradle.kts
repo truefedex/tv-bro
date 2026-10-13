@@ -3,13 +3,50 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+//The app version is driven by git tags, so cutting a release is just pushing a "vX.Y.Z" tag: the
+//tag becomes versionName and the in-app updater (which compares GitHub release tags against the
+//installed versionName) stays in sync by construction. -PversionName / -PversionCode override the
+//git lookups (the release workflow passes the tag through), and a checkout without git (or without
+//any tag) falls back to the last released version so local builds still install over released ones.
+fun gitOutput(vararg args: String): String? = runCatching {
+    val process = ProcessBuilder(listOf("git") + args)
+        .directory(rootDir)
+        .redirectErrorStream(true)
+        .start()
+    val output = process.inputStream.bufferedReader().use { it.readText() }.trim()
+    if (process.waitFor() == 0) output.ifEmpty { null } else null
+}.getOrNull()
+
+//"v2.1.7" -> "2.1.7"; "v2.1.7-3-gabc1234" -> "2.1.7-dev.3" (a dev build 3 commits past the tag).
+fun versionNameFromGit(): String? {
+    gitOutput("describe", "--tags", "--exact-match", "HEAD")?.let { return it.removePrefix("v") }
+    val described = gitOutput("describe", "--tags", "--long") ?: return null
+    val match = Regex("^v?(\\d+(?:\\.\\d+)*)-(\\d+)-g[0-9a-f]+").find(described) ?: return null
+    val (base, commitsSinceTag) = match.destructured
+    return "$base-dev.$commitsSinceTag"
+}
+
+//versionCode grows monotonically with versionName ("2.1.7" -> 20107) so newer builds install over
+//older ones. Only the first three dot-separated components are used.
+fun versionCodeFromName(name: String): Int {
+    val components = name.removePrefix("v").split('.', '-', '+').map { part ->
+        part.takeWhile(Char::isDigit).toIntOrNull() ?: 0
+    }
+    return components.getOrElse(0) { 0 } * 10_000 + components.getOrElse(1) { 0 } * 100 +
+        components.getOrElse(2) { 0 }
+}
+
+val appVersionName = (findProperty("versionName") as String?) ?: versionNameFromGit() ?: "2.1.6"
+val appVersionCode = ((findProperty("versionCode") as String?)?.toIntOrNull()
+    ?: versionCodeFromName(appVersionName)).coerceAtLeast(1)
+
 android {
     namespace = "com.phlox.tvwebbrowser"
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        versionCode = 69
-        versionName = "2.1.6"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         javaCompileOptions {
             annotationProcessorOptions {

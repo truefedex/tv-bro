@@ -417,6 +417,30 @@
   and persists it (`player_kind` pref); tapping an (unplayable) stream retried 3× then returned to the
   page with no "Choose player" dialog.
 
+## Releasing
+- The version is no longer hardcoded: `app/build.gradle.kts` resolves it from git tags, with the
+  precedence `-PversionName`/`-PversionCode` → exact tag on `HEAD` (`v2.1.7` → `2.1.7`) → nearest tag
+  plus distance (`v2.1.7-3-gabc1234` → `2.1.7-dev.3`) → legacy fallback `2.1.6`. `versionCode` is
+  derived from the first three components of versionName (`2.1.7` → `20107`), so it grows
+  monotonically with the version; `-PversionCode` overrides it.
+- Cutting a release is just pushing a tag: `git tag v2.1.7 && git push origin v2.1.7`.
+  `.github/workflows/release.yml` builds on **every PR** (and on manual `workflow_dispatch`) with the
+  same pipeline as a release — except that signing and publishing are conditional on a tag ref
+  (`if: startsWith(github.ref, 'refs/tags/')`) — so a broken build or a bad version cannot reach a
+  tag. On a `v*` tag it validates the tag is `vX.Y.Z`, passes it through as `-PversionName`, builds
+  the `p403n1x87` geckoIncluded (ABI splits) and geckoExcluded APKs, asserts each APK really carries
+  that `versionName` (`aapt dump badging`) and is signed (AGP's `-unsigned` suffix is rejected, since
+  the updater cannot map such a name to an ABI), renames them
+  `tvbro-<version>-p403n1x87-gecko{Included,Excluded}[-<abi>].apk` and publishes the GitHub Release
+  (a tag with a suffix, e.g. `v2.2.0-rc.1`, is published as a pre-release). PR/manual builds derive
+  the version from git instead (e.g. `2.1.6-dev.3`) and upload the APKs as a workflow artifact.
+- Because the tag *is* the version, the in-app updater keeps working by construction: it matches a
+  release tag `vX.Y.Z` against `BuildConfig.VERSION_NAME`.
+- Caveat for the `generic`/`google` flavors: they update from `truefedex/tv-bro` releases, whose
+  incrementing versionCodes (~69) are far below the semver-derived ones, so installing an upstream
+  APK over a locally built generic/google build can fail with `INSTALL_FAILED_VERSION_DOWNGRADE`.
+  Only `p403n1x87` is released from this fork.
+
 ## Build / test
 - macOS: `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
 - Linux: JDK 21 at `/usr/lib/jvm/java-21-openjdk-amd64` (already exported from `~/.zshrc`), plus a JDK 17 at
