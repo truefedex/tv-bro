@@ -45,6 +45,11 @@ class MainActivityViewModel: ActiveModel() {
     fun loadState() = modelScope.launch(Dispatchers.Main) {
         Log.d(TAG, "loadState")
         if (loaded) return@launch
+        // Purge any update APK left in the cache by a previous session (after a download, the file
+        // has to linger until the installer has read it, so we clean up on the next launch).
+        withContext(Dispatchers.IO) {
+            UpdateChecker.clearTempFilesIfAny(TVBro.instance)
+        }
         checkVersionCodeAndRunMigrations()
         initHistory()
         loadHomePageLinks()
@@ -122,6 +127,11 @@ class MainActivityViewModel: ActiveModel() {
         lastHistoryItem = item
         lastHistoryItemSaveJob = modelScope.launch(Dispatchers.Main) {
             delay(minVisitedInterval)
+            // Replace any older entry for the same URL instead of appending a duplicate, so a site
+            // shows up once in history with its latest visit time (and storage stays bounded by
+            // distinct URLs rather than repeat visits). Done inside the debounced job so a cancelled
+            // visit never deletes the previously saved row.
+            AppDatabase.db.historyDao().deleteByUrl(item.url)
             item.id = AppDatabase.db.historyDao().insert(item)
             item.saved = true
         }

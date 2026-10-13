@@ -21,6 +21,13 @@ interface HistoryDao {
     @Query("DELETE FROM history WHERE time < :time")
     suspend fun deleteWhereTimeLessThan(time: Long)
 
+    /**
+     * Removes any existing entry for [url] so a new visit replaces it instead of stacking a second
+     * row (history uniqueness: the same site appears once, with the most recent timestamp).
+     */
+    @Query("DELETE FROM history WHERE url = :url")
+    suspend fun deleteByUrl(url: String)
+
     @Query("SELECT COUNT(*) FROM history")
     suspend fun count(): Int
 

@@ -219,7 +219,12 @@ class UpdateChecker(val currentVersionName: String) {
         job.join()
         dialog.dismiss()
 
-        if (!downloaded) return
+        // Don't leave a partial/cancelled download behind: the fixed cache filename means a botched
+        // attempt would otherwise linger until the next app start (or until it is overwritten).
+        if (!downloaded) {
+            downloadedFile.delete()
+            return
+        }
 
         val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(downloadedFile.extension)
         val apkURI = FileProvider.getUriForFile(
