@@ -333,6 +333,36 @@
   build (the release APK carries a different signing key — expected, documented limitation), but
   download → ProgressDialog → URI handoff all work. After dismissing the installer, `update.apk`
   stayed in the cache until the next app launch, then was deleted by the startup purge.
+- **Settings streamlining: "Links on home page" removed, update channel hidden, playback labels clarified.**
+  `Config.HomePageLinksMode` / `homePageLinksMode` and the whole suggestion-mode plumbing were dead
+  (after the history URL dedup `MOST_VISITED` behaved exactly like `LATEST_HISTORY`), so the
+  `GeneralSettingsView` row, the `SettingsModel` property/param and `HistoryDao.frequentlyUsedUrls()`
+  were removed and `MainActivityViewModel.loadHomePageLinks()` now always uses `historyDao().last(8)`.
+  The **Update channel** `Choice` row and its `availableChannels()` helper were dropped from
+  `VersionSettingsView` (no pre-releases planned); `Config.updateChannel` (default `release`) and
+  `UpdateChecker.AVAILABLE_CHANNELS` are left in place. The Playback page gained summaries
+  (`allow_autoplay_media_summary`, `settings_auto_fullscreen_summary`) and `settings_auto_fullscreen`
+  now reads "Auto-open fullscreen videos in the native player". The unused `home_page_links`
+  strings/array were left in every locale (translations untouched).
+- **Fullscreen videos auto-open in the native player on the WebView engine too (cross-engine).**
+  Gecko already reacted through `MyMediaSessionDelegate.onFullscreen → maybeOptimize()`; WebView only
+  exposes `WebChromeClient.onShowCustomView(view, callback)`, which carries no media information, so
+  the handoff asks the page instead: the new `window.tvBroFullscreenVideo()` in `generic_injects.js`
+  returns `"1|<positionMs>|<url>"` (empty url for MSE/`blob:`, `1|0|` for an `<iframe>`, `0|`
+  otherwise) and pauses the media. `WebViewEx.probeFullscreenVideoForNative()` feeds that into
+  `orderedCandidates()` and plays the first candidate in the built-in player at `positionMs` via the
+  new `playInInternalPlayer(candidate, startMs)` overload (the `castStartMs` field carries it through
+  `playCandidate`; `resolveAndPlay` resets it to 0).
+  **Gotcha:** WebView delivers `onShowCustomView` *before* the page's DOM reflects the new fullscreen
+  element — `document.fullscreenElement` is still `null` at callback time and only becomes the
+  `<video>` ~100–250 ms later, so a one-shot read always saw "no video" and silently fell back to the
+  in-page fullscreen. The fix shows the in-page fullscreen immediately and then polls
+  (`FULLSCREEN_PROBE_DELAY = 120 ms`, `MAX_FULLSCREEN_PROBES = 5`, guarded by
+  `fullscreenViewCallback !== callback`), upgrading to the native player once the element appears and
+  leaving the in-page fullscreen untouched for non-video fullscreens; `onHideCustomView()` now also
+  nulls `fullscreenViewCallback`. Verified on the emulator (WebView engine): tapping fullscreen logged
+  `fullscreen handoff: 1 candidate(s), resumeAt=4216ms`, `NativeVideoActivity` opened playing from that
+  position, and a short clip returned to the page when it ended.
 
 ## Build / test
 - macOS: `export JAVA_HOME="$HOME/java/jdk-21.0.12.1+1/Contents/Home"` then `./gradlew <task> --console=plain`.
@@ -346,3 +376,11 @@
 - Unit tests: `:app:player:testDebugUnitTest` and `:app:testP403n1x87GeckoIncludedDebugUnitTest`
   (e.g. `--tests "com.phlox.tvwebbrowser.utils.UpdateCheckerVersionTest"`).
 - Debug APKs (flavor `p403n1x87GeckoIncluded`): `./gradlew :app:assembleP403n1x87GeckoIncludedDebug -PenableAbiSplits`.
+- Launch the app straight at a URL (handy for manual testing). The package id depends on the `appstore`
+  flavor: `p403n1x87` → `com.phlox.tvwebbrowser.p403n1x87`, `generic`/`google` → `com.phlox.tvwebbrowser`:
+  ```
+  adb shell am start -a android.intent.action.VIEW -d "http://example.com" -p com.phlox.tvwebbrowser.p403n1x87
+  ```
+  Add `-W` to block until it is up (`Status`/`TotalTime`); a cold start can take a few seconds, so wait
+  before interacting. A page click can be simulated with `adb shell input tap <x> <y>` — needed to
+  trigger `requestFullscreen()`, which requires a user gesture.
