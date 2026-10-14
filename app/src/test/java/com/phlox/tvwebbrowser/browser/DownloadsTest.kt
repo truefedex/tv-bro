@@ -21,6 +21,7 @@ class DownloadsTest {
             url = "https://site.com/files/a.zip",
             referer = "https://site.com/",
             userAgent = "UA",
+            cookies = "a=1; b=2",
             fileName = "given.zip",
             mimeType = "application/zip",
             size = 42,
@@ -33,6 +34,7 @@ class DownloadsTest {
         assertEquals("", download.filepath)
         assertEquals("https://site.com/", download.referer)
         assertEquals("UA", download.userAgentString)
+        assertEquals("a=1; b=2", download.cookies)
         assertEquals("application/zip", download.mimeType)
         assertEquals(42L, download.size)
         assertEquals("data", download.base64BlobData)
@@ -65,10 +67,11 @@ class DownloadsTest {
     @Test
     fun linkDownloadGetsMimeTypeFromExtension() {
         shadowOf(MimeTypeMap.getSingleton()).addExtensionMimeTypeMapping("apk", "application/vnd.android.package-archive")
-        val request = DownloadRequest.forLink("https://site.com/app.apk", "https://site.com/", "UA")
+        val request = DownloadRequest.forLink("https://site.com/app.apk", "https://site.com/", "UA", "sid=1")
         assertEquals("application/vnd.android.package-archive", request.mimeType)
         assertEquals("https://site.com/", request.referer)
         assertEquals("UA", request.userAgent)
+        assertEquals("sid=1", request.cookies)
         assertNull(request.fileName)
         assertEquals("app.apk", request.toDownload().filename)
     }

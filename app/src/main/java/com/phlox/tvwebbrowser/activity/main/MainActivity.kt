@@ -1172,7 +1172,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                         R.id.miOpenInNewTab -> openInNewTabAfterCurrent(url!!)
                         R.id.miOpenInExternalApp -> onOpenInExternalAppRequested(url!!)
                         R.id.miDownload -> onDownloadRequested(
-                            DownloadRequest.forLink(url!!, tab.url, tab.webEngine.userAgentString))
+                            DownloadRequest.forLink(url!!, tab.url, tab.webEngine.userAgentString, tab.webEngine.getCookies(url!!)))
                         R.id.miCopyToClipboard -> onCopyTextToClipboardRequested(url!!)
                         R.id.miShare -> onShareUrlRequested(url!!)
                     }

@@ -7,7 +7,6 @@ import android.os.ParcelFileDescriptor.AutoCloseOutputStream
 import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
-import android.webkit.CookieManager
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.singleton.AppDatabase
@@ -58,8 +57,7 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
                     }
                     downloadInfo.referer?.apply { setRequestProperty("Referer", this) }
                     useCaches = false
-                    val cookie = CookieManager.getInstance().getCookie(url.toString())
-                    if (cookie != null) setRequestProperty("cookie", cookie)
+                    downloadInfo.cookies?.let { setRequestProperty("Cookie", it) }
                     if (retries > 0) {
                         //trust me, sometimes this helps! Don't ask me how...
                         Thread.sleep(3000)

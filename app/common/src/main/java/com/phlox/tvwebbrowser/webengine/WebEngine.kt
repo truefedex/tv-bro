@@ -17,6 +17,12 @@ interface WebEngine {
      * so that the state saved by another engine is not restored.
      */
     val stateFilePrefix: String get() = ""
+
+    /**
+     * Cookies of this engine for [url] ("Cookie" header value), to download the url outside of the engine.
+     * Null if there are none or the engine does not share them (then its downloads should come with a stream).
+     */
+    fun getCookies(url: String): String? = null
     fun saveState(): Any?//Bundle or any Object convertible to string
     fun restoreState(savedInstanceState: Any)
     fun stateFromBytes(bytes: ByteArray): Any?

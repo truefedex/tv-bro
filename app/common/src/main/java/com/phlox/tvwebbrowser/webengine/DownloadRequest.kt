@@ -11,6 +11,8 @@ data class DownloadRequest(
     val url: String,
     val referer: String,
     val userAgent: String?,
+    /** "Cookie" header for the download request, see [WebEngine.getCookies] */
+    val cookies: String? = null,
     /** Null to guess it from [url], [contentDisposition] and [mimeType] */
     val fileName: String? = null,
     val mimeType: String? = null,
@@ -26,10 +28,11 @@ data class DownloadRequest(
         /**
          * Download of a link chosen by the user (for example in a context menu).
          */
-        fun forLink(url: String, referer: String, userAgent: String?) = DownloadRequest(
+        fun forLink(url: String, referer: String, userAgent: String?, cookies: String?) = DownloadRequest(
             url = url,
             referer = referer,
             userAgent = userAgent,
+            cookies = cookies,
             mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
         )
     }

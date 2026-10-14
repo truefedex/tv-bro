@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.webkit.WebViewCompat
@@ -36,6 +37,8 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
     private val jsInterface = AndroidJSInterface(this)
 
     override fun getWebEngineName(): String = "WebView"
+
+    override fun getCookies(url: String): String? = CookieManager.getInstance().getCookie(url)
 
     override fun isSameSession(internalRepresentation: Any): Boolean {
         return internalRepresentation == webView
@@ -238,7 +241,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         }
 
         override fun onDownloadRequested(url: String) {
-            callback?.onDownloadRequested(DownloadRequest.forLink(url, tab.url, userAgentString))
+            callback?.onDownloadRequested(DownloadRequest.forLink(url, tab.url, userAgentString, getCookies(url)))
         }
 
         override fun onThumbnailError() {
@@ -336,7 +339,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         }
 
         override fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long) {
-            callback?.onDownloadRequested(DownloadRequest(url = url, referer = tab.url, userAgent = userAgent,
+            callback?.onDownloadRequested(DownloadRequest(url = url, referer = tab.url, userAgent = userAgent, cookies = getCookies(url),
                 mimeType = mimetype, contentDisposition = contentDisposition, size = contentLength))
         }
 

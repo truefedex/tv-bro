@@ -37,6 +37,8 @@ class Download() {
     @Ignore
     var userAgentString: String? = null
     @Ignore
+    var cookies: String? = null
+    @Ignore
     var base64BlobData: String? = null
     @Ignore
     var stream: InputStream? = null
