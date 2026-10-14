@@ -138,7 +138,6 @@
     <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorithmic darkening for web pages (dark theme, WebView only, need restart)</string>
     <string name="allow_autoplay_media">Allow autoplay for media</string>
     <string name="allow_autoplay_media_summary">Let pages start playback without pressing a key</string>
-    <string name="auto_native_fullscreen">Auto-open fullscreen videos in the native player</string>
     <string name="keep_toolbar_open">Keep toolbar open over the page (stays visible after actions)</string>
     <string name="restore_tabs_on_startup">Restore tabs on startup (start fresh when off)</string>
     <string name="web_engine_debug">Web engine debugging (need restart)</string>
@@ -200,7 +199,6 @@
     <string name="media_stop">Stop Media</string>
     <string name="media_rewind">Rewind Media</string>
     <string name="media_fast_forward">Fast Forward Media</string>
-    <string name="cast_media">Play video in a player</string>
     <string name="cast_choose_player">Choose player</string>
     <string name="cast_player_internal">Built-in player (recommended)</string>
     <string name="cast_player_system">System player (alternative)</string>
@@ -211,8 +209,6 @@
     <string name="native_playback_unavailable">Native playback is unavailable, continuing in the browser</string>
     <string name="external_playback_failed_title">Did the video not play?</string>
     <string name="external_playback_failed_message">Some streams only work in the built-in player, because they require the browser to identify itself on every request and external players cannot do that.</string>
-    <string name="cast_start_video_title">No video detected yet</string>
-    <string name="cast_start_video_message">Start playing the video on the page first, then press the key again to choose a player.</string>
     <string name="cast_no_media">No playable media found on this page</string>
     <string name="cast_no_player">No compatible player found (install VLC or MX Player)</string>
     <string name="media_list">Streams on this page</string>
@@ -250,10 +246,8 @@
     <string name="settings_algorithmic_darkening_summary">Dark theme for web pages (WebView only, needs restart)</string>
     <string name="settings_keep_toolbar_open">Keep toolbar open</string>
     <string name="settings_keep_toolbar_open_summary">Stays visible after actions</string>
-    <string name="settings_auto_fullscreen">Auto-open fullscreen videos in the native player</string>
-    <string name="settings_auto_fullscreen_summary">A page video going fullscreen opens in the built-in player</string>
     <string name="settings_video_player">Video player</string>
-    <string name="settings_video_player_summary">Player used for detected streams and the cast shortcut</string>
+    <string name="settings_video_player_summary">Player used for the streams detected on the page</string>
     <string name="settings_web_engine">Web browser engine</string>
     <string name="settings_web_engine_summary">Temporary setting, reverted on restart</string>
     <string name="settings_web_engine_debug">Web engine debugging</string>

@@ -27,15 +27,6 @@ class PlaybackSettingsView @JvmOverloads constructor(
             )
         )
         add(
-            SettingsItem.Toggle(
-                iconRes = R.drawable.ic_settings_fullscreen_24dp,
-                titleRes = R.string.settings_auto_fullscreen,
-                summaryRes = R.string.settings_auto_fullscreen_summary,
-                isChecked = { config.autoNativeFullscreen },
-                onCheckedChange = { config.autoNativeFullscreen = it }
-            )
-        )
-        add(
             SettingsItem.Choice(
                 iconRes = R.drawable.ic_settings_play_24dp,
                 titleRes = R.string.settings_video_player,

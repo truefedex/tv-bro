@@ -91,9 +91,6 @@ class ShortcutMgr private constructor() {
             Shortcut.MEDIA_FAST_FORWARD -> {
                 webEngine?.fastForward()
             }
-            Shortcut.CAST_EXTERNAL -> {
-                webEngine?.castCurrentVideo()
-            }
             Shortcut.TOGGLE_TABS_PANEL -> {
                 mainActivity.onToggleTabPanel()
             }

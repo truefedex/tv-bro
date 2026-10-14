@@ -111,14 +111,14 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
     }
 
     override fun onCrash(session: GeckoSession) {
-        if (!webEngine.isForeground || webEngine.nativeVideoActive) return
+        if (!webEngine.isForeground) return
         Log.e(TAG, "Crashed, reopening session")
         webEngine.recoverClosedSession()
     }
 
     override fun onKill(session: GeckoSession) {
         if (webEngine.session != session || !webEngine.tab.selected ||
-            !webEngine.isForeground || webEngine.nativeVideoActive) {
+            !webEngine.isForeground) {
             Log.w(TAG, "Background session killed")
             return
         }

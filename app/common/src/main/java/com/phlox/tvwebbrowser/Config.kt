@@ -35,7 +35,6 @@ class Config(val prefs: SharedPreferences) {
         const val WEBVIEW_USE_ALGORITHMIC_DARKENING_WITH_DARK_UI_MODE_KEY =
             "webview_use_algorithmic_darkening_with_dark_ui_mode"
         const val WEB_ENGINE_DEBUG_KEY = "web_engine_debug"
-        const val AUTO_NATIVE_FULLSCREEN_KEY = "auto_native_fullscreen"
         const val PLAYER_KIND_KEY = "player_kind"
         const val BLOCK_AUTOMATIC_REDIRECTS_KEY = "block_automatic_redirects"
         const val KEEP_TOOLBAR_OPEN_KEY = "keep_toolbar_open"
@@ -217,10 +216,6 @@ class Config(val prefs: SharedPreferences) {
         set(value) {
             prefs.edit().putBoolean(WEB_ENGINE_DEBUG_KEY, value).apply()
         }
-
-    var autoNativeFullscreen: Boolean
-        get() = prefs.getBoolean(AUTO_NATIVE_FULLSCREEN_KEY, false)
-        set(value) { prefs.edit().putBoolean(AUTO_NATIVE_FULLSCREEN_KEY, value).apply() }
 
     var playerKind: PlayerKind
         get() = prefs.getInt(PLAYER_KIND_KEY, 0)

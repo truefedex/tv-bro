@@ -13,7 +13,7 @@
   `autoHideMenuOverlay()` (a no-op when the setting is ON) replaces `hideMenuOverlay()` at all
   the auto-hide call sites (tab switch, close tab, URL input done, history, favorites, voice
   search, new tab, history-activity result). When OFF, the legacy modal-thumbnail behavior is
-  unchanged. Toolbar is still force-hidden during the native video fullscreen handoff via
+  unchanged. Toolbar is still force-hidden during in-page fullscreen via
   `onPrepareForFullscreen()` (and `showMenuOverlay()` early-returns while `isFullscreen`).
 - **Tab switching broken on tap (touch) — FIXED.**
   `view_horizontal_webtab_item.xml` had `android:focusableInTouchMode="true"`, so on a touch/tap the
@@ -376,44 +376,55 @@
   were removed and `MainActivityViewModel.loadHomePageLinks()` now always uses `historyDao().last(8)`.
   The **Update channel** `Choice` row and its `availableChannels()` helper were dropped from
   `VersionSettingsView` (no pre-releases planned); `Config.updateChannel` (default `release`) and
-  `UpdateChecker.AVAILABLE_CHANNELS` are left in place. The Playback page gained summaries
-  (`allow_autoplay_media_summary`, `settings_auto_fullscreen_summary`) and `settings_auto_fullscreen`
-  now reads "Auto-open fullscreen videos in the native player". The unused `home_page_links`
+  `UpdateChecker.AVAILABLE_CHANNELS` are left in place. The Playback page gained the
+  `allow_autoplay_media_summary` summary (its `settings_auto_fullscreen*` pair was later removed
+  together with the auto-native-fullscreen handoff, see below). The unused `home_page_links`
   strings/array were left in every locale (translations untouched).
-- **Fullscreen videos auto-open in the native player on the WebView engine too (cross-engine).**
-  Gecko already reacted through `MyMediaSessionDelegate.onFullscreen → maybeOptimize()`; WebView only
-  exposes `WebChromeClient.onShowCustomView(view, callback)`, which carries no media information, so
-  the handoff asks the page instead: the new `window.tvBroFullscreenVideo()` in `generic_injects.js`
-  returns `"1|<positionMs>|<url>"` (empty url for MSE/`blob:`, `1|0|` for an `<iframe>`, `0|`
-  otherwise) and pauses the media. `WebViewEx.probeFullscreenVideoForNative()` feeds that into
-  `orderedCandidates()` and plays the first candidate in the built-in player at `positionMs` via the
-  `playInInternalPlayer(candidate, startMs)` overload (`playCandidate(candidate, PlayerKind.BUILT_IN,
-  positionMs)`; explicit cast/stream-list playback uses the configured player from 0).
-  **Gotcha:** WebView delivers `onShowCustomView` *before* the page's DOM reflects the new fullscreen
-  element — `document.fullscreenElement` is still `null` at callback time and only becomes the
-  `<video>` ~100–250 ms later, so a one-shot read always saw "no video" and silently fell back to the
-  in-page fullscreen. The fix shows the in-page fullscreen immediately and then polls
-  (`FULLSCREEN_PROBE_DELAY = 120 ms`, `MAX_FULLSCREEN_PROBES = 5`, guarded by
-  `fullscreenViewCallback !== callback`), upgrading to the native player once the element appears and
-  leaving the in-page fullscreen untouched for non-video fullscreens; `onHideCustomView()` now also
-  nulls `fullscreenViewCallback`. Verified on the emulator (WebView engine): tapping fullscreen logged
-  `fullscreen handoff: 1 candidate(s), resumeAt=4216ms`, `NativeVideoActivity` opened playing from that
-  position, and a short clip returned to the page when it ended.
+- **The automatic "open fullscreen videos in the native player" handoff and its setting were removed,
+  on both engines.**
+  The app has no reliable way of telling which video on a page is "the" video. WebView's
+  `window.tvBroFullscreenVideo()` returned an empty url for MSE/`blob:` players and `1|0|` for
+  `<iframe>`s, so `WebViewEx.probeFullscreenVideoForNative()` fell through to
+  `orderedCandidates(null)?.first()` — whichever stream happened to be sniffed first; Gecko's
+  `MyMediaSessionDelegate.onFullscreen → maybeOptimize()` only ever fired for a direct-src element.
+  Both guessed, so both are gone: the probe plus its `FULLSCREEN_PROBE_DELAY`/`MAX_FULLSCREEN_PROBES`
+  polling, the JS helper, `maybeOptimize()` and its call sites, `Config.autoNativeFullscreen`
+  (`AUTO_NATIVE_FULLSCREEN_KEY`), the Playback page toggle (`settings_auto_fullscreen{,_summary}`, the
+  already-unused `auto_native_fullscreen`, and the `ic_settings_fullscreen_24dp` drawable).
+  `onShowCustomView` now only shows the in-page fullscreen; `onPrepareForFullscreen()`/
+  `onExitFullscreen()` and `fullscreenViewCallback` stay because they drive the in-page fullscreen and
+  its exit.
+- **The "cast current video" shortcut went with it.**
+  `Shortcut.CAST_EXTERNAL` ("Play video in a player", `cast_media`) also had to *identify* the current
+  video: `window.tvBroCastCurrentVideo()` read `document.querySelector('video')` (the first video on
+  the page, not necessarily the playing one) and `WebViewEx.castMedia()` then played
+  `orderedCandidates(domUrl).first()`; Gecko's `MyMediaSessionDelegate.castNow()` read the element
+  metadata and even required the video to be fullscreen first. Removed: the `Shortcut` entry and its
+  `ShortcutMgr` dispatch, `AndroidJSInterface.castMedia`, `WebEngine.castCurrentVideo` and both engine
+  overrides, the JS helper, `WebViewEx.castMedia` and `cast_start_video_title`/`cast_start_video_message`.
+  Streams are now only ever played from the explicit **stream list** (toolbar media button /
+  `SHOW_STREAMS`), where the user picks one. The media transport shortcuts (play/pause, stop, rewind,
+  fast forward) stay: `MyMediaSessionDelegate` is now just the transport bridge (active `MediaSession`
+  + `paused`), and the handoff-only plumbing went with the rest —
+  `GeckoWebEngine.{nativeVideoActive,suspendMediaBeforeNative,suspendForNativeVideo,resumeFromNativeVideo}`
+  and the `nativeVideoActive` guards in `MyContentDelegate`/`onResume`/`onPause`/`recoverClosedSession`/
+  `playMediaCandidate` (all of which already had an equivalent `isForeground` check on the stream-list
+  path). Orphaned by the fallback-chain removal that predates this work, and left in
+  `values/strings.xml`: `cast_choose_player`, `cast_choose_external_player`, `cast_trying_next`,
+  `cast_no_player`.
 - **No automatic stream fallback: the player is a setting (`Config.playerKind`, default built-in).**
   The old "try the next candidate on failure, then ask which player to use" chain was removed
   (`MAX_STREAM_TRIES`/`castCandidates`/`castIndex`/`castPlayer`/`onBuiltInPlaybackFailed`/
   `showPlayerMenu`/`resolveAndPlay` are gone from `WebViewEx`). A stream the user taps in the stream
-  list, or the cast shortcut, plays in the player selected in **Settings → Playback → Video player**
+  list plays in the player selected in **Settings → Playback → Video player**
   (new `SettingsItem.Choice`, `Config.PlayerKind` = BUILT_IN/SYSTEM/EXTERNAL, default BUILT_IN).
   If it fails it is up to the user to pick a different stream: the built-in player's final `FAILED`
   result just shows `native_playback_unavailable` and returns to the page (the retry budget in
   `NativeVideoActivity`/`PlaybackRetryPolicy` still applies first). The system/external launch code moved
   to a shared `:app:player` `PlayerLauncher` (`openSystem`/`openExternal`, used by both engines);
-  Gecko's `GeckoWebEngine.playMediaCandidate` and the manual `MyMediaSessionDelegate.castNow` now
-  dispatch on `playerKind` too, while the automatic fullscreen handoff (`maybeOptimize` /
-  `probeFullscreenVideoForNative`) always uses the built-in player because only it can resume at a
-  position. The external-player bounce-back prompt (quick return → offer built-in) was kept, WebView
-  only. Verified on the emulator (WebView engine): Playback shows the three-way "Video player" choice
+  `GeckoWebEngine.playMediaCandidate` dispatches on `playerKind` too. The external-player bounce-back
+  prompt (quick return → offer built-in) was kept, WebView only. Verified on the emulator (WebView
+  engine): Playback shows the three-way "Video player" choice
   and persists it (`player_kind` pref); tapping an (unplayable) stream retried 3× then returned to the
   page with no "Choose player" dialog.
 

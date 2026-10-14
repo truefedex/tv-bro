@@ -170,10 +170,6 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         webView?.evaluateJavascript("tvBroFastForward()", null)
     }
 
-    override fun castCurrentVideo() {
-        webView?.evaluateJavascript("tvBroCastCurrentVideo()", null)
-    }
-
     override fun mediaCandidates(): List<MediaCandidate> = webView?.mediaCandidates() ?: emptyList()
 
     override fun playMediaCandidate(candidate: MediaCandidate) {
