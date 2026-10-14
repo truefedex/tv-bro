@@ -10,7 +10,6 @@ import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
-import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 
 /**
  * Web engine that only records what is done with it.
@@ -18,7 +17,7 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 class FakeWebEngine(val tab: WebTabState) : WebEngine {
     companion object {
         val provider = WebEngineProvider("Fake", object : WebEngineProviderCallback {
-            override suspend fun initialize(context: Context, webViewContainer: CursorLayout) {}
+            override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {}
             override fun createWebEngine(tab: WebTabState): WebEngine = FakeWebEngine(tab)
             override suspend fun clearCache(ctx: Context) {}
             override fun onThemeSettingUpdated(value: Config.Theme) {}

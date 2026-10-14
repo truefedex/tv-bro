@@ -534,11 +534,29 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         val tabChanged = state.tabIdentity != renderedTabIdentity
         renderedTabIdentity = state.tabIdentity
+        if (tabChanged) {
+            resetCursorModes()
+        }
         //the address is not touched while the user edits it or browses the tabs list
         //(then the address of the focused tab is shown)
         if (tabChanged || (!vb.vActionBar.isAddressBoxFocused() &&
                     tabByTitleIndex(vb.vTabs.current) == controller.currentTab.value)) {
             vb.vActionBar.setAddressBoxText(state.url)
+        }
+    }
+
+    /**
+     * The grab and direct navigation modes belong to the page they were turned on for,
+     * so they end when another tab is shown.
+     */
+    private fun resetCursorModes() {
+        val cursor = controller.currentTab.value?.webEngine?.virtualCursor ?: return
+        if (!cursor.isVirtualCursorMode()) {
+            cursor.setVirtualCursorMode(true)
+        }
+        backNavigationEventsAdapter.gameControllersLongPressBForBackNavigation = false
+        cursor.getCursorDrawerDelegate()?.let {
+            if (it.canHandleBackNavigation()) it.handleBackNavigation()
         }
     }
 

@@ -33,7 +33,8 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, CursorDrawerDelegate.Callback {
     private var webView: WebViewEx? = null
     internal var callback: WebEngineCallbacks? = null
-    private var viewParent: CursorLayout? = null
+    /** The cursor surface around [webView] and the fullscreen view, created and dropped together with [webView] */
+    private var cursorLayout: CursorLayout? = null
     private var fullScreenView: View? = null
     private val jsInterface = AndroidJSInterface(this)
 
@@ -123,7 +124,12 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
     @Throws(Exception::class)
     override fun getOrCreateView(activityContext: Context): View {
         if (webView == null) {
-            webView = WebViewEx(activityContext, webViewCallback, jsInterface)
+            val webView = WebViewEx(activityContext, webViewCallback, jsInterface)
+            cursorLayout = CursorLayout(activityContext).apply {
+                addView(webView)
+                cursorDrawerDelegate.callback = this@WebViewWebEngine
+            }
+            this.webView = webView
         }
         return webView!!
     }
@@ -178,22 +184,20 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
 
     override fun onAttachToWindow(callback: WebEngineCallbacks, parent: ViewGroup) {
         this.callback = callback
-        if (webView == null) {
-            throw IllegalStateException("WebView is null")
-        }
-        this.viewParent = parent as CursorLayout
+        val cursorLayout = cursorLayout ?: throw IllegalStateException("WebView is null")
+        (cursorLayout.parent as? ViewGroup)?.removeView(cursorLayout)
         parent.removeAllViews()
-        parent.addView(webView)
-        viewParent?.cursorDrawerDelegate?.callback = this
+        parent.addView(cursorLayout)
         onResume()
     }
 
     override fun onDetachFromWindow(completely: Boolean, destroyTab: Boolean) {
         onPause()
-        (webView?.parent as? ViewGroup)?.removeView(webView)
+        cursorLayout?.let { (it.parent as? ViewGroup)?.removeView(it) }
         callback = null
         if (completely) {
             webView = null
+            cursorLayout = null
         }
     }
 
@@ -201,6 +205,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
         val webView = webView
         if (webView != null && !webView.isAttachedToWindow) {
             this.webView = null
+            cursorLayout = null
         }
     }
 
@@ -217,19 +222,19 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
     }
 
     override fun isVirtualCursorMode(): Boolean {
-        return viewParent?.cursorEnabled ?: true
+        return cursorLayout?.cursorEnabled ?: true
     }
 
     override fun setVirtualCursorMode(enabled: Boolean) {
-        viewParent?.cursorEnabled = enabled
+        cursorLayout?.cursorEnabled = enabled
         if (enabled) {
-            viewParent?.cursorDrawerDelegate?.animateAppearing()
+            cursorLayout?.cursorDrawerDelegate?.animateAppearing()
         }
         webView?.setVirtualCursorMode(enabled)
     }
 
     override fun getCursorDrawerDelegate(): CursorDrawerDelegate? {
-        return viewParent?.cursorDrawerDelegate
+        return cursorLayout?.cursorDrawerDelegate
     }
 
     private val webViewCallback = object : WebViewEx.Callback {
@@ -252,7 +257,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
         override fun onShowCustomView(view: View) {
             callback?.onPrepareForFullscreen()
             webView?.visibility = View.GONE
-            viewParent?.apply {
+            cursorLayout?.apply {
                 addView(view)
             }
             fullScreenView = view
@@ -260,7 +265,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
 
         override fun onHideCustomView() {
             if (fullScreenView != null) {
-                viewParent?.removeView(fullScreenView)
+                cursorLayout?.removeView(fullScreenView)
                 fullScreenView = null
             }
             webView?.visibility = View.VISIBLE
@@ -366,7 +371,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
 
         override fun onContextMenu(baseUrl:String?, href: String?, x: Int, y: Int) {
             callback?.onContextMenu(
-                viewParent!!.cursorDrawerDelegate,
+                cursorLayout!!.cursorDrawerDelegate,
                 baseUri = baseUrl,
                 linkUri = href,
                 srcUri = null,
@@ -382,7 +387,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
     companion object {
         init {
             WebEngineFactory.registerProvider(WebEngineProvider("WebView", object : WebEngineProviderCallback {
-                override suspend fun initialize(context: Context, webViewContainer: CursorLayout) {
+                override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
 
                 }
 

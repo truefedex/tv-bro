@@ -10,7 +10,7 @@
     tools:deviceIds="tv"
     android:clipChildren="false">
 
-    <com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/flWebViewContainer" />

@@ -3,15 +3,16 @@ package com.phlox.tvwebbrowser.webengine
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import android.view.ViewGroup
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.WebTabState
-import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 
 interface WebEngineProviderCallback {
-    suspend fun initialize(context: Context, webViewContainer: CursorLayout)
+    /** [webViewContainer] is where engines put their views (see [WebEngine.onAttachToWindow]) */
+    suspend fun initialize(context: Context, webViewContainer: ViewGroup)
     fun createWebEngine(tab: WebTabState): WebEngine
     suspend fun clearCache(ctx: Context)
     fun onThemeSettingUpdated(value: Config.Theme)
@@ -82,7 +83,7 @@ object WebEngineFactory {
     }
 
     @UiThread
-    suspend fun initialize(context: Context, webViewContainer: CursorLayout) {
+    suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
         val config = AppContext.provideConfig()
         var webEngineProvider = engineProviders.find { it.name == config.webEngine }
         if (webEngineProvider == null) {

@@ -32,7 +32,6 @@ import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyProgressDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyPromptDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MySelectionActionDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
-import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
@@ -60,7 +59,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, VirtualCursorSupport,
         val uiHandler = Handler(Looper.getMainLooper())
 
         @UiThread
-        fun initialize(context: Context, webViewContainer: CursorLayout) {
+        fun initialize(context: Context, webViewContainer: ViewGroup) {
             if (!this::runtime.isInitialized) {
                 val builder = GeckoRuntimeSettings.Builder()
                 if (AppContext.provideConfig().webEngineDebug) {
@@ -103,7 +102,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, VirtualCursorSupport,
             val webView = GeckoViewWithVirtualCursor(context)
             webViewContainer.addView(webView)
             weakRefToSingleGeckoView = WeakReference(webView)
-            webViewContainer.setWillNotDraw(true)//use it only as a container, cursor will be drawn on WebView itself
         }
 
         fun onThemeSettingUpdated(theme: Config.Theme) {
@@ -112,7 +110,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, VirtualCursorSupport,
 
         init {
             WebEngineFactory.registerProvider(WebEngineProvider(ENGINE_NAME, object : WebEngineProviderCallback {
-                override suspend fun initialize(context: Context, webViewContainer: CursorLayout) {
+                override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
                     GeckoWebEngine.initialize(context, webViewContainer)
                 }
 
