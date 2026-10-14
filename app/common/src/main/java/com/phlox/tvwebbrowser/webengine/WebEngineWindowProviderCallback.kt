@@ -5,10 +5,8 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.view.View
-import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
-import java.io.InputStream
 
 /**
  * Everything a web engine reports about its tab or asks from the browser core:
@@ -49,11 +47,7 @@ interface EnginePolicies {
  */
 interface EngineUiHost {
     fun getActivity(): Activity
-    fun onDownloadRequested(url: String)
-    fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String?, userAgent: String?, mimeType: String?,
-                            operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP,
-                            base64BlobData: String? = null, stream: InputStream? = null, size: Long = 0L, contentDisposition: String? = null)
-    fun onDownloadRequested(url: String, userAgent: String?, contentDisposition: String, mimetype: String?, contentLength: Long)
+    fun onDownloadRequested(request: DownloadRequest)
     fun requestPermissions(array: Array<String>): Int
     fun onShowFileChooser(intent: Intent): Boolean
     fun onCopyTextToClipboardRequested(url: String)

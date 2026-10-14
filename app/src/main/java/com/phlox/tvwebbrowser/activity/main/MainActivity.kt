@@ -7,10 +7,8 @@ import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.ConnectivityManager
@@ -22,7 +20,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
-import android.os.IBinder
 import android.os.Process
 import android.util.Log
 import android.view.Gravity
@@ -38,7 +35,6 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
 import android.webkit.CookieManager
-import android.webkit.MimeTypeMap
 import android.webkit.WebStorage
 import android.widget.FrameLayout
 import android.widget.PopupMenu
@@ -70,15 +66,12 @@ import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.browser.UrlInputResolver
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
-import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.WebTabState
-import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
-import com.phlox.tvwebbrowser.utils.DownloadUtils
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
@@ -88,6 +81,7 @@ import com.phlox.tvwebbrowser.utils.sameDay
 import com.phlox.tvwebbrowser.webengine.FeatureDelivery
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
@@ -97,7 +91,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.InputStream
 import java.net.URL
 import java.util.Calendar
 import kotlin.system.exitProcess
@@ -107,8 +100,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         const val VOICE_SEARCH_REQUEST_CODE = 10001
-        const val MY_PERMISSIONS_REQUEST_POST_NOTIFICATIONS_ACCESS = 10003
-        const val MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS = 10004
         const val PICK_FILE_REQUEST_CODE = 10005
         private const val REQUEST_CODE_HISTORY_ACTIVITY = 10006
         const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
@@ -130,8 +121,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private val voiceSearchHelper = VoiceSearchHelper(this, VOICE_SEARCH_REQUEST_CODE,
         MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS)
     private var lastCommonRequestsCode = COMMON_REQUESTS_START_CODE
-    private var downloadService: DownloadService? = null
-    private var downloadIntent: Download? = null
+    private val downloadLauncher = DownloadLauncher(this) { onDownloadStarted(it.filename) }
     var openUrlInExternalAppDialog: AlertDialog? = null
     private var linkActionsMenu: PopupMenu? = null
     private var tabsLoaded = false
@@ -673,35 +663,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         return webView
     }
 
-    private fun onDownloadRequested(url: String, referer: String, originalDownloadFileName: String, userAgent: String?, mimeType: String? = null,
-                                    operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP,
-                                    base64BlobData: String? = null, stream: InputStream?, size: Long = 0L) {
-        downloadIntent = Download(url, originalDownloadFileName, null, operationAfterDownload,
-            mimeType, referer, userAgent, base64BlobData, stream, size)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
-            checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(
-                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS
-            )
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(
-                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                MY_PERMISSIONS_REQUEST_POST_NOTIFICATIONS_ACCESS
-            )
-        } else {
-            startDownload()
-        }
-    }
-
-    private fun startDownload() {
-        val download = this.downloadIntent ?: return
-        this.downloadIntent = null
-        downloadService?.startDownload(download)
-        onDownloadStarted(download.filename)
-    }
-
     override fun onTrimMemory(level: Int) {
         controller.trimMemory()
         super.onTrimMemory(level)
@@ -713,18 +674,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return
         }
         if (controller.currentTab.value?.webEngine?.onPermissionsResult(requestCode, permissions, grantResults) == true) return
+        if (downloadLauncher.onRequestPermissionsResult(requestCode, grantResults)) return
         if (grantResults.isEmpty()) return
         when (requestCode) {
-            MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS -> {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startDownload()
-                }
-            }
-            MY_PERMISSIONS_REQUEST_POST_NOTIFICATIONS_ACCESS -> {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startDownload()
-                }
-            }
             MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     val currentTab = controller.currentTab.value
@@ -767,13 +719,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     override fun onStart() {
         super.onStart()
-        bindService(Intent(this, DownloadService::class.java), downloadServiceConnection, Context.BIND_AUTO_CREATE)
+        downloadLauncher.bindService()
     }
 
     override fun onStop() {
         super.onStop()
-        unbindService(downloadServiceConnection)
-        downloadService = null
+        downloadLauncher.unbindService()
     }
 
     override fun onResume() {
@@ -1154,29 +1105,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             return this@MainActivity
         }
 
-        override fun onDownloadRequested(url: String) {
-            Log.i(TAG, "onDownloadRequested url: $url")
-            val fileName = Uri.parse(url).lastPathSegment
-            val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
-            onDownloadRequested(url, tab.url,
-                fileName, tab.webEngine.userAgentString, mimeType)
-        }
-
-        override fun onDownloadRequested(url: String, referer: String,
-                                         originalDownloadFileName: String?, userAgent: String?, mimeType: String?,
-                                         operationAfterDownload: Download.OperationAfterDownload, base64BlobData: String?,
-                                         stream: InputStream?, size: Long, contentDisposition: String?) {
-            val fileName = DownloadUtils.guessFileName(url, contentDisposition, mimeType)
-
-            this@MainActivity.onDownloadRequested(url, referer, fileName,
-                userAgent, mimeType, operationAfterDownload, base64BlobData, stream, size)
-        }
-
-        override fun onDownloadRequested(url: String, userAgent: String?, contentDisposition: String,
-                                         mimetype: String?, contentLength: Long ) {
-            Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
-            onDownloadRequested(url= url, referer = tab.url, originalDownloadFileName = null,
-                userAgent = userAgent, mimeType = mimetype, size = contentLength, contentDisposition = contentDisposition)
+        override fun onDownloadRequested(request: DownloadRequest) {
+            Log.i(TAG, "onDownloadRequested url: ${request.url}")
+            downloadLauncher.download(request)
         }
 
         override fun requestPermissions(array: Array<String>): Int {
@@ -1325,7 +1256,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                         R.id.miRefreshPage -> tab.webEngine.reload()
                         R.id.miOpenInNewTab -> openInNewTabAfterCurrent(url!!)
                         R.id.miOpenInExternalApp -> onOpenInExternalAppRequested(url!!)
-                        R.id.miDownload -> onDownloadRequested(url!!)
+                        R.id.miDownload -> onDownloadRequested(
+                            DownloadRequest.forLink(url!!, tab.url, tab.webEngine.userAgentString))
                         R.id.miCopyToClipboard -> onCopyTextToClipboardRequested(url!!)
                         R.id.miShare -> onShareUrlRequested(url!!)
                     }
@@ -1363,24 +1295,5 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             .show()
     }
 
-    private val downloadServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            val binder = service as? DownloadService.Binder
-            if (binder == null) {
-                Log.e(TAG, "Download service connection failed")
-                //probably service still in another process due to incognito mode process switch
-                //so we will try to reconnect in a few seconds
-                uiHandler.postDelayed({
-                    bindService(Intent(this@MainActivity, DownloadService::class.java),
-                        this, Context.BIND_AUTO_CREATE)
-                }, 1000)
-                return
-            }
-            downloadService = binder.service
-        }
 
-        override fun onServiceDisconnected(p0: ComponentName?) {
-            downloadService = null
-        }
-    }
 }

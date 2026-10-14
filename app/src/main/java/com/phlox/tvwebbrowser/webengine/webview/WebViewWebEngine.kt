@@ -15,6 +15,7 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
@@ -250,7 +251,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         }
 
         override fun onDownloadRequested(url: String) {
-            callback?.onDownloadRequested(url)
+            callback?.onDownloadRequested(DownloadRequest.forLink(url, tab.url, userAgentString))
         }
 
         override fun onThumbnailError() {
@@ -341,7 +342,8 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         }
 
         override fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long) {
-            callback?.onDownloadRequested(url, userAgent, contentDisposition, mimetype, contentLength)
+            callback?.onDownloadRequested(DownloadRequest(url = url, referer = tab.url, userAgent = userAgent,
+                mimeType = mimetype, contentDisposition = contentDisposition, size = contentLength))
         }
 
         override fun onScaleChanged(oldScale: Float, newScale: Float) {

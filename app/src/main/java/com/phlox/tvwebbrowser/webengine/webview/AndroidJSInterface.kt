@@ -6,8 +6,8 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.DownloadUtils
+import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import org.json.JSONArray
 
 
@@ -103,9 +103,8 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
     fun takeBlobDownloadData(base64BlobData: String, fileName: String?, url: String, mimetype: String) {
         val callback = webEngine.callback ?: return
         val finalFileName = fileName ?: DownloadUtils.guessFileName(url, null, mimetype)
-        callback.onDownloadRequested(url, "",
-                finalFileName, "TV Bro",
-            mimetype, Download.OperationAfterDownload.NOP, base64BlobData)
+        callback.onDownloadRequested(DownloadRequest(url = url, referer = "", userAgent = "TV Bro",
+            fileName = finalFileName, mimeType = mimetype, base64BlobData = base64BlobData))
     }
 
     @JavascriptInterface

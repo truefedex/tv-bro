@@ -2,7 +2,7 @@ package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
 import android.util.Log
 import android.view.PointerIcon
-import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoViewWithVirtualCursor
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import com.phlox.tvwebbrowser.webengine.gecko.R
@@ -94,18 +94,15 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
         val contentDisposition = response.headers["content-disposition"]
         val mimetype = response.headers["content-type"]
         val contentLength = response.headers["content-length"]?.toLongOrNull() ?: 0
-        webEngine.callback?.onDownloadRequested(
-            response.uri,
-            webEngine.url ?: "",
-            null,
-            webEngine.userAgentString,
-            mimetype,
-            Download.OperationAfterDownload.NOP,
-            null,
-            response.body,
-            contentLength,
-            contentDisposition
-        )
+        webEngine.callback?.onDownloadRequested(DownloadRequest(
+            url = response.uri,
+            referer = webEngine.url ?: "",
+            userAgent = webEngine.userAgentString,
+            mimeType = mimetype,
+            contentDisposition = contentDisposition,
+            size = contentLength,
+            stream = response.body
+        ))
     }
 
     override fun onCrash(session: GeckoSession) {
