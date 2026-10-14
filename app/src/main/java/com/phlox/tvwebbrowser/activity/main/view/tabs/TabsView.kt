@@ -108,14 +108,13 @@ class TabsView @JvmOverloads constructor(
     }
   }
 
-  fun onTabTitleUpdated(tab: WebTabState) {
+  /** Title or icon of the tab changed */
+  fun onTabUpdated(tab: WebTabState) {
+    //the update is delivered asynchronously, the tab may be already closed
     val tabIndex = controller.tabsStates.indexOf(tab)
-    adapter.notifyItemChanged(tabIndex)
-  }
-
-  fun onFavIconUpdated(tab: WebTabState) {
-    val tabIndex = controller.tabsStates.indexOf(tab)
-    adapter.notifyItemChanged(tabIndex)
+    if (tabIndex >= 0) {
+      adapter.notifyItemChanged(tabIndex)
+    }
   }
 
   private fun scrollToSeeCurrentTab() {

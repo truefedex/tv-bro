@@ -7,6 +7,7 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -36,6 +37,8 @@ class TabPoliciesTest {
         db = Room.inMemoryDatabaseBuilder(RuntimeEnvironment.getApplication(), AppDatabase::class.java)
             .allowMainThreadQueries().build()
         AppDatabase.setInstanceForTests(db)
+        //the controller reads the current tab engine state
+        WebEngineFactory.initializeForTests(FakeWebEngine.provider)
         controller = BrowserController()
     }
 

@@ -60,6 +60,9 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     var blockedPopups = 0
     @Ignore
     var cachedHostConfig: HostConfig? = null
+    /** The page has a certificate error; cleared when the user navigates somewhere */
+    @Ignore
+    var certificateError = false
 
     private suspend fun saveThumbnail(context: Context) {
         val thumbnail = this.thumbnail

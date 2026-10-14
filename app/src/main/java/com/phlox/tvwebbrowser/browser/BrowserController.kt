@@ -1,10 +1,21 @@
 package com.phlox.tvwebbrowser.browser
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
@@ -12,9 +23,19 @@ import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.EnginePolicies
+import com.phlox.tvwebbrowser.webengine.EngineUiHost
+import com.phlox.tvwebbrowser.webengine.TabEngineEvents
+import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
@@ -38,14 +59,24 @@ class BrowserController : ActiveModel() {
         /** Creates the view of the tab's engine; null if the engine can not create it */
         fun createTabView(tab: WebTabState): View?
 
-        fun engineCallback(tab: WebTabState): WebEngineWindowProviderCallback
-
-        /** Called before the current tab starts loading an url requested by the user or the app */
-        fun onNavigate()
+        /** What the engine of the tab needs from the UI */
+        fun uiHost(tab: WebTabState): EngineUiHost
     }
 
     /** Set while an activity shows the tabs */
     var viewHost: TabViewHost? = null
+    var adBlocker: AdBlocker = object : AdBlocker {
+        override fun isAd(url: Uri, type: String?, baseUri: Uri) = false
+    }
+    var history: BrowsingHistory? = null
+
+    private val _currentTabState = MutableStateFlow(CurrentTabState())
+    val currentTabState: StateFlow<CurrentTabState> = _currentTabState.asStateFlow()
+
+    private val uiEventsChannel = Channel<BrowserUiEvent>(Channel.UNLIMITED)
+    /** One-time events for the UI; should have a single collector */
+    val uiEvents: Flow<BrowserUiEvent> = uiEventsChannel.receiveAsFlow()
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     var loaded = false
     val currentTab = ObservableValue<WebTabState?>(null)
@@ -56,6 +87,7 @@ class BrowserController : ActiveModel() {
     private val writes = TVBro.instance.container.tabWrites
 
     init {
+        currentTab.subscribe({ publishState() }, false)
         tabsStates.subscribe({
             //auto-update positions on any list change
             var positionsChanged = false
@@ -189,6 +221,15 @@ class BrowserController : ActiveModel() {
     }
 
     /**
+     * Opens a new tab right after the current one (at the end if there is no current tab).
+     */
+    fun openInNewTabAfterCurrent(url: String, navigateImmediately: Boolean): WebTabState? {
+        var index = tabsStates.indexOf(currentTab.value)
+        index = if (index == -1) tabsStates.size else index + 1
+        return openInNewTab(url, index, navigateImmediately)
+    }
+
+    /**
      * Opens an empty tab right after the current one for a window the page has opened.
      * @return the engine view of the new tab
      */
@@ -231,7 +272,8 @@ class BrowserController : ActiveModel() {
         Log.d(TAG, "navigate: $url")
         val tab = currentTab.value
         if (tab != null) {
-            viewHost?.onNavigate()
+            tab.certificateError = false
+            publishState()
             tab.url = url
             tab.webEngine.loadUrl(url)
         } else {
@@ -269,6 +311,7 @@ class BrowserController : ActiveModel() {
         val newState = !(tab.adblock ?: config.adBlockEnabled)
         tab.adblock = newState
         tab.webEngine.onUpdateAdblockSetting(newState)
+        publishState()
         return tab
     }
 
@@ -297,7 +340,7 @@ class BrowserController : ActiveModel() {
             }
             needReloadUrl = !newTab.restoreWebView()
         }
-        newTab.webEngine.onAttachToWindow(host.engineCallback(newTab), host.tabsContainer)
+        newTab.webEngine.onAttachToWindow(engineCallback(newTab, host), host.tabsContainer)
         if (needReloadUrl) {
             newTab.webEngine.loadUrl(newTab.url)
         }
@@ -339,5 +382,190 @@ class BrowserController : ActiveModel() {
         val hostConfig = findOrCreateHostConfig(tab) ?: return
         hostConfig.popupBlockLevel = newLevel
         AppDatabase.db.hostsDao().update(hostConfig)
+    }
+
+    private fun engineCallback(tab: WebTabState, host: TabViewHost): WebEngineWindowProviderCallback {
+        val policies = TabPolicies(tab, this, adBlocker, config)
+        val events = TabEvents(tab, policies)
+        val uiHost = host.uiHost(tab)
+        return object : WebEngineWindowProviderCallback,
+            TabEngineEvents by events, EnginePolicies by policies, EngineUiHost by uiHost {}
+    }
+
+    private fun sendUiEvent(event: BrowserUiEvent) {
+        uiEventsChannel.trySend(event)
+    }
+
+    /**
+     * Updates [currentTabState] from the current tab. Can be called from any thread.
+     */
+    private fun publishState() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { publishState() }
+            return
+        }
+        val tab = currentTab.value
+        _currentTabState.value = if (tab == null) CurrentTabState() else CurrentTabState(
+            tabIdentity = System.identityHashCode(tab),
+            hasTab = true,
+            url = tab.url,
+            title = tab.title,
+            canGoBack = tab.webEngine.canGoBack(),
+            canGoForward = tab.webEngine.canGoForward(),
+            adBlockEnabled = tab.adblock ?: config.adBlockEnabled,
+            blockedAds = tab.blockedAds,
+            blockedPopups = tab.blockedPopups,
+            certificateError = tab.certificateError
+        )
+    }
+
+    private fun needsLocalNetworkPermission(url: String): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN &&
+            Utils.isLocalNetworkUrl(url) &&
+            ContextCompat.checkSelfPermission(AppContext.get(), Manifest.permission.ACCESS_LOCAL_NETWORK) !=
+                PackageManager.PERMISSION_GRANTED
+
+    /**
+     * What the engine of the [tab] reports. The engine calls it only while the tab is the current one.
+     */
+    private inner class TabEvents(val tab: WebTabState, val policies: TabPolicies) : TabEngineEvents {
+        override fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine? {
+            val newTab = openInNewTabAfterCurrent(url, navigateImmediately) ?: return null
+            sendUiEvent(BrowserUiEvent.TabOpenedByPage)
+            return newTab.webEngine
+        }
+
+        override fun onProgressChanged(newProgress: Int) {
+            sendUiEvent(BrowserUiEvent.Progress(newProgress))
+        }
+
+        override fun onReceivedTitle(title: String) {
+            tab.title = title
+            sendUiEvent(BrowserUiEvent.TabUpdated(tab))
+            history?.onTabTitleUpdated(tab)
+            publishState()
+        }
+
+        override fun onReceivedIcon(icon: Bitmap) {
+            sendUiEvent(BrowserUiEvent.TabUpdated(tab))
+        }
+
+        override fun shouldOverrideUrlLoading(url: String): Boolean {
+            tab.lastLoadingUrl = url
+
+            when (UrlRouter.route(url, ::needsLocalNetworkPermission)) {
+                UrlRouter.UrlRoute.BLOCK -> return true
+                UrlRouter.UrlRoute.LOAD -> return false
+                UrlRouter.UrlRoute.REQUEST_LOCAL_NETWORK_PERMISSION -> {
+                    sendUiEvent(BrowserUiEvent.LocalNetworkPermissionNeeded)
+                    return true
+                }
+                UrlRouter.UrlRoute.OPEN_INTENT_URI -> {
+                    sendUiEvent(BrowserUiEvent.OpenInExternalApp(url))
+                    return true
+                }
+                UrlRouter.UrlRoute.OPEN_IN_EXTERNAL_APP -> {}
+            }
+
+            //try to handle intent for non-network urls by external apps
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                if (intent.resolveActivity(AppContext.get().packageManager) != null) {
+                    sendUiEvent(BrowserUiEvent.AskToOpenInExternalApp(url, intent))
+                } else {
+                    Log.d(TAG, "shouldOverrideUrlLoading: no activity to handle intent")
+                    sendUiEvent(BrowserUiEvent.NoAppToOpenUrl)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "shouldOverrideUrlLoading: ", e)
+            }
+            return true
+        }
+
+        private fun updateUrl(url: String?) {
+            val engineUrl = tab.webEngine.url
+            if (engineUrl != null) {
+                tab.url = engineUrl
+            } else if (url != null) {
+                tab.url = url
+            }
+        }
+
+        override fun onPageStarted(url: String?) {
+            updateUrl(url)
+            tab.blockedAds = 0
+            tab.blockedPopups = 0
+            publishState()
+        }
+
+        override fun onPageFinished(url: String?) {
+            if (currentTab.value == null) {
+                return
+            }
+            updateUrl(url)
+            publishState()
+
+            //keep only the thumbnail of this tab in memory
+            tabsStates.onEach { if (it != tab) it.thumbnail = null }
+            modelScope.launch {
+                val newThumbnail = tab.webEngine.renderThumbnail(tab.thumbnail)
+                if (newThumbnail != null) {
+                    tab.updateThumbnail(AppContext.get(), newThumbnail)
+                    sendUiEvent(BrowserUiEvent.ThumbnailUpdated(tab))
+                }
+            }
+        }
+
+        override fun onPageCertificateError(url: String?) {
+            tab.certificateError = true
+            publishState()
+        }
+
+        override fun onBlockedAd(uri: String) {
+            Log.i(TAG, "onBlockedAd: $uri")
+            if (!config.adBlockEnabled) return
+            tab.blockedAds++
+            publishState()
+        }
+
+        override fun onBlockedDialog(newTab: Boolean) {
+            tab.blockedPopups++
+            publishState()
+            sendUiEvent(BrowserUiEvent.PopupBlocked(newTab))
+        }
+
+        override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View? {
+            if (policies.shouldBlockNewWindow(dialog, userGesture)) {
+                onBlockedDialog(!dialog)
+                return null
+            }
+            return openWindowTab()
+        }
+
+        override fun closeWindow(internalRepresentation: Any) {
+            val tabToClose = findTabBySession(internalRepresentation) ?: return
+            closeTab(tabToClose)
+            sendUiEvent(BrowserUiEvent.TabClosedByPage)
+        }
+
+        override fun onScaleChanged(oldScale: Float, newScale: Float) {
+            Log.d(TAG, "onScaleChanged: oldScale: $oldScale newScale: $newScale")
+            tab.scale = newScale
+        }
+
+        override fun onVisited(url: String) {
+            //current behavior: title and favicon are taken from the current tab, not from this one
+            val currentTab = currentTab.value ?: return
+            if (!config.incognitoMode) {
+                history?.logVisitedHistory(currentTab.title, url, currentTab.faviconHash)
+            }
+        }
+
+        override fun getHomePageLinks(): List<HomePageLink> = history?.homePageLinks ?: emptyList()
+
+        override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
+            history?.markBookmarkRecommendationAsUseful(bookmarkOrder)
+        }
     }
 }

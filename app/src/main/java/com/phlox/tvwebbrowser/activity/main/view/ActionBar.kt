@@ -123,12 +123,14 @@ class ActionBar @JvmOverloads constructor(
     }
 
     fun setAddressBoxText(text: String) {
-        if (text == Config.HOME_PAGE_URL) {
-            vb.etUrl.setText("")
-        } else {
-            vb.etUrl.setText(text)
+        val newText = if (text == Config.HOME_PAGE_URL) "" else text
+        if (vb.etUrl.text.toString() != newText) {
+            vb.etUrl.setText(newText)
         }
     }
+
+    /** The user is editing the address */
+    fun isAddressBoxFocused(): Boolean = vb.etUrl.hasFocus()
 
     fun setAddressBoxTextColor(color: Int) {
         vb.etUrl.setTextColor(color)

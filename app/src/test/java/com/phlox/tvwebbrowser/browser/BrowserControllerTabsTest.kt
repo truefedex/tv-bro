@@ -1,9 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
 import android.os.Looper
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.room.Room
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
@@ -11,7 +8,6 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
-import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import kotlinx.coroutines.launch
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -25,31 +21,13 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
-import java.lang.reflect.Proxy
 
 @RunWith(RobolectricTestRunner::class)
 class BrowserControllerTabsTest {
     private val context get() = RuntimeEnvironment.getApplication()
     private lateinit var db: AppDatabase
     private lateinit var controller: BrowserController
-    private lateinit var host: FakeHost
-
-    private class FakeHost(context: android.content.Context) : BrowserController.TabViewHost {
-        override val tabsContainer: ViewGroup = FrameLayout(context)
-        var canCreateViews = true
-        var navigations = 0
-        val engineCallback = Proxy.newProxyInstance(javaClass.classLoader,
-            arrayOf(WebEngineWindowProviderCallback::class.java)) { _, _, _ -> null } as WebEngineWindowProviderCallback
-
-        override fun createTabView(tab: WebTabState): View? =
-            if (canCreateViews) tab.webEngine.getOrCreateView(tabsContainer.context) else null
-
-        override fun engineCallback(tab: WebTabState): WebEngineWindowProviderCallback = engineCallback
-
-        override fun onNavigate() {
-            navigations++
-        }
-    }
+    private lateinit var host: FakeTabViewHost
 
     @Before
     fun setUp() {
@@ -57,7 +35,7 @@ class BrowserControllerTabsTest {
         AppDatabase.setInstanceForTests(db)
         WebEngineFactory.initializeForTests(FakeWebEngine.provider)
         controller = BrowserController()
-        host = FakeHost(context)
+        host = FakeTabViewHost(context)
         controller.viewHost = host
     }
 
@@ -91,7 +69,7 @@ class BrowserControllerTabsTest {
         assertTrue(b.selected)
         assertFalse(a.selected)
         assertSame(host.tabsContainer, b.fakeEngine.parent)
-        assertSame(host.engineCallback, b.fakeEngine.callback)
+        assertTrue(b.fakeEngine.callback != null)
         assertEquals("https://b.com/", b.fakeEngine.url)
         assertEquals(listOf(0, 1), controller.tabsStates.map { it.position })
     }
@@ -101,7 +79,6 @@ class BrowserControllerTabsTest {
         //the view is created before the tab is selected, so there is nothing to restore or reload
         val tab = controller.openInNewTab("https://a.com/", 0, navigateImmediately = false)!!
         assertTrue(tab.fakeEngine.loadedUrls.isEmpty())
-        assertEquals(0, host.navigations)
     }
 
     @Test
@@ -230,11 +207,9 @@ class BrowserControllerTabsTest {
     @Test
     fun navigateLoadsTheUrlInTheCurrentTab() {
         val (a) = open("https://a.com/")
-        host.navigations = 0
         controller.navigate("https://b.com/")
         assertEquals("https://b.com/", a.url)
         assertEquals("https://b.com/", a.fakeEngine.url)
-        assertEquals(1, host.navigations)
         assertEquals(1, controller.tabsStates.size)
     }
 
@@ -283,7 +258,7 @@ class BrowserControllerTabsTest {
     @Test
     fun detachingAnotherActivityKeepsTheViewHost() {
         open("https://a.com/")
-        controller.onDetachActivity(FakeHost(context))
+        controller.onDetachActivity(FakeTabViewHost(context))
         assertSame(host, controller.viewHost)
         controller.onDetachActivity(host)
         assertNull(controller.viewHost)

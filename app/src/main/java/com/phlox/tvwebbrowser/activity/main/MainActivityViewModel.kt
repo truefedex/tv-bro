@@ -7,6 +7,7 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.browser.BrowsingHistory
 import com.phlox.tvwebbrowser.browser.VisitedHistoryLogger
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.HistoryItem
@@ -27,7 +28,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-class MainActivityViewModel: ActiveModel() {
+class MainActivityViewModel: ActiveModel(), BrowsingHistory {
     companion object {
         var TAG: String = MainActivityViewModel::class.java.simpleName
         const val WEB_VIEW_DATA_FOLDER = "app_webview"
@@ -46,7 +47,7 @@ class MainActivityViewModel: ActiveModel() {
             override suspend fun updateTitle(id: Long, title: String) =
                 AppDatabase.db.historyDao().updateTitle(id, title)
         })
-    val homePageLinks = ObservableList<HomePageLink>()
+    override val homePageLinks = ObservableList<HomePageLink>()
     val config = AppContext.provideConfig()
 
     fun loadState() = modelScope.launch(Dispatchers.Main) {
@@ -167,11 +168,11 @@ class MainActivityViewModel: ActiveModel() {
         }
     }
 
-    fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
+    override fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
         historyLogger.logVisited(title, url, faviconHash)
     }
 
-    fun onTabTitleUpdated(tab: WebTabState) {
+    override fun onTabTitleUpdated(tab: WebTabState) {
         Log.d(TAG, "onTabTitleUpdated: ${tab.url} ${tab.title}")
         if (AppContext.provideConfig().incognitoMode) return
         historyLogger.onTitleUpdated(tab.url, tab.title)
@@ -287,7 +288,7 @@ class MainActivityViewModel: ActiveModel() {
         }
     }
 
-    fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
+    override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
         val link = homePageLinks.find { it.order == bookmarkOrder } ?: return
         val favoriteId = link.favoriteId ?: return
         if (link.validUntil == null) return
