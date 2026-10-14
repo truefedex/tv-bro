@@ -49,7 +49,6 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
-import com.phlox.tvwebbrowser.utils.Utils
 import java.net.URLEncoder
 import java.util.UUID
 
@@ -377,7 +376,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                             relativePath = "index.html"
                         }
                         val assetsPath = "pages/home/$relativePath"
-                        val response = Utils.getWebResourceResponseFromAssets(view.context, assetsPath)
+                        val response = HomePageHelper.getWebResourceResponseFromAssets(view.context, assetsPath)
                         if (response != null) {
                             Log.d(TAG, "shouldInterceptRequest url: ${request.url} -> $assetsPath")
                             return response

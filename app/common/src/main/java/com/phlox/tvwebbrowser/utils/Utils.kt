@@ -7,13 +7,10 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.os.Parcel
-import android.webkit.WebResourceResponse
 import android.widget.Toast
 import java.io.File
-import java.io.IOException
 import java.math.BigInteger
 import java.net.InetAddress
-import java.net.URLConnection
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
@@ -119,16 +116,6 @@ object Utils {
             parcel.recycle()
             bundle!!
         } catch (e: Exception) {
-            null
-        }
-    }
-
-    fun getWebResourceResponseFromAssets(context: Context, path: String): WebResourceResponse? {
-        return try {
-            val inputStream = context.assets.open(path)
-            val mimeType = URLConnection.guessContentTypeFromName(path) ?: "application/octet-stream"
-            WebResourceResponse(mimeType, "UTF-8", inputStream)
-        } catch (e: IOException) {
             null
         }
     }

@@ -4,15 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import android.util.LruCache
-import android.webkit.WebChromeClient
-import android.webkit.WebView
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.utils.FaviconExtractor
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.URL
@@ -23,7 +18,6 @@ object FaviconsPool {
     private val TAG: String = FaviconsPool::class.java.simpleName
 
     val faviconExtractor = FaviconExtractor()
-    private val saveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     var databaseDelegate: DatabaseDelegate = object : DatabaseDelegate {}
 
     interface DatabaseDelegate {
@@ -112,29 +106,38 @@ object FaviconsPool {
                     }
                     favicons.remove(icon)
                 }
-                //try to get favicon from webview
-                withContext(Dispatchers.Main) {
-                    WebView(AppContext.get()).apply {
-                        webChromeClient = object : WebChromeClient() {
-                            override fun onReceivedIcon(view: WebView?, icon: Bitmap?) {
-                                super.onReceivedIcon(view, icon)
-                                if (icon != null) {
-                                    Log.d(TAG, "get: favicon received from webview for $host")
-                                    cache.put(host, icon)
-                                    saveScope.launch {
-                                        saveFavicon(host, icon, hostConfig)
-                                    }
-                                }
-                            }
-                        }
-                        loadUrl(urlOrHost)
-                    }
-                }
+                //the web engine might have reported an icon meanwhile
+                return cache.get(host)
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
         return null
+    }
+
+    /**
+     * Remembers the icon a web engine reported for a page, unless an icon of its host is already known:
+     * icons found in the page HTML are usually bigger than the ones engines report.
+     * @param persist false to keep it only in memory (incognito mode)
+     */
+    suspend fun putIfAbsent(url: String, icon: Bitmap, persist: Boolean) {
+        if (!url.startsWith("http://", true) && !url.startsWith("https://", true)) return
+        val host = try { URL(url).host } catch (e: Exception) { null }
+        if (host.isNullOrEmpty() || cache.get(host) != null) return
+        val hostConfig = withContext(Dispatchers.IO) {
+            databaseDelegate.findByHostName(host)
+        }
+        val knownFavicon = hostConfig?.favicon
+        if (knownFavicon != null && withContext(Dispatchers.IO) { File(favIconsDir(), knownFavicon).exists() }) return
+        Log.d(TAG, "putIfAbsent: favicon received from the web engine for $host")
+        cache.put(host, icon)
+        if (persist) {
+            try {
+                saveFavicon(host, icon, hostConfig)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun clear() {

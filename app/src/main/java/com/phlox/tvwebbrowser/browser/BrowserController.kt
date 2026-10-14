@@ -20,6 +20,7 @@ import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
+import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
@@ -479,7 +480,11 @@ class BrowserController : ActiveModel() {
         }
 
         override fun onReceivedIcon(icon: Bitmap) {
-            sendUiEvent(BrowserUiEvent.TabUpdated(tab))
+            val url = tab.url
+            modelScope.launch {
+                FaviconsPool.putIfAbsent(url, icon, persist = !config.incognitoMode)
+                sendUiEvent(BrowserUiEvent.TabUpdated(tab))
+            }
         }
 
         override fun shouldOverrideUrlLoading(url: String): Boolean {
