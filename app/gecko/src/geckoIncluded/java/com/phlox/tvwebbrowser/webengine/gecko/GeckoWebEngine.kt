@@ -17,7 +17,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
-import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
+import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppContentScriptPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppHomeContentScriptPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppWebExtensionBackgroundPortDelegate
@@ -148,7 +148,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
 
     private var webView: GeckoViewWithVirtualCursor? = null
     lateinit var session: GeckoSession
-    var callback: WebEngineWindowProviderCallback? = null
+    var callback: WebEngineCallbacks? = null
     val navigationDelegate = MyNavigationDelegate(this)
     val progressDelegate = MyProgressDelegate(this)
     val promptDelegate = MyPromptDelegate(this)
@@ -415,7 +415,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
     }
 
     override fun onAttachToWindow(
-        callback: WebEngineWindowProviderCallback,
+        callback: WebEngineCallbacks,
         parent: ViewGroup
     ) {
         Log.d(TAG, "onAttachToWindow()")

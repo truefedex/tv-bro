@@ -9,7 +9,7 @@ import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
-import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
+import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 
@@ -29,7 +29,7 @@ class FakeWebEngine(val tab: WebTabState) : WebEngine {
 
     val log = ArrayList<String>()
     val loadedUrls = ArrayList<String>()
-    var callback: WebEngineWindowProviderCallback? = null
+    var callback: WebEngineCallbacks? = null
     var parent: ViewGroup? = null
     var engineView: View? = null
     var canGoBackValue = false
@@ -64,7 +64,7 @@ class FakeWebEngine(val tab: WebTabState) : WebEngine {
     override fun togglePlayback() {}
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? = null
 
-    override fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup) {
+    override fun onAttachToWindow(callback: WebEngineCallbacks, parent: ViewGroup) {
         log += "attach"
         this.callback = callback
         this.parent = parent

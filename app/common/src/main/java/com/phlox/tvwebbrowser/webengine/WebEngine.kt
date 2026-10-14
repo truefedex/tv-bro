@@ -39,7 +39,7 @@ interface WebEngine {
     /**
      * At this point of time web view should be already created but not attached to window
      */
-    fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup)
+    fun onAttachToWindow(callback: WebEngineCallbacks, parent: ViewGroup)
     fun onDetachFromWindow(completely: Boolean, destroyTab: Boolean)
     fun trimMemory()
     fun isSameSession(internalRepresentation: Any): Boolean

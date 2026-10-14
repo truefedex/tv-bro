@@ -7,7 +7,7 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
-import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
+import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -84,7 +84,7 @@ class BrowserControllerEventsTest {
     private fun open(url: String): WebTabState =
         controller.openInNewTab(url, controller.tabsStates.size, navigateImmediately = true)!!
 
-    private val WebTabState.callback: WebEngineWindowProviderCallback get() = fakeEngine.callback!!
+    private val WebTabState.callback: WebEngineCallbacks get() = fakeEngine.callback!!
     private val state get() = controller.currentTabState.value
 
     @Test

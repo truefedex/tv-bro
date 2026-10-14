@@ -21,14 +21,14 @@ import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
-import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
+import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 
 
 class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.Callback {
     private var webView: WebViewEx? = null
-    internal var callback: WebEngineWindowProviderCallback? = null
+    internal var callback: WebEngineCallbacks? = null
     private var viewParent: CursorLayout? = null
     private var fullScreenView: View? = null
     private val jsInterface = AndroidJSInterface(this)
@@ -170,7 +170,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         return webView?.renderThumbnail(bitmap)
     }
 
-    override fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup) {
+    override fun onAttachToWindow(callback: WebEngineCallbacks, parent: ViewGroup) {
         this.callback = callback
         if (webView == null) {
             throw IllegalStateException("WebView is null")

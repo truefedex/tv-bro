@@ -77,7 +77,11 @@ interface EngineUiHost {
 }
 
 /**
- * Temporary union of the interfaces above: engines still receive one callback object.
- * Will be removed when engines get the parts separately.
+ * What a web engine talks to while its tab is shown: the browser core ([events], [policies])
+ * and the UI ([uiHost]). Each part is available separately; the object itself delegates all of them.
  */
-interface WebEngineWindowProviderCallback : TabEngineEvents, EnginePolicies, EngineUiHost
+class WebEngineCallbacks(
+    val events: TabEngineEvents,
+    val policies: EnginePolicies,
+    val uiHost: EngineUiHost
+) : TabEngineEvents by events, EnginePolicies by policies, EngineUiHost by uiHost

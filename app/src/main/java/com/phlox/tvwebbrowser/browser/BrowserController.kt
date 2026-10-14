@@ -24,11 +24,10 @@ import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
-import com.phlox.tvwebbrowser.webengine.EnginePolicies
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.TabEngineEvents
 import com.phlox.tvwebbrowser.webengine.WebEngine
-import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
+import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -411,12 +410,9 @@ class BrowserController : ActiveModel() {
         AppDatabase.db.hostsDao().update(hostConfig)
     }
 
-    private fun engineCallback(tab: WebTabState, host: TabViewHost): WebEngineWindowProviderCallback {
+    private fun engineCallback(tab: WebTabState, host: TabViewHost): WebEngineCallbacks {
         val policies = TabPolicies(tab, this, adBlocker, config)
-        val events = TabEvents(tab, policies)
-        val uiHost = host.uiHost(tab)
-        return object : WebEngineWindowProviderCallback,
-            TabEngineEvents by events, EnginePolicies by policies, EngineUiHost by uiHost {}
+        return WebEngineCallbacks(TabEvents(tab, policies), policies, host.uiHost(tab))
     }
 
     private fun sendUiEvent(event: BrowserUiEvent) {
