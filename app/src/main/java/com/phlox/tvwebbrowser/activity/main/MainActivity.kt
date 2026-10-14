@@ -368,7 +368,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.llTabPanel.visibility = View.GONE
         loadBookmarks()
         vb.rlBookmarksPanel.visibility = View.VISIBLE
-        vb.vBookmarks.requestFocus()
+        focusPanel(vb.vBookmarks)
         updateCurrentPageBookmarkEntry()
     }
 
@@ -499,7 +499,22 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         } else {
             vb.rlBookmarksPanel.visibility = View.GONE
             vb.llTabPanel.visibility = View.VISIBLE
-            vb.vTabs.requestFocus()
+            focusPanel(vb.vTabs)
+        }
+    }
+
+    /**
+     * Gives a panel that has just been made visible the focus. A plain requestFocus() is not
+     * enough: the panel was GONE, so the views inside it are not laid out yet, and when the device
+     * is in touch mode (a tap anywhere puts it there) a view that is not focusable in touch mode
+     * cannot take focus at all - the panel then stayed unfocused and the D-pad went straight back
+     * to the top bar. requestFocusFromTouch() leaves touch mode first; the post is a second chance
+     * for the case where the first request only marked the panel as "wants focus".
+     */
+    private fun focusPanel(panel: View) {
+        panel.requestFocusFromTouch()
+        panel.post {
+            if (panel.isVisible && !panel.hasFocus()) panel.requestFocus()
         }
     }
 
@@ -551,6 +566,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     fun refresh() {
         tabsModel.currentTab.value?.webEngine?.reload()
+    }
+
+    /** Public entry point for the Close tab shortcut (the overflow menu calls [closeTab] directly). */
+    fun closeCurrentTab() {
+        closeTab(tabsModel.currentTab.value)
     }
 
     override fun onDestroy() {

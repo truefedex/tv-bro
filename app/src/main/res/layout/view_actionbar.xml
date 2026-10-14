@@ -93,6 +93,9 @@
         android:gravity="center_vertical"
         android:imeOptions="actionSearch"
         android:hint="@string/url_prompt"
+        android:cursorVisible="false"
+        android:nextFocusLeft="@+id/ibRefresh"
+        android:nextFocusRight="@+id/ibFavorites"
         android:inputType="textFilter|textNoSuggestions|textUri"
         android:importantForAutofill="no" />
   </FrameLayout>
@@ -105,6 +108,7 @@
       android:padding="8dp"
       android:layout_marginEnd="2dp"
       android:src="@drawable/ic_star_border_grey_900_36dp"
+      android:nextFocusLeft="@+id/etUrl"
       android:nextFocusRight="@+id/ibMedia"
       android:background="@drawable/icon_button_bg_selector"
       android:contentDescription="@string/bookmarks" />

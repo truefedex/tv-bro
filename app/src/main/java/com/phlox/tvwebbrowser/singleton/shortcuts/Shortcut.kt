@@ -22,7 +22,8 @@ enum class Shortcut private constructor(var titleResId: Int, var prefsKey: Strin
     //do not change prefsKey: existing user key bindings are stored under it
     TOGGLE_TABS_PANEL(R.string.tabs, "shortcut_toggle_tabs_panel", 0),
     SHOW_STREAMS(R.string.media_list, "shortcut_show_streams", 0),
-    SHOW_BOOKMARKS(R.string.bookmarks, "shortcut_show_bookmarks", 0);
+    SHOW_BOOKMARKS(R.string.bookmarks, "shortcut_show_bookmarks", 0),
+    CLOSE_TAB(R.string.close_tab, "shortcut_close_tab", 0);
 
     companion object {
         private fun modifiersToString(modifiers: Int): String {

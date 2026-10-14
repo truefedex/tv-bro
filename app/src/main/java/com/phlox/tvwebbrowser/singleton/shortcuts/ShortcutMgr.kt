@@ -100,6 +100,9 @@ class ShortcutMgr private constructor() {
             Shortcut.SHOW_BOOKMARKS -> {
                 mainActivity.showFavorites()
             }
+            Shortcut.CLOSE_TAB -> {
+                mainActivity.closeCurrentTab()
+            }
         }
     }
 

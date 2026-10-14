@@ -88,14 +88,20 @@ class BookmarksPanelView @JvmOverloads constructor(
     }
 
     override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
+        super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
         if (gainFocus) {
-            if (vb.llAddThisPage.isVisible) {
-                vb.llAddThisPage.requestFocus()
-            } else if (vb.rvBookmarks.childCount > 0) {
-                vb.rvBookmarks.getChildAt(0).requestFocus()
-            }
-        } else {
-            super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
+            // The panel is made VISIBLE and focused in the same frame, so the RecyclerView may
+            // still have no laid-out rows. Post so the first row can take focus once layout has
+            // run; without it focus stays on this full-size container and the D-pad escapes back
+            // to the top bar instead of moving through the list.
+            post { focusFirstRow() }
         }
+    }
+
+    private fun focusFirstRow() {
+        if (!isAttachedToWindow || !hasFocus()) return
+        val target = if (vb.llAddThisPage.isVisible) vb.llAddThisPage
+            else vb.rvBookmarks.getChildAt(0) ?: return
+        target.requestFocus()
     }
 }

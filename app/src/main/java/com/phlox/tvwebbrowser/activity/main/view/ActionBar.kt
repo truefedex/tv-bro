@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.View.OnKeyListener
 import android.view.inputmethod.InputMethodManager
@@ -23,6 +24,12 @@ class ActionBar @JvmOverloads constructor(
     private val vb = ViewActionbarBinding.inflate( LayoutInflater.from(context),this)
     var callback: Callback? = null
     private var extendedAddressBarMode = false
+
+    /**
+     * True while the address box is a text field (keyboard up, caret/cursor keys active). It is
+     * false while the box merely holds the focus, in which case it behaves like a button.
+     */
+    private var urlEditMode = false
 
     interface Callback {
         fun closeWindow()
@@ -45,34 +52,50 @@ class ActionBar @JvmOverloads constructor(
 
     private val etUrlFocusChangeListener = OnFocusChangeListener { _, focused ->
         if (focused) {
-            enterExtendedAddressBarMode()
-
-            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-
-            imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_IMPLICIT)
-            postDelayed(//workaround an android TV bug
-                {
-                    vb.etUrl.selectAll()
-                }, 500)
+            // Landing on the address box with the remote must not start text editing: otherwise the
+            // keyboard pops up unasked and LEFT/RIGHT are swallowed by the caret, so crossing the
+            // (wide) url box means stepping over every character instead of reaching the buttons on
+            // either side. Editing starts on OK/ENTER, on a tap (see the click listener) or simply
+            // by typing on a hardware keyboard.
+            setUrlEditMode(false)
         } else {
             dismissExtendedAddressBarMode()
         }
     }
 
-    private val etUrlKeyListener = OnKeyListener { view, i, keyEvent ->
-        when (keyEvent.keyCode) {
-            KeyEvent.KEYCODE_ENTER -> {
-                if (keyEvent.action == KeyEvent.ACTION_UP) {
-                    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
-                    callback?.search(vb.etUrl.text.toString())
-                    dismissExtendedAddressBarMode()
-                    callback?.onUrlInputDone()
-                }
+    private val etUrlKeyListener = OnKeyListener { _, keyCode, keyEvent ->
+        if (urlEditMode) {
+            if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                if (keyEvent.action == KeyEvent.ACTION_UP) commitUrl()
                 return@OnKeyListener true
             }
+            return@OnKeyListener false
         }
-        false
+        when (keyCode) {
+            KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_DPAD_CENTER -> {
+                if (keyEvent.action == KeyEvent.ACTION_UP) setUrlEditMode(true, selectAll = true)
+                true
+            }
+            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                if (keyEvent.action == KeyEvent.ACTION_DOWN) {
+                    val direction =
+                        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) View.FOCUS_LEFT else View.FOCUS_RIGHT
+                    vb.etUrl.focusSearch(direction)?.requestFocus()
+                }
+                true
+            }
+            // Editing keys must not change the displayed url while the box is not being edited.
+            KeyEvent.KEYCODE_DEL, KeyEvent.KEYCODE_FORWARD_DEL -> true
+            else -> {
+                // A hardware keyboard means "I want to type this": switch to editing and let it in.
+                if (keyEvent.action == KeyEvent.ACTION_DOWN && keyEvent.isPrintingKey) {
+                    setUrlEditMode(true, selectAll = false)
+                    false
+                } else {
+                    false
+                }
+            }
+        }
     }
 
     init {
@@ -101,6 +124,10 @@ class ActionBar @JvmOverloads constructor(
         vb.etUrl.onFocusChangeListener = etUrlFocusChangeListener
 
         vb.etUrl.setOnKeyListener(etUrlKeyListener)
+
+        // The framework shows the keyboard when an editable field is tapped, so a touch (or an air
+        // mouse) must also leave the box in edit mode, not in its button-like state.
+        vb.etUrl.setOnClickListener { setUrlEditMode(true, selectAll = true) }
     }
 
     fun setAddressBoxText(text: String) {
@@ -146,7 +173,9 @@ class ActionBar @JvmOverloads constructor(
         val visible = count > 0
         vb.flMediaButton.visibility = if (visible) VISIBLE else GONE
         vb.ibMedia.isFocusable = visible
-        vb.tvMediaCounter.visibility = if (visible) VISIBLE else GONE
+        // The button already means "a stream was detected", so a lone stream needs no number: the
+        // badge only adds information once there is a choice to make.
+        vb.tvMediaCounter.visibility = if (count > 1) VISIBLE else GONE
         vb.tvMediaCounter.text = count.toString()
     }
 
@@ -159,7 +188,8 @@ class ActionBar @JvmOverloads constructor(
         val visible = count > 1
         vb.flTabsButton.visibility = if (visible) VISIBLE else GONE
         vb.ibTabs.isFocusable = visible
-        vb.tvTabsCounter.visibility = if (visible) VISIBLE else GONE
+        // As on the stream button, a badge with "1" would say nothing the button does not already.
+        vb.tvTabsCounter.visibility = if (count > 1) VISIBLE else GONE
         vb.tvTabsCounter.text = count.toString()
     }
 
@@ -186,6 +216,43 @@ class ActionBar @JvmOverloads constructor(
     }
 
     /**
+     * Switches the address box between its button-like state and text editing. Selecting the whole
+     * url ([selectAll]) makes an OK-triggered edit start by replacing the current address.
+     */
+    private fun setUrlEditMode(editing: Boolean, selectAll: Boolean = false) {
+        if (urlEditMode == editing) {
+            if (editing && selectAll) selectAllLater()
+            return
+        }
+        urlEditMode = editing
+        vb.etUrl.isCursorVisible = editing
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        if (editing) {
+            enterExtendedAddressBarMode()
+            imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_IMPLICIT)
+            if (selectAll) selectAllLater()
+        } else {
+            imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
+        }
+    }
+
+    private fun selectAllLater() {
+        postDelayed(//workaround an android TV bug
+            {
+                if (urlEditMode) vb.etUrl.selectAll()
+            }, 500)
+    }
+
+    private fun commitUrl() {
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
+        setUrlEditMode(false)
+        callback?.search(vb.etUrl.text.toString())
+        dismissExtendedAddressBarMode()
+        callback?.onUrlInputDone()
+    }
+
+    /**
      * The top bar is pinned and always reserves space, so URL-edit mode must never hide the
      * navigation/action buttons: the address box simply expands into the free space (it has
      * layout_weight=1). Hiding them here used to collapse the bar down to just the URL and, worse,
@@ -199,6 +266,7 @@ class ActionBar @JvmOverloads constructor(
     }
 
     fun dismissExtendedAddressBarMode() {
+        setUrlEditMode(false)
         if (!extendedAddressBarMode) return
         extendedAddressBarMode = false
     }

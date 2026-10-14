@@ -115,6 +115,21 @@
   `@dimen/toolbar_button_size` (48dp) tall instead of being stretched by the URL box.
   New colors in `values/` (subtle grey `#E0E0E0` pill, white `#FFFFFF` when focused, `#006EC5`
   stroke) and `values-night/` (`#3A3A3A` / `#454545` / `#5FACFF`).
+  The box is now **a button until it is activated**: merely holding the focus no longer starts text
+  editing. `ActionBar` keeps a `urlEditMode` flag which is false while the box only has the focus,
+  and in that state `etUrlKeyListener` consumes `DPAD_LEFT`/`DPAD_RIGHT` and walks the focus chain
+  itself (`focusSearch` → `nextFocusLeft`/`nextFocusRight` on `etUrl`, mirrored by
+  `ibFavorites.nextFocusLeft`), so crossing the wide pill is one press instead of one per character.
+  Editing starts on `KEYCODE_ENTER`/`KEYCODE_DPAD_CENTER` (which select the whole url so a new
+  address can be typed straight away), on a tap/click, or on any printable key from a hardware
+  keyboard; outside edit mode `DEL`/`FORWARD_DEL` are swallowed so a stray key cannot silently change
+  the displayed url. `isCursorVisible` follows the flag, the keyboard is shown/hidden in
+  `setUrlEditMode()`, and leaving edit mode (focus loss, `dismissExtendedAddressBarMode()`, a
+  committed url via `commitUrl()`) returns the box to its button state. Verified on emulator:
+  `ibRefresh → RIGHT → etUrl` with no IME and no caret, `RIGHT` again → `ibFavorites` (and back with
+  `LEFT`/`LEFT`); `ENTER` → keyboard up + url selected, typing replaces it, `ENTER` → navigates and
+  the keyboard hides; `input text` while the box merely has focus enters edit mode by itself; a tap
+  on the box also opens the keyboard.
 - **Light/dark theme toggle, applied live.**
   `Config.Theme` (`SYSTEM/WHITE/BLACK`) already existed and was wired to
   `AppCompatDelegate.setDefaultNightMode`, but `MainActivity` declares `uiMode` in
@@ -134,7 +149,10 @@
   `flMediaButton`) are now hidden as a whole when there is nothing to act on:
   `ActionBar.setTabsCounter(count)` hides the tab button (and its `tvTabsCounter` badge) when
   `count <= 1` — the panel is only needed to switch between tabs, and new tabs can still be created
-  from the menu — and `setMediaCounter(count)` hides the stream button when `count <= 0`. The tab
+  from the menu — and `setMediaCounter(count)` hides the stream button when `count <= 0`. Both
+  badges (`tvTabsCounter` / `tvMediaCounter`) additionally show only when `count > 1`: the button
+  itself already says "there is one stream / one tab", so a lone `1` carries no information (the
+  stream button is exactly the case where the badge would otherwise always read `1`). The tab
   count is seeded both from `MainActivity`'s `tabsModel.tabsStates.subscribe { }` and explicitly in
   `loadState()` (the latter because `tabsStates` is retained across the activity re-creation the
   theme toggle performs, so the observer is not re-fired and the button would otherwise stay hidden).
@@ -180,6 +198,20 @@
   (`MediaManifestReader`, extracted from `NativeMediaResolver.readManifest`, which now also populates
   the cache). `MediaCandidate` itself is unchanged. Verified on emulator: local HLS master →
   `1920×1080`, `en/fr`; DASH MPD → `1920×1080`, `en/fr · 1:02:03`.
+- **The side panels always take the focus when they open (also after a touch).**
+  `MainActivity.focusPanel(panel)` replaces the plain `requestFocus()` in `showBookmarksPanel()`
+  and `onToggleTabPanel()`: it calls `panel.requestFocusFromTouch()` — which leaves touch mode first,
+  the reason the D-pad sometimes had no panel to navigate (a tap anywhere puts the device in touch
+  mode and a view that is not focusable in touch mode *cannot* take focus, so the request silently
+  failed and the next D-pad press escaped to the top bar) — and keeps a `post { }` fallback in case
+  the first request only marks the panel as "wants focus". `BookmarksPanelView.onFocusChanged` now
+  hands the focus to the first row from a `post { }` too, exactly like `TabsView.focusCurrentTabRow()`
+  does, because the panel is made VISIBLE and focused in the same frame and the `RecyclerView` may
+  still have no laid-out rows; it also calls `super.onFocusChanged()` on gain now (the old code only
+  called it when *losing* focus). Verified on emulator, both after `input tap` (touch mode) and with
+  pure D-pad: `Tabs` shortcut → the current tab row focused, RIGHT → the row's close `X`, LEFT →
+  row, DOWN → `+`, UP → row; `Bookmarks` shortcut (bound to `KEYCODE_F6`) → "Add this page" focused,
+  DOWN → first bookmark, UP → back.
 - **WebView stream detection: manifests hidden behind extensionless gateways, and signed variants.**
   The WebView engine only sees request URLs (no response MIME, unlike Gecko), so a manifest fetched
   from an extensionless gateway with the real file name in the query
@@ -291,14 +323,18 @@
   UPDATES section with the auto-check switch on and channel `release`; the GitHub link went to
   `github.com/P403n1x87/tv-bro`; asset/version matching validated against upstream's real releases
   (the fork has none yet, which the checker treats as "no update").
-- **Configurable shortcuts for the tab panel, stream list and bookmarks.**
-  Three entries were appended to the `Shortcut` enum — `TOGGLE_TABS_PANEL` ("Tabs"), `SHOW_STREAMS`
-  ("Streams on this page") and `SHOW_BOOKMARKS` ("Bookmarks") — with fresh `prefsKey`s (appending
-  keeps the existing ordinals/prefs stable). `ShortcutMgr.process()` dispatches them to
-  `MainActivity.onToggleTabPanel()`, `onShowStreams()` and `showFavorites()` respectively. The
-  Controls page's Shortcuts section lists `Shortcut.entries` automatically, so the three rows appear
+- **Configurable shortcuts for the tab panel, stream list, bookmarks and closing a tab.**
+  Four entries were appended to the `Shortcut` enum — `TOGGLE_TABS_PANEL` ("Tabs"), `SHOW_STREAMS`
+  ("Streams on this page"), `SHOW_BOOKMARKS` ("Bookmarks") and `CLOSE_TAB` ("Close tab") — with fresh
+  `prefsKey`s (appending keeps the existing ordinals/prefs stable). `ShortcutMgr.process()` dispatches
+  them to `MainActivity.onToggleTabPanel()`, `onShowStreams()`, `showFavorites()` and the new
+  `MainActivity.closeCurrentTab()` (a public wrapper around the private `closeTab()` that the overflow
+  menu's "Close tab" entry already used) respectively. The
+  Controls page's Shortcuts section lists `Shortcut.entries` automatically, so the rows appear
   with "Not set" and can be bound through `ShortcutDialog` like any other shortcut. Verified on
-  emulator: all three appear at the bottom of the Shortcuts section.
+  emulator: all four appear at the bottom of the Shortcuts section (`Close tab` last, after
+  `Bookmarks`) and `KEYCODE_F4` bound to `Close tab` really closes the current tab (the tab button and
+  its badge disappear again once a single tab is left).
 - **Update alerts: badge on the settings gear and a dot on the About category.**
   While an update is available (`needAutoCheckUpdates` on **and** the last check found something
   newer, see the new `AutoUpdateModel.isUpdateAvailable()`), the toolbar settings button shows a small
