@@ -26,7 +26,6 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Process
 import android.util.Log
-import android.util.Patterns
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -40,7 +39,6 @@ import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
 import android.webkit.CookieManager
 import android.webkit.MimeTypeMap
-import android.webkit.URLUtil
 import android.webkit.WebStorage
 import android.widget.FrameLayout
 import android.widget.PopupMenu
@@ -67,6 +65,9 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
+import com.phlox.tvwebbrowser.browser.PopupBlockPolicy
+import com.phlox.tvwebbrowser.browser.UrlInputResolver
+import com.phlox.tvwebbrowser.browser.UrlRouter
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.FavoriteItem
@@ -98,11 +99,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
-import java.io.UnsupportedEncodingException
 import java.net.URL
-import java.net.URLEncoder
 import java.util.Calendar
-import java.util.Locale
 import kotlin.system.exitProcess
 import androidx.core.net.toUri
 
@@ -763,26 +761,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun search(aText: String) {
-        var text = aText
-        val trimmedLowercased = text.trim { it <= ' ' }.lowercase(Locale.ROOT)
-        if (Patterns.WEB_URL.matcher(text).matches() || trimmedLowercased.startsWith("http://") || trimmedLowercased.startsWith("https://")) {
-            if (!text.lowercase(Locale.ROOT).contains("://")) {
-                text = "https://$text"
-            }
-            navigate(text)
-        } else {
-            var query: String? = null
-            try {
-                query = URLEncoder.encode(text, "utf-8")
-            } catch (e1: UnsupportedEncodingException) {
-                e1.printStackTrace()
-                Utils.showToast(this, R.string.error)
-                return
-            }
-
-            val searchUrl = config.searchEngineURL.value.replace("[query]", query!!)
-            navigate(searchUrl)
+        val url = UrlInputResolver.resolve(aText, config.searchEngineURL.value)
+        if (url == null) {
+            Utils.showToast(this, R.string.error)
+            return
         }
+        navigate(url)
     }
 
     override fun toggleIncognitoMode() {
@@ -1177,43 +1161,28 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         override fun shouldOverrideUrlLoading(url: String): Boolean {
             tab.lastLoadingUrl = url
 
-            val uri = try {
-                url.toUri()
-            } catch (e: Exception) {
-                Log.e(TAG, "shouldOverrideUrlLoading: ", e)
-                return true
+            val route = UrlRouter.route(url) {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN &&
+                    Utils.isLocalNetworkUrl(it) &&
+                    checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED
             }
-
-            if (uri.scheme == null) {
-                Log.d(TAG, "shouldOverrideUrlLoading: no scheme: $url")
-                return true
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN &&
-                Utils.isLocalNetworkUrl(url) &&
-                checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS)
-                return true
-            }
-
-            if (URLUtil.isNetworkUrl(url) || uri.scheme.equals("javascript", true) ||
-                    uri.scheme.equals("data", true) || uri.scheme.equals("about", true) ||
-                    uri.scheme.equals("blob", true)) {
-                Log.d(TAG, "shouldOverrideUrlLoading: network url: $url")
-                return false
-            }
-
-            if (uri.scheme.equals("intent", true)) {
-                Log.d(TAG, "shouldOverrideUrlLoading: intent url: $url")
-                onOpenInExternalAppRequested(url)
-                return true
+            when (route) {
+                UrlRouter.UrlRoute.BLOCK -> return true
+                UrlRouter.UrlRoute.LOAD -> return false
+                UrlRouter.UrlRoute.REQUEST_LOCAL_NETWORK_PERMISSION -> {
+                    requestPermissions(arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS)
+                    return true
+                }
+                UrlRouter.UrlRoute.OPEN_INTENT_URI -> {
+                    onOpenInExternalAppRequested(url)
+                    return true
+                }
+                UrlRouter.UrlRoute.OPEN_IN_EXTERNAL_APP -> {}
             }
 
             //try to handle intent for non-network urls by external apps
-            //TODO: ask user if he wants to open this url in external app
             return try {
-                Log.d(TAG, "shouldOverrideUrlLoading: non-network url: $url")
-                val intent = Intent(Intent.ACTION_VIEW, uri)
+                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 if (intent.resolveActivity(TVBro.instance.packageManager) != null) {
                     runOnUiThread {
@@ -1299,13 +1268,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         override fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean {
             val hostConfig = runBlocking(Dispatchers.Main.immediate){ tabsModel.findHostConfig(tab, false) }
-            val currentBlockPopupsLevelValue = hostConfig?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE
-            return when (currentBlockPopupsLevelValue) {
-                HostConfig.POPUP_BLOCK_NONE -> false
-                HostConfig.POPUP_BLOCK_DIALOGS -> dialog
-                HostConfig.POPUP_BLOCK_NEW_AUTO_OPENED_TABS -> dialog || !userGesture
-                else -> true
-            }
+            return PopupBlockPolicy.shouldBlockNewWindow(hostConfig?.popupBlockLevel, dialog, userGesture)
         }
 
         override fun onBlockedAd(uri: String) {

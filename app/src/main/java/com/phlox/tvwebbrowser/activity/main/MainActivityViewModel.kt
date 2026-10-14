@@ -7,6 +7,7 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.browser.VisitedHistoryLogger
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.model.HomePageLink
@@ -16,9 +17,8 @@ import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.deleteDirectory
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -40,8 +40,15 @@ class MainActivityViewModel: ActiveModel() {
     }
 
     var loaded = false
-    var lastHistoryItem: HistoryItem? = null
-    private var lastHistoryItemSaveJob: Job? = null
+    private val historyLogger = VisitedHistoryLogger(
+        CoroutineScope(modelScope.coroutineContext + Dispatchers.Main),
+        object : VisitedHistoryLogger.Store {
+            override suspend fun insert(item: HistoryItem): Long =
+                AppDatabase.db.historyDao().insert(item)
+
+            override suspend fun updateTitle(id: Long, title: String) =
+                AppDatabase.db.historyDao().updateTitle(id, title)
+        })
     val homePageLinks = ObservableList<HomePageLink>()
     val config = AppContext.provideConfig()
 
@@ -76,7 +83,7 @@ class MainActivityViewModel: ActiveModel() {
         try {
             val result = AppDatabase.db.historyDao().last()
             if (result.isNotEmpty()) {
-                lastHistoryItem = result[0]
+                historyLogger.lastHistoryItem = result[0]
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -164,45 +171,13 @@ class MainActivityViewModel: ActiveModel() {
     }
 
     fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
-        Log.d(TAG, "logVisitedHistory: $url")
-        if ((url == lastHistoryItem?.url) || url == Config.HOME_PAGE_URL || !url.startsWith("http", true)) {
-            return
-        }
-
-        val now = System.currentTimeMillis()
-        val minVisitedInterval = 5000L //5 seconds
-
-        lastHistoryItem?.let {
-            if ((!it.saved) && (it.time + minVisitedInterval) > now) {
-                lastHistoryItemSaveJob?.cancel()
-            }
-        }
-
-        val item = HistoryItem()
-        item.url = url
-        item.title = title ?: ""
-        item.time = now
-        item.favicon = faviconHash
-        lastHistoryItem = item
-        lastHistoryItemSaveJob = modelScope.launch(Dispatchers.Main) {
-            delay(minVisitedInterval)
-            item.id = AppDatabase.db.historyDao().insert(item)
-            item.saved = true
-        }
+        historyLogger.logVisited(title, url, faviconHash)
     }
 
     fun onTabTitleUpdated(tab: WebTabState) {
         Log.d(TAG, "onTabTitleUpdated: ${tab.url} ${tab.title}")
         if (AppContext.provideConfig().incognitoMode) return
-        val lastHistoryItem = lastHistoryItem ?: return
-        if (tab.url == lastHistoryItem.url) {
-            lastHistoryItem.title = tab.title
-            if (lastHistoryItem.saved) {
-                modelScope.launch(Dispatchers.Main) {
-                    AppDatabase.db.historyDao().updateTitle(lastHistoryItem.id, lastHistoryItem.title)
-                }
-            }
-        }
+        historyLogger.onTitleUpdated(tab.url, tab.title)
     }
 
     fun prepareSwitchToIncognito() {
