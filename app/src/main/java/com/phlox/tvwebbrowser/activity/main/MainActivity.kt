@@ -140,6 +140,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private var downloadIntent: Download? = null
     var openUrlInExternalAppDialog: AlertDialog? = null
     private var linkActionsMenu: PopupMenu? = null
+    private var tabsLoaded = false
+    /** Url to open that arrived before the tabs were loaded */
+    private var pendingIntent: Intent? = null
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(newBase)
@@ -434,7 +437,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.data != null) {
-            handleIntent(intent)
+            if (tabsLoaded) {
+                handleIntent(intent)
+            } else {
+                //the web engine is not initialized and the saved tabs are not loaded yet
+                pendingIntent = intent
+            }
         }
     }
 
@@ -457,6 +465,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             controller.selectStartTab()
         } else {
             handleIntent(intent)
+        }
+        tabsLoaded = true
+        pendingIntent?.let {
+            pendingIntent = null
+            handleIntent(it)
         }
 
         val currentTab = controller.currentTab.value
@@ -773,6 +786,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.progressBarGeneric.visibility = View.GONE
         config.incognitoMode = becomingIncognitoMode
         if (andSwitchProcess) {
+            if (becomingIncognitoMode) {
+                //the process is killed without pausing the activity
+                controller.onActivityPause()
+            }
             switchProcess(becomingIncognitoMode)
         }
     }
