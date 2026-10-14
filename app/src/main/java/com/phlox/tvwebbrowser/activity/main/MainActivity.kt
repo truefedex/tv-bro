@@ -13,7 +13,6 @@ import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -33,8 +32,6 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
-import android.webkit.CookieManager
-import android.webkit.WebStorage
 import android.widget.FrameLayout
 import android.widget.PopupMenu
 import android.widget.Toast
@@ -105,7 +102,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private lateinit var vb: ActivityMainBinding
-    private lateinit var viewModel: MainActivityViewModel
     private lateinit var controller: BrowserController
     private lateinit var settingsModel: SettingsModel
     private lateinit var adblockModel: AdblockModel
@@ -141,9 +137,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             Process.killProcess(pidToKill)
         }
 
-        viewModel = ActiveModelsRepository.get(MainActivityViewModel::class, this)
         if (incognitoMode) {
-            viewModel.prepareSwitchToIncognito()
+            WebEngineFactory.prepareIncognitoProcess()
         }
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
         adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
@@ -216,14 +211,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
         lifecycleScope.launch {
             controller.uiEvents.collect { onBrowserUiEvent(it) }
-        }
-
-        controller.tabsStates.subscribe(this, false) {
-            if (it.isEmpty()) {
-                if (!config.isWebEngineGecko()) {
-                    vb.flWebViewContainer.removeAllViews()
-                }
-            }
         }
 
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
@@ -439,7 +426,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         vb.progressBarGeneric.visibility = View.VISIBLE
         vb.progressBarGeneric.requestFocus()
-        viewModel.loadState().join()
         controller.loadState().join()
 
         if (!isActive) {
@@ -633,33 +619,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private fun createWebView(tab: WebTabState): View? {
         val webView: View
         try {
-            webView = tab.webEngine.getOrCreateView(this) //WebViewEx(this, WebViewCallback(tab), AndroidJSInterface(this, viewModel, controller, tab))
+            webView = tab.webEngine.getOrCreateView(this)
         } catch (e: Throwable) {
             e.printStackTrace()
 
-            if (!config.isWebEngineGecko()) {
-                val dialogBuilder = AlertDialog.Builder(this)
-                    .setTitle(R.string.error)
-                    .setCancelable(false)
-                    .setMessage(R.string.err_webview_can_not_link)
-                    .setNegativeButton(R.string.exit) { _, _ -> finish() }
-
-                val appPackageName = "com.google.android.webview"
-                val intent =
-                    Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName"))
-                val activities = packageManager.queryIntentActivities(intent, 0)
-                if (activities.size > 0) {
-                    dialogBuilder.setPositiveButton(R.string.find_in_apps_store) { _, _ ->
-                        try {
-                            startActivity(intent)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                        finish()
-                    }
-                }
-                dialogBuilder.show()
-            }
+            WebEngineFactory.onViewCreationFailed(this, e)
             return null
         }
 
@@ -754,22 +718,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val becomingIncognitoMode = !config.incognitoMode
         vb.progressBarGeneric.visibility = View.VISIBLE
         if (!becomingIncognitoMode) {
-            if (!config.isWebEngineGecko()) {
-                withContext(Dispatchers.IO) {
-                    WebStorage.getInstance().deleteAllData()
-                    CookieManager.getInstance().removeAllCookies(null)
-                    CookieManager.getInstance().flush()
-                }
-
-                WebEngineFactory.clearCache(this@MainActivity)
-            }
-
+            WebEngineFactory.clearIncognitoBrowsingData(this@MainActivity)
             controller.onCloseAllTabs().join()
             controller.currentTab.value = null
-
-            if (!config.isWebEngineGecko()) {
-                viewModel.clearIncognitoData().join()
-            }
+            WebEngineFactory.deleteIncognitoData()
         }
         vb.progressBarGeneric.visibility = View.GONE
         config.incognitoMode = becomingIncognitoMode

@@ -14,10 +14,12 @@ import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
+import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.FeatureDelivery
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.CookieHandler
 import java.net.CookieManager
@@ -66,6 +68,8 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
 
         initWebEngineStuff()
 
+        clearUpdateFilesAfterAppUpdate()
+
         initNotificationChannels()
 
         ActiveModelsRepository.init(this)
@@ -77,6 +81,16 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         registerActivityLifecycleCallbacks(this)
+    }
+
+    private fun clearUpdateFilesAfterAppUpdate() {
+        val config = AppContext.provideConfig()
+        if (config.appVersionCodeMark == BuildConfig.VERSION_CODE) return
+        Log.i(TAG, "App version code changed from ${config.appVersionCodeMark} to ${BuildConfig.VERSION_CODE}")
+        config.appVersionCodeMark = BuildConfig.VERSION_CODE
+        container.appScope.launch(Dispatchers.IO) {
+            UpdateChecker.clearTempFilesIfAny(this@TVBro)
+        }
     }
 
     override fun attachBaseContext(base: Context?) {

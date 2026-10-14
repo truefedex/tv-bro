@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.webengine.webview
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,6 +15,7 @@ import android.webkit.WebView
 import androidx.webkit.WebViewCompat
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
+import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
@@ -396,7 +398,46 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
                     val webViewPackage = WebViewCompat.getCurrentWebViewPackage(AppContext.get())
                     return (webViewPackage?.packageName ?: "unknown") + ":" + (webViewPackage?.versionName ?: "unknown")
                 }
+
+                override fun prepareIncognitoProcess() {
+                    WebViewIncognitoData.prepareIncognitoProcess()
+                }
+
+                override suspend fun clearIncognitoBrowsingData(context: Context) {
+                    WebViewIncognitoData.clearBrowsingData(context)
+                }
+
+                override suspend fun deleteIncognitoData() {
+                    WebViewIncognitoData.deleteData()
+                }
+
+                override fun onViewCreationFailed(activity: Activity, error: Throwable) {
+                    showWebViewNotAvailableDialog(activity)
+                }
             }))
+        }
+
+        private fun showWebViewNotAvailableDialog(activity: Activity) {
+            val dialogBuilder = AlertDialog.Builder(activity)
+                .setTitle(R.string.error)
+                .setCancelable(false)
+                .setMessage(R.string.err_webview_can_not_link)
+                .setNegativeButton(R.string.exit) { _, _ -> activity.finish() }
+
+            val appPackageName = "com.google.android.webview"
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$appPackageName"))
+            val activities = activity.packageManager.queryIntentActivities(intent, 0)
+            if (activities.size > 0) {
+                dialogBuilder.setPositiveButton(R.string.find_in_apps_store) { _, _ ->
+                    try {
+                        activity.startActivity(intent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    activity.finish()
+                }
+            }
+            dialogBuilder.show()
         }
     }
 }

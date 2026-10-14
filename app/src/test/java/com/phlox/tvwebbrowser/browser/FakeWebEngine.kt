@@ -39,6 +39,7 @@ class FakeWebEngine(val tab: WebTabState) : WebEngine {
     override var userAgentString: String? = null
 
     override fun getWebEngineName(): String = "Fake"
+    override var stateFilePrefix: String = ""
     override fun saveState(): Any = "state of ${tab.url}"
     override fun restoreState(savedInstanceState: Any) { log += "restoreState" }
     override fun stateFromBytes(bytes: ByteArray): Any = String(bytes)

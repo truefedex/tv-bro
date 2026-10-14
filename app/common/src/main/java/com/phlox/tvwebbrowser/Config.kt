@@ -255,10 +255,6 @@ class Config(val prefs: SharedPreferences) {
             prefs.edit().putInt(APP_VERSION_CODE_MARK_KEY, value).apply()
         }
 
-    fun isWebEngineGecko(): Boolean {
-        return webEngine == SupportedWebEngines[0]
-    }
-
     fun guessSearchEngineName(): String {
         val url = searchEngineURL.value
         val index = SearchEnginesURLs.indexOf(url)

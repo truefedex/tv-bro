@@ -11,6 +11,12 @@ interface WebEngine {
     var userAgentString: String?
 
     fun getWebEngineName(): String
+
+    /**
+     * Prefix of the names of tab state files saved by this engine ("" or "name:"),
+     * so that the state saved by another engine is not restored.
+     */
+    val stateFilePrefix: String get() = ""
     fun saveState(): Any?//Bundle or any Object convertible to string
     fun restoreState(savedInstanceState: Any)
     fun stateFromBytes(bytes: ByteArray): Any?

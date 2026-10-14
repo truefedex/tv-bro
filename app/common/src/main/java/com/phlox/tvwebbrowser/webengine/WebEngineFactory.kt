@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.webengine
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.annotation.UiThread
@@ -15,6 +16,18 @@ interface WebEngineProviderCallback {
     suspend fun clearCache(ctx: Context)
     fun onThemeSettingUpdated(value: Config.Theme)
     fun getWebEngineVersionString(): String
+
+    /** Called in the incognito process before the engine is initialized */
+    fun prepareIncognitoProcess() {}
+
+    /** Leaving the incognito mode, before its tabs are closed */
+    suspend fun clearIncognitoBrowsingData(context: Context) {}
+
+    /** Leaving the incognito mode, after its tabs are closed */
+    suspend fun deleteIncognitoData() {}
+
+    /** The engine could not create a view for a tab (for example the system WebView is broken) */
+    fun onViewCreationFailed(activity: Activity, error: Throwable) {}
 }
 
 data class WebEngineProvider(
@@ -100,6 +113,32 @@ object WebEngineFactory {
         initializedProvider = provider
     }
 
+    /**
+     * The provider of the engine chosen in the settings (or the first registered one, like [initialize] does).
+     * Available before [initialize].
+     */
+    private fun selectedProvider(): WebEngineProvider? {
+        if (this::initializedProvider.isInitialized) return initializedProvider
+        val config = AppContext.provideConfig()
+        return engineProviders.find { it.name == config.webEngine } ?: engineProviders.firstOrNull()
+    }
+
+    fun prepareIncognitoProcess() {
+        selectedProvider()?.callback?.prepareIncognitoProcess()
+    }
+
+    suspend fun clearIncognitoBrowsingData(context: Context) {
+        selectedProvider()?.callback?.clearIncognitoBrowsingData(context)
+    }
+
+    suspend fun deleteIncognitoData() {
+        selectedProvider()?.callback?.deleteIncognitoData()
+    }
+
+    fun onViewCreationFailed(activity: Activity, error: Throwable) {
+        selectedProvider()?.callback?.onViewCreationFailed(activity, error)
+    }
+
     fun createWebEngine(tab: WebTabState): WebEngine {
         return initializedProvider.callback.createWebEngine(tab)
     }
@@ -115,8 +154,4 @@ object WebEngineFactory {
     fun getWebEngineVersionString(): String {
         return initializedProvider.callback.getWebEngineVersionString()
     }
-}
-
-fun WebEngine.isGecko(): Boolean {
-    return this.getWebEngineName() == Config.ENGINE_GECKO_VIEW
 }

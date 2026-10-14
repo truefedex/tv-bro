@@ -177,6 +177,11 @@ class BrowserController : ActiveModel() {
 
     fun onCloseAllTabs(): Job {
         val tabsClone = ArrayList(tabsStates)
+        for (tab in tabsClone) {
+            if (tab.isWebEngineCreated) {
+                tab.webEngine.onDetachFromWindow(completely = true, destroyTab = true)
+            }
+        }
         tabsStates.clear()
         return writes.enqueue { deleteTabs(tabsClone) }
     }
@@ -191,7 +196,9 @@ class BrowserController : ActiveModel() {
 
     fun onDetachActivity(host: TabViewHost) {
         for (tab in tabsStates) {
-            tab.webEngine.onDetachFromWindow(completely = true, destroyTab = false)
+            if (tab.isWebEngineCreated) {
+                tab.webEngine.onDetachFromWindow(completely = true, destroyTab = false)
+            }
         }
         if (viewHost === host) {
             viewHost = null

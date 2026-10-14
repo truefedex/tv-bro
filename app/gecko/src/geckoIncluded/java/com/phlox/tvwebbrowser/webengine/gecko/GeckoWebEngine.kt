@@ -165,6 +165,8 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
 
     override val url: String?
         get() = navigationDelegate.locationURL
+    override val stateFilePrefix: String
+        get() = "gecko:"
     override var userAgentString: String?
         get() = session.settings.userAgentOverride
         set(value) { session.settings.userAgentOverride = value }

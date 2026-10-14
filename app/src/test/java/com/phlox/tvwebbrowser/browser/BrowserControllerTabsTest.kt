@@ -275,6 +275,29 @@ class BrowserControllerTabsTest {
     }
 
     @Test
+    fun closingAllTabsDestroysTheirEngines() {
+        val (a, b) = open("https://a.com/", "https://b.com/")
+        val neverShown = WebTabState(url = "https://c.com/")
+        controller.tabsStates.add(neverShown)
+        controller.onCloseAllTabs()
+        assertTrue(controller.tabsStates.isEmpty())
+        assertEquals("detach(completely=true, destroyTab=true)", a.fakeEngine.log.last())
+        assertEquals("detach(completely=true, destroyTab=true)", b.fakeEngine.log.last())
+        //engines are not created just to be destroyed
+        assertFalse(neverShown.isWebEngineCreated)
+    }
+
+    @Test
+    fun detachingTheActivityDoesNotCreateEngines() {
+        val (a) = open("https://a.com/")
+        val neverShown = WebTabState(url = "https://b.com/")
+        controller.tabsStates.add(neverShown)
+        controller.onDetachActivity(host)
+        assertEquals("detach(completely=true, destroyTab=false)", a.fakeEngine.log.last())
+        assertFalse(neverShown.isWebEngineCreated)
+    }
+
+    @Test
     fun detachingAnotherActivityKeepsTheViewHost() {
         open("https://a.com/")
         controller.onDetachActivity(FakeTabViewHost(context))
