@@ -129,6 +129,8 @@ object FaviconsPool {
         }
         val knownFavicon = hostConfig?.favicon
         if (knownFavicon != null && withContext(Dispatchers.IO) { File(favIconsDir(), knownFavicon).exists() }) return
+        //get() might have found an icon in the HTML meanwhile
+        if (cache.get(host) != null) return
         Log.d(TAG, "putIfAbsent: favicon received from the web engine for $host")
         cache.put(host, icon)
         if (persist) {
