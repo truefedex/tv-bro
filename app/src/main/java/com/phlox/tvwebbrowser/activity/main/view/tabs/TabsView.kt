@@ -10,8 +10,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
-import com.phlox.tvwebbrowser.activity.main.TabsModel
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
+import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.databinding.ViewTabsBinding
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
@@ -24,7 +24,7 @@ class TabsView @JvmOverloads constructor(
 
   private var vb = ViewTabsBinding.inflate(LayoutInflater.from(context), this)
 
-  private lateinit var tabsModel: TabsModel
+  private lateinit var controller: BrowserController
   private val adapter: TabsAdapter = TabsAdapter(this)
   private lateinit var settingsModel: SettingsModel
   var current: Int by adapter::current
@@ -36,9 +36,9 @@ class TabsView @JvmOverloads constructor(
 
   fun init() {
     if (isInEditMode) return
-    tabsModel = ActiveModelsRepository.get(TabsModel::class, context)
+    controller = ActiveModelsRepository.get(BrowserController::class, context)
     settingsModel = ActiveModelsRepository.get(SettingsModel::class, context)
-    adapter.tabsModel = tabsModel
+    adapter.controller = controller
     vb.rvTabs.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
     vb.btnAdd.setOnClickListener{
       listener?.onAddNewTabSelected()
@@ -48,20 +48,20 @@ class TabsView @JvmOverloads constructor(
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
     if (isInEditMode) return
-    tabsModel.tabsStates.subscribe(listChangeObserver)
-    tabsModel.currentTab.subscribe(currentTabObserver)
+    controller.tabsStates.subscribe(listChangeObserver)
+    controller.currentTab.subscribe(currentTabObserver)
     vb.rvTabs.adapter = adapter
   }
 
   override fun onDetachedFromWindow() {
     super.onDetachedFromWindow()
     if (isInEditMode) return
-    tabsModel.tabsStates.unsubscribe(listChangeObserver)
-    tabsModel.currentTab.unsubscribe(currentTabObserver)
+    controller.tabsStates.unsubscribe(listChangeObserver)
+    controller.currentTab.unsubscribe(currentTabObserver)
   }
 
   fun showTabOptions(tab: WebTabState) {
-    val tabIndex = tabsModel.tabsStates.indexOf(tab)
+    val tabIndex = controller.tabsStates.indexOf(tab)
     AlertDialog.Builder(context)
       .setTitle(R.string.tabs)
       .setItems(R.array.tabs_options) { _, i ->
@@ -74,16 +74,16 @@ class TabsView @JvmOverloads constructor(
           1 -> listener?.closeTab(tab)
           //Close all
           2 -> {
-            tabsModel.onCloseAllTabs()
+            controller.onCloseAllTabs()
             listener?.openInNewTab(settingsModel.homePage, 0)
           }
           //Move left
           3 -> if (tabIndex > 0) {
-            tabsModel.tabsStates.swap(tabIndex, tabIndex - 1)
+            controller.tabsStates.swap(tabIndex, tabIndex - 1)
           }
           //Move right
-          4 -> if (tabIndex < (tabsModel.tabsStates.size - 1)) {
-            tabsModel.tabsStates.swap(tabIndex, tabIndex + 1)
+          4 -> if (tabIndex < (controller.tabsStates.size - 1)) {
+            controller.tabsStates.swap(tabIndex, tabIndex + 1)
           }
         }
       }
@@ -97,7 +97,7 @@ class TabsView @JvmOverloads constructor(
 
         if (child.tag is WebTabState) {
           val tab = child.tag
-          val index = tabsModel.tabsStates.indexOf(tab)
+          val index = controller.tabsStates.indexOf(tab)
           if (index == current && !child.hasFocus()) {
             child.requestFocus()
           }
@@ -109,12 +109,12 @@ class TabsView @JvmOverloads constructor(
   }
 
   fun onTabTitleUpdated(tab: WebTabState) {
-    val tabIndex = tabsModel.tabsStates.indexOf(tab)
+    val tabIndex = controller.tabsStates.indexOf(tab)
     adapter.notifyItemChanged(tabIndex)
   }
 
   fun onFavIconUpdated(tab: WebTabState) {
-    val tabIndex = tabsModel.tabsStates.indexOf(tab)
+    val tabIndex = controller.tabsStates.indexOf(tab)
     adapter.notifyItemChanged(tabIndex)
   }
 
@@ -134,7 +134,7 @@ class TabsView @JvmOverloads constructor(
   }
 
   private val currentTabObserver: (value: WebTabState?) -> Unit =  {
-    val new = tabsModel.tabsStates.indexOf(it)
+    val new = controller.tabsStates.indexOf(it)
     if (new != -1 && current != new) {
       adapter.notifyItemChanged(current)
       current = new

@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.webengine
 import android.content.Context
 import android.util.Log
 import androidx.annotation.UiThread
+import androidx.annotation.VisibleForTesting
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.WebTabState
@@ -91,6 +92,12 @@ object WebEngineFactory {
         } else {
             throw IllegalArgumentException("WebEngineProvider with name ${config.webEngine} not found")
         }
+    }
+
+    /** Makes [createWebEngine] use the [provider] without [initialize] */
+    @VisibleForTesting
+    fun initializeForTests(provider: WebEngineProvider) {
+        initializedProvider = provider
     }
 
     fun createWebEngine(tab: WebTabState): WebEngine {

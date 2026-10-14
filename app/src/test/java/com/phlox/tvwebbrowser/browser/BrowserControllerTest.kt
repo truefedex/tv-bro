@@ -1,4 +1,4 @@
-package com.phlox.tvwebbrowser.activity.main
+package com.phlox.tvwebbrowser.browser
 
 import android.os.Looper
 import androidx.room.Room
@@ -55,7 +55,7 @@ class TabsModelTest {
 
     @Test
     fun repeatedSaveOfNewTabInsertsOneRow() {
-        val model = TabsModel()
+        val model = BrowserController()
         val tab = WebTabState(url = "https://example.com/", selected = true)
         model.saveTab(tab)
         model.saveTab(tab)
@@ -66,7 +66,7 @@ class TabsModelTest {
 
     @Test
     fun saveIsNotCancelledWhenModelIsCleared() {
-        val model = TabsModel()
+        val model = BrowserController()
         model.saveTab(WebTabState(url = "https://example.com/"))
         model.clear()
         awaitWrites()
@@ -75,19 +75,19 @@ class TabsModelTest {
 
     @Test
     fun loadStateWaitsForPendingSaves() {
-        val previousModel = TabsModel()
+        val previousModel = BrowserController()
         previousModel.saveTab(WebTabState(url = "https://a.com/"))
         previousModel.saveTab(WebTabState(url = "https://b.com/"))
         previousModel.clear()
 
-        val model = TabsModel()
+        val model = BrowserController()
         model.loadState().awaitOnMainLooper()
         assertEquals(listOf("https://a.com/", "https://b.com/"), model.tabsStates.map { it.url })
     }
 
     @Test
     fun closeAllTabsRunsAfterPendingSaves() {
-        val model = TabsModel()
+        val model = BrowserController()
         model.saveTab(WebTabState(url = "https://a.com/"))
         model.saveTab(WebTabState(url = "https://b.com/"))
         model.onCloseAllTabs().awaitOnMainLooper()

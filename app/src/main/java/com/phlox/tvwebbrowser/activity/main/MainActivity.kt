@@ -30,6 +30,7 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
@@ -65,6 +66,7 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
+import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.PopupBlockPolicy
 import com.phlox.tvwebbrowser.browser.UrlInputResolver
 import com.phlox.tvwebbrowser.browser.UrlRouter
@@ -124,7 +126,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private lateinit var vb: ActivityMainBinding
     private lateinit var viewModel: MainActivityViewModel
-    private lateinit var tabsModel: TabsModel
+    private lateinit var controller: BrowserController
     private lateinit var settingsModel: SettingsModel
     private lateinit var adblockModel: AdblockModel
     private lateinit var autoUpdateModel: AutoUpdateModel
@@ -165,11 +167,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
         adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
-        tabsModel = ActiveModelsRepository.get(TabsModel::class, this)
+        controller = ActiveModelsRepository.get(BrowserController::class, this)
         autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, this)
         uiHandler = Handler(Looper.getMainLooper())
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb.root)
+        controller.viewHost = tabViewHost
 
         vb.ivMiniatures.visibility = View.INVISIBLE
         vb.llBottomPanel.visibility = View.INVISIBLE
@@ -182,14 +185,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.ibPopupBlock.setOnClickListener { showPopupBlockOptions() }
         vb.ibHome.setOnClickListener { navigate(settingsModel.homePage) }
         vb.ibBack.setOnClickListener { navigateBack() }
-        vb.ibForward.setOnClickListener {
-            val tab = tabsModel.currentTab.value ?: return@setOnClickListener
-            if (tab.webEngine.canGoForward()) {
-                tab.webEngine.goForward()
-            }
-        }
+        vb.ibForward.setOnClickListener { controller.goForward() }
         vb.ibRefresh.setOnClickListener { refresh() }
-        vb.ibCloseTab.setOnClickListener { tabsModel.currentTab.value?.apply { closeTab(this) } }
+        vb.ibCloseTab.setOnClickListener { controller.currentTab.value?.apply { closeTab(this) } }
 
         vb.vActionBar.callback = this
 
@@ -200,7 +198,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         config.userAgentString.subscribe(this.lifecycle, false) {
-            for (tab in tabsModel.tabsStates) {
+            for (tab in controller.tabsStates) {
                 tab.webEngine.userAgentString = it
             }
         }
@@ -224,20 +222,20 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         viewModel.homePageLinks.subscribe(this) {
             Log.i(TAG, "homePageLinks updated")
-            val currentUrl = tabsModel.currentTab.value?.url ?: return@subscribe
+            val currentUrl = controller.currentTab.value?.url ?: return@subscribe
             if (Config.HOME_PAGE_URL == currentUrl) {
-                tabsModel.currentTab.value?.webEngine?.reload()
+                controller.currentTab.value?.webEngine?.reload()
             }
         }
 
-        tabsModel.currentTab.subscribe(this) {
+        controller.currentTab.subscribe(this) {
             vb.vActionBar.setAddressBoxText(it?.url ?: "")
             it?.let {
                 onWebViewUpdated(it)
             }
         }
 
-        tabsModel.tabsStates.subscribe(this, false) {
+        controller.tabsStates.subscribe(this, false) {
             if (it.isEmpty()) {
                 if (!config.isWebEngineGecko()) {
                     vb.flWebViewContainer.removeAllViews()
@@ -271,7 +269,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             val connected = Utils.isNetworkConnected(this@MainActivity)
             if (connected == networkConnected) return
             networkConnected = connected
-            uiHandler.post { tabsModel.currentTab.value?.webEngine?.setNetworkAvailable(connected) }
+            uiHandler.post { controller.currentTab.value?.webEngine?.setNetworkAvailable(connected) }
         }
     }
 
@@ -281,7 +279,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private fun updateNetworkAvailability() {
         val connected = Utils.isNetworkConnected(this)
         networkConnected = connected
-        tabsModel.currentTab.value?.webEngine?.setNetworkAvailable(connected)
+        controller.currentTab.value?.webEngine?.setNetworkAvailable(connected)
     }
 
     private val displayThumbnailRunnable = object : Runnable {
@@ -311,7 +309,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun onAddNewTabSelected() {
-            openInNewTab(settingsModel.homePage, tabsModel.tabsStates.size)
+            openInNewTab(settingsModel.homePage, controller.tabsStates.size)
         }
 
         override fun closeTab(tabState: WebTabState?) = this@MainActivity.closeTab(tabState)
@@ -346,7 +344,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun showFavorites() {
-        val currentTab = tabsModel.currentTab.value
+        val currentTab = controller.currentTab.value
         val currentPageTitle = currentTab?.title ?: ""
         val currentPageUrl = currentTab?.url ?: ""
 
@@ -383,7 +381,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             KeyEvent.KEYCODE_DPAD_UP -> {
                 if (keyEvent.action == KeyEvent.ACTION_UP) {
                     hideBottomPanel()
-                    tabsModel.currentTab.value?.webEngine?.getView()?.requestFocus()
+                    controller.currentTab.value?.webEngine?.getView()?.requestFocus()
                 }
                 return@OnKeyListener true
             }
@@ -392,7 +390,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun tabByTitleIndex(index: Int) =
-            if (index >= 0 && index < tabsModel.tabsStates.size) tabsModel.tabsStates[index] else null
+            if (index >= 0 && index < controller.tabsStates.size) controller.tabsStates[index] else null
 
     override fun showSettings() {
         SettingsDialog(this, settingsModel).show()
@@ -407,9 +405,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     fun navigateBack(goHomeIfNoHistory: Boolean = false) {
-        val currentTab = tabsModel.currentTab.value
-        if (currentTab != null && currentTab.webEngine.canGoBack()) {
-            currentTab.webEngine.goBack()
+        if (controller.goBack()) {
+            return
         } else if (goHomeIfNoHistory) {
             navigate(settingsModel.homePage)
         } else if (vb.rlActionBar.visibility != View.VISIBLE) {
@@ -420,15 +417,15 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     fun refresh() {
-        tabsModel.currentTab.value?.webEngine?.reload()
+        controller.reload()
     }
 
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
         //here properties can be uninitialized in case of wrong activity for incognito mode
         //detection and force activity restart in onCreate()
-        if (::tabsModel.isInitialized) {
-            tabsModel.onDetachActivity()
+        if (::controller.isInitialized) {
+            controller.onDetachActivity(tabViewHost)
         }
         super.onDestroy()
     }
@@ -448,7 +445,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.progressBarGeneric.visibility = View.VISIBLE
         vb.progressBarGeneric.requestFocus()
         viewModel.loadState().join()
-        tabsModel.loadState().join()
+        controller.loadState().join()
 
         if (!isActive) {
             return@launch
@@ -457,30 +454,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.progressBarGeneric.visibility = View.GONE
 
         if (intent.data == null) {
-            if (tabsModel.tabsStates.isEmpty()) {
-                openInNewTab(settingsModel.homePage, 0,
-                    needToHideMenuOverlay = true,
-                    navigateImmediately = true
-                )
-            } else {
-                var foundSelectedTab = false
-                for (i in tabsModel.tabsStates.indices) {
-                    val tab = tabsModel.tabsStates[i]
-                    if (tab.selected) {
-                        changeTab(tab)
-                        foundSelectedTab = true
-                        break
-                    }
-                }
-                if (!foundSelectedTab) {//this may happen in some error states
-                    changeTab(tabsModel.tabsStates[0])
-                }
-            }
+            controller.selectStartTab()
         } else {
             handleIntent(intent)
         }
 
-        val currentTab = tabsModel.currentTab.value
+        val currentTab = controller.currentTab.value
         if (currentTab == null || currentTab.url == settingsModel.homePage) {
             showMenuOverlay()
         }
@@ -498,32 +477,25 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private fun handleIntent(intent: Intent) {
         Log.d(TAG, "handleIntent: " + intent.data)
         if (intent.getBooleanExtra("com.phlox.tvwebbrowser.EXTRA_OPEN_IN_SAME_TAB", false) &&
-            tabsModel.tabsStates.isNotEmpty()) {
-            if (tabsModel.currentTab.value == null) {
-                changeTab(tabsModel.tabsStates[0])
+            controller.tabsStates.isNotEmpty()) {
+            if (controller.currentTab.value == null) {
+                changeTab(controller.tabsStates[0])
             }
             navigate(intent.data.toString())
             return
         }
 
         openInNewTab(
-            intent.data.toString(), tabsModel.tabsStates.size, needToHideMenuOverlay = true,
+            intent.data.toString(), controller.tabsStates.size, needToHideMenuOverlay = true,
             navigateImmediately = true
         )
     }
 
     private fun openInNewTab(url: String?, index: Int = 0, needToHideMenuOverlay: Boolean = true, navigateImmediately: Boolean): WebEngine? {
-        Log.d(TAG, "openInNewTab: url: $url, index: $index, needToHideMenuOverlay: $needToHideMenuOverlay, navigateImmediately: $navigateImmediately")
         if (url == null) {
             return null
         }
-        val tab = WebTabState(url = url, incognito = config.incognitoMode)
-        createWebView(tab) ?: return null
-        tabsModel.tabsStates.add(index, tab)
-        changeTab(tab)
-        if (navigateImmediately) {
-            navigate(url)
-        }
+        val tab = controller.openInNewTab(url, index, navigateImmediately) ?: return null
         if (needToHideMenuOverlay && vb.rlActionBar.visibility == View.VISIBLE) {
             hideMenuOverlay(true)
         }
@@ -532,31 +504,33 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private fun closeTab(tab: WebTabState?) {
         if (tab == null) return
-        val position = tabsModel.tabsStates.indexOf(tab)
-        if (tabsModel.currentTab.value == tab) {
-            tabsModel.currentTab.value = null
-        }
-        when {
-            tabsModel.tabsStates.size == 1 -> openInNewTab(settingsModel.homePage, 0, needToHideMenuOverlay = true, navigateImmediately = true)
-
-            position > 0 -> changeTab(tabsModel.tabsStates[position - 1])
-
-            else -> changeTab(tabsModel.tabsStates[position + 1])
-        }
-        tabsModel.onCloseTab(tab)
+        controller.closeTab(tab)
         hideMenuOverlay(true)
         hideBottomPanel()
     }
 
     private fun changeTab(newTab: WebTabState) {
-        tabsModel.changeTab(newTab, { tab: WebTabState -> createWebView(tab) }, vb.flWebViewContainer, TabCallbacks(newTab).combined)
+        controller.changeTab(newTab)
+    }
+
+    private val tabViewHost = object : BrowserController.TabViewHost {
+        override val tabsContainer: ViewGroup
+            get() = vb.flWebViewContainer
+
+        override fun createTabView(tab: WebTabState): View? = createWebView(tab)
+
+        override fun engineCallback(tab: WebTabState): WebEngineWindowProviderCallback = TabCallbacks(tab).combined
+
+        override fun onNavigate() {
+            vb.vActionBar.setAddressBoxTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun createWebView(tab: WebTabState): View? {
         val webView: View
         try {
-            webView = tab.webEngine.getOrCreateView(this) //WebViewEx(this, WebViewCallback(tab), AndroidJSInterface(this, viewModel, tabsModel, tab))
+            webView = tab.webEngine.getOrCreateView(this) //WebViewEx(this, WebViewCallback(tab), AndroidJSInterface(this, viewModel, controller, tab))
         } catch (e: Throwable) {
             e.printStackTrace()
 
@@ -641,11 +615,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun onTrimMemory(level: Int) {
-        for (tab in tabsModel.tabsStates) {
-            if (!tab.selected) {
-                tab.trimMemory()
-            }
-        }
+        controller.trimMemory()
         super.onTrimMemory(level)
     }
 
@@ -654,7 +624,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         if (voiceSearchHelper.processPermissionsResult(requestCode, permissions, grantResults)) {
             return
         }
-        if (tabsModel.currentTab.value?.webEngine?.onPermissionsResult(requestCode, permissions, grantResults) == true) return
+        if (controller.currentTab.value?.webEngine?.onPermissionsResult(requestCode, permissions, grantResults) == true) return
         if (grantResults.isEmpty()) return
         when (requestCode) {
             MY_PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS -> {
@@ -669,7 +639,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
             MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    val currentTab = tabsModel.currentTab.value
+                    val currentTab = controller.currentTab.value
                     if (currentTab != null) {
                         navigate(currentTab.url)
                     }
@@ -690,7 +660,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
         when (requestCode) {
             PICK_FILE_REQUEST_CODE -> {
-                tabsModel.currentTab.value?.webEngine?.onFilePicked(resultCode, data)
+                controller.currentTab.value?.webEngine?.onFilePicked(resultCode, data)
             }
             REQUEST_CODE_HISTORY_ACTIVITY -> if (resultCode == Activity.RESULT_OK) {
                 val url = data?.getStringExtra(HistoryActivity.KEY_URL)
@@ -723,41 +693,33 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         updateNetworkAvailability()
         cm.registerDefaultNetworkCallback(networkCallback)
-        tabsModel.currentTab.value?.webEngine?.onResume()
+        controller.onActivityResume()
     }
 
     override fun onPause() {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         cm.unregisterNetworkCallback(networkCallback)
-        tabsModel.currentTab.value?.apply {
-            webEngine.onPause()
-            onPause()
-            tabsModel.saveTab(this@apply)
-        }
+        controller.onActivityPause()
         super.onPause()
     }
 
     private fun toggleAdBlockForTab() {
-        tabsModel.currentTab.value?.apply {
-            val currentState = adblock ?: config.adBlockEnabled
-            val newState = !currentState
-            adblock = newState
-            webEngine.onUpdateAdblockSetting(newState)
-            onWebViewUpdated(this)
+        controller.toggleAdBlockForCurrentTab()?.let {
+            onWebViewUpdated(it)
             refresh()
         }
     }
 
     private fun showPopupBlockOptions() {
-        val tab = tabsModel.currentTab.value ?: return
-        val currentHostConfig = tabsModel.findHostConfig(tab)
+        val tab = controller.currentTab.value ?: return
+        val currentHostConfig = controller.findHostConfig(tab)
         val currentBlockPopupsLevelValue = currentHostConfig?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE
         val hostName = currentHostConfig?.hostName ?: try { URL(tab.url).host } catch (e: Exception) { "" }
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.block_popups_s, hostName))
             .setSingleChoiceItems(R.array.popup_blocking_level, currentBlockPopupsLevelValue) {
                     dialog, itemId -> lifecycleScope.launch {
-                        tabsModel.changePopupBlockingLevel(itemId, tab)
+                        controller.changePopupBlockingLevel(itemId, tab)
                         dialog.dismiss()
                     }
             }
@@ -765,14 +727,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     fun navigate(url: String) {
-        Log.d(TAG, "navigate: $url")
-        vb.vActionBar.setAddressBoxTextColor(ContextCompat.getColor(this@MainActivity, R.color.default_url_color))
-        val tab = tabsModel.currentTab.value
-        if (tab != null) {
-            tab.url = url
-            tab.webEngine.loadUrl(url)
-        } else {
+        if (controller.currentTab.value == null) {
+            //opening a new tab also hides the menu
             openInNewTab(url, 0, needToHideMenuOverlay = true, navigateImmediately = true)
+        } else {
+            controller.navigate(url)
         }
     }
 
@@ -804,8 +763,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 WebEngineFactory.clearCache(this@MainActivity)
             }
 
-            tabsModel.onCloseAllTabs().join()
-            tabsModel.currentTab.value = null
+            controller.onCloseAllTabs().join()
+            controller.currentTab.value = null
 
             if (!config.isWebEngineGecko()) {
                 viewModel.clearIncognitoData().join()
@@ -871,7 +830,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 val keyCodeBackNavigation = keyCode == KeyEvent.KEYCODE_ESCAPE ||
                         keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_BACK
                 val shortcutMgr = ShortcutMgr.getInstance()
-                val currentTab = tabsModel.currentTab.value
+                val currentTab = controller.currentTab.value
                 if (!keyCodeBackNavigation &&
                     shortcutMgr.handle(event, this@MainActivity, currentTab)) {
                     return true
@@ -910,8 +869,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private fun handleBackNavigation() {
         Log.d(TAG, "handleBackNavigation")
-        if (tabsModel.currentTab.value?.webEngine?.isVirtualCursorMode() == false) {
-            tabsModel.currentTab.value?.webEngine?.setVirtualCursorMode(true)
+        if (controller.currentTab.value?.webEngine?.isVirtualCursorMode() == false) {
+            controller.currentTab.value?.webEngine?.setVirtualCursorMode(true)
             backNavigationEventsAdapter.gameControllersLongPressBForBackNavigation = false
             return
         }
@@ -921,7 +880,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         } else if (vb.flWebViewContainer.cursorDrawerDelegate.canHandleBackNavigation()) {
             vb.flWebViewContainer.cursorDrawerDelegate.handleBackNavigation()
         } else if (isFullscreen) {
-            tabsModel.currentTab.value?.webEngine?.hideFullscreenView()
+            controller.currentTab.value?.webEngine?.hideFullscreenView()
         } else if (vb.llBottomPanel.isVisible && !vb.rlActionBar.isVisible) {
             hideBottomPanel()
         } else {
@@ -933,7 +892,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.ivMiniatures.visibility = View.VISIBLE
         vb.llBottomPanel.visibility = View.VISIBLE
         vb.flWebViewContainer.visibility = View.INVISIBLE
-        val currentTab = tabsModel.currentTab.value
+        val currentTab = controller.currentTab.value
         if (currentTab != null) {
             lifecycleScope.launch {
                 currentTab.thumbnail = currentTab.webEngine.renderThumbnail(currentTab.thumbnail)
@@ -1037,7 +996,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     syncTabWithTitles()
                     vb.flWebViewContainer.visibility = View.VISIBLE
                     if (hideBottomButtons) {
-                        tabsModel.currentTab.value?.webEngine?.getView()?.requestFocus()
+                        controller.currentTab.value?.webEngine?.getView()?.requestFocus()
                     }
                 }
                 .start()
@@ -1046,7 +1005,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private fun syncTabWithTitles() {
         val tab = tabByTitleIndex(vb.vTabs.current)
         if (tab == null) {
-            openInNewTab(settingsModel.homePage, if (vb.vTabs.current < 0) 0 else tabsModel.tabsStates.size,
+            openInNewTab(settingsModel.homePage, if (vb.vTabs.current < 0) 0 else controller.tabsStates.size,
                 needToHideMenuOverlay = true,
                 navigateImmediately = true
             )
@@ -1109,8 +1068,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         inner class Events : TabEngineEvents {
             override fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine? {
-                var index = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
-                index = if (index == -1) tabsModel.tabsStates.size else index + 1
+                var index = controller.tabsStates.indexOf(controller.currentTab.value)
+                index = if (index == -1) controller.tabsStates.size else index + 1
                 return openInNewTab(url, index, true, navigateImmediately)
             }
 
@@ -1199,7 +1158,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
 
             override fun onPageFinished(url: String?) {
-                if (tabsModel.currentTab.value == null) {
+                if (controller.currentTab.value == null) {
                     return
                 }
                 onWebViewUpdated(tab)
@@ -1215,12 +1174,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 }
 
                 //thumbnail
-                tabsModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
+                controller.tabsStates.onEach { if (it != tab) it.thumbnail = null }
                 lifecycleScope.launch {
                     val newThumbnail = tab.webEngine.renderThumbnail(tab.thumbnail)
                     if (newThumbnail != null) {
                         tab.updateThumbnail(this@MainActivity, newThumbnail)
-                        if (vb.rlActionBar.isVisible && tab == tabsModel.currentTab.value) {
+                        if (vb.rlActionBar.isVisible && tab == controller.currentTab.value) {
                             displayThumbnail(tab)
                         }
                     }
@@ -1254,22 +1213,11 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     onBlockedDialog(!dialog)
                     return null
                 }
-                val tab = WebTabState(incognito = config.incognitoMode)
-                val webView = createWebView(tab) ?: return null
-                val currentTab = this@MainActivity.tabsModel.currentTab.value ?: return null
-                val index = tabsModel.tabsStates.indexOf(currentTab) + 1
-                tabsModel.tabsStates.add(index, tab)
-                changeTab(tab)
-                return webView
+                return controller.openWindowTab()
             }
 
             override fun closeWindow(internalRepresentation: Any) {
-                for (tab in tabsModel.tabsStates) {
-                    if (tab.webEngine.isSameSession(internalRepresentation)) {
-                        closeTab(tab)
-                        break
-                    }
-                }
+                controller.findTabBySession(internalRepresentation)?.let { closeTab(it) }
             }
 
             override fun onScaleChanged(oldScale: Float, newScale: Float) {
@@ -1282,7 +1230,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
 
             override fun onVisited(url: String) {
-                val tab = tabsModel.currentTab.value ?: return
+                val tab = controller.currentTab.value ?: return
 
                 if (!config.incognitoMode) {
                     viewModel.logVisitedHistory(tab.title, url, tab.faviconHash)
@@ -1300,7 +1248,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
 
             override fun isAdBlockingEnabled(): Boolean {
-                tabsModel.currentTab.value?.adblock?.apply {
+                controller.currentTab.value?.adblock?.apply {
                     return this
                 }
                 return  config.adBlockEnabled
@@ -1312,7 +1260,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
 
             override fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean {
-                val hostConfig = tabsModel.findHostConfig(tab)
+                val hostConfig = controller.findHostConfig(tab)
                 return PopupBlockPolicy.shouldBlockNewWindow(hostConfig?.popupBlockLevel, dialog, userGesture)
             }
         }

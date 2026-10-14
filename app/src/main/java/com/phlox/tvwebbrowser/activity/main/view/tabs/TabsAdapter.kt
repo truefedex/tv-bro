@@ -11,8 +11,8 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.activity.main.TabsModel
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.TabViewHolder
+import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.databinding.ViewHorizontalWebtabItemBinding
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
@@ -23,13 +23,13 @@ import kotlinx.coroutines.launch
 
 
 class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabViewHolder>() {
-    var tabsModel: TabsModel? = null
+    var controller: BrowserController? = null
         set(value) {
             field = value
             onTabListChanged()
         }
     private val tabsCopy =
-        ArrayList<WebTabState>().apply { addAll(tabsModel?.tabsStates ?: emptyList()) }
+        ArrayList<WebTabState>().apply { addAll(controller?.tabsStates ?: emptyList()) }
     var current: Int = 0
     var listener: Listener? = null
     val uiHandler = Handler(Looper.getMainLooper())
@@ -59,9 +59,9 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
 
     fun onTabListChanged() {
         val tabsDiffUtilCallback =
-            TabsDiffUtillCallback(tabsCopy, tabsModel?.tabsStates ?: emptyList())
+            TabsDiffUtillCallback(tabsCopy, controller?.tabsStates ?: emptyList())
         val tabsDiffResult = DiffUtil.calculateDiff(tabsDiffUtilCallback)
-        tabsCopy.apply { clear() }.addAll(tabsModel?.tabsStates ?: emptyList())
+        tabsCopy.apply { clear() }.addAll(controller?.tabsStates ?: emptyList())
         tabsDiffResult.dispatchUpdatesTo(this)
     }
 
