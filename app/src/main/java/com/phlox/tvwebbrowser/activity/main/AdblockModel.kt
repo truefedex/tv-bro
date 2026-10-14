@@ -7,6 +7,7 @@ import com.brave.adblock.AdBlockClient.FilterOption
 import com.brave.adblock.Utils
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.browser.AdBlocker
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,7 @@ import java.io.File
 import java.net.URL
 import java.util.*
 
-class AdblockModel : ActiveModel() {
+class AdblockModel : ActiveModel(), AdBlocker {
     companion object {
         val TAG: String = AdblockModel::class.java.simpleName
 
@@ -66,7 +67,7 @@ class AdblockModel : ActiveModel() {
         clientLoading.value = false
     }
 
-    fun isAd(url: Uri, type: String?, baseUri: Uri): Boolean {
+    override fun isAd(url: Uri, type: String?, baseUri: Uri): Boolean {
         val client = client ?: return false
         val baseHost = baseUri.host
         val filterOption = try {

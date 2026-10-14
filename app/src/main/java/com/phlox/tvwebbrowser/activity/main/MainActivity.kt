@@ -67,7 +67,7 @@ import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.browser.BrowserController
-import com.phlox.tvwebbrowser.browser.PopupBlockPolicy
+import com.phlox.tvwebbrowser.browser.TabPolicies
 import com.phlox.tvwebbrowser.browser.UrlInputResolver
 import com.phlox.tvwebbrowser.browser.UrlRouter
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
@@ -1061,7 +1061,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
      */
     private inner class TabCallbacks(val tab: WebTabState) {
         val events = Events()
-        val policies = Policies()
+        val policies = TabPolicies(tab, controller, adblockModel, config)
         val uiHost = UiHost()
         val combined: WebEngineWindowProviderCallback = object : WebEngineWindowProviderCallback,
             TabEngineEvents by events, EnginePolicies by policies, EngineUiHost by uiHost {}
@@ -1239,29 +1239,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
             override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
                 viewModel.markBookmarkRecommendationAsUseful(bookmarkOrder)
-            }
-        }
-
-        inner class Policies : EnginePolicies {
-            override fun isAd(url: Uri, acceptHeader: String?, baseUri: Uri): Boolean? {
-                return adblockModel.isAd(url, acceptHeader, baseUri)
-            }
-
-            override fun isAdBlockingEnabled(): Boolean {
-                controller.currentTab.value?.adblock?.apply {
-                    return this
-                }
-                return  config.adBlockEnabled
-            }
-
-            override fun isDialogsBlockingEnabled(): Boolean {
-                if (tab.url == Config.HOME_PAGE_URL) return false
-                return shouldBlockNewWindow(dialog = true, userGesture = false)
-            }
-
-            override fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean {
-                val hostConfig = controller.findHostConfig(tab)
-                return PopupBlockPolicy.shouldBlockNewWindow(hostConfig?.popupBlockLevel, dialog, userGesture)
             }
         }
 
