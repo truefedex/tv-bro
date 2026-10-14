@@ -40,6 +40,16 @@ val appVersionName = (findProperty("versionName") as String?) ?: versionNameFrom
 val appVersionCode = ((findProperty("versionCode") as String?)?.toIntOrNull()
     ?: versionCodeFromName(appVersionName)).coerceAtLeast(1)
 
+//Release builds are signed with the keystore the release workflow decodes from the KEYSTORE_* secrets
+//into KEYSTORE_PATH. Locally there are no secrets, so fall back to the gitignored signing.keystore in
+//the repository root -- a copy of the Android debug keystore, hence the well-known credentials below.
+//With neither present (e.g. CI without secrets) release builds stay unsigned.
+val signingKeystoreFile = System.getenv("KEYSTORE_PATH")?.let(::file)
+    ?: rootDir.resolve("signing.keystore").takeIf { it.exists() }
+val signingStorePassword = System.getenv("KEYSTORE_PASSWORD") ?: "android"
+val signingKeyAlias = System.getenv("KEY_ALIAS") ?: "androiddebugkey"
+val signingKeyPassword = System.getenv("KEY_PASSWORD") ?: "android"
+
 android {
     namespace = "com.phlox.tvwebbrowser"
 
@@ -61,12 +71,11 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystorePath = System.getenv("KEYSTORE_PATH")
-            if (keystorePath != null) {
-                storeFile = file(keystorePath)
-                storePassword = System.getenv("KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("KEY_ALIAS")
-                keyPassword = System.getenv("KEY_PASSWORD")
+            if (signingKeystoreFile != null) {
+                storeFile = signingKeystoreFile
+                storePassword = signingStorePassword
+                keyAlias = signingKeyAlias
+                keyPassword = signingKeyPassword
             }
         }
     }
@@ -79,7 +88,7 @@ android {
             isDebuggable = false
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = if (System.getenv("KEYSTORE_PATH") != null)
+            signingConfig = if (signingKeystoreFile != null)
                 signingConfigs.getByName("release") else null
         }
     }

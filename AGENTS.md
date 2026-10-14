@@ -423,6 +423,16 @@
   plus distance (`v2.1.7-3-gabc1234` → `2.1.7-dev.3`) → legacy fallback `2.1.6`. `versionCode` is
   derived from the first three components of versionName (`2.1.7` → `20107`), so it grows
   monotonically with the version; `-PversionCode` overrides it.
+- Release signing: the workflow decodes the `KEYSTORE_BASE64` secret into `KEYSTORE_PATH` and signs
+  with `KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` (all four are set on `P403n1x87/tv-bro`). The
+  keystore is a copy of the Android debug keystore (`CN=Android Debug`, alias `androiddebugkey`,
+  password `android`, valid until 2051) — deliberately, so releases signed here upgrade the
+  debug-signed installs already on the TV in place. For local builds `app/build.gradle.kts` falls
+  back to the gitignored `signing.keystore` in the repository root (same file) and then to the same
+  credentials, so `assembleP403n1x87GeckoExcludedRelease` comes out signed without any env vars; the
+  env vars still win when set (CI), and with no keystore at all release builds stay unsigned.
+  `.gitignore` covers `*.keystore`/`*.jks`, so the file is never committed — back it up, and never
+  regenerate it or existing installs can no longer be updated.
 - Cutting a release is just pushing a tag: `git tag v2.1.7 && git push origin v2.1.7`.
   `.github/workflows/release.yml` builds on **every PR** (and on manual `workflow_dispatch`) with the
   same pipeline as a release — except that signing and publishing are conditional on a tag ref
