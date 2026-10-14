@@ -302,7 +302,7 @@ class BrowserController : ActiveModel() {
             tab.certificateError = false
             publishState()
             tab.url = url
-            tab.webEngine.loadUrl(url)
+            tab.webEngine.loadUrl(HomePageUrl.resolve(url, config))
         } else {
             openInNewTab(url, 0, navigateImmediately = true)
         }
@@ -369,7 +369,7 @@ class BrowserController : ActiveModel() {
         }
         newTab.webEngine.onAttachToWindow(engineCallback(newTab, host), host.tabsContainer)
         if (needReloadUrl) {
-            newTab.webEngine.loadUrl(newTab.url)
+            newTab.webEngine.loadUrl(HomePageUrl.resolve(newTab.url, config))
         }
         newTab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(TVBro.instance))
     }

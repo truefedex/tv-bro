@@ -519,28 +519,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
     override fun loadUrl(url: String) {
         when {
-            Config.HOME_URL_ALIAS == url -> {
-                when (config.homePageMode) {
-                    Config.HomePageMode.BLANK -> {
-                        loadDataWithBaseURL(null, "", "text/html", "UTF-8", null)
-                    }
-                    Config.HomePageMode.CUSTOM, Config.HomePageMode.SEARCH_ENGINE -> {
-                        try {
-                            currentOriginalUrl = config.homePage.toUri()
-                            super.loadUrl(config.homePage)
-                        } catch (e: Exception) {
-                            Log.e(TAG, "LoadUrl error", e)
-                            loadDataWithBaseURL(null, "", "text/html", "UTF-8", null)
-                        }
-
-                    }
-                    Config.HomePageMode.HOME_PAGE -> {
-                        currentOriginalUrl = Config.HOME_PAGE_URL.toUri()
-                        super.loadUrl(Config.HOME_PAGE_URL)
-                    }
-                }
-
-            }
             url.startsWith(INTERNAL_SCHEME) -> {
                 val uri = Uri.parse(url)
                 when (uri.authority) {

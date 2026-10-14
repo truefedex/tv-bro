@@ -282,21 +282,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
         if (!session.isOpen) {
             session.open(runtime)
         }
-        if (Config.HOME_URL_ALIAS == url) {
-            when (AppContext.provideConfig().homePageMode) {
-                Config.HomePageMode.BLANK -> {
-                    //nothing to do
-                }
-                Config.HomePageMode.CUSTOM, Config.HomePageMode.SEARCH_ENGINE -> {
-                    session.loadUri(AppContext.provideConfig().homePage)
-                }
-                Config.HomePageMode.HOME_PAGE -> {
-                    session.loadUri(Config.HOME_PAGE_URL)
-                }
-            }
-        } else {
-            session.loadUri(url)
-        }
+        session.loadUri(url)
     }
 
     override fun canGoForward(): Boolean {

@@ -214,6 +214,25 @@ class BrowserControllerTabsTest {
     }
 
     @Test
+    fun homeAliasIsResolvedForTheEngine() {
+        AppContext.provideConfig().homePageMode = Config.HomePageMode.HOME_PAGE
+        val (a) = open("https://a.com/")
+        controller.navigate(Config.HOME_URL_ALIAS)
+        //the tab keeps the alias until the engine reports the real url
+        assertEquals(Config.HOME_URL_ALIAS, a.url)
+        assertEquals(Config.HOME_PAGE_URL, a.fakeEngine.loadedUrls.last())
+    }
+
+    @Test
+    fun restoredHomeTabLoadsTheResolvedUrl() {
+        AppContext.provideConfig().homePageMode = Config.HomePageMode.BLANK
+        val tab = WebTabState(url = Config.HOME_URL_ALIAS)
+        controller.tabsStates.add(tab)
+        controller.changeTab(tab)
+        assertEquals(listOf("about:blank"), tab.fakeEngine.loadedUrls)
+    }
+
+    @Test
     fun navigateWithoutTabsOpensOne() {
         controller.navigate("https://a.com/")
         assertEquals("https://a.com/", current!!.url)
