@@ -1,7 +1,6 @@
 package com.phlox.tvwebbrowser.webengine
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
@@ -31,7 +30,6 @@ interface WebEngine {
     fun canGoBack(): Boolean
     fun goBack()
     fun reload()
-    fun onFilePicked(resultCode: Int, data: Intent?)
     fun onResume()
     fun onPause()
     fun onUpdateAdblockSetting(newState: Boolean)
@@ -44,7 +42,6 @@ interface WebEngine {
     fun onAttachToWindow(callback: WebEngineWindowProviderCallback, parent: ViewGroup)
     fun onDetachFromWindow(completely: Boolean, destroyTab: Boolean)
     fun trimMemory()
-    fun onPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean
     fun isSameSession(internalRepresentation: Any): Boolean
     fun stopPlayback()
     fun rewind()

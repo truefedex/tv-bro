@@ -1,7 +1,6 @@
 package com.phlox.tvwebbrowser.webengine.gecko
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Handler
@@ -376,10 +375,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
         session.reload()
     }
 
-    override fun onFilePicked(resultCode: Int, data: Intent?) {
-        promptDelegate.onFileCallbackResult(resultCode, data)
-    }
-
     override fun onResume() {
         if (!session.isOpen) {
             session.open(runtime)
@@ -478,10 +473,6 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine,
     }
 
     override fun trimMemory() {
-    }
-
-    override fun onPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
-        return permissionDelegate.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     override fun isSameSession(internalRepresentation: Any): Boolean {

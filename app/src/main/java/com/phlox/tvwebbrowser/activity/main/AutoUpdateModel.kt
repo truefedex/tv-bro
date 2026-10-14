@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.BuildConfig
@@ -12,6 +13,7 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
+import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.utils.sameDay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -88,7 +90,11 @@ class AutoUpdateModel: ActiveModel() {
                             }
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
                             try {
-                                activity.startActivityForResult(intent, MainActivity.REQUEST_CODE_UNKNOWN_APP_SOURCES)
+                                activity.launchForResult(ActivityResultContracts.StartActivityForResult(), intent) {
+                                    if (needToShowUpdateDlgAgain) {
+                                        showUpdateDialogIfNeeded(activity)
+                                    }
+                                }
                                 needToShowUpdateDlgAgain = true
                             } catch (e: Exception) {
                                 e.printStackTrace()

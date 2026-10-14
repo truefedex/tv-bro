@@ -13,16 +13,24 @@ import org.mozilla.geckoview.GeckoSession.PermissionDelegate
 import org.mozilla.geckoview.GeckoSession.PermissionDelegate.ContentPermission
 
 class MyPermissionDelegate(private val webEngine: GeckoWebEngine): PermissionDelegate {
-    private val permissionsRequests = HashMap<Int, PermissionDelegate.Callback>()//request code, callback
-
     override fun onAndroidPermissionsRequest(session: GeckoSession, permissions: Array<String>?,
         callback: PermissionDelegate.Callback) {
         if (permissions == null) {
             callback.reject()
             return
         }
-        val requestCode = webEngine.callback?.requestPermissions(permissions) ?: return
-        permissionsRequests[requestCode] = callback
+        val engineCallback = webEngine.callback
+        if (engineCallback == null) {
+            callback.reject()
+            return
+        }
+        engineCallback.requestPermissions(permissions) { results ->
+            if (results.isNotEmpty() && permissions.all { results[it] == true }) {
+                callback.grant()
+            } else {
+                callback.reject()
+            }
+        }
     }
 
     override fun onContentPermissionRequest(session: GeckoSession,
@@ -88,19 +96,6 @@ class MyPermissionDelegate(private val webEngine: GeckoWebEngine): PermissionDel
         val audioNames = normalizeMediaName(audio)
 
         webEngine.promptDelegate.onMediaPrompt(session, title, video, audio, videoNames, audioNames, callback)
-    }
-
-    fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
-        val cb = permissionsRequests.remove(requestCode) ?: return false
-        for (result in grantResults) {
-            if (result != PackageManager.PERMISSION_GRANTED) {
-                // At least one permission was not granted.
-                cb.reject()
-                return true
-            }
-        }
-        cb.grant()
-        return true
     }
 
     private fun normalizeMediaName(sources: Array<PermissionDelegate.MediaSource>?): Array<String>? {

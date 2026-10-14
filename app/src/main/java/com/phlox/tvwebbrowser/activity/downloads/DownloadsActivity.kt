@@ -203,7 +203,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
                         }
                         intentSettings.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
                         try {
-                            startActivityForResult(intentSettings, REQUEST_CODE_UNKNOWN_APP_SOURCES)
+                            startActivity(intentSettings)
                         } catch (e: Exception) {
                             e.printStackTrace()
                             Toast.makeText(this, R.string.error, Toast.LENGTH_SHORT).show()
@@ -255,8 +255,6 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
     }
 
     companion object {
-        const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
-        private const val REQUEST_CODE_INSTALL_PACKAGE = 10008
         val TAG: String = DownloadsActivity::class.java.simpleName
 
         fun launchInstallAPKActivity(activity: Activity, download: Download) {
@@ -275,7 +273,7 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
             install.setDataAndType(apkURI, mimeType)
             install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             try {
-                activity.startActivityForResult(install, REQUEST_CODE_INSTALL_PACKAGE)//we are not using result for now
+                activity.startActivity(install)
             } catch (e: Exception) {
                 Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
             }

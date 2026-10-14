@@ -528,11 +528,13 @@ class MyPromptDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Prom
 
         val res = GeckoResult<PromptResponse>()
 
-        if (webEngine.callback?.onShowFileChooser(intent) == true) {
-            fileResponse = res
-            filePrompt = prompt
+        fileResponse = res
+        filePrompt = prompt
+        if (webEngine.callback?.pickFile(intent) { resultCode, data -> onFileCallbackResult(resultCode, data) } == true) {
             return res
         } else {
+            fileResponse = null
+            filePrompt = null
             Log.e(TAG, "Cannot launch activity")
             return GeckoResult.fromValue(prompt.dismiss())
         }

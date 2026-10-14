@@ -48,8 +48,17 @@ interface EnginePolicies {
 interface EngineUiHost {
     fun getActivity(): Activity
     fun onDownloadRequested(request: DownloadRequest)
-    fun requestPermissions(array: Array<String>): Int
-    fun onShowFileChooser(intent: Intent): Boolean
+    /**
+     * Asks the user for Android permissions. [onResult] gets granted state of each permission
+     * (empty if the request was interrupted).
+     */
+    fun requestPermissions(permissions: Array<String>, onResult: (Map<String, Boolean>) -> Unit)
+
+    /**
+     * Starts an app that picks files. [onResult] gets its result code and data.
+     * @return false if there is no such app
+     */
+    fun pickFile(intent: Intent, onResult: (resultCode: Int, data: Intent?) -> Unit): Boolean
     fun onCopyTextToClipboardRequested(url: String)
     fun onShareUrlRequested(url: String)
     fun onOpenInExternalAppRequested(url: String)

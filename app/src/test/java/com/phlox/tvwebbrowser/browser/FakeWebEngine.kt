@@ -1,7 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
@@ -58,7 +57,6 @@ class FakeWebEngine(val tab: WebTabState) : WebEngine {
     override fun canGoBack(): Boolean = canGoBackValue
     override fun goBack() { log += "goBack" }
     override fun reload() { log += "reload" }
-    override fun onFilePicked(resultCode: Int, data: Intent?) {}
     override fun onResume() { log += "resume" }
     override fun onPause() { log += "pause" }
     override fun onUpdateAdblockSetting(newState: Boolean) { adblockSetting = newState }
@@ -80,7 +78,6 @@ class FakeWebEngine(val tab: WebTabState) : WebEngine {
     }
 
     override fun trimMemory() { log += "trimMemory" }
-    override fun onPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) = false
     override fun isSameSession(internalRepresentation: Any): Boolean = internalRepresentation === this
     override fun stopPlayback() {}
     override fun rewind() {}

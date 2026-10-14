@@ -9,7 +9,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.Network
@@ -40,6 +39,8 @@ import android.widget.FrameLayout
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -75,6 +76,7 @@ import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
+import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.childs
 import com.phlox.tvwebbrowser.utils.sameDay
@@ -99,14 +101,7 @@ import kotlin.system.exitProcess
 open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
-        const val VOICE_SEARCH_REQUEST_CODE = 10001
-        const val PICK_FILE_REQUEST_CODE = 10005
-        private const val REQUEST_CODE_HISTORY_ACTIVITY = 10006
-        const val REQUEST_CODE_UNKNOWN_APP_SOURCES = 10007
         const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
-        private const val MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS = 10008
-        private const val MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS = 10009
-        private const val COMMON_REQUESTS_START_CODE = 10100
     }
 
     private lateinit var vb: ActivityMainBinding
@@ -118,9 +113,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private lateinit var uiHandler: Handler
     private var isFullscreen: Boolean = false
     protected val config = AppContext.provideConfig()
-    private val voiceSearchHelper = VoiceSearchHelper(this, VOICE_SEARCH_REQUEST_CODE,
-        MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS)
-    private var lastCommonRequestsCode = COMMON_REQUESTS_START_CODE
+    private val voiceSearchHelper = VoiceSearchHelper(this)
     private val downloadLauncher = DownloadLauncher(this) { onDownloadStarted(it.filename) }
     var openUrlInExternalAppDialog: AlertDialog? = null
     private var linkActionsMenu: PopupMenu? = null
@@ -327,9 +320,16 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     override fun showHistory() {
-        startActivityForResult(
-                Intent(this@MainActivity, HistoryActivity::class.java),
-                REQUEST_CODE_HISTORY_ACTIVITY)
+        launchForResult(ActivityResultContracts.StartActivityForResult(),
+            Intent(this@MainActivity, HistoryActivity::class.java)) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val url = result.data?.getStringExtra(HistoryActivity.KEY_URL)
+                if (url != null) {
+                    navigate(url)
+                }
+                hideMenuOverlay()
+            }
+        }
         hideMenuOverlay()
     }
 
@@ -577,12 +577,24 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 hideMenuOverlay(true)
                 hideBottomPanel()
             }
-            BrowserUiEvent.LocalNetworkPermissionNeeded ->
-                requestPermissions(arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS)
+            BrowserUiEvent.LocalNetworkPermissionNeeded -> requestLocalNetworkPermission()
             is BrowserUiEvent.OpenInExternalApp -> openInExternalApp(event.url)
             is BrowserUiEvent.AskToOpenInExternalApp -> askUserAndOpenInExternalApp(event.url, event.intent)
             BrowserUiEvent.NoAppToOpenUrl ->
                 Utils.showToast(applicationContext, getString(R.string.err_no_app_to_handle_url))
+        }
+    }
+
+    private fun requestLocalNetworkPermission() {
+        launchForResult(ActivityResultContracts.RequestPermission(), Manifest.permission.ACCESS_LOCAL_NETWORK) { granted ->
+            if (granted) {
+                val currentTab = controller.currentTab.value
+                if (currentTab != null) {
+                    navigate(currentTab.url)
+                }
+            } else {
+                Utils.showToast(this, R.string.local_network_access_denied)
+            }
         }
     }
 
@@ -666,55 +678,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     override fun onTrimMemory(level: Int) {
         controller.trimMemory()
         super.onTrimMemory(level)
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<String>, grantResults: IntArray) {
-        if (voiceSearchHelper.processPermissionsResult(requestCode, permissions, grantResults)) {
-            return
-        }
-        if (controller.currentTab.value?.webEngine?.onPermissionsResult(requestCode, permissions, grantResults) == true) return
-        if (downloadLauncher.onRequestPermissionsResult(requestCode, grantResults)) return
-        if (grantResults.isEmpty()) return
-        when (requestCode) {
-            MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS -> {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    val currentTab = controller.currentTab.value
-                    if (currentTab != null) {
-                        navigate(currentTab.url)
-                    }
-                } else {
-                    Utils.showToast(this, R.string.local_network_access_denied)
-                }
-            }
-            else -> {
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-            }
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (voiceSearchHelper.processActivityResult(requestCode, resultCode, data)) {
-            return
-        }
-        when (requestCode) {
-            PICK_FILE_REQUEST_CODE -> {
-                controller.currentTab.value?.webEngine?.onFilePicked(resultCode, data)
-            }
-            REQUEST_CODE_HISTORY_ACTIVITY -> if (resultCode == Activity.RESULT_OK) {
-                val url = data?.getStringExtra(HistoryActivity.KEY_URL)
-                if (url != null) {
-                    navigate(url)
-                }
-                hideMenuOverlay()
-            }
-            REQUEST_CODE_UNKNOWN_APP_SOURCES -> if (autoUpdateModel.needToShowUpdateDlgAgain) {
-                autoUpdateModel.showUpdateDialogIfNeeded(this)
-            }
-
-            else -> super.onActivityResult(requestCode, resultCode, data)
-        }
     }
 
     override fun onStart() {
@@ -1110,20 +1073,20 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             downloadLauncher.download(request)
         }
 
-        override fun requestPermissions(array: Array<String>): Int {
-            val requestCode = lastCommonRequestsCode++
-            this@MainActivity.requestPermissions(array, requestCode)
-            return requestCode
+        override fun requestPermissions(permissions: Array<String>, onResult: (Map<String, Boolean>) -> Unit) {
+            launchForResult(ActivityResultContracts.RequestMultiplePermissions(), permissions, onResult)
         }
 
-        override fun onShowFileChooser(intent: Intent): Boolean {
+        override fun pickFile(intent: Intent, onResult: (resultCode: Int, data: Intent?) -> Unit): Boolean {
+            val contract = ActivityResultContracts.StartActivityForResult()
+            val callback = { result: ActivityResult -> onResult(result.resultCode, result.data) }
             try {
-                startActivityForResult(intent, PICK_FILE_REQUEST_CODE)
+                launchForResult(contract, intent, callback)
             } catch (e: ActivityNotFoundException) {
                 try {
                     //trying again with type */* (seems file pickers usually doesn't support specific types in intent filters but still can do the job)
                     intent.type = "*/*"
-                    startActivityForResult(intent, PICK_FILE_REQUEST_CODE)
+                    launchForResult(contract, intent, callback)
                 } catch (e: ActivityNotFoundException) {
                     Utils.showToast(applicationContext, getString(R.string.err_cant_open_file_chooser))
                     return false

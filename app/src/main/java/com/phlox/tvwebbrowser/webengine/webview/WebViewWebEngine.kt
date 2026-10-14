@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.webengine.webview
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -30,7 +31,6 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
     internal var callback: WebEngineWindowProviderCallback? = null
     private var viewParent: CursorLayout? = null
     private var fullScreenView: View? = null
-    private val permissionsRequests = HashMap<Int, Boolean>()//request code, isGeolocationPermissionRequest
     private val jsInterface = AndroidJSInterface(this)
 
     override fun getWebEngineName(): String = "WebView"
@@ -134,13 +134,6 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         webView?.reload()
     }
 
-    override fun onFilePicked(resultCode: Int, data: Intent?) {
-        if (resultCode != Activity.RESULT_OK || data == null) {
-            return
-        }
-        webView?.onFilePicked(data)
-    }
-
     override fun onResume() {
         webView?.onResume()
     }
@@ -203,14 +196,6 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         if (webView != null && !webView.isAttachedToWindow) {
             this.webView = null
         }
-    }
-
-    override fun onPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Boolean {
-        val isGeolocationPermissionRequest = permissionsRequests[requestCode] ?: return false
-        permissionsRequests.remove(requestCode)
-        if (grantResults.isEmpty()) return true
-        webView?.onPermissionsResult(permissions, grantResults, isGeolocationPermissionRequest)
-        return true
     }
 
     override fun onLongPress(x: Int, y: Int) {
@@ -285,12 +270,19 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.C
         }
 
         override fun requestPermissions(array: Array<String>, geo: Boolean) {
-            val requestCode = callback?.requestPermissions(array) ?: return
-            permissionsRequests[requestCode] = geo
+            callback?.requestPermissions(array) { results ->
+                if (results.isEmpty()) return@requestPermissions
+                val grantResults = IntArray(array.size) {
+                    if (results[array[it]] == true) PackageManager.PERMISSION_GRANTED else PackageManager.PERMISSION_DENIED
+                }
+                webView?.onPermissionsResult(array, grantResults, geo)
+            }
         }
 
         override fun onShowFileChooser(intent: Intent): Boolean {
-            return callback?.onShowFileChooser(intent) ?: false
+            return callback?.pickFile(intent) { resultCode, data ->
+                webView?.onFilePicked(resultCode, data)
+            } ?: false
         }
 
         override fun onReceivedIcon(icon: Bitmap) {

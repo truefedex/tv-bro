@@ -32,8 +32,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     private var ibDelete: ImageButton? = null
     private var adapter: HistoryAdapter? = null
     private lateinit var historyModel: HistoryModel
-    private val voiceSearchHelper = VoiceSearchHelper(this, VOICE_SEARCH_REQUEST_CODE,
-        VOICE_SEARCH_PERMISSIONS_REQUEST_CODE)
+    private val voiceSearchHelper = VoiceSearchHelper(this)
 
     internal var onListScrollListener: AbsListView.OnScrollListener = object : AbsListView.OnScrollListener {
         override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
@@ -116,20 +115,6 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         return super.dispatchKeyEvent(event)
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (!voiceSearchHelper.processActivityResult(requestCode, resultCode, data)) {
-            super.onActivityResult(requestCode, resultCode, data)
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
-        grantResults: IntArray) {
-        if (!voiceSearchHelper.processPermissionsResult(requestCode, permissions, grantResults)) {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        }
-    }
-
     override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
         val hi = (view as HistoryItemView).historyItem
         if (hi!!.isDateHeader) return
@@ -189,8 +174,6 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     }
 
     companion object {
-        private const val VOICE_SEARCH_REQUEST_CODE = 10001
-        private const val VOICE_SEARCH_PERMISSIONS_REQUEST_CODE = 10002
 
         const val KEY_URL = "url"
     }

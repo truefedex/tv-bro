@@ -264,6 +264,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
                             if (neededPermissions.isNotEmpty()) {
                                 requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions = resourcesThatDoNotNeedToGrantPerms
+                                //the request is answered when the Android permissions result comes
+                                this@WebViewEx.webPermissionsRequest = webPermissionsRequest
                                 callback.requestPermissions(neededPermissions.toTypedArray(), false)
                             } else {
                                 webPermissionsRequest.grant(webPermissionsRequest.resources)
@@ -594,13 +596,10 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         webChromeClient_.onHideCustomView()
     }
 
-    fun onFilePicked(data: Intent) {
-        pickFileCallback?.apply {
-            if (data.data != null) {
-                val uris = arrayOf(data.data!!)
-                onReceiveValue(uris)
-            }
-        }
+    fun onFilePicked(resultCode: Int, data: Intent?) {
+        //WebView needs the result even if the user cancelled, otherwise the page can not pick files again
+        pickFileCallback?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data))
+        pickFileCallback = null
     }
 
     fun onPermissionsResult(permissions: Array<String>, grantResults: IntArray, typeGeo: Boolean) {

@@ -1,7 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
-import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -12,9 +11,12 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import com.phlox.tvwebbrowser.browser.toDownload
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.service.downloads.DownloadService
+import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 
 /**
@@ -22,18 +24,14 @@ import com.phlox.tvwebbrowser.webengine.DownloadRequest
  * permissions first and keeps the service bound while the activity is started.
  */
 class DownloadLauncher(
-    private val activity: Activity,
+    private val activity: ComponentActivity,
     private val onDownloadStarted: (Download) -> Unit
 ) {
     companion object {
         private const val TAG = "DownloadLauncher"
-        const val PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS = 10004
-        const val PERMISSIONS_REQUEST_POST_NOTIFICATIONS_ACCESS = 10003
     }
 
     private var service: DownloadService? = null
-    /** Waits for the permissions */
-    private var pendingDownload: Download? = null
     private val handler = Handler(Looper.getMainLooper())
 
     private val connection = object : ServiceConnection {
@@ -67,37 +65,28 @@ class DownloadLauncher(
     }
 
     fun download(request: DownloadRequest) {
-        pendingDownload = request.toDownload()
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
-            activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            activity.requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS)
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            activity.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            activity.requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                PERMISSIONS_REQUEST_POST_NOTIFICATIONS_ACCESS)
-        } else {
-            startPendingDownload()
+        val download = request.toDownload()
+        val neededPermission = when {
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
+                activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ->
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                activity.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED ->
+                Manifest.permission.POST_NOTIFICATIONS
+            else -> null
+        }
+        if (neededPermission == null) {
+            start(download)
+            return
+        }
+        activity.launchForResult(ActivityResultContracts.RequestPermission(), neededPermission) { granted ->
+            if (granted) {
+                start(download)
+            }
         }
     }
 
-    /**
-     * @return true if the result was for a permission asked by this launcher
-     */
-    fun onRequestPermissionsResult(requestCode: Int, grantResults: IntArray): Boolean {
-        if (requestCode != PERMISSIONS_REQUEST_EXTERNAL_STORAGE_ACCESS &&
-            requestCode != PERMISSIONS_REQUEST_POST_NOTIFICATIONS_ACCESS) {
-            return false
-        }
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            startPendingDownload()
-        }
-        return true
-    }
-
-    private fun startPendingDownload() {
-        val download = pendingDownload ?: return
-        pendingDownload = null
+    private fun start(download: Download) {
         service?.startDownload(download)
         onDownloadStarted(download)
     }

@@ -22,10 +22,12 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import com.phlox.tvwebbrowser.R
+import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import com.phlox.tvwebbrowser.databinding.ViewSpeachRecognizerResultsBinding
 
 
-class VoiceSearchHelper(private val activity: Activity, private val requestCode: Int, private val permissionRequestCode: Int) {
+class VoiceSearchHelper(private val activity: ComponentActivity) {
 
     private var recognitionResultsRendererView: RecognitionResultsRendererView? = null
     private lateinit var languageModel: String
@@ -56,7 +58,12 @@ class VoiceSearchHelper(private val activity: Activity, private val requestCode:
                 )
                 intent.putExtra(RecognizerIntent.EXTRA_PROMPT, activity.getString(R.string.speak))
                 try {
-                    activity.startActivityForResult(intent, requestCode)
+                    activity.launchForResult(ActivityResultContracts.StartActivityForResult(), intent) { result ->
+                        if (result.resultCode == Activity.RESULT_OK) {
+                            val matches = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                            callback.onResult(matches?.firstOrNull())
+                        }
+                    }
                 } catch (e: Exception) {
                     Toast.makeText(activity, R.string.error, Toast.LENGTH_SHORT).show()
                 }
@@ -89,7 +96,11 @@ class VoiceSearchHelper(private val activity: Activity, private val requestCode:
     @RequiresApi(Build.VERSION_CODES.R)
     private fun initiateVoiceSearchAndroid11AndNext() {
         if (activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            activity.requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), permissionRequestCode)
+            activity.launchForResult(ActivityResultContracts.RequestPermission(), Manifest.permission.RECORD_AUDIO) { granted ->
+                if (granted) {
+                    initiateVoiceSearch(callback)
+                }
+            }
             return
         }
 
@@ -145,27 +156,6 @@ class VoiceSearchHelper(private val activity: Activity, private val requestCode:
             removeView(recognitionResultsRendererView)
             recognitionResultsRendererView = null
         }
-    }
-
-    fun processActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
-        if (requestCode != this.requestCode) return false
-
-        if (resultCode == Activity.RESULT_OK) {
-            val matches = data?.getStringArrayListExtra(
-                RecognizerIntent.EXTRA_RESULTS)
-
-            callback.onResult(matches?.firstOrNull())
-        }
-        return true
-    }
-
-    fun processPermissionsResult(requestCode: Int, permissions: Array<String>,
-                                 grantResults: IntArray): Boolean {
-        if (requestCode != permissionRequestCode) return false
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            initiateVoiceSearch(callback)
-        }
-        return true
     }
 
     open class RecognitionListenerAdapter: RecognitionListener {
