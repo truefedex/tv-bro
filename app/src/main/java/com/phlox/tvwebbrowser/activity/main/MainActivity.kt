@@ -88,6 +88,9 @@ import com.phlox.tvwebbrowser.utils.sameDay
 import com.phlox.tvwebbrowser.webengine.FeatureDelivery
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import com.phlox.tvwebbrowser.webengine.EnginePolicies
+import com.phlox.tvwebbrowser.webengine.EngineUiHost
+import com.phlox.tvwebbrowser.webengine.TabEngineEvents
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
@@ -546,7 +549,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun changeTab(newTab: WebTabState) {
-        tabsModel.changeTab(newTab, { tab: WebTabState -> createWebView(tab) }, vb.flWebViewContainer, WebEngineCallback(newTab))
+        tabsModel.changeTab(newTab, { tab: WebTabState -> createWebView(tab) }, vb.flWebViewContainer, TabCallbacks(newTab).combined)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -1093,415 +1096,431 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }, favoriteItem).show()
     }
 
-    private inner class WebEngineCallback(val tab: WebTabState) : WebEngineWindowProviderCallback {
-        override fun getActivity(): Activity {
-            return this@MainActivity
-        }
+    /**
+     * Engine callbacks of one tab. Split by the interfaces the engine sees; for now all
+     * of them are implemented here, the core parts will move out of the activity.
+     */
+    private inner class TabCallbacks(val tab: WebTabState) {
+        val events = Events()
+        val policies = Policies()
+        val uiHost = UiHost()
+        val combined: WebEngineWindowProviderCallback = object : WebEngineWindowProviderCallback,
+            TabEngineEvents by events, EnginePolicies by policies, EngineUiHost by uiHost {}
 
-        override fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine? {
-            var index = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
-            index = if (index == -1) tabsModel.tabsStates.size else index + 1
-            return openInNewTab(url, index, true, navigateImmediately)
-        }
-
-        override fun onDownloadRequested(url: String) {
-            Log.i(TAG, "onDownloadRequested url: $url")
-            val fileName = Uri.parse(url).lastPathSegment
-            val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
-            onDownloadRequested(url, tab.url,
-                fileName, tab.webEngine.userAgentString, mimeType)
-        }
-
-        override fun onDownloadRequested(url: String, referer: String,
-                                         originalDownloadFileName: String?, userAgent: String?, mimeType: String?,
-                                         operationAfterDownload: Download.OperationAfterDownload, base64BlobData: String?,
-                                         stream: InputStream?, size: Long, contentDisposition: String?) {
-            val fileName = DownloadUtils.guessFileName(url, contentDisposition, mimeType)
-
-            this@MainActivity.onDownloadRequested(url, referer, fileName,
-                userAgent, mimeType, operationAfterDownload, base64BlobData, stream, size)
-        }
-
-        override fun onDownloadRequested(url: String, userAgent: String?, contentDisposition: String,
-                                         mimetype: String?, contentLength: Long ) {
-            Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
-            onDownloadRequested(url= url, referer = tab.url, originalDownloadFileName = null,
-                userAgent = userAgent, mimeType = mimetype, size = contentLength, contentDisposition = contentDisposition)
-        }
-
-        override fun onProgressChanged(newProgress: Int) {
-            vb.progressBar.visibility = View.VISIBLE
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                vb.progressBar.setProgress(newProgress, true)
-            } else {
-                vb.progressBar.progress = newProgress
+        inner class Events : TabEngineEvents {
+            override fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine? {
+                var index = tabsModel.tabsStates.indexOf(tabsModel.currentTab.value)
+                index = if (index == -1) tabsModel.tabsStates.size else index + 1
+                return openInNewTab(url, index, true, navigateImmediately)
             }
-            uiHandler.removeCallbacks(progressBarHideRunnable)
-            if (newProgress == 100) {
-                uiHandler.postDelayed(progressBarHideRunnable, 1000)
-            } else {
-                uiHandler.postDelayed(progressBarHideRunnable, 5000)
+
+            override fun onProgressChanged(newProgress: Int) {
+                vb.progressBar.visibility = View.VISIBLE
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    vb.progressBar.setProgress(newProgress, true)
+                } else {
+                    vb.progressBar.progress = newProgress
+                }
+                uiHandler.removeCallbacks(progressBarHideRunnable)
+                if (newProgress == 100) {
+                    uiHandler.postDelayed(progressBarHideRunnable, 1000)
+                } else {
+                    uiHandler.postDelayed(progressBarHideRunnable, 5000)
+                }
+            }
+
+            override fun onReceivedTitle(title: String) {
+                tab.title = title
+                vb.vTabs.onTabTitleUpdated(tab)
+                viewModel.onTabTitleUpdated(tab)
+            }
+
+            override fun onReceivedIcon(icon: Bitmap) {
+                vb.vTabs.onFavIconUpdated(tab)
+            }
+
+            override fun shouldOverrideUrlLoading(url: String): Boolean {
+                tab.lastLoadingUrl = url
+
+                val route = UrlRouter.route(url) {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN &&
+                        Utils.isLocalNetworkUrl(it) &&
+                        checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED
+                }
+                when (route) {
+                    UrlRouter.UrlRoute.BLOCK -> return true
+                    UrlRouter.UrlRoute.LOAD -> return false
+                    UrlRouter.UrlRoute.REQUEST_LOCAL_NETWORK_PERMISSION -> {
+                        requestPermissions(arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS)
+                        return true
+                    }
+                    UrlRouter.UrlRoute.OPEN_INTENT_URI -> {
+                        uiHost.onOpenInExternalAppRequested(url)
+                        return true
+                    }
+                    UrlRouter.UrlRoute.OPEN_IN_EXTERNAL_APP -> {}
+                }
+
+                //try to handle intent for non-network urls by external apps
+                return try {
+                    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    if (intent.resolveActivity(TVBro.instance.packageManager) != null) {
+                        runOnUiThread {
+                            askUserAndOpenInExternalApp(url, intent)
+                        }
+                        true
+                    } else {
+                        Log.d(TAG, "shouldOverrideUrlLoading: no activity to handle intent")
+                        runOnUiThread {
+                            Utils.showToast(applicationContext, getString(R.string.err_no_app_to_handle_url))
+                        }
+                        true
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "shouldOverrideUrlLoading: ", e)
+                    true
+                }
+            }
+
+            override fun onPageStarted(url: String?) {
+                onWebViewUpdated(tab)
+                val webViewUrl = tab.webEngine.url
+                if (webViewUrl != null) {
+                    tab.url = webViewUrl
+                } else if (url != null) {
+                    tab.url = url
+                }
+                if (tabByTitleIndex(vb.vTabs.current) == tab) {
+                    vb.vActionBar.setAddressBoxText(tab.url)
+                }
+                tab.blockedAds = 0
+                tab.blockedPopups = 0
+            }
+
+            override fun onPageFinished(url: String?) {
+                if (tabsModel.currentTab.value == null) {
+                    return
+                }
+                onWebViewUpdated(tab)
+
+                val webViewUrl = tab.webEngine.url
+                if (webViewUrl != null) {
+                    tab.url = webViewUrl
+                } else if (url != null) {
+                    tab.url = url
+                }
+                if (tabByTitleIndex(vb.vTabs.current) == tab) {
+                    vb.vActionBar.setAddressBoxText(tab.url)
+                }
+
+                //thumbnail
+                tabsModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
+                lifecycleScope.launch {
+                    val newThumbnail = tab.webEngine.renderThumbnail(tab.thumbnail)
+                    if (newThumbnail != null) {
+                        tab.updateThumbnail(this@MainActivity, newThumbnail)
+                        if (vb.rlActionBar.isVisible && tab == tabsModel.currentTab.value) {
+                            displayThumbnail(tab)
+                        }
+                    }
+                }
+            }
+
+            override fun onPageCertificateError(url: String?) {
+                vb.vActionBar.setAddressBoxTextColor(Color.RED)
+            }
+
+            override fun onBlockedAd(uri: String) {
+                Log.i(TAG, "onBlockedAd: $uri")
+                if (!config.adBlockEnabled) return
+                tab.blockedAds++
+                vb.tvBlockedAdCounter.visibility = if (tab.blockedAds > 0) View.VISIBLE else View.GONE
+                vb.tvBlockedAdCounter.text = tab.blockedAds.toString()
+            }
+
+            override fun onBlockedDialog(newTab: Boolean) {
+                tab.blockedPopups++
+                runOnUiThread {
+                    vb.tvBlockedPopupCounter.visibility = if (tab.blockedPopups > 0) View.VISIBLE else View.GONE
+                    vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
+                    val msg = getString(if (newTab) R.string.new_tab_blocked else R.string.popup_dialog_blocked)
+                    NotificationView.showBottomRight(vb.rlRoot, R.drawable.ic_block_popups, msg)
+                }
+            }
+
+            override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View? {
+                if (policies.shouldBlockNewWindow(dialog, userGesture)) {
+                    onBlockedDialog(!dialog)
+                    return null
+                }
+                val tab = WebTabState(incognito = config.incognitoMode)
+                val webView = createWebView(tab) ?: return null
+                val currentTab = this@MainActivity.tabsModel.currentTab.value ?: return null
+                val index = tabsModel.tabsStates.indexOf(currentTab) + 1
+                tabsModel.tabsStates.add(index, tab)
+                changeTab(tab)
+                return webView
+            }
+
+            override fun closeWindow(internalRepresentation: Any) {
+                for (tab in tabsModel.tabsStates) {
+                    if (tab.webEngine.isSameSession(internalRepresentation)) {
+                        closeTab(tab)
+                        break
+                    }
+                }
+            }
+
+            override fun onScaleChanged(oldScale: Float, newScale: Float) {
+                Log.d(TAG, "onScaleChanged: oldScale: $oldScale newScale: $newScale")
+                tab.scale = newScale
+            }
+
+            override fun getHomePageLinks(): List<HomePageLink> {
+                return viewModel.homePageLinks
+            }
+
+            override fun onVisited(url: String) {
+                val tab = tabsModel.currentTab.value ?: return
+
+                if (!config.incognitoMode) {
+                    viewModel.logVisitedHistory(tab.title, url, tab.faviconHash)
+                }
+            }
+
+            override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
+                viewModel.markBookmarkRecommendationAsUseful(bookmarkOrder)
             }
         }
 
-        override fun onReceivedTitle(title: String) {
-            tab.title = title
-            vb.vTabs.onTabTitleUpdated(tab)
-            viewModel.onTabTitleUpdated(tab)
+        inner class Policies : EnginePolicies {
+            override fun isAd(url: Uri, acceptHeader: String?, baseUri: Uri): Boolean? {
+                return adblockModel.isAd(url, acceptHeader, baseUri)
+            }
+
+            override fun isAdBlockingEnabled(): Boolean {
+                tabsModel.currentTab.value?.adblock?.apply {
+                    return this
+                }
+                return  config.adBlockEnabled
+            }
+
+            override fun isDialogsBlockingEnabled(): Boolean {
+                if (tab.url == Config.HOME_PAGE_URL) return false
+                return shouldBlockNewWindow(dialog = true, userGesture = false)
+            }
+
+            override fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean {
+                val hostConfig = tabsModel.findHostConfig(tab)
+                return PopupBlockPolicy.shouldBlockNewWindow(hostConfig?.popupBlockLevel, dialog, userGesture)
+            }
         }
 
-        override fun requestPermissions(array: Array<String>): Int {
-            val requestCode = lastCommonRequestsCode++
-            this@MainActivity.requestPermissions(array, requestCode)
-            return requestCode
-        }
+        inner class UiHost : EngineUiHost {
+            override fun getActivity(): Activity {
+                return this@MainActivity
+            }
 
-        override fun onShowFileChooser(intent: Intent): Boolean {
-            try {
-                startActivityForResult(intent, PICK_FILE_REQUEST_CODE)
-            } catch (e: ActivityNotFoundException) {
+            override fun onDownloadRequested(url: String) {
+                Log.i(TAG, "onDownloadRequested url: $url")
+                val fileName = Uri.parse(url).lastPathSegment
+                val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url))
+                onDownloadRequested(url, tab.url,
+                    fileName, tab.webEngine.userAgentString, mimeType)
+            }
+
+            override fun onDownloadRequested(url: String, referer: String,
+                                             originalDownloadFileName: String?, userAgent: String?, mimeType: String?,
+                                             operationAfterDownload: Download.OperationAfterDownload, base64BlobData: String?,
+                                             stream: InputStream?, size: Long, contentDisposition: String?) {
+                val fileName = DownloadUtils.guessFileName(url, contentDisposition, mimeType)
+
+                this@MainActivity.onDownloadRequested(url, referer, fileName,
+                    userAgent, mimeType, operationAfterDownload, base64BlobData, stream, size)
+            }
+
+            override fun onDownloadRequested(url: String, userAgent: String?, contentDisposition: String,
+                                             mimetype: String?, contentLength: Long ) {
+                Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
+                onDownloadRequested(url= url, referer = tab.url, originalDownloadFileName = null,
+                    userAgent = userAgent, mimeType = mimetype, size = contentLength, contentDisposition = contentDisposition)
+            }
+
+            override fun requestPermissions(array: Array<String>): Int {
+                val requestCode = lastCommonRequestsCode++
+                this@MainActivity.requestPermissions(array, requestCode)
+                return requestCode
+            }
+
+            override fun onShowFileChooser(intent: Intent): Boolean {
                 try {
-                    //trying again with type */* (seems file pickers usually doesn't support specific types in intent filters but still can do the job)
-                    intent.type = "*/*"
                     startActivityForResult(intent, PICK_FILE_REQUEST_CODE)
                 } catch (e: ActivityNotFoundException) {
-                    Utils.showToast(applicationContext, getString(R.string.err_cant_open_file_chooser))
-                    return false
-                }
-            }
-            return true
-        }
-
-        override fun onReceivedIcon(icon: Bitmap) {
-            vb.vTabs.onFavIconUpdated(tab)
-        }
-
-        override fun shouldOverrideUrlLoading(url: String): Boolean {
-            tab.lastLoadingUrl = url
-
-            val route = UrlRouter.route(url) {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN &&
-                    Utils.isLocalNetworkUrl(it) &&
-                    checkSelfPermission(Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED
-            }
-            when (route) {
-                UrlRouter.UrlRoute.BLOCK -> return true
-                UrlRouter.UrlRoute.LOAD -> return false
-                UrlRouter.UrlRoute.REQUEST_LOCAL_NETWORK_PERMISSION -> {
-                    requestPermissions(arrayOf(Manifest.permission.ACCESS_LOCAL_NETWORK), MY_PERMISSIONS_REQUEST_LOCAL_NETWORK_ACCESS)
-                    return true
-                }
-                UrlRouter.UrlRoute.OPEN_INTENT_URI -> {
-                    onOpenInExternalAppRequested(url)
-                    return true
-                }
-                UrlRouter.UrlRoute.OPEN_IN_EXTERNAL_APP -> {}
-            }
-
-            //try to handle intent for non-network urls by external apps
-            return try {
-                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                if (intent.resolveActivity(TVBro.instance.packageManager) != null) {
-                    runOnUiThread {
-                        askUserAndOpenInExternalApp(url, intent)
-                    }
-                    true
-                } else {
-                    Log.d(TAG, "shouldOverrideUrlLoading: no activity to handle intent")
-                    runOnUiThread {
-                        Utils.showToast(applicationContext, getString(R.string.err_no_app_to_handle_url))
-                    }
-                    true
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "shouldOverrideUrlLoading: ", e)
-                true
-            }
-        }
-
-        override fun onPageStarted(url: String?) {
-            onWebViewUpdated(tab)
-            val webViewUrl = tab.webEngine.url
-            if (webViewUrl != null) {
-                tab.url = webViewUrl
-            } else if (url != null) {
-                tab.url = url
-            }
-            if (tabByTitleIndex(vb.vTabs.current) == tab) {
-                vb.vActionBar.setAddressBoxText(tab.url)
-            }
-            tab.blockedAds = 0
-            tab.blockedPopups = 0
-        }
-
-        override fun onPageFinished(url: String?) {
-            if (tabsModel.currentTab.value == null) {
-                return
-            }
-            onWebViewUpdated(tab)
-
-            val webViewUrl = tab.webEngine.url
-            if (webViewUrl != null) {
-                tab.url = webViewUrl
-            } else if (url != null) {
-                tab.url = url
-            }
-            if (tabByTitleIndex(vb.vTabs.current) == tab) {
-                vb.vActionBar.setAddressBoxText(tab.url)
-            }
-
-            //thumbnail
-            tabsModel.tabsStates.onEach { if (it != tab) it.thumbnail = null }
-            lifecycleScope.launch {
-                val newThumbnail = tab.webEngine.renderThumbnail(tab.thumbnail)
-                if (newThumbnail != null) {
-                    tab.updateThumbnail(this@MainActivity, newThumbnail)
-                    if (vb.rlActionBar.isVisible && tab == tabsModel.currentTab.value) {
-                        displayThumbnail(tab)
+                    try {
+                        //trying again with type */* (seems file pickers usually doesn't support specific types in intent filters but still can do the job)
+                        intent.type = "*/*"
+                        startActivityForResult(intent, PICK_FILE_REQUEST_CODE)
+                    } catch (e: ActivityNotFoundException) {
+                        Utils.showToast(applicationContext, getString(R.string.err_cant_open_file_chooser))
+                        return false
                     }
                 }
+                return true
             }
-        }
 
-        override fun onPageCertificateError(url: String?) {
-            vb.vActionBar.setAddressBoxTextColor(Color.RED)
-        }
-
-        override fun isAd(url: Uri, acceptHeader: String?, baseUri: Uri): Boolean? {
-            return adblockModel.isAd(url, acceptHeader, baseUri)
-        }
-
-        override fun isAdBlockingEnabled(): Boolean {
-            tabsModel.currentTab.value?.adblock?.apply {
-                return this
+            override fun onCopyTextToClipboardRequested(url: String) {
+                val clipBoard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clipData = ClipData.newPlainText("URL", url)
+                clipBoard.setPrimaryClip(clipData)
+                Toast.makeText(this@MainActivity, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
             }
-            return  config.adBlockEnabled
-        }
 
-        override fun isDialogsBlockingEnabled(): Boolean {
-            if (tab.url == Config.HOME_PAGE_URL) return false
-            return shouldBlockNewWindow(dialog = true, userGesture = false)
-        }
-
-        override fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean {
-            val hostConfig = tabsModel.findHostConfig(tab)
-            return PopupBlockPolicy.shouldBlockNewWindow(hostConfig?.popupBlockLevel, dialog, userGesture)
-        }
-
-        override fun onBlockedAd(uri: String) {
-            Log.i(TAG, "onBlockedAd: $uri")
-            if (!config.adBlockEnabled) return
-            tab.blockedAds++
-            vb.tvBlockedAdCounter.visibility = if (tab.blockedAds > 0) View.VISIBLE else View.GONE
-            vb.tvBlockedAdCounter.text = tab.blockedAds.toString()
-        }
-
-        override fun onBlockedDialog(newTab: Boolean) {
-            tab.blockedPopups++
-            runOnUiThread {
-                vb.tvBlockedPopupCounter.visibility = if (tab.blockedPopups > 0) View.VISIBLE else View.GONE
-                vb.tvBlockedPopupCounter.text = tab.blockedPopups.toString()
-                val msg = getString(if (newTab) R.string.new_tab_blocked else R.string.popup_dialog_blocked)
-                NotificationView.showBottomRight(vb.rlRoot, R.drawable.ic_block_popups, msg)
-            }
-        }
-
-        override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View? {
-            if (shouldBlockNewWindow(dialog, userGesture)) {
-                onBlockedDialog(!dialog)
-                return null
-            }
-            val tab = WebTabState(incognito = config.incognitoMode)
-            val webView = createWebView(tab) ?: return null
-            val currentTab = this@MainActivity.tabsModel.currentTab.value ?: return null
-            val index = tabsModel.tabsStates.indexOf(currentTab) + 1
-            tabsModel.tabsStates.add(index, tab)
-            changeTab(tab)
-            return webView
-        }
-
-        override fun closeWindow(internalRepresentation: Any) {
-            for (tab in tabsModel.tabsStates) {
-                if (tab.webEngine.isSameSession(internalRepresentation)) {
-                    closeTab(tab)
-                    break
+            override fun onShareUrlRequested(url: String) {
+                val share = Intent(Intent.ACTION_SEND)
+                share.type = "text/plain"
+                share.putExtra(Intent.EXTRA_SUBJECT, R.string.share_url)
+                share.putExtra(Intent.EXTRA_TEXT, url)
+                try {
+                    startActivity(share)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
                 }
             }
-        }
 
-        override fun onScaleChanged(oldScale: Float, newScale: Float) {
-            Log.d(TAG, "onScaleChanged: oldScale: $oldScale newScale: $newScale")
-            tab.scale = newScale
-        }
-
-        override fun onCopyTextToClipboardRequested(url: String) {
-            val clipBoard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clipData = ClipData.newPlainText("URL", url)
-            clipBoard.setPrimaryClip(clipData)
-            Toast.makeText(this@MainActivity, getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
-        }
-
-        override fun onShareUrlRequested(url: String) {
-            val share = Intent(Intent.ACTION_SEND)
-            share.type = "text/plain"
-            share.putExtra(Intent.EXTRA_SUBJECT, R.string.share_url)
-            share.putExtra(Intent.EXTRA_TEXT, url)
-            try {
-                startActivity(share)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        override fun onOpenInExternalAppRequested(url: String) {
-            val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
-            intent.addCategory(Intent.CATEGORY_BROWSABLE)
-            val activityComponent = intent.resolveActivity(this@MainActivity.packageManager)
-            if (activityComponent != null && activityComponent.packageName == this@MainActivity.packageName) {
-                Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
-                return
-            }
-            try {
-                startActivity(intent)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        override fun initiateVoiceSearch() {
-            this@MainActivity.initiateVoiceSearch()
-        }
-
-        override fun onEditHomePageBookmarkSelected(index: Int) {
-            lifecycleScope.launch {
-                val bookmark = viewModel.homePageLinks.firstOrNull { it.order == index }
-                var favoriteItem: FavoriteItem? = bookmark?.favoriteId?.let {
-                    AppDatabase.db.favoritesDao().getById(it)
+            override fun onOpenInExternalAppRequested(url: String) {
+                val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                intent.addCategory(Intent.CATEGORY_BROWSABLE)
+                val activityComponent = intent.resolveActivity(this@MainActivity.packageManager)
+                if (activityComponent != null && activityComponent.packageName == this@MainActivity.packageName) {
+                    Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
+                    return
                 }
+                try {
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(this@MainActivity, R.string.external_app_open_error, Toast.LENGTH_SHORT).show()
+                }
+            }
 
-                if (favoriteItem == null) {
-                    favoriteItem = FavoriteItem()
-                    favoriteItem.title = bookmark?.title
-                    favoriteItem.url = bookmark?.url
-                    favoriteItem.order = index
-                    favoriteItem.homePageBookmark = true
-                    onEditHomePageBookmark(favoriteItem)
-                } else {
-                    AlertDialog.Builder(this@MainActivity)
-                        .setTitle(R.string.bookmarks)
-                        .setItems(arrayOf(getString(R.string.edit), getString(R.string.delete))) { _, which ->
-                            when (which) {
-                                0 -> onEditHomePageBookmark(favoriteItem)
-                                1 -> viewModel.removeHomePageLink(bookmark!!)
+            override fun initiateVoiceSearch() {
+                this@MainActivity.initiateVoiceSearch()
+            }
+
+            override fun onEditHomePageBookmarkSelected(index: Int) {
+                lifecycleScope.launch {
+                    val bookmark = viewModel.homePageLinks.firstOrNull { it.order == index }
+                    var favoriteItem: FavoriteItem? = bookmark?.favoriteId?.let {
+                        AppDatabase.db.favoritesDao().getById(it)
+                    }
+
+                    if (favoriteItem == null) {
+                        favoriteItem = FavoriteItem()
+                        favoriteItem.title = bookmark?.title
+                        favoriteItem.url = bookmark?.url
+                        favoriteItem.order = index
+                        favoriteItem.homePageBookmark = true
+                        onEditHomePageBookmark(favoriteItem)
+                    } else {
+                        AlertDialog.Builder(this@MainActivity)
+                            .setTitle(R.string.bookmarks)
+                            .setItems(arrayOf(getString(R.string.edit), getString(R.string.delete))) { _, which ->
+                                when (which) {
+                                    0 -> onEditHomePageBookmark(favoriteItem)
+                                    1 -> viewModel.removeHomePageLink(bookmark!!)
+                                }
                             }
-                        }
-                        .show()
-                }
-            }
-        }
-
-        override fun getHomePageLinks(): List<HomePageLink> {
-            return viewModel.homePageLinks
-        }
-
-        override fun onPrepareForFullscreen() {
-            //window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            //        WindowManager.LayoutParams.FLAG_FULLSCREEN)
-            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
-            isFullscreen = true
-        }
-
-        override fun onExitFullscreen() {
-            //window.setFlags(0, WindowManager.LayoutParams.FLAG_FULLSCREEN)
-            if (!config.keepScreenOn) {
-                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-            }
-            window.decorView.systemUiVisibility =
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            isFullscreen = false
-        }
-
-        override fun onVisited(url: String) {
-            val tab = tabsModel.currentTab.value ?: return
-
-            if (!config.incognitoMode) {
-                viewModel.logVisitedHistory(tab.title, url, tab.faviconHash)
-            }
-        }
-
-        override fun onContextMenu(
-            cursorDrawer: CursorDrawerDelegate,
-            baseUri: String?,
-            linkUri: String?,
-            srcUri: String?,
-            title: String?,
-            altText: String?,
-            textContent: String?,
-            x: Int,
-            y: Int
-        ) {
-            uiHandler.post {
-                vb.vCursorMenu.show(
-                    tab,this, cursorDrawer,
-                    baseUri, linkUri, srcUri,
-                    title, altText, textContent,
-                    x, y,
-                    backNavigationEventsAdapter
-                )
-            }
-        }
-
-        override fun suggestActionsForLink(baseUri: String?, linkUri: String?, srcUri: String?,
-                                           title: String?, altText: String?, textContent: String?,
-                                           x: Int, y: Int) {
-            var s = linkUri ?: srcUri
-            if (s != null && s.startsWith("\"") && s.endsWith("\"")) {
-                s = s.substring(1, s.length - 1)
-            }
-            val url = s
-            val isHTTPUrl = url != null && (url.startsWith("http://") || url.startsWith("https://"))
-            val anchor = View(this@MainActivity)
-            val lp = FrameLayout.LayoutParams(1, 1)
-            lp.setMargins(x, y, 0, 0)
-            vb.flWebViewContainer.addView(anchor, lp)
-            linkActionsMenu = PopupMenu(this@MainActivity, anchor, Gravity.BOTTOM).also {
-                it.inflate(R.menu.menu_link)
-                it.menu.findItem(R.id.miOpenInNewTab).isVisible = isHTTPUrl
-                it.menu.findItem(R.id.miOpenInExternalApp).isVisible = isHTTPUrl
-                it.menu.findItem(R.id.miDownload).isVisible = isHTTPUrl
-                it.menu.findItem(R.id.miCopyToClipboard).isVisible = url != null
-                it.menu.findItem(R.id.miShare).isVisible = url != null
-                it.setOnMenuItemClickListener { menuItem ->
-                    when (menuItem.itemId) {
-                        R.id.miRefreshPage -> tab.webEngine.reload()
-                        R.id.miOpenInNewTab -> onOpenInNewTabRequested(url!!, true)
-                        R.id.miOpenInExternalApp -> onOpenInExternalAppRequested(url!!)
-                        R.id.miDownload -> onDownloadRequested(url!!)
-                        R.id.miCopyToClipboard -> onCopyTextToClipboardRequested(url!!)
-                        R.id.miShare -> onShareUrlRequested(url!!)
+                            .show()
                     }
-                    true
                 }
-
-                it.setOnDismissListener {
-                    vb.flWebViewContainer.removeView(anchor)
-                    linkActionsMenu = null
-                }
-                it.show()
             }
-        }
 
-        override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
-            viewModel.markBookmarkRecommendationAsUseful(bookmarkOrder)
+            override fun onPrepareForFullscreen() {
+                //window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                //        WindowManager.LayoutParams.FLAG_FULLSCREEN)
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
+                isFullscreen = true
+            }
+
+            override fun onExitFullscreen() {
+                //window.setFlags(0, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+                if (!config.keepScreenOn) {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                window.decorView.systemUiVisibility =
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                isFullscreen = false
+            }
+
+            override fun onContextMenu(
+                cursorDrawer: CursorDrawerDelegate,
+                baseUri: String?,
+                linkUri: String?,
+                srcUri: String?,
+                title: String?,
+                altText: String?,
+                textContent: String?,
+                x: Int,
+                y: Int
+            ) {
+                uiHandler.post {
+                    vb.vCursorMenu.show(
+                        tab,this, cursorDrawer,
+                        baseUri, linkUri, srcUri,
+                        title, altText, textContent,
+                        x, y,
+                        backNavigationEventsAdapter
+                    )
+                }
+            }
+
+            override fun suggestActionsForLink(baseUri: String?, linkUri: String?, srcUri: String?,
+                                               title: String?, altText: String?, textContent: String?,
+                                               x: Int, y: Int) {
+                var s = linkUri ?: srcUri
+                if (s != null && s.startsWith("\"") && s.endsWith("\"")) {
+                    s = s.substring(1, s.length - 1)
+                }
+                val url = s
+                val isHTTPUrl = url != null && (url.startsWith("http://") || url.startsWith("https://"))
+                val anchor = View(this@MainActivity)
+                val lp = FrameLayout.LayoutParams(1, 1)
+                lp.setMargins(x, y, 0, 0)
+                vb.flWebViewContainer.addView(anchor, lp)
+                linkActionsMenu = PopupMenu(this@MainActivity, anchor, Gravity.BOTTOM).also {
+                    it.inflate(R.menu.menu_link)
+                    it.menu.findItem(R.id.miOpenInNewTab).isVisible = isHTTPUrl
+                    it.menu.findItem(R.id.miOpenInExternalApp).isVisible = isHTTPUrl
+                    it.menu.findItem(R.id.miDownload).isVisible = isHTTPUrl
+                    it.menu.findItem(R.id.miCopyToClipboard).isVisible = url != null
+                    it.menu.findItem(R.id.miShare).isVisible = url != null
+                    it.setOnMenuItemClickListener { menuItem ->
+                        when (menuItem.itemId) {
+                            R.id.miRefreshPage -> tab.webEngine.reload()
+                            R.id.miOpenInNewTab -> events.onOpenInNewTabRequested(url!!, true)
+                            R.id.miOpenInExternalApp -> onOpenInExternalAppRequested(url!!)
+                            R.id.miDownload -> onDownloadRequested(url!!)
+                            R.id.miCopyToClipboard -> onCopyTextToClipboardRequested(url!!)
+                            R.id.miShare -> onShareUrlRequested(url!!)
+                        }
+                        true
+                    }
+
+                    it.setOnDismissListener {
+                        vb.flWebViewContainer.removeView(anchor)
+                        linkActionsMenu = null
+                    }
+                    it.show()
+                }
+            }
         }
     }
 

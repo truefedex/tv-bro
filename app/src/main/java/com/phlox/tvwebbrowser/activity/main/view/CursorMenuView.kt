@@ -19,7 +19,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ViewCursorMenuBinding
 import com.phlox.tvwebbrowser.utils.dip2px
 import com.phlox.tvwebbrowser.model.WebTabState
-import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
+import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 
@@ -96,7 +96,7 @@ class CursorMenuView @JvmOverloads constructor(
 
     fun show(
         tab: WebTabState,
-        windowProvider: WebEngineWindowProviderCallback,
+        windowProvider: EngineUiHost,
         cursorDrawerDelegate: CursorDrawerDelegate,
         baseUri: String?,
         linkUri: String?,
@@ -230,7 +230,7 @@ class CursorMenuView @JvmOverloads constructor(
 
     private data class MenuContext (
         val tab: WebTabState,
-        val windowProvider: WebEngineWindowProviderCallback,
+        val windowProvider: EngineUiHost,
         val cursorDrawerDelegate: CursorDrawerDelegate,
         val baseUri: String?,
         val linkUri: String?,
