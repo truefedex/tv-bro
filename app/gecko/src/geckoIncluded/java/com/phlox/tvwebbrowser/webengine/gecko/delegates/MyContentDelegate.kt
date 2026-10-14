@@ -3,7 +3,6 @@ package com.phlox.tvwebbrowser.webengine.gecko.delegates
 import android.util.Log
 import android.view.PointerIcon
 import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.utils.DownloadUtils
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoViewWithVirtualCursor
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import com.phlox.tvwebbrowser.webengine.gecko.R

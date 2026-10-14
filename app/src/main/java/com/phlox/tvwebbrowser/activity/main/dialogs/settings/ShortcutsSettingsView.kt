@@ -2,7 +2,6 @@ package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,12 +11,10 @@ import android.widget.ListView
 import android.widget.RelativeLayout
 import androidx.core.content.res.ResourcesCompat
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutDialog
 import com.phlox.tvwebbrowser.databinding.ViewShortcutBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
-import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
 
 

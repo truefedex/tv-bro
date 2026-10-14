@@ -2,21 +2,17 @@ package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
 import android.app.AlertDialog
 import android.content.Context
-import android.os.Build
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.EditText
 import android.widget.ScrollView
 import android.widget.SeekBar
-import android.widget.Spinner
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
@@ -29,7 +25,6 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
 import com.phlox.tvwebbrowser.webengine.FeatureDelivery
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
-import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -94,7 +89,7 @@ class MainSettingsView @JvmOverloads constructor(
                 val engine = engines[position]
                 if (config.webEngine == engine) return
                 var message = when {
-                    engine == Config.ENGINE_GECKO_VIEW && !Config.canRecommendGeckoView() ->
+                    engine == Config.ENGINE_GECKO_VIEW && !Config.GECKO_VIEW_RECOMMENDED ->
                         context.getString(R.string.settings_engine_change_gecko_msg)
                     engine == Config.ENGINE_WEB_VIEW ->
                         context.getString(R.string.settings_engine_change_webview_msg)

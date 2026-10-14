@@ -3,7 +3,6 @@ package com.phlox.tvwebbrowser.webengine.gecko.delegates
 import android.util.Log
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
-import kotlinx.coroutines.runBlocking
 import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession

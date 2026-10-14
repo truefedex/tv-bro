@@ -2,7 +2,6 @@ package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
 import android.util.Log
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
-import org.json.JSONObject
 import org.mozilla.geckoview.WebExtension
 
 // This is a leftover from the removal of the abandoned "text selection" feature.

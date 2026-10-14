@@ -5,24 +5,24 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
-import android.content.BroadcastReceiver
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.ServiceConnection
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
+import android.os.Looper
 import android.os.IBinder
 import android.os.Process
 import android.util.Log
@@ -128,7 +128,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private lateinit var autoUpdateModel: AutoUpdateModel
     private lateinit var uiHandler: Handler
     private var isFullscreen: Boolean = false
-    private lateinit var prefs: SharedPreferences
     protected val config = AppContext.provideConfig()
     private val voiceSearchHelper = VoiceSearchHelper(this, VOICE_SEARCH_REQUEST_CODE,
         MY_PERMISSIONS_REQUEST_VOICE_SEARCH_PERMISSIONS)
@@ -166,8 +165,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
         tabsModel = ActiveModelsRepository.get(TabsModel::class, this)
         autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, this)
-        uiHandler = Handler()
-        prefs = getSharedPreferences(TVBro.MAIN_PREFS_NAME, Context.MODE_PRIVATE)
+        uiHandler = Handler(Looper.getMainLooper())
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb.root)
 
@@ -179,7 +177,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.vTabs.listener = tabsListener
 
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
-        vb.ibPopupBlock.setOnClickListener { lifecycleScope.launch(Dispatchers.Main) { showPopupBlockOptions() } }
+        vb.ibPopupBlock.setOnClickListener { showPopupBlockOptions() }
         vb.ibHome.setOnClickListener { navigate(settingsModel.homePage) }
         vb.ibBack.setOnClickListener { navigateBack() }
         vb.ibForward.setOnClickListener {
@@ -260,14 +258,28 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.progressBar.startAnimation(anim)
     }
 
-    private val mConnectivityChangeReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val activeNetwork = cm.activeNetworkInfo
-            val isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting
-            val tab = tabsModel.currentTab.value ?: return
-            tab.webEngine.setNetworkAvailable(isConnected)
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) = onNetworkStateChanged()
+        override fun onLost(network: Network) = onNetworkStateChanged()
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) =
+            onNetworkStateChanged()
+
+        //called on a ConnectivityManager thread, often with no actual changes
+        private fun onNetworkStateChanged() {
+            val connected = Utils.isNetworkConnected(this@MainActivity)
+            if (connected == networkConnected) return
+            networkConnected = connected
+            uiHandler.post { tabsModel.currentTab.value?.webEngine?.setNetworkAvailable(connected) }
         }
+    }
+
+    @Volatile
+    private var networkConnected: Boolean? = null
+
+    private fun updateNetworkAvailability() {
+        val connected = Utils.isNetworkConnected(this)
+        networkConnected = connected
+        tabsModel.currentTab.value?.webEngine?.setNetworkAvailable(connected)
     }
 
     private val displayThumbnailRunnable = object : Runnable {
@@ -573,7 +585,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         var ua = config.userAgentString.value
-        if (ua?.contains("TV Bro/1.0 ") == true) {//legacy ua string - now default one should be used
+        if (ua?.contains(Config.TV_BRO_UA_PREFIX) == true) {//legacy ua string - now default one should be used
             config.userAgentString.value = null
             ua = null
         }
@@ -706,13 +718,15 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     override fun onResume() {
         super.onResume()
-        val intentFilter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
-        registerReceiver(mConnectivityChangeReceiver, intentFilter)
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        updateNetworkAvailability()
+        cm.registerDefaultNetworkCallback(networkCallback)
         tabsModel.currentTab.value?.webEngine?.onResume()
     }
 
     override fun onPause() {
-        unregisterReceiver(mConnectivityChangeReceiver)
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        cm.unregisterNetworkCallback(networkCallback)
         tabsModel.currentTab.value?.apply {
             webEngine.onPause()
             onPause()
@@ -732,9 +746,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
     }
 
-    private suspend fun showPopupBlockOptions() {
+    private fun showPopupBlockOptions() {
         val tab = tabsModel.currentTab.value ?: return
-        val currentHostConfig = tabsModel.findHostConfig(tab,false)
+        val currentHostConfig = tabsModel.findHostConfig(tab)
         val currentBlockPopupsLevelValue = currentHostConfig?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE
         val hostName = currentHostConfig?.hostName ?: try { URL(tab.url).host } catch (e: Exception) { "" }
         AlertDialog.Builder(this)
@@ -1267,7 +1281,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         override fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean {
-            val hostConfig = runBlocking(Dispatchers.Main.immediate){ tabsModel.findHostConfig(tab, false) }
+            val hostConfig = tabsModel.findHostConfig(tab)
             return PopupBlockPolicy.shouldBlockNewWindow(hostConfig?.popupBlockLevel, dialog, userGesture)
         }
 

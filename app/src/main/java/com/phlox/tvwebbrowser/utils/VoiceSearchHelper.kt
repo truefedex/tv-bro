@@ -33,9 +33,6 @@ class VoiceSearchHelper(private val activity: Activity, private val requestCode:
 
     interface Callback {
         fun onResult(text: String?)
-/*        fun onFallbackStartedRecognizing()
-        fun onFallbackPartialResult(text: String)
-        fun onFallbackError(error: Int)*/
     }
 
     fun initiateVoiceSearch(callback: Callback,
@@ -98,10 +95,6 @@ class VoiceSearchHelper(private val activity: Activity, private val requestCode:
 
         val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(activity)
         speechRecognizer.setRecognitionListener(object : RecognitionListenerAdapter() {
-            override fun onReadyForSpeech(params: Bundle?) {
-                //callback.onFallbackStartedRecognizing()
-            }
-
             override fun onPartialResults(partialResults: Bundle?) {
                 val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 if (matches != null && matches.isNotEmpty()) {

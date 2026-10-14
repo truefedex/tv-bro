@@ -16,7 +16,7 @@ import com.phlox.tvwebbrowser.model.util.Converters
     HistoryItem::class, WebTabState::class,
     HostConfig::class
                      ],
-    version = 19/*, exportSchema = true*/)
+    version = 20, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
@@ -159,6 +159,21 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_19_20 = object : Migration(19, 20) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                //drops the unused wv_state column (DROP COLUMN needs SQLite 3.35+, so the table is recreated)
+                val columns = "`id`, `url`, `title`, `selected`, `thumbnailHash`, `faviconHash`, `incognito`, " +
+                        "`position`, `wv_state_file`, `adblock`, `scale`"
+                db.execSQL("CREATE TABLE IF NOT EXISTS `tabs_new` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`url` TEXT NOT NULL, `title` TEXT NOT NULL, `selected` INTEGER NOT NULL, `thumbnailHash` TEXT, " +
+                        "`faviconHash` TEXT, `incognito` INTEGER NOT NULL, `position` INTEGER NOT NULL, " +
+                        "`wv_state_file` TEXT, `adblock` INTEGER, `scale` REAL)")
+                db.execSQL("INSERT INTO `tabs_new` ($columns) SELECT $columns FROM `tabs`")
+                db.execSQL("DROP TABLE `tabs`")
+                db.execSQL("ALTER TABLE `tabs_new` RENAME TO `tabs`")
+            }
+        }
+
         private fun createHostsTable(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS `hosts` (`host_name` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `popup_block_level` INTEGER)")
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `hosts_name_idx` ON `hosts` (`host_name`)")
@@ -196,15 +211,20 @@ abstract class AppDatabase : RoomDatabase() {
             db.execSQL("CREATE INDEX downloads_filename_idx ON downloads(filename);")
         }
 
+        const val DATABASE_NAME = "main.db"
+
+        internal val MIGRATIONS = arrayOf(
+            MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9,
+            MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
+            MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19,
+            MIGRATION_19_20
+        )
+
         val db: AppDatabase by lazy {
             Room.databaseBuilder(
                 TVBro.instance,
-                AppDatabase::class.java, "main.db"
-            ).addMigrations(
-                MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9,
-                MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
-                MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19
-            )
+                AppDatabase::class.java, DATABASE_NAME
+            ).addMigrations(*MIGRATIONS)
             .allowMainThreadQueries()
                 .build()
         }

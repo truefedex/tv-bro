@@ -9,8 +9,10 @@ import android.webkit.WebView
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.utils.FaviconExtractor
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.URL
@@ -21,6 +23,7 @@ object FaviconsPool {
     private val TAG: String = FaviconsPool::class.java.simpleName
 
     val faviconExtractor = FaviconExtractor()
+    private val saveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     var databaseDelegate: DatabaseDelegate = object : DatabaseDelegate {}
 
     interface DatabaseDelegate {
@@ -118,7 +121,7 @@ object FaviconsPool {
                                 if (icon != null) {
                                     Log.d(TAG, "get: favicon received from webview for $host")
                                     cache.put(host, icon)
-                                    runBlocking {
+                                    saveScope.launch {
                                         saveFavicon(host, icon, hostConfig)
                                     }
                                 }

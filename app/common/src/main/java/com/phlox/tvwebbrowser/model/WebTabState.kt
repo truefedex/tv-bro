@@ -14,8 +14,6 @@ import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.isGecko
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
@@ -36,9 +34,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
                        var faviconHash: String? = null,
                        var incognito: Boolean = false,
                        var position: Int = 0,
-                       @Deprecated("This field is not used anymore")
-                       @ColumnInfo(name = "wv_state", typeAffinity = ColumnInfo.BLOB)
-                       var wvState: ByteArray? = null,
                        @ColumnInfo(name = "wv_state_file")
                        var wvStateFileName: String? = null,
                        var adblock: Boolean? = null,
@@ -65,26 +60,6 @@ data class WebTabState(@PrimaryKey(autoGenerate = true)
     var blockedPopups = 0
     @Ignore
     var cachedHostConfig: HostConfig? = null
-
-    constructor(context: Context, json: JSONObject) : this() {
-        try {
-            url = json.getString("url")
-            title = json.getString("title")
-            selected = json.getBoolean("selected")
-            if (json.has("thumbnail")) {
-                thumbnailHash = json.getString("thumbnail")
-            }
-            if (json.has("wv_state")) {
-                val state = Utils.convertJsonToBundle(json.getJSONObject("wv_state"))
-                if (state != null && !state.isEmpty) {
-                    savedState = state
-                }
-            }
-        } catch (e: JSONException) {
-            e.printStackTrace()
-        }
-
-    }
 
     private suspend fun saveThumbnail(context: Context) {
         val thumbnail = this.thumbnail

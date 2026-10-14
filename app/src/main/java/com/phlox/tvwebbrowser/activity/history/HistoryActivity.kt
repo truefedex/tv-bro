@@ -3,7 +3,6 @@ package com.phlox.tvwebbrowser.activity.history
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
-import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.animation.Animation
@@ -11,7 +10,6 @@ import android.view.animation.AnimationUtils
 import android.widget.AbsListView
 import android.widget.AdapterView
 import android.widget.ImageButton
-import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
@@ -180,19 +178,6 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
             return
         }
         super.onBackPressed()
-    }
-
-    private fun showItemOptionsPopup(v: HistoryItemView) {
-        val pm = PopupMenu(this, v, Gravity.BOTTOM)
-        pm.menu.add(R.string.delete)
-        pm.setOnMenuItemClickListener {
-            lifecycleScope.launch(Dispatchers.Main) {
-                AppDatabase.db.historyDao().delete(v.historyItem!!)
-                adapter!!.remove(v.historyItem!!)
-            }
-            true
-        }
-        pm.show()
     }
 
     fun onClearHistoryClick(view: View) {

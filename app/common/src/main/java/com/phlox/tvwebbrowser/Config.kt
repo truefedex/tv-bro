@@ -2,7 +2,6 @@ package com.phlox.tvwebbrowser
 
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
-import android.os.Build
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 
@@ -36,7 +35,6 @@ class Config(val prefs: SharedPreferences) {
         const val WEBVIEW_USE_ALGORITHMIC_DARKENING_WITH_DARK_UI_MODE_KEY =
             "webview_use_algorithmic_darkening_with_dark_ui_mode"
         const val WEB_ENGINE_DEBUG_KEY = "web_engine_debug"
-        //const val HOME_PAGE_VERSION_EXTRACTED = "home_page_version_extracted"
         const val INITIAL_BOOKMARKS_SUGGESTIONS_LOADED = "initial_bookmarks_suggestions_loaded"
         const val ADBLOCK_ENABLED_PREF_KEY = "adblock_enabled"
         const val ADBLOCK_LAST_UPDATE_LIST_KEY = "adblock_last_update"
@@ -58,12 +56,10 @@ class Config(val prefs: SharedPreferences) {
         const val HOME_PAGE_URL = "https://tvbro.phlox.dev/appcontent/home/"
         //const val HOME_PAGE_URL = "http://10.0.2.2:5000/appcontent/home/"
 
-        fun canRecommendGeckoView(): Boolean {
-            //disable recommendation for now
-            //There are plans to keep its support, but user reports and internal testing show
-            // that, at least for now, in terms of performance and stability, it is inferior to WebView.
-            return false
-        }
+        //Recommendation is disabled for now.
+        //There are plans to keep its support, but user reports and internal testing show
+        // that, at least for now, in terms of performance and stability, it is inferior to WebView.
+        const val GECKO_VIEW_RECOMMENDED = false
     }
 
     enum class Theme {
@@ -145,7 +141,10 @@ class Config(val prefs: SharedPreferences) {
             .let {
                 //ignore value if search engine as home page is set
                 if (prefs.getBoolean(SEARCH_ENGINE_AS_HOME_PAGE_KEY, false)) {
-                    prefs.edit().remove(SEARCH_ENGINE_AS_HOME_PAGE_KEY).apply()
+                    prefs.edit()
+                        .remove(SEARCH_ENGINE_AS_HOME_PAGE_KEY)
+                        .putInt(HOME_PAGE_MODE, HomePageMode.SEARCH_ENGINE.ordinal)
+                        .apply()
                     HomePageMode.SEARCH_ENGINE.ordinal
                 } else it
             }
@@ -175,7 +174,7 @@ class Config(val prefs: SharedPreferences) {
         get() {
             if (!prefs.contains(WEB_ENGINE)) {
                 prefs.edit().putString(
-                    WEB_ENGINE, if (canRecommendGeckoView())
+                    WEB_ENGINE, if (GECKO_VIEW_RECOMMENDED)
                     SupportedWebEngines[0] else SupportedWebEngines[1]).apply()
             }
 
@@ -202,12 +201,6 @@ class Config(val prefs: SharedPreferences) {
         set(value) {
             prefs.edit().putBoolean(WEB_ENGINE_DEBUG_KEY, value).apply()
         }
-
-    /*var homePageVersionExtracted: Int
-        get() = prefs.getInt(HOME_PAGE_VERSION_EXTRACTED, 0)
-        set(value) {
-            prefs.edit().putInt(HOME_PAGE_VERSION_EXTRACTED, value).apply()
-        }*/
 
     var initialBookmarksSuggestionsLoaded: Boolean
         get() = prefs.getBoolean(INITIAL_BOOKMARKS_SUGGESTIONS_LOADED, false)
@@ -264,10 +257,6 @@ class Config(val prefs: SharedPreferences) {
 
     fun isWebEngineGecko(): Boolean {
         return webEngine == SupportedWebEngines[0]
-    }
-
-    fun isWebEngineNotSet(): Boolean {
-        return !prefs.contains(WEB_ENGINE)
     }
 
     fun guessSearchEngineName(): String {

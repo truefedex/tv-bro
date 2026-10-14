@@ -15,7 +15,6 @@ import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.net.URL
 
@@ -142,29 +141,39 @@ class TabsModel : ActiveModel() {
         newTab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(TVBro.instance))
     }
 
-    suspend fun findHostConfig(tab: WebTabState, createIfNotFound: Boolean): HostConfig? {
-        Log.d(WebTabState.TAG, "findOrCreateHostConfig")
-        val currentHostName = try {
-            URL(tab.url).host
-        } catch (e: Exception) {
-            Log.w(WebTabState.TAG, "Can not parse current url host: $e")
-            return null
-        }
+    private fun hostNameOf(tab: WebTabState): String? = try {
+        URL(tab.url).host
+    } catch (e: Exception) {
+        Log.w(TAG, "Can not parse current url host: $e")
+        null
+    }
+
+    /**
+     * Finds the config of the tab's current host. On a cache miss queries the database
+     * synchronously (it is a lookup by an indexed column).
+     */
+    fun findHostConfig(tab: WebTabState): HostConfig? {
+        Log.d(TAG, "findHostConfig")
+        val currentHostName = hostNameOf(tab) ?: return null
         var hostConfig = tab.cachedHostConfig
         if (hostConfig == null || hostConfig.hostName != currentHostName) {
-            val db = com.phlox.tvwebbrowser.singleton.AppDatabase.db.hostsDao()
-            hostConfig = db.findByHostName(currentHostName)
-            if (hostConfig == null && createIfNotFound) {
-                hostConfig = HostConfig(currentHostName)
-                hostConfig.id = db.insert(hostConfig)
-            }
+            hostConfig = AppDatabase.db.hostsDao().findByHostName(currentHostName)
             tab.cachedHostConfig = hostConfig
         }
         return hostConfig
     }
 
+    private suspend fun findOrCreateHostConfig(tab: WebTabState): HostConfig? {
+        findHostConfig(tab)?.let { return it }
+        val currentHostName = hostNameOf(tab) ?: return null
+        val hostConfig = HostConfig(currentHostName)
+        hostConfig.id = AppDatabase.db.hostsDao().insert(hostConfig)
+        tab.cachedHostConfig = hostConfig
+        return hostConfig
+    }
+
     suspend fun changePopupBlockingLevel(newLevel: Int, tab: WebTabState) {
-        val hostConfig = findHostConfig(tab,true) ?: return
+        val hostConfig = findOrCreateHostConfig(tab) ?: return
         hostConfig.popupBlockLevel = newLevel
         AppDatabase.db.hostsDao().update(hostConfig)
     }

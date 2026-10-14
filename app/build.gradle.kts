@@ -10,16 +10,6 @@ android {
         applicationId = "com.phlox.tvwebbrowser"
         versionCode = 74
         versionName = "2.2.0"
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += mapOf(
-                    "room.incremental" to "true",
-                    //used when AppDatabase @Database annotation exportSchema = true. Useful for migrations
-                    "room.schemaLocation" to "$projectDir/schemas"
-                )
-            }
-        }
     }
 
     signingConfigs {
@@ -116,6 +106,11 @@ android {
     }
 }
 
+ksp {
+    // exported schemas are used by migration tests
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(project(":app:common"))
 
@@ -130,7 +125,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
     implementation(libs.androidx.room.runtime)
-    annotationProcessor(libs.androidx.room.compiler)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 

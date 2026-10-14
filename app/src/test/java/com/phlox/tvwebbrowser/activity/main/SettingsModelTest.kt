@@ -89,8 +89,7 @@ class SettingsModelTest {
             .commit()
         assertEquals(HomePageMode.SEARCH_ENGINE, model.homePageMode)
         assertFalse(config.prefs.contains(Config.SEARCH_ENGINE_AS_HOME_PAGE_KEY))
-        // current behavior: the migrated value is not written back, only the legacy flag is removed
-        assertEquals(HomePageMode.HOME_PAGE, model.homePageMode)
+        assertEquals(HomePageMode.SEARCH_ENGINE, model.homePageMode)
     }
 
     @Test

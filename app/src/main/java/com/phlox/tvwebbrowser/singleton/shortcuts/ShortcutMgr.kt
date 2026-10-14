@@ -153,13 +153,6 @@ class ShortcutMgr private constructor() {
         }
     }
 
-    fun tryHandleEmulatedSimpleKeyPress(keyCode: Int, mainActivity: MainActivity, tab: WebTabState?): Boolean {
-        val shortcuts = shortCutsForEvent(keyCode, 0)
-        if (shortcuts.isEmpty()) return false
-        uiHandler.post { process(shortcuts.first(), mainActivity, tab?.webEngine) }
-        return true
-    }
-
     companion object {
         const val PREFS_SHORTCUTS = "shortcuts"
 

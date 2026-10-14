@@ -27,7 +27,6 @@ import android.webkit.MimeTypeMap
 
 import java.io.ByteArrayOutputStream
 import java.io.UnsupportedEncodingException
-import java.util.Locale
 import java.util.regex.Pattern
 
 object DownloadUtils {
