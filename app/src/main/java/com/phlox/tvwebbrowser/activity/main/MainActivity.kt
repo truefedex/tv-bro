@@ -171,7 +171,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         setContentView(vb.root)
         controller.viewHost = tabViewHost
         controller.adBlocker = adblockModel
-        controller.history = viewModel
 
         vb.ivMiniatures.visibility = View.INVISIBLE
         vb.llBottomPanel.visibility = View.INVISIBLE
@@ -219,11 +218,13 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             }
         }
 
-        viewModel.homePageLinks.subscribe(this) {
-            Log.i(TAG, "homePageLinks updated")
-            val currentUrl = controller.currentTab.value?.url ?: return@subscribe
-            if (Config.HOME_PAGE_URL == currentUrl) {
-                controller.currentTab.value?.webEngine?.reload()
+        lifecycleScope.launch {
+            controller.homePageLinks.links.collect {
+                Log.i(TAG, "homePageLinks updated")
+                val currentUrl = controller.currentTab.value?.url ?: return@collect
+                if (Config.HOME_PAGE_URL == currentUrl) {
+                    controller.currentTab.value?.webEngine?.reload()
+                }
             }
         }
 
@@ -1140,7 +1141,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private fun onEditHomePageBookmark(favoriteItem: FavoriteItem) {
         FavoriteEditorDialog(this, object : FavoriteEditorDialog.Callback {
             override fun onDone(item: FavoriteItem) {
-                viewModel.onHomePageLinkEdited(item)
+                controller.modelScope.launch { controller.homePageLinks.onBookmarkEdited(item) }
             }
         }, favoriteItem).show()
     }
@@ -1228,7 +1229,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         override fun onEditHomePageBookmarkSelected(index: Int) {
             lifecycleScope.launch {
-                val bookmark = viewModel.homePageLinks.firstOrNull { it.order == index }
+                val bookmark = controller.homePageLinks.links.value.firstOrNull { it.order == index }
                 var favoriteItem: FavoriteItem? = bookmark?.favoriteId?.let {
                     AppDatabase.db.favoritesDao().getById(it)
                 }
@@ -1246,7 +1247,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                         .setItems(arrayOf(getString(R.string.edit), getString(R.string.delete))) { _, which ->
                             when (which) {
                                 0 -> onEditHomePageBookmark(favoriteItem)
-                                1 -> viewModel.removeHomePageLink(bookmark!!)
+                                1 -> controller.modelScope.launch { controller.homePageLinks.remove(bookmark!!) }
                             }
                         }
                         .show()

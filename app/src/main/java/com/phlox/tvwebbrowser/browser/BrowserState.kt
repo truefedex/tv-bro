@@ -1,7 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
 import android.content.Intent
-import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.model.WebTabState
 
 /**
@@ -42,15 +41,4 @@ sealed interface BrowserUiEvent {
     /** A page wants to open an url with a non-web scheme, [intent] can handle it */
     data class AskToOpenInExternalApp(val url: String, val intent: Intent) : BrowserUiEvent
     data object NoAppToOpenUrl : BrowserUiEvent
-}
-
-/**
- * Browsing history and the data of the built-in home page.
- * Temporarily implemented by MainActivityViewModel.
- */
-interface BrowsingHistory {
-    val homePageLinks: List<HomePageLink>
-    fun logVisitedHistory(title: String?, url: String, faviconHash: String?)
-    fun onTabTitleUpdated(tab: WebTabState)
-    fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int)
 }

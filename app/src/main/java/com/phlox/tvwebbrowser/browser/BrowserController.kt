@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.WebTabState
@@ -39,6 +40,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
+import java.util.Calendar
 
 /**
  * Browser core: owns the tabs (their list, the current one, their persistence) and
@@ -68,7 +70,6 @@ class BrowserController : ActiveModel() {
     var adBlocker: AdBlocker = object : AdBlocker {
         override fun isAd(url: Uri, type: String?, baseUri: Uri) = false
     }
-    var history: BrowsingHistory? = null
 
     private val _currentTabState = MutableStateFlow(CurrentTabState())
     val currentTabState: StateFlow<CurrentTabState> = _currentTabState.asStateFlow()
@@ -85,6 +86,12 @@ class BrowserController : ActiveModel() {
     private var incognitoMode = config.incognitoMode
     //all tabs writes go through this queue: they are not cancelled with the model and do not overlap
     private val writes = TVBro.instance.container.tabWrites
+    val homePageLinks = HomePageLinks(config)
+    private val historyLogger = VisitedHistoryLogger(modelScope, object : VisitedHistoryLogger.Store {
+        override suspend fun insert(item: HistoryItem): Long = AppDatabase.db.historyDao().insert(item)
+        override suspend fun updateTitle(id: Long, title: String) = AppDatabase.db.historyDao().updateTitle(id, title)
+    })
+    private var historyLoaded = false
 
     init {
         currentTab.subscribe({ publishState() }, false)
@@ -108,6 +115,11 @@ class BrowserController : ActiveModel() {
     }
 
     fun loadState() = modelScope.launch(Dispatchers.Main) {
+        if (!historyLoaded) {
+            initHistory()
+            homePageLinks.load()
+            historyLoaded = true
+        }
         if (loaded) {
             //check is incognito mode changed
             if (incognitoMode != config.incognitoMode) {
@@ -122,6 +134,21 @@ class BrowserController : ActiveModel() {
         val tabsDao = AppDatabase.db.tabsDao()
         tabsStates.replaceAll(tabsDao.getAll(config.incognitoMode))
         loaded = true
+    }
+
+    private suspend fun initHistory() {
+        Log.d(TAG, "initHistory")
+        val historyDao = AppDatabase.db.historyDao()
+        if (historyDao.count() > 5000) {
+            val c = Calendar.getInstance()
+            c.add(Calendar.MONTH, -3)
+            historyDao.deleteWhereTimeLessThan(c.time.time)
+        }
+        try {
+            historyLogger.lastHistoryItem = historyDao.last().firstOrNull()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun saveTab(tab: WebTabState) = writes.enqueue {
@@ -442,7 +469,9 @@ class BrowserController : ActiveModel() {
         override fun onReceivedTitle(title: String) {
             tab.title = title
             sendUiEvent(BrowserUiEvent.TabUpdated(tab))
-            history?.onTabTitleUpdated(tab)
+            if (!config.incognitoMode) {
+                historyLogger.onTitleUpdated(tab.url, tab.title)
+            }
             publishState()
         }
 
@@ -556,14 +585,14 @@ class BrowserController : ActiveModel() {
 
         override fun onVisited(url: String) {
             if (!config.incognitoMode) {
-                history?.logVisitedHistory(tab.title, url, tab.faviconHash)
+                historyLogger.logVisited(tab.title, url, tab.faviconHash)
             }
         }
 
-        override fun getHomePageLinks(): List<HomePageLink> = history?.homePageLinks ?: emptyList()
+        override fun getHomePageLinks(): List<HomePageLink> = homePageLinks.links.value
 
         override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
-            history?.markBookmarkRecommendationAsUseful(bookmarkOrder)
+            modelScope.launch { homePageLinks.markRecommendationAsUseful(bookmarkOrder) }
         }
     }
 }

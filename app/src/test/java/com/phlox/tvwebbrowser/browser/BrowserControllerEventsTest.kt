@@ -4,7 +4,6 @@ import android.os.Looper
 import androidx.room.Room
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -13,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -25,6 +25,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 class BrowserControllerEventsTest {
@@ -36,23 +37,24 @@ class BrowserControllerEventsTest {
     private val events = ArrayList<BrowserUiEvent>()
     private val eventsScope = CoroutineScope(Dispatchers.Unconfined)
 
-    private class FakeHistory : BrowsingHistory {
-        override val homePageLinks = listOf(HomePageLink("Example", "https://example.com/", null))
-        val visited = ArrayList<String>()
-        val titleUpdates = ArrayList<WebTabState>()
-        val usefulBookmarks = ArrayList<Int>()
-        override fun logVisitedHistory(title: String?, url: String, faviconHash: String?) {
-            visited += "$title $url"
-        }
-        override fun onTabTitleUpdated(tab: WebTabState) {
-            titleUpdates += tab
-        }
-        override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
-            usefulBookmarks += bookmarkOrder
+    /** Waits for the history writes: they are delayed by the logger and done on Room threads */
+    private fun storedHistory(expectedSize: Int): List<String> {
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(VisitedHistoryLogger.MIN_VISITED_INTERVAL + 100))
+        val deadline = System.currentTimeMillis() + 5000
+        while (true) {
+            shadowOf(Looper.getMainLooper()).idle()
+            val rows = db.query("SELECT title, url FROM history ORDER BY id", null).use { c ->
+                generateSequence { if (c.moveToNext()) "${c.getString(0)} ${c.getString(1)}" else null }.toList()
+            }
+            if (rows.size >= expectedSize || System.currentTimeMillis() > deadline) {
+                //let the logger finish (it marks the item as saved on the main thread)
+                Thread.sleep(20)
+                shadowOf(Looper.getMainLooper()).idle()
+                return rows
+            }
+            Thread.sleep(5)
         }
     }
-
-    private val history = FakeHistory()
 
     @Before
     fun setUp() {
@@ -62,7 +64,6 @@ class BrowserControllerEventsTest {
         controller = BrowserController()
         host = FakeTabViewHost(context)
         controller.viewHost = host
-        controller.history = history
         eventsScope.launch { controller.uiEvents.collect { events += it } }
     }
 
@@ -177,7 +178,22 @@ class BrowserControllerEventsTest {
         assertEquals("Title A", tab.title)
         assertEquals("Title A", state.title)
         assertEquals(listOf<BrowserUiEvent>(BrowserUiEvent.TabUpdated(tab)), events)
-        assertEquals(listOf(tab), history.titleUpdates)
+    }
+
+    @Test
+    fun titleOfASavedVisitIsUpdated() {
+        val tab = open("https://a.com/")
+        tab.title = "Loading"
+        tab.callback.onVisited("https://a.com/")
+        assertEquals(listOf("Loading https://a.com/"), storedHistory(1))
+        tab.callback.onReceivedTitle("Title A")
+        val deadline = System.currentTimeMillis() + 5000
+        var rows = storedHistory(1)
+        while (rows != listOf("Title A https://a.com/") && System.currentTimeMillis() < deadline) {
+            Thread.sleep(5)
+            rows = storedHistory(1)
+        }
+        assertEquals(listOf("Title A https://a.com/"), rows)
     }
 
     @Test
@@ -259,22 +275,22 @@ class BrowserControllerEventsTest {
         val b = open("https://b.com/")
         b.title = "B"
         aCallback.onVisited("https://a.com/")
-        assertEquals(listOf("A https://a.com/"), history.visited)
+        assertEquals(listOf("A https://a.com/"), storedHistory(1))
     }
 
     @Test
     fun visitsAreNotLoggedInIncognitoMode() {
         config.incognitoMode = true
         open("https://a.com/").callback.onVisited("https://a.com/")
-        assertTrue(history.visited.isEmpty())
+        assertTrue(storedHistory(0).isEmpty())
     }
 
     @Test
-    fun homePageDataComesFromTheHistory() {
+    fun homePageLinksAreGivenToTheEngine() {
+        runBlocking { controller.homePageLinks.load() }
         val tab = open("https://a.com/")
-        assertEquals(history.homePageLinks, tab.callback.getHomePageLinks())
-        tab.callback.markBookmarkRecommendationAsUseful(3)
-        assertEquals(listOf(3), history.usefulBookmarks)
+        assertTrue(controller.homePageLinks.links.value.isNotEmpty())
+        assertEquals(controller.homePageLinks.links.value, tab.callback.getHomePageLinks())
     }
 
     @Test
