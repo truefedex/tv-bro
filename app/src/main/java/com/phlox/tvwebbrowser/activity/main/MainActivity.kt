@@ -82,6 +82,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
+import com.phlox.tvwebbrowser.webengine.virtualCursor
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
@@ -826,16 +827,18 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private fun handleBackNavigation() {
         Log.d(TAG, "handleBackNavigation")
-        if (controller.currentTab.value?.webEngine?.isVirtualCursorMode() == false) {
-            controller.currentTab.value?.webEngine?.setVirtualCursorMode(true)
+        val cursor = controller.currentTab.value?.webEngine?.virtualCursor
+        if (cursor?.isVirtualCursorMode() == false) {
+            cursor.setVirtualCursorMode(true)
             backNavigationEventsAdapter.gameControllersLongPressBForBackNavigation = false
             return
         }
 
+        val cursorDrawer = cursor?.getCursorDrawerDelegate()
         if (vb.vCursorMenu.isVisible) {
             vb.vCursorMenu.close(CursorMenuView.CloseAnimation.ROTATE_OUT)
-        } else if (vb.flWebViewContainer.cursorDrawerDelegate.canHandleBackNavigation()) {
-            vb.flWebViewContainer.cursorDrawerDelegate.handleBackNavigation()
+        } else if (cursorDrawer?.canHandleBackNavigation() == true) {
+            cursorDrawer.handleBackNavigation()
         } else if (isFullscreen) {
             controller.currentTab.value?.webEngine?.hideFullscreenView()
         } else if (vb.llBottomPanel.isVisible && !vb.rlActionBar.isVisible) {

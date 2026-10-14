@@ -25,11 +25,12 @@ import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
+import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 
 
-class WebViewWebEngine(val tab: WebTabState) : WebEngine, CursorDrawerDelegate.Callback {
+class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, CursorDrawerDelegate.Callback {
     private var webView: WebViewEx? = null
     internal var callback: WebEngineCallbacks? = null
     private var viewParent: CursorLayout? = null

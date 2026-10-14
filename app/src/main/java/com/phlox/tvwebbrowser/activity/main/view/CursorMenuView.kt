@@ -20,6 +20,7 @@ import com.phlox.tvwebbrowser.databinding.ViewCursorMenuBinding
 import com.phlox.tvwebbrowser.utils.dip2px
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
+import com.phlox.tvwebbrowser.webengine.virtualCursor
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 
@@ -119,7 +120,7 @@ class CursorMenuView @JvmOverloads constructor(
         visibility = VISIBLE
         handler.postDelayed( {
             vb.btnGrabMode.requestFocus()
-            tab.webEngine.getCursorDrawerDelegate()?.hideCursor()
+            tab.webEngine.virtualCursor?.getCursorDrawerDelegate()?.hideCursor()
         }, 100)
         //set position
         val params = layoutParams as ViewGroup.MarginLayoutParams
@@ -202,7 +203,7 @@ class CursorMenuView @JvmOverloads constructor(
     }
 
     private fun enterDirectNavigationMode(mc: MenuContext) {
-        mc.tab.webEngine?.setVirtualCursorMode(false)
+        mc.tab.webEngine.virtualCursor?.setVirtualCursorMode(false)
         mc.backNavigationEventsAdapter?.gameControllersLongPressBForBackNavigation = true
     }
 

@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
-import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 
 interface WebEngine {
     val url: String?
@@ -58,7 +57,4 @@ interface WebEngine {
     fun stopPlayback()
     fun rewind()
     fun fastForward()
-    fun setVirtualCursorMode(enabled: Boolean)
-    fun isVirtualCursorMode(): Boolean
-    fun getCursorDrawerDelegate(): CursorDrawerDelegate?
 }

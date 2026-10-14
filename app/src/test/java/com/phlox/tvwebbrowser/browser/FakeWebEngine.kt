@@ -10,7 +10,6 @@ import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
-import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 
 /**
@@ -83,9 +82,6 @@ class FakeWebEngine(val tab: WebTabState) : WebEngine {
     override fun stopPlayback() {}
     override fun rewind() {}
     override fun fastForward() {}
-    override fun setVirtualCursorMode(enabled: Boolean) {}
-    override fun isVirtualCursorMode(): Boolean = true
-    override fun getCursorDrawerDelegate(): CursorDrawerDelegate? = null
 }
 
 val WebTabState.fakeEngine: FakeWebEngine get() = webEngine as FakeWebEngine
