@@ -250,9 +250,8 @@ class BrowserControllerEventsTest {
         assertEquals(BrowserUiEvent.NoAppToOpenUrl, events.last())
     }
 
-    // current behavior: the title and the favicon of the current tab are logged
     @Test
-    fun visitsAreLoggedWithTheCurrentTabTitle() {
+    fun visitsAreLoggedWithTheTitleOfTheirTab() {
         val a = open("https://a.com/")
         a.title = "A"
         //engines stop calling the callback when their tab is detached, but the event may be late
@@ -260,7 +259,7 @@ class BrowserControllerEventsTest {
         val b = open("https://b.com/")
         b.title = "B"
         aCallback.onVisited("https://a.com/")
-        assertEquals(listOf("B https://a.com/"), history.visited)
+        assertEquals(listOf("A https://a.com/"), history.visited)
     }
 
     @Test

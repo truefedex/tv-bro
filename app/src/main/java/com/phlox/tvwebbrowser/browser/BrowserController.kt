@@ -555,10 +555,8 @@ class BrowserController : ActiveModel() {
         }
 
         override fun onVisited(url: String) {
-            //current behavior: title and favicon are taken from the current tab, not from this one
-            val currentTab = currentTab.value ?: return
             if (!config.incognitoMode) {
-                history?.logVisitedHistory(currentTab.title, url, currentTab.faviconHash)
+                history?.logVisitedHistory(tab.title, url, tab.faviconHash)
             }
         }
 
