@@ -23,6 +23,7 @@ import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.databinding.ViewSettingsMainBinding
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
+import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.FeatureDelivery
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.launch
@@ -196,6 +197,13 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     private fun initWebViewAlgorithmicDarkeningWithDarkUiModeUI() {
+        if (!WebEngineFactory.supportsSetting(EngineSpecificSetting.ALGORITHMIC_DARKENING)) {
+            vb.llWebViewAlgorithmicDarkening.visibility = View.GONE
+            //skip the hidden switch in the D-pad focus chain
+            vb.spTheme.nextFocusDownId = vb.scAllowAutoplayMedia.id
+            vb.scAllowAutoplayMedia.nextFocusUpId = vb.spTheme.id
+            return
+        }
         vb.scWebViewAlgorithmicDarkeningWithDarkUiMode.isChecked =
             config.webviewUseAlgorithmicDarkeningWithDarkUiMode
         vb.scWebViewAlgorithmicDarkeningWithDarkUiMode.setOnCheckedChangeListener { _, isChecked ->

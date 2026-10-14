@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -14,12 +15,14 @@ import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
+import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
@@ -422,6 +425,15 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
 
                 override fun onViewCreationFailed(activity: Activity, error: Throwable) {
                     showWebViewNotAvailableDialog(activity)
+                }
+
+                override fun supportsSetting(setting: EngineSpecificSetting): Boolean = when (setting) {
+                    //the same features WebViewEx uses for it
+                    EngineSpecificSetting.ALGORITHMIC_DARKENING -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)
+                    } else {
+                        WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)
+                    }
                 }
             }))
         }

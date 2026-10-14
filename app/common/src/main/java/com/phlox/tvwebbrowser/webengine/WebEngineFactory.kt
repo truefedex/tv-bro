@@ -10,6 +10,14 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.WebTabState
 
+/**
+ * Settings that only some engines support: the settings screen shows them only when the selected engine does.
+ */
+enum class EngineSpecificSetting {
+    /** Darkening of pages that have no dark theme while the dark UI mode is on */
+    ALGORITHMIC_DARKENING
+}
+
 interface WebEngineProviderCallback {
     /** [webViewContainer] is where engines put their views (see [WebEngine.onAttachToWindow]) */
     suspend fun initialize(context: Context, webViewContainer: ViewGroup)
@@ -29,6 +37,8 @@ interface WebEngineProviderCallback {
 
     /** The engine could not create a view for a tab (for example the system WebView is broken) */
     fun onViewCreationFailed(activity: Activity, error: Throwable) {}
+
+    fun supportsSetting(setting: EngineSpecificSetting): Boolean = false
 }
 
 data class WebEngineProvider(
@@ -139,6 +149,10 @@ object WebEngineFactory {
     fun onViewCreationFailed(activity: Activity, error: Throwable) {
         selectedProvider()?.callback?.onViewCreationFailed(activity, error)
     }
+
+    /** Whether the engine chosen in the settings supports [setting] */
+    fun supportsSetting(setting: EngineSpecificSetting): Boolean =
+        selectedProvider()?.callback?.supportsSetting(setting) ?: false
 
     fun createWebEngine(tab: WebTabState): WebEngine {
         return initializedProvider.callback.createWebEngine(tab)
