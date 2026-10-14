@@ -14,6 +14,7 @@ import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.WebEngineWindowProviderCallback
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
@@ -28,6 +29,8 @@ class TabsModel : ActiveModel() {
     val tabsStates = ObservableList<WebTabState>()
     private val config = AppContext.provideConfig()
     private var incognitoMode = config.incognitoMode
+    //all tabs writes go through this queue: they are not cancelled with the model and do not overlap
+    private val writes = TVBro.instance.container.tabWrites
 
     init {
         tabsStates.subscribe({
@@ -41,7 +44,7 @@ class TabsModel : ActiveModel() {
             }
             if (positionsChanged) {
                 val tabsListClone = listOf(*tabsStates.toTypedArray())
-                modelScope.launch(Dispatchers.Main) {
+                writes.enqueue {
                     val tabsDao = AppDatabase.db.tabsDao()
                     tabsDao.updatePositions(tabsListClone)
                 }
@@ -59,12 +62,14 @@ class TabsModel : ActiveModel() {
                 return@launch
             }
         }
+        //tabs of the previous activity instance may be still saving
+        writes.awaitPending()
         val tabsDao = AppDatabase.db.tabsDao()
         tabsStates.replaceAll(tabsDao.getAll(config.incognitoMode))
         loaded = true
     }
 
-    suspend fun saveTab(tab: WebTabState) {
+    fun saveTab(tab: WebTabState) = writes.enqueue {
         val tabsDB = AppDatabase.db.tabsDao()
         if (tab.selected) {
             tabsDB.unselectAll(config.incognitoMode)
@@ -82,16 +87,20 @@ class TabsModel : ActiveModel() {
     fun onCloseTab(tab: WebTabState) {
         tab.webEngine.onDetachFromWindow(completely = true, destroyTab = true)
         tabsStates.remove(tab)
-        modelScope.launch(Dispatchers.Main) {
+        writes.enqueue {
             val tabsDB = AppDatabase.db.tabsDao()
             tabsDB.delete(tab)
-            launch { tab.removeFiles() }
+            withContext(Dispatchers.IO) { tab.removeFiles() }
         }
     }
 
-    fun onCloseAllTabs() = modelScope.launch(Dispatchers.Main) {
+    fun onCloseAllTabs(): Job {
         val tabsClone = ArrayList(tabsStates)
         tabsStates.clear()
+        return writes.enqueue { deleteTabs(tabsClone) }
+    }
+
+    private suspend fun deleteTabs(tabsClone: List<WebTabState>) {
         val tabsDB = AppDatabase.db.tabsDao()
         tabsDB.deleteAll(config.incognitoMode)
         withContext(Dispatchers.IO) {
@@ -119,7 +128,7 @@ class TabsModel : ActiveModel() {
             currentTab.value?.apply {
                 webEngine.onDetachFromWindow(completely = false, destroyTab = false)
                 onPause()
-                modelScope.launch { saveTab(this@apply) }
+                saveTab(this@apply)
             }
 
             newTab.selected = true

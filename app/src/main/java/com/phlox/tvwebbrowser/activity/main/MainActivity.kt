@@ -95,7 +95,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
@@ -730,7 +729,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         tabsModel.currentTab.value?.apply {
             webEngine.onPause()
             onPause()
-            runBlocking { tabsModel.saveTab(this@apply) }
+            tabsModel.saveTab(this@apply)
         }
         super.onPause()
     }
@@ -820,14 +819,19 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         Log.d(TAG, "switchProcess incognitoMode: $incognitoMode")
         val activityClass = if (incognitoMode) IncognitoModeMainActivity::class.java
         else MainActivity::class.java
-        val intent = Intent(this@MainActivity, activityClass)
+        val app = TVBro.instance
+        val intent = Intent(app, activityClass)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         intent.putExtra(KEY_PROCESS_ID_TO_KILL, Process.myPid())
         intentDataToCopy?.let {
             intent.putExtras(it)
         }
-        startActivity(intent)
-        exitProcess(0)
+        app.container.appScope.launch {
+            //tabs state saved on activity pause should not be lost
+            app.container.tabWrites.awaitPending()
+            app.startActivity(intent)
+            exitProcess(0)
+        }
     }
 
     fun toggleMenu() {

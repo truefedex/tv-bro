@@ -18,6 +18,7 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.FeatureDelivery
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
+import kotlinx.coroutines.launch
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.util.concurrent.ArrayBlockingQueue
@@ -39,6 +40,9 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
     lateinit var threadPool: ThreadPoolExecutor
         private set
 
+    lateinit var container: AppContainer
+        private set
+
     var needToExitProcessAfterMainActivityFinish = false
     var needRestartMainActivityAfterExitingProcess = false
     override fun onCreate() {
@@ -52,6 +56,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         instance = this
+        container = AppContainer()
 
         AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_MULTI_PROCESS)))
 
@@ -137,14 +142,18 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
     override fun onActivityDestroyed(activity: Activity) {
         Log.i(TAG, "onActivityDestroyed: " + activity.javaClass.simpleName)
         if (needToExitProcessAfterMainActivityFinish && activity is MainActivity) {
-            Log.i(TAG, "onActivityDestroyed: exiting process")
-            if (needRestartMainActivityAfterExitingProcess) {
-                Log.i(TAG, "onActivityDestroyed: restarting main activity")
-                val intent = Intent(this@TVBro, MainActivity::class.java)
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                startActivity(intent)
+            container.appScope.launch {
+                //tabs state saved on activity pause should not be lost
+                container.tabWrites.awaitPending()
+                Log.i(TAG, "onActivityDestroyed: exiting process")
+                if (needRestartMainActivityAfterExitingProcess) {
+                    Log.i(TAG, "onActivityDestroyed: restarting main activity")
+                    val intent = Intent(this@TVBro, MainActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    startActivity(intent)
+                }
+                exitProcess(0)
             }
-            exitProcess(0)
         }
     }
 }
