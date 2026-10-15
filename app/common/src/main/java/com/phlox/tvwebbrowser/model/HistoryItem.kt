@@ -17,9 +17,6 @@ class HistoryItem {
     var time: Long = 0
     var title: String = ""
     var url: String = ""
-    var favicon: String? = null
-    @Deprecated("Not used anymore")
-    var incognito: Boolean? = null
 
     @Ignore
     var isDateHeader = false//used for displaying date headers inside list view

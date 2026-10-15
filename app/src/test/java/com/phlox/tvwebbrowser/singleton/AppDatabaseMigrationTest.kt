@@ -119,7 +119,7 @@ class AppDatabaseMigrationTest {
         assertEquals(1, runBlocking { db.historyDao().count() })
 
         val sqlDb = db.openHelper.readableDatabase
-        assertEquals(21, sqlDb.version)
+        assertEquals(22, sqlDb.version)
         sqlDb.query("PRAGMA table_info(tabs)").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
             val columns = ArrayList<String>()
@@ -158,6 +158,35 @@ class AppDatabaseMigrationTest {
             while (cursor.moveToNext()) columns.add(cursor.getString(nameIndex))
             assertFalse(columns.contains("faviconHash"))
             assertFalse(columns.contains("scale"))
+        }
+    }
+
+    @Test
+    fun migrate21To22DropsUnusedHistoryColumns() {
+        createDatabase(21) { db ->
+            db.insert("history", null, ContentValues().apply {
+                put("id", 4L)
+                put("time", 100L)
+                put("title", "Example")
+                put("url", "https://example.com/")
+                put("favicon", "fav")
+                put("incognito", 0)
+            })
+        }
+
+        val db = openMigrated()
+        val item = runBlocking { db.historyDao().getAll() }.single()
+        assertEquals(4L, item.id)
+        assertEquals(100L, item.time)
+        assertEquals("Example", item.title)
+        assertEquals("https://example.com/", item.url)
+        assertEquals(listOf("https://example.com/"), runBlocking { db.historyDao().frequentlyUsedUrls() }.map { it.url })
+
+        db.openHelper.readableDatabase.query("PRAGMA table_info(history)").use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            val columns = ArrayList<String>()
+            while (cursor.moveToNext()) columns.add(cursor.getString(nameIndex))
+            assertEquals(listOf("id", "time", "title", "url"), columns)
         }
     }
 

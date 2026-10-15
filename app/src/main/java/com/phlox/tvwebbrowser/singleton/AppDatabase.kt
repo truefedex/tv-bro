@@ -17,7 +17,7 @@ import com.phlox.tvwebbrowser.model.util.Converters
     HistoryItem::class, TabEntity::class,
     HostConfig::class
                      ],
-    version = 21, exportSchema = true)
+    version = 22, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
@@ -189,6 +189,21 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_21_22 = object : Migration(21, 22) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                //drops the never read favicon and incognito columns of the history
+                val columns = "`id`, `time`, `title`, `url`"
+                db.execSQL("CREATE TABLE IF NOT EXISTS `history_new` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`time` INTEGER NOT NULL, `title` TEXT NOT NULL, `url` TEXT NOT NULL)")
+                db.execSQL("INSERT INTO `history_new` ($columns) SELECT $columns FROM `history`")
+                db.execSQL("DROP TABLE `history`")
+                db.execSQL("ALTER TABLE `history_new` RENAME TO `history`")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `history_time_idx` ON `history` (`time`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `history_title_idx` ON `history` (`title`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `history_url_idx` ON `history` (`url`)")
+            }
+        }
+
         private fun createHostsTable(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS `hosts` (`host_name` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `popup_block_level` INTEGER)")
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `hosts_name_idx` ON `hosts` (`host_name`)")
@@ -232,7 +247,7 @@ abstract class AppDatabase : RoomDatabase() {
             MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9,
             MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
             MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19,
-            MIGRATION_19_20, MIGRATION_20_21
+            MIGRATION_19_20, MIGRATION_20_21, MIGRATION_21_22
         )
 
         /** Queries on the main thread are not allowed: the repositories suspend */
