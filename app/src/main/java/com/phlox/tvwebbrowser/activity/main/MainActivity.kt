@@ -1201,6 +1201,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             window.decorView.systemUiVisibility =
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             isFullscreen = false
+            //the engine view may leave fullscreen by itself on BACK down (WebView does)
+            backNavigationEventsAdapter.consumeCurrentPress()
         }
 
         override fun onContextMenu(
