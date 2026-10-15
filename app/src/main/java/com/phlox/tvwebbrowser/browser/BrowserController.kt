@@ -153,41 +153,51 @@ class BrowserController : ActiveModel() {
         }
     }
 
-    fun saveTab(tab: BrowserTab): Job {
-        //the tab as it is now: it may change (or drop its thumbnail) before the write runs
+    /**
+     * Stores the tab: its database row and, if [withFiles], its engine state and changed thumbnail.
+     */
+    fun saveTab(tab: BrowserTab, withFiles: Boolean = true): Job {
+        //the tab as it is now: it may change (or drop its state and thumbnail) before the write runs
         val snapshot = tab.toEntity()
-        val thumbnail = tab.takeChangedThumbnail()
-        return writes.enqueue { writeTab(tab, snapshot, thumbnail) }
+        val files = if (withFiles) {
+            TabFilesSnapshot(
+                state = tab.savedState,
+                //an engine that was never created has no new state
+                enginePrefix = if (tab.isWebEngineCreated) tab.webEngine.stateFilePrefix else null,
+                thumbnail = tab.takeChangedThumbnail()
+            )
+        } else {
+            null
+        }
+        return writes.enqueue { writeTab(tab, snapshot, files) }
     }
+
+    private class TabFilesSnapshot(val state: Any?, val enginePrefix: String?, val thumbnail: Bitmap?)
 
     /**
      * Writes the [snapshot] of the tab with its id and file names, which are known only here:
      * the earlier writes of the tab give them. The write queue runs on the main thread, so the tab
      * is read and changed here, between the background writes of the files and of the database.
      */
-    private suspend fun writeTab(tab: BrowserTab, snapshot: TabEntity, thumbnail: Bitmap?) {
-        val state = tab.savedState
-        //an engine that was never created has no new state
-        val enginePrefix = if (tab.isWebEngineCreated) tab.webEngine.stateFilePrefix else null
-        val oldStateFile = tab.wvStateFileName
-        val oldThumbnail = tab.thumbnailHash
-        val (stateFile, thumbnailName) = withContext(Dispatchers.IO) {
-            val stateFile = if (enginePrefix != null) {
-                tabFiles.writeEngineState(state, enginePrefix, oldStateFile)
-            } else {
-                oldStateFile
+    private suspend fun writeTab(tab: BrowserTab, snapshot: TabEntity, files: TabFilesSnapshot?) {
+        if (files != null) {
+            val oldStateFile = tab.wvStateFileName
+            val oldThumbnail = tab.thumbnailHash
+            val (stateFile, thumbnailName) = withContext(Dispatchers.IO) {
+                val stateFile = files.enginePrefix?.let { tabFiles.writeEngineState(files.state, it, oldStateFile) }
+                    ?: oldStateFile
+                val thumbnailName = files.thumbnail?.let { tabFiles.writeThumbnail(it, oldThumbnail) } ?: oldThumbnail
+                stateFile to thumbnailName
             }
-            val thumbnailName = if (thumbnail != null) tabFiles.writeThumbnail(thumbnail, oldThumbnail) else oldThumbnail
-            stateFile to thumbnailName
+            tab.wvStateFileName = stateFile
+            tab.thumbnailHash = thumbnailName
         }
-        tab.wvStateFileName = stateFile
-        tab.thumbnailHash = thumbnailName
 
         val tabsDB = AppDatabase.db.tabsDao()
         if (snapshot.selected) {
             tabsDB.unselectAll(config.incognitoMode)
         }
-        val entity = snapshot.copy(id = tab.id, wvStateFileName = stateFile, thumbnailHash = thumbnailName)
+        val entity = snapshot.copy(id = tab.id, wvStateFileName = tab.wvStateFileName, thumbnailHash = tab.thumbnailHash)
         if (entity.id != 0L) {
             tabsDB.update(entity)
         } else {
@@ -446,8 +456,9 @@ class BrowserController : ActiveModel() {
         }
         newTab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(TVBro.instance))
         if (switched) {
-            //the selection (and a new tab) is kept even if the process is killed without a pause
-            saveTab(newTab)
+            //the selection (and a new tab) is kept even if the process is killed without a pause;
+            //its files did not change: the engine state was just restored from them
+            saveTab(newTab, withFiles = false)
         }
     }
 

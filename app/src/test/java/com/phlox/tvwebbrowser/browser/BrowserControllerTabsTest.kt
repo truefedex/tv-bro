@@ -21,6 +21,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 class BrowserControllerTabsTest {
@@ -71,6 +72,41 @@ class BrowserControllerTabsTest {
     /** url to selected */
     private fun storedSelection(): Map<String, Boolean> = db.query("SELECT url, selected FROM tabs", null).use { c ->
         generateSequence { if (c.moveToNext()) c.getString(0) to (c.getInt(1) != 0) else null }.toMap()
+    }
+
+    private fun storedStateFile(url: String): String? =
+        db.query("SELECT wv_state_file FROM tabs WHERE url = ?", arrayOf(url)).use { c ->
+            if (c.moveToNext()) c.getString(0) else null
+        }
+
+    private fun stateFile(name: String) = File(File(context.filesDir, TabFilesStore.ENGINE_STATES_DIR), name)
+
+    @Test
+    fun engineStateIsWrittenOnSwitchAndRestoredAfterRestart() {
+        val (a, _) = open("https://a.com/", "https://b.com/")
+        awaitWrites()
+        //a was left: its state is written; b is only stored as the selected tab
+        val name = storedStateFile("https://a.com/")!!
+        assertEquals("state of https://a.com/", stateFile(name).readText())
+        assertNull(storedStateFile("https://b.com/"))
+
+        //coming back to a restores its state from memory and does not write it again
+        stateFile(name).setLastModified(1000L)
+        controller.changeTab(a)
+        awaitWrites()
+        assertEquals(1000L, stateFile(name).lastModified())
+
+        val restarted = BrowserController()
+        restarted.viewHost = FakeTabViewHost(context)
+        val job = restarted.loadState()
+        while (!job.isCompleted) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(1)
+        }
+        val restoredA = restarted.tabsStates.first { it.url == "https://a.com/" }
+        restarted.changeTab(restoredA)
+        assertTrue("restoreState" in restoredA.fakeEngine.log)
+        restarted.clear()
     }
 
     @Test
