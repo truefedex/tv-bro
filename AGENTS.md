@@ -80,7 +80,7 @@ Comments in `libs.versions.toml` explain why. When you bump GeckoView or feature
 
 **Home page.** `about:home` (`Config.HOME_URL_ALIAS`) is resolved by `HomePageUrl` in the core according to the home page mode; the built-in home page is `Config.HOME_PAGE_URL`. WebView serves its resources from local assets (`app/src/main/assets/pages`) in `shouldInterceptRequest`. GeckoView still loads the web version, and moving it to the local assets is pending.
 
-**Look.** Colors come from theme tokens: `?attr/tbColor…` attributes (`values/attrs.xml`) that `Theme.TVBro` maps to the semantic palette in `values/colors.xml` (night values in `values-night`). Layouts and drawables use the attributes, never hex colors or palette colors directly; code uses `Context.themeColor(R.attr…)`. Attributes need a themed (activity) context: do not inflate such views or drawables with the application context.
+**Look.** Colors come from theme tokens: `?attr/tbColor…` attributes (`values/attrs.xml`) that `Theme.TVBro` maps to the semantic palette in `values/colors.xml` (night values in `values-night`). Layouts and drawables use the attributes, never hex colors or palette colors directly; code uses `Context.themeColor(R.attr…)`. Attributes need a themed (activity) context: do not inflate such views or drawables with the application context. A theme attribute does not resolve in `android:drawable` of a selector item (the drawable fails to load): put the color in a `<color>` or `<shape>` element inside the item. `ThemeResourcesTest` loads every drawable and color of the app with the app theme.
 
 ## Release
 
