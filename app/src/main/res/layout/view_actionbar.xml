@@ -1,101 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+The row of the browser bar: close app, page navigation, the address field, browser functions.
+Back stays away from the close button and every button stays focusable, so the number of presses
+to each button never changes.
+-->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.LinearLayout"
     tools:orientation="horizontal">
+
   <ImageButton
-      style="@style/Widget.TVBro.ImageButton.ActionBar"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
+      style="@style/Widget.TVBro.ImageButton.Ds.Standalone"
       android:id="@+id/ibMenu"
-      android:src="@drawable/ic_close_large"
-      android:nextFocusRight="@+id/ibVoiceSearch"
+      android:src="@drawable/ic_close"
       android:nextFocusDown="@+id/vTabs"
-      android:layout_margin="5dp"
-      android:focusable="true"
       android:focusableInTouchMode="true"
       android:contentDescription="@string/close_application" />
 
-  <ImageButton
-      style="@style/Widget.TVBro.ImageButton.ActionBar"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:id="@+id/ibVoiceSearch"
-      android:src="@drawable/ic_voice_search"
-      android:nextFocusRight="@+id/ibHistory"
-      android:nextFocusDown="@+id/vTabs"
-      android:contentDescription="@string/voice_search" />
+  <LinearLayout
+      style="@style/Widget.TVBro.ToolbarGroup"
+      android:id="@+id/llNavigation">
 
-  <ImageButton
-      style="@style/Widget.TVBro.ImageButton.ActionBar"
-      android:id="@+id/ibHistory"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:contentDescription="@string/history"
-      android:nextFocusRight="@+id/ibFavorites"
-      android:nextFocusDown="@+id/vTabs"
-      android:src="@drawable/ic_history"
-      />
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibBack"
+        android:src="@drawable/ic_back"
+        android:nextFocusDown="@+id/vTabs"
+        android:contentDescription="@string/navigate_back" />
 
-  <ImageButton
-      style="@style/Widget.TVBro.ImageButton.ActionBar"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:id="@+id/ibFavorites"
-      android:src="@drawable/ic_favorites"
-      android:nextFocusRight="@+id/ibDownloads"
-      android:nextFocusDown="@+id/vTabs"
-      android:contentDescription="@string/favorites" />
+    <View style="@style/Widget.TVBro.ToolbarSeparator" />
 
-  <ImageButton
-      style="@style/Widget.TVBro.ImageButton.ActionBar"
-      android:id="@+id/ibDownloads"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:contentDescription="@string/downloads"
-      android:nextFocusRight="@+id/ibIncognito"
-      android:nextFocusDown="@+id/vTabs"
-      android:src="@drawable/ic_downloads"
-      />
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibForward"
+        android:src="@drawable/ic_forward"
+        android:nextFocusDown="@+id/vTabs"
+        android:contentDescription="@string/navigate_forward" />
 
-  <com.phlox.tvwebbrowser.widgets.CheckableImageButton
-      style="@style/Widget.TVBro.ImageButton.ActionBar"
-      android:id="@+id/ibIncognito"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:contentDescription="@string/incognito_mode"
-      android:nextFocusRight="@+id/ibSettings"
-      android:nextFocusDown="@+id/vTabs"
-      android:src="@drawable/ic_incognito"
-      />
+    <View style="@style/Widget.TVBro.ToolbarSeparator" />
 
-  <ImageButton
-      style="@style/Widget.TVBro.ImageButton.ActionBar"
-      android:src="@drawable/ic_settings"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:nextFocusRight="@+id/etUrl"
-      android:nextFocusDown="@+id/vTabs"
-      android:id="@+id/ibSettings"
-      android:contentDescription="@string/settings" />
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibRefresh"
+        android:src="@drawable/ic_refresh"
+        android:nextFocusDown="@+id/vTabs"
+        android:contentDescription="@string/refresh_page" />
+  </LinearLayout>
 
-  <FrameLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_alignWithParentIfMissing="true"
-      android:background="?attr/tbColorSurfaceBar"
-      android:id="@+id/flUrl">
+  <LinearLayout
+      android:id="@+id/llAddress"
+      android:layout_width="0dp"
+      android:layout_height="match_parent"
+      android:layout_weight="1"
+      android:layout_marginStart="@dimen/ds_space_gutter"
+      android:orientation="horizontal"
+      android:background="@drawable/ds_address_field_bg"
+      android:padding="@dimen/ds_border_hairline"
+      android:addStatesFromChildren="true">
+
     <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        style="@style/Widget.TVBro.Text.Address"
         android:id="@+id/etUrl"
-        android:iconifiedByDefault="false"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:paddingStart="@dimen/ds_space_field_inset"
+        android:paddingEnd="@dimen/ds_space_field_inset"
+        android:gravity="center_vertical"
+        android:background="@null"
         android:textCursorDrawable="@null"
-        android:textColor="?attr/tbColorOnSurface"
-        android:layout_marginTop="15dp"
+        android:textColor="?attr/tbColorDsInk"
+        android:textColorHint="?attr/tbColorDsInkFaint"
+        android:singleLine="true"
+        android:nextFocusDown="@+id/vTabs"
         android:imeOptions="actionSearch"
         android:hint="@string/url_prompt"
         android:inputType="textFilter|textNoSuggestions|textUri"
         android:importantForAutofill="no" />
-  </FrameLayout>
+
+    <View
+        style="@style/Widget.TVBro.FieldDivider"
+        android:id="@+id/vVoiceSearchDivider" />
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Field"
+        android:id="@+id/ibVoiceSearch"
+        android:src="@drawable/ic_voice_search"
+        android:nextFocusDown="@+id/vTabs"
+        android:contentDescription="@string/voice_search" />
+  </LinearLayout>
+
+  <LinearLayout
+      style="@style/Widget.TVBro.ToolbarGroup"
+      android:id="@+id/llFunctions">
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibHistory"
+        android:src="@drawable/ic_history"
+        android:nextFocusDown="@+id/vTabs"
+        android:contentDescription="@string/history" />
+
+    <View style="@style/Widget.TVBro.ToolbarSeparator" />
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibFavorites"
+        android:src="@drawable/ic_favorites"
+        android:nextFocusDown="@+id/vTabs"
+        android:contentDescription="@string/bookmarks" />
+
+    <View style="@style/Widget.TVBro.ToolbarSeparator" />
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibDownloads"
+        android:src="@drawable/ic_downloads"
+        android:nextFocusDown="@+id/vTabs"
+        android:contentDescription="@string/downloads" />
+
+    <View style="@style/Widget.TVBro.ToolbarSeparator" />
+
+    <!-- selected (activated) in the incognito mode -->
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibIncognito"
+        android:src="@drawable/ic_incognito"
+        android:nextFocusDown="@+id/vTabs"
+        android:contentDescription="@string/incognito_mode" />
+
+    <View style="@style/Widget.TVBro.ToolbarSeparator" />
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibSettings"
+        android:src="@drawable/ic_settings"
+        android:nextFocusDown="@+id/vTabs"
+        android:contentDescription="@string/settings" />
+  </LinearLayout>
 </merge>

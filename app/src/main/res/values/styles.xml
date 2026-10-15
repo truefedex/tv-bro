@@ -40,6 +40,73 @@
     </style>
 
     <!--
+    The browser bar of the redesign. Its buttons have fixed sizes; the paddings fit icons of any
+    intrinsic size to the board size, and the icons get the design system icon color.
+    -->
+    <style name="Widget.TVBro.ImageButton.Ds" parent="Widget.AppCompat.ImageButton">
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:focusable">true</item>
+        <item name="tint">?attr/tbColorDsIcon</item>
+    </style>
+
+    <!-- A segment of a toolbar group -->
+    <style name="Widget.TVBro.ImageButton.Ds.Segment">
+        <item name="android:layout_width">@dimen/ds_size_toolbar_segment</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@drawable/ds_control_bg</item>
+        <item name="android:paddingStart">@dimen/ds_toolbar_icon_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/ds_toolbar_icon_padding_horizontal</item>
+        <item name="android:paddingTop">@dimen/ds_toolbar_icon_padding_vertical</item>
+        <item name="android:paddingBottom">@dimen/ds_toolbar_icon_padding_vertical</item>
+    </style>
+
+    <!-- A button on its own in the bar (the close-app button) -->
+    <style name="Widget.TVBro.ImageButton.Ds.Standalone">
+        <item name="android:layout_width">@dimen/ds_size_chrome_control</item>
+        <item name="android:layout_height">@dimen/ds_size_chrome_control</item>
+        <item name="android:background">@drawable/ds_icon_button_bg</item>
+        <item name="android:padding">@dimen/ds_close_icon_padding</item>
+    </style>
+
+    <!-- A button inside the address field -->
+    <style name="Widget.TVBro.ImageButton.Ds.Field">
+        <item name="android:layout_width">@dimen/ds_size_toolbar_segment</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@drawable/ds_field_button_bg</item>
+        <item name="android:paddingStart">@dimen/ds_field_icon_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/ds_field_icon_padding_horizontal</item>
+        <item name="android:paddingTop">@dimen/ds_field_icon_padding_vertical</item>
+        <item name="android:paddingBottom">@dimen/ds_field_icon_padding_vertical</item>
+    </style>
+
+    <!-- A group of toolbar segments; the group clips them to its rounded border (ActionBar sets clipToOutline) -->
+    <style name="Widget.TVBro.ToolbarGroup" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_marginStart">@dimen/ds_space_gutter</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:background">@drawable/ds_control_group_bg</item>
+        <item name="android:padding">@dimen/ds_border_hairline</item>
+    </style>
+
+    <!-- The separator between toolbar segments -->
+    <style name="Widget.TVBro.ToolbarSeparator" parent="">
+        <item name="android:layout_width">@dimen/ds_border_hairline</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">?attr/tbColorDsLineStrong</item>
+    </style>
+
+    <!-- A divider inside the address field -->
+    <style name="Widget.TVBro.FieldDivider" parent="">
+        <item name="android:layout_width">@dimen/ds_border_hairline</item>
+        <item name="android:layout_height">@dimen/ds_field_divider_height</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:background">?attr/tbColorDsDivider</item>
+    </style>
+
+    <!--
     Text sizes. These styles set only the size, so the text keeps the color of the view's default
     appearance (a textAppearance would replace it).
     -->

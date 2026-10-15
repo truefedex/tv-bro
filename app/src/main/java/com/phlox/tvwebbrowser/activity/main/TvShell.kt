@@ -111,6 +111,22 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun closeWindow() = host.closeWindow()
 
+    //the bar stays open: the page under it is updated when it finishes loading
+    override fun navigateBack() {
+        //a dimmed Back does nothing (Back of the remote opens and closes the bar)
+        controller.goBack()
+    }
+
+    override fun navigateForward() = controller.goForward()
+
+    override fun reloadOrStop() {
+        if (controller.currentTabState.value.loading) {
+            controller.stopLoading()
+        } else {
+            controller.reload()
+        }
+    }
+
     override fun showDownloads() = host.showDownloads()
 
     override fun showHistory() {
@@ -176,9 +192,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
         vb.ibPopupBlock.setOnClickListener { showPopupBlockOptions() }
         vb.ibHome.setOnClickListener { host.commands.goHome() }
-        vb.ibBack.setOnClickListener { host.commands.goBack() }
-        vb.ibForward.setOnClickListener { host.commands.goForward() }
-        vb.ibRefresh.setOnClickListener { host.commands.reload() }
         vb.ibCloseTab.setOnClickListener { controller.currentTab.value?.apply { closeTab(this) } }
 
         vb.vActionBar.callback = this
@@ -266,8 +279,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private var renderedTabIdentity: Int? = null
 
     override fun render(state: CurrentTabState) {
-        vb.ibBack.isEnabled = state.canGoBack
-        vb.ibForward.isEnabled = state.canGoForward
+        vb.vActionBar.setNavigationState(state.canGoBack, state.canGoForward, state.loading)
 
         vb.ibAdBlock.setImageResource(if (state.adBlockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
         vb.tvBlockedAdCounter.visibility = if (state.adBlockEnabled && state.blockedAds != 0) View.VISIBLE else View.GONE

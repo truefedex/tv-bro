@@ -48,6 +48,7 @@
     <string name="navigate_back">Navigate back</string>
     <string name="navigate_home">Navigate home</string>
     <string name="refresh_page">Refresh page</string>
+    <string name="stop_loading">Stop loading</string>
     <string name="voice_search">Voice search</string>
     <string name="not_set">Not set</string>
     <string name="action">Action:</string>

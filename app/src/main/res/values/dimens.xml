@@ -64,4 +64,12 @@
     <dimen name="ds_text_menu_item">14sp</dimen>
     <dimen name="ds_text_tab_title">12sp</dimen>
     <dimen name="ds_text_badge">9sp</dimen>
+    <!-- Paddings that give icons of any intrinsic size the board size in fixed size buttons -->
+    <dimen name="ds_toolbar_icon_padding_horizontal">16dp</dimen>
+    <dimen name="ds_toolbar_icon_padding_vertical">12dp</dimen>
+    <dimen name="ds_close_icon_padding">10dp</dimen>
+    <dimen name="ds_field_icon_padding_horizontal">17dp</dimen>
+    <dimen name="ds_field_icon_padding_vertical">13dp</dimen>
+    <dimen name="ds_field_divider_height">28dp</dimen>
+    <dimen name="ds_space_field_inset">12dp</dimen>
 </resources>

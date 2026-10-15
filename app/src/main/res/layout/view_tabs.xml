@@ -11,7 +11,6 @@
       android:layout_above="@+id/vSpacer"
       android:layout_toStartOf="@+id/btnAdd"
       android:layout_weight="1"
-      android:background="?attr/tbColorSurfaceBar"
       />
   <Button
       style="@style/Widget.TVBro.Button"

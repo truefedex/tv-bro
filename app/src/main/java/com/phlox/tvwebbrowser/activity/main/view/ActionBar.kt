@@ -10,7 +10,6 @@ import android.view.View.OnKeyListener
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
-import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.phlox.tvwebbrowser.AppContext
@@ -33,6 +32,10 @@ class ActionBar @JvmOverloads constructor(
 
     interface Callback {
         fun closeWindow()
+        fun navigateBack()
+        fun navigateForward()
+        /** Stops the page if it is loading, reloads it otherwise */
+        fun reloadOrStop()
         fun showDownloads()
         fun showFavorites()
         fun showHistory()
@@ -86,20 +89,27 @@ class ActionBar @JvmOverloads constructor(
         val incognitoMode = AppContext.provideConfig().incognitoMode
 
         vb.ibMenu.setOnClickListener { callback?.closeWindow() }
+        vb.ibBack.setOnClickListener { callback?.navigateBack() }
+        vb.ibForward.setOnClickListener { callback?.navigateForward() }
+        vb.ibRefresh.setOnClickListener { callback?.reloadOrStop() }
         vb.ibDownloads.setOnClickListener { callback?.showDownloads() }
         vb.ibFavorites.setOnClickListener { callback?.showFavorites() }
         vb.ibHistory.setOnClickListener { callback?.showHistory() }
         vb.ibIncognito.setOnClickListener { callback?.toggleIncognitoMode() }
         vb.ibSettings.setOnClickListener { callback?.showSettings() }
 
+        //the groups clip their segments to the rounded border
+        vb.llNavigation.clipToOutline = true
+        vb.llFunctions.clipToOutline = true
+
         if (Utils.isFireTV(context)) {
-            vb.ibMenu.nextFocusRightId = R.id.ibHistory
-            removeView(vb.ibVoiceSearch)
+            vb.ibVoiceSearch.visibility = GONE
+            vb.vVoiceSearchDivider.visibility = GONE
         } else {
             vb.ibVoiceSearch.setOnClickListener { callback?.initiateVoiceSearch() }
         }
 
-        vb.ibIncognito.isChecked = incognitoMode
+        vb.ibIncognito.isActivated = incognitoMode
 
         vb.etUrl.onFocusChangeListener = etUrlFocusChangeListener
 
@@ -122,6 +132,17 @@ class ActionBar @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Back and Forward stay focusable when they can not be used and are only dimmed, so the number
+     * of presses to each button never changes. Refresh becomes Stop while the page loads.
+     */
+    fun setNavigationState(canGoBack: Boolean, canGoForward: Boolean, loading: Boolean) {
+        vb.ibBack.imageAlpha = if (canGoBack) OPAQUE else DIMMED
+        vb.ibForward.imageAlpha = if (canGoForward) OPAQUE else DIMMED
+        vb.ibRefresh.setImageResource(if (loading) R.drawable.ic_stop else R.drawable.ic_refresh)
+        vb.ibRefresh.contentDescription = context.getString(if (loading) R.string.stop_loading else R.string.refresh_page)
+    }
+
     fun setAddressBoxText(text: String) {
         val newText = if (text == Config.HOME_PAGE_URL) "" else text
         if (vb.etUrl.text.toString() != newText) {
@@ -141,7 +162,7 @@ class ActionBar @JvmOverloads constructor(
         extendedAddressBarMode = true
         for (i in 0 until childCount) {
             val child = getChildAt(i)
-            if (child is ImageButton) {
+            if (child != vb.llAddress) {
                 child.visibility = GONE
             }
         }
@@ -154,7 +175,7 @@ class ActionBar @JvmOverloads constructor(
         extendedAddressBarMode = false
         for (i in 0 until childCount) {
             val child = getChildAt(i)
-            if (child is ImageButton) {
+            if (child != vb.llAddress) {
                 child.visibility = VISIBLE
             }
         }
@@ -162,5 +183,11 @@ class ActionBar @JvmOverloads constructor(
 
     fun catchFocus() {
         vb.ibMenu.requestFocus()
+    }
+
+    companion object {
+        private const val OPAQUE = 255
+        /** Disabled icons are drawn at 40% */
+        private const val DIMMED = 102
     }
 }
