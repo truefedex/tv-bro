@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.app.AlertDialog
+import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.os.Build
 import android.os.Handler
@@ -58,6 +59,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override val root: View get() = vb.root
     override val tabsContainer: ViewGroup get() = vb.flWebViewContainer
+    override val screenOrientation: Int get() = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
 
     private val progressBarHideRunnable: Runnable = Runnable {
         val anim = AnimationUtils.loadAnimation(activity, android.R.anim.fade_out)
@@ -186,6 +188,20 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             it.onFocusChangeListener = bottomButtonsFocusListener
             it.setOnKeyListener(bottomButtonsKeyListener)
         }
+
+        //TV screens do not rotate, but large screens may ignore the requested orientation:
+        //the thumbnail under the open menu has the height of the screen it was shown on
+        vb.flWebViewContainer.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if (bottom - top != oldBottom - oldTop && vb.rlActionBar.isVisible) {
+                vb.root.post { fitThumbnailUnderMenu() }
+            }
+        }
+    }
+
+    private fun fitThumbnailUnderMenu() {
+        if (!vb.rlActionBar.isVisible || !vb.ivMiniatures.isVisible) return
+        vb.ivMiniatures.layoutParams = vb.ivMiniatures.layoutParams.apply { height = vb.flWebViewContainer.height }
+        vb.ivMiniatures.translationY = vb.rlActionBar.height.toFloat()
     }
 
     private fun tabByTitleIndex(index: Int) =

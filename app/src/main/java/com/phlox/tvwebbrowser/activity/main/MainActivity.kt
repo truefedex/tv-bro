@@ -124,6 +124,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, this)
         uiHandler = Handler(Looper.getMainLooper())
         shell = TvShell(this)
+        requestedOrientation = shell.screenOrientation
         setContentView(shell.root)
         controller.viewHost = tabViewHost
         controller.adBlocker = adblockModel

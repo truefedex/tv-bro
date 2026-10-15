@@ -27,6 +27,13 @@ interface BrowserShell {
     val tabsContainer: ViewGroup
 
     /**
+     * The orientation the activity asks for (one of ActivityInfo.SCREEN_ORIENTATION_*). The activity is
+     * not recreated when the screen rotates or changes its size (the engine views live as long as their
+     * tabs): the shell's views adapt themselves.
+     */
+    val screenOrientation: Int
+
+    /**
      * Adds the Back callbacks of the shell's overlays to the screen's [dispatcher] (the callback added
      * last goes first), with [fullscreen] (enabled while a page shows a fullscreen view) at its place among them.
      */
