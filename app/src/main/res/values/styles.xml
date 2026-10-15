@@ -18,21 +18,6 @@
         <item name="android:background">@drawable/button_bg_selector</item>
     </style>
 
-    <!-- Buttons of the top bar (the menu) -->
-    <style name="Widget.TVBro.ImageButton.ActionBar">
-        <item name="android:layout_marginTop">@dimen/action_bar_button_spacing</item>
-        <item name="android:layout_marginEnd">@dimen/action_bar_button_spacing</item>
-    </style>
-
-    <!-- Buttons of the bottom panel (a packed chain at the bottom of a ConstraintLayout) -->
-    <style name="Widget.TVBro.ImageButton.BottomPanel">
-        <item name="android:layout_marginTop">@dimen/bottom_panel_button_spacing</item>
-        <item name="android:layout_marginBottom">@dimen/bottom_panel_button_spacing</item>
-        <item name="android:layout_marginEnd">@dimen/bottom_panel_button_spacing</item>
-        <item name="layout_constraintBottom_toBottomOf">parent</item>
-        <item name="layout_constraintHorizontal_chainStyle">packed</item>
-    </style>
-
     <!-- Buttons around the cursor in the cursor menu -->
     <style name="Widget.TVBro.ImageButton.CursorMenu">
         <item name="android:scaleType">fitCenter</item>

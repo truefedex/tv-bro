@@ -29,7 +29,6 @@ visible when the tabs scroll (the tabs shrink to the room left by the button).
       android:padding="@dimen/ds_new_tab_icon_padding"
       android:background="@drawable/ds_new_tab_button_bg"
       android:src="@drawable/ic_add"
-      android:nextFocusDown="@+id/ibCloseTab"
       android:contentDescription="@string/new_tab"
       app:layout_constraintStart_toEndOf="@+id/rvTabs"
       app:layout_constraintEnd_toEndOf="parent"

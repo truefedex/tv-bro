@@ -8,7 +8,6 @@
     android:gravity="center_vertical"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:nextFocusDown="@+id/ibCloseTab"
     android:paddingStart="@dimen/ds_space_tab_inset"
     android:paddingEnd="@dimen/ds_space_tab_inset"
     android:background="@drawable/ds_tab_bg">

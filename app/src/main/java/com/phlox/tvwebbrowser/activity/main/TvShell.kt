@@ -7,12 +7,9 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
@@ -32,7 +29,6 @@ import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
-import com.phlox.tvwebbrowser.utils.childs
 import com.phlox.tvwebbrowser.utils.themeColor
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
@@ -45,8 +41,8 @@ import kotlinx.coroutines.launch
 import java.net.URL
 
 /**
- * The TV look: the action bar and the tabs above the page (the "menu overlay", opened and closed
- * with Back), the bottom panel and the virtual cursor.
+ * The TV look: the bar above the page (its row of buttons and the address, and the tabs; opened and
+ * closed with Back), its panels and menus, and the virtual cursor.
  */
 class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Callback {
     companion object {
@@ -251,62 +247,19 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun toggleIncognitoMode() = host.toggleIncognitoMode()
 
-    private val bottomButtonsOnTouchListener = View.OnTouchListener { v, e ->
-        when (e.action) {
-            MotionEvent.ACTION_DOWN -> {
-                return@OnTouchListener true
-            }
-            MotionEvent.ACTION_UP -> {
-                hideMenuOverlay(false)
-                v.performClick()
-                return@OnTouchListener true
-            }
-            else -> return@OnTouchListener false
-        }
-    }
-
-    private val bottomButtonsFocusListener = View.OnFocusChangeListener { view, hasFocus ->
-        if (hasFocus) {
-            hideMenuOverlay(false)
-        }
-    }
-
-    private val bottomButtonsKeyListener = View.OnKeyListener { view, i, keyEvent ->
-        when (keyEvent.keyCode) {
-            KeyEvent.KEYCODE_DPAD_UP -> {
-                if (keyEvent.action == KeyEvent.ACTION_UP) {
-                    hideBottomPanel()
-                    controller.currentTab.value?.webEngine?.getView()?.requestFocus()
-                }
-                return@OnKeyListener true
-            }
-        }
-        false
-    }
-
     //after the listeners: properties are initialized in their order
     init {
         vb.ivMiniatures.visibility = View.INVISIBLE
-        vb.llBottomPanel.visibility = View.INVISIBLE
         vb.rlActionBar.visibility = View.INVISIBLE
         vb.progressBar.visibility = View.GONE
 
         vb.vTabs.listener = tabsListener
-
-        vb.ibHome.setOnClickListener { host.commands.goHome() }
-        vb.ibCloseTab.setOnClickListener { controller.currentTab.value?.apply { closeTab(this) } }
 
         vb.vActionBar.callback = this
         vb.vSitePanel.callback = sitePanelCallback
         vb.vTabMenu.callback = tabMenuCallback
         vb.rlRoot.viewTreeObserver.addOnGlobalFocusChangeListener(tabOptionsHintFocusListener)
         vb.rlRoot.viewTreeObserver.addOnPreDrawListener(tabOptionsHintDrawListener)
-
-        vb.llBottomPanel.childs.forEach {
-            it.setOnTouchListener(bottomButtonsOnTouchListener)
-            it.onFocusChangeListener = bottomButtonsFocusListener
-            it.setOnKeyListener(bottomButtonsKeyListener)
-        }
 
         //TV screens do not rotate, but large screens may ignore the requested orientation:
         //the thumbnail under the open menu has the height of the screen it was shown on
@@ -328,13 +281,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun onUrlInputDone() {
         hideMenuOverlay()
-    }
-
-    private fun closeTab(tab: BrowserTab?) {
-        if (tab == null) return
-        controller.closeTab(tab)
-        hideMenuOverlay(true)
-        hideBottomPanel()
     }
 
     override fun showBusy(busy: Boolean) {
@@ -362,7 +308,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun showPage() {
         if (vb.rlActionBar.visibility == View.VISIBLE) {
-            hideMenuOverlay(true)
+            hideMenuOverlay()
         }
     }
 
@@ -448,7 +394,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             }
             BrowserUiEvent.TabOpenedByPage -> {
                 if (vb.rlActionBar.visibility == View.VISIBLE) {
-                    hideMenuOverlay(true)
+                    hideMenuOverlay()
                 }
             }
             is BrowserUiEvent.HomePageSearchBarLocated -> {
@@ -458,10 +404,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                     event.tab.webEngine.virtualCursor?.moveCursorTo(event.x.toFloat(), event.y.toFloat())
                 }
             }
-            BrowserUiEvent.TabClosedByPage -> {
-                hideMenuOverlay(true)
-                hideBottomPanel()
-            }
+            BrowserUiEvent.TabClosedByPage -> hideMenuOverlay()
             else -> {}
         }
     }
@@ -510,15 +453,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
     }
 
-    /** Lowest priority: the menu overlay, the full menu or only its bottom panel */
+    /** Lowest priority: Back on the remote opens and closes the bar */
     private val menuBackCallback = object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-            if (vb.llBottomPanel.isVisible && !vb.rlActionBar.isVisible) {
-                hideBottomPanel()
-            } else {
-                toggleMenu()
-            }
-        }
+        override fun handleOnBackPressed() = toggleMenu()
     }
 
     /** Highest priority: leaves the direct navigation or the grab mode of the cursor */
@@ -545,7 +482,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     private fun showMenuOverlay() {
         vb.ivMiniatures.visibility = View.VISIBLE
-        vb.llBottomPanel.visibility = View.VISIBLE
         vb.flWebViewContainer.visibility = View.INVISIBLE
         val currentTab = controller.currentTab.value
         if (currentTab != null) {
@@ -554,18 +490,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 displayThumbnail(currentTab)
             }
         }
-
-        vb.llBottomPanel.translationY = vb.llBottomPanel.height.toFloat()
-        vb.llBottomPanel.alpha = 0f
-        vb.llBottomPanel.animate()
-                .setDuration(300)
-                .setInterpolator(DecelerateInterpolator())
-                .translationY(0f)
-                .alpha(1f)
-                .withEndAction {
-                    vb.vActionBar.catchFocus()
-                }
-                .start()
 
         vb.vActionBar.cancelEditing()
 
@@ -577,6 +501,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 .alpha(1f)
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
+                .withEndAction {
+                    vb.vActionBar.catchFocus()
+                }
                 .start()
 
         vb.ivMiniatures.layoutParams = vb.ivMiniatures.layoutParams.apply { this.height = vb.flWebViewContainer.height }
@@ -606,7 +533,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
     }
 
-    private fun hideMenuOverlay(hideBottomButtons: Boolean = true) {
+    private fun hideMenuOverlay() {
         if (vb.rlActionBar.visibility == View.INVISIBLE) {
             return
         }
@@ -614,9 +541,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vTabMenu.hide()
         tabOptionsHintAnchor = null
         vb.llTabOptionsHint.visibility = View.GONE
-        if (hideBottomButtons) {
-            hideBottomPanel()
-        }
 
         vb.rlActionBar.animate()
                 .translationY(-vb.rlActionBar.height.toFloat())
@@ -644,9 +568,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                     vb.ivMiniatures.setImageResource(0)
                     returnToCurrentTab()
                     vb.flWebViewContainer.visibility = View.VISIBLE
-                    if (hideBottomButtons) {
-                        controller.currentTab.value?.webEngine?.getView()?.requestFocus()
-                    }
+                    controller.currentTab.value?.webEngine?.getView()?.requestFocus()
                 }
                 .start()
     }
@@ -669,18 +591,5 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         } else if (!tab.selected) {
             controller.changeTab(tab)
         }
-    }
-
-    private fun hideBottomPanel() {
-        if (vb.llBottomPanel.visibility != View.VISIBLE) return
-        vb.llBottomPanel.animate()
-                .setDuration(300)
-                .setInterpolator(AccelerateInterpolator())
-                .translationY(vb.llBottomPanel.height.toFloat())
-                .withEndAction {
-                    vb.llBottomPanel.translationY = 0f
-                    vb.llBottomPanel.visibility = View.INVISIBLE
-                }
-                .start()
     }
 }

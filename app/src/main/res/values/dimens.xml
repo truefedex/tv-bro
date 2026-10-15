@@ -7,8 +7,6 @@
     <dimen name="text_size_caption">14sp</dimen>
     <dimen name="text_size_badge">12sp</dimen>
 
-    <dimen name="action_bar_button_spacing">5dp</dimen>
-    <dimen name="bottom_panel_button_spacing">3dp</dimen>
     <dimen name="cursor_menu_button_size">48dp</dimen>
 
     <dimen name="list_item_padding_horizontal">15dp</dimen>
