@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.singleton
 
+import android.content.Context
 import androidx.annotation.VisibleForTesting
 import androidx.room.Database
 import androidx.room.Room
@@ -235,23 +236,24 @@ abstract class AppDatabase : RoomDatabase() {
             MIGRATION_19_20, MIGRATION_20_21
         )
 
+        fun create(context: Context): AppDatabase =
+            Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
+                .addMigrations(*MIGRATIONS)
+                .allowMainThreadQueries()
+                .build()
+
         @Volatile
-        private var instance: AppDatabase? = null
+        internal var instanceForTests: AppDatabase? = null
+            private set
 
+        /** The database of [AppContainer]; for the code that does not get it from there yet */
         val db: AppDatabase
-            get() = instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
-                    TVBro.instance,
-                    AppDatabase::class.java, DATABASE_NAME
-                ).addMigrations(*MIGRATIONS)
-                    .allowMainThreadQueries()
-                    .build()
-                    .also { instance = it }
-            }
+            get() = TVBro.instance.container.database
 
+        /** Replaces the database of [AppContainer] */
         @VisibleForTesting
         internal fun setInstanceForTests(db: AppDatabase?) {
-            instance = db
+            instanceForTests = db
         }
     }
 }
