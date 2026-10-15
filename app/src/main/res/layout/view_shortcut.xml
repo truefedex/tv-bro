@@ -13,7 +13,7 @@
         android:ellipsize="end"
         android:textSize="18sp"
         android:padding="15dp"
-        android:textColor="@color/day_night_text_color_contrast"
+        android:textColor="?attr/tbColorOnSurface"
         tools:text="TextView" />
     <TextView
         android:id="@+id/tvKey"

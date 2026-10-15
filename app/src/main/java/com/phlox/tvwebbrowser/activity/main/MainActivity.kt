@@ -72,6 +72,7 @@ import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.utils.themeColor
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
@@ -551,7 +552,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         vb.tvBlockedPopupCounter.text = state.blockedPopups.toString()
 
         vb.vActionBar.setAddressBoxTextColor(if (state.certificateError) Color.RED else
-            ContextCompat.getColor(this, R.color.default_url_color))
+            themeColor(R.attr.tbColorOnSurface))
 
         val tabChanged = state.tabIdentity != renderedTabIdentity
         renderedTabIdentity = state.tabIdentity

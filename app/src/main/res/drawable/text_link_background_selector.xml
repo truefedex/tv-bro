@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_focused="true" android:drawable="@color/selected_link_bkg" />
+    <item android:state_focused="true" android:drawable="?attr/tbColorLinkSelected" />
     <item android:drawable="@android:color/transparent" />
 </selector>

@@ -204,7 +204,7 @@ class VoiceSearchHelper(private val activity: ComponentActivity) {
         var maxRMSdB = 0f
 
         init {
-            setBackgroundResource(R.color.top_bar_background)
+            setBackgroundColor(context.themeColor(R.attr.tbColorSurfaceBar))
             elevation = Utils.D2P(context, 5f)
             infiniteAnimation.interpolator = BounceInterpolator()
             vb.ivMic.startAnimation(infiniteAnimation)

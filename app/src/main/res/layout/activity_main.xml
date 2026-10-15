@@ -20,14 +20,14 @@
         android:layout_width="match_parent"
         android:layout_height="3dp"
         android:id="@+id/progressBar"
-        android:progressTint="@color/progressbar_tint"
+        android:progressTint="?attr/tbColorProgress"
         android:visibility="visible" />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/rlActionBar"
-        android:background="@color/top_bar_background"
+        android:background="?attr/tbColorSurfaceBar"
         android:elevation="5dp"
         android:clipChildren="false"
         android:clipToPadding="false">

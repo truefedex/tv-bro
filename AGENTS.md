@@ -80,6 +80,8 @@ Comments in `libs.versions.toml` explain why. When you bump GeckoView or feature
 
 **Home page.** `about:home` (`Config.HOME_URL_ALIAS`) is resolved by `HomePageUrl` in the core according to the home page mode; the built-in home page is `Config.HOME_PAGE_URL`. WebView serves its resources from local assets (`app/src/main/assets/pages`) in `shouldInterceptRequest`. GeckoView still loads the web version, and moving it to the local assets is pending.
 
+**Look.** Colors come from theme tokens: `?attr/tbColor…` attributes (`values/attrs.xml`) that `Theme.TVBro` maps to the semantic palette in `values/colors.xml` (night values in `values-night`). Layouts and drawables use the attributes, never hex colors or palette colors directly; code uses `Context.themeColor(R.attr…)`. Attributes need a themed (activity) context: do not inflate such views or drawables with the application context.
+
 ## Release
 
 Releases use the manual `.github/workflows/release.yml` workflow (`workflow_dispatch` with a version). It builds per-ABI universal `genericGeckoIncluded` APKs (with the gecko module fused in, via `-PabiFilter`) and the `genericGeckoExcluded` release APK, renames them `tvbro-<version>-...apk`, and publishes a GitHub release whose body is `RELEASE_NOTES.md`. A version bump touches `versionCode`/`versionName` in `app/build.gradle.kts`, `latest_version.json`, `RELEASE_NOTES.md`, and the F-Droid/Play metadata changelog under `metadata/en-US/changelogs/<versionCode>.txt`. The app reads `latest_version.json` from `master` on GitHub, so changes to it go live once merged.

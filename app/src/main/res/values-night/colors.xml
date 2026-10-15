@@ -1,35 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- The palette: theme attributes (attrs.xml, themes.xml) map to these colors; layouts use the attributes -->
 <resources>
-  <color name="default_url_color">#FFFEFE</color>
-
-  <color name="top_bar_background">#272727</color>
-  <color name="top_bar_background2">#1B1B1B</color>
-
-  <color name="day_night_text_color">#bbb</color>
-  <color name="day_night_text_color_contrast">#fff</color>
-  <color name="day_night_background_color">#2f2f2f</color>
-
-  <color name="day_night_list_header_background_color">#3f3f3f</color>
-  <color name="day_night_list_focused_background_color">#357993</color>
-  <color name="day_night_list_divider_color">#2D2D2D</color>
-
-  <color name="button_background">#323940</color>
-  <color name="button_background_focused">#003E4F</color>
-  <color name="button_background_pressed">#292929</color>
-  <color name="button_background_disabled">#292929</color>
-  <color name="button_corner">#5A5A5A</color>
-
-  <color name="day_night_icon_color">#FDFDFD</color>
-  <color name="day_night_disabled_icon_color">#BDBDBD</color>
-
-  <color name="badge_bg">#2D2D2D</color>
-  <color name="badge_stroke">#4E4E4E</color>
-
-  <color name="web_tab_text_color">#fff</color>
-  <color name="web_tab_selected_text_color">#5FACFF</color>
-
-  <color name="settings_tab_color">#323940</color>
-  <color name="settings_tab_color_focused">#357993</color>
-  <color name="settings_tab_color_activated">#357993</color>
-  <color name="settings_tab_activated_underline_color">#5FACFF</color>
+    <color name="surface">#2f2f2f</color>
+    <color name="surface_bar">#272727</color>
+    <color name="surface_bar_alt">#1B1B1B</color>
+    <color name="surface_header">#3f3f3f</color>
+    <color name="surface_focused">#357993</color>
+    <color name="surface_tab">#323940</color>
+    <color name="on_surface">#fff</color>
+    <color name="on_surface_variant">#bbb</color>
+    <color name="divider">#2D2D2D</color>
+    <color name="divider_strong">#aaa</color>
+    <color name="icon">#FDFDFD</color>
+    <color name="icon_disabled">#BDBDBD</color>
+    <color name="icon_cursor_menu">#60768E</color>
+    <color name="accent">#5FACFF</color>
+    <color name="indicator">#5FACFF</color>
+    <color name="progress">#75D5FA</color>
+    <color name="link_selected">#AEBBFF</color>
+    <color name="button">#323940</color>
+    <color name="button_focused">#003E4F</color>
+    <color name="button_pressed">#292929</color>
+    <color name="button_stroke">#5A5A5A</color>
+    <color name="button_stroke_focused">#33add6</color>
+    <color name="badge">#2D2D2D</color>
+    <color name="badge_stroke">#4E4E4E</color>
 </resources>

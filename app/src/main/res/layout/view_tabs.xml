@@ -11,7 +11,7 @@
       android:layout_above="@+id/vSpacer"
       android:layout_toStartOf="@+id/btnAdd"
       android:layout_weight="1"
-      android:background="@color/top_bar_background"
+      android:background="?attr/tbColorSurfaceBar"
       />
   <Button
       android:id="@+id/btnAdd"
@@ -39,5 +39,5 @@
       android:layout_width="match_parent"
       android:layout_height="10dp"
       android:layout_alignParentBottom="true"
-      android:background="@color/top_bar_background2" />
+      android:background="?attr/tbColorSurfaceBarAlt" />
 </merge>

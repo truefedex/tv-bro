@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:parentTag="android.widget.FrameLayout"
-    android:background="@color/top_bar_background"
+    android:background="?attr/tbColorSurfaceBar"
     android:elevation="5dp"
     android:clipToPadding="false"
     >
@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         tools:text="Test recognized text"
         android:textSize="20sp"
-        android:textColor="@color/default_url_color"
+        android:textColor="?attr/tbColorOnSurface"
         android:layout_marginStart="10dp"
         android:id="@+id/tvResults"
         />

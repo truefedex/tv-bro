@@ -12,6 +12,30 @@
     </style>
 
     <style name="Theme.TVBro" parent="Theme.TVBroBase">
+        <item name="tbColorSurface">@color/surface</item>
+        <item name="tbColorSurfaceBar">@color/surface_bar</item>
+        <item name="tbColorSurfaceBarAlt">@color/surface_bar_alt</item>
+        <item name="tbColorSurfaceHeader">@color/surface_header</item>
+        <item name="tbColorSurfaceFocused">@color/surface_focused</item>
+        <item name="tbColorSurfaceTab">@color/surface_tab</item>
+        <item name="tbColorOnSurface">@color/on_surface</item>
+        <item name="tbColorOnSurfaceVariant">@color/on_surface_variant</item>
+        <item name="tbColorDivider">@color/divider</item>
+        <item name="tbColorDividerStrong">@color/divider_strong</item>
+        <item name="tbColorIcon">@color/icon</item>
+        <item name="tbColorIconDisabled">@color/icon_disabled</item>
+        <item name="tbColorIconCursorMenu">@color/icon_cursor_menu</item>
+        <item name="tbColorAccent">@color/accent</item>
+        <item name="tbColorIndicator">@color/indicator</item>
+        <item name="tbColorProgress">@color/progress</item>
+        <item name="tbColorLinkSelected">@color/link_selected</item>
+        <item name="tbColorButton">@color/button</item>
+        <item name="tbColorButtonFocused">@color/button_focused</item>
+        <item name="tbColorButtonPressed">@color/button_pressed</item>
+        <item name="tbColorButtonStroke">@color/button_stroke</item>
+        <item name="tbColorButtonStrokeFocused">@color/button_stroke_focused</item>
+        <item name="tbColorBadge">@color/badge</item>
+        <item name="tbColorBadgeStroke">@color/badge_stroke</item>
     </style>
 
     <style name="SettingsDialog">

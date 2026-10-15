@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Color tokens of the app theme (Theme.TVBro); use them as ?attr/... in layouts and drawables -->
+    <!-- Background of screens and list items -->
+    <attr name="tbColorSurface" format="color" />
+    <!-- Top bar, tabs bar and other bars -->
+    <attr name="tbColorSurfaceBar" format="color" />
+    <!-- Second tone of bars (behind the tabs) -->
+    <attr name="tbColorSurfaceBarAlt" format="color" />
+    <!-- List section headers -->
+    <attr name="tbColorSurfaceHeader" format="color" />
+    <!-- Focused (or activated) list item, tab -->
+    <attr name="tbColorSurfaceFocused" format="color" />
+    <!-- Tabs of the settings -->
+    <attr name="tbColorSurfaceTab" format="color" />
+    <!-- Primary text and content on surfaces -->
+    <attr name="tbColorOnSurface" format="color" />
+    <!-- Secondary text -->
+    <attr name="tbColorOnSurfaceVariant" format="color" />
+    <!-- List dividers -->
+    <attr name="tbColorDivider" format="color" />
+    <!-- Dividers inside forms -->
+    <attr name="tbColorDividerStrong" format="color" />
+    <!-- Icons -->
+    <attr name="tbColorIcon" format="color" />
+    <!-- Disabled icons -->
+    <attr name="tbColorIconDisabled" format="color" />
+    <!-- Icons of the cursor menu -->
+    <attr name="tbColorIconCursorMenu" format="color" />
+    <!-- Selected item text (the current tab) -->
+    <attr name="tbColorAccent" format="color" />
+    <!-- Selection indicator (the settings tab underline) -->
+    <attr name="tbColorIndicator" format="color" />
+    <!-- Progress bars -->
+    <attr name="tbColorProgress" format="color" />
+    <!-- Selected text link -->
+    <attr name="tbColorLinkSelected" format="color" />
+    <!-- Buttons -->
+    <attr name="tbColorButton" format="color" />
+    <!-- Focused button -->
+    <attr name="tbColorButtonFocused" format="color" />
+    <!-- Pressed or disabled button -->
+    <attr name="tbColorButtonPressed" format="color" />
+    <!-- Button border -->
+    <attr name="tbColorButtonStroke" format="color" />
+    <!-- Focused button border -->
+    <attr name="tbColorButtonStrokeFocused" format="color" />
+    <!-- Badges (counters) -->
+    <attr name="tbColorBadge" format="color" />
+    <!-- Badge border -->
+    <attr name="tbColorBadgeStroke" format="color" />
+</resources>

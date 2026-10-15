@@ -95,7 +95,7 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:layout_alignWithParentIfMissing="true"
-      android:background="@color/top_bar_background"
+      android:background="?attr/tbColorSurfaceBar"
       android:id="@+id/flUrl">
     <EditText
         android:layout_width="match_parent"
@@ -103,7 +103,7 @@
         android:id="@+id/etUrl"
         android:iconifiedByDefault="false"
         android:textCursorDrawable="@null"
-        android:textColor="@color/default_url_color"
+        android:textColor="?attr/tbColorOnSurface"
         android:layout_marginTop="15dp"
         android:imeOptions="actionSearch"
         android:hint="@string/url_prompt"

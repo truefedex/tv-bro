@@ -4,7 +4,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:maxWidth="@dimen/notification_max_width"
-    android:background="@color/day_night_background_color"
+    android:background="?attr/tbColorSurface"
     android:paddingStart="@dimen/notification_horizontal_padding"
     android:paddingEnd="@dimen/notification_horizontal_padding"
     android:paddingTop="@dimen/notification_vertical_padding"
@@ -26,6 +26,6 @@
         android:ellipsize="end"
         android:lines="1"
         android:textSize="@dimen/notification_text_size"
-        android:textColor="@color/day_night_text_color"
+        android:textColor="?attr/tbColorOnSurfaceVariant"
         tools:text="Test test test"/>
 </LinearLayout>
