@@ -3,14 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="22dp">
+    android:padding="@dimen/settings_content_padding">
 
     <TextView
+        style="@style/Widget.TVBro.Text.Title"
         android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/app_name_short"
-        android:textSize="20sp" />
+        android:text="@string/app_name_short" />
 
     <TextView
         android:id="@+id/tvDescription"
@@ -143,6 +143,7 @@
         android:visibility="invisible"/>
 
     <Button
+        style="@style/Widget.TVBro.Button"
         android:id="@+id/btnUpdate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -150,6 +151,5 @@
         android:layout_marginStart="30dp"
         android:layout_alignBaseline="@+id/tvNewVersion"
         android:text="@string/update"
-        android:visibility="invisible"
-        android:background="@drawable/button_bg_selector"/>
+        android:visibility="invisible"/>
 </RelativeLayout>

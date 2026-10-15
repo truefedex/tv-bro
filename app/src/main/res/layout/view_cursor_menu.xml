@@ -18,46 +18,38 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
+        style="@style/Widget.TVBro.ImageButton.CursorMenu"
         android:id="@+id/btnZoomIn"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:scaleType="fitCenter"
-        android:background="@drawable/button_bg_selector"
+        android:layout_width="@dimen/cursor_menu_button_size"
+        android:layout_height="@dimen/cursor_menu_button_size"
         android:src="@drawable/ic_zoom_in_gray_24dp"
-        app:tint="?attr/tbColorIconCursorMenu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
     <ImageButton
+        style="@style/Widget.TVBro.ImageButton.CursorMenu"
         android:id="@+id/btnZoomOut"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:scaleType="fitCenter"
-        android:background="@drawable/button_bg_selector"
+        android:layout_width="@dimen/cursor_menu_button_size"
+        android:layout_height="@dimen/cursor_menu_button_size"
         android:src="@drawable/ic_zoom_out_gray_24dp"
-        app:tint="?attr/tbColorIconCursorMenu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
     <ImageButton
+        style="@style/Widget.TVBro.ImageButton.CursorMenu"
         android:id="@+id/btnContextMenu"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:scaleType="fitCenter"
-        android:background="@drawable/button_bg_selector"
+        android:layout_width="@dimen/cursor_menu_button_size"
+        android:layout_height="@dimen/cursor_menu_button_size"
         android:src="@drawable/ic_menu_24"
-        app:tint="?attr/tbColorIconCursorMenu"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
     <ImageButton
+        style="@style/Widget.TVBro.ImageButton.CursorMenu"
         android:id="@+id/btnDPADMode"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:scaleType="fitCenter"
-        android:background="@drawable/button_bg_selector"
+        android:layout_width="@dimen/cursor_menu_button_size"
+        android:layout_height="@dimen/cursor_menu_button_size"
         android:src="@drawable/gamepad_circle_up_24px"
-        app:tint="?attr/tbColorIconCursorMenu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

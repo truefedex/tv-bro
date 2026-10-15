@@ -73,9 +73,9 @@
             android:layout_marginEnd="20dp"
             tools:ignore="ContentDescription" />
         <TextView
+            style="@style/Widget.TVBro.Text.Headline"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="30sp"
             android:text="@string/open_a_new_tab_here" />
     </LinearLayout>
 
@@ -88,112 +88,83 @@
         android:gravity="center">
 
         <ImageButton
+            style="@style/Widget.TVBro.ImageButton.BottomPanel"
             android:id="@+id/ibCloseTab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:contentDescription="@string/close_tab"
             android:src="@drawable/ic_close_grey_900_24dp"
             android:layout_margin="3dp"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/ibBack"
-            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toStartOf="parent" />
 
         <ImageButton
+            style="@style/Widget.TVBro.ImageButton.BottomPanel"
             android:id="@+id/ibBack"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:contentDescription="@string/navigate_back"
             android:src="@drawable/back_icon_selector"
             android:layout_margin="3dp"
             app:layout_constraintEnd_toStartOf="@+id/ibForward"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toEndOf="@+id/ibCloseTab"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toEndOf="@+id/ibCloseTab"/>
 
         <ImageButton
+            style="@style/Widget.TVBro.ImageButton.BottomPanel"
             android:id="@+id/ibForward"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:contentDescription="@string/navigate_forward"
             android:src="@drawable/forward_icon_selector"
-            android:layout_marginTop="3dp"
-            android:layout_marginBottom="3dp"
-            android:layout_marginEnd="3dp"
             app:layout_constraintEnd_toStartOf="@+id/ibRefresh"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toEndOf="@+id/ibBack"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toEndOf="@+id/ibBack"/>
 
         <ImageButton
+            style="@style/Widget.TVBro.ImageButton.BottomPanel"
             android:id="@+id/ibRefresh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:contentDescription="@string/refresh_page"
             android:src="@drawable/ic_refresh_grey_900_24dp"
-            android:layout_marginTop="3dp"
-            android:layout_marginBottom="3dp"
-            android:layout_marginEnd="3dp"
             app:layout_constraintEnd_toStartOf="@+id/ibAdBlock"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toEndOf="@+id/ibForward"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toEndOf="@+id/ibForward"/>
 
         <ImageButton
+            style="@style/Widget.TVBro.ImageButton.BottomPanel"
             android:id="@+id/ibAdBlock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:contentDescription="@string/toggle_ads_blocking"
             android:src="@drawable/ic_adblock_on"
-            android:layout_marginTop="3dp"
-            android:layout_marginBottom="3dp"
-            android:layout_marginEnd="3dp"
             app:layout_constraintEnd_toStartOf="@+id/ibPopupBlock"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toEndOf="@+id/ibRefresh"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toEndOf="@+id/ibRefresh"/>
 
         <ImageButton
+            style="@style/Widget.TVBro.ImageButton.BottomPanel"
             android:id="@+id/ibPopupBlock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:contentDescription="@string/block_popups"
             android:src="@drawable/ic_block_popups"
-            android:layout_marginTop="3dp"
-            android:layout_marginBottom="3dp"
-            android:layout_marginEnd="3dp"
             app:layout_constraintEnd_toStartOf="@+id/ibHome"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toEndOf="@+id/ibAdBlock"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toEndOf="@+id/ibAdBlock"/>
 
         <ImageButton
+            style="@style/Widget.TVBro.ImageButton.BottomPanel"
             android:id="@+id/ibHome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:contentDescription="@string/navigate_home"
             android:src="@drawable/ic_home_grey_900_24dp"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="3dp"
-            android:layout_marginBottom="3dp"
-            android:layout_marginEnd="3dp"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toEndOf="@+id/ibPopupBlock"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toEndOf="@+id/ibPopupBlock"/>
 
         <TextView
+            style="@style/Widget.TVBro.Text.Badge"
             android:id="@+id/tvBlockedAdCounter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="20dp"
-            android:textSize="12sp"
             app:layout_constraintTop_toTopOf="@+id/ibAdBlock"
             app:layout_constraintBottom_toTopOf="@+id/ibAdBlock"
             app:layout_constraintStart_toEndOf="@+id/ibAdBlock"
@@ -205,11 +176,11 @@
             tools:text="1" />
 
         <TextView
+            style="@style/Widget.TVBro.Text.Badge"
             android:id="@+id/tvBlockedPopupCounter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="20dp"
-            android:textSize="12sp"
             app:layout_constraintTop_toTopOf="@+id/ibPopupBlock"
             app:layout_constraintBottom_toTopOf="@+id/ibPopupBlock"
             app:layout_constraintStart_toEndOf="@+id/ibPopupBlock"

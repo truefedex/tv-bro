@@ -3,14 +3,14 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingTop="5dp"
-    android:paddingLeft="22dp"
-    android:paddingRight="22dp">
+    android:paddingLeft="@dimen/settings_content_padding"
+    android:paddingRight="@dimen/settings_content_padding">
 
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:text="@string/choose_default_search_engine"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp" />
+        android:layout_height="wrap_content" />
 
     <Spinner
         android:layout_width="match_parent"
@@ -25,10 +25,10 @@
         android:id="@+id/llURL">
 
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:text="@string/url"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
         android:layout_marginTop="5dp" />
 
     <EditText

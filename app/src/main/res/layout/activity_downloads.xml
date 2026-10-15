@@ -17,11 +17,11 @@
         android:listSelector="@drawable/list_item_bg_selector"/>
 
     <TextView
+        style="@style/Widget.TVBro.Text.Headline"
         android:text="@string/nothing"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/tvPlaceholder"
         android:gravity="center"
-        android:textColor="?attr/tbColorOnSurfaceVariant"
-        android:textSize="30sp"/>
+        android:textColor="?attr/tbColorOnSurfaceVariant"/>
 </RelativeLayout>

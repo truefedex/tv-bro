@@ -23,10 +23,10 @@
         android:src="@drawable/ic_mic_none_grey_900_36dp"
         />
     <TextView
+        style="@style/Widget.TVBro.Text.Title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:text="Test recognized text"
-        android:textSize="20sp"
         android:textColor="?attr/tbColorOnSurface"
         android:layout_marginStart="10dp"
         android:id="@+id/tvResults"

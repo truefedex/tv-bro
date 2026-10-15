@@ -2,10 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="15dp"
-    android:paddingRight="15dp"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp"
+    android:paddingLeft="@dimen/list_item_padding_horizontal"
+    android:paddingRight="@dimen/list_item_padding_horizontal"
+    android:paddingTop="@dimen/list_item_padding_vertical"
+    android:paddingBottom="@dimen/list_item_padding_vertical"
     android:gravity="center_vertical">
 
     <LinearLayout
@@ -16,19 +16,19 @@
         android:layout_weight="0">
 
         <TextView
+            style="@style/Widget.TVBro.Text.Title"
             android:text="TextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
             android:lines="1"
             android:ellipsize="end"
             android:id="@+id/tvTime"
             android:gravity="center_horizontal"/>
         <TextView
+            style="@style/Widget.TVBro.Text.Title"
             android:text="TextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
             android:lines="2"
             android:ellipsize="end"
             android:id="@+id/tvSize"
@@ -41,19 +41,19 @@
         android:orientation="vertical"
         android:layout_weight="1">
         <TextView
+            style="@style/Widget.TVBro.Text.Headline"
             android:text="TextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="30sp"
             android:lines="1"
             android:ellipsize="end"
             android:id="@+id/tvTitle" />
 
         <TextView
+            style="@style/Widget.TVBro.Text.Subtitle"
             android:text="TextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
             android:lines="1"
             android:ellipsize="end"
             android:id="@+id/tvURL" />

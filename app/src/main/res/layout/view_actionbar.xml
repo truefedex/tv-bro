@@ -4,37 +4,33 @@
     tools:parentTag="android.widget.LinearLayout"
     tools:orientation="horizontal">
   <ImageButton
+      style="@style/Widget.TVBro.ImageButton.ActionBar"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/ibMenu"
       android:src="@drawable/ic_close_grey_900_36dp"
       android:nextFocusRight="@+id/ibVoiceSearch"
       android:nextFocusDown="@+id/vTabs"
-      android:background="@drawable/button_bg_selector"
       android:layout_margin="5dp"
       android:focusable="true"
       android:focusableInTouchMode="true"
       android:contentDescription="@string/close_application" />
 
   <ImageButton
+      style="@style/Widget.TVBro.ImageButton.ActionBar"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/ibVoiceSearch"
       android:src="@drawable/ic_mic_none_grey_900_36dp"
       android:nextFocusRight="@+id/ibHistory"
       android:nextFocusDown="@+id/vTabs"
-      android:background="@drawable/button_bg_selector"
-      android:layout_marginEnd="5dp"
-      android:layout_marginTop="5dp"
       android:contentDescription="@string/voice_search" />
 
   <ImageButton
+      style="@style/Widget.TVBro.ImageButton.ActionBar"
       android:id="@+id/ibHistory"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginTop="5dp"
-      android:layout_marginEnd="5dp"
-      android:background="@drawable/button_bg_selector"
       android:contentDescription="@string/history"
       android:nextFocusRight="@+id/ibFavorites"
       android:nextFocusDown="@+id/vTabs"
@@ -42,24 +38,20 @@
       />
 
   <ImageButton
+      style="@style/Widget.TVBro.ImageButton.ActionBar"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/ibFavorites"
       android:src="@drawable/ic_star_border_grey_900_36dp"
       android:nextFocusRight="@+id/ibDownloads"
       android:nextFocusDown="@+id/vTabs"
-      android:background="@drawable/button_bg_selector"
-      android:layout_marginEnd="5dp"
-      android:layout_marginTop="5dp"
       android:contentDescription="@string/favorites" />
 
   <ImageButton
+      style="@style/Widget.TVBro.ImageButton.ActionBar"
       android:id="@+id/ibDownloads"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginTop="5dp"
-      android:layout_marginEnd="5dp"
-      android:background="@drawable/button_bg_selector"
       android:contentDescription="@string/downloads"
       android:nextFocusRight="@+id/ibIncognito"
       android:nextFocusDown="@+id/vTabs"
@@ -67,12 +59,10 @@
       />
 
   <com.phlox.tvwebbrowser.widgets.CheckableImageButton
+      style="@style/Widget.TVBro.ImageButton.ActionBar"
       android:id="@+id/ibIncognito"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginTop="5dp"
-      android:layout_marginEnd="5dp"
-      android:background="@drawable/button_bg_selector"
       android:contentDescription="@string/incognito_mode"
       android:nextFocusRight="@+id/ibSettings"
       android:nextFocusDown="@+id/vTabs"
@@ -80,15 +70,13 @@
       />
 
   <ImageButton
+      style="@style/Widget.TVBro.ImageButton.ActionBar"
       android:src="@drawable/ic_settings_grey_900_24dp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:nextFocusRight="@+id/etUrl"
       android:nextFocusDown="@+id/vTabs"
       android:id="@+id/ibSettings"
-      android:background="@drawable/button_bg_selector"
-      android:layout_marginEnd="5dp"
-      android:layout_marginTop="5dp"
       android:contentDescription="@string/settings" />
 
   <FrameLayout

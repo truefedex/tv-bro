@@ -20,21 +20,21 @@
         android:id="@+id/llContent">
 
         <TextView
+            style="@style/Widget.TVBro.Text.Body"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="New Text"
             android:id="@+id/tvTitle"
             android:textStyle="bold"
-            android:textSize="16sp"
             android:lines="1"
             android:ellipsize="end" />
 
         <TextView
+            style="@style/Widget.TVBro.Text.Caption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="New Text"
             android:id="@+id/tvUrl"
-            android:textSize="14sp"
             android:lines="1"
             android:ellipsize="end" />
     </LinearLayout>

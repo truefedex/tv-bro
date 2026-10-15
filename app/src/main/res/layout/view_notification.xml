@@ -19,13 +19,13 @@
         android:layout_margin="10dp"
         tools:src="@drawable/ic_block_popups"/>
     <TextView android:id="@+id/tvMessage"
+        style="@style/Widget.TVBro.Text.Title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_marginEnd="10dp"
         android:ellipsize="end"
         android:lines="1"
-        android:textSize="@dimen/notification_text_size"
         android:textColor="?attr/tbColorOnSurfaceVariant"
         tools:text="Test test test"/>
 </LinearLayout>

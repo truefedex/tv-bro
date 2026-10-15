@@ -7,10 +7,10 @@
     android:background="?attr/tbColorSurfaceHeader">
 
     <TextView
+        style="@style/Widget.TVBro.Text.Headline"
         tools:text="TextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="30sp"
         android:textStyle="bold"
         android:id="@+id/tvDate" />
 </LinearLayout>

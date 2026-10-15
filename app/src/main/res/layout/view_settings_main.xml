@@ -4,9 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingLeft="22dp"
+    android:paddingLeft="@dimen/settings_content_padding"
     android:paddingTop="5dp"
-    android:paddingRight="22dp"
+    android:paddingRight="@dimen/settings_content_padding"
     >
 
     <LinearLayout
@@ -15,10 +15,10 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
         <TextView
+            style="@style/Widget.TVBro.Text.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/web_browser_engine_temporary_setting"
-            android:textSize="16sp"
             />
 
         <Spinner
@@ -39,11 +39,11 @@
     </LinearLayout>
 
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/choose_default_search_engine"
-        android:textSize="16sp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="@dimen/settings_section_spacing"
         />
 
     <Spinner
@@ -62,11 +62,11 @@
         >
 
       <TextView
+          style="@style/Widget.TVBro.Text.Body"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:layout_marginTop="5dp"
           android:text="@string/url"
-          android:textSize="16sp"
           />
 
       <EditText
@@ -81,11 +81,11 @@
     </LinearLayout>
 
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/home_page"
-        android:layout_marginTop="20dp"
-        android:textSize="16sp"
+        android:layout_marginTop="@dimen/settings_section_spacing"
         />
 
     <Spinner
@@ -100,16 +100,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="@dimen/settings_section_spacing"
         android:visibility="gone"
         >
 
         <TextView
+            style="@style/Widget.TVBro.Text.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:text="@string/custom_home_page_url"
-            android:textSize="16sp"
             />
 
         <EditText
@@ -128,16 +128,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="@dimen/settings_section_spacing"
         android:visibility="gone"
         >
 
         <TextView
+            style="@style/Widget.TVBro.Text.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:text="@string/home_page_links"
-            android:textSize="16sp"
             />
 
         <Spinner
@@ -149,11 +149,11 @@
     </LinearLayout>
 
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/choose_user_agent_string"
-        android:textSize="16sp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="@dimen/settings_section_spacing"
         />
 
     <Spinner
@@ -172,11 +172,11 @@
         >
 
       <TextView
+          style="@style/Widget.TVBro.Text.Body"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:layout_marginTop="5dp"
           android:text="@string/user_agent_string"
-          android:textSize="16sp"
           />
 
       <EditText
@@ -191,24 +191,22 @@
     </LinearLayout>
 
     <LinearLayout
+        style="@style/Widget.TVBro.SettingsRow"
         android:id="@+id/llAdblock"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         android:clickable="true"
         android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:orientation="horizontal"
-        android:paddingTop="5dp">
+        android:focusableInTouchMode="true">
 
         <TextView
+            style="@style/Widget.TVBro.Text.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ellipsize="end"
             android:lines="1"
-            android:text="@string/toggle_ads_blocking"
-            android:textSize="16sp" />
+            android:text="@string/toggle_ads_blocking" />
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/scAdblock"
@@ -222,7 +220,7 @@
       android:id="@+id/llAdBlockerDetails"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginTop="20dp"
+      android:layout_marginTop="@dimen/settings_section_spacing"
       android:orientation="vertical"
       android:paddingTop="5dp"
       >
@@ -279,10 +277,10 @@
       >
 
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/theme"
-        android:textSize="16sp"
         />
 
     <Spinner
@@ -295,21 +293,19 @@
   </LinearLayout>
 
   <LinearLayout
+      style="@style/Widget.TVBro.SettingsRow"
       android:id="@+id/llWebViewAlgorithmicDarkening"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginTop="20dp"
-      android:orientation="horizontal"
-      android:paddingTop="5dp"
       >
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:ellipsize="end"
         android:lines="1"
         android:text="@string/webview_use_algorithmic_darkening_with_dark_ui_mode"
-        android:textSize="16sp"
         />
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/scWebViewAlgorithmicDarkeningWithDarkUiMode"
@@ -322,20 +318,18 @@
   </LinearLayout>
 
   <LinearLayout
+      style="@style/Widget.TVBro.SettingsRow"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginTop="20dp"
-      android:orientation="horizontal"
-      android:paddingTop="5dp"
       >
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:ellipsize="end"
         android:lines="1"
         android:text="@string/allow_autoplay_media"
-        android:textSize="16sp"
         />
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/scAllowAutoplayMedia"
@@ -348,20 +342,18 @@
   </LinearLayout>
 
   <LinearLayout
+      style="@style/Widget.TVBro.SettingsRow"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginTop="20dp"
-      android:orientation="horizontal"
-      android:paddingTop="5dp"
       >
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:ellipsize="end"
         android:lines="1"
         android:text="@string/web_engine_debug"
-        android:textSize="16sp"
         />
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/scWebEngineDebug"
@@ -374,20 +366,18 @@
   </LinearLayout>
 
   <LinearLayout
+      style="@style/Widget.TVBro.SettingsRow"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginTop="20dp"
-      android:orientation="horizontal"
-      android:paddingTop="5dp"
       >
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:ellipsize="end"
         android:lines="1"
         android:text="@string/toggle_keep_screen_on"
-        android:textSize="16sp"
         />
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/scKeepScreenOn"
@@ -399,20 +389,18 @@
         />
   </LinearLayout>
   <LinearLayout
+      style="@style/Widget.TVBro.SettingsRow"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginTop="20dp"
-      android:orientation="horizontal"
-      android:paddingTop="5dp"
       >
     <TextView
+        style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:ellipsize="end"
         android:lines="1"
         android:text="@string/navigate_with_joystick_axes"
-        android:textSize="16sp"
         />
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/scNavigateWithJoystickAxes"
@@ -424,11 +412,11 @@
         />
   </LinearLayout>
   <TextView
+      style="@style/Widget.TVBro.Text.Body"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginTop="20dp"
+      android:layout_marginTop="@dimen/settings_section_spacing"
       android:text="@string/cursor_max_speed"
-      android:textSize="16sp"
       />
   <LinearLayout
       android:layout_width="match_parent"
@@ -446,21 +434,21 @@
         android:nextFocusUp="@+id/scNavigateWithJoystickAxes"
         />
     <TextView
+        style="@style/Widget.TVBro.Text.Caption"
         android:id="@+id/tvCursorMaxSpeedValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:minWidth="72dp"
         android:gravity="end"
-        android:textSize="14sp"
         tools:text="100%"
         />
   </LinearLayout>
   <TextView
+      style="@style/Widget.TVBro.Text.Body"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:layout_marginTop="12dp"
       android:text="@string/cursor_acceleration"
-      android:textSize="16sp"
       />
   <LinearLayout
       android:layout_width="match_parent"
@@ -478,12 +466,12 @@
         android:nextFocusUp="@+id/sbCursorMaxSpeed"
         />
     <TextView
+        style="@style/Widget.TVBro.Text.Caption"
         android:id="@+id/tvCursorAccelerationValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:minWidth="72dp"
         android:gravity="end"
-        android:textSize="14sp"
         tools:text="100%"
         />
   </LinearLayout>

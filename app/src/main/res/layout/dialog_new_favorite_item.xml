@@ -6,10 +6,10 @@
     android:minWidth="400dp">
 
     <TextView
+        style="@style/Widget.TVBro.Text.Title"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:text="@string/new_bookmark"
-        android:textSize="20sp"
         android:gravity="center"
         android:textStyle="bold" />
 
@@ -51,9 +51,9 @@
             android:ellipsize="end" />
 
         <ImageButton
+            style="@style/Widget.TVBro.ImageButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:id="@+id/ibTitle"
             android:src="@drawable/ic_mode_edit_grey_400_18dp" />
     </LinearLayout>
@@ -88,9 +88,9 @@
             android:ellipsize="end" />
 
         <ImageButton
+            style="@style/Widget.TVBro.ImageButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:id="@+id/ibUrl"
             android:src="@drawable/ic_mode_edit_grey_400_18dp" />
     </LinearLayout>
@@ -103,18 +103,18 @@
         android:layout_marginTop="10dp">
 
         <Button
+            style="@style/Widget.TVBro.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:text="@string/cancel"
             android:id="@+id/btnCancel"
             android:layout_marginEnd="10dp"
             android:layout_weight="1" />
 
         <Button
+            style="@style/Widget.TVBro.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:text="@string/done"
             android:id="@+id/btnDone"
             android:layout_marginStart="10dp"

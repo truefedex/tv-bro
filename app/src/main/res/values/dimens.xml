@@ -1,6 +1,24 @@
 <resources>
+    <!-- Text sizes, used through the Widget.TVBro.Text.* styles (and directly by buttons) -->
+    <dimen name="text_size_headline">30sp</dimen>
+    <dimen name="text_size_title">20sp</dimen>
+    <dimen name="text_size_subtitle">18sp</dimen>
+    <dimen name="text_size_body">16sp</dimen>
+    <dimen name="text_size_caption">14sp</dimen>
+    <dimen name="text_size_badge">12sp</dimen>
+
+    <dimen name="action_bar_button_spacing">5dp</dimen>
+    <dimen name="bottom_panel_button_spacing">3dp</dimen>
+    <dimen name="cursor_menu_button_size">48dp</dimen>
+
+    <dimen name="list_item_padding_horizontal">15dp</dimen>
+    <dimen name="list_item_padding_vertical">10dp</dimen>
+
+    <dimen name="settings_content_padding">22dp</dimen>
+    <dimen name="settings_section_spacing">20dp</dimen>
     <dimen name="settings_dialog_width">500dp</dimen>
     <dimen name="settings_dialog_height">350dp</dimen>
+
     <dimen name="web_tab_width">340dp</dimen>
     <dimen name="web_tab_padding">20dp</dimen>
 
@@ -8,7 +26,6 @@
 
     <dimen name="notification_vertical_padding">5dp</dimen>
     <dimen name="notification_horizontal_padding">10dp</dimen>
-    <dimen name="notification_text_size">20sp</dimen>
     <dimen name="notification_max_width">320dp</dimen>
     <dimen name="notification_margin">10dp</dimen>
 </resources>

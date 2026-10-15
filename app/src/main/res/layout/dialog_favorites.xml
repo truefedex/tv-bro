@@ -12,33 +12,33 @@
         android:layout_height="wrap_content">
 
         <Button
+            style="@style/Widget.TVBro.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:text="@string/add"
             android:id="@+id/btnAdd"
             android:layout_weight="1"
-            android:textSize="18sp"
+            android:textSize="@dimen/text_size_subtitle"
             android:lines="1"
             android:layout_marginEnd="10dp"
             app:autoSizeTextType="uniform"
             app:autoSizeMinTextSize="8sp"
-            app:autoSizeMaxTextSize="18sp"
+            app:autoSizeMaxTextSize="@dimen/text_size_subtitle"
             app:autoSizeStepGranularity="1sp"/>
 
         <Button
+            style="@style/Widget.TVBro.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_bg_selector"
             android:text="@string/edit"
             android:id="@+id/btnEdit"
             android:layout_weight="1"
-            android:textSize="18sp"
+            android:textSize="@dimen/text_size_subtitle"
             android:lines="1"
             android:layout_marginStart="10dp"
             app:autoSizeTextType="uniform"
             app:autoSizeMinTextSize="8sp"
-            app:autoSizeMaxTextSize="18sp"
+            app:autoSizeMaxTextSize="@dimen/text_size_subtitle"
             app:autoSizeStepGranularity="1sp"/>
     </LinearLayout>
 
@@ -48,11 +48,11 @@
         android:id="@+id/pbLoading" />
 
     <TextView
+        style="@style/Widget.TVBro.Text.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/no_bookmarks_yet"
         android:id="@+id/tvPlaceholder"
-        android:textSize="20sp"
         android:paddingTop="20dp"
         android:paddingBottom="20dp" />
 

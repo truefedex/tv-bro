@@ -2,4 +2,83 @@
 <resources>
 
     <style name="AppTheme" parent="@style/Theme.TVBro" />
+
+    <!--
+    Widget styles. Layouts set them with style="..." on each view; the theme does not set them as
+    defaults (buttonStyle and others), so views without a style keep the platform look.
+    -->
+
+    <!-- A text button with the app's button background (its padding comes from the background) -->
+    <style name="Widget.TVBro.Button" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/button_bg_selector</item>
+    </style>
+
+    <!-- An icon button with the app's button background -->
+    <style name="Widget.TVBro.ImageButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:background">@drawable/button_bg_selector</item>
+    </style>
+
+    <!-- Buttons of the top bar (the menu) -->
+    <style name="Widget.TVBro.ImageButton.ActionBar">
+        <item name="android:layout_marginTop">@dimen/action_bar_button_spacing</item>
+        <item name="android:layout_marginEnd">@dimen/action_bar_button_spacing</item>
+    </style>
+
+    <!-- Buttons of the bottom panel (a packed chain at the bottom of a ConstraintLayout) -->
+    <style name="Widget.TVBro.ImageButton.BottomPanel">
+        <item name="android:layout_marginTop">@dimen/bottom_panel_button_spacing</item>
+        <item name="android:layout_marginBottom">@dimen/bottom_panel_button_spacing</item>
+        <item name="android:layout_marginEnd">@dimen/bottom_panel_button_spacing</item>
+        <item name="layout_constraintBottom_toBottomOf">parent</item>
+        <item name="layout_constraintHorizontal_chainStyle">packed</item>
+    </style>
+
+    <!-- Buttons around the cursor in the cursor menu -->
+    <style name="Widget.TVBro.ImageButton.CursorMenu">
+        <item name="android:scaleType">fitCenter</item>
+        <item name="tint">?attr/tbColorIconCursorMenu</item>
+    </style>
+
+    <!--
+    Text sizes. These styles set only the size, so the text keeps the color of the view's default
+    appearance (a textAppearance would replace it).
+    -->
+    <style name="Widget.TVBro.Text" parent="" />
+
+    <!-- Titles of list items, list section headers, big placeholders -->
+    <style name="Widget.TVBro.Text.Headline">
+        <item name="android:textSize">@dimen/text_size_headline</item>
+    </style>
+
+    <!-- Dialog titles, tab titles, secondary lines of list items, notifications -->
+    <style name="Widget.TVBro.Text.Title">
+        <item name="android:textSize">@dimen/text_size_title</item>
+    </style>
+
+    <!-- URLs under titles, rows of the shortcuts list -->
+    <style name="Widget.TVBro.Text.Subtitle">
+        <item name="android:textSize">@dimen/text_size_subtitle</item>
+    </style>
+
+    <!-- Labels of settings, bookmark titles -->
+    <style name="Widget.TVBro.Text.Body">
+        <item name="android:textSize">@dimen/text_size_body</item>
+    </style>
+
+    <!-- Bookmark URLs, values next to settings -->
+    <style name="Widget.TVBro.Text.Caption">
+        <item name="android:textSize">@dimen/text_size_caption</item>
+    </style>
+
+    <!-- Counters on buttons -->
+    <style name="Widget.TVBro.Text.Badge">
+        <item name="android:textSize">@dimen/text_size_badge</item>
+    </style>
+
+    <!-- A settings row: a label and a switch -->
+    <style name="Widget.TVBro.SettingsRow" parent="">
+        <item name="android:layout_marginTop">@dimen/settings_section_spacing</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
 </resources>

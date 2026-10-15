@@ -14,20 +14,20 @@
         android:dividerHeight="1dp"
         android:listSelector="@drawable/list_item_bg_selector"/>
     <Button
+        style="@style/Widget.TVBro.Button"
         android:id="@+id/btnClear"
         android:layout_width="wrap_content"
         android:layout_height="?android:attr/listPreferredItemHeight"
         android:layout_alignParentEnd="true"
         android:text="@string/clear"
         android:layout_margin="5dp"
-        android:background="@drawable/button_bg_selector"
         android:onClick="onClearHistoryClick"
         android:textColor="?attr/tbColorOnSurfaceVariant"
         android:nextFocusDown="@+id/listView"/>
     <ImageButton
+        style="@style/Widget.TVBro.ImageButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/button_bg_selector"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:src="@drawable/ic_delete_grey_900_36dp"
