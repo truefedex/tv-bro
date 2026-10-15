@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser
 
 import android.content.Context
 import com.phlox.tvwebbrowser.browser.TabFilesStore
+import com.phlox.tvwebbrowser.data.DataRepositories
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.SerialWriteQueue
 import kotlinx.coroutines.CoroutineScope
@@ -28,4 +29,13 @@ class AppContainer(context: Context) {
     /** Opened (and migrated) on the first use */
     val database: AppDatabase
         get() = AppDatabase.instanceForTests ?: createdDatabase
+
+    private var repositories: DataRepositories? = null
+
+    /** Repositories of [database] (made again if the database is replaced, that is in tests) */
+    val data: DataRepositories
+        get() = synchronized(this) {
+            val database = database
+            repositories?.takeIf { it.database === database } ?: DataRepositories(database).also { repositories = it }
+        }
 }

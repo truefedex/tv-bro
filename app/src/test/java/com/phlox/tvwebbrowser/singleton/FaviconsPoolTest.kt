@@ -1,7 +1,6 @@
 package com.phlox.tvwebbrowser.singleton
 
 import android.graphics.Bitmap
-import com.phlox.tvwebbrowser.model.HostConfig
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -19,7 +18,8 @@ import java.io.File
  */
 @RunWith(RobolectricTestRunner::class)
 class FaviconsPoolTest {
-    private val hosts = HashMap<String, HostConfig>()
+    /** host to favicon file */
+    private val hosts = HashMap<String, String>()
     private val writes = ArrayList<String>()
     private lateinit var originalDelegate: FaviconsPool.DatabaseDelegate
 
@@ -28,13 +28,10 @@ class FaviconsPoolTest {
         FaviconsPool.clear()
         originalDelegate = FaviconsPool.databaseDelegate
         FaviconsPool.databaseDelegate = object : FaviconsPool.DatabaseDelegate {
-            override fun findByHostName(host: String) = hosts[host]
-            override suspend fun update(hostConfig: HostConfig) {
-                writes.add("update ${hostConfig.hostName}")
-            }
-            override suspend fun insert(newHostConfig: HostConfig) {
-                writes.add("insert ${newHostConfig.hostName}")
-                hosts[newHostConfig.hostName] = newHostConfig
+            override suspend fun findFavicon(host: String): String? = hosts[host]
+            override suspend fun setFavicon(host: String, fileName: String) {
+                writes.add("set $host")
+                hosts[host] = fileName
             }
         }
     }
@@ -51,8 +48,8 @@ class FaviconsPoolTest {
     fun iconOfUnknownHostIsStored() = runTest {
         val icon = icon()
         FaviconsPool.putIfAbsent("https://a.com/page", icon, persist = true)
-        assertEquals(listOf("insert a.com"), writes)
-        val fileName = hosts["a.com"]!!.favicon!!
+        assertEquals(listOf("set a.com"), writes)
+        val fileName = hosts["a.com"]!!
         assertTrue(File(FaviconsPool.favIconsDir(), fileName).exists())
         assertSame(icon, FaviconsPool.get("https://a.com/other"))
     }
@@ -61,11 +58,11 @@ class FaviconsPoolTest {
     fun knownIconIsNotReplaced() = runTest {
         val dir = File(FaviconsPool.favIconsDir()).apply { mkdirs() }
         File(dir, "big.png").writeBytes(ByteArray(1))
-        hosts["a.com"] = HostConfig("a.com").apply { favicon = "big.png" }
+        hosts["a.com"] = "big.png"
 
         FaviconsPool.putIfAbsent("https://a.com/page", icon(), persist = true)
         assertEquals(emptyList<String>(), writes)
-        assertEquals("big.png", hosts["a.com"]!!.favicon)
+        assertEquals("big.png", hosts["a.com"])
     }
 
     @Test
@@ -73,7 +70,7 @@ class FaviconsPoolTest {
         val first = icon()
         FaviconsPool.putIfAbsent("https://a.com/", first, persist = true)
         FaviconsPool.putIfAbsent("https://a.com/", icon(), persist = true)
-        assertEquals(listOf("insert a.com"), writes)
+        assertEquals(listOf("set a.com"), writes)
         assertSame(first, FaviconsPool.get("https://a.com/"))
     }
 

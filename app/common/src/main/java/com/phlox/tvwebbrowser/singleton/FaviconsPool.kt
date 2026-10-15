@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import android.util.LruCache
 import com.phlox.tvwebbrowser.AppContext
-import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.utils.FaviconExtractor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,9 +20,9 @@ object FaviconsPool {
     var databaseDelegate: DatabaseDelegate = object : DatabaseDelegate {}
 
     interface DatabaseDelegate {
-        fun findByHostName(host: String): HostConfig? = null
-        suspend fun update(hostConfig: HostConfig) {}
-        suspend fun insert(newHostConfig: HostConfig) {}
+        /** The favicon file of the host, null if it has none */
+        suspend fun findFavicon(host: String): String? = null
+        suspend fun setFavicon(host: String, fileName: String) {}
     }
 
     private val cache: LruCache<String, Bitmap> = object : LruCache<String, Bitmap>(10 * 1024 * 1024) {
@@ -55,31 +54,27 @@ object FaviconsPool {
                 if (hostBitmap != null) {
                     return hostBitmap
                 }
-                val hostConfig = databaseDelegate.findByHostName(host)
-                if (hostConfig != null) {
-                    val faviconFileName = hostConfig.favicon
-                    if (faviconFileName != null) {
-                        Log.d(TAG, "get: favicon found in db for $host")
-                        val bitmap = withContext(Dispatchers.IO) {
-                            val favIconsDir =
-                                File(favIconsDir())
-                            if (!favIconsDir.exists() && !favIconsDir.mkdir()) return@withContext null
-                            val faviconFile = File(favIconsDir, faviconFileName)
-                            if (faviconFile.exists()) {
-                                BitmapFactory.decodeFile(faviconFile.absolutePath)
-                            } else {
-                                null
-                            }
-                        }
-                        if (bitmap != null) {
-                            Log.d(TAG, "get: favicon loaded from file for $host")
-                            cache.put(host, bitmap)
-                            return bitmap
+                val faviconFileName = databaseDelegate.findFavicon(host)
+                if (faviconFileName != null) {
+                    Log.d(TAG, "get: favicon found in db for $host")
+                    val bitmap = withContext(Dispatchers.IO) {
+                        val favIconsDir =
+                            File(favIconsDir())
+                        if (!favIconsDir.exists() && !favIconsDir.mkdir()) return@withContext null
+                        val faviconFile = File(favIconsDir, faviconFileName)
+                        if (faviconFile.exists()) {
+                            BitmapFactory.decodeFile(faviconFile.absolutePath)
+                        } else {
+                            null
                         }
                     }
-                } else {
-                    Log.d(TAG, "get: favicon not found in db for $host")
+                    if (bitmap != null) {
+                        Log.d(TAG, "get: favicon loaded from file for $host")
+                        cache.put(host, bitmap)
+                        return bitmap
+                    }
                 }
+                Log.d(TAG, "get: no saved favicon for $host")
 
                 val favicons = try {
                     withContext(Dispatchers.IO) { faviconExtractor.extractFavIconsFromURL(urlObj) }
@@ -99,7 +94,7 @@ object FaviconsPool {
                     if (bitmap != null) {
                         Log.d(TAG, "get: favicon downloaded for $host")
                         cache.put(host, bitmap)
-                        saveFavicon(host, bitmap, hostConfig)
+                        saveFavicon(host, bitmap)
                         return bitmap
                     } else {
                         Log.d(TAG, "get: favicon download failed for ${icon.src}")
@@ -124,10 +119,7 @@ object FaviconsPool {
         if (!url.startsWith("http://", true) && !url.startsWith("https://", true)) return
         val host = try { URL(url).host } catch (e: Exception) { null }
         if (host.isNullOrEmpty() || cache.get(host) != null) return
-        val hostConfig = withContext(Dispatchers.IO) {
-            databaseDelegate.findByHostName(host)
-        }
-        val knownFavicon = hostConfig?.favicon
+        val knownFavicon = databaseDelegate.findFavicon(host)
         if (knownFavicon != null && withContext(Dispatchers.IO) { File(favIconsDir(), knownFavicon).exists() }) return
         //get() might have found an icon in the HTML meanwhile
         if (cache.get(host) != null) return
@@ -135,7 +127,7 @@ object FaviconsPool {
         cache.put(host, icon)
         if (persist) {
             try {
-                saveFavicon(host, icon, hostConfig)
+                saveFavicon(host, icon)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -150,9 +142,14 @@ object FaviconsPool {
         return AppContext.get().cacheDir.absolutePath + File.separator + FAVICONS_DIR
     }
 
-    private suspend fun saveFavicon(host: String, bitmap: Bitmap, hostConfig: HostConfig?) = withContext(Dispatchers.IO) {
+    private suspend fun saveFavicon(host: String, bitmap: Bitmap) {
+        val faviconFileName = writeFavicon(host, bitmap) ?: return
+        databaseDelegate.setFavicon(host, faviconFileName)
+    }
+
+    private suspend fun writeFavicon(host: String, bitmap: Bitmap): String? = withContext(Dispatchers.IO) {
         val favIconsDir = File(favIconsDir())
-        if (!favIconsDir.exists() && !favIconsDir.mkdir()) return@withContext
+        if (!favIconsDir.exists() && !favIconsDir.mkdir()) return@withContext null
         val faviconFileName = host.hashCode().toString() + ".png"
         val faviconFile = File(favIconsDir, faviconFileName)
         if (faviconFile.exists()) {
@@ -162,14 +159,7 @@ object FaviconsPool {
         faviconFile.outputStream().use {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
         }
-        if (hostConfig != null) {
-            hostConfig.favicon = faviconFileName
-            databaseDelegate.update(hostConfig)
-        } else {
-            val newHostConfig = HostConfig(host)
-            newHostConfig.favicon = faviconFileName
-            databaseDelegate.insert(newHostConfig)
-        }
+        faviconFileName
     }
 
     private suspend fun downloadIcon(iconInfo: FaviconExtractor.IconInfo): Bitmap? = withContext(Dispatchers.IO) {

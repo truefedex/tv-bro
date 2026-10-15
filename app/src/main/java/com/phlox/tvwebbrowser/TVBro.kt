@@ -11,8 +11,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.activity.main.MainActivity
-import com.phlox.tvwebbrowser.model.HostConfig
-import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.utils.UpdateChecker
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
@@ -120,16 +118,11 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         val cookieManager = CookieManager()
         CookieHandler.setDefault(cookieManager)
         FaviconsPool.databaseDelegate = object : FaviconsPool.DatabaseDelegate {
-            override fun findByHostName(host: String): HostConfig? {
-                return AppDatabase.db.hostsDao().findByHostName(host)
-            }
+            override suspend fun findFavicon(host: String): String? =
+                container.data.hostConfigs.find(host)?.favicon
 
-            override suspend fun update(hostConfig: HostConfig) {
-                AppDatabase.db.hostsDao().update(hostConfig)
-            }
-
-            override suspend fun insert(newHostConfig: HostConfig) {
-                AppDatabase.db.hostsDao().insert(newHostConfig)
+            override suspend fun setFavicon(host: String, fileName: String) {
+                container.data.hostConfigs.setFavicon(host, fileName)
             }
         }
     }

@@ -88,6 +88,7 @@ class BrowserController : ActiveModel() {
     //all tabs writes go through this queue: they are not cancelled with the model and do not overlap
     private val writes = TVBro.instance.container.tabWrites
     private val tabFiles = TVBro.instance.container.tabFiles
+    private val hostConfigs get() = TVBro.instance.container.data.hostConfigs
     val homePageLinks = HomePageLinks(config)
     private val historyLogger = VisitedHistoryLogger(modelScope, object : VisitedHistoryLogger.Store {
         override suspend fun insert(item: HistoryItem): Long = AppDatabase.db.historyDao().insert(item)
@@ -470,33 +471,22 @@ class BrowserController : ActiveModel() {
     }
 
     /**
-     * Finds the config of the tab's current host. On a cache miss queries the database
-     * synchronously (it is a lookup by an indexed column).
+     * The config of the tab's current host as it is known now, without the database: it is loaded
+     * when a page starts loading ([loadHostConfig]), until then it is null (the defaults apply).
      */
     fun findHostConfig(tab: BrowserTab): HostConfig? {
-        Log.d(TAG, "findHostConfig")
         val currentHostName = hostNameOf(tab) ?: return null
-        var hostConfig = tab.cachedHostConfig
-        if (hostConfig == null || hostConfig.hostName != currentHostName) {
-            hostConfig = AppDatabase.db.hostsDao().findByHostName(currentHostName)
-            tab.cachedHostConfig = hostConfig
-        }
-        return hostConfig
+        return hostConfigs.cached(currentHostName)
     }
 
-    private suspend fun findOrCreateHostConfig(tab: BrowserTab): HostConfig? {
-        findHostConfig(tab)?.let { return it }
+    suspend fun loadHostConfig(tab: BrowserTab): HostConfig? {
         val currentHostName = hostNameOf(tab) ?: return null
-        val hostConfig = HostConfig(currentHostName)
-        hostConfig.id = AppDatabase.db.hostsDao().insert(hostConfig)
-        tab.cachedHostConfig = hostConfig
-        return hostConfig
+        return hostConfigs.find(currentHostName)
     }
 
     suspend fun changePopupBlockingLevel(newLevel: Int, tab: BrowserTab) {
-        val hostConfig = findOrCreateHostConfig(tab) ?: return
-        hostConfig.popupBlockLevel = newLevel
-        AppDatabase.db.hostsDao().update(hostConfig)
+        val currentHostName = hostNameOf(tab) ?: return
+        hostConfigs.setPopupBlockLevel(currentHostName, newLevel)
     }
 
     private fun engineCallback(tab: BrowserTab, host: TabViewHost): WebEngineCallbacks {
@@ -613,6 +603,8 @@ class BrowserController : ActiveModel() {
             tab.blockedAds = 0
             tab.blockedPopups = 0
             publishState()
+            //for the popup blocking of this page
+            modelScope.launch { loadHostConfig(tab) }
         }
 
         override fun onPageFinished(url: String?) {

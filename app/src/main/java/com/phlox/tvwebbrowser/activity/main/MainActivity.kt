@@ -732,12 +732,12 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
     }
 
-    private fun showPopupBlockOptions() {
-        val tab = controller.currentTab.value ?: return
-        val currentHostConfig = controller.findHostConfig(tab)
+    private fun showPopupBlockOptions() = lifecycleScope.launch {
+        val tab = controller.currentTab.value ?: return@launch
+        val currentHostConfig = controller.loadHostConfig(tab)
         val currentBlockPopupsLevelValue = currentHostConfig?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE
         val hostName = currentHostConfig?.hostName ?: try { URL(tab.url).host } catch (e: Exception) { "" }
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this@MainActivity)
             .setTitle(getString(R.string.block_popups_s, hostName))
             .setSingleChoiceItems(R.array.popup_blocking_level, currentBlockPopupsLevelValue) {
                     dialog, itemId -> lifecycleScope.launch {
