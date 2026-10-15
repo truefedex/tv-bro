@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The 36dp size of ic_delete. A wrapper and not a size set on the view: the size of a wrap_content
+button is then rounded to pixels the same way as for other 36dp icons.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:width="36dp" android:height="36dp" android:drawable="@drawable/ic_delete" />
+</layer-list>

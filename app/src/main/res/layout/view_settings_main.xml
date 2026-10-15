@@ -255,7 +255,7 @@
           android:layout_weight="0"
           android:contentDescription="@string/update_ad_blocker_list"
           android:nextFocusDown="@+id/spTheme"
-          android:src="@drawable/ic_refresh_grey_900_24dp"
+          android:src="@drawable/ic_refresh"
           />
       <ProgressBar
           android:id="@+id/pbAdBlockerListLoading"

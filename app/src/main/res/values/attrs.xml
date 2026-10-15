@@ -25,6 +25,10 @@
     <attr name="tbColorIcon" format="color" />
     <!-- Disabled icons -->
     <attr name="tbColorIconDisabled" format="color" />
+    <!-- Icons of less important actions (edit and delete buttons of bookmarks) -->
+    <attr name="tbColorIconSubtle" format="color" />
+    <!-- Big placeholder icons -->
+    <attr name="tbColorIconPlaceholder" format="color" />
     <!-- Icons of the cursor menu -->
     <attr name="tbColorIconCursorMenu" format="color" />
     <!-- Selected item text (the current tab) -->

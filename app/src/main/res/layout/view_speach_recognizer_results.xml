@@ -20,7 +20,7 @@
         android:layout_marginStart="5dp"
         android:layout_width="42dp"
         android:layout_height="42dp"
-        android:src="@drawable/ic_mic_none_grey_900_36dp"
+        android:src="@drawable/ic_voice_search"
         />
     <TextView
         style="@style/Widget.TVBro.Text.Title"

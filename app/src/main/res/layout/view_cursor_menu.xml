@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
-        android:src="@drawable/ic_circle_plus"
+        android:src="@drawable/ic_grab_mode"
         app:tint="?attr/tbColorIconCursorMenu"
         android:defaultFocusHighlightEnabled="false"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -22,7 +22,7 @@
         android:id="@+id/btnZoomIn"
         android:layout_width="@dimen/cursor_menu_button_size"
         android:layout_height="@dimen/cursor_menu_button_size"
-        android:src="@drawable/ic_zoom_in_gray_24dp"
+        android:src="@drawable/ic_zoom_in"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -31,7 +31,7 @@
         android:id="@+id/btnZoomOut"
         android:layout_width="@dimen/cursor_menu_button_size"
         android:layout_height="@dimen/cursor_menu_button_size"
-        android:src="@drawable/ic_zoom_out_gray_24dp"
+        android:src="@drawable/ic_zoom_out"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -40,7 +40,7 @@
         android:id="@+id/btnContextMenu"
         android:layout_width="@dimen/cursor_menu_button_size"
         android:layout_height="@dimen/cursor_menu_button_size"
-        android:src="@drawable/ic_menu_24"
+        android:src="@drawable/ic_menu"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -49,7 +49,7 @@
         android:id="@+id/btnDPADMode"
         android:layout_width="@dimen/cursor_menu_button_size"
         android:layout_height="@dimen/cursor_menu_button_size"
-        android:src="@drawable/gamepad_circle_up_24px"
+        android:src="@drawable/ic_dpad_mode"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

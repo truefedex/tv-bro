@@ -69,7 +69,8 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_add_box_24"
+            android:src="@drawable/ic_new_tab"
+            app:tint="?attr/tbColorIconPlaceholder"
             android:layout_marginEnd="20dp"
             tools:ignore="ContentDescription" />
         <TextView
@@ -93,7 +94,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="@string/close_tab"
-            android:src="@drawable/ic_close_grey_900_24dp"
+            android:src="@drawable/ic_close"
             android:layout_margin="3dp"
             app:layout_constraintEnd_toStartOf="@+id/ibBack"
             app:layout_constraintStart_toStartOf="parent" />
@@ -104,7 +105,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="@string/navigate_back"
-            android:src="@drawable/back_icon_selector"
+            android:src="@drawable/ic_back"
             android:layout_margin="3dp"
             app:layout_constraintEnd_toStartOf="@+id/ibForward"
             app:layout_constraintStart_toEndOf="@+id/ibCloseTab"/>
@@ -115,7 +116,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="@string/navigate_forward"
-            android:src="@drawable/forward_icon_selector"
+            android:src="@drawable/ic_forward"
             app:layout_constraintEnd_toStartOf="@+id/ibRefresh"
             app:layout_constraintStart_toEndOf="@+id/ibBack"/>
 
@@ -125,7 +126,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="@string/refresh_page"
-            android:src="@drawable/ic_refresh_grey_900_24dp"
+            android:src="@drawable/ic_refresh"
             app:layout_constraintEnd_toStartOf="@+id/ibAdBlock"
             app:layout_constraintStart_toEndOf="@+id/ibForward"/>
 
@@ -155,7 +156,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="@string/navigate_home"
-            android:src="@drawable/ic_home_grey_900_24dp"
+            android:src="@drawable/ic_home"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/ibPopupBlock"/>
 

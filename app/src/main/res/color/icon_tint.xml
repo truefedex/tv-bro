@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The color of icons (their own tint): the icon color, or the disabled one when the view is disabled -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:color="?attr/tbColorIconDisabled" />
+    <item android:color="?attr/tbColorIcon" />
+</selector>
