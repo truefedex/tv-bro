@@ -10,6 +10,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -81,6 +82,13 @@ class BrowserControllerEventsTest {
         db.close()
     }
 
+    private fun awaitWrite(job: Job?) {
+        while (job != null && !job.isCompleted) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(1)
+        }
+    }
+
     private fun open(url: String): BrowserTab =
         controller.openInNewTab(url, controller.tabsStates.size, navigateImmediately = true)!!
 
@@ -141,10 +149,10 @@ class BrowserControllerEventsTest {
     }
 
     @Test
-    fun blockedAdsFollowTheSettingOfTheTabNotTheGlobalOne() {
+    fun blockedAdsFollowTheSettingOfTheSiteNotTheGlobalOne() {
         config.adBlockEnabled = false
         val tab = open("https://a.com/")
-        controller.toggleAdBlockForCurrentTab()
+        awaitWrite(controller.setSiteAdBlock(tab, true))
         tab.callback.onBlockedAd("https://ads.com/1")
         assertEquals(1, state.blockedAds)
     }
@@ -302,12 +310,25 @@ class BrowserControllerEventsTest {
     }
 
     @Test
-    fun adBlockToggleUpdatesTheState() {
+    fun siteAdBlockSettingUpdatesTheState() {
         config.adBlockEnabled = true
-        open("https://a.com/")
+        val tab = open("https://a.com/")
         assertTrue(state.adBlockEnabled)
-        controller.toggleAdBlockForCurrentTab()
+        awaitWrite(controller.setSiteAdBlock(tab, false))
         assertFalse(state.adBlockEnabled)
+    }
+
+    @Test
+    fun pageOfAnotherHostGetsItsSettingOnStart() {
+        config.adBlockEnabled = true
+        val tab = open("https://a.com/")
+        awaitWrite(controller.setSiteAdBlock(tab, false))
+        assertEquals(false, tab.fakeEngine.adblockSetting)
+
+        tab.fakeEngine.loadedUrls += "https://b.com/"
+        tab.callback.onPageStarted("https://b.com/")
+        assertEquals(true, tab.fakeEngine.adblockSetting)
+        assertTrue(state.adBlockEnabled)
     }
 
     @Test

@@ -727,9 +727,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun toggleAdBlockForTab() {
-        controller.toggleAdBlockForCurrentTab()?.let {
-            controller.reload()
-        }
+        val tab = controller.currentTab.value ?: return
+        controller.setSiteAdBlock(tab, !controller.currentTabState.value.adBlockEnabled)
     }
 
     private fun showPopupBlockOptions() = lifecycleScope.launch {

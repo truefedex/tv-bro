@@ -8,6 +8,7 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -68,6 +69,18 @@ class BrowserControllerTabsTest {
             Thread.sleep(1)
         }
     }
+
+    private fun awaitWrite(job: Job?) {
+        while (job != null && !job.isCompleted) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(1)
+        }
+    }
+
+    private fun storedAdBlock(host: String): Boolean? =
+        db.query("SELECT adblock FROM hosts WHERE host_name = ?", arrayOf(host)).use { c ->
+            if (c.moveToNext() && !c.isNull(0)) c.getInt(0) != 0 else null
+        }
 
     /** url to selected */
     private fun storedSelection(): Map<String, Boolean> = db.query("SELECT url, selected FROM tabs", null).use { c ->
@@ -320,14 +333,35 @@ class BrowserControllerTabsTest {
     }
 
     @Test
-    fun adBlockToggleOverridesTheGlobalSetting() {
+    fun siteAdBlockSettingAppliesToAllTabsOfTheHostAndReloads() {
+        AppContext.provideConfig().adBlockEnabled = true
+        val (a, otherHost, sameHost) = open("https://a.com/", "https://b.com/", "https://a.com/page")
+        controller.changeTab(a)
+        awaitWrite(controller.setSiteAdBlock(a, false))
+        assertFalse(controller.isAdBlockEnabled(a))
+        assertFalse(controller.isAdBlockEnabled(sameHost))
+        assertTrue(controller.isAdBlockEnabled(otherHost))
+        assertEquals(false, a.fakeEngine.adblockSetting)
+        assertEquals("reload", a.fakeEngine.log.last())
+        assertEquals(false, storedAdBlock("a.com"))
+    }
+
+    @Test
+    fun siteAdBlockSettingEqualToTheGlobalOneIsNotKept() {
         AppContext.provideConfig().adBlockEnabled = true
         val (a) = open("https://a.com/")
-        controller.toggleAdBlockForCurrentTab()
-        assertEquals(false, a.adblock)
-        assertEquals(false, a.fakeEngine.adblockSetting)
-        controller.toggleAdBlockForCurrentTab()
-        assertEquals(true, a.adblock)
+        awaitWrite(controller.setSiteAdBlock(a, false))
+        awaitWrite(controller.setSiteAdBlock(a, true))
+        assertNull(storedAdBlock("a.com"))
+        //so the site follows a later change of the global setting
+        AppContext.provideConfig().adBlockEnabled = false
+        assertFalse(controller.isAdBlockEnabled(a))
+    }
+
+    @Test
+    fun siteAdBlockSettingNeedsAHost() {
+        val (home) = open(Config.HOME_URL_ALIAS)
+        assertNull(controller.setSiteAdBlock(home, false))
     }
 
     @Test

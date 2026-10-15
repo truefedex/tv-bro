@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.data
 
 import androidx.room.Room
 import com.phlox.tvwebbrowser.model.HostConfig
+import com.phlox.tvwebbrowser.model.dao.HostsDao
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -48,6 +49,33 @@ class HostConfigRepositoryTest {
         assertEquals(HostConfig.POPUP_BLOCK_DIALOGS, config.popupBlockLevel)
         //one row per host
         assertEquals(config.id, db.hostsDao().findByHostName("a.com")!!.id)
+    }
+
+    @Test
+    fun adBlockSettingsOfAllHostsAreLoaded() = runBlocking {
+        db.hostsDao().setAdBlock("a.com", false)
+        db.hostsDao().setAdBlock("b.com", true)
+        db.hostsDao().setPopupBlockLevel("c.com", HostConfig.POPUP_BLOCK_NONE)
+        assertNull(repository.adBlockSetting("a.com"))
+        repository.loadAdBlockSettings()
+        assertEquals(false, repository.adBlockSetting("a.com"))
+        assertEquals(true, repository.adBlockSetting("b.com"))
+        assertNull(repository.adBlockSetting("c.com"))
+    }
+
+    @Test
+    fun adBlockSettingIsStoredWithTheOtherSettings() = runBlocking {
+        repository.setPopupBlockLevel("a.com", HostConfig.POPUP_BLOCK_DIALOGS)
+        repository.setAdBlock("a.com", false)
+        assertEquals(false, repository.adBlockSetting("a.com"))
+        val stored = db.hostsDao().findByHostName("a.com")!!
+        assertEquals(false, stored.adblock)
+        assertEquals(HostConfig.POPUP_BLOCK_DIALOGS, stored.popupBlockLevel)
+
+        repository.setAdBlock("a.com", null)
+        assertNull(repository.adBlockSetting("a.com"))
+        assertNull(db.hostsDao().findByHostName("a.com")!!.adblock)
+        assertEquals(emptyList<HostsDao.AdBlockSetting>(), db.hostsDao().adBlockSettings())
     }
 
     @Test

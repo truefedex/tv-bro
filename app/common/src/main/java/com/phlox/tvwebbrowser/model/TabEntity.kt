@@ -18,6 +18,5 @@ data class TabEntity(
     val incognito: Boolean = false,
     val position: Int = 0,
     @ColumnInfo(name = "wv_state_file")
-    val wvStateFileName: String? = null,
-    val adblock: Boolean? = null
+    val wvStateFileName: String? = null
 )

@@ -50,7 +50,7 @@ class TabPoliciesTest {
         db.close()
     }
 
-    private fun policies(tab: BrowserTab) = TabPolicies(tab, controller, adBlocker, config)
+    private fun policies(tab: BrowserTab) = TabPolicies(tab, controller, adBlocker)
 
     /** Also loads the config, as the controller does when a page of the host starts loading */
     private fun setPopupBlockLevel(host: String, level: Int) = runBlocking {
@@ -65,27 +65,39 @@ class TabPoliciesTest {
         assertEquals("https://ads.com/a.js script https://site.com/", adRequests[0])
     }
 
+    private fun setAdBlock(host: String, adblock: Boolean?) = runBlocking {
+        TVBro.container.data.hostConfigs.setAdBlock(host, adblock)
+    }
+
     @Test
-    fun adBlockingFollowsTheGlobalSettingUnlessTheCurrentTabOverridesIt() {
-        val tab = BrowserTab(url = "https://site.com/")
-        val policies = policies(tab)
+    fun adBlockingFollowsTheGlobalSettingUnlessTheSiteHasItsOwn() {
+        val policies = policies(BrowserTab(url = "https://site.com/"))
         config.adBlockEnabled = true
         assertTrue(policies.isAdBlockingEnabled())
         config.adBlockEnabled = false
         assertFalse(policies.isAdBlockingEnabled())
 
-        controller.currentTab.value = tab
-        tab.adblock = true
+        setAdBlock("site.com", true)
         assertTrue(policies.isAdBlockingEnabled())
     }
 
-    // current behavior: the override of the current tab is used even for another tab's engine
     @Test
-    fun adBlockingUsesTheCurrentTabOverride() {
+    fun adBlockingUsesTheSettingOfTheTabsOwnHost() {
         config.adBlockEnabled = true
-        val current = BrowserTab(url = "https://a.com/", adblock = false)
-        controller.currentTab.value = current
-        assertFalse(policies(BrowserTab(url = "https://b.com/")).isAdBlockingEnabled())
+        setAdBlock("a.com", false)
+        controller.currentTab.value = BrowserTab(url = "https://a.com/")
+        assertTrue(policies(BrowserTab(url = "https://b.com/")).isAdBlockingEnabled())
+    }
+
+    @Test
+    fun adBlockingFollowsTheTabUrl() {
+        config.adBlockEnabled = true
+        setAdBlock("a.com", false)
+        val tab = BrowserTab(url = "https://b.com/")
+        val policies = policies(tab)
+        assertTrue(policies.isAdBlockingEnabled())
+        tab.url = "https://a.com/x"
+        assertFalse(policies.isAdBlockingEnabled())
     }
 
     @Test

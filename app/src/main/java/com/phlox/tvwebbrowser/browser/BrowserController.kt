@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.net.URL
 
 /**
  * Browser core: owns the tabs (their list, the current one, their persistence) and
@@ -127,6 +126,8 @@ class BrowserController : ActiveModel() {
                 return@launch
             }
         }
+        //engines ask for them synchronously as soon as pages start loading
+        hostConfigs.loadAdBlockSettings()
         //tabs of the previous activity instance may be still saving
         writes.awaitPending()
         tabsStates.replaceAll(data.tabs.load(config.incognitoMode).map(BrowserTab::fromEntity))
@@ -393,16 +394,33 @@ class BrowserController : ActiveModel() {
     }
 
     /**
-     * Toggles ads blocking for the current tab (overriding the global setting).
-     * @return the changed tab
+     * Whether ads are blocked on the tab's current host: its own setting or the global one.
+     * Can be called from any thread.
      */
-    fun toggleAdBlockForCurrentTab(): BrowserTab? {
-        val tab = currentTab.value ?: return null
-        val newState = !(tab.adblock ?: config.adBlockEnabled)
-        tab.adblock = newState
-        tab.webEngine.onUpdateAdblockSetting(newState)
+    fun isAdBlockEnabled(tab: BrowserTab): Boolean {
+        val host = hostNameOf(tab) ?: return config.adBlockEnabled
+        return hostConfigs.adBlockSetting(host) ?: config.adBlockEnabled
+    }
+
+    /**
+     * Turns ads blocking on or off for the tab's current host and reloads the tab.
+     * A host keeps its own setting only while it differs from the global one.
+     * @return the write of the setting; null if the tab's url has no host
+     */
+    fun setSiteAdBlock(tab: BrowserTab, enabled: Boolean): Job? {
+        val host = hostNameOf(tab) ?: return null
+        val setting = if (enabled == config.adBlockEnabled) null else enabled
+        //the in-memory setting changes right away (the scope dispatches immediately on the main thread),
+        //the write is not cancelled with the model
+        val write = TVBro.container.appScope.launch { hostConfigs.setAdBlock(host, setting) }
+        if (tab.isWebEngineCreated) {
+            tab.webEngine.onUpdateAdblockSetting(enabled)
+            if (tab == currentTab.value) {
+                tab.webEngine.reload()
+            }
+        }
         publishState()
-        return tab
+        return write
     }
 
     fun changeTab(newTab: BrowserTab) {
@@ -432,6 +450,7 @@ class BrowserController : ActiveModel() {
             needReloadUrl = !tabFiles.restoreEngineState(newTab)
         }
         newTab.webEngine.onAttachToWindow(engineCallback(newTab, host), host.tabsContainer)
+        newTab.webEngine.onUpdateAdblockSetting(isAdBlockEnabled(newTab))
         if (needReloadUrl) {
             newTab.webEngine.loadUrl(HomePageUrl.resolve(newTab.url, config))
         }
@@ -443,12 +462,8 @@ class BrowserController : ActiveModel() {
         }
     }
 
-    private fun hostNameOf(tab: BrowserTab): String? = try {
-        URL(tab.url).host
-    } catch (e: Exception) {
-        Log.w(TAG, "Can not parse current url host: $e")
-        null
-    }
+    /** Null for urls without a host (about:home and the like); asked for every request, so it does not log */
+    private fun hostNameOf(tab: BrowserTab): String? = tab.url.toUri().host?.takeIf { it.isNotEmpty() }
 
     /**
      * The config of the tab's current host as it is known now, without the database: it is loaded
@@ -470,7 +485,7 @@ class BrowserController : ActiveModel() {
     }
 
     private fun engineCallback(tab: BrowserTab, host: TabViewHost): WebEngineCallbacks {
-        val policies = TabPolicies(tab, this, adBlocker, config)
+        val policies = TabPolicies(tab, this, adBlocker)
         return WebEngineCallbacks(TabEvents(tab, policies), policies, host.uiHost(tab))
     }
 
@@ -494,7 +509,7 @@ class BrowserController : ActiveModel() {
             title = tab.title,
             canGoBack = tab.webEngine.canGoBack(),
             canGoForward = tab.webEngine.canGoForward(),
-            adBlockEnabled = tab.adblock ?: config.adBlockEnabled,
+            adBlockEnabled = isAdBlockEnabled(tab),
             blockedAds = tab.blockedAds,
             blockedPopups = tab.blockedPopups,
             certificateError = tab.certificateError
@@ -582,6 +597,8 @@ class BrowserController : ActiveModel() {
             updateUrl(url)
             tab.blockedAds = 0
             tab.blockedPopups = 0
+            //engines that keep the setting per session (not per request) get the one of the new host
+            tab.webEngine.onUpdateAdblockSetting(isAdBlockEnabled(tab))
             publishState()
             //for the popup blocking of this page
             modelScope.launch { loadHostConfig(tab) }

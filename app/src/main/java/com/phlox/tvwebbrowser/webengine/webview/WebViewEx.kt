@@ -610,7 +610,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     }
 
     fun onUpdateAdblockSetting(adblockEnabled: Boolean) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        //called on every page start: change the setting only when it differs
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && settings.safeBrowsingEnabled != adblockEnabled) {
             settings.safeBrowsingEnabled = adblockEnabled
         }
     }

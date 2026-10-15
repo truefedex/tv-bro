@@ -17,16 +17,15 @@ class BrowserTab(var id: Long = 0,
                  var thumbnailHash: String? = null,
                  var incognito: Boolean = false,
                  var position: Int = 0,
-                 var wvStateFileName: String? = null,
-                 var adblock: Boolean? = null) {
+                 var wvStateFileName: String? = null) {
     companion object {
         val TAG: String = BrowserTab::class.java.simpleName
 
         fun fromEntity(entity: TabEntity) = BrowserTab(entity.id, entity.url, entity.title, entity.selected,
-            entity.thumbnailHash, entity.incognito, entity.position, entity.wvStateFileName, entity.adblock)
+            entity.thumbnailHash, entity.incognito, entity.position, entity.wvStateFileName)
     }
 
-    fun toEntity() = TabEntity(id, url, title, selected, thumbnailHash, incognito, position, wvStateFileName, adblock)
+    fun toEntity() = TabEntity(id, url, title, selected, thumbnailHash, incognito, position, wvStateFileName)
 
     /** The picture of the page; the file is written when the tab is saved */
     var thumbnail: Bitmap? = null

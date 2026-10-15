@@ -183,7 +183,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
             .usePrivateMode(AppContext.provideConfig().incognitoMode)
             .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE)
             .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
-            .useTrackingProtection(tab.adblock ?: AppContext.provideConfig().adBlockEnabled)
+            //the setting of the page's host comes with onUpdateAdblockSetting when the tab is attached
+            .useTrackingProtection(AppContext.provideConfig().adBlockEnabled)
             .build()
         )
         session.navigationDelegate = navigationDelegate
@@ -362,10 +363,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
     }
 
     override fun reload() {
-        val adblockEnabled = tab.adblock ?: AppContext.provideConfig().adBlockEnabled
-        if (session.settings.useTrackingProtection != adblockEnabled) {
-            session.settings.useTrackingProtection = adblockEnabled
-        }
+        callback?.let { onUpdateAdblockSetting(it.isAdBlockingEnabled()) }
         session.reload()
     }
 
@@ -389,7 +387,9 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
     }
 
     override fun onUpdateAdblockSetting(newState: Boolean) {
-        
+        if (session.settings.useTrackingProtection != newState) {
+            session.settings.useTrackingProtection = newState
+        }
     }
 
     override fun hideFullscreenView() {

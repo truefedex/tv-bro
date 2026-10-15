@@ -110,16 +110,14 @@ class AppDatabaseMigrationTest {
         assertEquals(false, tab.incognito)
         assertEquals(1, tab.position)
         assertEquals("state", tab.wvStateFileName)
-        assertEquals(false, tab.adblock)
 
         val incognitoTab = runBlocking { db.tabsDao().getAll(incognito = true) }.single()
         assertEquals(7L, incognitoTab.id)
-        assertNull(incognitoTab.adblock)
 
         assertEquals(1, runBlocking { db.historyDao().count() })
 
         val sqlDb = db.openHelper.readableDatabase
-        assertEquals(22, sqlDb.version)
+        assertEquals(23, sqlDb.version)
         sqlDb.query("PRAGMA table_info(tabs)").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
             val columns = ArrayList<String>()
@@ -149,8 +147,7 @@ class AppDatabaseMigrationTest {
         val db = openMigrated()
         val tab = runBlocking { db.tabsDao().getAll(incognito = false) }.single()
         assertEquals(TabEntity(id = 3L, url = "https://example.com/", title = "Example", selected = true,
-            thumbnailHash = "thumb.webp", incognito = false, position = 2, wvStateFileName = "gecko:state",
-            adblock = true), tab)
+            thumbnailHash = "thumb.webp", incognito = false, position = 2, wvStateFileName = "gecko:state"), tab)
 
         db.openHelper.readableDatabase.query("PRAGMA table_info(tabs)").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
@@ -187,6 +184,48 @@ class AppDatabaseMigrationTest {
             val columns = ArrayList<String>()
             while (cursor.moveToNext()) columns.add(cursor.getString(nameIndex))
             assertEquals(listOf("id", "time", "title", "url"), columns)
+        }
+    }
+
+    @Test
+    fun migrate22To23MovesAdBlockingFromTabsToHosts() {
+        createDatabase(22) { db ->
+            db.insert("tabs", null, ContentValues().apply {
+                put("id", 2L)
+                put("url", "https://example.com/")
+                put("title", "Example")
+                put("selected", 1)
+                put("thumbnailHash", "thumb.webp")
+                put("incognito", 0)
+                put("position", 0)
+                put("wv_state_file", "state")
+                put("adblock", 0)
+            })
+            db.insert("hosts", null, ContentValues().apply {
+                put("id", 1L)
+                put("host_name", "example.com")
+                put("popup_block_level", 0)
+                put("favicon", "example.png")
+            })
+        }
+
+        val db = openMigrated()
+        val tab = runBlocking { db.tabsDao().getAll(incognito = false) }.single()
+        assertEquals(TabEntity(id = 2L, url = "https://example.com/", title = "Example", selected = true,
+            thumbnailHash = "thumb.webp", incognito = false, position = 0, wvStateFileName = "state"), tab)
+
+        //the setting of the tab is not carried over to its host
+        val host = runBlocking { db.hostsDao().findByHostName("example.com") }!!
+        assertNull(host.adblock)
+        assertEquals(0, host.popupBlockLevel)
+        assertEquals("example.png", host.favicon)
+        assertEquals(0, runBlocking { db.hostsDao().adBlockSettings() }.size)
+
+        db.openHelper.readableDatabase.query("PRAGMA table_info(tabs)").use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            val columns = ArrayList<String>()
+            while (cursor.moveToNext()) columns.add(cursor.getString(nameIndex))
+            assertFalse(columns.contains("adblock"))
         }
     }
 

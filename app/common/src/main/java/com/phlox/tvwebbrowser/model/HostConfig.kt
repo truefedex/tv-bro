@@ -18,6 +18,8 @@ class HostConfig(
     @ColumnInfo(name = "popup_block_level")
     var popupBlockLevel: Int? = null
     var favicon: String? = null
+    /** Ads blocking on this host; null if it follows the global setting */
+    var adblock: Boolean? = null
 
     companion object {
         const val POPUP_BLOCK_NONE = 0
