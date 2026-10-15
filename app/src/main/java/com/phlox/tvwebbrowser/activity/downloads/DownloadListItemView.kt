@@ -1,68 +1,54 @@
 package com.phlox.tvwebbrowser.activity.downloads
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Color
 import android.text.format.Formatter
-import android.view.LayoutInflater
+import android.util.AttributeSet
 import android.view.View
-import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.Download
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 /**
  * Created by PDT on 24.01.2017.
  */
 
-class DownloadListItemView(private val downloadsActivity: DownloadsActivity, private val viewType: Int) : FrameLayout(downloadsActivity), ActiveDownloadsModel.Listener {
+/** A row of the downloads list (the root of view_download_item); it shows the progress of its download */
+class DownloadListItemView(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs), ActiveDownloadsModel.Listener {
     private var defaultTextColor: Int = 0
-    private var tvDate: TextView? = null
     private var tvTitle: TextView? = null
     private var tvURL: TextView? = null
     private var tvTime: TextView? = null
     private var progressBar: ProgressBar? = null
     private var progressBar2: ProgressBar? = null
     private var tvSize: TextView? = null
+    /** Where the row gets the updates of downloads while it is attached */
+    var updates: DownloadsActivity? = null
     var download: Download? = null
     set(value) {
         field = value
         if (field == null) return
-        when (viewType) {
-            DownloadListAdapter.VIEW_TYPE_HEADER -> {
-                val df = SimpleDateFormat.getDateInstance()
-                tvDate!!.text = df.format(Date(field!!.time))
-            }
-            DownloadListAdapter.VIEW_TYPE_DOWNLOAD_ITEM -> {
-                tvTitle!!.text = field!!.filename
-                tvURL!!.text = field!!.url
-                val sdf = SimpleDateFormat("HH:mm")
-                tvTime!!.text = sdf.format(Date(field!!.time))
-                updateUI(field!!)
-            }
-        }
+        tvTitle!!.text = field!!.filename
+        tvURL!!.text = field!!.url
+        tvTime!!.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(field!!.time))
+        updateUI(field!!)
     }
 
-    init {
-        LayoutInflater.from(downloadsActivity).inflate(
-                if (viewType == DownloadListAdapter.VIEW_TYPE_HEADER)
-                    R.layout.view_history_header_item
-                else
-                    R.layout.view_download_item, this)
-        when (viewType) {
-            DownloadListAdapter.VIEW_TYPE_HEADER -> tvDate = findViewById(R.id.tvDate)
-            DownloadListAdapter.VIEW_TYPE_DOWNLOAD_ITEM -> {
-                tvTitle = findViewById(R.id.tvTitle)
-                tvURL = findViewById(R.id.tvURL)
-                tvTime = findViewById(R.id.tvTime)
-                tvSize = findViewById(R.id.tvSize)
-                defaultTextColor = tvSize!!.currentTextColor
-                progressBar = findViewById(R.id.progressBar)
-                progressBar2 = findViewById(R.id.progressBar2)
-            }
-        }
+    override fun onFinishInflate() {
+        super.onFinishInflate()
+        tvTitle = findViewById(R.id.tvTitle)
+        tvURL = findViewById(R.id.tvURL)
+        tvTime = findViewById(R.id.tvTime)
+        tvSize = findViewById(R.id.tvSize)
+        defaultTextColor = tvSize!!.currentTextColor
+        progressBar = findViewById(R.id.progressBar)
+        progressBar2 = findViewById(R.id.progressBar2)
     }
 
     @SuppressLint("SetTextI18n")
@@ -107,11 +93,11 @@ class DownloadListItemView(private val downloadsActivity: DownloadsActivity, pri
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        downloadsActivity.registerListener(this)
+        updates?.registerListener(this)
     }
 
     override fun onDetachedFromWindow() {
-        downloadsActivity.unregisterListener(this)
+        updates?.unregisterListener(this)
         super.onDetachedFromWindow()
     }
 

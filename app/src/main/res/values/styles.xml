@@ -75,6 +75,12 @@
         <item name="android:textSize">@dimen/text_size_badge</item>
     </style>
 
+    <!-- A row of a list (RecyclerView): focusable, highlighted when focused -->
+    <style name="Widget.TVBro.ListItem" parent="">
+        <item name="android:focusable">true</item>
+        <item name="android:background">@drawable/list_item_bg_selector</item>
+    </style>
+
     <!-- A settings row: a label and a switch -->
     <style name="Widget.TVBro.SettingsRow" parent="">
         <item name="android:layout_marginTop">@dimen/settings_section_spacing</item>

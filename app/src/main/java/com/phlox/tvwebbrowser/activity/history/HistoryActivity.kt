@@ -3,23 +3,28 @@ package com.phlox.tvwebbrowser.activity.history
 import com.phlox.tvwebbrowser.TVBro
 import android.app.AlertDialog
 import android.content.Intent
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.AbsListView
-import android.widget.AdapterView
 import android.widget.ImageButton
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ActivityHistoryBinding
+import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
+import com.phlox.tvwebbrowser.widgets.datedlist.ListDividerDecoration
+import com.phlox.tvwebbrowser.widgets.datedlist.StickyHeaderDecoration
+import com.phlox.tvwebbrowser.widgets.datedlist.StickyHeaderLayoutManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -27,11 +32,11 @@ import kotlinx.coroutines.launch
  * Created by fedex on 29.12.16.
  */
 
-class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener{
+class HistoryActivity : AppCompatActivity(), HistoryAdapter.Callback {
 
     private lateinit var vb: ActivityHistoryBinding
     private var ibDelete: ImageButton? = null
-    private var adapter: HistoryAdapter? = null
+    private lateinit var adapter: HistoryAdapter
     private lateinit var historyModel: HistoryModel
     private val history get() = TVBro.container.data.history
     private val voiceSearchHelper = VoiceSearchHelper(this)
@@ -43,15 +48,18 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         }
     }
 
-    internal var onListScrollListener: AbsListView.OnScrollListener = object : AbsListView.OnScrollListener {
-        override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
-
+    private val onListScrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            loadMoreIfNeeded()
         }
+    }
 
-        override fun onScroll(view: AbsListView, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
-            if (totalItemCount != 0 && firstVisibleItem + visibleItemCount >= totalItemCount - 1 && "" == historyModel.searchQuery) {
-                historyModel.loadItems(false, adapter!!.realCount)
-            }
+    /** Loads the next page when the end of the list is shown */
+    private fun loadMoreIfNeeded() {
+        val layoutManager = vb.listView.layoutManager as LinearLayoutManager
+        val count = adapter.itemCount
+        if (count != 0 && layoutManager.findLastVisibleItemPosition() >= count - 2 && "" == historyModel.searchQuery) {
+            historyModel.loadItems(false, adapter.items.size.toLong())
         }
     }
 
@@ -64,17 +72,21 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
 
         ibDelete = findViewById(R.id.ibDelete)
 
-        adapter = HistoryAdapter()
+        adapter = HistoryAdapter(this)
+        val stickyHeader = StickyHeaderDecoration(adapter)
+        vb.listView.layoutManager = StickyHeaderLayoutManager(this, stickyHeader)
+        vb.listView.itemAnimator = null
+        vb.listView.addItemDecoration(ListDividerDecoration(vb.listView, adapter))
+        vb.listView.addItemDecoration(stickyHeader)
         vb.listView.adapter = adapter
-
-        vb.listView.setOnScrollListener(onListScrollListener)
-        vb.listView.onItemClickListener = this
-        vb.listView.onItemLongClickListener = this
+        vb.listView.addOnScrollListener(onListScrollListener)
 
         historyModel.lastLoadedItems.subscribe(this, false) {
             if (it.isEmpty()) return@subscribe
-            adapter!!.addItems(it)
-            vb.listView.requestFocus()
+            val first = adapter.items.isEmpty()
+            adapter.submitItems(adapter.items + it) {
+                if (first) vb.listView.requestFocus()
+            }
         }
 
         historyModel.loadItems(false)
@@ -83,13 +95,13 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     }
 
     private fun setMultiselectMode(enabled: Boolean) {
-        adapter!!.isMultiselectMode = enabled
+        adapter.isMultiselectMode = enabled
         multiselectBackCallback.isEnabled = enabled
         updateMenu()
     }
 
     private fun showDeleteDialog(deleteAll: Boolean) {
-        if (adapter!!.items.isEmpty() || (adapter!!.selectedItems.isEmpty() && !deleteAll)) return
+        if (adapter.items.isEmpty() || (adapter.selectedItems.isEmpty() && !deleteAll)) return
         AlertDialog.Builder(this)
                 .setTitle(R.string.delete)
                 .setMessage(if (deleteAll) R.string.msg_delete_history_all else R.string.msg_delete_history)
@@ -97,10 +109,11 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
                     lifecycleScope.launch(Dispatchers.Main) {
                         if (deleteAll) {
                             history.deleteAll()
-                            adapter!!.erase()
+                            adapter.submitItems(emptyList())
                         } else {
-                            history.delete(adapter!!.selectedItems)
-                            adapter!!.remove(adapter!!.selectedItems)
+                            val selected = adapter.selectedItems
+                            history.delete(selected)
+                            adapter.remove(selected) { updateMenu() }
                         }
                     }
                 }
@@ -120,7 +133,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
                                 Utils.showToast(this@HistoryActivity, getString(R.string.can_not_recognize))
                                 return
                             }
-                            adapter!!.erase()
+                            adapter.submitItems(emptyList())
                             historyModel.searchQuery = text
                             historyModel.loadItems(true)
                         }
@@ -132,33 +145,38 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         return super.dispatchKeyEvent(event)
     }
 
-    override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-        val hi = (view as HistoryItemView).historyItem
-        if (hi!!.isDateHeader) return
-        if (adapter!!.isMultiselectMode) {
-            view.setSelection(!hi.selected)
+    override fun onItemClick(item: HistoryItem) {
+        if (adapter.isMultiselectMode) {
+            adapter.setSelected(item, !adapter.isSelected(item))
             updateMenu()
         } else {
             val resultIntent = Intent()
-            resultIntent.putExtra(KEY_URL, hi.url)
+            resultIntent.putExtra(KEY_URL, item.url)
             setResult(RESULT_OK, resultIntent)
             finish()
         }
     }
 
-    override fun onItemLongClick(adapterView: AdapterView<*>, view: View, i: Int, l: Long): Boolean {
-        if (adapter!!.isMultiselectMode) return false
+    override fun onItemLongClick(item: HistoryItem): Boolean {
+        if (adapter.isMultiselectMode) return false
         setMultiselectMode(true)
-        val v = view as HistoryItemView
-        v.setSelection(true)
+        adapter.setSelected(item, true)
         updateMenu()
         return true
     }
 
     private fun updateMenu() {
-        val selection = adapter!!.selectedItems
+        val selection = adapter.selectedItems
         if (selection.isEmpty()) {
             if (ibDelete!!.visibility == View.GONE) return
+            if (ibDelete!!.hasFocus()) {
+                //to the row next to the button, as when Left is pressed on it
+                val rect = Rect()
+                ibDelete!!.getDrawingRect(rect)
+                vb.root.offsetDescendantRectToMyCoords(ibDelete, rect)
+                vb.root.offsetRectIntoDescendantCoords(vb.listView, rect)
+                vb.listView.requestFocus(View.FOCUS_LEFT, rect)
+            }
             val anim = AnimationUtils.loadAnimation(this, R.anim.right_menu_out_anim)
             anim.setAnimationListener(object : BaseAnimationListener() {
                 override fun onAnimationEnd(animation: Animation) {

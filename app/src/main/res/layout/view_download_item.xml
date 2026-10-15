@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.phlox.tvwebbrowser.activity.downloads.DownloadListItemView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.TVBro.ListItem"
     android:orientation="horizontal" android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:paddingLeft="@dimen/list_item_padding_horizontal"
     android:paddingRight="@dimen/list_item_padding_horizontal"
     android:paddingTop="@dimen/list_item_padding_vertical"
@@ -74,4 +75,4 @@
         android:visibility="gone"
         android:layout_weight="0" />
 
-</LinearLayout>
+</com.phlox.tvwebbrowser.activity.downloads.DownloadListItemView>

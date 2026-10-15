@@ -13,6 +13,7 @@
 
     <dimen name="list_item_padding_horizontal">15dp</dimen>
     <dimen name="list_item_padding_vertical">10dp</dimen>
+    <dimen name="list_divider_height">1dp</dimen>
 
     <dimen name="settings_content_padding">22dp</dimen>
     <dimen name="settings_section_spacing">20dp</dimen>

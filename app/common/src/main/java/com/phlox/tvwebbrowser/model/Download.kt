@@ -29,8 +29,6 @@ class Download() {
     @Volatile
     var cancelled: Boolean = false
     @Ignore
-    var isDateHeader = false//user for displaying date headers inside list view
-    @Ignore
     var mimeType: String? = null
     @Ignore
     var referer: String? = null
@@ -65,12 +63,5 @@ class Download() {
     companion object {
         val BROKEN_MARK: Long = -2
         val CANCELLED_MARK: Long = -3
-
-        fun createDateHeaderInfo(time: Long): Download {
-            val download = Download()
-            download.time = time
-            download.isDateHeader = true
-            return download
-        }
     }
 }

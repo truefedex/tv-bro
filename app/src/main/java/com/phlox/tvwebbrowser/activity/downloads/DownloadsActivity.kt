@@ -12,25 +12,28 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.webkit.MimeTypeMap
-import android.widget.AbsListView
-import android.widget.AdapterView
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ActivityDownloadsBinding
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
+import com.phlox.tvwebbrowser.widgets.datedlist.ListDividerDecoration
+import com.phlox.tvwebbrowser.widgets.datedlist.StickyHeaderDecoration
+import com.phlox.tvwebbrowser.widgets.datedlist.StickyHeaderLayoutManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
-class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, ActiveDownloadsModel.Listener, AdapterView.OnItemLongClickListener{
+class DownloadsActivity : AppCompatActivity(), ActiveDownloadsModel.Listener {
     private lateinit var vb: ActivityDownloadsBinding
     private lateinit var adapter: DownloadListAdapter
     private val listeners = ArrayList<ActiveDownloadsModel.Listener>()
@@ -38,13 +41,11 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
     private lateinit var activeDownloadsModel: ActiveDownloadsModel
     private lateinit var downloadsHistoryModel: DownloadsHistoryModel
 
-    internal var onListScrollListener: AbsListView.OnScrollListener = object : AbsListView.OnScrollListener {
-        override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
-
-        }
-
-        override fun onScroll(view: AbsListView, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
-            if (totalItemCount != 0 && firstVisibleItem + visibleItemCount >= totalItemCount - 1) {
+    private val onListScrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            val count = adapter.itemCount
+            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+            if (count != 0 && layoutManager.findLastVisibleItemPosition() >= count - 2) {
                 downloadsHistoryModel.loadNextItems()
             }
         }
@@ -60,26 +61,30 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         downloadsHistoryModel = ActiveModelsRepository.get(DownloadsHistoryModel::class, this)
 
         adapter = DownloadListAdapter(this)
+        val stickyHeader = StickyHeaderDecoration(adapter)
+        vb.listView.layoutManager = StickyHeaderLayoutManager(this, stickyHeader)
+        vb.listView.itemAnimator = null
+        vb.listView.addItemDecoration(ListDividerDecoration(vb.listView, adapter))
+        vb.listView.addItemDecoration(stickyHeader)
         vb.listView.adapter = adapter
-
-        vb.listView.setOnScrollListener(onListScrollListener)
-        vb.listView.onItemClickListener = this
-        vb.listView.onItemLongClickListener = this
+        vb.listView.addOnScrollListener(onListScrollListener)
 
         downloadsHistoryModel.lastLoadedItems.subscribe(this, false, {
-            if (it.isNotEmpty()) {
-                vb.tvPlaceholder.visibility = View.GONE
-                adapter.addItems(it)
-                vb.listView.requestFocus()
-            }
+            if (it.isNotEmpty()) showItems()
         })
 
         if (downloadsHistoryModel.allItems.isEmpty()) {
             downloadsHistoryModel.loadNextItems()
         } else {
-            vb.tvPlaceholder.visibility = View.GONE
-            adapter.addItems(downloadsHistoryModel.allItems)
-            vb.listView.requestFocus()
+            showItems()
+        }
+    }
+
+    private fun showItems() {
+        vb.tvPlaceholder.visibility = View.GONE
+        val first = adapter.items.isEmpty()
+        adapter.submitItems(downloadsHistoryModel.allItems.toList()) {
+            if (first) vb.listView.requestFocus()
         }
     }
 
@@ -93,13 +98,8 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
         super.onPause()
     }
 
-    override fun onItemClick(adapterView: AdapterView<*>, view: View, i: Int, l: Long) {
-        val v = view as DownloadListItemView
+    fun onItemClick(v: DownloadListItemView) {
         val download = v.download ?: return
-
-        if (download.isDateHeader) {
-            return
-        }
 
         if (download.size != download.bytesReceived) {
             //file should be already marked in UI as broken
@@ -134,12 +134,8 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
 
     }
 
-    override fun onItemLongClick(adapterView: AdapterView<*>, view: View, i: Int, l: Long): Boolean {
-        val v = view as DownloadListItemView
+    fun onItemLongClick(v: DownloadListItemView): Boolean {
         val download = v.download ?: return false
-        if (download.isDateHeader) {
-            return true
-        }
         if (download.size == Download.BROKEN_MARK || download.size == Download.CANCELLED_MARK ||
                 download.size == download.bytesReceived) {
             showFinishedDownloadOptionsPopup(v)
@@ -228,7 +224,8 @@ class DownloadsActivity : AppCompatActivity(), AdapterView.OnItemClickListener, 
     private fun deleteItem(v: DownloadListItemView) = lifecycleScope.launch(Dispatchers.Main) {
         v.download?.let {
             activeDownloadsModel.deleteItem(it)
-            adapter.remove(it)
+            downloadsHistoryModel.remove(it)
+            adapter.submitItems(downloadsHistoryModel.allItems.toList())
         }
     }
 

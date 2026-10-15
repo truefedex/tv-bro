@@ -56,15 +56,6 @@ object Utils {
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    fun isSameDate(date: Long, other: Long): Boolean {
-        if (other == -1L) return false
-        val c1 = Calendar.getInstance()
-        c1.timeInMillis = date
-        val c2 = Calendar.getInstance()
-        c2.timeInMillis = other
-        return c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR) && c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
-    }
-
     fun createTempFile(context: Context, fileName: String): File {
         val externalCacheDir = context.externalCacheDir
         val internalCacheDir = context.cacheDir

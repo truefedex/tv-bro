@@ -152,7 +152,6 @@ dependencies {
 
     implementation(libs.segmented.button)
     implementation(libs.ad.block)
-    implementation(libs.pinned.section.listview)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

@@ -11,6 +11,7 @@
     <color name="on_surface_variant">#bbb</color>
     <color name="divider">#2D2D2D</color>
     <color name="divider_strong">#aaa</color>
+    <color name="shadow">#a0a0a0</color>
     <color name="icon">#FDFDFD</color>
     <color name="icon_disabled">#BDBDBD</color>
     <color name="icon_subtle">#BDBDBD</color>

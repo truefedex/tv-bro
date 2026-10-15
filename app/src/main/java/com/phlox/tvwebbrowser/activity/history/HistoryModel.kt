@@ -10,21 +10,25 @@ import kotlinx.coroutines.launch
 class HistoryModel: ActiveModel() {
     val lastLoadedItems = ObservableValue<List<HistoryItem>>(ArrayList())
     private var loading = false
+    private var endReached = false
     var searchQuery = ""
     private val history = TVBro.container.data.history
 
 
     fun loadItems(eraseOldResults: Boolean, offset: Long = 0) = modelScope.launch(Dispatchers.Main) {
-        if (loading) {
+        if (loading || (offset > 0 && endReached)) {
             return@launch
         }
         loading = true
+        if (offset == 0L) endReached = false
 
-        lastLoadedItems.value = if ("" == searchQuery) {
+        val items = if ("" == searchQuery) {
             history.page(offset)
         } else {
             history.search(searchQuery)
         }
+        if (items.isEmpty()) endReached = true
+        lastLoadedItems.value = items
         loading = false
     }
 }

@@ -19,19 +19,5 @@ class HistoryItem {
     var url: String = ""
 
     @Ignore
-    var isDateHeader = false//used for displaying date headers inside list view
-    @Ignore
-    var selected = false
-    @Ignore
     var saved = false
-
-    companion object {
-
-        fun createDateHeaderInfo(time: Long): HistoryItem {
-            val hi = HistoryItem()
-            hi.time = time
-            hi.isDateHeader = true
-            return hi
-        }
-    }
 }

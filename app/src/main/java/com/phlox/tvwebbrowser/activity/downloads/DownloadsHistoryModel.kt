@@ -11,17 +11,24 @@ class DownloadsHistoryModel: ActiveModel() {
   val allItems = ArrayList<Download>()
   val lastLoadedItems = ObservableValue<List<Download>>(ArrayList())
   private var loading = false
+  private var endReached = false
 
   fun loadNextItems() = modelScope.launch(Dispatchers.Main) {
-    if (loading) {
+    if (loading || endReached) {
       return@launch
     }
     loading = true
 
     val newItems = TVBro.container.data.downloads.page(allItems.size.toLong())
-    lastLoadedItems.value = newItems
+    if (newItems.isEmpty()) endReached = true
     allItems.addAll(newItems)
+    lastLoadedItems.value = newItems
 
     loading = false
+  }
+
+  /** Forgets a deleted download, so the next page starts at the right offset */
+  fun remove(download: Download) {
+    allItems.remove(download)
   }
 }

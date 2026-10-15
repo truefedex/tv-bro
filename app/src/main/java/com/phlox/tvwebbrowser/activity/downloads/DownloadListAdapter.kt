@@ -1,82 +1,36 @@
 package com.phlox.tvwebbrowser.activity.downloads
 
-import android.view.View
+import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.BaseAdapter
-
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
+import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.utils.Utils
-
-import java.util.ArrayList
-
-import de.halfbit.pinnedsection.PinnedSectionListView
+import com.phlox.tvwebbrowser.widgets.datedlist.DatedListAdapter
 
 /**
  * Created by PDT on 24.01.2017.
  */
 
-class DownloadListAdapter(private val downloadsActivity: DownloadsActivity) : BaseAdapter(), PinnedSectionListView.PinnedSectionListAdapter {
-    private val downloads = ArrayList<Download>()
-    private var lastHeaderDate: Long = -1
-    var realCount: Long = 0
-        private set
+class DownloadListAdapter(private val downloadsActivity: DownloadsActivity) : DatedListAdapter<Download>(ItemDiff) {
 
-    fun addItems(items: List<Download>) {
-        if (items.isEmpty()) {
-            return
-        }
-        for (download in items) {
-            if (!Utils.isSameDate(download.time, lastHeaderDate)) {
-                lastHeaderDate = download.time
-                this.downloads.add(Download.createDateHeaderInfo(download.time))
-            }
-            this.downloads.add(download)
-            realCount++
-        }
-        notifyDataSetChanged()
+    override fun timeOf(item: Download) = item.time
+
+    override fun onCreateItemViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.view_download_item, parent, false) as DownloadListItemView
+        view.updates = downloadsActivity
+        view.setOnClickListener { downloadsActivity.onItemClick(view) }
+        view.setOnLongClickListener { downloadsActivity.onItemLongClick(view) }
+        return object : RecyclerView.ViewHolder(view) {}
     }
 
-    override fun getCount(): Int {
-        return downloads.size
+    override fun onBindItem(holder: RecyclerView.ViewHolder, item: Download, payloads: List<Any>) {
+        (holder.itemView as DownloadListItemView).download = item
     }
 
-    override fun getItem(i: Int): Any {
-        return downloads[i]
-    }
-
-    override fun getItemId(i: Int): Long {
-        return i.toLong()
-    }
-
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val hiv = if (convertView != null) {
-            convertView as DownloadListItemView
-        } else {
-            DownloadListItemView(downloadsActivity, getItemViewType(position))
-        }
-        hiv.download = downloads[position]
-        return hiv
-    }
-
-    override fun getViewTypeCount(): Int {
-        return 2
-    }
-
-    override fun getItemViewType(position: Int): Int {
-        return if (downloads[position].isDateHeader) VIEW_TYPE_HEADER else VIEW_TYPE_DOWNLOAD_ITEM
-    }
-
-    override fun isItemViewTypePinned(viewType: Int): Boolean {
-        return viewType == VIEW_TYPE_HEADER
-    }
-
-    fun remove(download: Download) {
-        downloads.remove(download)
-        notifyDataSetChanged()
-    }
-
-    companion object {
-        val VIEW_TYPE_DOWNLOAD_ITEM = 0
-        val VIEW_TYPE_HEADER = 1
+    private object ItemDiff : DiffUtil.ItemCallback<Download>() {
+        override fun areItemsTheSame(oldItem: Download, newItem: Download) = oldItem.id == newItem.id
+        //the progress of a download comes to its row directly (see DownloadListItemView)
+        override fun areContentsTheSame(oldItem: Download, newItem: Download) = oldItem === newItem
     }
 }

@@ -22,6 +22,7 @@
         <item name="tbColorOnSurfaceVariant">@color/on_surface_variant</item>
         <item name="tbColorDivider">@color/divider</item>
         <item name="tbColorDividerStrong">@color/divider_strong</item>
+        <item name="tbColorShadow">@color/shadow</item>
         <item name="tbColorIcon">@color/icon</item>
         <item name="tbColorIconDisabled">@color/icon_disabled</item>
         <item name="tbColorIconSubtle">@color/icon_subtle</item>

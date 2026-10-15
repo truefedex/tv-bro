@@ -21,6 +21,8 @@
     <attr name="tbColorDivider" format="color" />
     <!-- Dividers inside forms -->
     <attr name="tbColorDividerStrong" format="color" />
+    <!-- Shadows (under the pinned header of a list) -->
+    <attr name="tbColorShadow" format="color" />
     <!-- Icons -->
     <attr name="tbColorIcon" format="color" />
     <!-- Disabled icons -->
