@@ -70,7 +70,7 @@ class BrowserControllerEventsTest {
     @After
     fun tearDown() {
         eventsScope.cancel()
-        val container = TVBro.instance.container
+        val container = TVBro.container
         val job = container.appScope.launch { container.tabWrites.awaitPending() }
         while (!job.isCompleted) {
             shadowOf(Looper.getMainLooper()).idle()

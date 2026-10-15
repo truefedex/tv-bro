@@ -33,7 +33,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     private var ibDelete: ImageButton? = null
     private var adapter: HistoryAdapter? = null
     private lateinit var historyModel: HistoryModel
-    private val history get() = TVBro.instance.container.data.history
+    private val history get() = TVBro.container.data.history
     private val voiceSearchHelper = VoiceSearchHelper(this)
 
     /** Back leaves the multiselect mode before it closes the screen */

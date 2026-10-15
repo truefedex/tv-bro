@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.downloads
 
+import com.phlox.tvwebbrowser.AppContext
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -23,7 +24,7 @@ class ActiveDownloadsModel: ActiveModel() {
 
     suspend fun deleteItem(download: Download) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val contentResolver = TVBro.instance.contentResolver
+            val contentResolver = AppContext.get().contentResolver
             val rowsDeleted = try {
                 contentResolver.delete(Uri.parse(download.filepath), null)
             } catch (e: Exception) {
@@ -36,7 +37,7 @@ class ActiveDownloadsModel: ActiveModel() {
         } else {
             File(download.filepath).delete()
         }
-        TVBro.instance.container.data.downloads.delete(download)
+        TVBro.container.data.downloads.delete(download)
     }
 
     fun registerListener(listener: Listener) {

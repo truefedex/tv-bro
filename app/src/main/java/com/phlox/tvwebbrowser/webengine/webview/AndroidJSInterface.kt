@@ -31,7 +31,7 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
 
     @JavascriptInterface
     fun getStringByName(name: String): String {
-        val ctx = TVBro.instance
+        val ctx = AppContext.get()
         //val resId = ctx.resources.getIdentifier(name, "string", ctx.packageName)
         //return ctx.getString(resId)
         when (name) {
@@ -90,10 +90,10 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
             lastSSLError.toString()
         } else {
             when (lastSSLError.primaryError) {
-                SslError.SSL_EXPIRED -> TVBro.instance.getString(R.string.ssl_expired)
-                SslError.SSL_IDMISMATCH -> TVBro.instance.getString(R.string.ssl_idmismatch)
-                SslError.SSL_DATE_INVALID -> TVBro.instance.getString(R.string.ssl_date_invalid)
-                SslError.SSL_INVALID -> TVBro.instance.getString(R.string.ssl_invalid)
+                SslError.SSL_EXPIRED -> AppContext.get().getString(R.string.ssl_expired)
+                SslError.SSL_IDMISMATCH -> AppContext.get().getString(R.string.ssl_idmismatch)
+                SslError.SSL_DATE_INVALID -> AppContext.get().getString(R.string.ssl_date_invalid)
+                SslError.SSL_INVALID -> AppContext.get().getString(R.string.ssl_invalid)
                 else -> "unknown"
             }
         }

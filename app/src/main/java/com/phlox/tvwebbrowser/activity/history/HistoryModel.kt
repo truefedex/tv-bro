@@ -11,7 +11,7 @@ class HistoryModel: ActiveModel() {
     val lastLoadedItems = ObservableValue<List<HistoryItem>>(ArrayList())
     private var loading = false
     var searchQuery = ""
-    private val history = TVBro.instance.container.data.history
+    private val history = TVBro.container.data.history
 
 
     fun loadItems(eraseOldResults: Boolean, offset: Long = 0) = modelScope.launch(Dispatchers.Main) {

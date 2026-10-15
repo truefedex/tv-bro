@@ -65,8 +65,7 @@ class GeckoFeatureInstaller : WebEngineInstaller {
         //fail to load: the linker namespace of the process does not see the new split. After
         //a restart the module is a regular part of the installed app.
         installView.showRestarting()
-        TVBro.instance.needToExitProcessAfterMainActivityFinish = true
-        TVBro.instance.needRestartMainActivityAfterExitingProcess = true
+        TVBro.exitProcessAfterMainActivityFinish(restartMainActivity = true)
         activity.finish()
         awaitCancellation()
     }

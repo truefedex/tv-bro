@@ -83,9 +83,9 @@ class BrowserController : ActiveModel() {
     private val config = AppContext.provideConfig()
     private var incognitoMode = config.incognitoMode
     //all tabs writes go through this queue: they are not cancelled with the model and do not overlap
-    private val writes = TVBro.instance.container.tabWrites
-    private val tabFiles = TVBro.instance.container.tabFiles
-    private val data = TVBro.instance.container.data
+    private val writes = TVBro.container.tabWrites
+    private val tabFiles = TVBro.container.tabFiles
+    private val data = TVBro.container.data
     private val hostConfigs = data.hostConfigs
     val homePageLinks = HomePageLinks(config, data.history, data.favorites)
     private val historyLogger = VisitedHistoryLogger(modelScope, data.history)
@@ -435,7 +435,7 @@ class BrowserController : ActiveModel() {
         if (needReloadUrl) {
             newTab.webEngine.loadUrl(HomePageUrl.resolve(newTab.url, config))
         }
-        newTab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(TVBro.instance))
+        newTab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(AppContext.get()))
         if (switched) {
             //the selection (and a new tab) is kept even if the process is killed without a pause;
             //its files did not change: the engine state was just restored from them

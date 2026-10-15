@@ -18,7 +18,7 @@ class DownloadsHistoryModel: ActiveModel() {
     }
     loading = true
 
-    val newItems = TVBro.instance.container.data.downloads.page(allItems.size.toLong())
+    val newItems = TVBro.container.data.downloads.page(allItems.size.toLong())
     lastLoadedItems.value = newItems
     allItems.addAll(newItems)
 

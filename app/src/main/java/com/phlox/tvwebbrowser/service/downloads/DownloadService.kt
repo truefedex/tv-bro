@@ -49,7 +49,7 @@ class DownloadService : Service() {
         }
 
         override fun onError(task: DownloadTask, responseCode: Int, responseMessage: String) {
-            TVBro.instance.container.data.downloads.update(task.downloadInfo)
+            TVBro.container.data.downloads.update(task.downloadInfo)
             handler.post {
                 model.notifyListenersAboutError(task, responseCode, responseMessage)
                 onTaskEnded(task)
@@ -57,7 +57,7 @@ class DownloadService : Service() {
         }
 
         override fun onDone(task: DownloadTask) {
-            TVBro.instance.container.data.downloads.update(task.downloadInfo)
+            TVBro.container.data.downloads.update(task.downloadInfo)
             handler.post {
                 model.notifyListenersAboutDownloadProgress(task)
                 onTaskEnded(task)

@@ -24,7 +24,7 @@ class IncognitoModeMainActivity: MainActivity() {
 
     override fun onDestroy() {
         if (isFinishing) {
-            TVBro.instance.needToExitProcessAfterMainActivityFinish = true
+            TVBro.exitProcessAfterMainActivityFinish()
         }
         super.onDestroy()
     }

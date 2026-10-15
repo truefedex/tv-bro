@@ -43,7 +43,7 @@ class BrowserControllerTabsTest {
     @After
     fun tearDown() {
         //tabs are saved in the background, let them finish before the database is closed
-        val container = TVBro.instance.container
+        val container = TVBro.container
         val job = container.appScope.launch { container.tabWrites.awaitPending() }
         while (!job.isCompleted) {
             shadowOf(Looper.getMainLooper()).idle()
@@ -61,7 +61,7 @@ class BrowserControllerTabsTest {
     private val current get() = controller.currentTab.value
 
     private fun awaitWrites() {
-        val container = TVBro.instance.container
+        val container = TVBro.container
         val job = container.appScope.launch { container.tabWrites.awaitPending() }
         while (!job.isCompleted) {
             shadowOf(Looper.getMainLooper()).idle()

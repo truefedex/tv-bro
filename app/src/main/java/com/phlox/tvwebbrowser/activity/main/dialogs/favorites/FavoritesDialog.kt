@@ -18,7 +18,7 @@ import java.util.*
 class FavoritesDialog(context: Context, val scope: CoroutineScope, private val callback: Callback, private val currentPageTitle: String?, private val currentPageUrl: String?) : Dialog(context), FavoriteItemView.Listener {
     private var items: MutableList<FavoriteItem> = ArrayList()
     private val adapter = FavoritesListAdapter(items, this)
-    private val favorites = TVBro.instance.container.data.favorites
+    private val favorites = TVBro.container.data.favorites
 
     private val tvPlaceholder: TextView
     private val listView: ListView

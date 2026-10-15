@@ -54,7 +54,7 @@ class TabPoliciesTest {
 
     /** Also loads the config, as the controller does when a page of the host starts loading */
     private fun setPopupBlockLevel(host: String, level: Int) = runBlocking {
-        TVBro.instance.container.data.hostConfigs.setPopupBlockLevel(host, level)
+        TVBro.container.data.hostConfigs.setPopupBlockLevel(host, level)
     }
 
     @Test

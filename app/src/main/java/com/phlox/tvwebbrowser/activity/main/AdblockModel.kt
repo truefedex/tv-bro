@@ -45,7 +45,7 @@ class AdblockModel : ActiveModel(), AdBlocker {
         val client = AdBlockClient()
         var success = false
         withContext(Dispatchers.IO) ioContext@ {
-            val serializedFile = File(TVBro.instance.filesDir, SERIALIZED_LIST_FILE)
+            val serializedFile = File(AppContext.get().filesDir, SERIALIZED_LIST_FILE)
             if ((!needUpdate) && serializedFile.exists() && client.deserialize(serializedFile.absolutePath)) {
                 success = true
                 return@ioContext
@@ -62,7 +62,7 @@ class AdblockModel : ActiveModel(), AdBlocker {
         this@AdblockModel.client = client
         config.adBlockListLastUpdate = now.timeInMillis
         if (!success) {
-            Toast.makeText(TVBro.instance, "Error loading ad-blocker list", Toast.LENGTH_SHORT).show()
+            Toast.makeText(AppContext.get(), "Error loading ad-blocker list", Toast.LENGTH_SHORT).show()
         }
         clientLoading.value = false
     }

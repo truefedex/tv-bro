@@ -32,6 +32,21 @@ import kotlin.system.exitProcess
 class TVBro : Application(), Application.ActivityLifecycleCallbacks {
     companion object {
         lateinit var instance: TVBro
+            private set
+
+        /** Application-wide objects of this process */
+        val container: AppContainer
+            get() = instance.container
+
+        /**
+         * Exits the process (after the pending tab writes) when MainActivity is destroyed next time,
+         * and starts it again if [restartMainActivity].
+         */
+        fun exitProcessAfterMainActivityFinish(restartMainActivity: Boolean = false) {
+            instance.needToExitProcessAfterMainActivityFinish = true
+            instance.needRestartMainActivityAfterExitingProcess = restartMainActivity
+        }
+
         const val CHANNEL_ID_DOWNLOADS: String = "downloads"
         const val MAIN_PREFS_NAME = "main.xml"
         val TAG = TVBro::class.simpleName
@@ -43,8 +58,8 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
     lateinit var container: AppContainer
         private set
 
-    var needToExitProcessAfterMainActivityFinish = false
-    var needRestartMainActivityAfterExitingProcess = false
+    private var needToExitProcessAfterMainActivityFinish = false
+    private var needRestartMainActivityAfterExitingProcess = false
     override fun onCreate() {
         Log.i(TAG, "onCreate")
         super.onCreate()

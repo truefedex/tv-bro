@@ -21,7 +21,7 @@ import org.robolectric.Shadows.shadowOf
 @RunWith(RobolectricTestRunner::class)
 class BrowserControllerTest {
     private lateinit var db: AppDatabase
-    private val container get() = TVBro.instance.container
+    private val container get() = TVBro.container
 
     @Before
     fun setUp() {

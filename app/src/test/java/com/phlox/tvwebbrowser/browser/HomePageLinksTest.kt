@@ -30,7 +30,7 @@ class HomePageLinksTest {
         db = Room.inMemoryDatabaseBuilder(RuntimeEnvironment.getApplication(), AppDatabase::class.java)
             .allowMainThreadQueries().build()
         AppDatabase.setInstanceForTests(db)
-        links = HomePageLinks(config, TVBro.instance.container.data.history, TVBro.instance.container.data.favorites)
+        links = HomePageLinks(config, TVBro.container.data.history, TVBro.container.data.favorites)
     }
 
     @After

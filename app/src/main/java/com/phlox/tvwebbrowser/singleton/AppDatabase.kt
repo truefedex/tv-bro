@@ -8,7 +8,6 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.*
 import com.phlox.tvwebbrowser.model.dao.*
 import com.phlox.tvwebbrowser.model.util.Converters
@@ -246,11 +245,7 @@ abstract class AppDatabase : RoomDatabase() {
         internal var instanceForTests: AppDatabase? = null
             private set
 
-        /** The database of [AppContainer]; for the code that does not get it from there yet */
-        val db: AppDatabase
-            get() = TVBro.instance.container.database
-
-        /** Replaces the database of [AppContainer] */
+        /** Replaces the database of `AppContainer` */
         @VisibleForTesting
         internal fun setInstanceForTests(db: AppDatabase?) {
             instanceForTests = db

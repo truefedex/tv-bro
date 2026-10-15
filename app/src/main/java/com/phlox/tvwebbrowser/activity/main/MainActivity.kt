@@ -794,16 +794,16 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         Log.d(TAG, "switchProcess incognitoMode: $incognitoMode")
         val activityClass = if (incognitoMode) IncognitoModeMainActivity::class.java
         else MainActivity::class.java
-        val app = TVBro.instance
+        val app = applicationContext
         val intent = Intent(app, activityClass)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         intent.putExtra(KEY_PROCESS_ID_TO_KILL, Process.myPid())
         intentDataToCopy?.let {
             intent.putExtras(it)
         }
-        app.container.appScope.launch {
+        TVBro.container.appScope.launch {
             //tabs state saved on activity pause should not be lost
-            app.container.tabWrites.awaitPending()
+            TVBro.container.tabWrites.awaitPending()
             app.startActivity(intent)
             exitProcess(0)
         }
@@ -1145,7 +1145,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             lifecycleScope.launch {
                 val bookmark = controller.homePageLinks.links.value.firstOrNull { it.order == index }
                 var favoriteItem: FavoriteItem? = bookmark?.favoriteId?.let {
-                    TVBro.instance.container.data.favorites.get(it)
+                    TVBro.container.data.favorites.get(it)
                 }
 
                 if (favoriteItem == null) {
