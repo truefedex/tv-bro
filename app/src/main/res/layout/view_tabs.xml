@@ -1,42 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+The tab strip: the tabs, then the new tab button, which stays right after the last tab and stays
+visible when the tabs scroll (the tabs shrink to the room left by the button).
+-->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:parentTag="android.widget.RelativeLayout">
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
+
   <androidx.recyclerview.widget.RecyclerView
       android:id="@+id/rvTabs"
-      android:layout_width="match_parent"
+      android:layout_width="wrap_content"
       android:layout_height="match_parent"
-      android:layout_above="@+id/vSpacer"
-      android:layout_toStartOf="@+id/btnAdd"
-      android:layout_weight="1"
-      />
-  <Button
-      style="@style/Widget.TVBro.Button"
+      app:layout_constrainedWidth="true"
+      app:layout_constraintHorizontal_chainStyle="packed"
+      app:layout_constraintHorizontal_bias="0"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toStartOf="@+id/btnAdd"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintBottom_toBottomOf="parent" />
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds"
       android:id="@+id/btnAdd"
-      android:layout_width="40dp"
-      android:layout_height="40dp"
-      android:layout_above="@+id/vSpacer"
-      android:layout_alignParentEnd="true"
-      android:layout_marginStart="5dp"
-      android:layout_marginTop="5dp"
-      android:layout_marginEnd="5dp"
-      android:layout_marginBottom="5dp"
-      android:fontFamily="serif"
-      android:padding="0dp"
-      android:stateListAnimator="@null"
-      android:text="+"
-      android:textSize="26sp"
-      tools:ignore="HardcodedText"
-      android:gravity="center"
-      android:nextFocusUp="@+id/ibMenu"
+      android:layout_width="@dimen/ds_size_tab_height"
+      android:layout_height="@dimen/ds_size_tab_height"
+      android:layout_marginStart="@dimen/ds_new_tab_button_gap"
+      android:padding="@dimen/ds_new_tab_icon_padding"
+      android:background="@drawable/ds_new_tab_button_bg"
+      android:src="@drawable/ic_add"
       android:nextFocusDown="@+id/ibCloseTab"
-      />
-  <View
-      android:id="@+id/vSpacer"
-      android:layout_width="match_parent"
-      android:layout_height="10dp"
-      android:layout_alignParentBottom="true"
-      android:background="?attr/tbColorSurfaceBarAlt" />
+      android:contentDescription="@string/new_tab"
+      app:layout_constraintStart_toEndOf="@+id/rvTabs"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintBottom_toBottomOf="parent" />
 </merge>

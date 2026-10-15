@@ -3,7 +3,6 @@
 <resources>
     <color name="surface">#2f2f2f</color>
     <color name="surface_bar">#272727</color>
-    <color name="surface_bar_alt">#1B1B1B</color>
     <color name="surface_header">#3f3f3f</color>
     <color name="surface_focused">#357993</color>
     <color name="surface_tab">#323940</color>

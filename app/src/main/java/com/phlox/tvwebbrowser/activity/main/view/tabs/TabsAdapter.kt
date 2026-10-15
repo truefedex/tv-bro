@@ -1,10 +1,10 @@
 package com.phlox.tvwebbrowser.activity.main.view.tabs
 
-import android.os.Handler
-import android.os.Looper
+import android.graphics.Outline
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
@@ -17,12 +17,19 @@ import com.phlox.tvwebbrowser.databinding.ViewHorizontalWebtabItemBinding
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.utils.activity
-import com.phlox.tvwebbrowser.widgets.CheckableContainer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
 class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabViewHolder>() {
+    companion object {
+        /**
+         * For changes of a tab's look: with a payload the item animator keeps the view of the tab,
+         * so a focused tab keeps the focus
+         */
+        const val PAYLOAD_UPDATE = "update"
+    }
+
     var controller: BrowserController? = null
         set(value) {
             field = value
@@ -30,10 +37,9 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
         }
     private val tabsCopy =
         ArrayList<BrowserTab>().apply { addAll(controller?.tabsStates ?: emptyList()) }
+    /** The previewed tab: the focused one, the current one when the strip is not focused */
     var current: Int = 0
     var listener: Listener? = null
-    val uiHandler = Handler(Looper.getMainLooper())
-    var checkedView: CheckableContainer? = null
 
     interface Listener {
         fun onTitleChanged(index: Int)
@@ -43,6 +49,13 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
         fun openInNewTab(url: String, tabIndex: Int)
     }
 
+    init {
+        //tabs keep their views when the list changes, so the focus stays on its tab
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int): Long = System.identityHashCode(tabsCopy[position]).toLong()
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TabViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.view_horizontal_webtab_item, parent, false)
@@ -50,7 +63,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
     }
 
     override fun onBindViewHolder(holder: TabViewHolder, position: Int) {
-        holder.bind(tabsCopy[position], position)
+        holder.bind(tabsCopy[position])
     }
 
     override fun getItemCount(): Int {
@@ -68,16 +81,21 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
     inner class TabViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val vb = ViewHorizontalWebtabItemBinding.bind(itemView)
 
-        fun bind(tabState: BrowserTab, position: Int) {
+        init {
+            vb.ivFavicon.outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setOval(0, 0, view.width, view.height)
+                }
+            }
+            vb.ivFavicon.clipToOutline = true
+        }
+
+        fun bind(tabState: BrowserTab) {
             vb.root.tag = tabState
 
             vb.tvTitle.text = tabState.title
-
-            if (current == tabState.position) {
-                checkedView?.isChecked = false
-                vb.root.isChecked = true
-                checkedView = vb.root
-            }
+            //the current tab looks selected; the focused one has the focus look
+            vb.root.isActivated = tabState == controller?.currentTab?.value
 
             vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
 
@@ -97,18 +115,15 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
                 }
             }
 
+            //focusing a tab previews it
             vb.root.setOnFocusChangeListener { v, hasFocus ->
-                if (hasFocus) {
-                    if (current != tabState.position) {
-                        current = tabState.position
-                        listener?.onTitleChanged(position)
-                        checkedView?.isChecked = false
-                        vb.root.isChecked = true
-                        checkedView = vb.root
-                    }
+                if (hasFocus && current != tabState.position) {
+                    current = tabState.position
+                    listener?.onTitleChanged(tabState.position)
                 }
             }
 
+            //OK switches to it
             vb.root.setOnClickListener {
                 listener?.onTitleSelected(tabState.position)
             }

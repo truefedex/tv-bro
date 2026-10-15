@@ -5,7 +5,8 @@ import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.widget.RelativeLayout
+import android.view.View
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.R
@@ -17,10 +18,13 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 
+/**
+ * The tab strip of the TV bar: focusing a tab previews it, OK switches to it.
+ */
 class TabsView @JvmOverloads constructor(
   context: Context,
   attrs: AttributeSet? = null
-) : RelativeLayout(context, attrs) {
+) : ConstraintLayout(context, attrs) {
 
   private var vb = ViewTabsBinding.inflate(LayoutInflater.from(context), this)
 
@@ -29,6 +33,8 @@ class TabsView @JvmOverloads constructor(
   private lateinit var settingsModel: SettingsModel
   var current: Int by adapter::current
   var listener: Listener? by adapter::listener
+  /** The tab shown as the current one */
+  private var activeTab: BrowserTab? = null
 
   init {
       init()
@@ -40,6 +46,13 @@ class TabsView @JvmOverloads constructor(
     settingsModel = ActiveModelsRepository.get(SettingsModel::class, context)
     adapter.controller = controller
     vb.rvTabs.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+    //neighbour tabs share their border
+    val overlap = resources.getDimensionPixelSize(R.dimen.ds_border_hairline)
+    vb.rvTabs.addItemDecoration(object : RecyclerView.ItemDecoration() {
+      override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+        if (parent.getChildAdapterPosition(view) > 0) outRect.left = -overlap
+      }
+    })
     vb.btnAdd.setOnClickListener{
       listener?.onAddNewTabSelected()
     }
@@ -109,7 +122,16 @@ class TabsView @JvmOverloads constructor(
     //the update is delivered asynchronously, the tab may be already closed
     val tabIndex = controller.tabsStates.indexOf(tab)
     if (tabIndex >= 0) {
-      adapter.notifyItemChanged(tabIndex)
+      adapter.notifyItemChanged(tabIndex, TabsAdapter.PAYLOAD_UPDATE)
+    }
+  }
+
+  /** The previewed tab becomes the current one again (the strip is left without switching) */
+  fun resetPreview() {
+    val index = controller.tabsStates.indexOf(controller.currentTab.value)
+    if (index != -1) {
+      current = index
+      scrollToSeeCurrentTab()
     }
   }
 
@@ -129,12 +151,15 @@ class TabsView @JvmOverloads constructor(
   }
 
   private val currentTabObserver: (value: BrowserTab?) -> Unit =  {
+    //the previous and the new current tab change their look
+    for (tab in listOf(activeTab, it)) {
+      val index = controller.tabsStates.indexOf(tab)
+      if (index != -1) adapter.notifyItemChanged(index, TabsAdapter.PAYLOAD_UPDATE)
+    }
+    activeTab = it
     val new = controller.tabsStates.indexOf(it)
     if (new != -1 && current != new) {
-      adapter.notifyItemChanged(current)
       current = new
-      adapter.notifyItemChanged(new)
-
       scrollToSeeCurrentTab()
     }
   }

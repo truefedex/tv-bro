@@ -1,35 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.phlox.tvwebbrowser.widgets.CheckableContainer xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- A tab: one focus stop; selected (activated) when it is the current tab -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="@dimen/web_tab_width"
-    android:layout_height="wrap_content"
+    android:layout_width="@dimen/ds_size_tab_width"
+    android:layout_height="@dimen/ds_size_tab_height"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:nextFocusUp="@+id/ibMenu"
     android:nextFocusDown="@+id/ibCloseTab"
-    android:paddingStart="@dimen/web_tab_padding"
-    android:paddingEnd="@dimen/web_tab_padding"
-    android:background="@drawable/webtab_horizontal_bkg_selector">
+    android:paddingStart="@dimen/ds_space_tab_inset"
+    android:paddingEnd="@dimen/ds_space_tab_inset"
+    android:background="@drawable/ds_tab_bg">
+
+    <!-- round (the adapter clips it to an oval) -->
     <ImageView
         android:id="@+id/ivFavicon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        tools:src="@drawable/ic_launcher"
-        android:scaleType="fitCenter"
-        android:layout_margin="5dp" />
+        android:layout_width="@dimen/ds_size_favicon_tab"
+        android:layout_height="@dimen/ds_size_favicon_tab"
+        android:scaleType="centerCrop"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_launcher" />
+
     <TextView
-        style="@style/Widget.TVBro.Text.Title"
+        style="@style/Widget.TVBro.Text.TabTitle"
         android:id="@+id/tvTitle"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_toEndOf="@+id/ivFavicon"
-        android:duplicateParentState="true"
-        android:textColor="@color/webtab_horizontal_text_selector"
-        tools:text="@string/app_name"
-        android:gravity="center_vertical"
-        android:layout_marginStart="3dp"
-        android:lines="1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/ds_space_icon_text"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
         android:ellipsize="end"
-        android:paddingStart="0dp"
-        android:paddingEnd="10dp"/>
-</com.phlox.tvwebbrowser.widgets.CheckableContainer>
+        tools:text="@string/app_name" />
+</LinearLayout>

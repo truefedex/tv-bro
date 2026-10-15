@@ -11,6 +11,7 @@
     <string name="deny">Deny</string>
     <string name="location">Location</string>
     <string name="open_in_new_tab">Open in new tab</string>
+    <string name="new_tab">New tab</string>
     <string name="download_started">Download started…\nFile will be stored at:\n%s</string>
     <string name="downloading_file">Downloading file…</string>
     <string name="err_cant_open_file_chooser">Cannot open file chooser</string>

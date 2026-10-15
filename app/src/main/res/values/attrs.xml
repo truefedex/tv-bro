@@ -5,8 +5,6 @@
     <attr name="tbColorSurface" format="color" />
     <!-- Top bar, tabs bar and other bars -->
     <attr name="tbColorSurfaceBar" format="color" />
-    <!-- Second tone of bars (behind the tabs) -->
-    <attr name="tbColorSurfaceBarAlt" format="color" />
     <!-- List section headers -->
     <attr name="tbColorSurfaceHeader" format="color" />
     <!-- Focused (or activated) list item, tab -->

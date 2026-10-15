@@ -540,7 +540,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                     vb.ivMiniatures.visibility = View.INVISIBLE
                     vb.rlActionBar.visibility = View.INVISIBLE
                     vb.ivMiniatures.setImageResource(0)
-                    syncTabWithTitles()
+                    returnToCurrentTab()
                     vb.flWebViewContainer.visibility = View.VISIBLE
                     if (hideBottomButtons) {
                         controller.currentTab.value?.webEngine?.getView()?.requestFocus()
@@ -549,6 +549,17 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 .start()
     }
 
+    /** Leaving the bar does not switch tabs: the previewed tab becomes the current one again */
+    private fun returnToCurrentTab() {
+        if (controller.tabsStates.isEmpty()) {
+            host.openInNewTab(settingsModel.homePage, 0)
+            return
+        }
+        vb.vTabs.resetPreview()
+        vb.vActionBar.setAddressBoxText(controller.currentTabState.value.url)
+    }
+
+    /** OK on a tab switches to it */
     private fun syncTabWithTitles() {
         val tab = tabByTitleIndex(vb.vTabs.current)
         if (tab == null) {

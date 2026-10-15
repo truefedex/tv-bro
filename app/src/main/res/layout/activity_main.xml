@@ -44,14 +44,23 @@
             android:layout_marginEnd="@dimen/ds_space_screen_x"
             android:layout_marginTop="@dimen/ds_space_screen_top" />
 
+        <!-- the bottom edge of the bar; the tabs are drawn over it -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/ds_border_hairline"
+            android:layout_alignBottom="@+id/vTabs"
+            android:background="?attr/tbColorDsLine" />
+
         <com.phlox.tvwebbrowser.activity.main.view.tabs.TabsView
             android:id="@+id/vTabs"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="@dimen/ds_size_tab_height"
             android:layout_below="@+id/vActionBar"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="@dimen/ds_tab_strip_margin_top"
+            android:paddingStart="@dimen/ds_space_screen_x"
+            android:paddingEnd="@dimen/ds_space_screen_x"
+            android:clipToPadding="false"
             android:focusable="true"
-            android:nextFocusUp="@+id/ibMenu"
             android:nextFocusDown="@+id/ibCloseTab"
             />
     </RelativeLayout>

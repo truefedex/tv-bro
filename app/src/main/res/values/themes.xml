@@ -14,7 +14,6 @@
     <style name="Theme.TVBro" parent="Theme.TVBroBase">
         <item name="tbColorSurface">@color/surface</item>
         <item name="tbColorSurfaceBar">@color/surface_bar</item>
-        <item name="tbColorSurfaceBarAlt">@color/surface_bar_alt</item>
         <item name="tbColorSurfaceHeader">@color/surface_header</item>
         <item name="tbColorSurfaceFocused">@color/surface_focused</item>
         <item name="tbColorSurfaceTab">@color/surface_tab</item>
