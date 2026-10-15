@@ -15,11 +15,9 @@ data class TabEntity(
     val title: String = "",
     val selected: Boolean = false,
     val thumbnailHash: String? = null,
-    val faviconHash: String? = null,
     val incognito: Boolean = false,
     val position: Int = 0,
     @ColumnInfo(name = "wv_state_file")
     val wvStateFileName: String? = null,
-    val adblock: Boolean? = null,
-    val scale: Float? = null
+    val adblock: Boolean? = null
 )

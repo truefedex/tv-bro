@@ -25,7 +25,6 @@ interface TabEngineEvents {
     fun onBlockedDialog(newTab: Boolean)
     fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View?
     fun closeWindow(internalRepresentation: Any)
-    fun onScaleChanged(oldScale: Float, newScale: Float)
     fun onVisited(url: String)
     fun getHomePageLinks(): List<HomePageLink>
     fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int)

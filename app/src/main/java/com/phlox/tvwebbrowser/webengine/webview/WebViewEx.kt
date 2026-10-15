@@ -107,7 +107,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
         fun closeWindow(window: WebView)
         fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long)
-        fun onScaleChanged(oldScale: Float, newScale: Float)
         fun onCopyTextToClipboardRequested(url: String)
         fun onShareUrlRequested(url: String)
         fun onOpenInExternalAppRequested(url: String)
@@ -434,11 +433,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 if (Uri.parse(errUrl).host == origUrl.host) {//skip ssl errors during loading non-page resources (Chrome did like this too)
                     showCertificateErrorPage(error)
                 }
-            }
-
-            override fun onScaleChanged(view: WebView?, oldScale: Float, newScale: Float) {
-                super.onScaleChanged(view, oldScale, newScale)
-                callback.onScaleChanged(oldScale, newScale)
             }
 
             override fun doUpdateVisitedHistory(view: WebView?, url: String, isReload: Boolean) {

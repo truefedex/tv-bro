@@ -254,7 +254,6 @@ class BrowserControllerEventsTest {
         val tab = open("https://a.com/")
         events.clear()
         assertFalse(tab.callback.shouldOverrideUrlLoading("https://b.com/"))
-        assertEquals("https://b.com/", tab.lastLoadingUrl)
 
         assertTrue(tab.callback.shouldOverrideUrlLoading("no-scheme"))
         assertTrue(events.isEmpty())

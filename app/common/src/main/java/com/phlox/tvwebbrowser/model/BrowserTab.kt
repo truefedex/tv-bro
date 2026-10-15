@@ -15,22 +15,18 @@ class BrowserTab(var id: Long = 0,
                  var title: String = "",
                  var selected: Boolean = false,
                  var thumbnailHash: String? = null,
-                 var faviconHash: String? = null,
                  var incognito: Boolean = false,
                  var position: Int = 0,
                  var wvStateFileName: String? = null,
-                 var adblock: Boolean? = null,
-                 var scale: Float? = null) {
+                 var adblock: Boolean? = null) {
     companion object {
         val TAG: String = BrowserTab::class.java.simpleName
 
         fun fromEntity(entity: TabEntity) = BrowserTab(entity.id, entity.url, entity.title, entity.selected,
-            entity.thumbnailHash, entity.faviconHash, entity.incognito, entity.position, entity.wvStateFileName,
-            entity.adblock, entity.scale)
+            entity.thumbnailHash, entity.incognito, entity.position, entity.wvStateFileName, entity.adblock)
     }
 
-    fun toEntity() = TabEntity(id, url, title, selected, thumbnailHash, faviconHash, incognito, position,
-        wvStateFileName, adblock, scale)
+    fun toEntity() = TabEntity(id, url, title, selected, thumbnailHash, incognito, position, wvStateFileName, adblock)
 
     /** The picture of the page; the file is written when the tab is saved */
     var thumbnail: Bitmap? = null
@@ -41,7 +37,6 @@ class BrowserTab(var id: Long = 0,
     /** Created on the first access (usually when the tab is shown for the first time) */
     val webEngine: WebEngine get() = webEngineHolder.value
     val isWebEngineCreated: Boolean get() = webEngineHolder.isInitialized()
-    var lastLoadingUrl: String? = null //this is last url appeared in WebViewClient.shouldOverrideUrlLoading callback
     var blockedAds = 0
     var blockedPopups = 0
     var cachedHostConfig: HostConfig? = null

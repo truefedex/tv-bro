@@ -107,27 +107,57 @@ class AppDatabaseMigrationTest {
         assertEquals("Example", tab.title)
         assertEquals(true, tab.selected)
         assertEquals("thumb", tab.thumbnailHash)
-        assertEquals("fav", tab.faviconHash)
         assertEquals(false, tab.incognito)
         assertEquals(1, tab.position)
         assertEquals("state", tab.wvStateFileName)
         assertEquals(false, tab.adblock)
-        assertEquals(1.5f, tab.scale)
 
         val incognitoTab = runBlocking { db.tabsDao().getAll(incognito = true) }.single()
         assertEquals(7L, incognitoTab.id)
         assertNull(incognitoTab.adblock)
-        assertNull(incognitoTab.scale)
 
         assertEquals(1, runBlocking { db.historyDao().count() })
 
         val sqlDb = db.openHelper.readableDatabase
-        assertEquals(20, sqlDb.version)
+        assertEquals(21, sqlDb.version)
         sqlDb.query("PRAGMA table_info(tabs)").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
             val columns = ArrayList<String>()
             while (cursor.moveToNext()) columns.add(cursor.getString(nameIndex))
             assertFalse(columns.contains("wv_state"))
+        }
+    }
+
+    @Test
+    fun migrate20To21DropsUnusedTabColumns() {
+        createDatabase(20) { db ->
+            db.insert("tabs", null, ContentValues().apply {
+                put("id", 3L)
+                put("url", "https://example.com/")
+                put("title", "Example")
+                put("selected", 1)
+                put("thumbnailHash", "thumb.webp")
+                put("faviconHash", "fav")
+                put("incognito", 0)
+                put("position", 2)
+                put("wv_state_file", "gecko:state")
+                put("adblock", 1)
+                put("scale", 1.5f)
+            })
+        }
+
+        val db = openMigrated()
+        val tab = runBlocking { db.tabsDao().getAll(incognito = false) }.single()
+        assertEquals(TabEntity(id = 3L, url = "https://example.com/", title = "Example", selected = true,
+            thumbnailHash = "thumb.webp", incognito = false, position = 2, wvStateFileName = "gecko:state",
+            adblock = true), tab)
+
+        db.openHelper.readableDatabase.query("PRAGMA table_info(tabs)").use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            val columns = ArrayList<String>()
+            while (cursor.moveToNext()) columns.add(cursor.getString(nameIndex))
+            assertFalse(columns.contains("faviconHash"))
+            assertFalse(columns.contains("scale"))
         }
     }
 

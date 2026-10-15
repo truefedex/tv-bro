@@ -30,7 +30,7 @@ class VisitedHistoryLogger(
     var lastHistoryItem: HistoryItem? = null
     private var lastHistoryItemSaveJob: Job? = null
 
-    fun logVisited(title: String?, url: String, faviconHash: String?) {
+    fun logVisited(title: String?, url: String) {
         Log.d(TAG, "logVisited: $url")
         if ((url == lastHistoryItem?.url) || url == Config.HOME_PAGE_URL || !url.startsWith("http", true)) {
             return
@@ -48,7 +48,6 @@ class VisitedHistoryLogger(
         item.url = url
         item.title = title ?: ""
         item.time = now
-        item.favicon = faviconHash
         lastHistoryItem = item
         lastHistoryItemSaveJob = scope.launch {
             delay(MIN_VISITED_INTERVAL)

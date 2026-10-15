@@ -569,8 +569,6 @@ class BrowserController : ActiveModel() {
         }
 
         override fun shouldOverrideUrlLoading(url: String): Boolean {
-            tab.lastLoadingUrl = url
-
             when (UrlRouter.route(url, ::needsLocalNetworkPermission)) {
                 UrlRouter.UrlRoute.BLOCK -> return true
                 UrlRouter.UrlRoute.LOAD -> return false
@@ -667,14 +665,9 @@ class BrowserController : ActiveModel() {
             sendUiEvent(BrowserUiEvent.TabClosedByPage)
         }
 
-        override fun onScaleChanged(oldScale: Float, newScale: Float) {
-            Log.d(TAG, "onScaleChanged: oldScale: $oldScale newScale: $newScale")
-            tab.scale = newScale
-        }
-
         override fun onVisited(url: String) {
             if (!config.incognitoMode) {
-                historyLogger.logVisited(tab.title, url, tab.faviconHash)
+                historyLogger.logVisited(tab.title, url)
             }
         }
 

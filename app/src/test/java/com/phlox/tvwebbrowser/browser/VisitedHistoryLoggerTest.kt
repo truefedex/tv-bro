@@ -42,7 +42,7 @@ class VisitedHistoryLoggerTest {
     @Test
     fun visitIsSavedAfterInterval() = runTest {
         val logger = logger()
-        logger.logVisited("Example", "https://example.com/", "hash")
+        logger.logVisited("Example", "https://example.com/")
 
         advanceTimeBy(MIN_VISITED_INTERVAL - 1)
         assertTrue(store.inserted.isEmpty())
@@ -53,7 +53,6 @@ class VisitedHistoryLoggerTest {
         val item = store.inserted[0]
         assertEquals("https://example.com/", item.url)
         assertEquals("Example", item.title)
-        assertEquals("hash", item.favicon)
         assertEquals(0L, item.time)
         assertEquals(1L, item.id)
         assertTrue(item.saved)
@@ -63,9 +62,9 @@ class VisitedHistoryLoggerTest {
     @Test
     fun quickNextVisitDropsPreviousOne() = runTest {
         val logger = logger()
-        logger.logVisited("A", "https://a.com/", null)
+        logger.logVisited("A", "https://a.com/")
         advanceTimeBy(1000)
-        logger.logVisited("B", "https://b.com/", null)
+        logger.logVisited("B", "https://b.com/")
         advanceUntilIdle()
         assertEquals(listOf("https://b.com/"), urls)
     }
@@ -73,11 +72,11 @@ class VisitedHistoryLoggerTest {
     @Test
     fun chainOfQuickVisitsSavesOnlyTheLastOne() = runTest {
         val logger = logger()
-        logger.logVisited(null, "https://a.com/", null)
+        logger.logVisited(null, "https://a.com/")
         advanceTimeBy(MIN_VISITED_INTERVAL - 1)
-        logger.logVisited(null, "https://b.com/", null)
+        logger.logVisited(null, "https://b.com/")
         advanceTimeBy(MIN_VISITED_INTERVAL - 1)
-        logger.logVisited(null, "https://c.com/", null)
+        logger.logVisited(null, "https://c.com/")
         advanceUntilIdle()
         assertEquals(listOf("https://c.com/"), urls)
     }
@@ -85,9 +84,9 @@ class VisitedHistoryLoggerTest {
     @Test
     fun slowVisitsAreAllSaved() = runTest {
         val logger = logger()
-        logger.logVisited(null, "https://a.com/", null)
+        logger.logVisited(null, "https://a.com/")
         advanceTimeBy(MIN_VISITED_INTERVAL + 1000)
-        logger.logVisited(null, "https://b.com/", null)
+        logger.logVisited(null, "https://b.com/")
         advanceUntilIdle()
         assertEquals(listOf("https://a.com/", "https://b.com/"), urls)
     }
@@ -96,9 +95,9 @@ class VisitedHistoryLoggerTest {
     @Test
     fun visitExactlyAtIntervalKeepsPreviousOne() = runTest {
         val logger = logger()
-        logger.logVisited(null, "https://a.com/", null)
+        logger.logVisited(null, "https://a.com/")
         advanceTimeBy(MIN_VISITED_INTERVAL)
-        logger.logVisited(null, "https://b.com/", null)
+        logger.logVisited(null, "https://b.com/")
         advanceUntilIdle()
         assertEquals(listOf("https://a.com/", "https://b.com/"), urls)
     }
@@ -106,13 +105,13 @@ class VisitedHistoryLoggerTest {
     @Test
     fun sameUrlAsLastIsIgnored() = runTest {
         val logger = logger()
-        logger.logVisited(null, "https://a.com/", null)
+        logger.logVisited(null, "https://a.com/")
         advanceUntilIdle()
-        logger.logVisited(null, "https://a.com/", null)
+        logger.logVisited(null, "https://a.com/")
         advanceUntilIdle()
-        logger.logVisited(null, "https://b.com/", null)
+        logger.logVisited(null, "https://b.com/")
         advanceUntilIdle()
-        logger.logVisited(null, "https://a.com/", null)
+        logger.logVisited(null, "https://a.com/")
         advanceUntilIdle()
         assertEquals(listOf("https://a.com/", "https://b.com/", "https://a.com/"), urls)
     }
@@ -120,15 +119,15 @@ class VisitedHistoryLoggerTest {
     @Test
     fun nonWebAndHomePagesAreIgnored() = runTest {
         val logger = logger()
-        logger.logVisited(null, Config.HOME_PAGE_URL, null)
-        logger.logVisited(null, Config.HOME_URL_ALIAS, null)
-        logger.logVisited(null, "about:blank", null)
-        logger.logVisited(null, "file:///sdcard/a.html", null)
-        logger.logVisited(null, "data:text/html,hi", null)
+        logger.logVisited(null, Config.HOME_PAGE_URL)
+        logger.logVisited(null, Config.HOME_URL_ALIAS)
+        logger.logVisited(null, "about:blank")
+        logger.logVisited(null, "file:///sdcard/a.html")
+        logger.logVisited(null, "data:text/html,hi")
         advanceUntilIdle()
         assertTrue(store.inserted.isEmpty())
 
-        logger.logVisited(null, "HTTP://EXAMPLE.COM/", null)
+        logger.logVisited(null, "HTTP://EXAMPLE.COM/")
         advanceUntilIdle()
         assertEquals(listOf("HTTP://EXAMPLE.COM/"), urls)
     }
@@ -136,7 +135,7 @@ class VisitedHistoryLoggerTest {
     @Test
     fun missingTitleIsSavedAsEmpty() = runTest {
         val logger = logger()
-        logger.logVisited(null, "https://a.com/", null)
+        logger.logVisited(null, "https://a.com/")
         advanceUntilIdle()
         assertEquals("", store.inserted[0].title)
     }
@@ -144,7 +143,7 @@ class VisitedHistoryLoggerTest {
     @Test
     fun titleUpdateBeforeSaveGoesIntoInsertedItem() = runTest {
         val logger = logger()
-        logger.logVisited("Loading", "https://a.com/", null)
+        logger.logVisited("Loading", "https://a.com/")
         advanceTimeBy(1000)
         logger.onTitleUpdated("https://a.com/", "Real title")
         advanceUntilIdle()
@@ -155,7 +154,7 @@ class VisitedHistoryLoggerTest {
     @Test
     fun titleUpdateAfterSaveUpdatesStoredItem() = runTest {
         val logger = logger()
-        logger.logVisited("Loading", "https://a.com/", null)
+        logger.logVisited("Loading", "https://a.com/")
         advanceUntilIdle()
         logger.onTitleUpdated("https://a.com/", "Real title")
         advanceUntilIdle()
@@ -165,7 +164,7 @@ class VisitedHistoryLoggerTest {
     @Test
     fun titleUpdateForOtherUrlIsIgnored() = runTest {
         val logger = logger()
-        logger.logVisited("A", "https://a.com/", null)
+        logger.logVisited("A", "https://a.com/")
         advanceUntilIdle()
         logger.onTitleUpdated("https://b.com/", "B")
         advanceUntilIdle()
@@ -189,7 +188,7 @@ class VisitedHistoryLoggerTest {
         val fromDb = HistoryItem().apply { id = 10; url = "https://a.com/"; title = "A"; time = 1 }
         logger.lastHistoryItem = fromDb
 
-        logger.logVisited(null, "https://a.com/", null)
+        logger.logVisited(null, "https://a.com/")
         logger.onTitleUpdated("https://a.com/", "New A")
         advanceUntilIdle()
         assertTrue(store.inserted.isEmpty())

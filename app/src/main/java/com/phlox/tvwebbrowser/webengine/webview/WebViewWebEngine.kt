@@ -367,10 +367,6 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, C
                 mimeType = mimetype, contentDisposition = contentDisposition, size = contentLength))
         }
 
-        override fun onScaleChanged(oldScale: Float, newScale: Float) {
-            callback?.onScaleChanged(oldScale, newScale)
-        }
-
         override fun onCopyTextToClipboardRequested(url: String) {
             callback?.onCopyTextToClipboardRequested(url)
         }
