@@ -29,7 +29,7 @@ class BackNavigationEventsAdapterTest {
 
     @Test
     fun canceledReleaseIsStillBack() {
-        //since Android 13 the release is canceled when the system back callback runs
+        //when the system back callback handles Back (seen on Android 16) every release comes canceled
         adapter.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN))
         adapter.dispatchKeyEvent(key(KeyEvent.ACTION_UP, flags = KeyEvent.FLAG_CANCELED))
         assertEquals(1, backs)

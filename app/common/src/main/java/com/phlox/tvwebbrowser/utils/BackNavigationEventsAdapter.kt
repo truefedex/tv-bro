@@ -290,8 +290,8 @@ class BackNavigationEventsAdapter(
     /**
      * The back press in progress was already handled elsewhere (for example the fullscreen video
      * view of WebView leaves fullscreen on BACK down), so its release must not be one more back.
-     * Note that [KeyEvent.FLAG_CANCELED] of the release can not tell this: since Android 13 the
-     * release of every BACK key is canceled when the system back callback runs.
+     * Note that [KeyEvent.FLAG_CANCELED] of the release can not tell this: when the system back
+     * callback handles Back (seen on Android 16), the release of every BACK key comes canceled.
      */
     fun consumeCurrentPress() {
         d("consumeCurrentPress pendingBackDown=$pendingBackDown")
