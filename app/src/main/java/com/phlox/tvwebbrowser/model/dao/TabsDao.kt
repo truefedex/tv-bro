@@ -1,21 +1,21 @@
 package com.phlox.tvwebbrowser.model.dao
 
 import androidx.room.*
-import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.model.TabEntity
 
 @Dao
 interface TabsDao {
     @Query("SELECT * FROM tabs WHERE incognito=:incognito ORDER BY position ASC")
-    suspend fun getAll(incognito: Boolean = false): List<BrowserTab>
+    suspend fun getAll(incognito: Boolean = false): List<TabEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(item: BrowserTab): Long
+    suspend fun insert(item: TabEntity): Long
 
     @Update
-    suspend fun update(item: BrowserTab)
+    suspend fun update(item: TabEntity)
 
-    @Delete
-    suspend fun delete(item: BrowserTab)
+    @Query("DELETE FROM tabs WHERE id = :id")
+    suspend fun delete(id: Long)
 
     @Query("DELETE FROM tabs WHERE incognito = :incognito")
     suspend fun deleteAll(incognito: Boolean = false)
@@ -26,8 +26,9 @@ interface TabsDao {
     @Query("UPDATE tabs SET position = :position WHERE id = :id")
     suspend fun updatePosition(position: Int, id: Long)
 
+    /** @param positions positions by tab ids */
     @Transaction
-    suspend fun updatePositions(tabs: List<BrowserTab>) {
-        tabs.forEach { updatePosition(it.position, it.id) }
+    suspend fun updatePositions(positions: Map<Long, Int>) {
+        positions.forEach { (id, position) -> updatePosition(position, id) }
     }
 }

@@ -31,6 +31,23 @@ class TabStateFilesTest {
         WebEngineFactory.initializeForTests(FakeWebEngine.provider)
     }
 
+    //what the controller does with the tab when it writes the tab's files
+    private fun TabFilesStore.saveEngineState(tab: BrowserTab) {
+        tab.wvStateFileName = writeEngineState(tab.savedState, tab.webEngine.stateFilePrefix, tab.wvStateFileName)
+    }
+
+    private fun TabFilesStore.saveThumbnail(tab: BrowserTab, thumbnail: Bitmap) {
+        tab.thumbnailHash = writeThumbnail(thumbnail, tab.thumbnailHash)
+    }
+
+    private fun TabFilesStore.removeFiles(tab: BrowserTab) {
+        removeFiles(tab.wvStateFileName, tab.thumbnailHash)
+        tab.wvStateFileName = null
+        tab.thumbnailHash = null
+    }
+
+    private fun TabFilesStore.loadThumbnail(tab: BrowserTab) = tab.thumbnailHash?.let { loadThumbnail(it) }
+
     private fun savedTab(prefix: String): BrowserTab {
         val tab = BrowserTab(url = "https://a.com/")
         tab.fakeEngine.stateFilePrefix = prefix

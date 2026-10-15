@@ -13,7 +13,8 @@ import java.util.UUID
 
 /**
  * Files of tabs: saved states of their engines and thumbnails. A tab keeps only the file names
- * ([BrowserTab.wvStateFileName], [BrowserTab.thumbnailHash]).
+ * ([BrowserTab.wvStateFileName], [BrowserTab.thumbnailHash]); the blocking writes here get
+ * and return the names, so they can run in the background without touching the tab.
  */
 class TabFilesStore(filesDir: File, cacheDir: File) {
     companion object {
@@ -64,40 +65,40 @@ class TabFilesStore(filesDir: File, cacheDir: File) {
     }
 
     /**
-     * Writes the engine state kept in the tab to a file (blocking).
+     * Writes an engine state to a file (blocking).
+     * @param enginePrefix [WebEngine.stateFilePrefix] of the tab's engine
+     * @param oldFileName the file the tab has now
+     * @return the file of the tab after the write
      */
-    fun saveEngineState(tab: BrowserTab) {
-        val state = tab.savedState
-        var stateFileName = tab.wvStateFileName
-        if (stateFileName != null && stateFilePrefix(stateFileName) != tab.webEngine.stateFilePrefix) {
+    fun writeEngineState(state: Any?, enginePrefix: String, oldFileName: String?): String? {
+        var stateFileName = oldFileName
+        if (stateFileName != null && stateFilePrefix(stateFileName) != enginePrefix) {
             //saved by another engine
             stateFile(stateFileName).delete()
             stateFileName = null
-            tab.wvStateFileName = null
         }
-        if (state == null) return
+        if (state == null) return stateFileName
         val stateBytes = when (state) {
-            is Bundle -> Utils.bundleToBytes(state) ?: return
+            is Bundle -> Utils.bundleToBytes(state) ?: return stateFileName
             else -> state.toString().toByteArray(Charsets.UTF_8)
         }
-        if (stateFileName == null) {
-            stateFileName = tab.webEngine.stateFilePrefix + (Utils.hashMD5(stateBytes) ?: return)
-        }
-        try {
-            if (statesDir.exists() || statesDir.mkdirs()) {
-                stateFile(stateFileName).writeBytes(stateBytes)
-                tab.wvStateFileName = stateFileName
-            }
+        val fileName = stateFileName ?: (enginePrefix + (Utils.hashMD5(stateBytes) ?: return null))
+        return try {
+            if (!statesDir.exists() && !statesDir.mkdirs()) return stateFileName
+            stateFile(fileName).writeBytes(stateBytes)
+            fileName
         } catch (e: Exception) {
             e.printStackTrace()
+            stateFileName
         }
     }
 
     /**
-     * Writes the thumbnail to a new file of the tab and deletes the previous one (blocking).
+     * Writes a thumbnail to a new file and deletes the previous one (blocking).
+     * @return the name of the new file, or [oldName] if the thumbnail can not be written
      */
-    fun saveThumbnail(tab: BrowserTab, thumbnail: Bitmap) {
-        if (!thumbnailsDir.exists() && !thumbnailsDir.mkdirs()) return
+    fun writeThumbnail(thumbnail: Bitmap, oldName: String?): String? {
+        if (!thumbnailsDir.exists() && !thumbnailsDir.mkdirs()) return oldName
         val name = UUID.randomUUID().toString() + ".webp"
         val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Bitmap.CompressFormat.WEBP_LOSSY
@@ -108,36 +109,29 @@ class TabFilesStore(filesDir: File, cacheDir: File) {
         try {
             thumbnailFile(name).outputStream().use { thumbnail.compress(format, THUMBNAIL_QUALITY, it) }
         } catch (e: Exception) {
-            Log.e(TAG, "saveThumbnail", e)
+            Log.e(TAG, "writeThumbnail", e)
             thumbnailFile(name).delete()
-            return
+            return oldName
         }
-        tab.thumbnailHash?.let { thumbnailFile(it).delete() }
-        tab.thumbnailHash = name
+        oldName?.let { thumbnailFile(it).delete() }
+        return name
     }
 
     /**
-     * Reads the saved thumbnail of the tab (blocking).
-     * @return null if there is none or its file is lost
+     * Reads a saved thumbnail (blocking).
+     * @return null if its file is lost
      */
-    fun loadThumbnail(tab: BrowserTab): Bitmap? {
-        val name = tab.thumbnailHash ?: return null
+    fun loadThumbnail(name: String): Bitmap? {
         val file = thumbnailFile(name)
         if (!file.exists()) return null
         return BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply { inMutable = true })
     }
 
     /**
-     * Deletes all files of the tab (blocking).
+     * Deletes the files of a tab (blocking).
      */
-    fun removeFiles(tab: BrowserTab) {
-        tab.thumbnailHash?.let {
-            thumbnailFile(it).delete()
-            tab.thumbnailHash = null
-        }
-        tab.wvStateFileName?.let {
-            stateFile(it).delete()
-            tab.wvStateFileName = null
-        }
+    fun removeFiles(stateFileName: String?, thumbnailName: String?) {
+        thumbnailName?.let { thumbnailFile(it).delete() }
+        stateFileName?.let { stateFile(it).delete() }
     }
 }

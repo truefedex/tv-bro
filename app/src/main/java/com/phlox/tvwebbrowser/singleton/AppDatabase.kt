@@ -14,7 +14,7 @@ import com.phlox.tvwebbrowser.model.util.Converters
 
 @Database(entities = [
     Download::class, FavoriteItem::class,
-    HistoryItem::class, BrowserTab::class,
+    HistoryItem::class, TabEntity::class,
     HostConfig::class
                      ],
     version = 20, exportSchema = true)

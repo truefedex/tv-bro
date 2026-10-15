@@ -59,6 +59,34 @@ class BrowserControllerTabsTest {
 
     private val current get() = controller.currentTab.value
 
+    private fun awaitWrites() {
+        val container = TVBro.instance.container
+        val job = container.appScope.launch { container.tabWrites.awaitPending() }
+        while (!job.isCompleted) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(1)
+        }
+    }
+
+    /** url to selected */
+    private fun storedSelection(): Map<String, Boolean> = db.query("SELECT url, selected FROM tabs", null).use { c ->
+        generateSequence { if (c.moveToNext()) c.getString(0) to (c.getInt(1) != 0) else null }.toMap()
+    }
+
+    @Test
+    fun selectionIsStoredWhenTheTabChanges() {
+        val (a, b) = open("https://a.com/", "https://b.com/")
+        awaitWrites()
+        //no activity pause: the new tab and its selection are already stored
+        assertEquals(mapOf("https://a.com/" to false, "https://b.com/" to true), storedSelection())
+
+        controller.changeTab(a)
+        awaitWrites()
+        assertEquals(mapOf("https://a.com/" to true, "https://b.com/" to false), storedSelection())
+        assertSame(a, current)
+        assertFalse(b.selected)
+    }
+
     @Test
     fun openInNewTabSelectsAttachesAndLoadsTheTab() {
         val (a) = open("https://a.com/")

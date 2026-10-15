@@ -3,7 +3,7 @@ package com.phlox.tvwebbrowser.singleton
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
-import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.model.TabEntity
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.After
@@ -144,7 +144,7 @@ class AppDatabaseMigrationTest {
             })
         }
         val db = openMigrated()
-        val newTab = BrowserTab(url = "https://new.com/")
+        val newTab = TabEntity(url = "https://new.com/")
         val id = runBlocking { db.tabsDao().insert(newTab) }
         assertEquals(6L, id)
     }

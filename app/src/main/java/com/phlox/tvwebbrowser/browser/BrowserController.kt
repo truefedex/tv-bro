@@ -19,6 +19,7 @@ import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.model.TabEntity
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.utils.Utils
@@ -106,10 +107,10 @@ class BrowserController : ActiveModel() {
                 }
             }
             if (positionsChanged) {
-                val tabsListClone = listOf(*tabsStates.toTypedArray())
                 writes.enqueue {
-                    val tabsDao = AppDatabase.db.tabsDao()
-                    tabsDao.updatePositions(tabsListClone)
+                    //ids of new tabs are known only when their inserts (enqueued earlier) are done
+                    val positions = tabsStates.filter { it.id != 0L }.associate { it.id to it.position }
+                    AppDatabase.db.tabsDao().updatePositions(positions)
                 }
             }
         }, false)
@@ -133,7 +134,7 @@ class BrowserController : ActiveModel() {
         //tabs of the previous activity instance may be still saving
         writes.awaitPending()
         val tabsDao = AppDatabase.db.tabsDao()
-        tabsStates.replaceAll(tabsDao.getAll(config.incognitoMode))
+        tabsStates.replaceAll(tabsDao.getAll(config.incognitoMode).map(BrowserTab::fromEntity))
         loaded = true
     }
 
@@ -153,36 +154,60 @@ class BrowserController : ActiveModel() {
     }
 
     fun saveTab(tab: BrowserTab): Job {
-        //taken now: the tab may drop its thumbnail before the write runs
+        //the tab as it is now: it may change (or drop its thumbnail) before the write runs
+        val snapshot = tab.toEntity()
         val thumbnail = tab.takeChangedThumbnail()
-        return writes.enqueue { writeTab(tab, thumbnail) }
+        return writes.enqueue { writeTab(tab, snapshot, thumbnail) }
     }
 
-    private suspend fun writeTab(tab: BrowserTab, thumbnail: Bitmap?) {
+    /**
+     * Writes the [snapshot] of the tab with its id and file names, which are known only here:
+     * the earlier writes of the tab give them. The write queue runs on the main thread, so the tab
+     * is read and changed here, between the background writes of the files and of the database.
+     */
+    private suspend fun writeTab(tab: BrowserTab, snapshot: TabEntity, thumbnail: Bitmap?) {
+        val state = tab.savedState
+        //an engine that was never created has no new state
+        val enginePrefix = if (tab.isWebEngineCreated) tab.webEngine.stateFilePrefix else null
+        val oldStateFile = tab.wvStateFileName
+        val oldThumbnail = tab.thumbnailHash
+        val (stateFile, thumbnailName) = withContext(Dispatchers.IO) {
+            val stateFile = if (enginePrefix != null) {
+                tabFiles.writeEngineState(state, enginePrefix, oldStateFile)
+            } else {
+                oldStateFile
+            }
+            val thumbnailName = if (thumbnail != null) tabFiles.writeThumbnail(thumbnail, oldThumbnail) else oldThumbnail
+            stateFile to thumbnailName
+        }
+        tab.wvStateFileName = stateFile
+        tab.thumbnailHash = thumbnailName
+
         val tabsDB = AppDatabase.db.tabsDao()
-        if (tab.selected) {
+        if (snapshot.selected) {
             tabsDB.unselectAll(config.incognitoMode)
         }
-        withContext(Dispatchers.IO) {
-            tabFiles.saveEngineState(tab)
-            if (thumbnail != null) {
-                tabFiles.saveThumbnail(tab, thumbnail)
-            }
-        }
-        if (tab.id != 0L) {
-            tabsDB.update(tab)
+        val entity = snapshot.copy(id = tab.id, wvStateFileName = stateFile, thumbnailHash = thumbnailName)
+        if (entity.id != 0L) {
+            tabsDB.update(entity)
         } else {
-            tab.id = tabsDB.insert(tab)
+            tab.id = tabsDB.insert(entity)
         }
     }
 
     fun onCloseTab(tab: BrowserTab) {
-        tab.webEngine.onDetachFromWindow(completely = true, destroyTab = true)
+        if (tab.isWebEngineCreated) {
+            tab.webEngine.onDetachFromWindow(completely = true, destroyTab = true)
+        }
         tabsStates.remove(tab)
         writes.enqueue {
-            val tabsDB = AppDatabase.db.tabsDao()
-            tabsDB.delete(tab)
-            withContext(Dispatchers.IO) { tabFiles.removeFiles(tab) }
+            //the id and the file names are final here: earlier writes of the tab are done
+            val stateFile = tab.wvStateFileName
+            val thumbnailName = tab.thumbnailHash
+            if (tab.id != 0L) {
+                AppDatabase.db.tabsDao().delete(tab.id)
+            }
+            withContext(Dispatchers.IO) { tabFiles.removeFiles(stateFile, thumbnailName) }
         }
     }
 
@@ -198,10 +223,11 @@ class BrowserController : ActiveModel() {
     }
 
     private suspend fun deleteTabs(tabsClone: List<BrowserTab>) {
+        val files = tabsClone.map { it.wvStateFileName to it.thumbnailHash }
         val tabsDB = AppDatabase.db.tabsDao()
         tabsDB.deleteAll(config.incognitoMode)
         withContext(Dispatchers.IO) {
-            tabsClone.forEach { tabFiles.removeFiles(it) }
+            files.forEach { (stateFile, thumbnailName) -> tabFiles.removeFiles(stateFile, thumbnailName) }
         }
     }
 
@@ -233,8 +259,8 @@ class BrowserController : ActiveModel() {
      */
     suspend fun loadThumbnail(tab: BrowserTab): Bitmap? {
         tab.thumbnail?.let { return it }
-        if (tab.thumbnailHash == null) return null
-        val thumbnail = withContext(Dispatchers.IO) { tabFiles.loadThumbnail(tab) }
+        val name = tab.thumbnailHash ?: return null
+        val thumbnail = withContext(Dispatchers.IO) { tabFiles.loadThumbnail(name) }
         if (tab.thumbnail == null) {
             tab.thumbnail = thumbnail
         }
@@ -391,7 +417,8 @@ class BrowserController : ActiveModel() {
     fun changeTab(newTab: BrowserTab) {
         val host = viewHost ?: return
         if (currentTab.value == newTab && newTab.webEngine.getView() != null) return
-        if (currentTab.value != newTab) {
+        val switched = currentTab.value != newTab
+        if (switched) {
             tabsStates.forEach {
                 it.selected = false
             }
@@ -418,6 +445,10 @@ class BrowserController : ActiveModel() {
             newTab.webEngine.loadUrl(HomePageUrl.resolve(newTab.url, config))
         }
         newTab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(TVBro.instance))
+        if (switched) {
+            //the selection (and a new tab) is kept even if the process is killed without a pause
+            saveTab(newTab)
+        }
     }
 
     private fun hostNameOf(tab: BrowserTab): String? = try {

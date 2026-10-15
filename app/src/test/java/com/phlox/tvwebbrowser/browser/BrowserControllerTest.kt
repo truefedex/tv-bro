@@ -86,6 +86,30 @@ class BrowserControllerTest {
     }
 
     @Test
+    fun closingATabRightAfterItsFirstSaveDeletesTheRow() {
+        val model = BrowserController()
+        val keep = BrowserTab(url = "https://a.com/")
+        val closed = BrowserTab(url = "https://b.com/")
+        model.saveTab(keep)
+        model.saveTab(closed)
+        //the id is not known yet: it is taken when the delete runs
+        model.onCloseTab(closed)
+        awaitWrites()
+        assertEquals(listOf("https://a.com/"), storedTabs().map { it.url })
+    }
+
+    @Test
+    fun tabIsStoredAsItWasWhenSaved() {
+        val model = BrowserController()
+        val tab = BrowserTab(url = "https://a.com/")
+        model.saveTab(tab)
+        //an engine may report a transient page (for example about:blank) before the write runs
+        tab.url = "about:blank"
+        awaitWrites()
+        assertEquals(listOf("https://a.com/"), storedTabs().map { it.url })
+    }
+
+    @Test
     fun closeAllTabsRunsAfterPendingSaves() {
         val model = BrowserController()
         model.saveTab(BrowserTab(url = "https://a.com/"))
