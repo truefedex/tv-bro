@@ -7,7 +7,6 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.service.downloads.DownloadTask
 import com.phlox.tvwebbrowser.service.downloads.FileDownloadTask
-import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import java.io.File
@@ -37,7 +36,7 @@ class ActiveDownloadsModel: ActiveModel() {
         } else {
             File(download.filepath).delete()
         }
-        AppDatabase.db.downloadDao().delete(download)
+        TVBro.instance.container.data.downloads.delete(download)
     }
 
     fun registerListener(listener: Listener) {

@@ -7,4 +7,8 @@ import com.phlox.tvwebbrowser.singleton.AppDatabase
  */
 class DataRepositories(val database: AppDatabase) {
     val hostConfigs = HostConfigRepository(database.hostsDao())
+    val tabs = TabsRepository(database.tabsDao())
+    val history = HistoryRepository(database.historyDao())
+    val favorites = FavoritesRepository(database.favoritesDao())
+    val downloads = DownloadsRepository(database.downloadDao())
 }

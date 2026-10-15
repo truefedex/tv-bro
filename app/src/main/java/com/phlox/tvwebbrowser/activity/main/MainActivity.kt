@@ -68,7 +68,6 @@ import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.BrowserTab
-import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
@@ -1146,7 +1145,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             lifecycleScope.launch {
                 val bookmark = controller.homePageLinks.links.value.firstOrNull { it.order == index }
                 var favoriteItem: FavoriteItem? = bookmark?.favoriteId?.let {
-                    AppDatabase.db.favoritesDao().getById(it)
+                    TVBro.instance.container.data.favorites.get(it)
                 }
 
                 if (favoriteItem == null) {

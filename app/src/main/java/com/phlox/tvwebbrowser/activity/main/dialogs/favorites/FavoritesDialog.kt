@@ -1,12 +1,12 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs.favorites
 
+import com.phlox.tvwebbrowser.TVBro
 import android.app.Dialog
 import android.content.Context
 import android.view.View
 import android.widget.*
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.FavoriteItem
-import com.phlox.tvwebbrowser.singleton.AppDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +18,7 @@ import java.util.*
 class FavoritesDialog(context: Context, val scope: CoroutineScope, private val callback: Callback, private val currentPageTitle: String?, private val currentPageUrl: String?) : Dialog(context), FavoriteItemView.Listener {
     private var items: MutableList<FavoriteItem> = ArrayList()
     private val adapter = FavoritesListAdapter(items, this)
+    private val favorites = TVBro.instance.container.data.favorites
 
     private val tvPlaceholder: TextView
     private val listView: ListView
@@ -64,7 +65,7 @@ class FavoritesDialog(context: Context, val scope: CoroutineScope, private val c
         listView.adapter = adapter
 
         scope.launch(Dispatchers.Main) {
-            items.addAll(AppDatabase.db.favoritesDao().getAll())
+            items.addAll(favorites.all())
             onItemsChanged()
             pbLoading.visibility = View.GONE
         }
@@ -86,15 +87,12 @@ class FavoritesDialog(context: Context, val scope: CoroutineScope, private val c
         listView.visibility = View.GONE
         tvPlaceholder.visibility = View.GONE
         scope.launch(Dispatchers.Main) {
-            if (item.id == 0L) {
-                val lastInsertRowId = AppDatabase.db.favoritesDao().insert(item)
-                item.id = lastInsertRowId
+            val isNew = item.id == 0L
+            favorites.save(item)
+            if (isNew) {
                 items.add(0, item)
-                onItemsChanged()
-            } else {
-                AppDatabase.db.favoritesDao().update(item)
-                onItemsChanged()
             }
+            onItemsChanged()
         }
     }
 
@@ -107,7 +105,7 @@ class FavoritesDialog(context: Context, val scope: CoroutineScope, private val c
 
     override fun onDeleteClick(favorite: FavoriteItem) {
         scope.launch(Dispatchers.Main) {
-            AppDatabase.db.favoritesDao().delete(favorite)
+            favorites.delete(favorite)
             items.remove(favorite)
             onItemsChanged()
         }

@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.history
 
+import com.phlox.tvwebbrowser.TVBro
 import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
@@ -15,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ActivityHistoryBinding
-import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
@@ -33,6 +33,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     private var ibDelete: ImageButton? = null
     private var adapter: HistoryAdapter? = null
     private lateinit var historyModel: HistoryModel
+    private val history get() = TVBro.instance.container.data.history
     private val voiceSearchHelper = VoiceSearchHelper(this)
 
     /** Back leaves the multiselect mode before it closes the screen */
@@ -95,10 +96,10 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     lifecycleScope.launch(Dispatchers.Main) {
                         if (deleteAll) {
-                            AppDatabase.db.historyDao().deleteWhereTimeLessThan(Long.MAX_VALUE)
+                            history.deleteAll()
                             adapter!!.erase()
                         } else {
-                            AppDatabase.db.historyDao().delete(*(adapter!!.selectedItems).toTypedArray())
+                            history.delete(adapter!!.selectedItems)
                             adapter!!.remove(adapter!!.selectedItems)
                         }
                     }

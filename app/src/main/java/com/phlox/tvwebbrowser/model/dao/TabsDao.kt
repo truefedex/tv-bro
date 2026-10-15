@@ -23,6 +23,23 @@ interface TabsDao {
     @Query("UPDATE tabs SET selected = 0 WHERE incognito = :incognito")
     suspend fun unselectAll(incognito: Boolean = false)
 
+    /**
+     * Inserts (id 0) or updates the tab; a selected tab unselects the others.
+     * @return the id of the tab
+     */
+    @Transaction
+    suspend fun save(tab: TabEntity): Long {
+        if (tab.selected) {
+            unselectAll(tab.incognito)
+        }
+        return if (tab.id != 0L) {
+            update(tab)
+            tab.id
+        } else {
+            insert(tab)
+        }
+    }
+
     @Query("UPDATE tabs SET position = :position WHERE id = :id")
     suspend fun updatePosition(position: Int, id: Long)
 

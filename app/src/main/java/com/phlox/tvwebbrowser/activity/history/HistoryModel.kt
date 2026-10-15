@@ -1,7 +1,7 @@
 package com.phlox.tvwebbrowser.activity.history
 
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.HistoryItem
-import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +11,7 @@ class HistoryModel: ActiveModel() {
     val lastLoadedItems = ObservableValue<List<HistoryItem>>(ArrayList())
     private var loading = false
     var searchQuery = ""
+    private val history = TVBro.instance.container.data.history
 
 
     fun loadItems(eraseOldResults: Boolean, offset: Long = 0) = modelScope.launch(Dispatchers.Main) {
@@ -20,9 +21,9 @@ class HistoryModel: ActiveModel() {
         loading = true
 
         lastLoadedItems.value = if ("" == searchQuery) {
-            AppDatabase.db.historyDao().allByLimitOffset(offset)
+            history.page(offset)
         } else {
-            AppDatabase.db.historyDao().search(searchQuery, searchQuery)
+            history.search(searchQuery)
         }
         loading = false
     }

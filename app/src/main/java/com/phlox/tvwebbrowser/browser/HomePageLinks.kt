@@ -4,7 +4,8 @@ import android.util.Log
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.HomePageLink
-import com.phlox.tvwebbrowser.singleton.AppDatabase
+import com.phlox.tvwebbrowser.data.FavoritesRepository
+import com.phlox.tvwebbrowser.data.HistoryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +17,11 @@ import java.util.Locale
 /**
  * Links shown on the built-in home page: bookmarks, latest or most visited history items.
  */
-class HomePageLinks(private val config: Config) {
+class HomePageLinks(
+    private val config: Config,
+    private val history: HistoryRepository,
+    private val favorites: FavoritesRepository
+) {
     companion object {
         private const val TAG = "HomePageLinks"
     }
@@ -30,24 +35,24 @@ class HomePageLinks(private val config: Config) {
         if (config.homePageMode != Config.HomePageMode.HOME_PAGE) return
         when (config.homePageLinksMode) {
             Config.HomePageLinksMode.MOST_VISITED -> {
-                _links.value = AppDatabase.db.historyDao().frequentlyUsedUrls()
+                _links.value = history.mostVisited()
                     .map { HomePageLink.fromHistoryItem(it) }
             }
             Config.HomePageLinksMode.LATEST_HISTORY -> {
-                _links.value = AppDatabase.db.historyDao().last(8)
+                _links.value = history.last(8)
                     .map { HomePageLink.fromHistoryItem(it) }
             }
             Config.HomePageLinksMode.BOOKMARKS -> {
-                val favorites = AppDatabase.db.favoritesDao().getHomePageBookmarks()
-                if (favorites.isEmpty() && !config.initialBookmarksSuggestionsLoaded) {
+                val bookmarks = favorites.homePageBookmarks()
+                if (bookmarks.isEmpty() && !config.initialBookmarksSuggestionsLoaded) {
                     val suggestions = initialBookmarksSuggestions() ?: return
                     for (s in suggestions) {
-                        s.id = AppDatabase.db.favoritesDao().insert(s)
+                        favorites.save(s)
                     }
                     config.initialBookmarksSuggestionsLoaded = true
                     _links.value = suggestions.map { HomePageLink.fromBookmarkItem(it) }
                 } else {
-                    _links.value = favorites.map { HomePageLink.fromBookmarkItem(it) }
+                    _links.value = bookmarks.map { HomePageLink.fromBookmarkItem(it) }
                 }
             }
         }
@@ -56,7 +61,7 @@ class HomePageLinks(private val config: Config) {
     suspend fun remove(link: HomePageLink) {
         _links.update { it - link }
         link.favoriteId?.let {
-            AppDatabase.db.favoritesDao().delete(it)
+            favorites.delete(it)
         }
     }
 
@@ -64,11 +69,11 @@ class HomePageLinks(private val config: Config) {
      * Saves the bookmark edited (or created, if its id is 0) by the user and updates its link.
      */
     suspend fun onBookmarkEdited(item: FavoriteItem) {
-        if (item.id == 0L) {
-            item.id = AppDatabase.db.favoritesDao().insert(item)
+        val isNew = item.id == 0L
+        favorites.save(item)
+        if (isNew) {
             _links.update { it + HomePageLink.fromBookmarkItem(item) }
         } else {
-            AppDatabase.db.favoritesDao().update(item)
             _links.update { links ->
                 links.map { if (it.favoriteId == item.id) HomePageLink.fromBookmarkItem(item) else it }
             }
@@ -79,7 +84,7 @@ class HomePageLinks(private val config: Config) {
         val link = _links.value.find { it.order == bookmarkOrder } ?: return
         val favoriteId = link.favoriteId ?: return
         if (link.validUntil == null) return
-        AppDatabase.db.favoritesDao().markAsUseful(favoriteId)
+        favorites.markAsUseful(favoriteId)
     }
 
     private fun initialBookmarksSuggestions(): List<FavoriteItem>? {

@@ -15,12 +15,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.TabEntity
-import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
@@ -41,7 +39,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
-import java.util.Calendar
 
 /**
  * Browser core: owns the tabs (their list, the current one, their persistence) and
@@ -88,12 +85,10 @@ class BrowserController : ActiveModel() {
     //all tabs writes go through this queue: they are not cancelled with the model and do not overlap
     private val writes = TVBro.instance.container.tabWrites
     private val tabFiles = TVBro.instance.container.tabFiles
-    private val hostConfigs get() = TVBro.instance.container.data.hostConfigs
-    val homePageLinks = HomePageLinks(config)
-    private val historyLogger = VisitedHistoryLogger(modelScope, object : VisitedHistoryLogger.Store {
-        override suspend fun insert(item: HistoryItem): Long = AppDatabase.db.historyDao().insert(item)
-        override suspend fun updateTitle(id: Long, title: String) = AppDatabase.db.historyDao().updateTitle(id, title)
-    })
+    private val data = TVBro.instance.container.data
+    private val hostConfigs = data.hostConfigs
+    val homePageLinks = HomePageLinks(config, data.history, data.favorites)
+    private val historyLogger = VisitedHistoryLogger(modelScope, data.history)
     private var historyLoaded = false
 
     init {
@@ -111,7 +106,7 @@ class BrowserController : ActiveModel() {
                 writes.enqueue {
                     //ids of new tabs are known only when their inserts (enqueued earlier) are done
                     val positions = tabsStates.filter { it.id != 0L }.associate { it.id to it.position }
-                    AppDatabase.db.tabsDao().updatePositions(positions)
+                    data.tabs.updatePositions(positions)
                 }
             }
         }, false)
@@ -134,21 +129,15 @@ class BrowserController : ActiveModel() {
         }
         //tabs of the previous activity instance may be still saving
         writes.awaitPending()
-        val tabsDao = AppDatabase.db.tabsDao()
-        tabsStates.replaceAll(tabsDao.getAll(config.incognitoMode).map(BrowserTab::fromEntity))
+        tabsStates.replaceAll(data.tabs.load(config.incognitoMode).map(BrowserTab::fromEntity))
         loaded = true
     }
 
     private suspend fun initHistory() {
         Log.d(TAG, "initHistory")
-        val historyDao = AppDatabase.db.historyDao()
-        if (historyDao.count() > 5000) {
-            val c = Calendar.getInstance()
-            c.add(Calendar.MONTH, -3)
-            historyDao.deleteWhereTimeLessThan(c.time.time)
-        }
+        data.history.trim()
         try {
-            historyLogger.lastHistoryItem = historyDao.last().firstOrNull()
+            historyLogger.lastHistoryItem = data.history.last(1).firstOrNull()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -194,16 +183,8 @@ class BrowserController : ActiveModel() {
             tab.thumbnailHash = thumbnailName
         }
 
-        val tabsDB = AppDatabase.db.tabsDao()
-        if (snapshot.selected) {
-            tabsDB.unselectAll(config.incognitoMode)
-        }
         val entity = snapshot.copy(id = tab.id, wvStateFileName = tab.wvStateFileName, thumbnailHash = tab.thumbnailHash)
-        if (entity.id != 0L) {
-            tabsDB.update(entity)
-        } else {
-            tab.id = tabsDB.insert(entity)
-        }
+        tab.id = data.tabs.save(entity)
     }
 
     fun onCloseTab(tab: BrowserTab) {
@@ -216,7 +197,7 @@ class BrowserController : ActiveModel() {
             val stateFile = tab.wvStateFileName
             val thumbnailName = tab.thumbnailHash
             if (tab.id != 0L) {
-                AppDatabase.db.tabsDao().delete(tab.id)
+                data.tabs.delete(tab.id)
             }
             withContext(Dispatchers.IO) { tabFiles.removeFiles(stateFile, thumbnailName) }
         }
@@ -235,8 +216,7 @@ class BrowserController : ActiveModel() {
 
     private suspend fun deleteTabs(tabsClone: List<BrowserTab>) {
         val files = tabsClone.map { it.wvStateFileName to it.thumbnailHash }
-        val tabsDB = AppDatabase.db.tabsDao()
-        tabsDB.deleteAll(config.incognitoMode)
+        data.tabs.deleteAll(config.incognitoMode)
         withContext(Dispatchers.IO) {
             files.forEach { (stateFile, thumbnailName) -> tabFiles.removeFiles(stateFile, thumbnailName) }
         }
