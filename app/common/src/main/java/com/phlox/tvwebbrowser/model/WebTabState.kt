@@ -22,10 +22,11 @@ import java.nio.charset.Charset
 /**
  * Created by PDT on 24.08.2016.
  *
- * Class to store state of tab with webView
+ * Class to store state of tab with webView.
+ * Not a data class: a tab is identified by the object, not by its (changing) fields.
  */
 @Entity(tableName = "tabs")
-data class WebTabState(@PrimaryKey(autoGenerate = true)
+class WebTabState(@PrimaryKey(autoGenerate = true)
                        var id: Long = 0,
                        var url: String = "",
                        var title: String = "",
