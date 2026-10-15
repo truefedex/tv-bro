@@ -47,7 +47,8 @@ to each button never changes.
         android:contentDescription="@string/refresh_page" />
   </LinearLayout>
 
-  <LinearLayout
+  <!-- the site button, the address (the focus stop between the buttons) and the mic -->
+  <com.phlox.tvwebbrowser.activity.main.view.AddressFieldLayout
       android:id="@+id/llAddress"
       android:layout_width="0dp"
       android:layout_height="match_parent"
@@ -55,35 +56,75 @@ to each button never changes.
       android:layout_marginStart="@dimen/ds_space_gutter"
       android:orientation="horizontal"
       android:background="@drawable/ds_address_field_bg"
-      android:padding="@dimen/ds_border_hairline"
-      android:focusable="true"
-      android:clickable="true"
-      android:nextFocusDown="@+id/vTabs"
-      android:contentDescription="@string/url_prompt">
+      android:padding="@dimen/ds_border_hairline">
 
-    <!-- focusable only while the address is edited: the field around it is the focus stop -->
+    <FrameLayout
+        android:layout_width="@dimen/ds_size_toolbar_segment"
+        android:layout_height="match_parent">
 
-    <EditText
-        style="@style/Widget.TVBro.Text.Address"
-        android:id="@+id/etUrl"
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Field"
+          android:id="@+id/ibSite"
+          android:layout_width="match_parent"
+          android:src="@drawable/ic_site"
+          android:nextFocusDown="@+id/vTabs"
+          android:contentDescription="@string/site_settings" />
+
+      <!-- ads and pop-ups blocked on the page -->
+      <TextView
+          style="@style/Widget.TVBro.Text.CountBadge"
+          android:id="@+id/tvSiteBadge"
+          android:layout_width="wrap_content"
+          android:layout_height="@dimen/ds_size_badge_height"
+          android:layout_gravity="top|end"
+          android:layout_marginTop="@dimen/ds_badge_margin_top"
+          android:layout_marginEnd="@dimen/ds_badge_margin_end"
+          android:minWidth="@dimen/ds_size_badge_min_width"
+          android:paddingStart="@dimen/ds_badge_padding_horizontal"
+          android:paddingEnd="@dimen/ds_badge_padding_horizontal"
+          android:gravity="center"
+          android:background="@drawable/ds_badge_bg"
+          android:textColor="?attr/tbColorDsOnBadge"
+          android:importantForAccessibility="no"
+          android:visibility="gone"
+          tools:text="14"
+          tools:visibility="visible" />
+    </FrameLayout>
+
+    <View style="@style/Widget.TVBro.FieldDivider" />
+
+    <FrameLayout
+        android:id="@+id/flUrl"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:paddingStart="@dimen/ds_space_field_inset"
-        android:paddingEnd="@dimen/ds_space_field_inset"
-        android:gravity="center_vertical"
-        android:background="@null"
-        android:textCursorDrawable="@null"
-        android:textColor="?attr/tbColorDsInk"
-        android:textColorHint="?attr/tbColorDsInkFaint"
-        android:singleLine="true"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
+        android:focusable="true"
+        android:clickable="true"
         android:nextFocusDown="@+id/vTabs"
-        android:imeOptions="actionSearch"
-        android:hint="@string/url_prompt"
-        android:inputType="textFilter|textNoSuggestions|textUri"
-        android:importantForAutofill="no" />
+        android:contentDescription="@string/url_prompt">
+
+      <!-- focusable only while the address is edited: the address around it is the focus stop -->
+      <EditText
+          style="@style/Widget.TVBro.Text.Address"
+          android:id="@+id/etUrl"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:paddingStart="@dimen/ds_space_field_inset"
+          android:paddingEnd="@dimen/ds_space_field_inset"
+          android:gravity="center_vertical"
+          android:background="@null"
+          android:textCursorDrawable="@null"
+          android:textColor="?attr/tbColorDsInk"
+          android:textColorHint="?attr/tbColorDsInkFaint"
+          android:singleLine="true"
+          android:focusable="false"
+          android:focusableInTouchMode="false"
+          android:nextFocusDown="@+id/vTabs"
+          android:imeOptions="actionSearch"
+          android:hint="@string/url_prompt"
+          android:inputType="textFilter|textNoSuggestions|textUri"
+          android:importantForAutofill="no" />
+    </FrameLayout>
 
     <View
         style="@style/Widget.TVBro.FieldDivider"
@@ -95,7 +136,7 @@ to each button never changes.
         android:src="@drawable/ic_voice_search"
         android:nextFocusDown="@+id/vTabs"
         android:contentDescription="@string/voice_search" />
-  </LinearLayout>
+  </com.phlox.tvwebbrowser.activity.main.view.AddressFieldLayout>
 
   <LinearLayout
       style="@style/Widget.TVBro.ToolbarGroup"

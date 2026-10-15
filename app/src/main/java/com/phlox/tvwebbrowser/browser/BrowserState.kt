@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.browser
 
 import android.content.Intent
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.model.HostConfig
 
 /**
  * What the UI shows about the current tab.
@@ -11,6 +12,8 @@ data class CurrentTabState(
     val tabIdentity: Int = 0,
     val hasTab: Boolean = false,
     val url: String = "",
+    /** The host of the page, "" if its url has none; its settings are the site settings */
+    val host: String = "",
     val title: String = "",
     /** A page is loading: the UI offers to stop it instead of reloading */
     val loading: Boolean = false,
@@ -19,6 +22,8 @@ data class CurrentTabState(
     val adBlockEnabled: Boolean = false,
     val blockedAds: Int = 0,
     val blockedPopups: Int = 0,
+    /** Popup blocking of the site, one of HostConfig.POPUP_BLOCK_* */
+    val popupBlockLevel: Int = HostConfig.DEFAULT_BLOCK_POPUPS_VALUE,
     val certificateError: Boolean = false
 )
 

@@ -503,6 +503,11 @@ class BrowserController : ActiveModel() {
             //the selection (and a new tab) is kept even if the process is killed without a pause;
             //its files did not change: the engine state was just restored from them
             saveTab(newTab, withFiles = false)
+            //the site settings of a page that is not loaded again
+            modelScope.launch {
+                loadHostConfig(newTab)
+                publishState()
+            }
         }
     }
 
@@ -526,6 +531,7 @@ class BrowserController : ActiveModel() {
     suspend fun changePopupBlockingLevel(newLevel: Int, tab: BrowserTab) {
         val currentHostName = hostNameOf(tab) ?: return
         hostConfigs.setPopupBlockLevel(currentHostName, newLevel)
+        publishState()
     }
 
     private fun engineCallback(tab: BrowserTab, host: TabViewHost): WebEngineCallbacks {
@@ -550,6 +556,7 @@ class BrowserController : ActiveModel() {
             tabIdentity = System.identityHashCode(tab),
             hasTab = true,
             url = tab.url,
+            host = hostNameOf(tab) ?: "",
             title = tab.title,
             loading = tab.loading,
             canGoBack = tab.webEngine.canGoBack(),
@@ -557,6 +564,7 @@ class BrowserController : ActiveModel() {
             adBlockEnabled = isAdBlockEnabled(tab),
             blockedAds = tab.blockedAds,
             blockedPopups = tab.blockedPopups,
+            popupBlockLevel = findHostConfig(tab)?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE,
             certificateError = tab.certificateError
         )
     }
@@ -653,7 +661,11 @@ class BrowserController : ActiveModel() {
             tab.webEngine.onUpdateAdblockSetting(isAdBlockEnabled(tab))
             publishState()
             //for the popup blocking of this page
-            modelScope.launch { loadHostConfig(tab) }
+            modelScope.launch {
+                loadHostConfig(tab)
+                //the site settings shown for the page
+                publishState()
+            }
         }
 
         override fun onPageFinished(url: String?) {

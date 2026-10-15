@@ -98,6 +98,34 @@
         <item name="android:background">?attr/tbColorDsLineStrong</item>
     </style>
 
+    <!-- A row of a panel: an icon, a title with a second line, a value -->
+    <style name="Widget.TVBro.PanelRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/ds_panel_row_height</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">@dimen/ds_space_menu_inset</item>
+        <item name="android:paddingEnd">@dimen/ds_space_menu_inset</item>
+        <item name="android:background">@drawable/ds_menu_row_bg</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <!-- The icon of a menu or panel row -->
+    <style name="Widget.TVBro.MenuIcon" parent="">
+        <item name="android:layout_width">@dimen/ds_size_icon_menu</item>
+        <item name="android:layout_height">@dimen/ds_size_icon_menu</item>
+        <item name="tint">?attr/tbColorDsIcon</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+
+    <!-- A hairline between menu or panel rows -->
+    <style name="Widget.TVBro.MenuSeparator" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/ds_border_hairline</item>
+        <item name="android:background">?attr/tbColorDsLine</item>
+    </style>
+
     <!-- A divider inside the address field -->
     <style name="Widget.TVBro.FieldDivider" parent="">
         <item name="android:layout_width">@dimen/ds_border_hairline</item>
@@ -163,6 +191,11 @@
     <style name="Widget.TVBro.Text.TabTitle">
         <item name="android:textSize">@dimen/ds_text_tab_title</item>
         <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- The second line of a menu or panel row -->
+    <style name="Widget.TVBro.Text.MenuCaption">
+        <item name="android:textSize">@dimen/ds_text_menu_caption</item>
     </style>
 
     <!-- The count of blocked ads and pop-ups on the site button -->

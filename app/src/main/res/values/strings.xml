@@ -49,6 +49,23 @@
     <string name="navigate_home">Navigate home</string>
     <string name="refresh_page">Refresh page</string>
     <string name="stop_loading">Stop loading</string>
+    <string name="site_settings">Site settings</string>
+    <string name="ad_blocking">Ad blocking</string>
+    <string name="popups">Pop-ups</string>
+    <string name="state_on">On</string>
+    <string name="state_off">Off</string>
+    <!-- the second line of the ad blocking and pop-up rows of the site panel -->
+    <plurals name="blocked_on_page">
+        <item quantity="one">%d blocked on this page</item>
+        <item quantity="other">%d blocked on this page</item>
+    </plurals>
+    <!-- popup_blocking_level in short, for the site panel -->
+    <array name="popup_blocking_level_short">
+        <item>Don\'t block</item>
+        <item>Block dialogs</item>
+        <item>Block new tabs</item>
+        <item>Block all windows</item>
+    </array>
     <string name="voice_search">Voice search</string>
     <string name="not_set">Not set</string>
     <string name="action">Action:</string>

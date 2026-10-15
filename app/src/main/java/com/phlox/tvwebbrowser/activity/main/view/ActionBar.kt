@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewTreeObserver
 import android.view.View.OnFocusChangeListener
 import android.view.View.OnKeyListener
 import android.view.animation.Animation
@@ -28,8 +30,9 @@ class ActionBar @JvmOverloads constructor(
     private var downloadAnimation: Animation? = null
     private var downloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, context)
     /**
-     * The address is edited: the field is selected and its text has the focus. Otherwise the field
-     * itself is a focus stop (focused, not edited), so Left and Right move between the bar buttons.
+     * The address is edited: the field is selected and its text has the focus. Otherwise the address
+     * is a focus stop (focused, not edited), so Left and Right move between the bar buttons
+     * (the site button and the mic at the ends of the field are focus stops of their own).
      */
     private var editing = false
     private var textBeforeEditing = ""
@@ -48,6 +51,7 @@ class ActionBar @JvmOverloads constructor(
         fun search(text: String)
         fun onUrlInputDone()
         fun toggleIncognitoMode()
+        fun showSitePanel()
     }
 
     private val etUrlFocusChangeListener = OnFocusChangeListener { _, focused ->
@@ -117,8 +121,9 @@ class ActionBar @JvmOverloads constructor(
 
         vb.ibIncognito.isActivated = incognitoMode
 
-        vb.llAddress.setOnClickListener { startEditing(selectAllLater = true) }
-        vb.llAddress.setOnKeyListener(addressFieldKeyListener)
+        vb.ibSite.setOnClickListener { callback?.showSitePanel() }
+        vb.flUrl.setOnClickListener { startEditing(selectAllLater = true) }
+        vb.flUrl.setOnKeyListener(addressFieldKeyListener)
         vb.etUrl.onFocusChangeListener = etUrlFocusChangeListener
         vb.etUrl.setOnKeyListener(etUrlKeyListener)
 
@@ -148,6 +153,34 @@ class ActionBar @JvmOverloads constructor(
         vb.ibForward.imageAlpha = if (canGoForward) OPAQUE else DIMMED
         vb.ibRefresh.setImageResource(if (loading) R.drawable.ic_stop else R.drawable.ic_refresh)
         vb.ibRefresh.contentDescription = context.getString(if (loading) R.string.stop_loading else R.string.refresh_page)
+    }
+
+    /** The field shows the state of the address, whether the address or its text has the focus */
+    private val focusListener = ViewTreeObserver.OnGlobalFocusChangeListener { _, _ ->
+        vb.llAddress.addressFocused = vb.flUrl.hasFocus()
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        viewTreeObserver.addOnGlobalFocusChangeListener(focusListener)
+    }
+
+    override fun onDetachedFromWindow() {
+        viewTreeObserver.removeOnGlobalFocusChangeListener(focusListener)
+        super.onDetachedFromWindow()
+    }
+
+    /** The site panel opens under it, and gives the focus back to it */
+    val siteButton: View get() = vb.ibSite
+
+    /**
+     * @param blocked ads and pop-ups blocked on the page, shown as a badge
+     * @param hasSite false if the page has no site (no host): the button stays focusable but is dimmed
+     */
+    fun setSiteState(blocked: Int, hasSite: Boolean) {
+        vb.tvSiteBadge.visibility = if (blocked > 0) VISIBLE else GONE
+        vb.tvSiteBadge.text = blocked.toString()
+        vb.ibSite.imageAlpha = if (hasSite) OPAQUE else DIMMED
     }
 
     fun setAddressBoxText(text: String) {
@@ -197,7 +230,7 @@ class ActionBar @JvmOverloads constructor(
         }
         vb.llAddress.isActivated = false
         if (vb.etUrl.hasFocus()) {
-            vb.llAddress.requestFocus()
+            vb.flUrl.requestFocus()
         }
         vb.etUrl.isFocusable = false
         vb.etUrl.isFocusableInTouchMode = false
@@ -206,9 +239,9 @@ class ActionBar @JvmOverloads constructor(
     /** Stops editing the address without using it */
     fun cancelEditing() = stopEditing(submitted = false)
 
-    /** The bar opens with the focus on the address field */
+    /** The bar opens with the focus on the address */
     fun catchFocus() {
-        vb.llAddress.requestFocus()
+        vb.flUrl.requestFocus()
     }
 
     companion object {

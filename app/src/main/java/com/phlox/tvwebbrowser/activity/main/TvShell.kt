@@ -22,6 +22,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
+import com.phlox.tvwebbrowser.activity.main.view.SitePanelView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
@@ -141,6 +142,21 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun showSettings() = host.showSettings()
 
+    override fun showSitePanel() {
+        //a page without a host has no site settings
+        if (controller.currentTabState.value.host.isEmpty()) return
+        vb.vSitePanel.show(vb.vActionBar.siteButton)
+    }
+
+    private val sitePanelCallback = object : SitePanelView.Callback {
+        //the page reloads, the panel stays open with the focus on the row
+        override fun toggleAdBlock() = toggleAdBlockForTab()
+
+        override fun choosePopupBlockLevel() {
+            showPopupBlockOptions()
+        }
+    }
+
     override fun initiateVoiceSearch() = host.commands.startVoiceSearch()
 
     override fun search(text: String) = host.search(text)
@@ -189,12 +205,11 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
         vb.vTabs.listener = tabsListener
 
-        vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
-        vb.ibPopupBlock.setOnClickListener { showPopupBlockOptions() }
         vb.ibHome.setOnClickListener { host.commands.goHome() }
         vb.ibCloseTab.setOnClickListener { controller.currentTab.value?.apply { closeTab(this) } }
 
         vb.vActionBar.callback = this
+        vb.vSitePanel.callback = sitePanelCallback
 
         vb.llBottomPanel.childs.forEach {
             it.setOnTouchListener(bottomButtonsOnTouchListener)
@@ -277,12 +292,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     override fun render(state: CurrentTabState) {
         vb.vActionBar.setNavigationState(state.canGoBack, state.canGoForward, state.loading)
 
-        vb.ibAdBlock.setImageResource(if (state.adBlockEnabled) R.drawable.ic_adblock_on else R.drawable.ic_adblock_off)
-        vb.tvBlockedAdCounter.visibility = if (state.adBlockEnabled && state.blockedAds != 0) View.VISIBLE else View.GONE
-        vb.tvBlockedAdCounter.text = state.blockedAds.toString()
-
-        vb.tvBlockedPopupCounter.visibility = if (state.blockedPopups != 0) View.VISIBLE else View.GONE
-        vb.tvBlockedPopupCounter.text = state.blockedPopups.toString()
+        vb.vActionBar.setSiteState(state.blockedAds + state.blockedPopups, hasSite = state.host.isNotEmpty())
+        vb.vSitePanel.render(state)
 
         vb.vActionBar.setAddressBoxTextColor(if (state.certificateError) Color.RED else
             activity.themeColor(R.attr.tbColorDsInk))
@@ -427,6 +438,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     override fun registerBackCallbacks(dispatcher: OnBackPressedDispatcher, fullscreen: OnBackPressedCallback) {
         //the enabled callback added last goes first
         dispatcher.addCallback(activity, menuBackCallback)
+        dispatcher.addCallback(activity, vb.vSitePanel.backCallback)
         dispatcher.addCallback(activity, fullscreen)
         dispatcher.addCallback(activity, vb.vCursorMenu.backCallback)
         dispatcher.addCallback(activity, cursorModesBackCallback)
@@ -499,6 +511,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         if (vb.rlActionBar.visibility == View.INVISIBLE) {
             return
         }
+        vb.vSitePanel.hide()
         if (hideBottomButtons) {
             hideBottomPanel()
         }

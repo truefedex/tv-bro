@@ -3,8 +3,10 @@ package com.phlox.tvwebbrowser.browser
 import android.os.Looper
 import androidx.room.Room
 import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
@@ -155,6 +157,21 @@ class BrowserControllerEventsTest {
         awaitWrite(controller.setSiteAdBlock(tab, true))
         tab.callback.onBlockedAd("https://ads.com/1")
         assertEquals(1, state.blockedAds)
+    }
+
+    @Test
+    fun stateHasTheSiteAndItsPopupBlocking() {
+        val tab = open("https://a.com/page")
+        assertEquals("a.com", state.host)
+        assertEquals(HostConfig.DEFAULT_BLOCK_POPUPS_VALUE, state.popupBlockLevel)
+        runBlocking { controller.changePopupBlockingLevel(HostConfig.POPUP_BLOCK_NONE, tab) }
+        assertEquals(HostConfig.POPUP_BLOCK_NONE, state.popupBlockLevel)
+    }
+
+    @Test
+    fun pageWithoutHostHasNoSite() {
+        open(Config.HOME_URL_ALIAS)
+        assertEquals("", state.host)
     }
 
     @Test

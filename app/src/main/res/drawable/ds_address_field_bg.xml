@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The address field: surface, focused, edited (selected stroke) -->
+<!-- The address field: surface, focused (with the focus outline), edited (selected stroke) -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_activated="true">
         <shape android:shape="rectangle">
@@ -19,14 +19,14 @@
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/ds_radius_control" />
             <solid android:color="?attr/tbColorDsSurfaceFocused" />
-            <stroke android:color="?attr/tbColorDsLine" android:width="@dimen/ds_border_hairline" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
         </shape>
     </item>
     <item android:state_hovered="true">
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/ds_radius_control" />
             <solid android:color="?attr/tbColorDsSurfaceFocused" />
-            <stroke android:color="?attr/tbColorDsLine" android:width="@dimen/ds_border_hairline" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
         </shape>
     </item>
     <item>
