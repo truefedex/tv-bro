@@ -56,7 +56,12 @@ to each button never changes.
       android:orientation="horizontal"
       android:background="@drawable/ds_address_field_bg"
       android:padding="@dimen/ds_border_hairline"
-      android:addStatesFromChildren="true">
+      android:focusable="true"
+      android:clickable="true"
+      android:nextFocusDown="@+id/vTabs"
+      android:contentDescription="@string/url_prompt">
+
+    <!-- focusable only while the address is edited: the field around it is the focus stop -->
 
     <EditText
         style="@style/Widget.TVBro.Text.Address"
@@ -72,6 +77,8 @@ to each button never changes.
         android:textColor="?attr/tbColorDsInk"
         android:textColorHint="?attr/tbColorDsInkFaint"
         android:singleLine="true"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         android:nextFocusDown="@+id/vTabs"
         android:imeOptions="actionSearch"
         android:hint="@string/url_prompt"

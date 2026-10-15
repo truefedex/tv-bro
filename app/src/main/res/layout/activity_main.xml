@@ -15,12 +15,16 @@
         android:layout_height="match_parent"
         android:id="@+id/flWebViewContainer" />
 
+    <!-- along the top edge of the window, above the bar (its elevation is higher), whether the bar is open or not -->
     <ProgressBar
         style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="3dp"
         android:id="@+id/progressBar"
         android:progressTint="?attr/tbColorProgress"
+        android:progressBackgroundTint="@android:color/transparent"
+        android:elevation="6dp"
+        android:outlineProvider="none"
         android:visibility="visible" />
 
     <RelativeLayout

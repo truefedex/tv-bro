@@ -1,7 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
 import android.content.Context
-import android.transition.TransitionManager
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -28,7 +27,12 @@ class ActionBar @JvmOverloads constructor(
     var callback: Callback? = null
     private var downloadAnimation: Animation? = null
     private var downloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, context)
-    private var extendedAddressBarMode = false
+    /**
+     * The address is edited: the field is selected and its text has the focus. Otherwise the field
+     * itself is a focus stop (focused, not edited), so Left and Right move between the bar buttons.
+     */
+    private var editing = false
+    private var textBeforeEditing = ""
 
     interface Callback {
         fun closeWindow()
@@ -42,22 +46,14 @@ class ActionBar @JvmOverloads constructor(
         fun showSettings()
         fun initiateVoiceSearch()
         fun search(text: String)
-        fun onExtendedAddressBarMode()
         fun onUrlInputDone()
         fun toggleIncognitoMode()
     }
 
     private val etUrlFocusChangeListener = OnFocusChangeListener { _, focused ->
-        if (focused) {
-            enterExtendedAddressBarMode()
-
-            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-
-            imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_IMPLICIT)
-            postDelayed(//workaround an android TV bug
-                {
-                    vb.etUrl.selectAll()
-                }, 500)
+        //leaving the text (to the tabs, or the bar is hidden) cancels the editing
+        if (!focused && editing) {
+            stopEditing(submitted = false)
         }
     }
 
@@ -65,14 +61,24 @@ class ActionBar @JvmOverloads constructor(
         when (keyEvent.keyCode) {
             KeyEvent.KEYCODE_ENTER -> {
                 if (keyEvent.action == KeyEvent.ACTION_UP) {
-                    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
-                    callback?.search(vb.etUrl.text.toString())
-                    dismissExtendedAddressBarMode()
+                    val text = vb.etUrl.text.toString()
+                    stopEditing(submitted = true)
+                    callback?.search(text)
                     callback?.onUrlInputDone()
                 }
                 return@OnKeyListener true
             }
+        }
+        false
+    }
+
+    /** Typing on a keyboard while the field is focused starts the editing with the typed character */
+    private val addressFieldKeyListener = OnKeyListener { _, _, keyEvent ->
+        if (!editing && keyEvent.action == KeyEvent.ACTION_DOWN && keyEvent.isPrintingKey) {
+            startEditing(selectAllLater = false)
+            vb.etUrl.selectAll()
+            vb.etUrl.dispatchKeyEvent(keyEvent)
+            return@OnKeyListener true
         }
         false
     }
@@ -111,8 +117,9 @@ class ActionBar @JvmOverloads constructor(
 
         vb.ibIncognito.isActivated = incognitoMode
 
+        vb.llAddress.setOnClickListener { startEditing(selectAllLater = true) }
+        vb.llAddress.setOnKeyListener(addressFieldKeyListener)
         vb.etUrl.onFocusChangeListener = etUrlFocusChangeListener
-
         vb.etUrl.setOnKeyListener(etUrlKeyListener)
 
 
@@ -151,38 +158,57 @@ class ActionBar @JvmOverloads constructor(
     }
 
     /** The user is editing the address */
-    fun isAddressBoxFocused(): Boolean = vb.etUrl.hasFocus()
+    fun isEditingAddress(): Boolean = editing
 
     fun setAddressBoxTextColor(color: Int) {
         vb.etUrl.setTextColor(color)
     }
 
-    private fun enterExtendedAddressBarMode() {
-        if (extendedAddressBarMode) return
-        extendedAddressBarMode = true
-        for (i in 0 until childCount) {
-            val child = getChildAt(i)
-            if (child != vb.llAddress) {
-                child.visibility = GONE
-            }
-        }
-        TransitionManager.beginDelayedTransition(this)
-        callback?.onExtendedAddressBarMode()
-    }
-
-    fun dismissExtendedAddressBarMode() {
-        if (!extendedAddressBarMode) return
-        extendedAddressBarMode = false
-        for (i in 0 until childCount) {
-            val child = getChildAt(i)
-            if (child != vb.llAddress) {
-                child.visibility = VISIBLE
-            }
+    /**
+     * @param selectAllLater select the address after the keyboard is shown (some Android TV keyboards
+     * drop a selection made before)
+     */
+    private fun startEditing(selectAllLater: Boolean) {
+        if (editing) return
+        editing = true
+        textBeforeEditing = vb.etUrl.text.toString()
+        vb.llAddress.isActivated = true
+        vb.etUrl.isFocusable = true
+        vb.etUrl.isFocusableInTouchMode = true
+        vb.etUrl.requestFocus()
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_IMPLICIT)
+        if (selectAllLater) {
+            postDelayed({ if (editing) vb.etUrl.selectAll() }, 500)
         }
     }
 
+    /**
+     * Ends the editing; the field keeps the focus if the text had it.
+     * @param submitted false to bring back the address that was there before
+     */
+    private fun stopEditing(submitted: Boolean) {
+        if (!editing) return
+        editing = false
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
+        if (!submitted) {
+            vb.etUrl.setText(textBeforeEditing)
+        }
+        vb.llAddress.isActivated = false
+        if (vb.etUrl.hasFocus()) {
+            vb.llAddress.requestFocus()
+        }
+        vb.etUrl.isFocusable = false
+        vb.etUrl.isFocusableInTouchMode = false
+    }
+
+    /** Stops editing the address without using it */
+    fun cancelEditing() = stopEditing(submitted = false)
+
+    /** The bar opens with the focus on the address field */
     fun catchFocus() {
-        vb.ibMenu.requestFocus()
+        vb.llAddress.requestFocus()
     }
 
     companion object {

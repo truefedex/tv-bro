@@ -220,10 +220,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private fun tabByTitleIndex(index: Int) =
             if (index >= 0 && index < controller.tabsStates.size) controller.tabsStates[index] else null
 
-    override fun onExtendedAddressBarMode() {
-        vb.llBottomPanel.visibility = View.INVISIBLE
-    }
-
     override fun onUrlInputDone() {
         hideMenuOverlay()
     }
@@ -289,7 +285,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.tvBlockedPopupCounter.text = state.blockedPopups.toString()
 
         vb.vActionBar.setAddressBoxTextColor(if (state.certificateError) Color.RED else
-            activity.themeColor(R.attr.tbColorOnSurface))
+            activity.themeColor(R.attr.tbColorDsInk))
 
         val tabChanged = state.tabIdentity != renderedTabIdentity
         renderedTabIdentity = state.tabIdentity
@@ -298,7 +294,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
         //the address is not touched while the user edits it or browses the tabs list
         //(then the address of the focused tab is shown)
-        if (tabChanged || (!vb.vActionBar.isAddressBoxFocused() &&
+        if (tabChanged || (!vb.vActionBar.isEditingAddress() &&
                     tabByTitleIndex(vb.vTabs.current) == controller.currentTab.value)) {
             vb.vActionBar.setAddressBoxText(state.url)
         }
@@ -460,7 +456,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 }
                 .start()
 
-        vb.vActionBar.dismissExtendedAddressBarMode()
+        vb.vActionBar.cancelEditing()
 
         vb.rlActionBar.visibility = View.VISIBLE
         vb.rlActionBar.translationY = -vb.rlActionBar.height.toFloat()
