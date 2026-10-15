@@ -79,13 +79,6 @@
   <string name="err_webview_can_not_link">Keine Verbindung zur WebView-Komponente möglich. Installieren Sie zuerst „Android System WebView“.</string>
   <string name="open_a_new_tab_here">Neuen Tab hier öffnen</string>
   <string name="tabs">Tabs</string>
-  <array name="tabs_options">
-    <item>Neuen Tab öffnen</item>
-    <item>Aktuellen Tab schließen</item>
-    <item>Alle Tabs schließen</item>
-    <item>Nach links verschieben</item>
-    <item>Nach rechts verschieben</item>
-  </array>
   <string name="ssl_expired">Das Zertifikat ist abgelaufen</string>
   <string name="ssl_idmismatch">Hostname stimmt nicht überein</string>
   <string name="ssl_date_invalid">Datum des Zertifikats ungültig</string>

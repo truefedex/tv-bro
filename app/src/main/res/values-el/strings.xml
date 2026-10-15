@@ -81,13 +81,6 @@
     <string name="err_webview_can_not_link">Δεν είναι δυνατή η σύνδεση με το στοιχείο WebView. Δοκιμάστε πρώτα να εγκαταστήσετε το Android System WebView.</string>
     <string name="open_a_new_tab_here">Άνοιγμα νέας καρτέλας εδώ</string>
     <string name="tabs">Καρτέλες</string>
-    <array name="tabs_options">
-        <item>Άνοιγμα νέας καρτέλας</item>
-        <item>Κλείσιμο τρέχουσας</item>
-        <item>Κλείσιμο όλων</item>
-        <item>Μετακίνηση αριστερά</item>
-        <item>Μετακίνηση δεξιά</item>
-    </array>
     <string name="ssl_expired">Το πιστοποιητικό έχει λήξει</string>
     <string name="ssl_idmismatch">Το όνομα κεντρικού υπολογιστή δεν ταιριάζει</string>
     <string name="ssl_date_invalid">Η ημερομηνία του πιστοποιητικού δεν είναι έγκυρη</string>

@@ -12,6 +12,14 @@
     <string name="location">Location</string>
     <string name="open_in_new_tab">Open in new tab</string>
     <string name="new_tab">New tab</string>
+    <string name="close_other_tabs">Close other tabs</string>
+    <string name="new_tab_to_the_right">New tab to the right</string>
+    <string name="move_left">Move left</string>
+    <string name="move_right">Move right</string>
+    <!-- under a focused tab: Down opens its menu -->
+    <string name="tab_options">Tab options</string>
+    <!-- %s: the title of the tab -->
+    <string name="tab_closed">%s tab closed</string>
     <string name="download_started">Download started…\nFile will be stored at:\n%s</string>
     <string name="downloading_file">Downloading file…</string>
     <string name="err_cant_open_file_chooser">Cannot open file chooser</string>
@@ -101,13 +109,6 @@
     <string name="err_webview_can_not_link">Cannot link to the WebView component. Try to install the Android System WebView component first.</string>
     <string name="open_a_new_tab_here">Open a new tab here</string>
     <string name="tabs">Tabs</string>
-    <array name="tabs_options">
-        <item>Open new tab</item>
-        <item>Close current</item>
-        <item>Close all</item>
-        <item>Move left</item>
-        <item>Move right</item>
-    </array>
     <string name="ssl_expired">The certificate has expired</string>
     <string name="ssl_idmismatch">Hostname mismatch</string>
     <string name="ssl_date_invalid">The date of the certificate is invalid</string>

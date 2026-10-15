@@ -117,13 +117,6 @@
   <string name="don_t_show_again">دیگر نشان نده</string>
   <string name="why_icon_changed">چرا نماد تغییر کرد؟</string>
   <string name="clear_web_cache">پاک کردن حافظه پنهان وب</string>
-  <string-array name="tabs_options">
-    <item>باز کردن برگه جدید</item>
-    <item>بستن برگه فعلی</item>
-    <item>بستن همه</item>
-    <item>انتقال به چپ</item>
-    <item>انتقال به راست</item>
-  </string-array>
   <string name="no_bookmarks_yet">هنوز هیچ نشانکی وجود ندارد</string>
   <string name="done">تمام</string>
   <string name="block_popups">مسدودسازی پنجره‌های بازشو</string>

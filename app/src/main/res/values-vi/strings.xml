@@ -79,13 +79,6 @@
   <string name="err_webview_can_not_link">Không thể liên kết với thành phần WebView. Trước tiên, hãy thử cài đặt Android System WebView.</string>
   <string name="open_a_new_tab_here">Mở tab mới tại đây</string>
   <string name="tabs">Các tab</string>
-  <array name="tabs_options">
-    <item>Mở tab mới</item>
-    <item>Đóng tab hiện tại</item>
-    <item>Đóng tất cả</item>
-    <item>Di chuyển sang trái</item>
-    <item>Di chuyển sang phải</item>
-  </array>
   <string name="ssl_expired">Chứng chỉ đã hết hạn</string>
   <string name="ssl_idmismatch">Tên máy chủ không khớp</string>
   <string name="ssl_date_invalid">Ngày tháng của chứng chỉ không hợp lệ</string>

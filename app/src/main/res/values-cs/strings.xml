@@ -81,13 +81,6 @@
     <string name="err_webview_can_not_link">Nelze se propojit s komponentou WebView. Zkuste nejprve nainstalovat Android System WebView.</string>
     <string name="open_a_new_tab_here">Otevřít zde novou kartu</string>
     <string name="tabs">Karty</string>
-    <array name="tabs_options">
-        <item>Otevřít novou kartu</item>
-        <item>Zavřít aktuální</item>
-        <item>Zavřít vše</item>
-        <item>Přesunout doleva</item>
-        <item>Přesunout doprava</item>
-    </array>
     <string name="ssl_expired">Platnost certifikátu vypršela</string>
     <string name="ssl_idmismatch">Název hostitele se neshoduje</string>
     <string name="ssl_date_invalid">Datum certifikátu je neplatné</string>

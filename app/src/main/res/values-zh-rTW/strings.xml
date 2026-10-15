@@ -158,13 +158,6 @@
         <item>淺色</item>
         <item>深色</item>
     </array>
-    <array name="tabs_options">
-        <item>開啟新分頁</item>
-        <item>關閉目前分頁</item>
-        <item>關閉所有分頁</item>
-        <item>向左移動</item>
-        <item>向右移動</item>
-    </array>
     <string name="http_auth_title">需要驗證</string>
     <string name="play_pause">播放/暫停</string>
     <string name="media_stop">停止媒體</string>

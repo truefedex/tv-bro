@@ -126,7 +126,43 @@
             app:layout_constraintStart_toEndOf="@+id/ibCloseTab"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
     
-    <!-- above the bar (its elevation is higher) -->
+    <!-- under the focused tab: Down opens its menu -->
+    <LinearLayout
+        android:id="@+id/llTabOptionsHint"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/ds_tab_hint_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_tab_hint_padding_start"
+        android:paddingEnd="@dimen/ds_tab_hint_padding_end"
+        android:background="@drawable/ds_hint_bg"
+        android:elevation="6dp"
+        android:visibility="gone"
+        android:importantForAccessibility="no">
+        <ImageView
+            android:layout_width="@dimen/ds_tab_hint_icon"
+            android:layout_height="@dimen/ds_tab_hint_icon"
+            android:src="@drawable/ic_chevron_down"
+            app:tint="?attr/tbColorDsIcon"
+            tools:ignore="ContentDescription" />
+        <TextView
+            style="@style/Widget.TVBro.Text.TabTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/ds_tab_hint_icon_text"
+            android:fontFamily="sans-serif"
+            android:textColor="?attr/tbColorDsInk"
+            android:text="@string/tab_options" />
+    </LinearLayout>
+
+    <!-- above the bar (their elevation is higher) -->
+    <com.phlox.tvwebbrowser.activity.main.view.TabMenuView
+        android:id="@+id/vTabMenu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="7dp"
+        android:outlineProvider="none" />
+
     <com.phlox.tvwebbrowser.activity.main.view.SitePanelView
         android:id="@+id/vSitePanel"
         android:layout_width="match_parent"

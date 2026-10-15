@@ -111,6 +111,19 @@
         <item name="android:clickable">true</item>
     </style>
 
+    <!-- A row of a menu: an icon and a label -->
+    <style name="Widget.TVBro.MenuRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/ds_size_menu_row</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">@dimen/ds_space_menu_inset</item>
+        <item name="android:paddingEnd">@dimen/ds_space_menu_inset</item>
+        <item name="android:background">@drawable/ds_menu_row_bg</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
     <!-- The icon of a menu or panel row -->
     <style name="Widget.TVBro.MenuIcon" parent="">
         <item name="android:layout_width">@dimen/ds_size_icon_menu</item>
@@ -191,6 +204,17 @@
     <style name="Widget.TVBro.Text.TabTitle">
         <item name="android:textSize">@dimen/ds_text_tab_title</item>
         <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- The label of a menu row -->
+    <style name="Widget.TVBro.Text.MenuItem.Row">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">@dimen/ds_space_menu_inset</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
     </style>
 
     <!-- The second line of a menu or panel row -->

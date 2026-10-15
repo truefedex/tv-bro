@@ -81,13 +81,6 @@
     <string name="err_webview_can_not_link">Não é possível vincular ao componente WebView. Tente instalar primeiro o Android System WebView.</string>
     <string name="open_a_new_tab_here">Abrir uma nova aba aqui</string>
     <string name="tabs">Abas</string>
-    <array name="tabs_options">
-        <item>Abrir nova aba</item>
-        <item>Fechar a atual</item>
-        <item>Fechar todas</item>
-        <item>Mover para a esquerda</item>
-        <item>Mover para a direita</item>
-    </array>
     <string name="ssl_expired">O certificado expirou</string>
     <string name="ssl_idmismatch">O nome do host não corresponde</string>
     <string name="ssl_date_invalid">A data do certificado é inválida</string>

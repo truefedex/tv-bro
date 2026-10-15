@@ -81,13 +81,6 @@
     <string name="err_webview_can_not_link">No se puede enlazar con el componente WebView. Prueba a instalar primero Android System WebView.</string>
     <string name="open_a_new_tab_here">Abrir una pestaña nueva aquí</string>
     <string name="tabs">Pestañas</string>
-    <array name="tabs_options">
-        <item>Abrir nueva pestaña</item>
-        <item>Cerrar la actual</item>
-        <item>Cerrar todas</item>
-        <item>Mover a la izquierda</item>
-        <item>Mover a la derecha</item>
-    </array>
     <string name="ssl_expired">El certificado ha caducado</string>
     <string name="ssl_idmismatch">El nombre de host no coincide</string>
     <string name="ssl_date_invalid">La fecha del certificado no es válida</string>

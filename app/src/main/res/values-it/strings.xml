@@ -81,13 +81,6 @@
   <string name="err_webview_can_not_link">Impossibile collegarsi al componente WebView. Prova prima a installare Android System WebView.</string>
   <string name="open_a_new_tab_here">Apri una nuova scheda qui</string>
   <string name="tabs">Schede</string>
-  <array name="tabs_options">
-    <item>Apri nuova scheda</item>
-    <item>Chiudi scheda corrente</item>
-    <item>Chiudi tutte</item>
-    <item>Sposta a sinistra</item>
-    <item>Sposta a destra</item>
-  </array>
   <string name="ssl_expired">Certificato scaduto</string>
   <string name="ssl_idmismatch">Hostname non corrispondente</string>
   <string name="ssl_date_invalid">La data del certificato non è valida</string>

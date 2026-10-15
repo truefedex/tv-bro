@@ -117,13 +117,6 @@
   <string name="don_t_show_again">אל תראה שוב</string>
   <string name="why_icon_changed">למה הסמל השתנה?</string>
   <string name="clear_web_cache">נקה מטמון אינטרנט</string>
-  <string-array name="tabs_options">
-    <item>פתח כרטיסייה חדשה</item>
-    <item>סגור את הנוכחית</item>
-    <item>סגור הכל</item>
-    <item>הזז שמאלה</item>
-    <item>הזז ימינה</item>
-  </string-array>
   <string name="no_bookmarks_yet">עדיין אין סימניות</string>
   <string name="done">בוצע</string>
   <string name="block_popups">חסימת חלונות קופצים</string>

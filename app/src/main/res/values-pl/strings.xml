@@ -81,13 +81,6 @@
   <string name="err_webview_can_not_link">Nie udało się połączyć ze składnikiem WebView. Spróbuj najpierw zainstalować składnik Android System WebView.</string>
   <string name="open_a_new_tab_here">Otwórz nową kartę tutaj</string>
   <string name="tabs">Karty</string>
-  <string-array name="tabs_options">
-    <item>Otwórz nową kartę</item>
-    <item>Zamknij obecną kartę</item>
-    <item>Zamknij wszystkie karty</item>
-    <item>Przesuń w lewo</item>
-    <item>Przesuń w prawo</item>
-  </string-array>
   <string name="ssl_expired">Certyfikat wygasł</string>
   <string name="ssl_idmismatch">Niedopasowanie nazwy hosta</string>
   <string name="ssl_date_invalid">Data certyfikatu jest nieważna</string>

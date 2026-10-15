@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main.view.tabs
 
 import android.graphics.Outline
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -37,16 +38,19 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
         }
     private val tabsCopy =
         ArrayList<BrowserTab>().apply { addAll(controller?.tabsStates ?: emptyList()) }
-    /** The previewed tab: the focused one, the current one when the strip is not focused */
-    var current: Int = 0
+    /**
+     * The previewed tab: the focused one, the current one when the strip is not focused.
+     * The tab and not its place, which changes when tabs are closed or moved.
+     */
+    var previewed: BrowserTab? = null
     var listener: Listener? = null
 
     interface Listener {
         fun onTitleChanged(index: Int)
         fun onTitleSelected(index: Int)
         fun onAddNewTabSelected()
-        fun closeTab(tabState: BrowserTab?)
-        fun openInNewTab(url: String, tabIndex: Int)
+        /** Down, the Menu key or a long press of OK on the tab, its [view] in the strip */
+        fun showTabMenu(tab: BrowserTab, view: View)
     }
 
     init {
@@ -117,8 +121,8 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
 
             //focusing a tab previews it
             vb.root.setOnFocusChangeListener { v, hasFocus ->
-                if (hasFocus && current != tabState.position) {
-                    current = tabState.position
+                if (hasFocus && previewed != tabState) {
+                    previewed = tabState
                     listener?.onTitleChanged(tabState.position)
                 }
             }
@@ -129,7 +133,17 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
             }
 
             vb.root.setOnLongClickListener {
-                tabsView.showTabOptions(tabState)
+                listener?.showTabMenu(tabState, vb.root)
+                true
+            }
+
+            vb.root.setOnKeyListener { _, keyCode, event ->
+                if (keyCode != KeyEvent.KEYCODE_DPAD_DOWN && keyCode != KeyEvent.KEYCODE_MENU) {
+                    return@setOnKeyListener false
+                }
+                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                    listener?.showTabMenu(tabState, vb.root)
+                }
                 true
             }
         }

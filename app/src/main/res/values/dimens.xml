@@ -22,11 +22,6 @@
 
     <dimen name="voice_recognition_results_renderer_height">50dp</dimen>
 
-    <dimen name="notification_vertical_padding">5dp</dimen>
-    <dimen name="notification_horizontal_padding">10dp</dimen>
-    <dimen name="notification_max_width">320dp</dimen>
-    <dimen name="notification_margin">10dp</dimen>
-
     <!--
     Sizes of the design system and the redesign boards. TV boards are 1920x1080, so a board pixel is
     half a dp. Text sizes are in sp like the other text sizes (sp = dp at the default font scale).
@@ -73,6 +68,17 @@
     <dimen name="ds_badge_margin_end">5dp</dimen>
     <dimen name="ds_badge_padding_horizontal">4dp</dimen>
     <dimen name="ds_site_panel_width">330dp</dimen>
+    <dimen name="ds_tab_menu_gap">-1dp</dimen>
+    <dimen name="ds_tab_hint_offset_x">40dp</dimen>
+    <dimen name="ds_tab_hint_offset_y">11dp</dimen>
+    <dimen name="ds_tab_hint_height">28dp</dimen>
+    <dimen name="ds_tab_hint_padding_start">8dp</dimen>
+    <dimen name="ds_tab_hint_padding_end">12dp</dimen>
+    <dimen name="ds_tab_hint_icon">16dp</dimen>
+    <dimen name="ds_tab_hint_icon_text">6dp</dimen>
+    <dimen name="ds_size_icon_toast">22dp</dimen>
+    <dimen name="ds_toast_padding_horizontal">24dp</dimen>
+    <dimen name="ds_toast_margin_bottom">30dp</dimen>
     <dimen name="ds_tab_strip_margin_top">15dp</dimen>
     <dimen name="ds_new_tab_button_gap">8dp</dimen>
     <dimen name="ds_new_tab_icon_padding">10dp</dimen>

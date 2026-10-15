@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The menu of a tab, under the tab. The focus does not leave its rows while it is open. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+  <LinearLayout
+      android:id="@+id/llMenu"
+      android:layout_width="@dimen/ds_size_tab_menu_width"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:background="@drawable/ds_menu_bg"
+      android:elevation="4dp"
+      android:clickable="true">
+
+    <LinearLayout
+        style="@style/Widget.TVBro.MenuRow"
+        android:id="@+id/llCloseTab"
+        android:nextFocusUp="@+id/llCloseTab"
+        android:nextFocusDown="@+id/llCloseOtherTabs"
+        android:nextFocusLeft="@+id/llCloseTab"
+        android:nextFocusRight="@+id/llCloseTab">
+      <ImageView style="@style/Widget.TVBro.MenuIcon" android:src="@drawable/ic_close" />
+      <TextView style="@style/Widget.TVBro.Text.MenuItem.Row" android:text="@string/close_tab" />
+    </LinearLayout>
+
+    <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <LinearLayout
+        style="@style/Widget.TVBro.MenuRow"
+        android:id="@+id/llCloseOtherTabs"
+        android:nextFocusUp="@+id/llCloseTab"
+        android:nextFocusDown="@+id/llNewTabToTheRight"
+        android:nextFocusLeft="@+id/llCloseOtherTabs"
+        android:nextFocusRight="@+id/llCloseOtherTabs">
+      <ImageView style="@style/Widget.TVBro.MenuIcon" android:src="@drawable/ic_close_other_tabs" />
+      <TextView style="@style/Widget.TVBro.Text.MenuItem.Row" android:text="@string/close_other_tabs" />
+    </LinearLayout>
+
+    <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <LinearLayout
+        style="@style/Widget.TVBro.MenuRow"
+        android:id="@+id/llNewTabToTheRight"
+        android:nextFocusUp="@+id/llCloseOtherTabs"
+        android:nextFocusDown="@+id/llMoveLeft"
+        android:nextFocusLeft="@+id/llNewTabToTheRight"
+        android:nextFocusRight="@+id/llNewTabToTheRight">
+      <ImageView style="@style/Widget.TVBro.MenuIcon" android:src="@drawable/ic_new_tab_right" />
+      <TextView style="@style/Widget.TVBro.Text.MenuItem.Row" android:text="@string/new_tab_to_the_right" />
+    </LinearLayout>
+
+    <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <LinearLayout
+        style="@style/Widget.TVBro.MenuRow"
+        android:id="@+id/llMoveLeft"
+        android:nextFocusUp="@+id/llNewTabToTheRight"
+        android:nextFocusDown="@+id/llMoveRight"
+        android:nextFocusLeft="@+id/llMoveLeft"
+        android:nextFocusRight="@+id/llMoveLeft">
+      <ImageView style="@style/Widget.TVBro.MenuIcon" android:src="@drawable/ic_back" />
+      <TextView style="@style/Widget.TVBro.Text.MenuItem.Row" android:text="@string/move_left" />
+    </LinearLayout>
+
+    <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <LinearLayout
+        style="@style/Widget.TVBro.MenuRow"
+        android:id="@+id/llMoveRight"
+        android:nextFocusUp="@+id/llMoveLeft"
+        android:nextFocusDown="@+id/llMoveRight"
+        android:nextFocusLeft="@+id/llMoveRight"
+        android:nextFocusRight="@+id/llMoveRight">
+      <ImageView style="@style/Widget.TVBro.MenuIcon" android:src="@drawable/ic_forward" />
+      <TextView style="@style/Widget.TVBro.Text.MenuItem.Row" android:text="@string/move_right" />
+    </LinearLayout>
+  </LinearLayout>
+</merge>

@@ -81,13 +81,6 @@
     <string name="err_webview_can_not_link">Não é possível ligar ao componente WebView. Experimente instalar primeiro o Android System WebView.</string>
     <string name="open_a_new_tab_here">Abrir um novo separador aqui</string>
     <string name="tabs">Separadores</string>
-    <array name="tabs_options">
-        <item>Abrir novo separador</item>
-        <item>Fechar o atual</item>
-        <item>Fechar todos</item>
-        <item>Mover para a esquerda</item>
-        <item>Mover para a direita</item>
-    </array>
     <string name="ssl_expired">O certificado expirou</string>
     <string name="ssl_idmismatch">O nome do anfitrião não corresponde</string>
     <string name="ssl_date_invalid">A data do certificado é inválida</string>

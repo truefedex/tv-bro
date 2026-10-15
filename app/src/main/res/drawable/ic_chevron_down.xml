@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- A hint that Down opens more -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:tint="@color/icon_tint" android:height="24dp" android:viewportHeight="24.0" android:viewportWidth="24.0" android:width="24dp">
+    <path android:fillColor="@android:color/white" android:pathData="M16.59,8.59L12,13.17 7.41,8.59 6,10l6,6 6,-6z"/>
+</vector>

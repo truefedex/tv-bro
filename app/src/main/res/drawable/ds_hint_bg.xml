@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A hint under a focused view: a menu-colored pill with a hairline border -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/ds_radius_control" />
+    <solid android:color="?attr/tbColorDsMenu" />
+    <stroke android:color="?attr/tbColorDsLine" android:width="@dimen/ds_border_hairline" />
+</shape>

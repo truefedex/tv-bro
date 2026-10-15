@@ -8,6 +8,7 @@ import android.view.ViewPropertyAnimator
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
 import androidx.annotation.DrawableRes
+import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ViewNotificationBinding
 
 open class NotificationView @JvmOverloads constructor(
@@ -23,13 +24,15 @@ open class NotificationView @JvmOverloads constructor(
 
         private var lastView: NotificationView? = null
 
-        fun showBottomRight(parent: RelativeLayout, @DrawableRes icon: Int, message: String): NotificationView {
+        /** Shows a toast at the bottom center of [parent]; it replaces the toast shown before */
+        fun show(parent: RelativeLayout, @DrawableRes icon: Int, message: String): NotificationView {
             val view = NotificationView(parent.context)
             view.setIcon(icon)
             view.setMessage(message)
             val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT)
+            lp.addRule(RelativeLayout.CENTER_HORIZONTAL)
             lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+            lp.bottomMargin = parent.resources.getDimensionPixelSize(R.dimen.ds_toast_margin_bottom)
             parent.addView(view, lp)
             val lv = lastView
             if (lv != null && lv.isAttachedToWindow) {

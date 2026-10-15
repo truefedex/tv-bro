@@ -117,13 +117,6 @@
   <string name="don_t_show_again">Не показувати знову</string>
   <string name="why_icon_changed">Чому змінився значок?</string>
   <string name="clear_web_cache">Очистити вебкеш</string>
-  <string-array name="tabs_options">
-    <item>Відкрити нову вкладку</item>
-    <item>Закрити поточну</item>
-    <item>Закрити всі</item>
-    <item>Пересунути вліво</item>
-    <item>Пересунути вправо</item>
-  </string-array>
   <string name="no_bookmarks_yet">Закладок ще немає</string>
   <string name="done">Готово</string>
   <string name="block_popups">Блокування спливаючих вікон</string>

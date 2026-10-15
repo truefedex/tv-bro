@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.activity.main.view.tabs
 
-import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
@@ -10,7 +9,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.databinding.ViewTabsBinding
@@ -30,8 +28,12 @@ class TabsView @JvmOverloads constructor(
 
   private lateinit var controller: BrowserController
   private val adapter: TabsAdapter = TabsAdapter(this)
-  private lateinit var settingsModel: SettingsModel
-  var current: Int by adapter::current
+  /** The place of the previewed tab, -1 if there is none */
+  var current: Int
+    get() = controller.tabsStates.indexOf(adapter.previewed)
+    set(value) {
+      adapter.previewed = controller.tabsStates.getOrNull(value)
+    }
   var listener: Listener? by adapter::listener
   /** The tab shown as the current one */
   private var activeTab: BrowserTab? = null
@@ -43,7 +45,6 @@ class TabsView @JvmOverloads constructor(
   fun init() {
     if (isInEditMode) return
     controller = ActiveModelsRepository.get(BrowserController::class, context)
-    settingsModel = ActiveModelsRepository.get(SettingsModel::class, context)
     adapter.controller = controller
     vb.rvTabs.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
     //neighbour tabs share their border
@@ -73,43 +74,28 @@ class TabsView @JvmOverloads constructor(
     controller.currentTab.unsubscribe(currentTabObserver)
   }
 
-  fun showTabOptions(tab: BrowserTab) {
-    val tabIndex = controller.tabsStates.indexOf(tab)
-    AlertDialog.Builder(context)
-      .setTitle(R.string.tabs)
-      .setItems(R.array.tabs_options) { _, i ->
-        when (i) {
-          //Open new Tab
-          0 -> {
-            listener?.openInNewTab(settingsModel.homePage, tabIndex + 1)
-          }
-          //Close current
-          1 -> listener?.closeTab(tab)
-          //Close all
-          2 -> {
-            controller.onCloseAllTabs()
-            listener?.openInNewTab(settingsModel.homePage, 0)
-          }
-          //Move left
-          3 -> controller.moveTab(tab, -1)
-          //Move right
-          4 -> controller.moveTab(tab, 1)
-        }
-      }
-      .show()
+  /**
+   * Gives the focus to the tab (and so previews it). Before a tab is removed the focus moves to its
+   * neighbour this way: the strip loses the focus if the focused view is removed.
+   */
+  fun focusTab(tab: BrowserTab) {
+    val index = controller.tabsStates.indexOf(tab)
+    if (index == -1) return
+    val view = (0 until vb.rvTabs.childCount).map { vb.rvTabs.getChildAt(it) }.firstOrNull { it.tag === tab }
+    if (view != null) {
+      view.requestFocus()
+    } else {
+      vb.rvTabs.scrollToPosition(index)
+      vb.rvTabs.post { focusTab(tab) }
+    }
   }
 
   override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
     if (gainFocus && childCount > 0) {
       for (i in 0 until vb.rvTabs.childCount) {
         val child = vb.rvTabs.getChildAt(i)
-
-        if (child.tag is BrowserTab) {
-          val tab = child.tag
-          val index = controller.tabsStates.indexOf(tab)
-          if (index == current && !child.hasFocus()) {
-            child.requestFocus()
-          }
+        if (child.tag === adapter.previewed && !child.hasFocus()) {
+          child.requestFocus()
         }
       }
     } else {
@@ -123,6 +109,18 @@ class TabsView @JvmOverloads constructor(
     val tabIndex = controller.tabsStates.indexOf(tab)
     if (tabIndex >= 0) {
       adapter.notifyItemChanged(tabIndex, TabsAdapter.PAYLOAD_UPDATE)
+    }
+  }
+
+  /**
+   * Scrolls the strip, if needed, to show the tab at [index] whole. The focused tab keeps its place when
+   * tabs move, so a tab it traded places with may be pushed out of view.
+   */
+  fun scrollToShow(index: Int) {
+    val lm = (vb.rvTabs.layoutManager as LinearLayoutManager)
+    if (index in 0 until adapter.itemCount &&
+      (index < lm.findFirstCompletelyVisibleItemPosition() || index > lm.findLastCompletelyVisibleItemPosition())) {
+      vb.rvTabs.smoothScrollToPosition(index)
     }
   }
 
@@ -157,9 +155,8 @@ class TabsView @JvmOverloads constructor(
       if (index != -1) adapter.notifyItemChanged(index, TabsAdapter.PAYLOAD_UPDATE)
     }
     activeTab = it
-    val new = controller.tabsStates.indexOf(it)
-    if (new != -1 && current != new) {
-      current = new
+    if (it != null && it in controller.tabsStates && adapter.previewed != it) {
+      adapter.previewed = it
       scrollToSeeCurrentTab()
     }
   }

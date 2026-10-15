@@ -11,6 +11,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -23,6 +24,7 @@ import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.SitePanelView
+import com.phlox.tvwebbrowser.activity.main.view.TabMenuView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
@@ -102,12 +104,90 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             host.openInNewTab(settingsModel.homePage, controller.tabsStates.size)
         }
 
-        override fun closeTab(tabState: BrowserTab?) = this@TvShell.closeTab(tabState)
-
-        override fun openInNewTab(url: String, tabIndex: Int) {
-            //the menu stays open
-            controller.openInNewTab(url, tabIndex, navigateImmediately = true)
+        override fun showTabMenu(tab: BrowserTab, view: View) {
+            tabOptionsHintAnchor = null
+            vb.llTabOptionsHint.visibility = View.GONE
+            vb.vTabMenu.show(tab, view, controller.tabsStates.indexOf(tab), controller.tabsStates.size)
         }
+    }
+
+    private val tabMenuCallback = object : TabMenuView.Callback {
+        override fun closeTab(tab: BrowserTab) = closeTabInPlace(tab)
+
+        override fun closeOtherTabs(tab: BrowserTab) {
+            //the kept tab becomes the current one; the bar stays open
+            controller.closeOtherTabs(tab)
+            vb.vTabs.post { vb.vTabs.focusTab(tab) }
+        }
+
+        override fun openNewTabToTheRight(tab: BrowserTab) {
+            host.openInNewTab(settingsModel.homePage, controller.tabsStates.indexOf(tab) + 1)
+        }
+
+        override fun moveTab(tab: BrowserTab, offset: Int) {
+            if (!controller.moveTab(tab, offset)) return
+            //the tab keeps its view (and the focus) when it moves; the tab it traded places with stays in view
+            vb.vTabs.post {
+                vb.vTabs.focusTab(tab)
+                vb.vTabs.scrollToShow(controller.tabsStates.indexOf(tab) - offset)
+            }
+        }
+    }
+
+    /**
+     * Closes the tab of the strip, not necessarily the current one. The bar stays open (to close more
+     * tabs), and the focus goes to the tab that takes its place (the next one, the previous one if it was
+     * the last), before the tab is removed: the strip loses the focus if the focused view is removed.
+     */
+    private fun closeTabInPlace(tab: BrowserTab) {
+        val tabs = controller.tabsStates
+        val index = tabs.indexOf(tab)
+        if (index == -1) return
+        val neighbour = tabs.getOrNull(index + 1) ?: tabs.getOrNull(index - 1)
+        if (neighbour != null) {
+            vb.vTabs.focusTab(neighbour)
+        }
+        controller.closeTab(tab)
+        //closing the only tab opens a new one with the home page
+        val focusTarget = neighbour ?: controller.currentTab.value
+        if (focusTarget != null) {
+            vb.vTabs.post { vb.vTabs.focusTab(focusTarget) }
+        }
+        val name = tab.title.ifEmpty { tab.url }
+        NotificationView.show(vb.rlRoot, R.drawable.ic_close, activity.getString(R.string.tab_closed, name))
+    }
+
+    /** The focused tab of the strip that the "Tab options" hint is under (Down opens its menu) */
+    private var tabOptionsHintAnchor: View? = null
+
+    private val tabOptionsHintFocusListener = ViewTreeObserver.OnGlobalFocusChangeListener { _, newFocus ->
+        val showHint = newFocus != null && newFocus.tag is BrowserTab && !vb.vTabMenu.isOpen && vb.rlActionBar.isVisible
+        tabOptionsHintAnchor = if (showHint) newFocus else null
+        placeTabOptionsHint()
+    }
+
+    /** The hint follows its tab when the tab moves or the strip scrolls */
+    private val tabOptionsHintDrawListener = ViewTreeObserver.OnPreDrawListener {
+        if (tabOptionsHintAnchor != null) placeTabOptionsHint()
+        true
+    }
+
+    private fun placeTabOptionsHint() {
+        val hint = vb.llTabOptionsHint
+        val anchor = tabOptionsHintAnchor
+        if (anchor == null || !anchor.isAttachedToWindow || !anchor.hasFocus()) {
+            tabOptionsHintAnchor = null
+            hint.visibility = View.GONE
+            return
+        }
+        val tabPosition = IntArray(2).also { anchor.getLocationInWindow(it) }
+        val rootPosition = IntArray(2).also { vb.rlRoot.getLocationInWindow(it) }
+        val x = (tabPosition[0] - rootPosition[0] + activity.resources.getDimensionPixelSize(R.dimen.ds_tab_hint_offset_x)).toFloat()
+        val y = (tabPosition[1] - rootPosition[1] + anchor.height +
+                activity.resources.getDimensionPixelSize(R.dimen.ds_tab_hint_offset_y)).toFloat()
+        if (hint.translationX != x) hint.translationX = x
+        if (hint.translationY != y) hint.translationY = y
+        hint.visibility = View.VISIBLE
     }
 
     override fun closeWindow() = host.closeWindow()
@@ -210,6 +290,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
         vb.vActionBar.callback = this
         vb.vSitePanel.callback = sitePanelCallback
+        vb.vTabMenu.callback = tabMenuCallback
+        vb.rlRoot.viewTreeObserver.addOnGlobalFocusChangeListener(tabOptionsHintFocusListener)
+        vb.rlRoot.viewTreeObserver.addOnPreDrawListener(tabOptionsHintDrawListener)
 
         vb.llBottomPanel.childs.forEach {
             it.setOnTouchListener(bottomButtonsOnTouchListener)
@@ -353,7 +436,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             }
             is BrowserUiEvent.PopupBlocked -> {
                 val msg = activity.getString(if (event.newTab) R.string.new_tab_blocked else R.string.popup_dialog_blocked)
-                NotificationView.showBottomRight(vb.rlRoot, R.drawable.ic_block_popups, msg)
+                NotificationView.show(vb.rlRoot, R.drawable.ic_block_popups, msg)
             }
             BrowserUiEvent.TabOpenedByPage -> {
                 if (vb.rlActionBar.visibility == View.VISIBLE) {
@@ -439,6 +522,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         //the enabled callback added last goes first
         dispatcher.addCallback(activity, menuBackCallback)
         dispatcher.addCallback(activity, vb.vSitePanel.backCallback)
+        dispatcher.addCallback(activity, vb.vTabMenu.backCallback)
         dispatcher.addCallback(activity, fullscreen)
         dispatcher.addCallback(activity, vb.vCursorMenu.backCallback)
         dispatcher.addCallback(activity, cursorModesBackCallback)
@@ -512,6 +596,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             return
         }
         vb.vSitePanel.hide()
+        vb.vTabMenu.hide()
+        tabOptionsHintAnchor = null
+        vb.llTabOptionsHint.visibility = View.GONE
         if (hideBottomButtons) {
             hideBottomPanel()
         }
