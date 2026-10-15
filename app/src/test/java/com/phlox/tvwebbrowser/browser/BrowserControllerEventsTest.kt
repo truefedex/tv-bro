@@ -141,6 +141,15 @@ class BrowserControllerEventsTest {
     }
 
     @Test
+    fun blockedAdsFollowTheSettingOfTheTabNotTheGlobalOne() {
+        config.adBlockEnabled = false
+        val tab = open("https://a.com/")
+        controller.toggleAdBlockForCurrentTab()
+        tab.callback.onBlockedAd("https://ads.com/1")
+        assertEquals(1, state.blockedAds)
+    }
+
+    @Test
     fun blockedDialogIsCountedAndReported() {
         val tab = open("https://a.com/")
         events.clear()

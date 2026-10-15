@@ -210,10 +210,10 @@ class Config(val prefs: SharedPreferences) {
 
     var userAgentString = ObservableOptStringPreference(null, USER_AGENT_PREF_KEY)
 
-    var adBlockEnabled: Boolean = prefs.getBoolean(ADBLOCK_ENABLED_PREF_KEY, true)
+    var adBlockEnabled: Boolean
+        get() = prefs.getBoolean(ADBLOCK_ENABLED_PREF_KEY, true)
         set(value) {
-            field = value
-            prefs.edit().putBoolean(ADBLOCK_ENABLED_PREF_KEY, field).apply()
+            prefs.edit().putBoolean(ADBLOCK_ENABLED_PREF_KEY, value).apply()
         }
 
     var adBlockListURL = ObservableStringPreference(DEFAULT_ADBLOCK_LIST_URL, ADBLOCK_LIST_URL_KEY)

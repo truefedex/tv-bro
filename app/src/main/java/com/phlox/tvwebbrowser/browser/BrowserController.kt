@@ -612,7 +612,8 @@ class BrowserController : ActiveModel() {
 
         override fun onBlockedAd(uri: String) {
             Log.i(TAG, "onBlockedAd: $uri")
-            if (!config.adBlockEnabled) return
+            //the engine may still report requests blocked before the setting changed
+            if (!policies.isAdBlockingEnabled()) return
             tab.blockedAds++
             publishState()
         }
