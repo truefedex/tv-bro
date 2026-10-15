@@ -16,7 +16,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngineFactory
  * Not a data class: a tab is identified by the object, not by its (changing) fields.
  */
 @Entity(tableName = "tabs")
-class WebTabState(@PrimaryKey(autoGenerate = true)
+class BrowserTab(@PrimaryKey(autoGenerate = true)
                        var id: Long = 0,
                        var url: String = "",
                        var title: String = "",
@@ -30,7 +30,7 @@ class WebTabState(@PrimaryKey(autoGenerate = true)
                        var adblock: Boolean? = null,
                        var scale: Float? = null) {
     companion object {
-        val TAG: String = WebTabState::class.java.simpleName
+        val TAG: String = BrowserTab::class.java.simpleName
     }
 
     /** The picture of the page; the file is written when the tab is saved */

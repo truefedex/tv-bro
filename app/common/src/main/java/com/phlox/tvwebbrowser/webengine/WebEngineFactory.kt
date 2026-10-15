@@ -8,7 +8,7 @@ import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 
 /**
  * Settings that only some engines support: the settings screen shows them only when the selected engine does.
@@ -21,7 +21,7 @@ enum class EngineSpecificSetting {
 interface WebEngineProviderCallback {
     /** [webViewContainer] is where engines put their views (see [WebEngine.onAttachToWindow]) */
     suspend fun initialize(context: Context, webViewContainer: ViewGroup)
-    fun createWebEngine(tab: WebTabState): WebEngine
+    fun createWebEngine(tab: BrowserTab): WebEngine
     suspend fun clearCache(ctx: Context)
     fun onThemeSettingUpdated(value: Config.Theme)
     fun getWebEngineVersionString(): String
@@ -154,7 +154,7 @@ object WebEngineFactory {
     fun supportsSetting(setting: EngineSpecificSetting): Boolean =
         selectedProvider()?.callback?.supportsSetting(setting) ?: false
 
-    fun createWebEngine(tab: WebTabState): WebEngine {
+    fun createWebEngine(tab: BrowserTab): WebEngine {
         return initializedProvider.callback.createWebEngine(tab)
     }
 

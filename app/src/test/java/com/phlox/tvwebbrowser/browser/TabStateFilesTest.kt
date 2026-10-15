@@ -2,7 +2,7 @@ package com.phlox.tvwebbrowser.browser
 
 import android.graphics.Bitmap
 import com.phlox.tvwebbrowser.AppContext
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -31,8 +31,8 @@ class TabStateFilesTest {
         WebEngineFactory.initializeForTests(FakeWebEngine.provider)
     }
 
-    private fun savedTab(prefix: String): WebTabState {
-        val tab = WebTabState(url = "https://a.com/")
+    private fun savedTab(prefix: String): BrowserTab {
+        val tab = BrowserTab(url = "https://a.com/")
         tab.fakeEngine.stateFilePrefix = prefix
         tab.savedState = "state of a"
         store.saveEngineState(tab)
@@ -40,8 +40,8 @@ class TabStateFilesTest {
     }
 
     /** The same tab after the app restart: only the file name is known */
-    private fun reloadedTab(saved: WebTabState, prefix: String): WebTabState {
-        val tab = WebTabState(url = saved.url, wvStateFileName = saved.wvStateFileName)
+    private fun reloadedTab(saved: BrowserTab, prefix: String): BrowserTab {
+        val tab = BrowserTab(url = saved.url, wvStateFileName = saved.wvStateFileName)
         tab.fakeEngine.stateFilePrefix = prefix
         return tab
     }
@@ -95,7 +95,7 @@ class TabStateFilesTest {
 
     @Test
     fun engineIsCreatedOnFirstAccess() {
-        val tab = WebTabState(url = "https://a.com/")
+        val tab = BrowserTab(url = "https://a.com/")
         assertFalse(tab.isWebEngineCreated)
         tab.webEngine
         assertTrue(tab.isWebEngineCreated)
@@ -103,7 +103,7 @@ class TabStateFilesTest {
 
     @Test
     fun tabWithoutStateFileHasNothingToRestore() {
-        val tab = WebTabState(url = "https://a.com/")
+        val tab = BrowserTab(url = "https://a.com/")
         assertNull(tab.wvStateFileName)
         assertFalse(store.restoreEngineState(tab))
     }
@@ -114,8 +114,8 @@ class TabStateFilesTest {
 
     @Test
     fun tabsWithTheSameUrlHaveTheirOwnThumbnails() {
-        val a = WebTabState(url = "https://a.com/")
-        val b = WebTabState(url = "https://a.com/")
+        val a = BrowserTab(url = "https://a.com/")
+        val b = BrowserTab(url = "https://a.com/")
         store.saveThumbnail(a, thumbnail())
         store.saveThumbnail(b, thumbnail())
         assertNotEquals(a.thumbnailHash, b.thumbnailHash)
@@ -127,7 +127,7 @@ class TabStateFilesTest {
 
     @Test
     fun newThumbnailReplacesTheOldFile() {
-        val tab = WebTabState(url = "https://a.com/")
+        val tab = BrowserTab(url = "https://a.com/")
         store.saveThumbnail(tab, thumbnail())
         val first = tab.thumbnailHash!!
         store.saveThumbnail(tab, thumbnail())
@@ -143,7 +143,7 @@ class TabStateFilesTest {
         File(thumbnailsDir, "oldhash.png").outputStream().use {
             thumbnail().compress(Bitmap.CompressFormat.PNG, 100, it)
         }
-        val tab = WebTabState(url = "https://a.com/", thumbnailHash = "oldhash")
+        val tab = BrowserTab(url = "https://a.com/", thumbnailHash = "oldhash")
         assertNotNull(store.loadThumbnail(tab))
         store.removeFiles(tab)
         assertFalse("oldhash.png" in thumbnailFiles())
@@ -151,7 +151,7 @@ class TabStateFilesTest {
 
     @Test
     fun onlyAnUpdatedThumbnailIsTakenForSaving() {
-        val tab = WebTabState(url = "https://a.com/")
+        val tab = BrowserTab(url = "https://a.com/")
         assertNull(tab.takeChangedThumbnail())
         val bitmap = thumbnail()
         tab.updateThumbnail(bitmap)

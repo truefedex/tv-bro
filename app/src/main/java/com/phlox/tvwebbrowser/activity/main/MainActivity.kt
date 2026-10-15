@@ -67,7 +67,7 @@ import com.phlox.tvwebbrowser.browser.UrlInputResolver
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.HostConfig
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
@@ -262,7 +262,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private val displayThumbnailRunnable = object : Runnable {
-        var tabState: WebTabState? = null
+        var tabState: BrowserTab? = null
         override fun run() {
             tabState?.let {
                 lifecycleScope.launch(Dispatchers.Main) {
@@ -291,7 +291,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             openInNewTab(settingsModel.homePage, controller.tabsStates.size)
         }
 
-        override fun closeTab(tabState: WebTabState?) = this@MainActivity.closeTab(tabState)
+        override fun closeTab(tabState: BrowserTab?) = this@MainActivity.closeTab(tabState)
 
         override fun openInNewTab(url: String, tabIndex: Int) {
             this@MainActivity.openInNewTab(url, tabIndex,
@@ -511,14 +511,14 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         return tab.webEngine
     }
 
-    private fun closeTab(tab: WebTabState?) {
+    private fun closeTab(tab: BrowserTab?) {
         if (tab == null) return
         controller.closeTab(tab)
         hideMenuOverlay(true)
         hideBottomPanel()
     }
 
-    private fun changeTab(newTab: WebTabState) {
+    private fun changeTab(newTab: BrowserTab) {
         controller.changeTab(newTab)
     }
 
@@ -526,9 +526,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         override val tabsContainer: ViewGroup
             get() = vb.flWebViewContainer
 
-        override fun createTabView(tab: WebTabState): View? = createWebView(tab)
+        override fun createTabView(tab: BrowserTab): View? = createWebView(tab)
 
-        override fun uiHost(tab: WebTabState): EngineUiHost = TabUiHost(tab)
+        override fun uiHost(tab: BrowserTab): EngineUiHost = TabUiHost(tab)
     }
 
     private fun openInNewTabAfterCurrent(url: String) {
@@ -673,7 +673,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun createWebView(tab: WebTabState): View? {
+    private fun createWebView(tab: BrowserTab): View? {
         val webView: View
         try {
             webView = tab.webEngine.getOrCreateView(this)
@@ -969,7 +969,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 .start()
     }
 
-    private suspend fun displayThumbnail(currentTab: WebTabState?) {
+    private suspend fun displayThumbnail(currentTab: BrowserTab?) {
         if (currentTab != null) {
             if (tabByTitleIndex(vb.vTabs.current) != currentTab) return
             vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
@@ -1084,7 +1084,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     /**
      * What the engine of the [tab] needs from this activity.
      */
-    private inner class TabUiHost(val tab: WebTabState) : EngineUiHost {
+    private inner class TabUiHost(val tab: BrowserTab) : EngineUiHost {
         override fun getActivity(): Activity {
             return this@MainActivity
         }

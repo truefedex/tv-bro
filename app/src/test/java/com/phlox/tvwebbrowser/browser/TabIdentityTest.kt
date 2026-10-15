@@ -1,6 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -12,8 +12,8 @@ import org.junit.Test
 class TabIdentityTest {
     @Test
     fun tabsWithTheSameFieldsAreDifferentTabs() {
-        val a = WebTabState(url = "https://a.com/")
-        val b = WebTabState(url = "https://a.com/")
+        val a = BrowserTab(url = "https://a.com/")
+        val b = BrowserTab(url = "https://a.com/")
         assertNotEquals(a, b)
         assertEquals(1, listOf(a, b).indexOf(b))
         val list = mutableListOf(a, b)
@@ -23,7 +23,7 @@ class TabIdentityTest {
 
     @Test
     fun changedTabIsStillFoundInHashSets() {
-        val tab = WebTabState(url = "https://a.com/")
+        val tab = BrowserTab(url = "https://a.com/")
         val set = hashSetOf(tab)
         tab.url = "https://b.com/"
         tab.id = 5

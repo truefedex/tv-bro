@@ -18,7 +18,7 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.model.HostConfig
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.utils.Utils
@@ -59,10 +59,10 @@ class BrowserController : ActiveModel() {
         val tabsContainer: ViewGroup
 
         /** Creates the view of the tab's engine; null if the engine can not create it */
-        fun createTabView(tab: WebTabState): View?
+        fun createTabView(tab: BrowserTab): View?
 
         /** What the engine of the tab needs from the UI */
-        fun uiHost(tab: WebTabState): EngineUiHost
+        fun uiHost(tab: BrowserTab): EngineUiHost
     }
 
     /** Set while an activity shows the tabs */
@@ -80,8 +80,8 @@ class BrowserController : ActiveModel() {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     var loaded = false
-    val currentTab = ObservableValue<WebTabState?>(null)
-    val tabsStates = ObservableList<WebTabState>()
+    val currentTab = ObservableValue<BrowserTab?>(null)
+    val tabsStates = ObservableList<BrowserTab>()
     private val config = AppContext.provideConfig()
     private var incognitoMode = config.incognitoMode
     //all tabs writes go through this queue: they are not cancelled with the model and do not overlap
@@ -152,13 +152,13 @@ class BrowserController : ActiveModel() {
         }
     }
 
-    fun saveTab(tab: WebTabState): Job {
+    fun saveTab(tab: BrowserTab): Job {
         //taken now: the tab may drop its thumbnail before the write runs
         val thumbnail = tab.takeChangedThumbnail()
         return writes.enqueue { writeTab(tab, thumbnail) }
     }
 
-    private suspend fun writeTab(tab: WebTabState, thumbnail: Bitmap?) {
+    private suspend fun writeTab(tab: BrowserTab, thumbnail: Bitmap?) {
         val tabsDB = AppDatabase.db.tabsDao()
         if (tab.selected) {
             tabsDB.unselectAll(config.incognitoMode)
@@ -176,7 +176,7 @@ class BrowserController : ActiveModel() {
         }
     }
 
-    fun onCloseTab(tab: WebTabState) {
+    fun onCloseTab(tab: BrowserTab) {
         tab.webEngine.onDetachFromWindow(completely = true, destroyTab = true)
         tabsStates.remove(tab)
         writes.enqueue {
@@ -197,7 +197,7 @@ class BrowserController : ActiveModel() {
         return writes.enqueue { deleteTabs(tabsClone) }
     }
 
-    private suspend fun deleteTabs(tabsClone: List<WebTabState>) {
+    private suspend fun deleteTabs(tabsClone: List<BrowserTab>) {
         val tabsDB = AppDatabase.db.tabsDao()
         tabsDB.deleteAll(config.incognitoMode)
         withContext(Dispatchers.IO) {
@@ -231,7 +231,7 @@ class BrowserController : ActiveModel() {
     /**
      * Loads the saved thumbnail of the tab if it has none in memory.
      */
-    suspend fun loadThumbnail(tab: WebTabState): Bitmap? {
+    suspend fun loadThumbnail(tab: BrowserTab): Bitmap? {
         tab.thumbnail?.let { return it }
         if (tab.thumbnailHash == null) return null
         val thumbnail = withContext(Dispatchers.IO) { tabFiles.loadThumbnail(tab) }
@@ -264,10 +264,10 @@ class BrowserController : ActiveModel() {
     /**
      * @return the new tab or null if its engine view can not be created
      */
-    fun openInNewTab(url: String, index: Int, navigateImmediately: Boolean): WebTabState? {
+    fun openInNewTab(url: String, index: Int, navigateImmediately: Boolean): BrowserTab? {
         Log.d(TAG, "openInNewTab: url: $url, index: $index, navigateImmediately: $navigateImmediately")
         val host = viewHost ?: return null
-        val tab = WebTabState(url = url, incognito = config.incognitoMode)
+        val tab = BrowserTab(url = url, incognito = config.incognitoMode)
         host.createTabView(tab) ?: return null
         tabsStates.add(index, tab)
         changeTab(tab)
@@ -280,7 +280,7 @@ class BrowserController : ActiveModel() {
     /**
      * Opens a new tab right after the current one (at the end if there is no current tab).
      */
-    fun openInNewTabAfterCurrent(url: String, navigateImmediately: Boolean): WebTabState? {
+    fun openInNewTabAfterCurrent(url: String, navigateImmediately: Boolean): BrowserTab? {
         var index = tabsStates.indexOf(currentTab.value)
         index = if (index == -1) tabsStates.size else index + 1
         return openInNewTab(url, index, navigateImmediately)
@@ -292,7 +292,7 @@ class BrowserController : ActiveModel() {
      */
     fun openWindowTab(): View? {
         val host = viewHost ?: return null
-        val tab = WebTabState(incognito = config.incognitoMode)
+        val tab = BrowserTab(incognito = config.incognitoMode)
         val webView = host.createTabView(tab) ?: return null
         val currentTab = currentTab.value ?: return null
         val index = tabsStates.indexOf(currentTab) + 1
@@ -304,7 +304,7 @@ class BrowserController : ActiveModel() {
     /**
      * Closes the tab and selects a neighbour one. Closing the last tab opens a new one with the home page.
      */
-    fun closeTab(tab: WebTabState) {
+    fun closeTab(tab: BrowserTab) {
         val position = tabsStates.indexOf(tab)
         if (currentTab.value == tab) {
             currentTab.value = null
@@ -319,7 +319,7 @@ class BrowserController : ActiveModel() {
         onCloseTab(tab)
     }
 
-    fun findTabBySession(internalRepresentation: Any): WebTabState? =
+    fun findTabBySession(internalRepresentation: Any): BrowserTab? =
         tabsStates.firstOrNull { it.webEngine.isSameSession(internalRepresentation) }
 
     /**
@@ -379,7 +379,7 @@ class BrowserController : ActiveModel() {
      * Toggles ads blocking for the current tab (overriding the global setting).
      * @return the changed tab
      */
-    fun toggleAdBlockForCurrentTab(): WebTabState? {
+    fun toggleAdBlockForCurrentTab(): BrowserTab? {
         val tab = currentTab.value ?: return null
         val newState = !(tab.adblock ?: config.adBlockEnabled)
         tab.adblock = newState
@@ -388,7 +388,7 @@ class BrowserController : ActiveModel() {
         return tab
     }
 
-    fun changeTab(newTab: WebTabState) {
+    fun changeTab(newTab: BrowserTab) {
         val host = viewHost ?: return
         if (currentTab.value == newTab && newTab.webEngine.getView() != null) return
         if (currentTab.value != newTab) {
@@ -420,7 +420,7 @@ class BrowserController : ActiveModel() {
         newTab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(TVBro.instance))
     }
 
-    private fun hostNameOf(tab: WebTabState): String? = try {
+    private fun hostNameOf(tab: BrowserTab): String? = try {
         URL(tab.url).host
     } catch (e: Exception) {
         Log.w(TAG, "Can not parse current url host: $e")
@@ -431,7 +431,7 @@ class BrowserController : ActiveModel() {
      * Finds the config of the tab's current host. On a cache miss queries the database
      * synchronously (it is a lookup by an indexed column).
      */
-    fun findHostConfig(tab: WebTabState): HostConfig? {
+    fun findHostConfig(tab: BrowserTab): HostConfig? {
         Log.d(TAG, "findHostConfig")
         val currentHostName = hostNameOf(tab) ?: return null
         var hostConfig = tab.cachedHostConfig
@@ -442,7 +442,7 @@ class BrowserController : ActiveModel() {
         return hostConfig
     }
 
-    private suspend fun findOrCreateHostConfig(tab: WebTabState): HostConfig? {
+    private suspend fun findOrCreateHostConfig(tab: BrowserTab): HostConfig? {
         findHostConfig(tab)?.let { return it }
         val currentHostName = hostNameOf(tab) ?: return null
         val hostConfig = HostConfig(currentHostName)
@@ -451,13 +451,13 @@ class BrowserController : ActiveModel() {
         return hostConfig
     }
 
-    suspend fun changePopupBlockingLevel(newLevel: Int, tab: WebTabState) {
+    suspend fun changePopupBlockingLevel(newLevel: Int, tab: BrowserTab) {
         val hostConfig = findOrCreateHostConfig(tab) ?: return
         hostConfig.popupBlockLevel = newLevel
         AppDatabase.db.hostsDao().update(hostConfig)
     }
 
-    private fun engineCallback(tab: WebTabState, host: TabViewHost): WebEngineCallbacks {
+    private fun engineCallback(tab: BrowserTab, host: TabViewHost): WebEngineCallbacks {
         val policies = TabPolicies(tab, this, adBlocker, config)
         return WebEngineCallbacks(TabEvents(tab, policies), policies, host.uiHost(tab))
     }
@@ -498,7 +498,7 @@ class BrowserController : ActiveModel() {
     /**
      * What the engine of the [tab] reports. The engine calls it only while the tab is the current one.
      */
-    private inner class TabEvents(val tab: WebTabState, val policies: TabPolicies) : TabEngineEvents {
+    private inner class TabEvents(val tab: BrowserTab, val policies: TabPolicies) : TabEngineEvents {
         override fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine? {
             val newTab = openInNewTabAfterCurrent(url, navigateImmediately) ?: return null
             sendUiEvent(BrowserUiEvent.TabOpenedByPage)

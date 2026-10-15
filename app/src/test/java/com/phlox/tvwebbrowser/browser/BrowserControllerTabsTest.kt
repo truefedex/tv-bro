@@ -5,7 +5,7 @@ import androidx.room.Room
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.launch
@@ -53,7 +53,7 @@ class BrowserControllerTabsTest {
         db.close()
     }
 
-    private fun open(vararg urls: String): List<WebTabState> = urls.map {
+    private fun open(vararg urls: String): List<BrowserTab> = urls.map {
         controller.openInNewTab(it, controller.tabsStates.size, navigateImmediately = true)!!
     }
 
@@ -83,7 +83,7 @@ class BrowserControllerTabsTest {
 
     @Test
     fun restoredTabWithoutStateLoadsItsUrl() {
-        val a = WebTabState(url = "https://a.com/")
+        val a = BrowserTab(url = "https://a.com/")
         controller.tabsStates.add(a)
         controller.changeTab(a)
         assertEquals(listOf("https://a.com/"), a.fakeEngine.loadedUrls)
@@ -169,8 +169,8 @@ class BrowserControllerTabsTest {
 
     @Test
     fun startTabIsTheSelectedOne() {
-        val a = WebTabState(url = "https://a.com/")
-        val b = WebTabState(url = "https://b.com/", selected = true)
+        val a = BrowserTab(url = "https://a.com/")
+        val b = BrowserTab(url = "https://b.com/", selected = true)
         controller.tabsStates.addAll(listOf(a, b))
         controller.selectStartTab()
         assertSame(b, current)
@@ -179,8 +179,8 @@ class BrowserControllerTabsTest {
 
     @Test
     fun startTabIsTheFirstOneWhenNoneIsSelected() {
-        val a = WebTabState(url = "https://a.com/")
-        val b = WebTabState(url = "https://b.com/")
+        val a = BrowserTab(url = "https://a.com/")
+        val b = BrowserTab(url = "https://b.com/")
         controller.tabsStates.addAll(listOf(a, b))
         controller.selectStartTab()
         assertSame(a, current)
@@ -226,7 +226,7 @@ class BrowserControllerTabsTest {
     @Test
     fun restoredHomeTabLoadsTheResolvedUrl() {
         AppContext.provideConfig().homePageMode = Config.HomePageMode.BLANK
-        val tab = WebTabState(url = Config.HOME_URL_ALIAS)
+        val tab = BrowserTab(url = Config.HOME_URL_ALIAS)
         controller.tabsStates.add(tab)
         controller.changeTab(tab)
         assertEquals(listOf("about:blank"), tab.fakeEngine.loadedUrls)
@@ -277,7 +277,7 @@ class BrowserControllerTabsTest {
     @Test
     fun closingAllTabsDestroysTheirEngines() {
         val (a, b) = open("https://a.com/", "https://b.com/")
-        val neverShown = WebTabState(url = "https://c.com/")
+        val neverShown = BrowserTab(url = "https://c.com/")
         controller.tabsStates.add(neverShown)
         controller.onCloseAllTabs()
         assertTrue(controller.tabsStates.isEmpty())
@@ -290,7 +290,7 @@ class BrowserControllerTabsTest {
     @Test
     fun detachingTheActivityDoesNotCreateEngines() {
         val (a) = open("https://a.com/")
-        val neverShown = WebTabState(url = "https://b.com/")
+        val neverShown = BrowserTab(url = "https://b.com/")
         controller.tabsStates.add(neverShown)
         controller.onDetachActivity(host)
         assertEquals("detach(completely=true, destroyTab=false)", a.fakeEngine.log.last())

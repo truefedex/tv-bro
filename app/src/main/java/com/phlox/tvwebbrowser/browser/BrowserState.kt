@@ -1,7 +1,7 @@
 package com.phlox.tvwebbrowser.browser
 
 import android.content.Intent
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 
 /**
  * What the UI shows about the current tab.
@@ -27,8 +27,8 @@ sealed interface BrowserUiEvent {
     /** Page loading progress of the current tab, 0..100 */
     data class Progress(val value: Int) : BrowserUiEvent
     /** Title or icon of the tab changed */
-    data class TabUpdated(val tab: WebTabState) : BrowserUiEvent
-    data class ThumbnailUpdated(val tab: WebTabState) : BrowserUiEvent
+    data class TabUpdated(val tab: BrowserTab) : BrowserUiEvent
+    data class ThumbnailUpdated(val tab: BrowserTab) : BrowserUiEvent
     data class PopupBlocked(val newTab: Boolean) : BrowserUiEvent
     /** A page opened a new tab */
     data object TabOpenedByPage : BrowserUiEvent

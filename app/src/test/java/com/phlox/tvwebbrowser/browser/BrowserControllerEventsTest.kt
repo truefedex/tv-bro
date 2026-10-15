@@ -4,7 +4,7 @@ import android.os.Looper
 import androidx.room.Room
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
@@ -81,10 +81,10 @@ class BrowserControllerEventsTest {
         db.close()
     }
 
-    private fun open(url: String): WebTabState =
+    private fun open(url: String): BrowserTab =
         controller.openInNewTab(url, controller.tabsStates.size, navigateImmediately = true)!!
 
-    private val WebTabState.callback: WebEngineCallbacks get() = fakeEngine.callback!!
+    private val BrowserTab.callback: WebEngineCallbacks get() = fakeEngine.callback!!
     private val state get() = controller.currentTabState.value
 
     @Test

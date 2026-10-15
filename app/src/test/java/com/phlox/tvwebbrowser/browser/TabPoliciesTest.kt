@@ -5,7 +5,7 @@ import androidx.room.Room
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.HostConfig
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.runBlocking
@@ -49,7 +49,7 @@ class TabPoliciesTest {
         db.close()
     }
 
-    private fun policies(tab: WebTabState) = TabPolicies(tab, controller, adBlocker, config)
+    private fun policies(tab: BrowserTab) = TabPolicies(tab, controller, adBlocker, config)
 
     private fun setPopupBlockLevel(host: String, level: Int) = runBlocking {
         val hostConfig = HostConfig(host)
@@ -59,7 +59,7 @@ class TabPoliciesTest {
 
     @Test
     fun adsAreCheckedByTheAdBlocker() {
-        val policies = policies(WebTabState(url = "https://site.com/"))
+        val policies = policies(BrowserTab(url = "https://site.com/"))
         assertEquals(true, policies.isAd(Uri.parse("https://ads.com/a.js"), "script", Uri.parse("https://site.com/")))
         assertEquals(false, policies.isAd(Uri.parse("https://cdn.com/a.js"), null, Uri.parse("https://site.com/")))
         assertEquals("https://ads.com/a.js script https://site.com/", adRequests[0])
@@ -67,7 +67,7 @@ class TabPoliciesTest {
 
     @Test
     fun adBlockingFollowsTheGlobalSettingUnlessTheCurrentTabOverridesIt() {
-        val tab = WebTabState(url = "https://site.com/")
+        val tab = BrowserTab(url = "https://site.com/")
         val policies = policies(tab)
         config.adBlockEnabled = true
         assertTrue(policies.isAdBlockingEnabled())
@@ -83,29 +83,29 @@ class TabPoliciesTest {
     @Test
     fun adBlockingUsesTheCurrentTabOverride() {
         config.adBlockEnabled = true
-        val current = WebTabState(url = "https://a.com/", adblock = false)
+        val current = BrowserTab(url = "https://a.com/", adblock = false)
         controller.currentTab.value = current
-        assertFalse(policies(WebTabState(url = "https://b.com/")).isAdBlockingEnabled())
+        assertFalse(policies(BrowserTab(url = "https://b.com/")).isAdBlockingEnabled())
     }
 
     @Test
     fun dialogsAreBlockedByDefault() {
-        assertTrue(policies(WebTabState(url = "https://site.com/")).isDialogsBlockingEnabled())
+        assertTrue(policies(BrowserTab(url = "https://site.com/")).isDialogsBlockingEnabled())
     }
 
     @Test
     fun dialogsAreNotBlockedOnTheHomePage() {
-        assertFalse(policies(WebTabState(url = Config.HOME_PAGE_URL)).isDialogsBlockingEnabled())
+        assertFalse(policies(BrowserTab(url = Config.HOME_PAGE_URL)).isDialogsBlockingEnabled())
     }
 
     @Test
     fun hostSettingIsUsedForNewWindows() {
         setPopupBlockLevel("site.com", HostConfig.POPUP_BLOCK_NONE)
-        val policies = policies(WebTabState(url = "https://site.com/page"))
+        val policies = policies(BrowserTab(url = "https://site.com/page"))
         assertFalse(policies.shouldBlockNewWindow(dialog = false, userGesture = false))
         assertFalse(policies.isDialogsBlockingEnabled())
 
-        val otherHost = policies(WebTabState(url = "https://other.com/"))
+        val otherHost = policies(BrowserTab(url = "https://other.com/"))
         assertTrue(otherHost.shouldBlockNewWindow(dialog = false, userGesture = false))
         assertFalse(otherHost.shouldBlockNewWindow(dialog = false, userGesture = true))
     }
@@ -113,7 +113,7 @@ class TabPoliciesTest {
     @Test
     fun hostSettingFollowsTheTabUrl() {
         setPopupBlockLevel("strict.com", HostConfig.POPUP_BLOCK_NEW_TABS_EVEN_BY_USER_GESTURE)
-        val tab = WebTabState(url = "https://site.com/")
+        val tab = BrowserTab(url = "https://site.com/")
         val policies = policies(tab)
         assertFalse(policies.shouldBlockNewWindow(dialog = false, userGesture = true))
         tab.url = "https://strict.com/"

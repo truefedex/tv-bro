@@ -19,7 +19,7 @@ import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
@@ -38,7 +38,7 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 
 
-class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, CursorDrawerDelegate.Callback {
+class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, CursorDrawerDelegate.Callback {
     private var webView: WebViewEx? = null
     internal var callback: WebEngineCallbacks? = null
     /** The cursor surface around [webView] and the fullscreen view, created and dropped together with [webView] */
@@ -409,7 +409,7 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
 
                 }
 
-                override fun createWebEngine(tab: WebTabState): WebEngine {
+                override fun createWebEngine(tab: BrowserTab): WebEngine {
                     return WebViewWebEngine(tab)
                 }
 

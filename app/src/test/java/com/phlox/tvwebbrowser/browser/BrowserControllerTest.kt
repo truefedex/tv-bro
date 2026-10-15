@@ -3,7 +3,7 @@ package com.phlox.tvwebbrowser.browser
 import android.os.Looper
 import androidx.room.Room
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -49,14 +49,14 @@ class BrowserControllerTest {
 
     private fun awaitWrites() = container.appScope.launch { container.tabWrites.awaitPending() }.awaitOnMainLooper()
 
-    private fun storedTabs(): List<WebTabState> = db.query("SELECT url FROM tabs ORDER BY id", null).use { c ->
-        generateSequence { if (c.moveToNext()) WebTabState(url = c.getString(0)) else null }.toList()
+    private fun storedTabs(): List<BrowserTab> = db.query("SELECT url FROM tabs ORDER BY id", null).use { c ->
+        generateSequence { if (c.moveToNext()) BrowserTab(url = c.getString(0)) else null }.toList()
     }
 
     @Test
     fun repeatedSaveOfNewTabInsertsOneRow() {
         val model = BrowserController()
-        val tab = WebTabState(url = "https://example.com/", selected = true)
+        val tab = BrowserTab(url = "https://example.com/", selected = true)
         model.saveTab(tab)
         model.saveTab(tab)
         awaitWrites()
@@ -67,7 +67,7 @@ class BrowserControllerTest {
     @Test
     fun saveIsNotCancelledWhenModelIsCleared() {
         val model = BrowserController()
-        model.saveTab(WebTabState(url = "https://example.com/"))
+        model.saveTab(BrowserTab(url = "https://example.com/"))
         model.clear()
         awaitWrites()
         assertEquals(1, storedTabs().size)
@@ -76,8 +76,8 @@ class BrowserControllerTest {
     @Test
     fun loadStateWaitsForPendingSaves() {
         val previousModel = BrowserController()
-        previousModel.saveTab(WebTabState(url = "https://a.com/"))
-        previousModel.saveTab(WebTabState(url = "https://b.com/"))
+        previousModel.saveTab(BrowserTab(url = "https://a.com/"))
+        previousModel.saveTab(BrowserTab(url = "https://b.com/"))
         previousModel.clear()
 
         val model = BrowserController()
@@ -88,8 +88,8 @@ class BrowserControllerTest {
     @Test
     fun closeAllTabsRunsAfterPendingSaves() {
         val model = BrowserController()
-        model.saveTab(WebTabState(url = "https://a.com/"))
-        model.saveTab(WebTabState(url = "https://b.com/"))
+        model.saveTab(BrowserTab(url = "https://a.com/"))
+        model.saveTab(BrowserTab(url = "https://b.com/"))
         model.onCloseAllTabs().awaitOnMainLooper()
         awaitWrites()
         assertTrue(storedTabs().isEmpty())

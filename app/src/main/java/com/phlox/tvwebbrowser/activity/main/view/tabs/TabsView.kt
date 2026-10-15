@@ -13,7 +13,7 @@ import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.databinding.ViewTabsBinding
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 
@@ -60,7 +60,7 @@ class TabsView @JvmOverloads constructor(
     controller.currentTab.unsubscribe(currentTabObserver)
   }
 
-  fun showTabOptions(tab: WebTabState) {
+  fun showTabOptions(tab: BrowserTab) {
     val tabIndex = controller.tabsStates.indexOf(tab)
     AlertDialog.Builder(context)
       .setTitle(R.string.tabs)
@@ -95,7 +95,7 @@ class TabsView @JvmOverloads constructor(
       for (i in 0 until vb.rvTabs.childCount) {
         val child = vb.rvTabs.getChildAt(i)
 
-        if (child.tag is WebTabState) {
+        if (child.tag is BrowserTab) {
           val tab = child.tag
           val index = controller.tabsStates.indexOf(tab)
           if (index == current && !child.hasFocus()) {
@@ -109,7 +109,7 @@ class TabsView @JvmOverloads constructor(
   }
 
   /** Title or icon of the tab changed */
-  fun onTabUpdated(tab: WebTabState) {
+  fun onTabUpdated(tab: BrowserTab) {
     //the update is delivered asynchronously, the tab may be already closed
     val tabIndex = controller.tabsStates.indexOf(tab)
     if (tabIndex >= 0) {
@@ -126,13 +126,13 @@ class TabsView @JvmOverloads constructor(
     }
   }
 
-  private val listChangeObserver: (ObservableList<WebTabState>) -> Unit = {
+  private val listChangeObserver: (ObservableList<BrowserTab>) -> Unit = {
     adapter.onTabListChanged()
 
     scrollToSeeCurrentTab()
   }
 
-  private val currentTabObserver: (value: WebTabState?) -> Unit =  {
+  private val currentTabObserver: (value: BrowserTab?) -> Unit =  {
     val new = controller.tabsStates.indexOf(it)
     if (new != -1 && current != new) {
       adapter.notifyItemChanged(current)

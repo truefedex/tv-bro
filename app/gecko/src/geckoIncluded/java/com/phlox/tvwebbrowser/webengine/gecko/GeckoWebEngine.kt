@@ -11,7 +11,7 @@ import android.view.ViewGroup
 import androidx.annotation.UiThread
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -52,7 +52,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class GeckoWebEngine(val tab: WebTabState): WebEngine, VirtualCursorSupport,
+class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
     CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
@@ -119,7 +119,7 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, VirtualCursorSupport,
                     GeckoWebEngine.initialize(context, webViewContainer)
                 }
 
-                override fun createWebEngine(tab: WebTabState): WebEngine {
+                override fun createWebEngine(tab: BrowserTab): WebEngine {
                     return GeckoWebEngine(tab)
                 }
 

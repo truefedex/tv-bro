@@ -14,7 +14,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.TabViewHolder
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.databinding.ViewHorizontalWebtabItemBinding
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.utils.activity
 import com.phlox.tvwebbrowser.widgets.CheckableContainer
@@ -29,7 +29,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
             onTabListChanged()
         }
     private val tabsCopy =
-        ArrayList<WebTabState>().apply { addAll(controller?.tabsStates ?: emptyList()) }
+        ArrayList<BrowserTab>().apply { addAll(controller?.tabsStates ?: emptyList()) }
     var current: Int = 0
     var listener: Listener? = null
     val uiHandler = Handler(Looper.getMainLooper())
@@ -39,7 +39,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
         fun onTitleChanged(index: Int)
         fun onTitleSelected(index: Int)
         fun onAddNewTabSelected()
-        fun closeTab(tabState: WebTabState?)
+        fun closeTab(tabState: BrowserTab?)
         fun openInNewTab(url: String, tabIndex: Int)
     }
 
@@ -68,7 +68,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
     inner class TabViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val vb = ViewHorizontalWebtabItemBinding.bind(itemView)
 
-        fun bind(tabState: WebTabState, position: Int) {
+        fun bind(tabState: BrowserTab, position: Int) {
             vb.root.tag = tabState
 
             vb.tvTitle.text = tabState.title
@@ -86,7 +86,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
                 val scope = (itemView.activity as AppCompatActivity).lifecycleScope
                 scope.launch(Dispatchers.Main) {
                     val favicon = FaviconsPool.get(url)
-                    val ts = vb.root.tag as WebTabState
+                    val ts = vb.root.tag as BrowserTab
                     if (url != ts.url) return@launch //url was changed while loading favicon
                     if (!itemView.isAttachedToWindow) return@launch
                     favicon?.let {

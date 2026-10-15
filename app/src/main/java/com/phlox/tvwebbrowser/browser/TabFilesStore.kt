@@ -5,7 +5,7 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import java.io.File
@@ -13,7 +13,7 @@ import java.util.UUID
 
 /**
  * Files of tabs: saved states of their engines and thumbnails. A tab keeps only the file names
- * ([WebTabState.wvStateFileName], [WebTabState.thumbnailHash]).
+ * ([BrowserTab.wvStateFileName], [BrowserTab.thumbnailHash]).
  */
 class TabFilesStore(filesDir: File, cacheDir: File) {
     companion object {
@@ -41,7 +41,7 @@ class TabFilesStore(filesDir: File, cacheDir: File) {
      * Restores the state of the tab's engine: the one kept in memory or the saved one.
      * @return false if there is nothing to restore (or it was saved by another engine)
      */
-    fun restoreEngineState(tab: WebTabState): Boolean {
+    fun restoreEngineState(tab: BrowserTab): Boolean {
         val webEngine = tab.webEngine
         tab.savedState?.let {
             webEngine.restoreState(it)
@@ -66,7 +66,7 @@ class TabFilesStore(filesDir: File, cacheDir: File) {
     /**
      * Writes the engine state kept in the tab to a file (blocking).
      */
-    fun saveEngineState(tab: WebTabState) {
+    fun saveEngineState(tab: BrowserTab) {
         val state = tab.savedState
         var stateFileName = tab.wvStateFileName
         if (stateFileName != null && stateFilePrefix(stateFileName) != tab.webEngine.stateFilePrefix) {
@@ -96,7 +96,7 @@ class TabFilesStore(filesDir: File, cacheDir: File) {
     /**
      * Writes the thumbnail to a new file of the tab and deletes the previous one (blocking).
      */
-    fun saveThumbnail(tab: WebTabState, thumbnail: Bitmap) {
+    fun saveThumbnail(tab: BrowserTab, thumbnail: Bitmap) {
         if (!thumbnailsDir.exists() && !thumbnailsDir.mkdirs()) return
         val name = UUID.randomUUID().toString() + ".webp"
         val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -120,7 +120,7 @@ class TabFilesStore(filesDir: File, cacheDir: File) {
      * Reads the saved thumbnail of the tab (blocking).
      * @return null if there is none or its file is lost
      */
-    fun loadThumbnail(tab: WebTabState): Bitmap? {
+    fun loadThumbnail(tab: BrowserTab): Bitmap? {
         val name = tab.thumbnailHash ?: return null
         val file = thumbnailFile(name)
         if (!file.exists()) return null
@@ -130,7 +130,7 @@ class TabFilesStore(filesDir: File, cacheDir: File) {
     /**
      * Deletes all files of the tab (blocking).
      */
-    fun removeFiles(tab: WebTabState) {
+    fun removeFiles(tab: BrowserTab) {
         tab.thumbnailHash?.let {
             thumbnailFile(it).delete()
             tab.thumbnailHash = null

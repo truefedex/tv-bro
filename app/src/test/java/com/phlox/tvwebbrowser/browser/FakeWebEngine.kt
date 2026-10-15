@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
 import com.phlox.tvwebbrowser.Config
-import com.phlox.tvwebbrowser.model.WebTabState
+import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
@@ -14,11 +14,11 @@ import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 /**
  * Web engine that only records what is done with it.
  */
-class FakeWebEngine(val tab: WebTabState) : WebEngine {
+class FakeWebEngine(val tab: BrowserTab) : WebEngine {
     companion object {
         val provider = WebEngineProvider("Fake", object : WebEngineProviderCallback {
             override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {}
-            override fun createWebEngine(tab: WebTabState): WebEngine = FakeWebEngine(tab)
+            override fun createWebEngine(tab: BrowserTab): WebEngine = FakeWebEngine(tab)
             override suspend fun clearCache(ctx: Context) {}
             override fun onThemeSettingUpdated(value: Config.Theme) {}
             override fun getWebEngineVersionString(): String = "fake"
@@ -83,4 +83,4 @@ class FakeWebEngine(val tab: WebTabState) : WebEngine {
     override fun fastForward() {}
 }
 
-val WebTabState.fakeEngine: FakeWebEngine get() = webEngine as FakeWebEngine
+val BrowserTab.fakeEngine: FakeWebEngine get() = webEngine as FakeWebEngine
