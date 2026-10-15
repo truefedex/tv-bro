@@ -56,6 +56,7 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine {
     override fun canGoBack(): Boolean = canGoBackValue
     override fun goBack() { log += "goBack" }
     override fun reload() { log += "reload" }
+    override fun stopLoading() { log += "stopLoading" }
     override fun onResume() { log += "resume" }
     override fun onPause() { log += "pause" }
     override fun onUpdateAdblockSetting(newState: Boolean) { adblockSetting = newState }

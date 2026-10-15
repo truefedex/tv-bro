@@ -158,6 +158,43 @@ class BrowserControllerEventsTest {
     }
 
     @Test
+    fun pageLoadingIsShownFromStartToFinish() {
+        val tab = open("https://a.com/")
+        assertFalse(state.loading)
+        tab.callback.onPageStarted("https://a.com/")
+        assertTrue(state.loading)
+        tab.callback.onPageFinished("https://a.com/")
+        assertFalse(state.loading)
+    }
+
+    @Test
+    fun progressShowsALoadThatStartedBeforeTheTabWasShown() {
+        val tab = open("https://a.com/")
+        tab.callback.onProgressChanged(40)
+        assertTrue(state.loading)
+        tab.callback.onProgressChanged(100)
+        assertFalse(state.loading)
+    }
+
+    @Test
+    fun stopEndsTheLoading() {
+        val tab = open("https://a.com/")
+        tab.callback.onPageStarted("https://a.com/")
+        controller.stopLoading()
+        assertEquals("stopLoading", tab.fakeEngine.log.last())
+        assertFalse(state.loading)
+    }
+
+    @Test
+    fun loadingOfATabEndsWhenItIsNoLongerShown() {
+        val a = open("https://a.com/")
+        a.callback.onPageStarted("https://a.com/")
+        open("https://b.com/")
+        assertFalse(state.loading)
+        assertFalse(a.loading)
+    }
+
+    @Test
     fun blockedDialogIsCountedAndReported() {
         val tab = open("https://a.com/")
         events.clear()

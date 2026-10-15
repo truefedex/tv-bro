@@ -41,6 +41,8 @@ interface WebEngine {
     fun canGoBack(): Boolean
     fun goBack()
     fun reload()
+    /** Stops loading the page; the engine may report the page as finished */
+    fun stopLoading()
     fun onResume()
     fun onPause()
     fun onUpdateAdblockSetting(newState: Boolean)

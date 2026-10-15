@@ -158,6 +158,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, C
         webView?.reload()
     }
 
+    override fun stopLoading() {
+        webView?.stopLoading()
+    }
+
     override fun onResume() {
         webView?.onResume()
     }

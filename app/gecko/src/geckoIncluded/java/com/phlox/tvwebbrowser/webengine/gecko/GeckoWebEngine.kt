@@ -362,6 +362,10 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
         session.goBack()
     }
 
+    override fun stopLoading() {
+        session.stop()
+    }
+
     override fun reload() {
         callback?.let { onUpdateAdblockSetting(it.isAdBlockingEnabled()) }
         session.reload()

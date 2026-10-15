@@ -12,6 +12,8 @@ data class CurrentTabState(
     val hasTab: Boolean = false,
     val url: String = "",
     val title: String = "",
+    /** A page is loading: the UI offers to stop it instead of reloading */
+    val loading: Boolean = false,
     val canGoBack: Boolean = false,
     val canGoForward: Boolean = false,
     val adBlockEnabled: Boolean = false,

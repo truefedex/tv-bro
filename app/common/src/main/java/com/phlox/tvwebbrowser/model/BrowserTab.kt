@@ -40,6 +40,8 @@ class BrowserTab(var id: Long = 0,
     var blockedPopups = 0
     /** The page has a certificate error; cleared when the user navigates somewhere */
     var certificateError = false
+    /** A page is loading; known only while the tab is the current one (other tabs' engines report nothing) */
+    var loading = false
 
     fun trimMemory() {
         if (isWebEngineCreated) {

@@ -411,6 +411,14 @@ class BrowserController : ActiveModel() {
         currentTab.value?.webEngine?.reload()
     }
 
+    fun stopLoading() {
+        val tab = currentTab.value ?: return
+        tab.webEngine.stopLoading()
+        //not every engine reports the stopped page as finished
+        tab.loading = false
+        publishState()
+    }
+
     fun togglePlayback() {
         currentTab.value?.webEngine?.togglePlayback()
     }
@@ -466,6 +474,8 @@ class BrowserController : ActiveModel() {
                 it.selected = false
             }
             currentTab.value?.apply {
+                //its engine will not report the end of the loading
+                loading = false
                 webEngine.onDetachFromWindow(completely = false, destroyTab = false)
                 onPause()
                 saveTab(this@apply)
@@ -541,6 +551,7 @@ class BrowserController : ActiveModel() {
             hasTab = true,
             url = tab.url,
             title = tab.title,
+            loading = tab.loading,
             canGoBack = tab.webEngine.canGoBack(),
             canGoForward = tab.webEngine.canGoForward(),
             adBlockEnabled = isAdBlockEnabled(tab),
@@ -568,6 +579,12 @@ class BrowserController : ActiveModel() {
 
         override fun onProgressChanged(newProgress: Int) {
             sendUiEvent(BrowserUiEvent.Progress(newProgress))
+            //also catches up with a page that was loading when the tab was shown
+            val loading = newProgress < 100
+            if (tab.loading != loading) {
+                tab.loading = loading
+                publishState()
+            }
         }
 
         override fun onReceivedTitle(title: String) {
@@ -631,6 +648,7 @@ class BrowserController : ActiveModel() {
             updateUrl(url)
             tab.blockedAds = 0
             tab.blockedPopups = 0
+            tab.loading = true
             //engines that keep the setting per session (not per request) get the one of the new host
             tab.webEngine.onUpdateAdblockSetting(isAdBlockEnabled(tab))
             publishState()
@@ -639,6 +657,7 @@ class BrowserController : ActiveModel() {
         }
 
         override fun onPageFinished(url: String?) {
+            tab.loading = false
             if (currentTab.value == null) {
                 return
             }
