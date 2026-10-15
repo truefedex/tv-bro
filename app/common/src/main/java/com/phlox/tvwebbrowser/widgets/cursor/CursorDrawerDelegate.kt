@@ -105,6 +105,12 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         scheduleCursorHide()
     }
 
+    /** Shows the cursor at the point of the surface (kept inside it) */
+    fun moveTo(x: Float, y: Float) {
+        cursorPosition.set(bound(x, 0f, (surface.width - 1).toFloat()), bound(y, 0f, (surface.height - 1).toFloat()))
+        animateAppearing()
+    }
+
     fun canHandleBackNavigation(): Boolean {
         return grabMode
     }

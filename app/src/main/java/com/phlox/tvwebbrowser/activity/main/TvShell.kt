@@ -101,7 +101,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
 
         override fun onAddNewTabSelected() {
-            host.openInNewTab(settingsModel.homePage, controller.tabsStates.size)
+            openHomeTab(controller.tabsStates.size)
         }
 
         override fun showTabMenu(tab: BrowserTab, view: View) {
@@ -121,7 +121,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
 
         override fun openNewTabToTheRight(tab: BrowserTab) {
-            host.openInNewTab(settingsModel.homePage, controller.tabsStates.indexOf(tab) + 1)
+            openHomeTab(controller.tabsStates.indexOf(tab) + 1)
         }
 
         override fun moveTab(tab: BrowserTab, offset: Int) {
@@ -132,6 +132,14 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 vb.vTabs.scrollToShow(controller.tabsStates.indexOf(tab) - offset)
             }
         }
+    }
+
+    /** A tab opened with the home page, waiting for the page to put the cursor on its search bar */
+    private var tabForSearchBarCursor: BrowserTab? = null
+
+    /** Opens a tab with the home page at [index]; the bar hides, and the cursor goes to the search bar */
+    private fun openHomeTab(index: Int) {
+        tabForSearchBarCursor = host.openInNewTab(settingsModel.homePage, index)
     }
 
     /**
@@ -441,6 +449,13 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             BrowserUiEvent.TabOpenedByPage -> {
                 if (vb.rlActionBar.visibility == View.VISIBLE) {
                     hideMenuOverlay(true)
+                }
+            }
+            is BrowserUiEvent.HomePageSearchBarLocated -> {
+                //only for a tab the user opened from the bar, so a page reload does not move the cursor
+                if (event.tab == tabForSearchBarCursor) {
+                    tabForSearchBarCursor = null
+                    event.tab.webEngine.virtualCursor?.moveCursorTo(event.x.toFloat(), event.y.toFloat())
                 }
             }
             BrowserUiEvent.TabClosedByPage -> {

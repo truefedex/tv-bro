@@ -28,6 +28,8 @@ interface TabEngineEvents {
     fun onVisited(url: String)
     fun getHomePageLinks(): List<HomePageLink>
     fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int)
+    /** The built-in home page has loaded; its search bar is at [x], [y] (pixels of the engine view) */
+    fun onHomePageSearchBarLocated(x: Int, y: Int)
 }
 
 /**

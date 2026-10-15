@@ -15,6 +15,10 @@ interface VirtualCursorSupport {
     fun getCursorDrawerDelegate(): CursorDrawerDelegate?
     /** The modes of the cursor of this engine, the same flow for the engine's whole life */
     val cursorModes: StateFlow<CursorModes>
+    /** Shows the cursor at [x], [y] (pixels of the engine view) */
+    fun moveCursorTo(x: Float, y: Float) {
+        getCursorDrawerDelegate()?.moveTo(x, y)
+    }
 }
 
 /**

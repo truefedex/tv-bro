@@ -48,4 +48,6 @@ sealed interface BrowserUiEvent {
     /** A page wants to open an url with a non-web scheme, [intent] can handle it */
     data class AskToOpenInExternalApp(val url: String, val intent: Intent) : BrowserUiEvent
     data object NoAppToOpenUrl : BrowserUiEvent
+    /** The built-in home page in [tab] has loaded; its search bar is at [x], [y] (pixels of the engine view) */
+    data class HomePageSearchBarLocated(val tab: BrowserTab, val x: Int, val y: Int) : BrowserUiEvent
 }

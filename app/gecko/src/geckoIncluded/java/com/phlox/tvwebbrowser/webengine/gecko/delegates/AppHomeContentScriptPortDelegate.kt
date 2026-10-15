@@ -42,6 +42,11 @@ class AppHomeContentScriptPortDelegate(val port: WebExtension.Port, val webEngin
                     webEngine.evaluateJavascript("renderLinks('${cfg.homePageLinksMode.name}', $links)")
                     webEngine.evaluateJavascript(
                         "applySearchEngine(\"${cfg.guessSearchEngineName()}\", \"${cfg.searchEngineURL.value}\")")
+                    //pages of older versions do not report it
+                    val data = msgJson.optJSONObject("data")
+                    if (data != null && data.has("searchBarX") && data.has("searchBarY")) {
+                        callback.onHomePageSearchBarLocated(data.getInt("searchBarX"), data.getInt("searchBarY"))
+                    }
                 }
                 "setSearchEngine" -> {
                     val data = msgJson.getJSONObject("data")

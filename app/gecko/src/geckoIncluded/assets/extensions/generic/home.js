@@ -16,8 +16,8 @@ let TVBro = {
     onEditBookmark: function (bookmark) {
         postMessageToHomePagePort("onEditBookmark", bookmark);
     },
-    onHomePageLoaded: function () {
-        postMessageToHomePagePort("onHomePageLoaded");
+    onHomePageLoaded: function (searchBarX, searchBarY) {
+        postMessageToHomePagePort("onHomePageLoaded", { searchBarX: searchBarX, searchBarY: searchBarY });
     },
     requestFavicon: function (url) {
         postMessageToHomePagePort("requestFavicon", url);

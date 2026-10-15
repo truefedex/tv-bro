@@ -169,6 +169,13 @@ class BrowserControllerEventsTest {
     }
 
     @Test
+    fun homePageSearchBarIsReportedToTheUi() {
+        val tab = open(Config.HOME_URL_ALIAS)
+        tab.callback.onHomePageSearchBarLocated(10, 20)
+        assertEquals(BrowserUiEvent.HomePageSearchBarLocated(tab, 10, 20), events.last())
+    }
+
+    @Test
     fun pageWithoutHostHasNoSite() {
         open(Config.HOME_URL_ALIAS)
         assertEquals("", state.host)

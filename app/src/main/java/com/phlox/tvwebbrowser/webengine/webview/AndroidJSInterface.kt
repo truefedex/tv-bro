@@ -65,6 +65,15 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
         callback.getActivity().runOnUiThread { callback.onEditHomePageBookmarkSelected(index) }
     }
 
+    /** The page reports where its search bar is (device pixels of the view) */
+    @JavascriptInterface
+    fun onHomePageLoaded(searchBarX: Int, searchBarY: Int) {
+        onHomePageLoaded()
+        if (!isHomePage()) return
+        val callback = webEngine.callback ?: return
+        callback.getActivity().runOnUiThread { callback.onHomePageSearchBarLocated(searchBarX, searchBarY) }
+    }
+
     @JavascriptInterface
     fun onHomePageLoaded() {
         if (!isHomePage()) return

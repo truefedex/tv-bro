@@ -635,7 +635,11 @@ document.getElementsByClassName("search_action_container")[0].onclick = function
 
 if (window.hasOwnProperty( "TVBro" )) {
     console.log("Running inside TVBro");
-    TVBro.onHomePageLoaded();
+    //the center of the search bar in device pixels of the page view: the browser may put its cursor there
+    var searchBar = document.getElementById("search-input").getBoundingClientRect();
+    var ratio = window.devicePixelRatio || 1;
+    TVBro.onHomePageLoaded(Math.round((searchBar.left + searchBar.width / 2) * ratio),
+        Math.round((searchBar.top + searchBar.height / 2) * ratio));
 } else {
     hideVoiceSearchUI();
     applySearchEngine(searchEngine, searchEngineUrl, false);
