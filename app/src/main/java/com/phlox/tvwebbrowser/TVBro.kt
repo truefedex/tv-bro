@@ -58,7 +58,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         instance = this
-        container = AppContainer()
+        container = AppContainer(this)
 
         AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_MULTI_PROCESS)))
 

@@ -931,7 +931,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val currentTab = controller.currentTab.value
         if (currentTab != null) {
             lifecycleScope.launch {
-                currentTab.thumbnail = currentTab.webEngine.renderThumbnail(currentTab.thumbnail)
+                currentTab.webEngine.renderThumbnail(currentTab.thumbnail)?.let { currentTab.updateThumbnail(it) }
                 displayThumbnail(currentTab)
             }
         }
@@ -974,19 +974,9 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
             if (tabByTitleIndex(vb.vTabs.current) != currentTab) return
             vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
             vb.ivMiniatures.visibility = View.VISIBLE
-            if (currentTab.thumbnail != null) {
-                vb.ivMiniatures.setImageBitmap(currentTab.thumbnail)
-            } else if (currentTab.thumbnailHash != null) {
-                withContext(Dispatchers.IO) {
-                    val thumbnail = currentTab.loadThumbnail()
-                    withContext(Dispatchers.Main) {
-                        if (thumbnail != null) {
-                            vb.ivMiniatures.setImageBitmap(currentTab.thumbnail)
-                        } else {
-                            vb.ivMiniatures.setImageResource(0)
-                        }
-                    }
-                }
+            val thumbnail = controller.loadThumbnail(currentTab)
+            if (thumbnail != null) {
+                vb.ivMiniatures.setImageBitmap(thumbnail)
             } else {
                 vb.ivMiniatures.setImageResource(0)
             }

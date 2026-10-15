@@ -86,6 +86,7 @@ class BrowserController : ActiveModel() {
     private var incognitoMode = config.incognitoMode
     //all tabs writes go through this queue: they are not cancelled with the model and do not overlap
     private val writes = TVBro.instance.container.tabWrites
+    private val tabFiles = TVBro.instance.container.tabFiles
     val homePageLinks = HomePageLinks(config)
     private val historyLogger = VisitedHistoryLogger(modelScope, object : VisitedHistoryLogger.Store {
         override suspend fun insert(item: HistoryItem): Long = AppDatabase.db.historyDao().insert(item)
@@ -151,13 +152,22 @@ class BrowserController : ActiveModel() {
         }
     }
 
-    fun saveTab(tab: WebTabState) = writes.enqueue {
+    fun saveTab(tab: WebTabState): Job {
+        //taken now: the tab may drop its thumbnail before the write runs
+        val thumbnail = tab.takeChangedThumbnail()
+        return writes.enqueue { writeTab(tab, thumbnail) }
+    }
+
+    private suspend fun writeTab(tab: WebTabState, thumbnail: Bitmap?) {
         val tabsDB = AppDatabase.db.tabsDao()
         if (tab.selected) {
             tabsDB.unselectAll(config.incognitoMode)
         }
         withContext(Dispatchers.IO) {
-            tab.saveWebViewStateToFile()
+            tabFiles.saveEngineState(tab)
+            if (thumbnail != null) {
+                tabFiles.saveThumbnail(tab, thumbnail)
+            }
         }
         if (tab.id != 0L) {
             tabsDB.update(tab)
@@ -172,7 +182,7 @@ class BrowserController : ActiveModel() {
         writes.enqueue {
             val tabsDB = AppDatabase.db.tabsDao()
             tabsDB.delete(tab)
-            withContext(Dispatchers.IO) { tab.removeFiles() }
+            withContext(Dispatchers.IO) { tabFiles.removeFiles(tab) }
         }
     }
 
@@ -191,7 +201,7 @@ class BrowserController : ActiveModel() {
         val tabsDB = AppDatabase.db.tabsDao()
         tabsDB.deleteAll(config.incognitoMode)
         withContext(Dispatchers.IO) {
-            tabsClone.forEach { it.removeFiles() }
+            tabsClone.forEach { tabFiles.removeFiles(it) }
         }
     }
 
@@ -216,6 +226,19 @@ class BrowserController : ActiveModel() {
             onPause()
             saveTab(this@apply)
         }
+    }
+
+    /**
+     * Loads the saved thumbnail of the tab if it has none in memory.
+     */
+    suspend fun loadThumbnail(tab: WebTabState): Bitmap? {
+        tab.thumbnail?.let { return it }
+        if (tab.thumbnailHash == null) return null
+        val thumbnail = withContext(Dispatchers.IO) { tabFiles.loadThumbnail(tab) }
+        if (tab.thumbnail == null) {
+            tab.thumbnail = thumbnail
+        }
+        return tab.thumbnail
     }
 
     fun trimMemory() {
@@ -388,7 +411,7 @@ class BrowserController : ActiveModel() {
             if (wv == null) {
                 return
             }
-            needReloadUrl = !newTab.restoreWebView()
+            needReloadUrl = !tabFiles.restoreEngineState(newTab)
         }
         newTab.webEngine.onAttachToWindow(engineCallback(newTab, host), host.tabsContainer)
         if (needReloadUrl) {
@@ -564,7 +587,7 @@ class BrowserController : ActiveModel() {
             modelScope.launch {
                 val newThumbnail = tab.webEngine.renderThumbnail(tab.thumbnail)
                 if (newThumbnail != null) {
-                    tab.updateThumbnail(AppContext.get(), newThumbnail)
+                    tab.updateThumbnail(newThumbnail)
                     sendUiEvent(BrowserUiEvent.ThumbnailUpdated(tab))
                 }
             }
