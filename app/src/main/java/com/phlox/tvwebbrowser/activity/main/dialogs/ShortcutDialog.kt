@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.NavigationReservedShortcutKeyCodes
@@ -23,6 +24,7 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
     private val btnSetKey: Button
     private val btnClearKey: Button
     private var keyListenMode = false
+    private val shortcutMgr = ShortcutMgr.getInstance(context)
 
     init {
         setCancelable(true)
@@ -45,19 +47,12 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
         if (keyListenMode) {
             toggleKeyListenState()
         }
-        shortcut.keyCode = 0
-        shortcut.modifiers = 0
-        shortcut.longPressFlag = false
-        ShortcutMgr.getInstance(context).save(shortcut)
+        shortcutMgr.save(shortcut, KeyBinding.NONE)
         updateShortcutNameDisplay()
     }
 
     private fun updateShortcutNameDisplay() {
-        tvActionKey.text = if (shortcut.keyCode == 0)
-            context.getString(R.string.not_set)
-        else {
-            Shortcut.shortcutKeysToString(shortcut, context)
-        }
+        tvActionKey.text = shortcutMgr.bindingOf(shortcut).toDisplayString(context)
     }
 
     private fun toggleKeyListenState() {
@@ -74,7 +69,6 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
         }
         Log.d(TAG, "onKeyDown: keyCode = $keyCode, event = $event")
         event.startTracking()
-        shortcut.longPressFlag = false
         return true
     }
 
@@ -89,9 +83,7 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
             toggleKeyListenState()
             return true
         }
-        shortcut.keyCode = resolved
-        shortcut.modifiers = event.modifiers
-        ShortcutMgr.getInstance(context).save(shortcut)
+        shortcutMgr.save(shortcut, KeyBinding(resolved, event.modifiers))
         toggleKeyListenState()
         updateShortcutNameDisplay()
         return true
@@ -108,10 +100,7 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
             toggleKeyListenState()
             return true
         }
-        shortcut.keyCode = resolved
-        shortcut.modifiers = event.modifiers
-        shortcut.longPressFlag = true
-        ShortcutMgr.getInstance(context).save(shortcut)
+        shortcutMgr.save(shortcut, KeyBinding(resolved, event.modifiers, longPress = true))
         toggleKeyListenState()
         updateShortcutNameDisplay()
         return true

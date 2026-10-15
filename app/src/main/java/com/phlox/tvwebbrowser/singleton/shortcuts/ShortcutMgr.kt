@@ -6,56 +6,40 @@ import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
 import androidx.annotation.UiThread
+import androidx.annotation.VisibleForTesting
 import com.phlox.tvwebbrowser.browser.BrowserCommands
+import java.util.EnumMap
 
 /**
  * Created by PDT on 06.08.2017.
  */
 
-class ShortcutMgr private constructor(private val prefs: SharedPreferences) {
-    private val shortcuts = ArrayList<Shortcut>()
+class ShortcutMgr @VisibleForTesting internal constructor(private val prefs: SharedPreferences) {
+    private val bindings = EnumMap<Shortcut, KeyBinding>(Shortcut::class.java)
     private var trackingShortcuts: List<Shortcut>? = null
     private val uiHandler = Handler(Looper.getMainLooper())
 
     init {
         for (shortcut in Shortcut.entries) {
-            shortcut.keyCode = prefs.getInt(shortcut.prefsKey, shortcut.keyCode)
-            shortcut.modifiers = prefs.getInt(shortcut.prefsKey + "_mod", shortcut.modifiers)
-            shortcut.longPressFlag = prefs.getBoolean(shortcut.prefsKey + "_lp", shortcut.longPressFlag)
-            if (shortcut.keyCode != 0) {
-                shortcuts.add(shortcut)
-            }
+            val default = shortcut.defaultBinding
+            bindings[shortcut] = KeyBinding(
+                prefs.getInt(shortcut.prefsKey, default.keyCode),
+                prefs.getInt(shortcut.prefsKey + "_mod", default.modifiers),
+                prefs.getBoolean(shortcut.prefsKey + "_lp", default.longPress)
+            )
         }
     }
 
-    fun save(shortcut: Shortcut) {
-        if (shortcut.keyCode == 0) {
-            prefs.edit()
-                    .remove(shortcut.prefsKey)
-                    .remove(shortcut.prefsKey + "_mod")
-                    .remove(shortcut.prefsKey + "_lp")
-                    .apply()
-            shortcuts.remove(shortcut)
-            return
-        }
-        if (!shortcuts.contains(shortcut)) {
-            shortcuts.add(shortcut)
-        }
+    fun bindingOf(shortcut: Shortcut): KeyBinding = bindings[shortcut] ?: shortcut.defaultBinding
+
+    fun save(shortcut: Shortcut, binding: KeyBinding) {
+        bindings[shortcut] = binding
+        //a cleared key is stored too, otherwise the default one would come back after a restart
         prefs.edit()
-                .putInt(shortcut.prefsKey, shortcut.keyCode)
-                .putInt(shortcut.prefsKey + "_mod", shortcut.modifiers)
-                .putBoolean(shortcut.prefsKey + "_lp", shortcut.longPressFlag)
+                .putInt(shortcut.prefsKey, binding.keyCode)
+                .putInt(shortcut.prefsKey + "_mod", binding.modifiers)
+                .putBoolean(shortcut.prefsKey + "_lp", binding.longPress)
                 .apply()
-    }
-
-    fun findForId(id: Int): Shortcut {
-        val shortcut = Shortcut.entries[id]
-        for (s in shortcuts) {
-            if (s == shortcut) {
-                return s
-            }
-        }
-        return shortcut
     }
 
     @UiThread
@@ -72,17 +56,9 @@ class ShortcutMgr private constructor(private val prefs: SharedPreferences) {
         }
     }
 
-    private fun shortCutsForEvent(keyCode: Int, modifiers: Int): List<Shortcut> {
-        val findings = ArrayList<Shortcut>()
-        for (shortcut in shortcuts) {
-            if (shortcut.keyCode == keyCode) {
-                if (shortcut.modifiers == modifiers) {
-                    findings.add(shortcut)
-                }
-            }
-        }
-        return findings
-    }
+    private fun shortCutsForEvent(keyCode: Int, modifiers: Int): List<Shortcut> =
+        bindings.filter { (_, binding) -> binding.isSet && binding.keyCode == keyCode && binding.modifiers == modifiers }
+            .keys.toList()
 
     private fun onKeyDown(event: KeyEvent, commands: BrowserCommands): Boolean {
         val shortcuts = shortCutsForEvent(event.keyCode, event.modifiers)
@@ -100,7 +76,8 @@ class ShortcutMgr private constructor(private val prefs: SharedPreferences) {
     private fun onKeyUp(event: KeyEvent, commands: BrowserCommands): Boolean {
         val trackingShortcuts = trackingShortcuts ?: return false
         for (shortcut in trackingShortcuts) {
-            if (shortcut.longPressFlag || event.modifiers != shortcut.modifiers) {
+            val binding = bindingOf(shortcut)
+            if (binding.longPress || event.modifiers != binding.modifiers) {
                 continue
             }
             uiHandler.post { process(shortcut, commands) }
@@ -113,7 +90,8 @@ class ShortcutMgr private constructor(private val prefs: SharedPreferences) {
     private fun onKeyLongPress(event: KeyEvent, commands: BrowserCommands): Boolean {
         val trackingShortcuts = trackingShortcuts ?: return false
         for (shortcut in trackingShortcuts) {
-            if (!shortcut.longPressFlag || event.modifiers != shortcut.modifiers) {
+            val binding = bindingOf(shortcut)
+            if (!binding.longPress || event.modifiers != binding.modifiers) {
                 continue
             }
             uiHandler.post { process(shortcut, commands) }

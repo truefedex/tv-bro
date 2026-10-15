@@ -31,10 +31,7 @@ class ShortcutsSettingsView @JvmOverloads constructor(
     }
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        val dialog = ShortcutDialog(context,
-                ShortcutMgr.getInstance(context)
-                        .findForId(position)
-        )
+        val dialog = ShortcutDialog(context, Shortcut.entries[position])
         dialog.setOnDismissListener {
             (adapter as BaseAdapter).notifyDataSetChanged()
         }
@@ -72,13 +69,10 @@ class ShortcutsSettingsView @JvmOverloads constructor(
             ViewShortcutBinding.inflate(LayoutInflater.from(context), this)
 
         fun bind(position: Int, titleRes: Int) {
-            val shortcut = ShortcutMgr.getInstance(context).findForId(position)
+            val binding = ShortcutMgr.getInstance(context).bindingOf(Shortcut.entries[position])
 
             vb.tvTitle.setText(titleRes)
-            vb.tvKey.text = if (shortcut.keyCode == 0)
-                context.getString(R.string.not_set)
-            else
-                Shortcut.shortcutKeysToString(shortcut, context)
+            vb.tvKey.text = binding.toDisplayString(context)
         }
     }
 }
