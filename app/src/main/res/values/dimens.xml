@@ -29,4 +29,39 @@
     <dimen name="notification_horizontal_padding">10dp</dimen>
     <dimen name="notification_max_width">320dp</dimen>
     <dimen name="notification_margin">10dp</dimen>
+
+    <!--
+    Sizes of the design system and the redesign boards. TV boards are 1920x1080, so a board pixel is
+    half a dp. Text sizes are in sp like the other text sizes (sp = dp at the default font scale).
+    -->
+    <dimen name="ds_space_screen_x">16dp</dimen>
+    <dimen name="ds_space_screen_top">14dp</dimen>
+    <dimen name="ds_space_gutter">16dp</dimen>
+    <dimen name="ds_space_icon_text">12dp</dimen>
+    <dimen name="ds_space_menu_inset">18dp</dimen>
+    <dimen name="ds_space_tab_inset">12dp</dimen>
+    <dimen name="ds_size_chrome_control">49dp</dimen>
+    <dimen name="ds_size_toolbar_segment">56dp</dimen>
+    <dimen name="ds_size_tab_width">200dp</dimen>
+    <dimen name="ds_size_tab_height">42dp</dimen>
+    <dimen name="ds_size_tab_menu_width">210dp</dimen>
+    <dimen name="ds_size_menu_row">37dp</dimen>
+    <dimen name="ds_size_icon_toolbar">24dp</dimen>
+    <dimen name="ds_size_icon_menu">18dp</dimen>
+    <dimen name="ds_size_favicon_tab">24dp</dimen>
+    <dimen name="ds_size_badge_height">14dp</dimen>
+    <dimen name="ds_size_badge_min_width">16dp</dimen>
+    <dimen name="ds_size_toast_height">48dp</dimen>
+    <dimen name="ds_size_toast_min_width">370dp</dimen>
+    <dimen name="ds_radius_control">6dp</dimen>
+    <dimen name="ds_radius_lg">8dp</dimen>
+    <dimen name="ds_border_hairline">1dp</dimen>
+    <dimen name="ds_border_selected">1.5dp</dimen>
+    <!-- A deviation of the TV boards: the focused fills of the light theme are almost invisible -->
+    <dimen name="ds_focus_outline">1.5dp</dimen>
+    <dimen name="ds_text_address">18sp</dimen>
+    <dimen name="ds_text_toast">18sp</dimen>
+    <dimen name="ds_text_menu_item">14sp</dimen>
+    <dimen name="ds_text_tab_title">12sp</dimen>
+    <dimen name="ds_text_badge">9sp</dimen>
 </resources>

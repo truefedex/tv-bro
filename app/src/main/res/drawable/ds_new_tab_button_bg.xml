@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The new tab button after the tabs (a tab without a bottom border): control, focused (with the focus outline) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <layer-list>
+            <item android:bottom="-2dp">
+                <shape android:shape="rectangle">
+                    <corners android:topLeftRadius="@dimen/ds_radius_control" android:topRightRadius="@dimen/ds_radius_control" />
+                    <solid android:color="?attr/tbColorDsControlFocused" />
+                    <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_hovered="true">
+        <layer-list>
+            <item android:bottom="-2dp">
+                <shape android:shape="rectangle">
+                    <corners android:topLeftRadius="@dimen/ds_radius_control" android:topRightRadius="@dimen/ds_radius_control" />
+                    <solid android:color="?attr/tbColorDsControlFocused" />
+                    <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item>
+        <layer-list>
+            <item android:bottom="-2dp">
+                <shape android:shape="rectangle">
+                    <corners android:topLeftRadius="@dimen/ds_radius_control" android:topRightRadius="@dimen/ds_radius_control" />
+                    <solid android:color="?attr/tbColorDsControl" />
+                    <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

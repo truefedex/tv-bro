@@ -55,4 +55,53 @@
     <attr name="tbColorBadge" format="color" />
     <!-- Badge border -->
     <attr name="tbColorBadgeStroke" format="color" />
+
+    <!--
+    Tokens of the design system (tokens.json of the "TV Bro" design system, with the same names).
+    The redesigned screens use them; the tokens above are the palette of the screens not redesigned yet.
+    -->
+    <!-- Home page background, behind the logo, search bar and tiles -->
+    <attr name="tbColorDsBgPage" format="color" />
+    <!-- The browser bar and the tab strip -->
+    <attr name="tbColorDsBgChrome" format="color" />
+    <!-- Content: the address field, the current tab, tiles, the site panel rows on the phone -->
+    <attr name="tbColorDsSurface" format="color" />
+    <!-- The focused address field and tab -->
+    <attr name="tbColorDsSurfaceFocused" format="color" />
+    <!-- Tabs that are not current -->
+    <attr name="tbColorDsTab" format="color" />
+    <!-- Menu and panel rows at rest -->
+    <attr name="tbColorDsMenu" format="color" />
+    <!-- Toolbar segments and icon buttons at rest -->
+    <attr name="tbColorDsControl" format="color" />
+    <!-- A focused toolbar segment, icon button or menu row -->
+    <attr name="tbColorDsControlFocused" format="color" />
+    <!-- A selected (activated) toolbar segment, icon button or menu row -->
+    <attr name="tbColorDsControlSelected" format="color" />
+    <!-- Toast background -->
+    <attr name="tbColorDsToast" format="color" />
+    <!-- Toast text and icon -->
+    <attr name="tbColorDsOnToast" format="color" />
+    <!-- Hairlines: menu borders, row dividers, the address field border, the tab strip edge -->
+    <attr name="tbColorDsLine" format="color" />
+    <!-- Borders and separators of toolbar groups, tab outlines -->
+    <attr name="tbColorDsLineStrong" format="color" />
+    <!-- Dividers inside the address field and the search bar -->
+    <attr name="tbColorDsDivider" format="color" />
+    <!-- Focus outline -->
+    <attr name="tbColorDsFocus" format="color" />
+    <!-- Selected (editing, current) stroke; the brand blue -->
+    <attr name="tbColorDsSelected" format="color" />
+    <!-- All text that must be read -->
+    <attr name="tbColorDsInk" format="color" />
+    <!-- Secondary text: hosts under titles, placeholders -->
+    <attr name="tbColorDsInkFaint" format="color" />
+    <!-- Icons of the bar, buttons and menus; the badge background -->
+    <attr name="tbColorDsIcon" format="color" />
+    <!-- Badge text (the surface color) -->
+    <attr name="tbColorDsOnBadge" format="color" />
+    <!-- The voice search mic of the search bar -->
+    <attr name="tbColorDsAccent" format="color" />
+    <!-- Behind sheets (32% black) -->
+    <attr name="tbColorDsScrim" format="color" />
 </resources>

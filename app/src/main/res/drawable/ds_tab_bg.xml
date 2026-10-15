@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A tab (top corners, no bottom border): tab, focused (with the focus outline), current (selected) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <layer-list>
+            <item android:bottom="-2dp">
+                <shape android:shape="rectangle">
+                    <corners android:topLeftRadius="@dimen/ds_radius_control" android:topRightRadius="@dimen/ds_radius_control" />
+                    <solid android:color="?attr/tbColorDsSurfaceFocused" />
+                    <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_hovered="true">
+        <layer-list>
+            <item android:bottom="-2dp">
+                <shape android:shape="rectangle">
+                    <corners android:topLeftRadius="@dimen/ds_radius_control" android:topRightRadius="@dimen/ds_radius_control" />
+                    <solid android:color="?attr/tbColorDsSurfaceFocused" />
+                    <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_activated="true">
+        <layer-list>
+            <item android:bottom="-2dp">
+                <shape android:shape="rectangle">
+                    <corners android:topLeftRadius="@dimen/ds_radius_control" android:topRightRadius="@dimen/ds_radius_control" />
+                    <solid android:color="?attr/tbColorDsSurface" />
+                    <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_selected="true">
+        <layer-list>
+            <item android:bottom="-2dp">
+                <shape android:shape="rectangle">
+                    <corners android:topLeftRadius="@dimen/ds_radius_control" android:topRightRadius="@dimen/ds_radius_control" />
+                    <solid android:color="?attr/tbColorDsSurface" />
+                    <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item>
+        <layer-list>
+            <item android:bottom="-2dp">
+                <shape android:shape="rectangle">
+                    <corners android:topLeftRadius="@dimen/ds_radius_control" android:topRightRadius="@dimen/ds_radius_control" />
+                    <solid android:color="?attr/tbColorDsTab" />
+                    <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

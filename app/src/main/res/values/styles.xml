@@ -75,6 +75,35 @@
         <item name="android:textSize">@dimen/text_size_badge</item>
     </style>
 
+    <!-- Text styles of the redesigned screens (design system type styles) -->
+
+    <!-- The url in the address field -->
+    <style name="Widget.TVBro.Text.Address">
+        <item name="android:textSize">@dimen/ds_text_address</item>
+    </style>
+
+    <!-- Toast messages -->
+    <style name="Widget.TVBro.Text.Toast">
+        <item name="android:textSize">@dimen/ds_text_toast</item>
+    </style>
+
+    <!-- Rows of menus and panels -->
+    <style name="Widget.TVBro.Text.MenuItem">
+        <item name="android:textSize">@dimen/ds_text_menu_item</item>
+    </style>
+
+    <!-- Page titles on tabs -->
+    <style name="Widget.TVBro.Text.TabTitle">
+        <item name="android:textSize">@dimen/ds_text_tab_title</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- The count of blocked ads and pop-ups on the site button -->
+    <style name="Widget.TVBro.Text.CountBadge">
+        <item name="android:textSize">@dimen/ds_text_badge</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <!-- A row of a list (RecyclerView): focusable, highlighted when focused -->
     <style name="Widget.TVBro.ListItem" parent="">
         <item name="android:focusable">true</item>

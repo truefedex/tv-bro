@@ -39,6 +39,28 @@
         <item name="tbColorButtonStrokeFocused">@color/button_stroke_focused</item>
         <item name="tbColorBadge">@color/badge</item>
         <item name="tbColorBadgeStroke">@color/badge_stroke</item>
+        <item name="tbColorDsBgPage">@color/ds_bg_page</item>
+        <item name="tbColorDsBgChrome">@color/ds_bg_chrome</item>
+        <item name="tbColorDsSurface">@color/ds_surface</item>
+        <item name="tbColorDsSurfaceFocused">@color/ds_surface_focused</item>
+        <item name="tbColorDsTab">@color/ds_tab</item>
+        <item name="tbColorDsMenu">@color/ds_menu</item>
+        <item name="tbColorDsControl">@color/ds_control</item>
+        <item name="tbColorDsControlFocused">@color/ds_control_focused</item>
+        <item name="tbColorDsControlSelected">@color/ds_control_selected</item>
+        <item name="tbColorDsToast">@color/ds_toast</item>
+        <item name="tbColorDsOnToast">@color/ds_on_toast</item>
+        <item name="tbColorDsLine">@color/ds_line</item>
+        <item name="tbColorDsLineStrong">@color/ds_line_strong</item>
+        <item name="tbColorDsDivider">@color/ds_divider</item>
+        <item name="tbColorDsFocus">@color/ds_focus</item>
+        <item name="tbColorDsSelected">@color/ds_selected</item>
+        <item name="tbColorDsInk">@color/ds_ink</item>
+        <item name="tbColorDsInkFaint">@color/ds_ink_faint</item>
+        <item name="tbColorDsIcon">@color/ds_icon</item>
+        <item name="tbColorDsOnBadge">@color/ds_on_badge</item>
+        <item name="tbColorDsAccent">@color/ds_accent</item>
+        <item name="tbColorDsScrim">@color/ds_scrim</item>
     </style>
 
     <style name="SettingsDialog">

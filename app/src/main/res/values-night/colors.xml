@@ -28,4 +28,22 @@
     <color name="button_stroke_focused">#33add6</color>
     <color name="badge">#2D2D2D</color>
     <color name="badge_stroke">#4E4E4E</color>
+
+    <!-- Design system tokens, dark theme (the ones that differ) -->
+    <color name="ds_bg_page">#343A3C</color>
+    <color name="ds_bg_chrome">#272727</color>
+    <color name="ds_surface">#1B1B1B</color>
+    <color name="ds_surface_focused">#343A3C</color>
+    <color name="ds_tab">#272727</color>
+    <color name="ds_menu">#2F2F2F</color>
+    <color name="ds_control">#323940</color>
+    <color name="ds_control_focused">#003E4F</color>
+    <color name="ds_control_selected">#5A5A5A</color>
+    <color name="ds_line">#4E4E4E</color>
+    <color name="ds_line_strong">#5A5A5A</color>
+    <color name="ds_divider">#343A3C</color>
+    <color name="ds_ink">#F8F9FA</color>
+    <color name="ds_ink_faint">#BBBBBB</color>
+    <color name="ds_icon">#FDFDFD</color>
+    <color name="ds_on_badge">#1B1B1B</color>
 </resources>
