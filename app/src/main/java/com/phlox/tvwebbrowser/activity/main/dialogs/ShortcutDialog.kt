@@ -48,7 +48,7 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
         shortcut.keyCode = 0
         shortcut.modifiers = 0
         shortcut.longPressFlag = false
-        ShortcutMgr.getInstance().save(shortcut)
+        ShortcutMgr.getInstance(context).save(shortcut)
         updateShortcutNameDisplay()
     }
 
@@ -91,7 +91,7 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
         }
         shortcut.keyCode = resolved
         shortcut.modifiers = event.modifiers
-        ShortcutMgr.getInstance().save(shortcut)
+        ShortcutMgr.getInstance(context).save(shortcut)
         toggleKeyListenState()
         updateShortcutNameDisplay()
         return true
@@ -111,7 +111,7 @@ class ShortcutDialog(context: Context, private val shortcut: Shortcut) : Dialog(
         shortcut.keyCode = resolved
         shortcut.modifiers = event.modifiers
         shortcut.longPressFlag = true
-        ShortcutMgr.getInstance().save(shortcut)
+        ShortcutMgr.getInstance(context).save(shortcut)
         toggleKeyListenState()
         updateShortcutNameDisplay()
         return true

@@ -336,6 +336,22 @@ class BrowserController : ActiveModel() {
         currentTab.value?.webEngine?.reload()
     }
 
+    fun togglePlayback() {
+        currentTab.value?.webEngine?.togglePlayback()
+    }
+
+    fun stopPlayback() {
+        currentTab.value?.webEngine?.stopPlayback()
+    }
+
+    fun rewind() {
+        currentTab.value?.webEngine?.rewind()
+    }
+
+    fun fastForward() {
+        currentTab.value?.webEngine?.fastForward()
+    }
+
     /**
      * Toggles ads blocking for the current tab (overriding the global setting).
      * @return the changed tab

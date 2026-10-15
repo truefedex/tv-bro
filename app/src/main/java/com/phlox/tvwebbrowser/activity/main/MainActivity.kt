@@ -59,6 +59,7 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
+import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
@@ -160,10 +161,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
         vb.ibAdBlock.setOnClickListener { toggleAdBlockForTab() }
         vb.ibPopupBlock.setOnClickListener { showPopupBlockOptions() }
-        vb.ibHome.setOnClickListener { navigate(settingsModel.homePage) }
-        vb.ibBack.setOnClickListener { navigateBack() }
-        vb.ibForward.setOnClickListener { controller.goForward() }
-        vb.ibRefresh.setOnClickListener { refresh() }
+        vb.ibHome.setOnClickListener { commands.goHome() }
+        vb.ibBack.setOnClickListener { commands.goBack() }
+        vb.ibForward.setOnClickListener { commands.goForward() }
+        vb.ibRefresh.setOnClickListener { commands.reload() }
         vb.ibCloseTab.setOnClickListener { controller.currentTab.value?.apply { closeTab(this) } }
 
         vb.vActionBar.callback = this
@@ -382,20 +383,34 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         hideMenuOverlay()
     }
 
-    fun navigateBack(goHomeIfNoHistory: Boolean = false) {
-        if (controller.goBack()) {
-            return
-        } else if (goHomeIfNoHistory) {
-            navigate(settingsModel.homePage)
-        } else if (vb.rlActionBar.visibility != View.VISIBLE) {
-            showMenuOverlay()
-        } else {
-            hideMenuOverlay()
+    private val commands = object : BrowserCommands {
+        override fun goBack() {
+            if (controller.goBack()) {
+                return
+            }
+            //no history: back to the menu
+            if (vb.rlActionBar.visibility != View.VISIBLE) {
+                showMenuOverlay()
+            } else {
+                hideMenuOverlay()
+            }
         }
-    }
 
-    fun refresh() {
-        controller.reload()
+        override fun goForward() = controller.goForward()
+
+        override fun goHome() = navigate(settingsModel.homePage)
+
+        override fun reload() = controller.reload()
+
+        override fun startVoiceSearch() = initiateVoiceSearch()
+
+        override fun togglePlayback() = controller.togglePlayback()
+
+        override fun stopPlayback() = controller.stopPlayback()
+
+        override fun rewind() = controller.rewind()
+
+        override fun fastForward() = controller.fastForward()
     }
 
     override fun onDestroy() {
@@ -690,7 +705,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private fun toggleAdBlockForTab() {
         controller.toggleAdBlockForCurrentTab()?.let {
-            refresh()
+            controller.reload()
         }
     }
 
@@ -805,10 +820,8 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                 val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
                 val keyCodeBackNavigation = keyCode == KeyEvent.KEYCODE_ESCAPE ||
                         keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_BACK
-                val shortcutMgr = ShortcutMgr.getInstance()
-                val currentTab = controller.currentTab.value
                 if (!keyCodeBackNavigation &&
-                    shortcutMgr.handle(event, this@MainActivity, currentTab)) {
+                    ShortcutMgr.getInstance(this@MainActivity).handle(event, commands)) {
                     return true
                 }
 
@@ -1091,7 +1104,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         override fun onOpenInExternalAppRequested(url: String) = openInExternalApp(url)
 
         override fun initiateVoiceSearch() {
-            this@MainActivity.initiateVoiceSearch()
+            commands.startVoiceSearch()
         }
 
         override fun onEditHomePageBookmarkSelected(index: Int) {

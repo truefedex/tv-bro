@@ -32,7 +32,7 @@ class ShortcutsSettingsView @JvmOverloads constructor(
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         val dialog = ShortcutDialog(context,
-                ShortcutMgr.getInstance()
+                ShortcutMgr.getInstance(context)
                         .findForId(position)
         )
         dialog.setOnDismissListener {
@@ -72,7 +72,7 @@ class ShortcutsSettingsView @JvmOverloads constructor(
             ViewShortcutBinding.inflate(LayoutInflater.from(context), this)
 
         fun bind(position: Int, titleRes: Int) {
-            val shortcut = ShortcutMgr.getInstance().findForId(position)
+            val shortcut = ShortcutMgr.getInstance(context).findForId(position)
 
             vb.tvTitle.setText(titleRes)
             vb.tvKey.text = if (shortcut.keyCode == 0)
