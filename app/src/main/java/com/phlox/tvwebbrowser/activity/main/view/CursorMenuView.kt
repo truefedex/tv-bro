@@ -22,7 +22,6 @@ import com.phlox.tvwebbrowser.model.WebTabState
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
-import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 
 class CursorMenuView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -106,8 +105,7 @@ class CursorMenuView @JvmOverloads constructor(
         altText: String?,
         textContent: String?,
         x: Int,
-        y: Int,
-        backNavigationEventsAdapter: BackNavigationEventsAdapter
+        y: Int
     ) {
         Log.d("CursorMenuView", "show: $baseUri, $linkUri, $srcUri, $title, $altText, $textContent, x=$x, y=$y")
         val now = System.currentTimeMillis()
@@ -116,7 +114,7 @@ class CursorMenuView @JvmOverloads constructor(
         }
         lastShowTime = now
         this.menuContext = MenuContext(tab, windowProvider, cursorDrawerDelegate,
-            baseUri, linkUri, srcUri, title, altText, textContent, x, y, backNavigationEventsAdapter)
+            baseUri, linkUri, srcUri, title, altText, textContent, x, y)
         visibility = VISIBLE
         handler.postDelayed( {
             vb.btnGrabMode.requestFocus()
@@ -204,7 +202,6 @@ class CursorMenuView @JvmOverloads constructor(
 
     private fun enterDirectNavigationMode(mc: MenuContext) {
         mc.tab.webEngine.virtualCursor?.setVirtualCursorMode(false)
-        mc.backNavigationEventsAdapter?.gameControllersLongPressBForBackNavigation = true
     }
 
     private fun showDirectNavigationModeDialog(mc: MenuContext) {
@@ -240,7 +237,6 @@ class CursorMenuView @JvmOverloads constructor(
         val altText: String?,
         val textContent: String?,
         val x: Int,
-        val y: Int,
-        val backNavigationEventsAdapter: BackNavigationEventsAdapter
+        val y: Int
     )
 }

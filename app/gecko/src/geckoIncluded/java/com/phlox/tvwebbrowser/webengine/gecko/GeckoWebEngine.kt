@@ -19,6 +19,11 @@ import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
+import com.phlox.tvwebbrowser.webengine.CursorModes
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppContentScriptPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppHomeContentScriptPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppWebExtensionBackgroundPortDelegate
@@ -146,6 +151,8 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, VirtualCursorSupport,
     }
 
     private var webView: GeckoViewWithVirtualCursor? = null
+    private val _cursorModes = MutableStateFlow(CursorModes())
+    override val cursorModes: StateFlow<CursorModes> = _cursorModes.asStateFlow()
     lateinit var session: GeckoSession
     var callback: WebEngineCallbacks? = null
     val navigationDelegate = MyNavigationDelegate(this)
@@ -422,6 +429,12 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, VirtualCursorSupport,
         Log.d(TAG, "onAttachToWindow()")
         this.callback = callback
         val webView = this.webView ?: throw IllegalStateException("WebView is null")
+        //the view is shared by all tabs: its cursor reports to the attached one
+        webView.cursorDrawerDelegate.callback = this
+        _cursorModes.value = CursorModes(
+            directNavigation = !webView.virtualCursorMode,
+            grab = webView.cursorDrawerDelegate.canHandleBackNavigation()
+        )
         val previousSession = webView.session
         if (previousSession != null && previousSession != session) {
             Log.d(TAG, "Closing previous session")
@@ -482,10 +495,16 @@ class GeckoWebEngine(val tab: WebTabState): WebEngine, VirtualCursorSupport,
     }
 
     override fun setVirtualCursorMode(enabled: Boolean) {
+        val webView = webView ?: return
         if (enabled) {
-            webView?.cursorDrawerDelegate?.animateAppearing()
+            webView.cursorDrawerDelegate.animateAppearing()
         }
-        webView?.virtualCursorMode = enabled
+        webView.virtualCursorMode = enabled
+        _cursorModes.update { it.copy(directNavigation = !enabled) }
+    }
+
+    override fun onGrabModeChanged(grabMode: Boolean) {
+        _cursorModes.update { it.copy(grab = grabMode) }
     }
 
     override fun getCursorDrawerDelegate(): CursorDrawerDelegate? {

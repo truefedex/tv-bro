@@ -29,6 +29,11 @@ import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
+import com.phlox.tvwebbrowser.webengine.CursorModes
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 
@@ -38,6 +43,8 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
     internal var callback: WebEngineCallbacks? = null
     /** The cursor surface around [webView] and the fullscreen view, created and dropped together with [webView] */
     private var cursorLayout: CursorLayout? = null
+    private val _cursorModes = MutableStateFlow(CursorModes())
+    override val cursorModes: StateFlow<CursorModes> = _cursorModes.asStateFlow()
     private var fullScreenView: View? = null
     private val jsInterface = AndroidJSInterface(this)
 
@@ -132,6 +139,8 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
                 addView(webView)
                 cursorDrawerDelegate.callback = this@WebViewWebEngine
             }
+            //a new cursor surface starts in the cursor mode
+            _cursorModes.value = CursorModes()
             this.webView = webView
         }
         return webView!!
@@ -229,11 +238,17 @@ class WebViewWebEngine(val tab: WebTabState) : WebEngine, VirtualCursorSupport, 
     }
 
     override fun setVirtualCursorMode(enabled: Boolean) {
-        cursorLayout?.cursorEnabled = enabled
+        val cursorLayout = cursorLayout ?: return
+        cursorLayout.cursorEnabled = enabled
         if (enabled) {
-            cursorLayout?.cursorDrawerDelegate?.animateAppearing()
+            cursorLayout.cursorDrawerDelegate.animateAppearing()
         }
         webView?.setVirtualCursorMode(enabled)
+        _cursorModes.update { it.copy(directNavigation = !enabled) }
+    }
+
+    override fun onGrabModeChanged(grabMode: Boolean) {
+        _cursorModes.update { it.copy(grab = grabMode) }
     }
 
     override fun getCursorDrawerDelegate(): CursorDrawerDelegate? {

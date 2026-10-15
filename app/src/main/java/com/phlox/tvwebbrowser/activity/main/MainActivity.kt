@@ -84,9 +84,11 @@ import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
+import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -550,7 +552,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val tabChanged = state.tabIdentity != renderedTabIdentity
         renderedTabIdentity = state.tabIdentity
         if (tabChanged) {
-            resetCursorModes()
+            onRenderedTabChanged()
         }
         //the address is not touched while the user edits it or browses the tabs list
         //(then the address of the focused tab is shown)
@@ -560,19 +562,34 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
     }
 
+    private var cursorModesJob: Job? = null
+
     /**
-     * The grab and direct navigation modes belong to the page they were turned on for,
-     * so they end when another tab is shown.
+     * Follows the cursor modes of the shown tab. The grab and direct navigation modes belong
+     * to the page they were turned on for, so they end when another tab is shown.
      */
-    private fun resetCursorModes() {
-        val cursor = controller.currentTab.value?.webEngine?.virtualCursor ?: return
+    private fun onRenderedTabChanged() {
+        cursorModesJob?.cancel()
+        cursorModesJob = null
+        val cursor = controller.currentTab.value?.webEngine?.virtualCursor
+        if (cursor == null) {
+            onCursorModesChanged(CursorModes())
+            return
+        }
         if (!cursor.isVirtualCursorMode()) {
             cursor.setVirtualCursorMode(true)
         }
-        backNavigationEventsAdapter.gameControllersLongPressBForBackNavigation = false
         cursor.getCursorDrawerDelegate()?.let {
             if (it.canHandleBackNavigation()) it.handleBackNavigation()
         }
+        cursorModesJob = lifecycleScope.launch {
+            cursor.cursorModes.collect { onCursorModesChanged(it) }
+        }
+    }
+
+    private fun onCursorModesChanged(modes: CursorModes) {
+        //in the direct navigation mode a short B press of a game controller goes to the page
+        backNavigationEventsAdapter.gameControllersLongPressBForBackNavigation = modes.directNavigation
     }
 
     private fun onBrowserUiEvent(event: BrowserUiEvent) {
@@ -861,7 +878,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val cursor = controller.currentTab.value?.webEngine?.virtualCursor
         if (cursor?.isVirtualCursorMode() == false) {
             cursor.setVirtualCursorMode(true)
-            backNavigationEventsAdapter.gameControllersLongPressBForBackNavigation = false
             return
         }
 
@@ -1174,8 +1190,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
                     tab,this, cursorDrawer,
                     baseUri, linkUri, srcUri,
                     title, altText, textContent,
-                    x, y,
-                    backNavigationEventsAdapter
+                    x, y
                 )
             }
         }

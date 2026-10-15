@@ -44,6 +44,11 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     private val scrollHackCoords = PointF()
     private val scrollHackActiveRect = Rect()
     private var grabMode = false
+        set(value) {
+            if (field == value) return
+            field = value
+            callback?.onGrabModeChanged(value)
+        }
     private var downTime: Long = 0L
 
     //handle long press
@@ -73,6 +78,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
 
     interface Callback {
         fun onLongPress(x: Int, y: Int)
+        fun onGrabModeChanged(grabMode: Boolean) {}
     }
 
     interface CustomScrollCallback {
