@@ -14,6 +14,7 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.CheckBox
 import android.widget.FrameLayout
+import androidx.activity.OnBackPressedCallback
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ViewCursorMenuBinding
@@ -32,6 +33,13 @@ class CursorMenuView @JvmOverloads constructor(
     private var menuContext: MenuContext? = null
     private var handler = Handler(Looper.getMainLooper())
     private var lastShowTime = 0L
+
+    /** Closes the menu on Back while it is shown */
+    val backCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            close(CloseAnimation.ROTATE_OUT)
+        }
+    }
 
     init {
         vb.btnGrabMode.setOnClickListener {
@@ -116,6 +124,7 @@ class CursorMenuView @JvmOverloads constructor(
         this.menuContext = MenuContext(tab, windowProvider, cursorDrawerDelegate,
             baseUri, linkUri, srcUri, title, altText, textContent, x, y)
         visibility = VISIBLE
+        backCallback.isEnabled = true
         handler.postDelayed( {
             vb.btnGrabMode.requestFocus()
             tab.webEngine.virtualCursor?.getCursorDrawerDelegate()?.hideCursor()
@@ -148,6 +157,7 @@ class CursorMenuView @JvmOverloads constructor(
     private fun closeWithoutAnimation() {
         Log.d("CursorMenuView", "closeWithoutAnimation")
         menuContext = null
+        backCallback.isEnabled = false
         visibility = GONE
         vb.root.alpha = 1f
         vb.root.rotation = 0f
@@ -158,6 +168,7 @@ class CursorMenuView @JvmOverloads constructor(
     fun close(animation: CloseAnimation = CloseAnimation.FADE_OUT) {
         Log.d("CursorMenuView", "close")
         menuContext = null
+        backCallback.isEnabled = false
         val animator = ObjectAnimator.ofFloat(vb.root, "alpha", 1f, 0f)
         animator.duration = 250
         animator.interpolator = AccelerateInterpolator()

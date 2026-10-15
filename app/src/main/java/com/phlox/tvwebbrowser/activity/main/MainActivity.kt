@@ -36,6 +36,7 @@ import android.widget.FrameLayout
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -57,7 +58,6 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoriteEditorDial
 import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
-import com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
@@ -112,6 +112,10 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     private lateinit var autoUpdateModel: AutoUpdateModel
     private lateinit var uiHandler: Handler
     private var isFullscreen: Boolean = false
+        set(value) {
+            field = value
+            fullscreenBackCallback.isEnabled = value
+        }
     protected val config = AppContext.provideConfig()
     private val voiceSearchHelper = VoiceSearchHelper(this)
     private val downloadLauncher = DownloadLauncher(this) { onDownloadStarted(it.filename) }
@@ -218,6 +222,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         }
 
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
+        registerScreenBackCallbacks()
 
         loadState()
     }
@@ -588,6 +593,7 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
     }
 
     private fun onCursorModesChanged(modes: CursorModes) {
+        cursorModesBackCallback.isEnabled = modes.directNavigation || modes.grab
         //in the direct navigation mode a short B press of a game controller goes to the page
         backNavigationEventsAdapter.gameControllersLongPressBForBackNavigation = modes.directNavigation
     }
@@ -820,11 +826,56 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
 
     private val backNavigationEventsAdapter = BackNavigationEventsAdapter(
         onEmulatedBackEvent = {
+            Log.d(TAG, "onBackNavigation")
             if (!hideSoftwareKeyboardIfVisible()) {
-                handleBackNavigation()
+                screenBackDispatcher.onBackPressed()
             }
         }
     )
+
+    /**
+     * Back of this screen: each overlay has its callback here and enables it while it is shown.
+     * Only [backNavigationEventsAdapter] (key, system and game controller back) feeds it;
+     * the activity's own dispatcher has one always enabled callback that goes to the adapter.
+     */
+    private val screenBackDispatcher = OnBackPressedDispatcher()
+
+    /** Lowest priority: the menu overlay, the full menu or only its bottom panel */
+    private val menuBackCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            if (vb.llBottomPanel.isVisible && !vb.rlActionBar.isVisible) {
+                hideBottomPanel()
+            } else {
+                toggleMenu()
+            }
+        }
+    }
+
+    private val fullscreenBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            controller.currentTab.value?.webEngine?.hideFullscreenView()
+        }
+    }
+
+    /** Highest priority: leaves the direct navigation or the grab mode of the cursor */
+    private val cursorModesBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            val cursor = controller.currentTab.value?.webEngine?.virtualCursor ?: return
+            if (!cursor.isVirtualCursorMode()) {
+                cursor.setVirtualCursorMode(true)
+            } else {
+                cursor.getCursorDrawerDelegate()?.handleBackNavigation()
+            }
+        }
+    }
+
+    private fun registerScreenBackCallbacks() {
+        //the enabled callback added last goes first
+        screenBackDispatcher.addCallback(this, menuBackCallback)
+        screenBackDispatcher.addCallback(this, fullscreenBackCallback)
+        screenBackDispatcher.addCallback(this, vb.vCursorMenu.backCallback)
+        screenBackDispatcher.addCallback(this, cursorModesBackCallback)
+    }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -871,28 +922,6 @@ open class MainActivity : AppCompatActivity(), ActionBar.Callback {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
         return true
-    }
-
-    private fun handleBackNavigation() {
-        Log.d(TAG, "handleBackNavigation")
-        val cursor = controller.currentTab.value?.webEngine?.virtualCursor
-        if (cursor?.isVirtualCursorMode() == false) {
-            cursor.setVirtualCursorMode(true)
-            return
-        }
-
-        val cursorDrawer = cursor?.getCursorDrawerDelegate()
-        if (vb.vCursorMenu.isVisible) {
-            vb.vCursorMenu.close(CursorMenuView.CloseAnimation.ROTATE_OUT)
-        } else if (cursorDrawer?.canHandleBackNavigation() == true) {
-            cursorDrawer.handleBackNavigation()
-        } else if (isFullscreen) {
-            controller.currentTab.value?.webEngine?.hideFullscreenView()
-        } else if (vb.llBottomPanel.isVisible && !vb.rlActionBar.isVisible) {
-            hideBottomPanel()
-        } else {
-            toggleMenu()
-        }
     }
 
     private fun showMenuOverlay() {
