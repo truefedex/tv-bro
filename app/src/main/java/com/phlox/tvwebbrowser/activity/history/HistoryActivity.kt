@@ -10,6 +10,7 @@ import android.view.animation.AnimationUtils
 import android.widget.AbsListView
 import android.widget.AdapterView
 import android.widget.ImageButton
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
@@ -33,6 +34,13 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
     private var adapter: HistoryAdapter? = null
     private lateinit var historyModel: HistoryModel
     private val voiceSearchHelper = VoiceSearchHelper(this)
+
+    /** Back leaves the multiselect mode before it closes the screen */
+    private val multiselectBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            setMultiselectMode(false)
+        }
+    }
 
     internal var onListScrollListener: AbsListView.OnScrollListener = object : AbsListView.OnScrollListener {
         override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
@@ -69,6 +77,14 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
         }
 
         historyModel.loadItems(false)
+
+        onBackPressedDispatcher.addCallback(this, multiselectBackCallback)
+    }
+
+    private fun setMultiselectMode(enabled: Boolean) {
+        adapter!!.isMultiselectMode = enabled
+        multiselectBackCallback.isEnabled = enabled
+        updateMenu()
     }
 
     private fun showDeleteDialog(deleteAll: Boolean) {
@@ -131,7 +147,7 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
 
     override fun onItemLongClick(adapterView: AdapterView<*>, view: View, i: Int, l: Long): Boolean {
         if (adapter!!.isMultiselectMode) return false
-        adapter!!.isMultiselectMode = true
+        setMultiselectMode(true)
         val v = view as HistoryItemView
         v.setSelection(true)
         updateMenu()
@@ -154,15 +170,6 @@ class HistoryActivity : AppCompatActivity(), AdapterView.OnItemClickListener, Ad
             ibDelete!!.visibility = View.VISIBLE
             ibDelete!!.startAnimation(AnimationUtils.loadAnimation(this, R.anim.right_menu_in_anim))
         }
-    }
-
-    override fun onBackPressed() {
-        if (adapter!!.isMultiselectMode) {
-            adapter!!.isMultiselectMode = false
-            updateMenu()
-            return
-        }
-        super.onBackPressed()
     }
 
     fun onClearHistoryClick(view: View) {
