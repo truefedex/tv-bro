@@ -236,10 +236,10 @@ abstract class AppDatabase : RoomDatabase() {
             MIGRATION_19_20, MIGRATION_20_21
         )
 
+        /** Queries on the main thread are not allowed: the repositories suspend */
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
                 .addMigrations(*MIGRATIONS)
-                .allowMainThreadQueries()
                 .build()
 
         @Volatile
