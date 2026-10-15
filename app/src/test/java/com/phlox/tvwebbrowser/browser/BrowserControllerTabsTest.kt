@@ -82,6 +82,10 @@ class BrowserControllerTabsTest {
             if (c.moveToNext() && !c.isNull(0)) c.getInt(0) != 0 else null
         }
 
+    private fun storedOrder(): List<String> = db.query("SELECT url FROM tabs ORDER BY position", null).use { c ->
+        generateSequence { if (c.moveToNext()) c.getString(0) else null }.toList()
+    }
+
     /** url to selected */
     private fun storedSelection(): Map<String, Boolean> = db.query("SELECT url, selected FROM tabs", null).use { c ->
         generateSequence { if (c.moveToNext()) c.getString(0) to (c.getInt(1) != 0) else null }.toMap()
@@ -206,32 +210,75 @@ class BrowserControllerTabsTest {
     }
 
     @Test
-    fun closingCurrentTabSelectsThePreviousOne() {
+    fun closingCurrentTabSelectsTheOneTakingItsPlace() {
         val (a, b, c) = open("https://a.com/", "https://b.com/", "https://c.com/")
         controller.changeTab(b)
         controller.closeTab(b)
         assertEquals(listOf(a, c), controller.tabsStates.toList())
-        assertSame(a, current)
+        assertSame(c, current)
         assertEquals("detach(completely=true, destroyTab=true)", b.fakeEngine.log.last())
     }
 
     @Test
-    fun closingFirstCurrentTabSelectsTheNextOne() {
+    fun closingLastCurrentTabSelectsThePreviousOne() {
         val (a, b) = open("https://a.com/", "https://b.com/")
-        controller.changeTab(a)
-        controller.closeTab(a)
-        assertEquals(listOf(b), controller.tabsStates.toList())
-        assertSame(b, current)
+        controller.changeTab(b)
+        controller.closeTab(b)
+        assertEquals(listOf(a), controller.tabsStates.toList())
+        assertSame(a, current)
     }
 
-    // current behavior: the neighbour tab is selected even if a background tab is closed
     @Test
-    fun closingBackgroundTabSelectsItsNeighbour() {
+    fun closingBackgroundTabKeepsTheCurrentOne() {
         val (a, b, c) = open("https://a.com/", "https://b.com/", "https://c.com/")
         assertSame(c, current)
+        c.fakeEngine.log.clear()
         controller.closeTab(b)
         assertEquals(listOf(a, c), controller.tabsStates.toList())
+        assertSame(c, current)
+        assertTrue(c.fakeEngine.log.isEmpty())
+        assertEquals(listOf(0, 1), controller.tabsStates.map { it.position })
+    }
+
+    @Test
+    fun closingATabThatIsNotOpenDoesNothing() {
+        val (a) = open("https://a.com/")
+        controller.closeTab(BrowserTab(url = "https://b.com/"))
+        assertEquals(listOf(a), controller.tabsStates.toList())
         assertSame(a, current)
+    }
+
+    @Test
+    fun closingOtherTabsKeepsTheTabAndSelectsIt() {
+        val (a, b, c) = open("https://a.com/", "https://b.com/", "https://c.com/")
+        controller.closeOtherTabs(b)
+        assertEquals(listOf(b), controller.tabsStates.toList())
+        assertSame(b, current)
+        assertEquals("detach(completely=true, destroyTab=true)", a.fakeEngine.log.last())
+        assertEquals("detach(completely=true, destroyTab=true)", c.fakeEngine.log.last())
+        awaitWrites()
+        assertEquals(mapOf("https://b.com/" to true), storedSelection())
+    }
+
+    @Test
+    fun movingATabChangesThePositions() {
+        val (a, b, c) = open("https://a.com/", "https://b.com/", "https://c.com/")
+        assertTrue(controller.moveTab(a, 1))
+        assertEquals(listOf(b, a, c), controller.tabsStates.toList())
+        assertTrue(controller.moveTab(c, -2))
+        assertEquals(listOf(c, b, a), controller.tabsStates.toList())
+        assertEquals(listOf(0, 1, 2), controller.tabsStates.map { it.position })
+        awaitWrites()
+        assertEquals(listOf("https://c.com/", "https://b.com/", "https://a.com/"), storedOrder())
+    }
+
+    @Test
+    fun tabDoesNotMoveOutOfTheList() {
+        val (a, b) = open("https://a.com/", "https://b.com/")
+        assertFalse(controller.moveTab(a, -1))
+        assertFalse(controller.moveTab(b, 1))
+        assertFalse(controller.moveTab(a, 0))
+        assertEquals(listOf(a, b), controller.tabsStates.toList())
     }
 
     @Test

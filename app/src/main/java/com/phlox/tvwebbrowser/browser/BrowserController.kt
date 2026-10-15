@@ -188,19 +188,26 @@ class BrowserController : ActiveModel() {
         tab.id = data.tabs.save(entity)
     }
 
-    fun onCloseTab(tab: BrowserTab) {
-        if (tab.isWebEngineCreated) {
-            tab.webEngine.onDetachFromWindow(completely = true, destroyTab = true)
-        }
-        tabsStates.remove(tab)
-        writes.enqueue {
-            //the id and the file names are final here: earlier writes of the tab are done
-            val stateFile = tab.wvStateFileName
-            val thumbnailName = tab.thumbnailHash
-            if (tab.id != 0L) {
-                data.tabs.delete(tab.id)
+    /** Removes the tab, its engine, its row and its files without selecting another tab */
+    fun onCloseTab(tab: BrowserTab) = removeTabs(listOf(tab))
+
+    private fun removeTabs(tabs: List<BrowserTab>) {
+        for (tab in tabs) {
+            if (tab.isWebEngineCreated) {
+                tab.webEngine.onDetachFromWindow(completely = true, destroyTab = true)
             }
-            withContext(Dispatchers.IO) { tabFiles.removeFiles(stateFile, thumbnailName) }
+        }
+        tabsStates.removeAll(tabs.toSet())
+        writes.enqueue {
+            for (tab in tabs) {
+                //the id and the file names are final here: earlier writes of the tab are done
+                val stateFile = tab.wvStateFileName
+                val thumbnailName = tab.thumbnailHash
+                if (tab.id != 0L) {
+                    data.tabs.delete(tab.id)
+                }
+                withContext(Dispatchers.IO) { tabFiles.removeFiles(stateFile, thumbnailName) }
+            }
         }
     }
 
@@ -320,21 +327,48 @@ class BrowserController : ActiveModel() {
     }
 
     /**
-     * Closes the tab and selects a neighbour one. Closing the last tab opens a new one with the home page.
+     * Closes the tab. If it was the current one, the tab that takes its place (the next one, or the previous
+     * one if it was the last) becomes current. Closing the only tab opens a new one with the home page.
      */
     fun closeTab(tab: BrowserTab) {
         val position = tabsStates.indexOf(tab)
-        if (currentTab.value == tab) {
+        if (position == -1) return
+        val wasCurrent = currentTab.value == tab
+        if (wasCurrent) {
             currentTab.value = null
         }
         when {
             tabsStates.size == 1 -> openInNewTab(config.homePage, 0, navigateImmediately = true)
 
-            position > 0 -> changeTab(tabsStates[position - 1])
+            !wasCurrent -> {}
 
-            else -> changeTab(tabsStates[position + 1])
+            position < tabsStates.size - 1 -> changeTab(tabsStates[position + 1])
+
+            else -> changeTab(tabsStates[position - 1])
         }
         onCloseTab(tab)
+    }
+
+    /**
+     * Closes all tabs but [tab], which becomes the current one.
+     */
+    fun closeOtherTabs(tab: BrowserTab) {
+        if (tab !in tabsStates) return
+        changeTab(tab)
+        removeTabs(tabsStates.filter { it != tab })
+    }
+
+    /**
+     * Moves the tab by [offset] places (negative to the start).
+     * @return false if the tab can not move that far
+     */
+    fun moveTab(tab: BrowserTab, offset: Int): Boolean {
+        val from = tabsStates.indexOf(tab)
+        if (from == -1) return false
+        val to = from + offset
+        if (offset == 0 || to < 0 || to >= tabsStates.size) return false
+        tabsStates.move(from, to)
+        return true
     }
 
     fun findTabBySession(internalRepresentation: Any): BrowserTab? =

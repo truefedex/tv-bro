@@ -107,6 +107,12 @@ class ObservableList<T>(): ArrayList<T>(), Subscribable<ListChangeObserver<T>> {
     notifyChanged()
   }
 
+  /** Moves the element at [from] to [to], with one notification */
+  fun move(from: Int, to: Int) {
+    super.add(to, super.removeAt(from))
+    notifyChanged()
+  }
+
   fun replaceAll(elements: Collection<T>): Boolean {
     super.clear()
     val result = super.addAll(elements)

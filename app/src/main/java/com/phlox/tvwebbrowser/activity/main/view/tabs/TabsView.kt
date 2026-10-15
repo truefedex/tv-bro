@@ -78,13 +78,9 @@ class TabsView @JvmOverloads constructor(
             listener?.openInNewTab(settingsModel.homePage, 0)
           }
           //Move left
-          3 -> if (tabIndex > 0) {
-            controller.tabsStates.swap(tabIndex, tabIndex - 1)
-          }
+          3 -> controller.moveTab(tab, -1)
           //Move right
-          4 -> if (tabIndex < (controller.tabsStates.size - 1)) {
-            controller.tabsStates.swap(tabIndex, tabIndex + 1)
-          }
+          4 -> controller.moveTab(tab, 1)
         }
       }
       .show()
