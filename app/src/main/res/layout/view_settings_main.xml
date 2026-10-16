@@ -295,6 +295,7 @@
         style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/settings_section_spacing"
         android:text="@string/theme"
         />
 
@@ -403,92 +404,100 @@
         android:layout_weight="0"
         />
   </LinearLayout>
+  <!-- the D-pad and the virtual cursor: not on the touch UI -->
   <LinearLayout
-      style="@style/Widget.TVBro.SettingsRow"
+      android:id="@+id/llCursorSettings"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:orientation="vertical"
       >
+    <LinearLayout
+        style="@style/Widget.TVBro.SettingsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+      <TextView
+          style="@style/Widget.TVBro.Text.Body"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:ellipsize="end"
+          android:lines="1"
+          android:text="@string/navigate_with_joystick_axes"
+          />
+      <androidx.appcompat.widget.SwitchCompat
+          android:id="@+id/scNavigateWithJoystickAxes"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:nextFocusDown="@+id/sbCursorMaxSpeed"
+          android:nextFocusUp="@+id/scKeepScreenOn"
+          android:layout_weight="0"
+          />
+    </LinearLayout>
     <TextView
         style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:ellipsize="end"
-        android:lines="1"
-        android:text="@string/navigate_with_joystick_axes"
+        android:layout_marginTop="@dimen/settings_section_spacing"
+        android:text="@string/cursor_max_speed"
         />
-    <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/scNavigateWithJoystickAxes"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:nextFocusDown="@+id/sbCursorMaxSpeed"
-        android:nextFocusUp="@+id/scKeepScreenOn"
-        android:layout_weight="0"
-        />
-  </LinearLayout>
-  <TextView
-      style="@style/Widget.TVBro.Text.Body"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="@dimen/settings_section_spacing"
-      android:text="@string/cursor_max_speed"
-      />
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:gravity="center_vertical"
-      android:orientation="horizontal"
-      >
-    <SeekBar
-        android:id="@+id/sbCursorMaxSpeed"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:max="175"
-        android:nextFocusDown="@+id/sbCursorAcceleration"
-        android:nextFocusUp="@+id/scNavigateWithJoystickAxes"
-        />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        >
+      <SeekBar
+          android:id="@+id/sbCursorMaxSpeed"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:max="175"
+          android:nextFocusDown="@+id/sbCursorAcceleration"
+          android:nextFocusUp="@+id/scNavigateWithJoystickAxes"
+          />
+      <TextView
+          style="@style/Widget.TVBro.Text.Caption"
+          android:id="@+id/tvCursorMaxSpeedValue"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:minWidth="72dp"
+          android:gravity="end"
+          tools:text="100%"
+          />
+    </LinearLayout>
     <TextView
-        style="@style/Widget.TVBro.Text.Caption"
-        android:id="@+id/tvCursorMaxSpeedValue"
-        android:layout_width="wrap_content"
+        style="@style/Widget.TVBro.Text.Body"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minWidth="72dp"
-        android:gravity="end"
-        tools:text="100%"
+        android:layout_marginTop="12dp"
+        android:text="@string/cursor_acceleration"
         />
-  </LinearLayout>
-  <TextView
-      style="@style/Widget.TVBro.Text.Body"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="12dp"
-      android:text="@string/cursor_acceleration"
-      />
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:gravity="center_vertical"
-      android:orientation="horizontal"
-      >
-    <SeekBar
-        android:id="@+id/sbCursorAcceleration"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:max="175"
-        android:nextFocusDown="@+id/btnClearWebCache"
-        android:nextFocusUp="@+id/sbCursorMaxSpeed"
-        />
-    <TextView
-        style="@style/Widget.TVBro.Text.Caption"
-        android:id="@+id/tvCursorAccelerationValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="72dp"
-        android:gravity="end"
-        tools:text="100%"
-        />
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        >
+      <SeekBar
+          android:id="@+id/sbCursorAcceleration"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:max="175"
+          android:nextFocusDown="@+id/btnClearWebCache"
+          android:nextFocusUp="@+id/sbCursorMaxSpeed"
+          />
+      <TextView
+          style="@style/Widget.TVBro.Text.Caption"
+          android:id="@+id/tvCursorAccelerationValue"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:minWidth="72dp"
+          android:gravity="end"
+          tools:text="100%"
+          />
+    </LinearLayout>
   </LinearLayout>
   <Button
       android:id="@+id/btnClearWebCache"

@@ -1,13 +1,11 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.content.pm.ActivityInfo
-import android.content.res.Configuration
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.PhoneBar
@@ -18,6 +16,7 @@ import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.databinding.ActivityMainPhoneBinding
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.utils.SystemBars
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
 import com.phlox.tvwebbrowser.widgets.NotificationView
@@ -35,23 +34,26 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     override val tabsContainer: ViewGroup get() = vb.flWebViewContainer
     override val screenOrientation: Int get() = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 
+    /** A fullscreen view (a video) fills the whole window, without the bar */
+    private var fullscreen = false
+
     init {
         //the window is drawn edge to edge: the content keeps out of the system bars and the keyboard,
-        //the menu sheet out of the navigation bar (its scrim covers the bars), the tab switcher out of both
+        //the menu sheet out of the navigation bar (its scrim covers the bars), the tab switcher out of both;
+        //a fullscreen view covers the whole window
         ViewCompat.setOnApplyWindowInsetsListener(vb.root) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             val keyboard = insets.getInsets(WindowInsetsCompat.Type.ime())
-            vb.rlRoot.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, keyboard.bottom))
+            if (fullscreen) {
+                vb.rlRoot.setPadding(0, 0, 0, 0)
+            } else {
+                vb.rlRoot.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, keyboard.bottom))
+            }
             vb.vMenuSheet.setInsets(bars.left, bars.right, bars.bottom)
             vb.vTabSwitcher.setInsets(bars.left, bars.top, bars.right, bars.bottom)
             WindowInsetsCompat.CONSUMED
         }
-        val night = (activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-                Configuration.UI_MODE_NIGHT_YES
-        WindowCompat.getInsetsController(activity.window, activity.window.decorView).apply {
-            isAppearanceLightStatusBars = !night
-            isAppearanceLightNavigationBars = !night
-        }
+        SystemBars.matchIconsToTheme(activity.window)
     }
 
     private val barCallback = object : PhoneBar.Callback {
@@ -161,6 +163,20 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         dispatcher.addCallback(activity, vb.vMenuSheet.backCallback)
         dispatcher.addCallback(activity, vb.vTabSwitcher.backCallback)
         dispatcher.addCallback(activity, fullscreen)
+    }
+
+    /** Videos are mostly wide: fullscreen turns the screen to landscape (either way, whatever the rotation lock) */
+    override fun onFullscreenChanged(fullscreen: Boolean) {
+        this.fullscreen = fullscreen
+        if (fullscreen) {
+            vb.vPhoneBar.stopEditing()
+            vb.vMenuSheet.hide()
+            vb.vTabSwitcher.hide()
+        }
+        vb.vPhoneBar.visibility = if (fullscreen) View.GONE else View.VISIBLE
+        activity.requestedOrientation =
+            if (fullscreen) ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else screenOrientation
+        ViewCompat.requestApplyInsets(vb.root)
     }
 
     override fun showBusy(busy: Boolean) {

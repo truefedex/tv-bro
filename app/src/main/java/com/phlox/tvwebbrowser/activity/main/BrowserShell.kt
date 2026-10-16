@@ -45,6 +45,12 @@ interface BrowserShell {
      */
     fun onTabViewCreated(tab: BrowserTab)
 
+    /**
+     * The page shows or hides a fullscreen view (a video) in the engine view of its tab; the system bars
+     * are already hidden or shown
+     */
+    fun onFullscreenChanged(fullscreen: Boolean) {}
+
     /** Shows that the app is busy (loading the tabs, leaving the incognito mode) */
     fun showBusy(busy: Boolean)
 

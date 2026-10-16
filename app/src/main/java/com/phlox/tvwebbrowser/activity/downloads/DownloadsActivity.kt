@@ -23,6 +23,7 @@ import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ActivityDownloadsBinding
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.utils.SystemBars
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.widgets.datedlist.ListDividerDecoration
@@ -56,6 +57,7 @@ class DownloadsActivity : AppCompatActivity(), ActiveDownloadsModel.Listener {
         Log.d(TAG, "onCreate this:" + System.identityHashCode(this))
         vb = ActivityDownloadsBinding.inflate(layoutInflater)
         setContentView(vb.root)
+        SystemBars.matchIconsToTheme(window)
 
         activeDownloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, this)
         downloadsHistoryModel = ActiveModelsRepository.get(DownloadsHistoryModel::class, this)

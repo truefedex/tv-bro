@@ -76,6 +76,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
     }
 
+    private lateinit var uiMode: UiMode
     private lateinit var shell: BrowserShell
     override lateinit var controller: BrowserController
     override lateinit var settingsModel: SettingsModel
@@ -125,7 +126,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         controller = ActiveModelsRepository.get(BrowserController::class, this)
         autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, this)
         uiHandler = Handler(Looper.getMainLooper())
-        shell = when (UiModeSelector.select(this, config.interfaceMode)) {
+        uiMode = UiModeSelector.select(this, config.interfaceMode)
+        shell = when (uiMode) {
             UiMode.TV -> TvShell(this)
             UiMode.PHONE -> PhoneShell(this)
         }
@@ -243,7 +245,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     }
 
     override fun showSettings() {
-        SettingsDialog(this, settingsModel).show()
+        SettingsDialog(this, settingsModel, touchUi = uiMode == UiMode.PHONE).show()
     }
 
     override fun toggleSiteAdBlock() {
@@ -416,6 +418,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
         override fun onFullscreenChanged(fullscreen: Boolean) {
             isFullscreen = fullscreen
+            shell.onFullscreenChanged(fullscreen)
             if (!fullscreen) {
                 //the engine view may leave fullscreen by itself on BACK down (WebView does)
                 backNavigationEventsAdapter.consumeCurrentPress()

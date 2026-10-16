@@ -70,6 +70,13 @@ class MainSettingsView @JvmOverloads constructor(
         }
     }
 
+    /** The touch UI has no virtual cursor and is not used with a D-pad or a joystick */
+    fun hideCursorSettings() {
+        vb.llCursorSettings.visibility = View.GONE
+        vb.scKeepScreenOn.nextFocusDownId = R.id.btnClearWebCache
+        vb.btnClearWebCache.nextFocusUpId = R.id.scKeepScreenOn
+    }
+
     private fun initWebBrowserEngineSettingsUI() {
         //includes engines that are not downloaded yet (dynamic feature modules)
         val availableEngines = WebEngineFactory.getAvailableEngines()

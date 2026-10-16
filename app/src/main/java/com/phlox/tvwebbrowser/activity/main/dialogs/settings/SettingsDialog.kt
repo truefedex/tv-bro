@@ -11,7 +11,10 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
 import com.phlox.tvwebbrowser.widgets.SegmentedButtonTabsAdapter
 
-class SettingsDialog(context: Context, val model: SettingsModel) :
+/**
+ * @param touchUi the settings of the phone UI: without the shortcuts (keys of remotes) and the cursor settings
+ */
+class SettingsDialog(context: Context, val model: SettingsModel, private val touchUi: Boolean) :
     Dialog(context, R.style.SettingsDialog),
     DialogInterface.OnDismissListener, VersionSettingsView.Callback {
     private var mainView: MainSettingsView? = null
@@ -22,12 +25,17 @@ class SettingsDialog(context: Context, val model: SettingsModel) :
         setContentView(R.layout.dialog_settings)
 
         sbTabs = findViewById(R.id.sbTabs)
+        if (touchUi) {
+            findViewById<View>(R.id.btnShortcutsTab).visibility = View.GONE
+        }
 
         val tabContentAdapter = object : SegmentedButtonTabsAdapter(sbTabs, findViewById(R.id.flTabsContent)) {
             override fun createContentViewForSegmentButtonId(id: Int): View {
                 return when (id) {
                     R.id.btnMainTab -> {
-                        mainView = MainSettingsView(context)
+                        mainView = MainSettingsView(context).apply {
+                            if (touchUi) hideCursorSettings()
+                        }
                         mainView!!
                     }
                     R.id.btnShortcutsTab -> ShortcutsSettingsView(context)

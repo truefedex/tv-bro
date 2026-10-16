@@ -19,6 +19,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ActivityHistoryBinding
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
+import com.phlox.tvwebbrowser.utils.SystemBars
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
@@ -67,6 +68,7 @@ class HistoryActivity : AppCompatActivity(), HistoryAdapter.Callback {
         super.onCreate(savedInstanceState)
         vb = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(vb.root)
+        SystemBars.matchIconsToTheme(window)
 
         historyModel = ActiveModelsRepository.get(HistoryModel::class, this)
 
