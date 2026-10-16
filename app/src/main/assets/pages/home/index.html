@@ -318,6 +318,115 @@ td {
 ::-moz-placeholder { /* Firefox 19+ */
     color: #9fa3b1;
 }
+
+/*
+Phones (narrow, or short in landscape): sizes in CSS pixels (dp) instead of parts of the screen,
+the logo and the search bar in the flow, the speed dial in two columns of 56px tiles.
+*/
+@media (max-width: 600px), (max-height: 420px) {
+    #suggestions {
+        width: calc(100% - 8px);
+        max-width: 600px;
+        top: 0;
+        margin: 4px auto 16px;
+        -webkit-border-horizontal-spacing: 12px;
+        -webkit-border-vertical-spacing: 12px !important;
+        border-spacing: 12px;
+    }
+    .sugg {
+        box-sizing: border-box;
+        height: 56px;
+        padding: 8px 10px;
+        border-radius: 8px;
+    }
+    .sugg:hover {
+        border-radius: 8px;
+    }
+    .sugg-ico {
+        width: 32px;
+        height: 32px;
+        margin-top: 2px;
+        border-radius: 6px;
+    }
+    .sugg-title {
+        margin-left: 42px;
+        font-size: 14px;
+        line-height: 20px;
+    }
+    .sugg-desk {
+        margin-left: 42px;
+        font-size: 12px;
+        line-height: 16px;
+    }
+    /* a bigger touch target over the right edge of the tile */
+    .more {
+        width: 16px;
+        padding: 10px 8px;
+        margin: -8px -10px 0 0;
+    }
+    .logo {
+        position: relative;
+        width: 96px;
+        height: 72px;
+        margin: 24px auto 0;
+    }
+    .wrapper {
+        top: 0;
+        width: calc(100% - 32px);
+        max-width: 576px;
+        margin: 16px auto 0;
+    }
+    .search_box {
+        height: 40px;
+        padding: 4px;
+        border-radius: 8px;
+    }
+    .wrapper .search_box .dropdown {
+        width: 56px;
+    }
+    .wrapper .search_box .dropdown .default_option {
+        width: 28px;
+        height: 28px;
+        margin: 6px 0 0 6px;
+        background-size: 28px;
+    }
+    .wrapper .search_box .dropdown:before {
+        top: 18px;
+        right: 6px;
+        border-width: 5px;
+    }
+    .wrapper .search_box .dropdown ul {
+        font-size: 16px;
+        width: 180px;
+        padding: 12px;
+        border-radius: 8px;
+        box-shadow: 4px 4px 16px -4px #b3c6ff;
+    }
+    .wrapper .search_box .dropdown ul li img {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+    }
+    .wrapper .search_box .search_field .input {
+        font-size: 16px;
+        padding-left: 12px;
+        padding-right: 8px;
+    }
+    .wrapper .search_box .search_action_container {
+        width: 44px;
+    }
+    .wrapper .search_box .search_action_container .mic,
+    .wrapper .search_box .search_action_container .lenz {
+        width: 36px;
+        height: 24px;
+        margin: 8px 4px;
+    }
+}
+@media (prefers-color-scheme: dark) and (max-width: 600px), (prefers-color-scheme: dark) and (max-height: 420px) {
+    .wrapper .search_box .dropdown ul {
+        box-shadow: 4px 4px 16px -4px #000000;
+    }
+}
     </style>
 </head>
 <body>
