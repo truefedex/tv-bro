@@ -39,6 +39,12 @@ interface BrowserShell {
      */
     fun registerBackCallbacks(dispatcher: OnBackPressedDispatcher, fullscreen: OnBackPressedCallback)
 
+    /**
+     * The engine view of the [tab] was created. It is created again when the engine dropped it to free
+     * memory, so its settings that belong to the look are set here.
+     */
+    fun onTabViewCreated(tab: BrowserTab)
+
     /** Shows that the app is busy (loading the tabs, leaving the incognito mode) */
     fun showBusy(busy: Boolean)
 

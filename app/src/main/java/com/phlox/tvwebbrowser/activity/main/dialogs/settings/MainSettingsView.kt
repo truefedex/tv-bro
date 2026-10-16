@@ -47,6 +47,7 @@ class MainSettingsView @JvmOverloads constructor(
 
         initAdBlockConfigUI()
 
+        initInterfaceSettingsUI()
         initThemeSettingsUI()
 
         initWebViewAlgorithmicDarkeningWithDarkUiModeUI()
@@ -174,6 +175,24 @@ class MainSettingsView @JvmOverloads constructor(
             }
             .setCancelable(false)
             .show()
+    }
+
+    /** The look of the browser screen is picked when the app starts */
+    private fun initInterfaceSettingsUI() {
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item,
+            context.resources.getStringArray(R.array.interface_modes))
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        vb.spInterface.adapter = adapter
+        vb.spInterface.setSelection(config.interfaceMode.ordinal, false)
+        vb.spInterface.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                if (config.interfaceMode.ordinal == position) return
+                config.interfaceMode = Config.InterfaceMode.entries[position]
+                showRestartDialog()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
     }
 
     private fun initThemeSettingsUI() {

@@ -254,7 +254,7 @@
           android:layout_height="48dp"
           android:layout_weight="0"
           android:contentDescription="@string/update_ad_blocker_list"
-          android:nextFocusDown="@+id/spTheme"
+          android:nextFocusDown="@+id/spInterface"
           android:src="@drawable/ic_refresh"
           />
       <ProgressBar
@@ -275,6 +275,21 @@
       android:orientation="vertical"
       android:paddingTop="5dp"
       >
+
+    <TextView
+        style="@style/Widget.TVBro.Text.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/interface_mode"
+        />
+
+    <Spinner
+        android:id="@+id/spInterface"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:dropDownWidth="300dp"
+        android:nextFocusDown="@+id/spTheme"
+        />
 
     <TextView
         style="@style/Widget.TVBro.Text.Body"

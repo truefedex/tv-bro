@@ -123,7 +123,10 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         controller = ActiveModelsRepository.get(BrowserController::class, this)
         autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, this)
         uiHandler = Handler(Looper.getMainLooper())
-        shell = TvShell(this)
+        shell = when (UiModeSelector.select(this, config.interfaceMode)) {
+            UiMode.TV -> TvShell(this)
+            UiMode.PHONE -> PhoneShell(this)
+        }
         requestedOrientation = shell.screenOrientation
         setContentView(shell.root)
         controller.viewHost = tabViewHost
@@ -429,6 +432,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         if (ua != null) {
             tab.webEngine.userAgentString = ua
         }
+        shell.onTabViewCreated(tab)
 
         return webView
     }

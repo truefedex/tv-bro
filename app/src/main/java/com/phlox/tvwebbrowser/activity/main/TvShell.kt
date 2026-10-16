@@ -290,6 +290,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
     }
 
+    override fun onTabViewCreated(tab: BrowserTab) {}
+
     override fun onTabsLoaded() {
         val currentTab = controller.currentTab.value
         if (currentTab == null || currentTab.url == settingsModel.homePage) {

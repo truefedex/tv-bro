@@ -12,6 +12,7 @@ class Config(val prefs: SharedPreferences) {
         const val HOME_PAGE_KEY = "home_page"
         const val USER_AGENT_PREF_KEY = "user_agent"
         const val THEME_KEY = "theme"
+        const val INTERFACE_MODE_KEY = "interface_mode"
         const val LAST_UPDATE_USER_NOTIFICATION_TIME_KEY = "last_update_notif"
         const val AUTO_CHECK_UPDATES_KEY = "auto_check_updates"
         const val UPDATE_CHANNEL_KEY = "update_channel"
@@ -64,6 +65,11 @@ class Config(val prefs: SharedPreferences) {
 
     enum class Theme {
         SYSTEM, WHITE, BLACK;
+    }
+
+    /** The look of the browser screen: picked from the device (Auto) or chosen */
+    enum class InterfaceMode {
+        AUTO, TV, PHONE
     }
 
     enum class HomePageMode {
@@ -135,6 +141,12 @@ class Config(val prefs: SharedPreferences) {
                 notifyObservers()
             }
     }
+
+    var interfaceMode: InterfaceMode
+        get() = InterfaceMode.entries.getOrElse(prefs.getInt(INTERFACE_MODE_KEY, 0)) { InterfaceMode.AUTO }
+        set(value) {
+            prefs.edit().putInt(INTERFACE_MODE_KEY, value.ordinal).apply()
+        }
 
     var homePageMode: HomePageMode
         get() = prefs.getInt(HOME_PAGE_MODE, 0)
