@@ -41,7 +41,7 @@ class AppWebExtensionBackgroundPortDelegate(val port: WebExtension.Port, val web
 
     override fun onDisconnect(port: WebExtension.Port) {
         Log.d(TAG, "onDisconnect")
-        webEngine.appHomeContentScriptPortDelegate = null
+        webEngine.appWebExtensionBackgroundPortDelegate = null
     }
 
     companion object {

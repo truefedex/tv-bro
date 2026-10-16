@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppContentScriptPortDelegate
-import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppHomeContentScriptPortDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppHomePagePortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppWebExtensionBackgroundPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentBlockingDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentDelegate
@@ -189,7 +189,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
             callback?.onPageScrolled(y, dy)
         }
     }
-    var appHomeContentScriptPortDelegate: AppHomeContentScriptPortDelegate? = null
+    var appHomePagePortDelegate: AppHomePagePortDelegate? = null
     var appContentScriptPortDelegate: AppContentScriptPortDelegate? = null
     var appWebExtensionBackgroundPortDelegate: AppWebExtensionBackgroundPortDelegate? = null
     private lateinit var webExtObserver: (WebExtension?) -> Unit
@@ -262,7 +262,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
 
                 override fun onConnect(port: WebExtension.Port) {
                     Log.d(TAG, "onConnect: $port")
-                    appHomeContentScriptPortDelegate = AppHomeContentScriptPortDelegate(port, this@GeckoWebEngine).also {
+                    appHomePagePortDelegate = AppHomePagePortDelegate(port, this@GeckoWebEngine).also {
                         port.setDelegate(it)
                     }
                 }
