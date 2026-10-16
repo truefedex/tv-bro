@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The phone bar: the chrome color with a hairline on top -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsLine" />
+        </shape>
+    </item>
+    <item android:top="@dimen/ds_border_hairline">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsBgChrome" />
+        </shape>
+    </item>
+</layer-list>

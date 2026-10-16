@@ -12,6 +12,13 @@
     <string name="location">Location</string>
     <string name="open_in_new_tab">Open in new tab</string>
     <string name="new_tab">New tab</string>
+    <!-- the address pill of the phone bar on the home page -->
+    <string name="search_or_type_url">Search or type URL</string>
+    <string name="menu">Menu</string>
+    <plurals name="tab_count">
+        <item quantity="one">%d tab</item>
+        <item quantity="other">%d tabs</item>
+    </plurals>
     <string name="close_other_tabs">Close other tabs</string>
     <string name="new_tab_to_the_right">New tab to the right</string>
     <string name="move_left">Move left</string>

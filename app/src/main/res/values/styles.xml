@@ -66,6 +66,22 @@
         <item name="android:paddingBottom">@dimen/ds_field_icon_padding_vertical</item>
     </style>
 
+    <!-- A button of the phone bar -->
+    <style name="Widget.TVBro.ImageButton.Ds.Phone">
+        <item name="android:layout_width">@dimen/ds_phone_button_size</item>
+        <item name="android:layout_height">@dimen/ds_phone_button_size</item>
+        <item name="android:background">@drawable/ds_phone_button_bg</item>
+        <item name="android:padding">@dimen/ds_phone_button_icon_padding</item>
+    </style>
+
+    <!-- A button inside the address pill of the phone bar -->
+    <style name="Widget.TVBro.ImageButton.Ds.PhonePill">
+        <item name="android:layout_width">@dimen/ds_phone_pill_button_width</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@drawable/ds_phone_button_bg</item>
+        <item name="android:padding">@dimen/ds_phone_pill_icon_padding</item>
+    </style>
+
     <!-- A group of toolbar segments; the group clips them to its rounded border (ActionBar sets clipToOutline) -->
     <style name="Widget.TVBro.ToolbarGroup" parent="">
         <item name="android:layout_width">wrap_content</item>
@@ -200,6 +216,11 @@
         <item name="android:textColor">?attr/tbColorDsInk</item>
         <item name="android:singleLine">true</item>
         <item name="android:ellipsize">end</item>
+    </style>
+
+    <!-- The address in the phone bar -->
+    <style name="Widget.TVBro.Text.PhoneAddress">
+        <item name="android:textSize">@dimen/ds_text_phone_address</item>
     </style>
 
     <!-- The second line of a menu or panel row -->

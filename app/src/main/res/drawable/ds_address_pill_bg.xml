@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The address pill of the phone bar: surface, edited (selected stroke) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_lg" />
+            <solid android:color="?attr/tbColorDsSurface" />
+            <stroke android:color="?attr/tbColorDsSelected" android:width="@dimen/ds_border_selected" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_lg" />
+            <solid android:color="?attr/tbColorDsSurface" />
+            <stroke android:color="?attr/tbColorDsLine" android:width="@dimen/ds_border_hairline" />
+        </shape>
+    </item>
+</selector>

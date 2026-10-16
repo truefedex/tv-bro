@@ -77,6 +77,28 @@
     <dimen name="ds_size_icon_toast">22dp</dimen>
     <dimen name="ds_toast_padding_horizontal">24dp</dimen>
     <dimen name="ds_toast_margin_bottom">30dp</dimen>
+
+    <!-- The phone UI (phone boards are 390x844, a board pixel is a dp). Touch targets are 44dp or more. -->
+    <dimen name="ds_phone_bar_padding_vertical">4dp</dimen>
+    <dimen name="ds_phone_bar_padding_horizontal">4dp</dimen>
+    <dimen name="ds_phone_bar_gap">4dp</dimen>
+    <dimen name="ds_phone_button_size">48dp</dimen>
+    <dimen name="ds_phone_button_icon_padding">12dp</dimen>
+    <dimen name="ds_phone_pill_height">44dp</dimen>
+    <dimen name="ds_phone_pill_button_width">40dp</dimen>
+    <dimen name="ds_phone_pill_icon_padding">11dp</dimen>
+    <dimen name="ds_phone_pill_text_inset">6dp</dimen>
+    <dimen name="ds_phone_pill_search_inset">12dp</dimen>
+    <dimen name="ds_phone_pill_search_icon">18dp</dimen>
+    <dimen name="ds_phone_badge_height">16dp</dimen>
+    <dimen name="ds_phone_badge_min_width">18dp</dimen>
+    <dimen name="ds_phone_badge_margin_top">3dp</dimen>
+    <dimen name="ds_phone_tab_count_size">22dp</dimen>
+    <dimen name="ds_phone_tab_count_radius">4dp</dimen>
+    <dimen name="ds_phone_tab_count_stroke">2dp</dimen>
+    <dimen name="ds_text_phone_address">16sp</dimen>
+    <dimen name="ds_text_phone_badge">11sp</dimen>
+    <dimen name="ds_text_phone_tab_count">12sp</dimen>
     <dimen name="ds_tab_strip_margin_top">15dp</dimen>
     <dimen name="ds_new_tab_button_gap">8dp</dimen>
     <dimen name="ds_new_tab_icon_padding">10dp</dimen>

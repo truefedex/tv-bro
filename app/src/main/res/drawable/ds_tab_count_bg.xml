@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tab count of the phone bar: a square outline in the icon color -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/ds_phone_tab_count_radius" />
+    <stroke android:color="?attr/tbColorDsIcon" android:width="@dimen/ds_phone_tab_count_stroke" />
+</shape>

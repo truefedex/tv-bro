@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The phone screen: the page between the system bars (the shell applies their insets as padding) -->
+<!--
+The phone screen: the page and the bar under it, between the system bars and the keyboard (the shell
+applies their insets as padding).
+-->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/rlRoot"
     android:layout_width="match_parent"
@@ -9,7 +12,15 @@
     <FrameLayout
         android:id="@+id/flWebViewContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_above="@+id/vPhoneBar" />
+
+    <com.phlox.tvwebbrowser.activity.main.view.PhoneBar
+        android:id="@+id/vPhoneBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:elevation="4dp" />
 
     <!-- along the top edge of the page -->
     <ProgressBar

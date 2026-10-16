@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The bar of the phone, at the bottom (in thumb reach): Back, the address pill (the site button, the host,
+Refresh), the tab count and the menu.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="horizontal">
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+      android:id="@+id/ibBack"
+      android:src="@drawable/ic_back"
+      android:contentDescription="@string/navigate_back" />
+
+  <FrameLayout
+      android:id="@+id/flPill"
+      android:layout_width="0dp"
+      android:layout_height="@dimen/ds_phone_pill_height"
+      android:layout_weight="1"
+      android:layout_marginStart="@dimen/ds_phone_bar_gap"
+      android:layout_marginEnd="@dimen/ds_phone_bar_gap"
+      android:background="@drawable/ds_address_pill_bg">
+
+    <!-- a page is open: its site and host -->
+    <LinearLayout
+        android:id="@+id/llPage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+      <FrameLayout
+          android:layout_width="@dimen/ds_phone_pill_button_width"
+          android:layout_height="match_parent">
+
+        <ImageButton
+            style="@style/Widget.TVBro.ImageButton.Ds.PhonePill"
+            android:id="@+id/ibSite"
+            android:layout_width="match_parent"
+            android:src="@drawable/ic_site"
+            android:contentDescription="@string/site_settings" />
+
+        <TextView
+            android:id="@+id/tvSiteBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/ds_phone_badge_height"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="@dimen/ds_phone_badge_margin_top"
+            android:minWidth="@dimen/ds_phone_badge_min_width"
+            android:paddingStart="@dimen/ds_badge_padding_horizontal"
+            android:paddingEnd="@dimen/ds_badge_padding_horizontal"
+            android:gravity="center"
+            android:background="@drawable/ds_badge_bg"
+            android:textColor="?attr/tbColorDsOnBadge"
+            android:textSize="@dimen/ds_text_phone_badge"
+            android:textStyle="bold"
+            android:importantForAccessibility="no"
+            android:visibility="gone"
+            tools:text="14"
+            tools:visibility="visible" />
+      </FrameLayout>
+
+      <TextView
+          style="@style/Widget.TVBro.Text.PhoneAddress"
+          android:id="@+id/tvHost"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:paddingStart="@dimen/ds_phone_pill_text_inset"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          tools:text="wikipedia.org" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.PhonePill"
+          android:id="@+id/ibRefresh"
+          android:src="@drawable/ic_refresh"
+          android:contentDescription="@string/refresh_page" />
+    </LinearLayout>
+
+    <!-- no page (the home page): a search prompt -->
+    <LinearLayout
+        android:id="@+id/llSearchPrompt"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_phone_pill_search_inset"
+        android:paddingEnd="@dimen/ds_phone_pill_search_inset"
+        android:visibility="gone">
+
+      <ImageView
+          android:layout_width="@dimen/ds_phone_pill_search_icon"
+          android:layout_height="@dimen/ds_phone_pill_search_icon"
+          android:src="@drawable/ic_search"
+          app:tint="?attr/tbColorDsIcon"
+          android:importantForAccessibility="no" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.PhoneAddress"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_phone_pill_search_inset"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          android:text="@string/search_or_type_url" />
+    </LinearLayout>
+
+    <!-- the address while it is edited: the full url -->
+    <EditText
+        style="@style/Widget.TVBro.Text.PhoneAddress"
+        android:id="@+id/etUrl"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="@dimen/ds_phone_pill_search_inset"
+        android:paddingEnd="@dimen/ds_phone_pill_search_inset"
+        android:gravity="center_vertical"
+        android:background="@null"
+        android:textColor="?attr/tbColorDsInk"
+        android:textColorHint="?attr/tbColorDsInkFaint"
+        android:singleLine="true"
+        android:selectAllOnFocus="true"
+        android:imeOptions="actionGo"
+        android:hint="@string/search_or_type_url"
+        android:inputType="textUri|textNoSuggestions"
+        android:importantForAutofill="no"
+        android:visibility="gone" />
+  </FrameLayout>
+
+  <!-- the number of tabs -->
+  <FrameLayout
+      android:id="@+id/flTabs"
+      android:layout_width="@dimen/ds_phone_button_size"
+      android:layout_height="@dimen/ds_phone_button_size"
+      android:background="@drawable/ds_phone_button_bg"
+      android:clickable="true"
+      android:focusable="true">
+
+    <TextView
+        android:id="@+id/tvTabCount"
+        android:layout_width="@dimen/ds_phone_tab_count_size"
+        android:layout_height="@dimen/ds_phone_tab_count_size"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:background="@drawable/ds_tab_count_bg"
+        android:textColor="?attr/tbColorDsIcon"
+        android:textSize="@dimen/ds_text_phone_tab_count"
+        android:textStyle="bold"
+        android:importantForAccessibility="no"
+        tools:text="4" />
+  </FrameLayout>
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+      android:id="@+id/ibMenu"
+      android:src="@drawable/ic_more_vert"
+      android:contentDescription="@string/menu" />
+</merge>

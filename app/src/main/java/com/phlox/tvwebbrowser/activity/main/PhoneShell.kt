@@ -10,6 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.activity.main.view.PhoneBar
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.databinding.ActivityMainPhoneBinding
@@ -47,6 +48,42 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         }
     }
 
+    private val barCallback = object : PhoneBar.Callback {
+        override fun navigateBack() {
+            controller.goBack()
+        }
+
+        override fun reloadOrStop() {
+            if (controller.currentTabState.value.loading) controller.stopLoading() else controller.reload()
+        }
+
+        //the site settings come with the menu sheet
+        override fun showSiteSettings() {}
+
+        //the tab switcher comes later
+        override fun showTabs() {}
+
+        //until the menu sheet comes, the menu opens the settings
+        override fun showMenu() = host.showSettings()
+
+        override fun search(text: String) = host.search(text)
+
+        override fun onEditingChanged(editing: Boolean) {
+            editingBackCallback.isEnabled = editing
+        }
+    }
+
+    /** Ends the editing of the address (a first Back hides the keyboard) */
+    private val editingBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = vb.vPhoneBar.stopEditing()
+    }
+
+    //after the callbacks: properties are initialized in their order
+    init {
+        vb.vPhoneBar.callback = barCallback
+        controller.tabsStates.subscribe(activity, observer = { vb.vPhoneBar.setTabCount(it.size) })
+    }
+
     /** Lowest priority: back in the page, or out of the app (to the launcher) when it has no history */
     private val pageBackCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
@@ -59,6 +96,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     override fun registerBackCallbacks(dispatcher: OnBackPressedDispatcher, fullscreen: OnBackPressedCallback) {
         //the enabled callback added last goes first
         dispatcher.addCallback(activity, pageBackCallback)
+        dispatcher.addCallback(activity, editingBackCallback)
         dispatcher.addCallback(activity, fullscreen)
     }
 
@@ -73,7 +111,9 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         tab.webEngine.virtualCursor?.setVirtualCursorMode(false)
     }
 
-    override fun render(state: CurrentTabState) {}
+    override fun render(state: CurrentTabState) {
+        vb.vPhoneBar.render(state)
+    }
 
     override fun onUiEvent(event: BrowserUiEvent) {
         when (event) {
@@ -94,7 +134,9 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         activity.moveTaskToBack(true)
     }
 
-    override fun showPage() {}
+    override fun showPage() {
+        vb.vPhoneBar.stopEditing()
+    }
 
     override fun onDownloadStarted() {}
 
