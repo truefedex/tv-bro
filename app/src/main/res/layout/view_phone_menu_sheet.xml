@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The menu sheet of the phone UI over a scrim: quick buttons (Forward, New tab, Incognito, Bookmark),
+the settings of the current site, then History, Bookmarks, Downloads and Settings.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+  <View
+      android:id="@+id/vScrim"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="?attr/tbColorDsScrim" />
+
+  <ScrollView
+      android:id="@+id/svSheet"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="bottom"
+      android:background="@drawable/ds_sheet_bg"
+      android:elevation="8dp"
+      android:clickable="true">
+
+    <LinearLayout
+        android:id="@+id/llSheet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/ds_phone_sheet_padding_horizontal"
+        android:paddingEnd="@dimen/ds_phone_sheet_padding_horizontal"
+        android:paddingTop="@dimen/ds_phone_sheet_padding_top"
+        android:paddingBottom="@dimen/ds_phone_sheet_padding_bottom">
+
+      <View
+          android:layout_width="@dimen/ds_phone_sheet_handle_width"
+          android:layout_height="@dimen/ds_phone_sheet_handle_height"
+          android:layout_gravity="center_horizontal"
+          android:layout_marginBottom="@dimen/ds_phone_sheet_handle_margin"
+          android:background="@drawable/ds_sheet_handle_bg" />
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal">
+        <LinearLayout
+            style="@style/Widget.TVBro.QuickButton"
+            android:id="@+id/llForward">
+          <ImageView style="@style/Widget.TVBro.QuickButtonIcon" android:src="@drawable/ic_forward" />
+          <TextView style="@style/Widget.TVBro.Text.QuickButton" android:text="@string/forward" />
+        </LinearLayout>
+        <LinearLayout
+            style="@style/Widget.TVBro.QuickButton"
+            android:id="@+id/llNewTab"
+            android:layout_marginStart="@dimen/ds_phone_quick_button_gap">
+          <ImageView style="@style/Widget.TVBro.QuickButtonIcon" android:src="@drawable/ic_add" />
+          <TextView style="@style/Widget.TVBro.Text.QuickButton" android:text="@string/new_tab" />
+        </LinearLayout>
+        <LinearLayout
+            style="@style/Widget.TVBro.QuickButton"
+            android:id="@+id/llIncognito"
+            android:layout_marginStart="@dimen/ds_phone_quick_button_gap">
+          <ImageView style="@style/Widget.TVBro.QuickButtonIcon" android:src="@drawable/ic_incognito" />
+          <TextView style="@style/Widget.TVBro.Text.QuickButton" android:text="@string/incognito" />
+        </LinearLayout>
+        <LinearLayout
+            style="@style/Widget.TVBro.QuickButton"
+            android:id="@+id/llBookmark"
+            android:layout_marginStart="@dimen/ds_phone_quick_button_gap">
+          <ImageView style="@style/Widget.TVBro.QuickButtonIcon" android:src="@drawable/ic_favorites" />
+          <TextView style="@style/Widget.TVBro.Text.QuickButton" android:text="@string/add_bookmark" />
+        </LinearLayout>
+      </LinearLayout>
+
+      <com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
+          android:id="@+id/vSiteSettings"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="@dimen/ds_phone_sheet_section_gap"
+          android:background="@drawable/ds_section_bg" />
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="@dimen/ds_phone_sheet_section_gap"
+          android:orientation="vertical">
+        <LinearLayout
+            style="@style/Widget.TVBro.PhoneMenuRow"
+            android:id="@+id/llHistory">
+          <ImageView style="@style/Widget.TVBro.PhoneMenuIcon" android:src="@drawable/ic_history" />
+          <TextView style="@style/Widget.TVBro.Text.PhoneMenuItem" android:text="@string/history" />
+        </LinearLayout>
+        <View style="@style/Widget.TVBro.MenuSeparator" />
+        <LinearLayout
+            style="@style/Widget.TVBro.PhoneMenuRow"
+            android:id="@+id/llBookmarks">
+          <ImageView style="@style/Widget.TVBro.PhoneMenuIcon" android:src="@drawable/ic_favorites" />
+          <TextView style="@style/Widget.TVBro.Text.PhoneMenuItem" android:text="@string/bookmarks" />
+        </LinearLayout>
+        <View style="@style/Widget.TVBro.MenuSeparator" />
+        <LinearLayout
+            style="@style/Widget.TVBro.PhoneMenuRow"
+            android:id="@+id/llDownloads">
+          <ImageView style="@style/Widget.TVBro.PhoneMenuIcon" android:src="@drawable/ic_downloads" />
+          <TextView style="@style/Widget.TVBro.Text.PhoneMenuItem" android:text="@string/downloads" />
+        </LinearLayout>
+        <View style="@style/Widget.TVBro.MenuSeparator" />
+        <LinearLayout
+            style="@style/Widget.TVBro.PhoneMenuRow"
+            android:id="@+id/llSettings">
+          <ImageView style="@style/Widget.TVBro.PhoneMenuIcon" android:src="@drawable/ic_settings" />
+          <TextView style="@style/Widget.TVBro.Text.PhoneMenuItem" android:text="@string/settings" />
+        </LinearLayout>
+      </LinearLayout>
+    </LinearLayout>
+  </ScrollView>
+</merge>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A bottom sheet of the phone UI: the menu color with rounded top corners -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:topLeftRadius="@dimen/ds_phone_sheet_radius" android:topRightRadius="@dimen/ds_phone_sheet_radius" />
+    <solid android:color="?attr/tbColorDsMenu" />
+</shape>

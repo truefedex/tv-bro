@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The settings of the site of the current page: its host, ad blocking and pop-up blocking.
+In the TV site panel the focus does not leave its two rows.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="vertical">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_space_menu_inset"
+      android:paddingEnd="@dimen/ds_space_menu_inset"
+      android:paddingTop="@dimen/ds_panel_padding_vertical"
+      android:paddingBottom="@dimen/ds_panel_padding_vertical">
+
+    <ImageView
+        style="@style/Widget.TVBro.MenuIcon"
+        android:src="@drawable/ic_site" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuItem"
+        android:id="@+id/tvHost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_panel_title_icon_text"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="www.wikipedia.org" />
+  </LinearLayout>
+
+  <View style="@style/Widget.TVBro.MenuSeparator" />
+
+  <LinearLayout
+      style="@style/Widget.TVBro.PanelRow"
+      android:id="@+id/llAdBlock"
+      android:nextFocusUp="@+id/llAdBlock"
+      android:nextFocusDown="@+id/llPopups"
+      android:nextFocusLeft="@+id/llAdBlock"
+      android:nextFocusRight="@+id/llAdBlock">
+
+    <ImageView
+        style="@style/Widget.TVBro.MenuIcon"
+        android:src="@drawable/ic_ad_block" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/ds_panel_icon_text"
+        android:orientation="vertical">
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="?attr/tbColorDsInk"
+          android:text="@string/ad_blocking" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuCaption"
+          android:id="@+id/tvAdBlockCount"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          tools:text="12 blocked on this page" />
+    </LinearLayout>
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuItem"
+        android:id="@+id/tvAdBlockValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_panel_icon_text"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        tools:text="@string/state_on" />
+  </LinearLayout>
+
+  <View style="@style/Widget.TVBro.MenuSeparator" />
+
+  <LinearLayout
+      style="@style/Widget.TVBro.PanelRow"
+      android:id="@+id/llPopups"
+      android:nextFocusUp="@+id/llAdBlock"
+      android:nextFocusDown="@+id/llPopups"
+      android:nextFocusLeft="@+id/llPopups"
+      android:nextFocusRight="@+id/llPopups">
+
+    <ImageView
+        style="@style/Widget.TVBro.MenuIcon"
+        android:src="@drawable/ic_popups" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/ds_panel_icon_text"
+        android:orientation="vertical">
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="?attr/tbColorDsInk"
+          android:text="@string/popups" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuCaption"
+          android:id="@+id/tvPopupsCount"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          tools:text="2 blocked on this page" />
+    </LinearLayout>
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuItem"
+        android:id="@+id/tvPopupsValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_panel_icon_text"
+        android:maxWidth="@dimen/ds_panel_value_max_width"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="Block dialogs" />
+
+    <ImageView
+        style="@style/Widget.TVBro.MenuIcon"
+        android:src="@drawable/ic_chevron_right" />
+  </LinearLayout>
+</merge>

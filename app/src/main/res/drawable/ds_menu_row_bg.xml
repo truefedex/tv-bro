@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A row of a menu or panel: menu, focused (with the focus outline), selected -->
+<!-- A row of a menu or panel: no fill (the menu shows through), pressed, focused (with the focus outline), selected -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsControlFocused" />
+        </shape>
+    </item>
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <solid android:color="?attr/tbColorDsControlFocused" />
@@ -23,9 +28,10 @@
             <solid android:color="?attr/tbColorDsControlSelected" />
         </shape>
     </item>
+    <!-- at rest the row has the color of its menu or section -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="?attr/tbColorDsMenu" />
+            <solid android:color="@android:color/transparent" />
         </shape>
     </item>
 </selector>

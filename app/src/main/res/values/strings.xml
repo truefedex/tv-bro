@@ -12,6 +12,11 @@
     <string name="location">Location</string>
     <string name="open_in_new_tab">Open in new tab</string>
     <string name="new_tab">New tab</string>
+    <string name="add_bookmark">Bookmark</string>
+    <!-- short labels of the quick buttons of the phone menu -->
+    <string name="forward">Forward</string>
+    <string name="incognito">Incognito</string>
+    <string name="bookmark_added">Bookmark added</string>
     <!-- the address pill of the phone bar on the home page -->
     <string name="search_or_type_url">Search or type URL</string>
     <string name="menu">Menu</string>

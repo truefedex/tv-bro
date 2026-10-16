@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A quick button of the phone menu sheet: control, pressed, selected (activated) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_control" />
+            <solid android:color="?attr/tbColorDsControlFocused" />
+        </shape>
+    </item>
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_control" />
+            <solid android:color="?attr/tbColorDsControlSelected" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_control" />
+            <solid android:color="?attr/tbColorDsControl" />
+        </shape>
+    </item>
+</selector>

@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.activity.main
 
-import android.app.AlertDialog
 import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.os.Build
@@ -20,14 +19,13 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
-import com.phlox.tvwebbrowser.activity.main.view.SitePanelView
+import com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
 import com.phlox.tvwebbrowser.activity.main.view.TabMenuView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.BrowserTab
-import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.themeColor
 import com.phlox.tvwebbrowser.webengine.CursorModes
@@ -38,7 +36,6 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.net.URL
 
 /**
  * The TV look: the bar above the page (its row of buttons and the address, and the tabs; opened and
@@ -232,13 +229,11 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vSitePanel.show(vb.vActionBar.siteButton)
     }
 
-    private val sitePanelCallback = object : SitePanelView.Callback {
+    private val sitePanelCallback = object : SiteSettingsView.Callback {
         //the page reloads, the panel stays open with the focus on the row
-        override fun toggleAdBlock() = toggleAdBlockForTab()
+        override fun toggleAdBlock() = host.toggleSiteAdBlock()
 
-        override fun choosePopupBlockLevel() {
-            showPopupBlockOptions()
-        }
+        override fun choosePopupBlockLevel() = host.choosePopupBlockLevel()
     }
 
     override fun initiateVoiceSearch() = host.commands.startVoiceSearch()
@@ -424,27 +419,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         } else {
             uiHandler.postDelayed(progressBarHideRunnable, 5000)
         }
-    }
-
-    private fun toggleAdBlockForTab() {
-        val tab = controller.currentTab.value ?: return
-        controller.setSiteAdBlock(tab, !controller.currentTabState.value.adBlockEnabled)
-    }
-
-    private fun showPopupBlockOptions() = lifecycleScope.launch {
-        val tab = controller.currentTab.value ?: return@launch
-        val currentHostConfig = controller.loadHostConfig(tab)
-        val currentBlockPopupsLevelValue = currentHostConfig?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE
-        val hostName = currentHostConfig?.hostName ?: try { URL(tab.url).host } catch (e: Exception) { "" }
-        AlertDialog.Builder(activity)
-            .setTitle(activity.getString(R.string.block_popups_s, hostName))
-            .setSingleChoiceItems(R.array.popup_blocking_level, currentBlockPopupsLevelValue) {
-                    dialog, itemId -> lifecycleScope.launch {
-                        controller.changePopupBlockingLevel(itemId, tab)
-                        dialog.dismiss()
-                    }
-            }
-            .show()
     }
 
     private fun toggleMenu() {

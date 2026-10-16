@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The handle on top of a bottom sheet -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/ds_phone_sheet_handle_radius" />
+    <solid android:color="?attr/tbColorDsLineStrong" />
+</shape>

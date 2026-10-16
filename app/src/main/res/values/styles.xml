@@ -82,6 +82,45 @@
         <item name="android:padding">@dimen/ds_phone_pill_icon_padding</item>
     </style>
 
+    <!-- A quick button of the phone menu sheet: an icon over a label -->
+    <style name="Widget.TVBro.QuickButton" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">@dimen/ds_phone_quick_button_height</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/ds_quick_button_bg</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="Widget.TVBro.QuickButtonIcon" parent="">
+        <item name="android:layout_width">@dimen/ds_phone_quick_button_icon</item>
+        <item name="android:layout_height">@dimen/ds_phone_quick_button_icon</item>
+        <item name="tint">?attr/tbColorDsIcon</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+
+    <!-- A row of the phone menu sheet: an icon and a label -->
+    <style name="Widget.TVBro.PhoneMenuRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/ds_phone_menu_row_height</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">@dimen/ds_phone_menu_row_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_phone_menu_row_padding</item>
+        <item name="android:background">@drawable/ds_phone_button_bg</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="Widget.TVBro.PhoneMenuIcon" parent="">
+        <item name="android:layout_width">@dimen/ds_phone_quick_button_icon</item>
+        <item name="android:layout_height">@dimen/ds_phone_quick_button_icon</item>
+        <item name="tint">?attr/tbColorDsIcon</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+
     <!-- A group of toolbar segments; the group clips them to its rounded border (ActionBar sets clipToOutline) -->
     <style name="Widget.TVBro.ToolbarGroup" parent="">
         <item name="android:layout_width">wrap_content</item>
@@ -221,6 +260,29 @@
     <!-- The address in the phone bar -->
     <style name="Widget.TVBro.Text.PhoneAddress">
         <item name="android:textSize">@dimen/ds_text_phone_address</item>
+    </style>
+
+    <!-- The label of a quick button of the phone menu sheet -->
+    <style name="Widget.TVBro.Text.QuickButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/ds_phone_quick_button_icon_text</item>
+        <item name="android:textSize">@dimen/ds_text_phone_quick_button</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <!-- The label of a row of the phone menu sheet -->
+    <style name="Widget.TVBro.Text.PhoneMenuItem">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">@dimen/ds_phone_menu_row_icon_text</item>
+        <item name="android:textSize">@dimen/ds_text_phone_menu_item</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
     </style>
 
     <!-- The second line of a menu or panel row -->
