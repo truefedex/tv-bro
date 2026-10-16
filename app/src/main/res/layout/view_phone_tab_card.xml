@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+A tab of the phone tab switcher: its favicon, title and close button over the picture of the page,
+inside the outline of the card (the padding keeps the picture off the stroke)
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/ds_phone_tab_card_height"
+    android:orientation="vertical"
+    android:background="@drawable/ds_tab_card_bg"
+    android:padding="@dimen/ds_phone_tab_card_selected_stroke"
+    android:clickable="true"
+    android:focusable="true">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="@dimen/ds_phone_tab_card_header_height"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_phone_tab_card_padding">
+
+    <!-- round (the adapter clips it to an oval) -->
+    <ImageView
+        android:id="@+id/ivFavicon"
+        android:layout_width="@dimen/ds_phone_tab_card_favicon"
+        android:layout_height="@dimen/ds_phone_tab_card_favicon"
+        android:scaleType="centerCrop"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_launcher" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.TabTitle"
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/ds_phone_tab_card_padding"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="Wikipedia" />
+
+    <ImageButton
+        android:id="@+id/ibClose"
+        android:layout_width="@dimen/ds_phone_tab_card_header_height"
+        android:layout_height="@dimen/ds_phone_tab_card_header_height"
+        android:padding="@dimen/ds_phone_tab_card_close_padding"
+        android:scaleType="fitCenter"
+        android:background="@drawable/ds_phone_button_bg"
+        android:src="@drawable/ic_close"
+        app:tint="?attr/tbColorDsIcon"
+        android:contentDescription="@string/close_tab" />
+  </LinearLayout>
+
+  <ImageView
+      android:id="@+id/ivThumbnail"
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1"
+      android:background="?attr/tbColorDsTab"
+      android:scaleType="centerCrop"
+      android:importantForAccessibility="no" />
+</LinearLayout>

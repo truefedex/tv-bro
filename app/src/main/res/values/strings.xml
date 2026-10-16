@@ -17,6 +17,7 @@
     <string name="forward">Forward</string>
     <string name="incognito">Incognito</string>
     <string name="bookmark_added">Bookmark added</string>
+    <string name="close_all">Close all</string>
     <!-- the address pill of the phone bar on the home page -->
     <string name="search_or_type_url">Search or type URL</string>
     <string name="menu">Menu</string>

@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.PhoneBar
 import com.phlox.tvwebbrowser.activity.main.view.PhoneMenuSheet
+import com.phlox.tvwebbrowser.activity.main.view.PhoneTabSwitcher
 import com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
@@ -36,12 +37,13 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
 
     init {
         //the window is drawn edge to edge: the content keeps out of the system bars and the keyboard,
-        //the menu sheet out of the navigation bar (its scrim covers the bars)
+        //the menu sheet out of the navigation bar (its scrim covers the bars), the tab switcher out of both
         ViewCompat.setOnApplyWindowInsetsListener(vb.root) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             val keyboard = insets.getInsets(WindowInsetsCompat.Type.ime())
             vb.rlRoot.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, keyboard.bottom))
             vb.vMenuSheet.setInsets(bars.left, bars.right, bars.bottom)
+            vb.vTabSwitcher.setInsets(bars.left, bars.top, bars.right, bars.bottom)
             WindowInsetsCompat.CONSUMED
         }
         val night = (activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
@@ -64,8 +66,11 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         //the site settings are in the menu sheet
         override fun showSiteSettings() = vb.vMenuSheet.show()
 
-        //the tab switcher comes later
-        override fun showTabs() {}
+        override fun showTabs() {
+            vb.vPhoneBar.stopEditing()
+            vb.vMenuSheet.hide()
+            vb.vTabSwitcher.show()
+        }
 
         override fun showMenu() = vb.vMenuSheet.show()
 
@@ -101,6 +106,28 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         override fun showSettings() = host.showSettings()
     }
 
+    /** The switcher stays open when tabs are closed, it closes when a tab is chosen or opened */
+    private val tabSwitcherCallback = object : PhoneTabSwitcher.Callback {
+        override fun selectTab(tab: BrowserTab) {
+            controller.changeTab(tab)
+            vb.vTabSwitcher.hide()
+        }
+
+        override fun closeTab(tab: BrowserTab) = controller.closeTab(tab)
+
+        /** Leaves one tab with the home page */
+        override fun closeAllTabs() {
+            val tab = host.openInNewTab(host.settingsModel.homePage, controller.tabsStates.size) ?: return
+            controller.closeOtherTabs(tab)
+        }
+
+        override fun openNewTab() {
+            host.openInNewTab(host.settingsModel.homePage, controller.tabsStates.size)
+        }
+
+        override fun toggleIncognitoMode() = host.toggleIncognitoMode()
+    }
+
     /** The site settings keep the sheet open: changing ad blocking reloads the page under it */
     private val siteSettingsCallback = object : SiteSettingsView.Callback {
         override fun toggleAdBlock() = host.toggleSiteAdBlock()
@@ -113,6 +140,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vPhoneBar.callback = barCallback
         vb.vMenuSheet.callback = menuCallback
         vb.vMenuSheet.siteSettings.callback = siteSettingsCallback
+        vb.vTabSwitcher.bind(controller)
+        vb.vTabSwitcher.callback = tabSwitcherCallback
         controller.tabsStates.subscribe(activity, observer = { vb.vPhoneBar.setTabCount(it.size) })
     }
 
@@ -130,6 +159,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         dispatcher.addCallback(activity, pageBackCallback)
         dispatcher.addCallback(activity, editingBackCallback)
         dispatcher.addCallback(activity, vb.vMenuSheet.backCallback)
+        dispatcher.addCallback(activity, vb.vTabSwitcher.backCallback)
         dispatcher.addCallback(activity, fullscreen)
     }
 
@@ -171,6 +201,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     override fun showPage() {
         vb.vPhoneBar.stopEditing()
         vb.vMenuSheet.hide()
+        vb.vTabSwitcher.hide()
     }
 
     override fun onDownloadStarted() {}

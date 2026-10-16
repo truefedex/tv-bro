@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The tab switcher of the phone UI over the whole window: the number of tabs and the incognito switch,
+the tabs in two columns, and Close all, New tab and Done.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="vertical">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="@dimen/ds_phone_switcher_header_height"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_phone_switcher_padding"
+      android:paddingEnd="@dimen/ds_phone_bar_padding_horizontal">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="@dimen/ds_text_phone_switcher_title"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        tools:text="4 tabs" />
+
+    <!-- selected (activated) in the incognito mode -->
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+        android:id="@+id/ibIncognito"
+        android:background="@drawable/ds_quick_button_bg"
+        android:src="@drawable/ic_incognito"
+        android:contentDescription="@string/incognito_mode" />
+  </LinearLayout>
+
+  <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/rvTabs"
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1"
+      android:paddingStart="@dimen/ds_phone_switcher_padding"
+      android:paddingEnd="@dimen/ds_phone_switcher_padding"
+      android:paddingBottom="@dimen/ds_phone_switcher_padding"
+      android:clipToPadding="false" />
+
+  <LinearLayout
+      android:id="@+id/llBottomRow"
+      android:layout_width="match_parent"
+      android:layout_height="@dimen/ds_phone_switcher_row_height"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_phone_switcher_padding"
+      android:paddingEnd="@dimen/ds_phone_switcher_padding"
+      android:background="@drawable/ds_phone_bar_bg">
+
+    <TextView
+        style="@style/Widget.TVBro.Text.PhoneTextButton"
+        android:id="@+id/btnCloseAll"
+        android:text="@string/close_all" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:id="@+id/llNewTab"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/ds_phone_new_tab_button_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_phone_new_tab_button_padding_start"
+        android:paddingEnd="@dimen/ds_phone_new_tab_button_padding_end"
+        android:background="@drawable/ds_outlined_button_bg"
+        android:clickable="true"
+        android:focusable="true">
+
+      <ImageView
+          style="@style/Widget.TVBro.QuickButtonIcon"
+          android:src="@drawable/ic_add" />
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="@dimen/ds_phone_new_tab_icon_text"
+          android:textSize="@dimen/ds_text_phone_menu_item"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:text="@string/new_tab" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.PhoneTextButton"
+        android:id="@+id/btnDone"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/done" />
+  </LinearLayout>
+</merge>

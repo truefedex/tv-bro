@@ -117,6 +117,24 @@
     <dimen name="ds_phone_menu_row_icon_text">16dp</dimen>
     <dimen name="ds_text_phone_quick_button">12sp</dimen>
     <dimen name="ds_text_phone_menu_item">16sp</dimen>
+    <dimen name="ds_phone_switcher_header_height">64dp</dimen>
+    <dimen name="ds_phone_switcher_padding">16dp</dimen>
+    <dimen name="ds_phone_switcher_grid_gap">12dp</dimen>
+    <dimen name="ds_phone_tab_card_height">220dp</dimen>
+    <!-- more columns of cards when they are at least this wide -->
+    <dimen name="ds_phone_tab_card_min_width">160dp</dimen>
+    <dimen name="ds_phone_tab_card_header_height">36dp</dimen>
+    <dimen name="ds_phone_tab_card_favicon">20dp</dimen>
+    <dimen name="ds_phone_tab_card_padding">8dp</dimen>
+    <dimen name="ds_phone_tab_card_close_padding">9dp</dimen>
+    <dimen name="ds_phone_tab_card_selected_stroke">2dp</dimen>
+    <dimen name="ds_phone_switcher_row_height">56dp</dimen>
+    <dimen name="ds_phone_text_button_padding">12dp</dimen>
+    <dimen name="ds_phone_new_tab_button_height">44dp</dimen>
+    <dimen name="ds_phone_new_tab_button_padding_start">14dp</dimen>
+    <dimen name="ds_phone_new_tab_button_padding_end">20dp</dimen>
+    <dimen name="ds_phone_new_tab_icon_text">8dp</dimen>
+    <dimen name="ds_text_phone_switcher_title">18sp</dimen>
     <dimen name="ds_tab_strip_margin_top">15dp</dimen>
     <dimen name="ds_new_tab_button_gap">8dp</dimen>
     <dimen name="ds_new_tab_icon_padding">10dp</dimen>

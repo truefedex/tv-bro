@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 The phone screen: the page and the bar under it, between the system bars and the keyboard (the shell
-applies their insets as the padding of the content), and the menu sheet over the whole window.
+applies their insets as the padding of the content), and the menu sheet and the tab switcher over the
+whole window.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/flRoot"
@@ -48,6 +49,12 @@ applies their insets as the padding of the content), and the menu sheet over the
 
     <com.phlox.tvwebbrowser.activity.main.view.PhoneMenuSheet
         android:id="@+id/vMenuSheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="8dp" />
+
+    <com.phlox.tvwebbrowser.activity.main.view.PhoneTabSwitcher
+        android:id="@+id/vTabSwitcher"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:elevation="8dp" />

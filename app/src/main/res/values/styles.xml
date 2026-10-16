@@ -285,6 +285,20 @@
         <item name="android:ellipsize">end</item>
     </style>
 
+    <!-- A text button of a phone bottom row (Close all, Done) -->
+    <style name="Widget.TVBro.Text.PhoneTextButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/ds_phone_button_size</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/ds_phone_text_button_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_phone_text_button_padding</item>
+        <item name="android:background">@drawable/ds_phone_button_bg</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:textSize">@dimen/ds_text_phone_menu_item</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+    </style>
+
     <!-- The second line of a menu or panel row -->
     <style name="Widget.TVBro.Text.MenuCaption">
         <item name="android:textSize">@dimen/ds_text_menu_caption</item>

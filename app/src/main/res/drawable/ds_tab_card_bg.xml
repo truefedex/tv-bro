@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A tab card of the phone tab switcher: the surface in the tab outline, the current tab (selected) in the selected stroke -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_control" />
+            <solid android:color="?attr/tbColorDsSurface" />
+            <stroke android:color="?attr/tbColorDsSelected" android:width="@dimen/ds_phone_tab_card_selected_stroke" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_control" />
+            <solid android:color="?attr/tbColorDsSurface" />
+            <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+        </shape>
+    </item>
+</selector>
