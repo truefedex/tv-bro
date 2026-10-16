@@ -12,13 +12,10 @@ enum class UiMode { TV, PHONE }
  * Picks the look of the browser screen: the Interface setting, or on Auto what the device is.
  */
 object UiModeSelector {
-    /** Until the phone UI is complete, Auto keeps the TV UI; Phone can be chosen in the settings */
-    private const val AUTO_SELECTS_PHONE_UI = false
-
     fun select(context: Context, setting: Config.InterfaceMode): UiMode = when (setting) {
         Config.InterfaceMode.TV -> UiMode.TV
         Config.InterfaceMode.PHONE -> UiMode.PHONE
-        Config.InterfaceMode.AUTO -> if (AUTO_SELECTS_PHONE_UI) detect(context) else UiMode.TV
+        Config.InterfaceMode.AUTO -> detect(context)
     }
 
     fun detect(context: Context): UiMode {
