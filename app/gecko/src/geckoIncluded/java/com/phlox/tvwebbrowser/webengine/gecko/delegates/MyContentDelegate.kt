@@ -70,6 +70,10 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
                     + element.srcUri
         )
         val webView = webEngine.getView() as? GeckoViewWithVirtualCursor ?: return
+        //a touch is where the screen coordinates (CSS pixels) say, the cursor is where it is drawn
+        val density = webView.resources.displayMetrics.density
+        val x = if (webView.virtualCursorMode) webView.cursorDrawerDelegate.cursorPosition.x.toInt() else (screenX * density).toInt()
+        val y = if (webView.virtualCursorMode) webView.cursorDrawerDelegate.cursorPosition.y.toInt() else (screenY * density).toInt()
         webEngine.callback?.onContextMenu(
             webView.cursorDrawerDelegate,
             element.baseUri,
@@ -78,8 +82,8 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
             element.title,
             element.altText,
             element.linkText,
-            webView.cursorDrawerDelegate.cursorPosition.x.toInt(),
-            webView.cursorDrawerDelegate.cursorPosition.y.toInt()
+            x,
+            y
         )
     }
 

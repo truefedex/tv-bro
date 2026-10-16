@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.PointF
 import android.media.MediaDrm
 import android.net.Uri
 import android.net.http.SslError
@@ -162,6 +163,15 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         }
 
         setOnLongClickListener { v ->
+            //the virtual cursor reports its long presses itself
+            if (virtualCursorMode) return@setOnLongClickListener true
+            //a long touch on a link or an image: its actions; on anything else the page handles it (selects text)
+            val result = hitTestResult
+            val target = when (result.type) {
+                HitTestResult.SRC_ANCHOR_TYPE, HitTestResult.SRC_IMAGE_ANCHOR_TYPE, HitTestResult.IMAGE_TYPE -> result.extra
+                else -> null
+            } ?: return@setOnLongClickListener false
+            callback.onContextMenu(currentOriginalUrl?.toString(), target, lastTouchDown.x.toInt(), lastTouchDown.y.toInt())
             true
         }
 
@@ -493,6 +503,16 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         val result = super.restoreState(inState)
         currentOriginalUrl = url?.toUri()
         return result
+    }
+
+    /** Where the last touch started: a long touch shows its menu there */
+    private val lastTouchDown = PointF()
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            lastTouchDown.set(event.x, event.y)
+        }
+        return super.dispatchTouchEvent(event)
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
