@@ -15,7 +15,8 @@ whole window.
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <FrameLayout
+        <!-- it tells the bar whether the page scrolls by the user's touch -->
+        <com.phlox.tvwebbrowser.activity.main.view.TouchTrackingFrameLayout
             android:id="@+id/flWebViewContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

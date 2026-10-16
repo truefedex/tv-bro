@@ -67,6 +67,9 @@ interface EngineUiHost {
     fun onEditHomePageBookmarkSelected(index: Int)
     fun onPrepareForFullscreen()
     fun onExitFullscreen()
+
+    /** The page scrolled vertically to [scrollY] by [dy] (in pixels of the engine view, positive downwards) */
+    fun onPageScrolled(scrollY: Int, dy: Int) {}
     fun suggestActionsForLink(baseUri: String?, linkUri: String?, srcUri: String?,
                               title: String?, altText: String?, textContent: String?,
                               x: Int, y: Int)

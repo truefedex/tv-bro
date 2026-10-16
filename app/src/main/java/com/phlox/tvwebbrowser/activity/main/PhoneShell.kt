@@ -11,6 +11,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.PhoneBar
 import com.phlox.tvwebbrowser.activity.main.view.PhoneMenuSheet
 import com.phlox.tvwebbrowser.activity.main.view.PhoneTabSwitcher
+import com.phlox.tvwebbrowser.activity.main.view.ScrollAwayBar
 import com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
@@ -36,6 +37,11 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
 
     /** A fullscreen view (a video) fills the whole window, without the bar */
     private var fullscreen = false
+    /** The bar slides away while the page scrolls down */
+    private val scrollAwayBar = ScrollAwayBar(vb.vPhoneBar, vb.flWebViewContainer)
+    /** The page and its loading state shown last: a new page or a new load shows the bar */
+    private var renderedUrl: String? = null
+    private var renderedLoading = false
 
     init {
         //the window is drawn edge to edge: the content keeps out of the system bars and the keyboard,
@@ -54,6 +60,10 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             WindowInsetsCompat.CONSUMED
         }
         SystemBars.matchIconsToTheme(activity.window)
+        //the page changes its size and scroll position when the screen rotates
+        vb.root.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+            if (right - left != oldRight - oldLeft) scrollAwayBar.show(animate = false)
+        }
     }
 
     private val barCallback = object : PhoneBar.Callback {
@@ -80,6 +90,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
 
         override fun onEditingChanged(editing: Boolean) {
             editingBackCallback.isEnabled = editing
+            if (editing) scrollAwayBar.show()
         }
     }
 
@@ -172,6 +183,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vPhoneBar.stopEditing()
             vb.vMenuSheet.hide()
             vb.vTabSwitcher.hide()
+            scrollAwayBar.show(animate = false)
         }
         vb.vPhoneBar.visibility = if (fullscreen) View.GONE else View.VISIBLE
         activity.requestedOrientation =
@@ -191,8 +203,23 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     }
 
     override fun render(state: CurrentTabState) {
+        //another tab or page, or the page starts loading
+        if (state.url != renderedUrl || (state.loading && !renderedLoading)) {
+            scrollAwayBar.show()
+        }
+        renderedUrl = state.url
+        renderedLoading = state.loading
         vb.vPhoneBar.render(state)
         vb.vMenuSheet.render(state)
+    }
+
+    /**
+     * Only scrolling by the user moves the bar: the page also scrolls by itself (when it is laid out
+     * again after a rotation, restores its position or jumps to an anchor)
+     */
+    override fun onPageScrolled(scrollY: Int, dy: Int) {
+        if (fullscreen || editingBackCallback.isEnabled || !vb.flWebViewContainer.isTouchedRecently) return
+        scrollAwayBar.onPageScrolled(scrollY, dy)
     }
 
     override fun onUiEvent(event: BrowserUiEvent) {

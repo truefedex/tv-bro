@@ -98,6 +98,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun requestPermissions(array: Array<String>, geo: Boolean)
         fun shouldOverrideUrlLoading(url: String): Boolean
         fun onPageStarted(url: String?)
+        fun onScrolled(scrollY: Int, dy: Int)
         fun onPageFinished(url: String?)
         fun onPageCertificateError(url: String?)
         fun isAdBlockingEnabled(): Boolean
@@ -507,6 +508,13 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
     /** Where the last touch started: a long touch shows its menu there */
     private val lastTouchDown = PointF()
+
+    override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
+        super.onScrollChanged(l, t, oldl, oldt)
+        if (t != oldt) {
+            callback.onScrolled(t, t - oldt)
+        }
+    }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {

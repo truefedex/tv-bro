@@ -51,6 +51,9 @@ interface BrowserShell {
      */
     fun onFullscreenChanged(fullscreen: Boolean) {}
 
+    /** The page of the current tab scrolled vertically to [scrollY] by [dy] (in pixels, positive downwards) */
+    fun onPageScrolled(scrollY: Int, dy: Int) {}
+
     /** Shows that the app is busy (loading the tabs, leaving the incognito mode) */
     fun showBusy(busy: Boolean)
 

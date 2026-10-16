@@ -424,6 +424,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
                 backNavigationEventsAdapter.consumeCurrentPress()
             }
         }
+
+        override fun onPageScrolled(scrollY: Int, dy: Int) = shell.onPageScrolled(scrollY, dy)
     }
 
     private fun openInNewTabAfterCurrent(url: String) {

@@ -330,6 +330,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, C
             callback?.onPageStarted(url)
         }
 
+        override fun onScrolled(scrollY: Int, dy: Int) {
+            callback?.onPageScrolled(scrollY, dy)
+        }
+
         override fun onPageFinished(url: String?) {
             callback?.onPageFinished(url)
         }

@@ -81,6 +81,7 @@ class TabUiHost(
         )
         /** The engine shows or hides its fullscreen view (the system bars are already handled) */
         fun onFullscreenChanged(fullscreen: Boolean)
+        fun onPageScrolled(scrollY: Int, dy: Int)
     }
 
     private val config = AppContext.provideConfig()
@@ -181,6 +182,8 @@ class TabUiHost(
         SystemBars.hide(activity.window)
         screen.onFullscreenChanged(true)
     }
+
+    override fun onPageScrolled(scrollY: Int, dy: Int) = screen.onPageScrolled(scrollY, dy)
 
     override fun onExitFullscreen() {
         if (!config.keepScreenOn) {

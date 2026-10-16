@@ -40,6 +40,7 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
+import kotlin.math.roundToInt
 import org.mozilla.geckoview.GeckoRuntimeSettings
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoSession.SessionState
@@ -164,6 +165,17 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
     val contentBlockingDelegate = MyContentBlockingDelegate(this)
     val mediaSessionDelegate = MyMediaSessionDelegate()
     val selectionActionDelegate = MySelectionActionDelegate()
+    /** The last scroll position of the page in pixels, to report how far it scrolled; unknown when -1 */
+    private var lastScrollY = -1
+    /** GeckoView reports the offset of the visual viewport in CSS pixels */
+    private val scrollDelegate = object : GeckoSession.ScrollDelegate {
+        override fun onScrollChanged(session: GeckoSession, scrollX: Int, scrollY: Int) {
+            val y = (scrollY * AppContext.get().resources.displayMetrics.density).roundToInt()
+            val dy = if (lastScrollY == -1) 0 else y - lastScrollY
+            lastScrollY = y
+            callback?.onPageScrolled(y, dy)
+        }
+    }
     var appHomeContentScriptPortDelegate: AppHomeContentScriptPortDelegate? = null
     var appContentScriptPortDelegate: AppContentScriptPortDelegate? = null
     var appWebExtensionBackgroundPortDelegate: AppWebExtensionBackgroundPortDelegate? = null
@@ -196,6 +208,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
         session.contentBlockingDelegate = contentBlockingDelegate
         session.mediaSessionDelegate = mediaSessionDelegate
         session.selectionActionDelegate = selectionActionDelegate
+        session.scrollDelegate = scrollDelegate
 
         webExtObserver = { ext: WebExtension? ->
             if (ext != null) {
@@ -432,6 +445,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
     ) {
         Log.d(TAG, "onAttachToWindow()")
         this.callback = callback
+        //the shared view showed another tab's page
+        lastScrollY = -1
         val webView = this.webView ?: throw IllegalStateException("WebView is null")
         //the view is shared by all tabs: its cursor reports to the attached one
         webView.cursorDrawerDelegate.callback = this
