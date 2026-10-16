@@ -30,21 +30,21 @@ class AppHomeContentScriptPortDelegate(val port: WebExtension.Port, val webEngin
                 "onHomePageLoaded" -> {
                     val callback = webEngine.callback ?: return
                     val cfg = AppContext.provideConfig()
-                    val jsArr = JSONArray()
+                    val links = JSONArray()
                     for (item in callback.getHomePageLinks()) {
-                        jsArr.put(item.toJsonObj())
+                        links.put(item.toJsonObj())
                     }
-                    var links = jsArr.toString()
-                    links = links.replace("'", "\\'")
+                    //the calls go to the page through the port: pages of the extension run no javascript: urls
                     if (Utils.isFireTV(AppContext.get())) {
-                        webEngine.evaluateJavascript("hideVoiceSearchUI()")
+                        port.postMessage(pageCall("hideVoiceSearchUI", JSONObject()))
                     }
-                    webEngine.evaluateJavascript("renderLinks('${cfg.homePageLinksMode.name}', $links)")
-                    webEngine.evaluateJavascript(
-                        "applySearchEngine(\"${cfg.guessSearchEngineName()}\", \"${cfg.searchEngineURL.value}\")")
-                    //pages of older versions do not report it
+                    port.postMessage(pageCall("renderLinks",
+                        JSONObject().put("mode", cfg.homePageLinksMode.name).put("links", links)))
+                    port.postMessage(pageCall("applySearchEngine",
+                        JSONObject().put("engine", cfg.guessSearchEngineName()).put("url", cfg.searchEngineURL.value)))
+                    //pages of older versions do not report it (or report it as null)
                     val data = msgJson.optJSONObject("data")
-                    if (data != null && data.has("searchBarX") && data.has("searchBarY")) {
+                    if (data != null && !data.isNull("searchBarX") && !data.isNull("searchBarY")) {
                         callback.onHomePageSearchBarLocated(data.getInt("searchBarX"), data.getInt("searchBarY"))
                     }
                 }
@@ -85,6 +85,13 @@ class AppHomeContentScriptPortDelegate(val port: WebExtension.Port, val webEngin
             e.printStackTrace()
         }
     }
+
+    /**
+     * A call of the page's function [name] with the named arguments in [data] (the port takes no arrays
+     * of mixed types)
+     */
+    private fun pageCall(name: String, data: JSONObject): JSONObject =
+        JSONObject().put("action", name).put("data", data)
 
     override fun onDisconnect(port: WebExtension.Port) {
         Log.d(TAG, "onDisconnect")

@@ -31,8 +31,26 @@ window.wrappedJSObject.TVBro = cloneInto(
     window,
     { cloneFunctions: true });
 
+//calls a function of the page
+function callPage(name, ...args) {
+    let fn = window.wrappedJSObject[name];
+    if (fn) {
+        fn(...args.map(arg => (arg !== null && typeof arg === "object") ? cloneInto(arg, window) : arg));
+    }
+}
+
 homeExtPort.onMessage.addListener(message => {
     switch (message.action) {
+        case "renderLinks":
+            //an empty array may come as null
+            callPage("renderLinks", message.data.mode, message.data.links || []);
+            break;
+        case "applySearchEngine":
+            callPage("applySearchEngine", message.data.engine, message.data.url);
+            break;
+        case "hideVoiceSearchUI":
+            callPage("hideVoiceSearchUI");
+            break;
         case "favicon": {
             let favicon = message.data;
             if (window.wrappedJSObject.onFaviconLoaded) {

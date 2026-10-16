@@ -57,7 +57,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
     CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
-        private const val APP_WEB_EXTENSION_VERSION = 49
+        private const val APP_WEB_EXTENSION_VERSION = 50
         val TAG: String = GeckoWebEngine::class.java.simpleName
         lateinit var runtime: GeckoRuntime
         var appWebExtension = ObservableValue<WebExtension?>(null)
