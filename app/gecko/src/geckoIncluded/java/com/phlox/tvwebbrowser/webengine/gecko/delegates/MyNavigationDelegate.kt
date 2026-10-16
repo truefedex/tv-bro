@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
 import android.util.Log
 import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
@@ -35,8 +36,12 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
         hasUserGesture: Boolean
     ) {
         Log.d(TAG, "onLocationChange: $url")
-        locationURL = url
-        webEngine.tab.url = url ?: ""
+        if (url != null && url.startsWith(Config.HOME_PAGE_URL) && webEngine.loadLocalHomePage(replace = true)) {
+            return
+        }
+        val appUrl = url?.let { GeckoWebEngine.toAppUrl(it) }
+        locationURL = appUrl
+        webEngine.tab.url = appUrl ?: ""
     }
 
     override fun onLoadRequest(session: GeckoSession, request: GeckoSession.NavigationDelegate.LoadRequest
@@ -54,6 +59,14 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
         )
 
         val callback = webEngine.callback ?: return GeckoResult.deny()
+
+        //the home page, a page of the app's extension
+        if (GeckoWebEngine.isLocalHomePage(request.uri)) {
+            return GeckoResult.allow()
+        }
+        if (request.uri.startsWith(Config.HOME_PAGE_URL) && webEngine.loadLocalHomePage(replace = false)) {
+            return GeckoResult.deny()
+        }
 
         if (callback.shouldOverrideUrlLoading(request.uri)) {
             return GeckoResult.deny()

@@ -8,6 +8,44 @@ var searchEngineUrlMap = {
         "custom": ""
     };
 var recommendationsToDisplay = [];
+
+//GeckoView shows this page as a page of TV Bro's extension, which talks to the app through the extension
+//messaging (WebView adds TVBro to the page itself)
+if (!window.TVBro && typeof browser !== "undefined" && browser.runtime && browser.runtime.connectNative) {
+    var appPort = browser.runtime.connectNative("tvbro");
+    var postToApp = function (action, data) {
+        appPort.postMessage({ action: action, data: data });
+    };
+    window.TVBro = {
+        startVoiceSearch: function () { postToApp("startVoiceSearch"); },
+        setSearchEngine: function (engine, customSearchEngineURL) {
+            postToApp("setSearchEngine", { engine: engine, customSearchEngineURL: customSearchEngineURL });
+        },
+        onEditBookmark: function (index) { postToApp("onEditBookmark", index); },
+        onHomePageLoaded: function (searchBarX, searchBarY) {
+            postToApp("onHomePageLoaded", { searchBarX: searchBarX, searchBarY: searchBarY });
+        },
+        requestFavicon: function (url) { postToApp("requestFavicon", url); },
+        markBookmarkRecommendationAsUseful: function (index) { postToApp("markBookmarkRecommendationAsUseful", index); }
+    };
+    appPort.onMessage.addListener(function (message) {
+        switch (message.action) {
+            case "renderLinks":
+                //an empty array may come as null
+                renderLinks(message.data.mode, message.data.links || []);
+                break;
+            case "applySearchEngine":
+                applySearchEngine(message.data.engine, message.data.url);
+                break;
+            case "hideVoiceSearchUI":
+                hideVoiceSearchUI();
+                break;
+            case "favicon":
+                onFaviconLoaded(message.data.url, message.data.data);
+                break;
+        }
+    });
+}
 var homePageLinksMode = "RECOMMENDATIONS";
 
 function onIcoLoadError(element) {

@@ -16,7 +16,7 @@ class MyHistoryDelegate(private val webEngine: GeckoWebEngine) : GeckoSession.Hi
         Log.i(TAG,"Visited URL: $url")
         visitedURLs.add(url)
         if (flags and GeckoSession.HistoryDelegate.VISIT_TOP_LEVEL != 0) {
-            webEngine.callback?.onVisited(url)
+            webEngine.callback?.onVisited(GeckoWebEngine.toAppUrl(url))
         }
         return GeckoResult.fromValue(true)
     }

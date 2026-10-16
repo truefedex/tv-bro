@@ -57,7 +57,11 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
     CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
-        private const val APP_WEB_EXTENSION_VERSION = 50
+        /** Changes with the files of the extension: it is installed again then */
+        private const val APP_WEB_EXTENSION_VERSION = BuildConfig.WEB_EXTENSION_HASH
+        /** The home page is a page of the extension: its files are copied there at build time */
+        private const val HOME_PAGE_PATH = "home/index.html"
+        private val LOCAL_HOME_PAGE_REGEX = Regex("^moz-extension://[^/]+/home/index\\.html([?#].*)?$")
         val TAG: String = GeckoWebEngine::class.java.simpleName
         lateinit var runtime: GeckoRuntime
         var appWebExtension = ObservableValue<WebExtension?>(null)
@@ -109,6 +113,15 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
             webViewContainer.addView(webView)
             weakRefToSingleGeckoView = WeakReference(webView)
         }
+
+        /** Where GeckoView finds the home page; null until the extension is registered */
+        val localHomePageUrl: String?
+            get() = appWebExtension.value?.metaData?.baseUrl?.let { it + HOME_PAGE_PATH }
+
+        fun isLocalHomePage(url: String): Boolean = LOCAL_HOME_PAGE_REGEX.matches(url)
+
+        /** The url as the app knows it: the local home page is [Config.HOME_PAGE_URL] */
+        fun toAppUrl(url: String): String = if (isLocalHomePage(url)) Config.HOME_PAGE_URL else url
 
         fun onThemeSettingUpdated(theme: Config.Theme) {
             runtime.settings.preferredColorScheme = theme.toGeckoPreferredColorScheme()
@@ -304,7 +317,46 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
         if (!session.isOpen) {
             session.open(runtime)
         }
+        if (url.startsWith(Config.HOME_PAGE_URL)) {
+            val homePage = localHomePageUrl
+            if (homePage == null) {
+                loadWhenExtensionIsReady(url)
+            } else {
+                session.loadUri(homePage)
+            }
+            return
+        }
         session.loadUri(url)
+    }
+
+    /** Waits for the extension (the first tab may want the home page before it is registered) */
+    private var extensionWaiter: ((WebExtension?) -> Unit)? = null
+
+    private fun loadWhenExtensionIsReady(url: String) {
+        extensionWaiter?.let { appWebExtension.unsubscribe(it) }
+        val waiter: (WebExtension?) -> Unit = { extension ->
+            if (extension != null) {
+                extensionWaiter?.let { appWebExtension.unsubscribe(it) }
+                extensionWaiter = null
+                loadUrl(url)
+            }
+        }
+        extensionWaiter = waiter
+        appWebExtension.subscribe(waiter, notifyOnSubscribe = false)
+    }
+
+    /**
+     * Shows the local home page instead of the web version of it, which a link, an old bookmark or the saved
+     * state of a tab may still load ([replace]: in place of the web version in the history)
+     */
+    fun loadLocalHomePage(replace: Boolean): Boolean {
+        val homePage = localHomePageUrl ?: return false
+        val loader = GeckoSession.Loader().uri(homePage)
+        if (replace) {
+            loader.flags(GeckoSession.LOAD_FLAGS_REPLACE_HISTORY)
+        }
+        session.load(loader)
+        return true
     }
 
     override fun canGoForward(): Boolean {
