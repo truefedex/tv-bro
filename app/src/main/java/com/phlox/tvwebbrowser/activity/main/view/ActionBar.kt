@@ -108,9 +108,10 @@ class ActionBar @JvmOverloads constructor(
         vb.ibIncognito.setOnClickListener { callback?.toggleIncognitoMode() }
         vb.ibSettings.setOnClickListener { callback?.showSettings() }
 
-        //the groups clip their segments to the rounded border
+        //the groups and the address field clip their buttons to the rounded border
         vb.llNavigation.clipToOutline = true
         vb.llFunctions.clipToOutline = true
+        vb.llAddress.clipToOutline = true
 
         if (Utils.isFireTV(context)) {
             vb.ibVoiceSearch.visibility = GONE

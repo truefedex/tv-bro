@@ -47,7 +47,7 @@
     <dimen name="ds_radius_lg">8dp</dimen>
     <dimen name="ds_border_hairline">1dp</dimen>
     <dimen name="ds_border_selected">1.5dp</dimen>
-    <!-- A deviation of the TV boards: the focused fills of the light theme are almost invisible -->
+    <!-- The outline of a focused control (the focused fills of the light theme are almost invisible) -->
     <dimen name="ds_focus_outline">1.5dp</dimen>
     <dimen name="ds_text_address">18sp</dimen>
     <dimen name="ds_text_toast">18sp</dimen>

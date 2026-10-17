@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A standalone icon button (the close-app button): control, focused, selected -->
+<!-- A standalone icon button (the close-app button): control, focused (with the focus outline), selected -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/ds_radius_control" />
             <solid android:color="?attr/tbColorDsControlFocused" />
-            <stroke android:color="?attr/tbColorDsLine" android:width="@dimen/ds_border_hairline" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
         </shape>
     </item>
     <item android:state_hovered="true">
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/ds_radius_control" />
             <solid android:color="?attr/tbColorDsControlFocused" />
-            <stroke android:color="?attr/tbColorDsLine" android:width="@dimen/ds_border_hairline" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
         </shape>
     </item>
     <item android:state_activated="true">

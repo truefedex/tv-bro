@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A toolbar segment (inside a ds_control_group_bg group): control, focused, selected -->
+<!-- A toolbar segment (inside a ds_control_group_bg group): control, focused (with the focus outline), selected -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <solid android:color="?attr/tbColorDsControlFocused" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
         </shape>
     </item>
     <item android:state_hovered="true">
         <shape android:shape="rectangle">
             <solid android:color="?attr/tbColorDsControlFocused" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
         </shape>
     </item>
     <item android:state_activated="true">
