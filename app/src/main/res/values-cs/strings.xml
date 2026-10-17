@@ -170,23 +170,4 @@
     <string name="media_fast_forward">Přetočit vpřed</string>
     <string name="long_press">Dlouhé stisknutí</string>
     <string name="local_network_access_denied">Přístup k místní síti byl zamítnut</string>
-    <string name="retry">Zkusit znovu</string>
-    <string name="web_engine_install_title">Stahování jádra %1$s</string>
-    <string name="web_engine_install_pending">Čekání na stahování…</string>
-    <string name="web_engine_install_progress">%1$s z %2$s</string>
-    <string name="web_engine_install_installing">Instalace…</string>
-    <string name="web_engine_install_restarting">Restartování aplikace…</string>
-    <string name="web_engine_install_canceled">Stahování zrušeno</string>
-    <string name="web_engine_install_failed">Jádro se nepodařilo stáhnout</string>
-    <string name="web_engine_install_error_network">Zkontrolujte připojení k internetu</string>
-    <string name="web_engine_install_error_storage">Nedostatek volného místa v úložišti</string>
-    <string name="web_engine_install_error_no_play">Jádro lze stáhnout, pouze pokud je aplikace nainstalována z Google Play</string>
-    <string name="web_engine_install_error_code">Kód chyby: %1$d</string>
-    <string name="web_engine_install_use_other">Použít %1$s</string>
-    <string name="settings_engine_download_on_restart">Jádro bude po restartu staženo z Google Play.</string>
-    <string name="settings_engine_uninstall">Odebrat jádro %1$s</string>
-    <string name="settings_engine_uninstall_msg">Google Play odebere %1$s na pozadí, aby uvolnil místo v úložišti. Později jej můžete znovu stáhnout tak, že jej vyberete jako jádro prohlížeče.</string>
-    <string name="settings_engine_uninstall_switch_msg">Prohlížeč přepne na %1$s.</string>
-    <string name="settings_engine_uninstall_requested">%1$s bude brzy odebráno</string>
-    <string name="settings_engine_uninstall_failed">Jádro se nepodařilo odebrat</string>
 </resources>

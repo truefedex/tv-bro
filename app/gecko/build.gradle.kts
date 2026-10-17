@@ -1,12 +1,12 @@
 import java.util.zip.CRC32
 
 plugins {
-    id("tvbro.android.feature")
+    id("tvbro.android.library")
 }
 
 /** The built-in home page of the app; GeckoView shows it as a page of the extension */
 val homePageDir: File = rootProject.file("app/src/main/assets/pages/home")
-val webExtensionDir: File = file("src/geckoIncluded/assets/extensions/generic")
+val webExtensionDir: File = file("src/main/assets/extensions/generic")
 
 /**
  * A hash of the files of the extension (with the home page): GeckoWebEngine installs the extension again
@@ -41,27 +41,19 @@ abstract class CopyHomePageToExtension : DefaultTask() {
 
 android {
     namespace = "com.phlox.tvwebbrowser.webengine.gecko"
-    // minSdk must match the base app in every variant, so it comes from the convention plugin
-    // (the geckoIncluded flavor raises it to 26)
 
     buildFeatures {
         buildConfig = true
     }
 
     defaultConfig {
+        minSdk = 26
         buildConfigField("int", "WEB_EXTENSION_HASH", contentHash(webExtensionDir, homePageDir).toString())
-    }
-
-    buildTypes {
-        getByName("release") {
-            // R8 runs in the base module, but each feature passes its own keep rules
-            proguardFiles("proguard-rules.pro")
-        }
     }
 }
 
 androidComponents {
-    onVariants(selector().withFlavor("webengine" to "geckoIncluded")) { variant ->
+    onVariants { variant ->
         val copyTask = tasks.register<CopyHomePageToExtension>(
             "copyHomePageToExtension${variant.name.replaceFirstChar { it.uppercase() }}") {
             homePage.set(homePageDir)
@@ -71,14 +63,8 @@ androidComponents {
 }
 
 dependencies {
-    // this dependency added only because of the dynamic feature module requirement, otherwise
-    // it should not be needed
-    implementation(project(":app"))
-
     implementation(project(":app:common"))
     implementation(libs.androidx.appcompat)
-    // The module must exist in every variant of the base app, but in geckoExcluded variants it
-    // is empty: all its sources live in the geckoIncluded source set.
-    "geckoIncludedImplementation"(libs.geckoview)
+    implementation(libs.geckoview)
     testImplementation(libs.junit)
 }

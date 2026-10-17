@@ -1,32 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:dist="http://schemas.android.com/apk/distribution"
-    xmlns:tools="http://schemas.android.com/tools">
-    <dist:module
-        dist:instant="false"
-        dist:title="@string/title_gecko_feature">
-        <dist:delivery>
-            <!-- Google Play does not support on-demand delivery on Android TV ("Split install
-                 requested but this class of devices is not supported"), so TV devices get the
-                 module at install time. https://issuetracker.google.com/issues/572988451 -->
-            <dist:install-time>
-                <!-- lets the user remove the engine where Play can manage modules -->
-                <dist:removable dist:value="true" />
-                <dist:conditions>
-                    <dist:device-feature dist:name="android.software.leanback" />
-                </dist:conditions>
-            </dist:install-time>
-            <dist:on-demand />
-        </dist:delivery>
-        <dist:fusing dist:include="true" />
-    </dist:module>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <application>
-        <!-- The feature manifest is merged into the base one, and content providers are created
-             on app start, so the app would crash before this module is downloaded. The base
-             module declares GeckoClipboardProviderProxy with the same authority instead. -->
-        <provider
-            android:name="org.mozilla.gecko.GeckoClipboardContentProvider"
-            tools:node="remove" />
-    </application>
 </manifest>

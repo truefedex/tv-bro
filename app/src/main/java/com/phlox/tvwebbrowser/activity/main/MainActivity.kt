@@ -55,7 +55,6 @@ import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.sameDay
-import com.phlox.tvwebbrowser.webengine.FeatureDelivery
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
@@ -97,11 +96,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     private var pendingIntent: Intent? = null
 
     override val activity: AppCompatActivity get() = this
-
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(newBase)
-        FeatureDelivery.installActivity(this)
-    }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -169,23 +169,4 @@
   <string name="allow_autoplay_media">Дозволити автовідтворення медіа</string>
   <string name="web_engine_debug">Налагодження вебрушія (потрібен перезапуск)</string>
   <string name="web_engine_debug_warning_message">Увімкнення налагодження вебрушія може розкрити вміст сторінок, cookie та чутливі дані сесії будь-кому, хто має доступ до налагодження пристрою. Вмикайте лише на довірених пристроях для усунення несправностей.</string>
-  <string name="retry">Повторити</string>
-  <string name="web_engine_install_title">Завантаження рушія %1$s</string>
-  <string name="web_engine_install_pending">Очікування завантаження…</string>
-  <string name="web_engine_install_progress">%1$s з %2$s</string>
-  <string name="web_engine_install_installing">Встановлення…</string>
-  <string name="web_engine_install_restarting">Перезапуск додатка…</string>
-  <string name="web_engine_install_canceled">Завантаження скасовано</string>
-  <string name="web_engine_install_failed">Не вдалося завантажити рушій</string>
-  <string name="web_engine_install_error_network">Перевірте підключення до інтернету</string>
-  <string name="web_engine_install_error_storage">Недостатньо вільного місця</string>
-  <string name="web_engine_install_error_no_play">Рушій можна завантажити, лише якщо додаток встановлено з Google Play</string>
-  <string name="web_engine_install_error_code">Код помилки: %1$d</string>
-  <string name="web_engine_install_use_other">Використовувати %1$s</string>
-  <string name="settings_engine_download_on_restart">Рушій буде завантажено з Google Play після перезапуску.</string>
-  <string name="settings_engine_uninstall">Видалити рушій %1$s</string>
-  <string name="settings_engine_uninstall_msg">Google Play видалить %1$s у фоновому режимі, щоб звільнити місце. Пізніше його можна буде знову завантажити, вибравши його рушієм браузера.</string>
-  <string name="settings_engine_uninstall_switch_msg">Браузер перемкнеться на %1$s.</string>
-  <string name="settings_engine_uninstall_requested">%1$s незабаром буде видалено</string>
-  <string name="settings_engine_uninstall_failed">Не вдалося видалити рушій</string>
 </resources>

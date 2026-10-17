@@ -88,7 +88,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
                     .cookieBehaviorPrivateMode(ContentBlocking.CookieBehavior.ACCEPT_NON_TRACKERS)
                     .enhancedTrackingProtectionLevel(ContentBlocking.EtpLevel.STRICT)
                     .build())
-                runtime = GeckoRuntime.create(geckoRuntimeContext(context), builder.build())
+                runtime = GeckoRuntime.create(context, builder.build())
 
                 val webExtInstallResult = if (APP_WEB_EXTENSION_VERSION == AppContext.provideConfig().appWebExtensionVersion) {
                     Log.d(TAG, "appWebExtension already installed")

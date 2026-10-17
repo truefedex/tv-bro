@@ -24,7 +24,6 @@ import com.phlox.tvwebbrowser.databinding.ViewSettingsMainBinding
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
-import com.phlox.tvwebbrowser.webengine.FeatureDelivery
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -78,9 +77,8 @@ class MainSettingsView @JvmOverloads constructor(
     }
 
     private fun initWebBrowserEngineSettingsUI() {
-        //includes engines that are not downloaded yet (dynamic feature modules)
-        val availableEngines = WebEngineFactory.getAvailableEngines()
-        val engines = Config.SupportedWebEngines.filter { availableEngines.contains(it) }
+        val registeredEngines = WebEngineFactory.getProviders().map { it.name }
+        val engines = Config.SupportedWebEngines.filter { registeredEngines.contains(it) }
         if (engines.size < 2) {
             vb.llWebEngine.visibility = View.GONE
             return
@@ -97,16 +95,12 @@ class MainSettingsView @JvmOverloads constructor(
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 val engine = engines[position]
                 if (config.webEngine == engine) return
-                var message = when {
+                val message = when {
                     engine == Config.ENGINE_GECKO_VIEW && !Config.GECKO_VIEW_RECOMMENDED ->
                         context.getString(R.string.settings_engine_change_gecko_msg)
                     engine == Config.ENGINE_WEB_VIEW ->
                         context.getString(R.string.settings_engine_change_webview_msg)
                     else -> null
-                }
-                if (!WebEngineFactory.isEngineInstalled(engine)) {
-                    val downloadMessage = context.getString(R.string.settings_engine_download_on_restart)
-                    message = if (message == null) downloadMessage else message + "\n\n" + downloadMessage
                 }
                 if (message != null) {
                     AlertDialog.Builder(context)
@@ -127,48 +121,6 @@ class MainSettingsView @JvmOverloads constructor(
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
-        }
-
-        initGeckoUninstallUI()
-    }
-
-    private fun initGeckoUninstallUI() {
-        if (!WebEngineFactory.isEngineInstalled(Config.ENGINE_GECKO_VIEW)) return
-        val activity = activity as MainActivity
-        //where Google Play can't manage feature modules (Android TV) the engine can't be removed
-        activity.lifecycleScope.launch {
-            if (FeatureDelivery.canUninstallGecko(activity)) {
-                vb.btnUninstallGecko.visibility = View.VISIBLE
-            }
-        }
-        vb.btnUninstallGecko.text = context.getString(R.string.settings_engine_uninstall, Config.ENGINE_GECKO_VIEW)
-        vb.btnUninstallGecko.setOnClickListener {
-            val switchEngine = config.webEngine == Config.ENGINE_GECKO_VIEW
-            var message = context.getString(R.string.settings_engine_uninstall_msg, Config.ENGINE_GECKO_VIEW)
-            if (switchEngine) {
-                message += "\n\n" + context.getString(R.string.settings_engine_uninstall_switch_msg, Config.ENGINE_WEB_VIEW)
-            }
-            AlertDialog.Builder(context)
-                .setTitle(vb.btnUninstallGecko.text)
-                .setMessage(message)
-                .setPositiveButton(R.string.delete) { _, _ ->
-                    activity.lifecycleScope.launch {
-                        if (!FeatureDelivery.uninstallGecko(activity)) {
-                            Toast.makeText(context, R.string.settings_engine_uninstall_failed, Toast.LENGTH_SHORT).show()
-                            return@launch
-                        }
-                        vb.btnUninstallGecko.visibility = View.GONE
-                        if (switchEngine) {
-                            config.webEngine = Config.ENGINE_WEB_VIEW
-                            showRestartDialog()
-                        } else {
-                            Toast.makeText(context, context.getString(R.string.settings_engine_uninstall_requested,
-                                Config.ENGINE_GECKO_VIEW), Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-                .setNegativeButton(R.string.cancel, null)
-                .show()
         }
     }
 

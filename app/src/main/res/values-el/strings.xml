@@ -170,23 +170,4 @@
     <string name="media_fast_forward">Γρήγορη προώθηση</string>
     <string name="long_press">Παρατεταμένο πάτημα</string>
     <string name="local_network_access_denied">Δεν επιτράπηκε η πρόσβαση στο τοπικό δίκτυο</string>
-    <string name="retry">Επανάληψη</string>
-    <string name="web_engine_install_title">Λήψη της μηχανής %1$s</string>
-    <string name="web_engine_install_pending">Αναμονή για λήψη…</string>
-    <string name="web_engine_install_progress">%1$s από %2$s</string>
-    <string name="web_engine_install_installing">Εγκατάσταση…</string>
-    <string name="web_engine_install_restarting">Επανεκκίνηση της εφαρμογής…</string>
-    <string name="web_engine_install_canceled">Η λήψη ακυρώθηκε</string>
-    <string name="web_engine_install_failed">Δεν ήταν δυνατή η λήψη της μηχανής</string>
-    <string name="web_engine_install_error_network">Ελέγξτε τη σύνδεσή σας στο διαδίκτυο</string>
-    <string name="web_engine_install_error_storage">Δεν υπάρχει αρκετός ελεύθερος χώρος αποθήκευσης</string>
-    <string name="web_engine_install_error_no_play">Η λήψη της μηχανής είναι δυνατή μόνο αν η εφαρμογή έχει εγκατασταθεί από το Google Play</string>
-    <string name="web_engine_install_error_code">Κωδικός σφάλματος: %1$d</string>
-    <string name="web_engine_install_use_other">Χρήση %1$s</string>
-    <string name="settings_engine_download_on_restart">Η μηχανή θα ληφθεί από το Google Play μετά την επανεκκίνηση.</string>
-    <string name="settings_engine_uninstall">Αφαίρεση της μηχανής %1$s</string>
-    <string name="settings_engine_uninstall_msg">Το Google Play θα αφαιρέσει το %1$s στο παρασκήνιο για να ελευθερώσει χώρο αποθήκευσης. Μπορείτε να το κατεβάσετε ξανά αργότερα επιλέγοντάς το ως μηχανή του προγράμματος περιήγησης.</string>
-    <string name="settings_engine_uninstall_switch_msg">Το πρόγραμμα περιήγησης θα μεταβεί στο %1$s.</string>
-    <string name="settings_engine_uninstall_requested">Το %1$s θα αφαιρεθεί σύντομα</string>
-    <string name="settings_engine_uninstall_failed">Δεν ήταν δυνατή η αφαίρεση της μηχανής</string>
 </resources>

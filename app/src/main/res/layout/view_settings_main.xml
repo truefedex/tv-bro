@@ -27,15 +27,6 @@
             android:layout_height="wrap_content"
             android:dropDownWidth="300dp"
             />
-
-        <Button
-            android:id="@+id/btnUninstallGecko"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            tools:text="Remove the GeckoView engine"
-            tools:visibility="visible"
-            />
     </LinearLayout>
 
     <TextView

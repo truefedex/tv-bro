@@ -170,23 +170,4 @@
     <string name="media_fast_forward">Avançar rápido</string>
     <string name="long_press">Toque longo</string>
     <string name="local_network_access_denied">Acesso à rede local negado</string>
-    <string name="retry">Tentar novamente</string>
-    <string name="web_engine_install_title">Baixando o mecanismo %1$s</string>
-    <string name="web_engine_install_pending">Aguardando o download…</string>
-    <string name="web_engine_install_progress">%1$s de %2$s</string>
-    <string name="web_engine_install_installing">Instalando…</string>
-    <string name="web_engine_install_restarting">Reiniciando o aplicativo…</string>
-    <string name="web_engine_install_canceled">Download cancelado</string>
-    <string name="web_engine_install_failed">Não foi possível baixar o mecanismo</string>
-    <string name="web_engine_install_error_network">Verifique sua conexão com a internet</string>
-    <string name="web_engine_install_error_storage">Espaço de armazenamento insuficiente</string>
-    <string name="web_engine_install_error_no_play">O mecanismo só pode ser baixado se o aplicativo tiver sido instalado pelo Google Play</string>
-    <string name="web_engine_install_error_code">Código de erro: %1$d</string>
-    <string name="web_engine_install_use_other">Usar %1$s</string>
-    <string name="settings_engine_download_on_restart">O mecanismo será baixado do Google Play após o reinício.</string>
-    <string name="settings_engine_uninstall">Remover o mecanismo %1$s</string>
-    <string name="settings_engine_uninstall_msg">O Google Play removerá o %1$s em segundo plano para liberar espaço de armazenamento. Você poderá baixá-lo novamente mais tarde selecionando-o como mecanismo do navegador.</string>
-    <string name="settings_engine_uninstall_switch_msg">O navegador mudará para o %1$s.</string>
-    <string name="settings_engine_uninstall_requested">O %1$s será removido em breve</string>
-    <string name="settings_engine_uninstall_failed">Não foi possível remover o mecanismo</string>
 </resources>

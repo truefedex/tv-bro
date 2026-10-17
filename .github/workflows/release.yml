@@ -29,17 +29,8 @@ jobs:
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
 
-      # Gecko is a dynamic feature module: assemble would put it into a separate split APK,
-      # so a universal APK with the module fused in is built from the bundle, one per ABI.
       - name: Build GeckoIncluded
-        run: |
-          out=app/build/outputs/apk/genericGeckoIncluded/release
-          mkdir -p "$out"
-          for abi in armeabi-v7a arm64-v8a x86_64; do
-            ./gradlew packageGenericGeckoIncludedReleaseUniversalApk -PabiFilter=$abi
-            mv app/build/outputs/apk_from_bundle/genericGeckoIncludedRelease/app-generic-geckoIncluded-release-universal.apk \
-              "$out/app-generic-geckoIncluded-$abi-release.apk"
-          done
+        run: ./gradlew assembleGenericGeckoIncludedRelease -PenableAbiSplits
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/keystore.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}

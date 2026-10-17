@@ -168,23 +168,4 @@
   <string name="allow_autoplay_media">Automatische Medienwiedergabe zulassen</string>
   <string name="web_engine_debug">Web-Engine-Debugging (Neustart erforderlich)</string>
   <string name="web_engine_debug_warning_message">Das Aktivieren des Web-Engine-Debuggings kann Seiteninhalte, Cookies und sensible Sitzungsdaten für jeden mit Debugging-Zugriff auf das Gerät offenlegen. Nur auf vertrauenswürdigen Geräten zur Fehlersuche aktivieren.</string>
-  <string name="retry">Erneut versuchen</string>
-  <string name="web_engine_install_title">%1$s-Engine wird heruntergeladen</string>
-  <string name="web_engine_install_pending">Warten auf Download…</string>
-  <string name="web_engine_install_progress">%1$s von %2$s</string>
-  <string name="web_engine_install_installing">Wird installiert…</string>
-  <string name="web_engine_install_restarting">App wird neu gestartet…</string>
-  <string name="web_engine_install_canceled">Download abgebrochen</string>
-  <string name="web_engine_install_failed">Die Engine konnte nicht heruntergeladen werden</string>
-  <string name="web_engine_install_error_network">Überprüfen Sie Ihre Internetverbindung</string>
-  <string name="web_engine_install_error_storage">Nicht genügend freier Speicherplatz</string>
-  <string name="web_engine_install_error_no_play">Die Engine kann nur heruntergeladen werden, wenn die App aus Google Play installiert wurde</string>
-  <string name="web_engine_install_error_code">Fehlercode: %1$d</string>
-  <string name="web_engine_install_use_other">%1$s verwenden</string>
-  <string name="settings_engine_download_on_restart">Die Engine wird nach dem Neustart aus Google Play heruntergeladen.</string>
-  <string name="settings_engine_uninstall">%1$s-Engine entfernen</string>
-  <string name="settings_engine_uninstall_msg">Google Play entfernt %1$s im Hintergrund, um Speicherplatz freizugeben. Sie können die Engine später erneut herunterladen, indem Sie sie als Browser-Engine auswählen.</string>
-  <string name="settings_engine_uninstall_switch_msg">Der Browser wechselt zu %1$s.</string>
-  <string name="settings_engine_uninstall_requested">%1$s wird in Kürze entfernt</string>
-  <string name="settings_engine_uninstall_failed">Die Engine konnte nicht entfernt werden</string>
 </resources>

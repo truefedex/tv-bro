@@ -169,23 +169,4 @@
   <string name="allow_autoplay_media">允許媒體自動播放</string>
   <string name="web_engine_debug">Web 引擎偵錯（需要重新啟動）</string>
   <string name="web_engine_debug_warning_message">啟用 Web 引擎偵錯可能會將頁面內容、Cookie 與敏感的工作階段資料暴露給任何具有裝置偵錯存取權的人。僅在受信任裝置上為疑難排解時啟用。</string>
-    <string name="retry">重試</string>
-    <string name="web_engine_install_title">正在下載 %1$s 引擎</string>
-    <string name="web_engine_install_pending">正在等待下載…</string>
-    <string name="web_engine_install_progress">%1$s / %2$s</string>
-    <string name="web_engine_install_installing">正在安裝…</string>
-    <string name="web_engine_install_restarting">正在重新啟動應用程式…</string>
-    <string name="web_engine_install_canceled">下載已取消</string>
-    <string name="web_engine_install_failed">無法下載引擎</string>
-    <string name="web_engine_install_error_network">請檢查網路連線</string>
-    <string name="web_engine_install_error_storage">可用儲存空間不足</string>
-    <string name="web_engine_install_error_no_play">必須從 Google Play 安裝應用程式才能下載引擎</string>
-    <string name="web_engine_install_error_code">錯誤代碼：%1$d</string>
-    <string name="web_engine_install_use_other">使用 %1$s</string>
-    <string name="settings_engine_download_on_restart">重新啟動後將從 Google Play 下載引擎。</string>
-    <string name="settings_engine_uninstall">移除 %1$s 引擎</string>
-    <string name="settings_engine_uninstall_msg">Google Play 會在背景移除 %1$s 以釋出儲存空間。之後您可以將它選為瀏覽器引擎來重新下載。</string>
-    <string name="settings_engine_uninstall_switch_msg">瀏覽器將切換為 %1$s。</string>
-    <string name="settings_engine_uninstall_requested">%1$s 即將被移除</string>
-    <string name="settings_engine_uninstall_failed">無法移除引擎</string>
 </resources>
