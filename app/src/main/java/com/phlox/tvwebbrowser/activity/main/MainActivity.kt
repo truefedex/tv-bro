@@ -38,14 +38,11 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
-import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoriteEditorDialog
-import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoritesDialog
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.UrlInputResolver
-import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
@@ -226,18 +223,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         }
     }
 
-    override fun showFavorites() {
-        val currentTab = controller.currentTab.value
-        val currentPageTitle = currentTab?.title ?: ""
-        val currentPageUrl = currentTab?.url ?: ""
-
-        FavoritesDialog(this@MainActivity, lifecycleScope, object : FavoritesDialog.Callback {
-            override fun onFavoriteChoosen(item: FavoriteItem?) {
-                navigate(item!!.url!!)
-            }
-        }, currentPageTitle, currentPageUrl).show()
-    }
-
     override fun showSettings() {
         SettingsDialog(this, settingsModel, touchUi = uiMode == UiMode.PHONE).show()
     }
@@ -263,21 +248,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
                 }
                 .show()
         }
-    }
-
-    override fun addBookmark() {
-        val tab = controller.currentTab.value ?: return
-        val item = FavoriteItem()
-        item.title = tab.title
-        item.url = tab.url
-        FavoriteEditorDialog(this, object : FavoriteEditorDialog.Callback {
-            override fun onDone(item: FavoriteItem) {
-                lifecycleScope.launch {
-                    TVBro.container.data.favorites.save(item)
-                    Utils.showToast(this@MainActivity, R.string.bookmark_added)
-                }
-            }
-        }, item).show()
     }
 
     override val commands: BrowserCommands = object : BrowserCommands {

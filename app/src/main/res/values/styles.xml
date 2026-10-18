@@ -214,6 +214,22 @@
         <item name="android:singleLine">true</item>
     </style>
 
+    <!-- A text field of the phone bookmarks form -->
+    <style name="Widget.TVBro.Field.Ds.Phone">
+        <item name="android:layout_height">@dimen/ds_phone_field_height</item>
+        <item name="android:textSize">@dimen/ds_text_phone_menu_item</item>
+    </style>
+
+    <!-- The label over a field of the phone bookmarks form -->
+    <style name="Widget.TVBro.Text.PhoneFieldLabel" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/ds_phone_form_padding</item>
+        <item name="android:layout_marginBottom">@dimen/ds_phone_field_label_gap</item>
+        <item name="android:textSize">@dimen/ds_text_phone_caption</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+    </style>
+
     <!-- The label over a field of a panel form -->
     <style name="Widget.TVBro.Text.FieldLabel" parent="Widget.TVBro.Text.MenuCaption">
         <item name="android:layout_width">wrap_content</item>

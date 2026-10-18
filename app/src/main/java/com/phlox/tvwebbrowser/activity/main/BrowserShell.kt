@@ -102,13 +102,10 @@ interface BrowserShell {
         fun toggleIncognitoMode()
         fun showDownloads()
         fun showHistory()
-        fun showFavorites()
         fun showSettings()
         /** Turns ad blocking of the current site on or off; the page reloads */
         fun toggleSiteAdBlock()
         /** Lets the user choose the popup blocking level of the current site */
         fun choosePopupBlockLevel()
-        /** Lets the user edit and save a bookmark of the current page */
-        fun addBookmark()
     }
 }

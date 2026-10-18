@@ -166,4 +166,17 @@
     <dimen name="ds_panel_text_button_height">36dp</dimen>
     <dimen name="ds_panel_text_button_padding">16dp</dimen>
     <dimen name="ds_panel_buttons_gap">12dp</dimen>
+    <!-- the bookmarks screen of the phone UI -->
+    <dimen name="ds_phone_bookmark_row_height">64dp</dimen>
+    <dimen name="ds_phone_bookmark_row_padding">16dp</dimen>
+    <dimen name="ds_phone_bookmark_icon_text">16dp</dimen>
+    <dimen name="ds_phone_this_page_height">56dp</dimen>
+    <dimen name="ds_phone_this_page_padding_vertical">12dp</dimen>
+    <dimen name="ds_phone_form_padding">16dp</dimen>
+    <dimen name="ds_phone_field_height">48dp</dimen>
+    <dimen name="ds_phone_field_label_gap">6dp</dimen>
+    <dimen name="ds_phone_save_button_height">40dp</dimen>
+    <dimen name="ds_phone_save_button_padding">20dp</dimen>
+    <dimen name="ds_phone_sheet_header_padding">8dp</dimen>
+    <dimen name="ds_text_phone_caption">13sp</dimen>
 </resources>

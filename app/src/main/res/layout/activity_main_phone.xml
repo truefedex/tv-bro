@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 The phone screen: the page and the bar under it, between the system bars and the keyboard (the shell
-applies their insets as the padding of the content), and the menu sheet and the tab switcher over the
-whole window.
+applies their insets as the padding of the content), and the menu sheet, the tab switcher and the
+bookmarks over the whole window.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/flRoot"
@@ -59,4 +59,17 @@ whole window.
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:elevation="8dp" />
+
+    <com.phlox.tvwebbrowser.activity.main.view.PhoneBookmarksView
+        android:id="@+id/vBookmarks"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="8dp" />
+
+    <!-- the actions of a bookmark, above the bookmarks -->
+    <com.phlox.tvwebbrowser.activity.main.view.PhoneActionsSheet
+        android:id="@+id/vActionsSheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="9dp" />
 </FrameLayout>

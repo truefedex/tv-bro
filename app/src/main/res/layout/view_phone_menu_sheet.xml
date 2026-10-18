@@ -67,8 +67,9 @@ the settings of the current site, then History, Bookmarks, Downloads and Setting
             style="@style/Widget.TVBro.QuickButton"
             android:id="@+id/llBookmark"
             android:layout_marginStart="@dimen/ds_phone_quick_button_gap">
-          <ImageView style="@style/Widget.TVBro.QuickButtonIcon" android:src="@drawable/ic_favorites" />
-          <TextView style="@style/Widget.TVBro.Text.QuickButton" android:text="@string/add_bookmark" />
+          <!-- selected (activated) on a page that is bookmarked -->
+          <ImageView style="@style/Widget.TVBro.QuickButtonIcon" android:id="@+id/ivBookmark" android:src="@drawable/ic_favorites" />
+          <TextView style="@style/Widget.TVBro.Text.QuickButton" android:id="@+id/tvBookmark" android:text="@string/add_bookmark" />
         </LinearLayout>
       </LinearLayout>
 

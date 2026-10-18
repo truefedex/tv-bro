@@ -18,7 +18,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.BookmarksPanelView
@@ -223,14 +222,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vBookmarksPanel.show(vb.vActionBar.favoritesButton, vb.vActionBar.functionsGroup)
     }
 
-    private val bookmarksCallback = object : BookmarksPanelView.Callback {
-        override fun currentPage(): BookmarksPanelView.PageInfo? {
-            val tab = controller.currentTab.value ?: return null
-            val url = tab.url
-            //the built-in home page is not bookmarked
-            if (url.isBlank() || url == Config.HOME_PAGE_URL || url == Config.HOME_URL_ALIAS) return null
-            return BookmarksPanelView.PageInfo(tab.title, url)
-        }
+    private val bookmarksCallback = object : BookmarksNavigator.ShellCallback {
+        override fun currentPage() = BookmarksNavigator.PageInfo.of(controller.currentTab.value)
 
         override fun openBookmark(url: String) {
             hideMenuOverlay()

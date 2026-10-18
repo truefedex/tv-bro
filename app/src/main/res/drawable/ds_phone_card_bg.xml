@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A card of the phone UI that is a button (Add this page): the surface in a hairline border, pressed -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_lg" />
+            <solid android:color="?attr/tbColorDsControlFocused" />
+            <stroke android:color="?attr/tbColorDsLine" android:width="@dimen/ds_border_hairline" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_lg" />
+            <solid android:color="?attr/tbColorDsSurface" />
+            <stroke android:color="?attr/tbColorDsLine" android:width="@dimen/ds_border_hairline" />
+        </shape>
+    </item>
+</selector>

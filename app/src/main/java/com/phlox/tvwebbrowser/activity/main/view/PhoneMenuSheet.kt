@@ -15,7 +15,8 @@ import com.phlox.tvwebbrowser.databinding.ViewPhoneMenuSheetBinding
 
 /**
  * The menu of the phone UI, a sheet from the bottom over a scrim. It holds what the TV bar has and the
- * phone bar does not: quick buttons (Forward, New tab, Incognito, Bookmark), the settings of the current
+ * phone bar does not: quick buttons (Forward, New tab, Incognito, Bookmark: adds the page, or opens its
+ * bookmark when it has one), the settings of the current
  * site (they keep the sheet open), then History, Bookmarks, Downloads and Settings.
  * A tap on the scrim or Back ([backCallback]) closes it.
  */
@@ -26,7 +27,8 @@ class PhoneMenuSheet @JvmOverloads constructor(
         fun goForward()
         fun openNewTab()
         fun toggleIncognitoMode()
-        fun addBookmark()
+        /** Adds the current page to the bookmarks, or opens its bookmark */
+        fun bookmarkPage()
         fun showHistory()
         fun showBookmarks()
         fun showDownloads()
@@ -55,7 +57,7 @@ class PhoneMenuSheet @JvmOverloads constructor(
         onRow(vb.llForward) { if (canGoForward) callback?.goForward() }
         onRow(vb.llNewTab) { callback?.openNewTab() }
         onRow(vb.llIncognito) { callback?.toggleIncognitoMode() }
-        onRow(vb.llBookmark) { callback?.addBookmark() }
+        onRow(vb.llBookmark) { callback?.bookmarkPage() }
         onRow(vb.llHistory) { callback?.showHistory() }
         onRow(vb.llBookmarks) { callback?.showBookmarks() }
         onRow(vb.llDownloads) { callback?.showDownloads() }
@@ -68,6 +70,13 @@ class PhoneMenuSheet @JvmOverloads constructor(
             hide()
             action()
         }
+    }
+
+    /** On a page that is bookmarked the Bookmark button is selected, and it opens the bookmark */
+    fun setBookmarked(bookmarked: Boolean) {
+        vb.llBookmark.isActivated = bookmarked
+        vb.ivBookmark.setImageResource(if (bookmarked) R.drawable.ic_star else R.drawable.ic_favorites)
+        vb.tvBookmark.setText(if (bookmarked) R.string.bookmarked else R.string.add_bookmark)
     }
 
     /** The sheet keeps out of the navigation bar; the scrim covers it */

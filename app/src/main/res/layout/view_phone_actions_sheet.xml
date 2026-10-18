@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A sheet of actions of the phone UI over a scrim: an optional header (a title and a caption), then the rows of the actions -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+  <View
+      android:id="@+id/vScrim"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="?attr/tbColorDsScrim" />
+
+  <LinearLayout
+      android:id="@+id/llSheet"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="bottom"
+      android:orientation="vertical"
+      android:paddingStart="@dimen/ds_phone_sheet_padding_horizontal"
+      android:paddingEnd="@dimen/ds_phone_sheet_padding_horizontal"
+      android:paddingTop="@dimen/ds_phone_sheet_padding_top"
+      android:paddingBottom="@dimen/ds_phone_sheet_padding_bottom"
+      android:background="@drawable/ds_sheet_bg"
+      android:elevation="8dp"
+      android:clickable="true">
+
+    <View
+        android:layout_width="@dimen/ds_phone_sheet_handle_width"
+        android:layout_height="@dimen/ds_phone_sheet_handle_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="@dimen/ds_phone_sheet_handle_margin"
+        android:background="@drawable/ds_sheet_handle_bg" />
+
+    <LinearLayout
+        android:id="@+id/llHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/ds_phone_menu_row_padding"
+        android:paddingEnd="@dimen/ds_phone_menu_row_padding"
+        android:paddingBottom="@dimen/ds_phone_sheet_header_padding">
+
+      <TextView
+          android:id="@+id/tvTitle"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textSize="@dimen/ds_text_phone_menu_item"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          tools:text="Twitch" />
+
+      <TextView
+          android:id="@+id/tvCaption"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textSize="@dimen/ds_text_phone_caption"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          tools:text="www.twitch.tv" />
+    </LinearLayout>
+
+    <View
+        style="@style/Widget.TVBro.MenuSeparator"
+        android:id="@+id/vHeaderSeparator" />
+
+    <LinearLayout
+        android:id="@+id/llItems"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" />
+  </LinearLayout>
+</merge>

@@ -7,7 +7,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.PhoneBar
 import com.phlox.tvwebbrowser.activity.main.view.PhoneMenuSheet
 import com.phlox.tvwebbrowser.activity.main.view.PhoneTabSwitcher
@@ -22,6 +25,7 @@ import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
+import kotlinx.coroutines.launch
 
 /**
  * The phone look: touch only (no virtual cursor), the page between the system bars, any orientation.
@@ -57,6 +61,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             }
             vb.vMenuSheet.setInsets(bars.left, bars.right, bars.bottom)
             vb.vTabSwitcher.setInsets(bars.left, bars.top, bars.right, bars.bottom)
+            vb.vBookmarks.setInsets(bars.left, bars.top, bars.right, bars.bottom, keyboard.bottom)
+            vb.vActionsSheet.setInsets(bars.left, bars.right, bars.bottom)
             WindowInsetsCompat.CONSUMED
         }
         SystemBars.matchIconsToTheme(activity.window)
@@ -76,7 +82,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         }
 
         //the site settings are in the menu sheet
-        override fun showSiteSettings() = vb.vMenuSheet.show()
+        override fun showSiteSettings() = showMenuSheet()
 
         override fun showTabs() {
             vb.vPhoneBar.stopEditing()
@@ -84,7 +90,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vTabSwitcher.show()
         }
 
-        override fun showMenu() = vb.vMenuSheet.show()
+        override fun showMenu() = showMenuSheet()
 
         override fun search(text: String) = host.search(text)
 
@@ -108,15 +114,58 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
 
         override fun toggleIncognitoMode() = host.toggleIncognitoMode()
 
-        override fun addBookmark() = host.addBookmark()
+        override fun bookmarkPage() {
+            activity.lifecycleScope.launch {
+                val page = BookmarksNavigator.PageInfo.of(controller.currentTab.value) ?: return@launch
+                val bookmark = TVBro.container.data.favorites.findByUrl(page.url)
+                if (bookmark != null) vb.vBookmarks.showForm(bookmark) else vb.vBookmarks.addPage(page)
+            }
+        }
 
         override fun showHistory() = host.showHistory()
 
-        override fun showBookmarks() = host.showFavorites()
+        override fun showBookmarks() = vb.vBookmarks.show()
 
         override fun showDownloads() = host.showDownloads()
 
         override fun showSettings() = host.showSettings()
+    }
+
+    /** The Bookmark button of the sheet is selected on a page that is bookmarked */
+    private fun showMenuSheet() {
+        vb.vMenuSheet.setBookmarked(false)
+        vb.vMenuSheet.show()
+        val page = BookmarksNavigator.PageInfo.of(controller.currentTab.value) ?: return
+        activity.lifecycleScope.launch {
+            vb.vMenuSheet.setBookmarked(TVBro.container.data.favorites.findByUrl(page.url) != null)
+        }
+    }
+
+    private val bookmarksCallback = object : BookmarksNavigator.ShellCallback {
+        override fun currentPage() = BookmarksNavigator.PageInfo.of(controller.currentTab.value)
+
+        override fun openBookmark(url: String) = host.navigate(url)
+
+        override fun openBookmarkInNewTab(url: String) {
+            host.openInNewTab(url, controller.tabsStates.size)
+        }
+
+        //the home page shows the bookmarks of its folder
+        override fun onBookmarksChanged() {
+            controller.modelScope.launch { controller.homePageLinks.load() }
+        }
+
+        override fun showMessage(icon: Int, message: String) {
+            NotificationView.show(vb.rlRoot, icon, message)
+        }
+
+        override fun confirm(message: String, action: () -> Unit) {
+            AlertDialog.Builder(activity)
+                .setMessage(message)
+                .setPositiveButton(R.string.delete) { _, _ -> action() }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
     }
 
     /** The switcher stays open when tabs are closed, it closes when a tab is chosen or opened */
@@ -155,6 +204,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vMenuSheet.siteSettings.callback = siteSettingsCallback
         vb.vTabSwitcher.bind(controller)
         vb.vTabSwitcher.callback = tabSwitcherCallback
+        vb.vBookmarks.attach(activity.lifecycleScope, vb.vActionsSheet, bookmarksCallback)
         controller.tabsStates.subscribe(activity, observer = { vb.vPhoneBar.setTabCount(it.size) })
     }
 
@@ -173,6 +223,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         dispatcher.addCallback(activity, editingBackCallback)
         dispatcher.addCallback(activity, vb.vMenuSheet.backCallback)
         dispatcher.addCallback(activity, vb.vTabSwitcher.backCallback)
+        dispatcher.addCallback(activity, vb.vBookmarks.backCallback)
+        dispatcher.addCallback(activity, vb.vActionsSheet.backCallback)
         dispatcher.addCallback(activity, fullscreen)
     }
 
@@ -183,6 +235,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vPhoneBar.stopEditing()
             vb.vMenuSheet.hide()
             vb.vTabSwitcher.hide()
+            vb.vActionsSheet.hide()
+            vb.vBookmarks.hide()
             scrollAwayBar.show(animate = false)
         }
         vb.vPhoneBar.visibility = if (fullscreen) View.GONE else View.VISIBLE
@@ -245,6 +299,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vPhoneBar.stopEditing()
         vb.vMenuSheet.hide()
         vb.vTabSwitcher.hide()
+        vb.vActionsSheet.hide()
+        vb.vBookmarks.hide()
     }
 
     override fun onDownloadStarted() {}
