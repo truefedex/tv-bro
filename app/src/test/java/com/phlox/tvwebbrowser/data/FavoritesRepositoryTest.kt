@@ -166,4 +166,19 @@ class FavoritesRepositoryTest {
         assertEquals("mine", favorites.findByUrl("https://tile.com/")?.title)
         assertNull(favorites.findByUrl("https://other.com/"))
     }
+
+    @Test
+    fun searchMatchesTitlesAndUrlsOfEveryFolderIgnoringCase() = runBlocking {
+        val f = folder("f")
+        favorites.add(f, ROOT)
+        favorites.add(bookmark("tile"), HOME_PAGE)
+        favorites.add(bookmark("x").apply { title = "My tiles" }, f.id)
+        favorites.add(bookmark("tiled").apply { title = "Other" }, ROOT)
+        favorites.add(bookmark("y").apply { title = "Ёлка" }, ROOT)
+        assertEquals(listOf("tile", "My tiles", "Other"), favorites.search(" TiLe ").map { it.title })
+        assertEquals(listOf("Ёлка"), favorites.search("ёЛ").map { it.title })
+        assertTrue(favorites.search(" ").isEmpty())
+        //folders are not found
+        assertTrue(favorites.search("f").none { it.isFolder })
+    }
 }

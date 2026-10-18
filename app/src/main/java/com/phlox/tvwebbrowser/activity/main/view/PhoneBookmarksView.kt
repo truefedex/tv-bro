@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -32,10 +33,11 @@ import kotlinx.coroutines.launch
 
 /**
  * The bookmarks screen of the phone UI over the whole window, like the tab switcher: the screens of
- * [BookmarksNavigator] (a folder, the form of a bookmark or folder, the choice of a folder). A tap opens a
- * bookmark in the current tab or a folder in place; ⋮ on a row opens the sheet of its actions, a long
- * press picks a row up to drag it to another place. Back ([backCallback]) goes back a screen, and closes
- * the bookmarks on the first one.
+ * [BookmarksNavigator] (a folder, the form of a bookmark or folder, the choice of a folder, the search). A tap
+ * opens a bookmark in the current tab or a folder in place; ⋮ on a row opens the sheet of its actions, a long
+ * press picks a row up to drag it to another place. The search button turns the header into the search
+ * field with the keyboard open. Back ([backCallback]) goes back a screen (ends the search), and closes the
+ * bookmarks on the first one.
  */
 class PhoneBookmarksView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -111,6 +113,32 @@ class PhoneBookmarksView @JvmOverloads constructor(
 
         vb.ibBack.setOnClickListener { onBack() }
         vb.ibMenu.setOnClickListener { showScreenMenu() }
+        vb.ibSearch.setOnClickListener { navigator.startSearch() }
+        vb.ibVoice.setOnClickListener {
+            hideKeyboard()
+            callback.startVoiceSearch { text ->
+                if (screen !is Screen.Search) return@startVoiceSearch
+                vb.etSearch.setText(text)
+                vb.etSearch.setSelection(vb.etSearch.length())
+            }
+        }
+        vb.ibClear.setOnClickListener {
+            vb.etSearch.setText("")
+            vb.etSearch.requestFocus()
+            showKeyboard(vb.etSearch)
+        }
+        vb.etSearch.doAfterTextChanged { text ->
+            val query = text?.toString() ?: ""
+            vb.ibVoice.isVisible = query.isEmpty()
+            vb.ibClear.isVisible = query.isNotEmpty()
+            if (screen is Screen.Search) navigator.search(query)
+        }
+        //the search key of the keyboard hides it, to see the results
+        vb.etSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId != EditorInfo.IME_ACTION_SEARCH) return@setOnEditorActionListener false
+            hideKeyboard()
+            true
+        }
         vb.llThisPage.setOnClickListener { navigator.onThisPageClick() }
         vb.llFolder.setOnClickListener {
             hideKeyboard()
@@ -199,9 +227,14 @@ class PhoneBookmarksView @JvmOverloads constructor(
 
     private fun render(screen: Screen, focus: BookmarksNavigator.Focus) {
         val firstScreen = !isOpen || this.screen == null
+        val searchOpened = screen is Screen.Search && this.screen !is Screen.Search
         this.screen = screen
         vb.tvTitle.text = screen.title
         when {
+            screen is Screen.Search -> {
+                vb.ibBack.setImageResource(R.drawable.ic_back)
+                vb.ibBack.contentDescription = context.getString(R.string.end_search)
+            }
             screen is Screen.Form -> {
                 vb.ibBack.setImageResource(R.drawable.ic_close)
                 vb.ibBack.contentDescription = context.getString(R.string.cancel)
@@ -216,6 +249,10 @@ class PhoneBookmarksView @JvmOverloads constructor(
             }
         }
         vb.ibMenu.isVisible = screen is Screen.Folder
+        vb.ibSearch.isVisible = screen is Screen.Folder
+        vb.tvTitle.isVisible = screen !is Screen.Search
+        vb.llSearch.isVisible = screen is Screen.Search
+        vb.tvStatus.isVisible = screen is Screen.Search && screen.status != null
         vb.btnSave.isVisible = screen is Screen.Form
         val thisPage = (screen as? Screen.Folder)?.thisPage
         vb.flThisPage.isVisible = thisPage != null
@@ -238,6 +275,21 @@ class PhoneBookmarksView @JvmOverloads constructor(
                 hideKeyboard()
                 adapter.setRows(screen.rows)
                 scrollToRow(focus)
+            }
+            is Screen.Search -> {
+                vb.tvStatus.text = screen.status
+                //set once: the field is not reset while it is typed in
+                if (vb.etSearch.text.toString() != screen.query) {
+                    vb.etSearch.setText(screen.query)
+                    vb.etSearch.setSelection(vb.etSearch.length())
+                }
+                adapter.setRows(screen.rows)
+                scrollToRow(focus)
+                //the keyboard opens with the search (not when it comes back from a form)
+                if (searchOpened && focus.key == BookmarksNavigator.SEARCH_FIELD) {
+                    vb.etSearch.requestFocus()
+                    vb.etSearch.post { showKeyboard(vb.etSearch) }
+                }
             }
             is Screen.Form -> {
                 vb.etName.setText(screen.name)
@@ -327,6 +379,7 @@ class PhoneBookmarksView @JvmOverloads constructor(
         imm.hideSoftInputFromWindow(windowToken, 0)
         vb.etName.clearFocus()
         vb.etUrl.clearFocus()
+        vb.etSearch.clearFocus()
     }
 
     private inner class Adapter : RecyclerView.Adapter<Holder>() {

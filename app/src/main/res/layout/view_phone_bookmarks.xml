@@ -2,7 +2,7 @@
 <!--
 The bookmarks screen of the phone UI over the whole window. One screen at a time: a folder (the card of
 the current page, then the folders and bookmarks), the form of a bookmark or folder (Save in the header),
-or the choice of a folder.
+the choice of a folder, or the search (the header turns into its field).
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -42,6 +42,51 @@ or the choice of a folder.
           android:ellipsize="end"
           tools:text="@string/bookmarks" />
 
+      <!-- the field of the search, in place of the title -->
+      <LinearLayout
+          android:id="@+id/llSearch"
+          android:layout_width="0dp"
+          android:layout_height="@dimen/ds_phone_pill_height"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_phone_bar_padding_horizontal"
+          android:layout_marginEnd="@dimen/ds_phone_bookmarks_search_margin_end"
+          android:orientation="horizontal"
+          android:gravity="center_vertical"
+          android:paddingStart="@dimen/ds_phone_pill_search_inset"
+          android:background="@drawable/ds_address_field_bg"
+          android:addStatesFromChildren="true"
+          android:visibility="gone">
+
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:textSize="@dimen/ds_text_phone_menu_item"
+            android:textColor="?attr/tbColorDsInk"
+            android:textColorHint="?attr/tbColorDsInkFaint"
+            android:hint="@string/search_bookmarks"
+            android:singleLine="true"
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:importantForAutofill="no" />
+
+        <!-- the mic while the field is empty, Clear when it has text -->
+        <ImageButton
+            style="@style/Widget.TVBro.ImageButton.Ds.PhonePill"
+            android:id="@+id/ibVoice"
+            android:src="@drawable/ic_voice_search"
+            android:contentDescription="@string/search_bookmarks_by_voice" />
+
+        <ImageButton
+            style="@style/Widget.TVBro.ImageButton.Ds.PhonePill"
+            android:id="@+id/ibClear"
+            android:src="@drawable/ic_close"
+            android:contentDescription="@string/clear_search"
+            android:visibility="gone" />
+      </LinearLayout>
+
       <TextView
           style="@style/Widget.TVBro.Text.PhoneTextButton"
           android:id="@+id/btnSave"
@@ -56,12 +101,33 @@ or the choice of a folder.
 
       <ImageButton
           style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibSearch"
+          android:src="@drawable/ic_search"
+          android:contentDescription="@string/search_bookmarks" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
           android:id="@+id/ibMenu"
           android:src="@drawable/ic_more_vert"
           android:contentDescription="@string/more_actions" />
     </LinearLayout>
 
     <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <!-- how many bookmarks the search found -->
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/ds_phone_bookmark_row_padding"
+        android:paddingEnd="@dimen/ds_phone_bookmark_row_padding"
+        android:paddingTop="@dimen/ds_phone_bookmarks_status_padding"
+        android:paddingBottom="@dimen/ds_phone_bookmarks_status_padding"
+        android:background="?attr/tbColorDsBgChrome"
+        android:textSize="@dimen/ds_text_phone_caption"
+        android:textColor="?attr/tbColorDsInk"
+        android:visibility="gone"
+        tools:text="3 bookmarks in all folders" />
 
     <!-- Add this page, or Edit bookmark for this page -->
     <FrameLayout

@@ -20,7 +20,8 @@ import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.ROOT
 class BookmarkRowViews(val icon: ImageView, val title: TextView, val caption: TextView, val end: ImageView, val options: View)
 
 /**
- * Shows the row in its views: an icon (tinted with [iconTint]), the title and a caption, the icon at its end
+ * Shows the row in its views: an icon (tinted with [iconTint]), the title and a caption (the host of a
+ * bookmark, after the name of its folder in search results), the icon at its end
  * (a chevron on folders, a check on the chosen folder) and the button of its options. The favicon of a
  * bookmark is loaded by [loadFavicon] (for urls that have one) while a placeholder is shown.
  */
@@ -53,7 +54,8 @@ fun bindBookmarkRow(row: Row, views: BookmarkRowViews, iconTint: ColorStateList,
         is Row.Bookmark -> {
             val url = row.item.url ?: ""
             val title = row.item.title?.ifEmpty { null } ?: url
-            setTexts(title, BookmarksNavigator.hostOf(url))
+            val host = BookmarksNavigator.hostOf(url)
+            setTexts(title, row.folderTitle?.let { context.getString(R.string.folder_and_host, it, host) } ?: host)
             setEnd(0)
             setOptions(true, title)
             setIcon(R.drawable.ic_not_available)

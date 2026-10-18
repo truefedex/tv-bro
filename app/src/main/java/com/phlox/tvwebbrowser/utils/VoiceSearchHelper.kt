@@ -71,6 +71,19 @@ class VoiceSearchHelper(private val activity: ComponentActivity) {
         }
     }
 
+    /** Recognizes speech (a search) for [onText]; tells the user when nothing was recognized */
+    fun recognize(onText: (String) -> Unit) {
+        initiateVoiceSearch(object : Callback {
+            override fun onResult(text: String?) {
+                if (text == null) {
+                    Toast.makeText(activity, R.string.can_not_recognize, Toast.LENGTH_SHORT).show()
+                } else {
+                    onText(text)
+                }
+            }
+        })
+    }
+
     private fun showInstallVoiceEnginePrompt(activity: Activity) {
         val dialogBuilder = AlertDialog.Builder(activity)
             .setTitle(R.string.app_name)

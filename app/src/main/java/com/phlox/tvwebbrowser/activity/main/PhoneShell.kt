@@ -20,6 +20,7 @@ import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.databinding.ActivityMainPhoneBinding
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.SystemBars
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
@@ -32,6 +33,8 @@ import kotlinx.coroutines.launch
  */
 class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     private val activity = host.activity
+    /** Recognizes speech for the bookmarks search (not for the search of the bar, which shows the page) */
+    private val bookmarksVoiceSearch = VoiceSearchHelper(activity)
     private val controller = host.controller
     private val vb = ActivityMainPhoneBinding.inflate(activity.layoutInflater)
 
@@ -166,6 +169,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
                 .setNegativeButton(R.string.cancel, null)
                 .show()
         }
+
+        override fun startVoiceSearch(onResult: (String) -> Unit) = bookmarksVoiceSearch.recognize(onResult)
     }
 
     /** The switcher stays open when tabs are closed, it closes when a tab is chosen or opened */

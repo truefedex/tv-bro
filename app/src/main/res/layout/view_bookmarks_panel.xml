@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 The TV bookmarks panel under the star of the bar. One page at a time: a folder (the bookmarks of the
-top level or of a folder, with the row of the current page), the form of a bookmark or folder, or the
-choice of a folder. The focus does not leave the panel while it is open.
+top level or of a folder, with the row of the current page), the form of a bookmark or folder, the
+choice of a folder, or the search (the header turns into its field). The focus does not leave the panel
+while it is open.
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -20,7 +21,8 @@ choice of a folder. The focus does not leave the panel while it is open.
     <LinearLayout
         android:id="@+id/llHeader"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/ds_bookmarks_header_height"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/ds_bookmarks_header_height"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="@dimen/ds_bookmarks_header_padding"
@@ -46,6 +48,56 @@ choice of a folder. The focus does not leave the panel while it is open.
           android:ellipsize="end"
           tools:text="@string/bookmarks" />
 
+      <!-- the field of the search, in place of the title -->
+      <LinearLayout
+          android:id="@+id/llSearch"
+          android:layout_width="0dp"
+          android:layout_height="@dimen/ds_panel_field_height"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_bookmarks_header_padding"
+          android:layout_marginTop="@dimen/ds_bookmarks_search_margin"
+          android:layout_marginBottom="@dimen/ds_bookmarks_search_margin"
+          android:orientation="horizontal"
+          android:gravity="center_vertical"
+          android:paddingStart="@dimen/ds_panel_field_padding"
+          android:background="@drawable/ds_address_field_bg"
+          android:addStatesFromChildren="true"
+          android:visibility="gone">
+
+        <ImageView
+            style="@style/Widget.TVBro.MenuIcon"
+            android:src="@drawable/ic_search" />
+
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/ds_panel_title_icon_text"
+            android:background="@null"
+            android:textSize="@dimen/ds_text_menu_item"
+            android:textColor="?attr/tbColorDsInk"
+            android:textColorHint="?attr/tbColorDsInkFaint"
+            android:hint="@string/search_bookmarks"
+            android:singleLine="true"
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:importantForAutofill="no" />
+
+        <ImageButton
+            style="@style/Widget.TVBro.ImageButton.Ds.Panel"
+            android:id="@+id/ibVoice"
+            android:layout_marginEnd="@dimen/ds_bookmarks_search_button_margin"
+            android:src="@drawable/ic_voice_search"
+            android:contentDescription="@string/search_bookmarks_by_voice" />
+      </LinearLayout>
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Panel"
+          android:id="@+id/ibSearch"
+          android:src="@drawable/ic_search"
+          android:contentDescription="@string/search_bookmarks" />
+
       <ImageButton
           style="@style/Widget.TVBro.ImageButton.Ds.Panel"
           android:id="@+id/ibMenu"
@@ -54,6 +106,20 @@ choice of a folder. The focus does not leave the panel while it is open.
     </LinearLayout>
 
     <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <!-- how many bookmarks the search found -->
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuCaption"
+        android:id="@+id/tvStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/ds_space_menu_inset"
+        android:paddingEnd="@dimen/ds_space_menu_inset"
+        android:paddingTop="@dimen/ds_bookmarks_status_padding"
+        android:paddingBottom="@dimen/ds_bookmarks_status_padding"
+        android:textColor="?attr/tbColorDsInk"
+        android:visibility="gone"
+        tools:text="3 bookmarks in all folders" />
 
     <!-- Add this page, or Edit bookmark for this page -->
     <LinearLayout

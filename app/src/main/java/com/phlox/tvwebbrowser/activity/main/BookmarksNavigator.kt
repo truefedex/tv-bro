@@ -19,7 +19,8 @@ import kotlinx.coroutines.launch
  * - a folder: the row of the current page (add it, or edit its bookmark), then the folders (Home page
  *   first at the top level, while it has bookmarks) and the bookmarks;
  * - the form of a bookmark or a folder;
- * - the choice of a folder, to move a bookmark or folder to, or for the form.
+ * - the choice of a folder, to move a bookmark or folder to, or for the form;
+ * - the search of bookmarks in every folder, over the folder it was started from.
  * Each change of the screen goes to [Host.render] with the row (or field) to focus.
  */
 class BookmarksNavigator(
@@ -53,6 +54,8 @@ class BookmarksNavigator(
         fun onBookmarksChanged()
         fun showMessage(@DrawableRes icon: Int, message: String)
         fun confirm(message: String, action: () -> Unit)
+        /** Recognizes speech for the search field; [onResult] gets the text */
+        fun startVoiceSearch(onResult: (String) -> Unit)
     }
 
     class PageInfo(val title: String, val url: String) {
@@ -69,7 +72,8 @@ class BookmarksNavigator(
     sealed class Row(val key: String) {
         /** [item] is null for the Home page folder */
         class Folder(val id: Long, val title: String, val count: Int, val item: FavoriteItem?) : Row(folderKey(id))
-        class Bookmark(val item: FavoriteItem) : Row(bookmarkKey(item.id))
+        /** [folderTitle] names its folder (in search results) */
+        class Bookmark(val item: FavoriteItem, val folderTitle: String? = null) : Row(bookmarkKey(item.id))
         /** A folder to choose, [depth] in the tree of folders */
         class Target(val id: Long, val title: String, val depth: Int, val chosen: Boolean) : Row("t$id")
         object NewFolder : Row("new")
@@ -89,9 +93,15 @@ class BookmarksNavigator(
                    val canDelete: Boolean) : Screen(title, true)
 
         class PickFolder(title: String, val rows: List<Row>) : Screen(title, true)
+
+        /** The [rows] are the bookmarks found for the [query]; [status] tells how many (null for no query) */
+        class Search(title: String, val query: String, val rows: List<Row>, val status: String?) : Screen(title, true)
     }
 
-    /** Focus the row of the [key], else the row at [index]; [FORM_FOLDER] and [FORM_NAME] are the fields of the form */
+    /**
+     * Focus the row of the [key], else the row at [index]; [FORM_FOLDER] and [FORM_NAME] are the fields of the
+     * form, [SEARCH_FIELD] the field of the search (focused if it is not), [SEARCH_BUTTON] the button that opens it
+     */
     class Focus(val key: String?, val index: Int = 0)
 
     /** What can be done to a row */
@@ -116,6 +126,8 @@ class BookmarksNavigator(
          * @param returnIndex the place of the item's row, focused when the item has moved away
          */
         class PickFolder(val item: FavoriteItem, val form: Form?, val returnIndex: Int) : Page()
+
+        class Search(var query: String) : Page()
     }
 
     private val pages = ArrayList<Page>()
@@ -160,6 +172,7 @@ class BookmarksNavigator(
             is Page.Folder -> folderKey(page.id)
             is Page.Form -> if (page.item.id != 0L) keyOf(page.item) else null
             is Page.PickFolder -> if (page.form != null) FORM_FOLDER else keyOf(page.item)
+            is Page.Search -> SEARCH_BUTTON
         }
         renderTop(focusKey, if (page is Page.PickFolder) page.returnIndex else 0)
         return true
@@ -193,6 +206,16 @@ class BookmarksNavigator(
                 rows = pickerRows(page.item, chosen)
                 val title = context.getString(R.string.move_item_to, page.item.title ?: page.item.url ?: "")
                 host.render(Screen.PickFolder(title, rows), Focus(focusKey ?: "t$chosen", focusIndex))
+            }
+            is Page.Search -> {
+                rows = searchRows(page.query)
+                val status = when {
+                    page.query.isBlank() -> null
+                    rows.isEmpty() -> context.getString(R.string.no_bookmarks_found)
+                    else -> context.resources.getQuantityString(R.plurals.bookmarks_found, rows.size, rows.size)
+                }
+                host.render(Screen.Search(context.getString(R.string.search_bookmarks), page.query, rows, status),
+                    Focus(focusKey, focusIndex))
             }
         }
     }
@@ -279,14 +302,47 @@ class BookmarksNavigator(
         openForm(FavoriteItem(), page.id)
     }
 
+    // --- the search
+
+    /** Opens the search over the folder shown, with the [query] typed so far */
+    fun startSearch(query: String = "") {
+        if (topPage !is Page.Folder) return
+        pages += Page.Search(query)
+        renderTop(SEARCH_FIELD)
+    }
+
+    /** The results follow the [query] as it is typed; the field keeps the focus */
+    fun search(query: String) {
+        val page = topPage as? Page.Search ?: return
+        if (page.query == query) return
+        page.query = query
+        renderTop(SEARCH_FIELD)
+    }
+
+    /** The bookmarks found, each with the name of its folder */
+    private suspend fun searchRows(query: String): List<Row> {
+        val found = favorites.search(query)
+        if (found.isEmpty()) return emptyList()
+        val folderTitles = favorites.folders().associate { it.id to (it.title ?: "") }
+        return found.map { item ->
+            val title = when (val folder = favorites.folderOf(item)) {
+                ROOT -> bookmarksTitle
+                HOME_PAGE -> homePageTitle
+                else -> folderTitles[folder] ?: bookmarksTitle
+            }
+            Row.Bookmark(item, title)
+        }
+    }
+
     /**
      * What can be done to the row; the Home page folder has nothing.
-     * @param reorder whether the actions include moving up and down (else the row is dragged)
+     * @param reorder whether the actions include moving up and down (else the row is dragged); search
+     *   results are not in a folder's order, so they have no moves
      */
     fun actionsOf(row: Row, reorder: Boolean = true): List<RowAction> {
         val siblings = rows.filter { sameKind(it, row) }
         val place = siblings.indexOf(row)
-        val moves = if (reorder) listOf(RowAction(Action.MOVE_UP, place > 0),
+        val moves = if (reorder && topPage !is Page.Search) listOf(RowAction(Action.MOVE_UP, place > 0),
             RowAction(Action.MOVE_DOWN, place < siblings.size - 1)) else emptyList()
         return when (row) {
             is Row.Bookmark -> listOf(RowAction(Action.OPEN_IN_NEW_TAB), RowAction(Action.EDIT),
@@ -478,6 +534,10 @@ class BookmarksNavigator(
         const val FORM_FOLDER = "folder"
         /** The name field of the form */
         const val FORM_NAME = "name"
+        /** The field of the search */
+        const val SEARCH_FIELD = "search"
+        /** The button that opens the search, focused when the search is closed */
+        const val SEARCH_BUTTON = "searchButton"
 
         private fun folderKey(id: Long) = "f$id"
         private fun bookmarkKey(id: Long) = "b$id"

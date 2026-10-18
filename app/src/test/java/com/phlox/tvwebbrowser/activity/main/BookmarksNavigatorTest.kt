@@ -227,4 +227,80 @@ class BookmarksNavigatorTest {
         assertEquals(listOf("b${a.id}"), rowKeys())
         assertEquals(0, focus.index)
     }
+
+    private val searchScreen get() = screen as Screen.Search
+
+    @Test
+    fun searchFindsBookmarksOfEveryFolderNamingTheirFolders() {
+        val f = folder("Новини")
+        val tile = bookmark("tile", HOME_PAGE)
+        val inFolder = FavoriteItem().apply {
+            title = "Українська правда"
+            url = "https://www.pravda.com.ua/"
+        }.also { runBlocking { favorites.add(it, f.id) } }
+        val top = bookmark("toptile")
+        bookmark("other")
+        navigator.start()
+        navigator.startSearch()
+        assertEquals(BookmarksNavigator.SEARCH_FIELD, focus.key)
+        assertTrue(searchScreen.rows.isEmpty())
+        assertNull(searchScreen.status)
+
+        navigator.search("TILE")
+        //the title that starts with it first
+        assertEquals(listOf("b${tile.id}", "b${top.id}"), searchScreen.rows.map { it.key })
+        assertEquals(listOf("Home page", "Bookmarks"),
+            searchScreen.rows.map { (it as BookmarksNavigator.Row.Bookmark).folderTitle })
+        assertEquals("2 bookmarks in all folders", searchScreen.status)
+        assertEquals(BookmarksNavigator.SEARCH_FIELD, focus.key)
+
+        //case is ignored outside ASCII too, and urls match
+        navigator.search("УКРАЇН")
+        assertEquals(listOf("b${inFolder.id}"), searchScreen.rows.map { it.key })
+        assertEquals("Новини", (searchScreen.rows.single() as BookmarksNavigator.Row.Bookmark).folderTitle)
+        navigator.search("pravda.com")
+        assertEquals(listOf("b${inFolder.id}"), searchScreen.rows.map { it.key })
+
+        navigator.search("nothing")
+        assertTrue(searchScreen.rows.isEmpty())
+        assertEquals("No bookmarks found", searchScreen.status)
+    }
+
+    @Test
+    fun backEndsTheSearchThenWorksAsBefore() {
+        bookmark("a")
+        navigator.start()
+        navigator.startSearch("a")
+        assertEquals("a", searchScreen.query)
+        assertEquals(1, searchScreen.rows.size)
+        assertTrue(navigator.back())
+        assertTrue(screen is Screen.Folder)
+        assertEquals(BookmarksNavigator.SEARCH_BUTTON, focus.key)
+        assertFalse(navigator.back())
+    }
+
+    @Test
+    fun resultsOpenAndActLikeBookmarksWithoutMoves() {
+        val a = bookmark("alpha")
+        val b = bookmark("alpine")
+        navigator.start()
+        navigator.startSearch("alp")
+        val result = searchScreen.rows.first { it.key == "b${a.id}" }
+        val actions = navigator.actionsOf(result).map { it.action }
+        assertEquals(listOf(Action.OPEN_IN_NEW_TAB, Action.EDIT, Action.MOVE_TO_FOLDER, Action.DELETE), actions)
+
+        //the form goes back to the results, which follow the change
+        navigator.perform(result, Action.EDIT)
+        assertNull(navigator.saveForm("beta", "https://alpha.com/"))
+        //found by its url now, after the title match
+        assertEquals(listOf("b${b.id}", "b${a.id}"), searchScreen.rows.map { it.key })
+        assertEquals("b${a.id}", focus.key)
+        assertEquals("alp", searchScreen.query)
+
+        navigator.perform(searchScreen.rows.first { it.key == "b${b.id}" }, Action.DELETE)
+        assertEquals(listOf("b${a.id}"), searchScreen.rows.map { it.key })
+
+        navigator.onRowClick(searchScreen.rows.single())
+        assertEquals("https://alpha.com/", opened)
+    }
 }

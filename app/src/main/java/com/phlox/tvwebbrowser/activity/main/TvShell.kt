@@ -28,6 +28,7 @@ import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.themeColor
 import com.phlox.tvwebbrowser.webengine.CursorModes
@@ -49,6 +50,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     }
 
     private val activity = host.activity
+    /** Recognizes speech for the bookmarks search (not for the search of the bar, which shows the page) */
+    private val bookmarksVoiceSearch = VoiceSearchHelper(activity)
     private val controller = host.controller
     private val settingsModel = host.settingsModel
     private val lifecycleScope = activity.lifecycleScope
@@ -250,6 +253,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 .setNegativeButton(R.string.cancel, null)
                 .show()
         }
+
+        override fun startVoiceSearch(onResult: (String) -> Unit) = bookmarksVoiceSearch.recognize(onResult)
     }
 
     override fun showSettings() = host.showSettings()

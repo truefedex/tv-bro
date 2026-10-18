@@ -151,6 +151,10 @@
     <dimen name="ds_bookmarks_header_height">40dp</dimen>
     <dimen name="ds_bookmarks_header_padding">4dp</dimen>
     <dimen name="ds_bookmarks_empty_padding">24dp</dimen>
+    <!-- the search field in the header -->
+    <dimen name="ds_bookmarks_search_margin">6dp</dimen>
+    <dimen name="ds_bookmarks_search_button_margin">2dp</dimen>
+    <dimen name="ds_bookmarks_status_padding">7dp</dimen>
     <dimen name="ds_bookmark_row_height">48dp</dimen>
     <dimen name="ds_bookmark_icon">24dp</dimen>
     <dimen name="ds_bookmark_folder_indent">20dp</dimen>
@@ -178,5 +182,7 @@
     <dimen name="ds_phone_save_button_height">40dp</dimen>
     <dimen name="ds_phone_save_button_padding">20dp</dimen>
     <dimen name="ds_phone_sheet_header_padding">8dp</dimen>
+    <dimen name="ds_phone_bookmarks_search_margin_end">8dp</dimen>
+    <dimen name="ds_phone_bookmarks_status_padding">10dp</dimen>
     <dimen name="ds_text_phone_caption">13sp</dimen>
 </resources>

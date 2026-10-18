@@ -44,6 +44,27 @@ class FavoritesRepository(private val dao: FavoritesDao) {
     suspend fun findByUrl(url: String): FavoriteItem? = dao.findByUrl(url)
 
     /**
+     * The bookmarks of every folder, Home page included, whose title or url contains the [text] (ignoring
+     * case, also outside ASCII, which SQLite's LIKE does not fold): those whose title starts with it first,
+     * then the other title matches, then the url ones, each by title.
+     */
+    suspend fun search(text: String): List<FavoriteItem> {
+        val query = text.trim()
+        if (query.isEmpty()) return emptyList()
+        fun rank(item: FavoriteItem): Int {
+            val title = item.title ?: ""
+            return when {
+                title.startsWith(query, ignoreCase = true) -> 0
+                title.contains(query, ignoreCase = true) -> 1
+                else -> 2
+            }
+        }
+        return dao.getBookmarks()
+            .filter { it.title?.contains(query, ignoreCase = true) == true || it.url?.contains(query, ignoreCase = true) == true }
+            .sortedWith(compareBy<FavoriteItem> { rank(it) }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.title ?: it.url ?: "" })
+    }
+
+    /**
      * Inserts (id 0, the id is set to the item) or updates the bookmark.
      */
     suspend fun save(item: FavoriteItem) {

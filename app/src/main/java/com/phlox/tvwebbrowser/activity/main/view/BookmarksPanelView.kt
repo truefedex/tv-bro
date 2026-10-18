@@ -3,13 +3,16 @@ package com.phlox.tvwebbrowser.activity.main.view
 import android.content.Context
 import android.content.res.ColorStateList
 import android.util.AttributeSet
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.TextView
 import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,9 +30,11 @@ import kotlinx.coroutines.launch
 
 /**
  * The TV bookmarks panel, under the star of the bar, over the page: the screens of [BookmarksNavigator]
- * (a folder, the form of a bookmark or folder, the choice of a folder). OK opens a bookmark in the
- * current tab or a folder in the panel; the button at the end of a row opens its options. Back goes back
- * a screen, and closes the panel on the first one; the star gets the focus back.
+ * (a folder, the form of a bookmark or folder, the choice of a folder, the search). OK opens a bookmark in
+ * the current tab or a folder in the panel; the button at the end of a row opens its options. The search
+ * button turns the header into the search field (OK on it opens the keyboard; typing letters in a folder
+ * starts the search with them), Down goes from the field to the results. Back goes back a screen (ends the
+ * search), and closes the panel on the first one; the star gets the focus back.
  */
 class BookmarksPanelView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -37,6 +42,7 @@ class BookmarksPanelView @JvmOverloads constructor(
     private lateinit var scope: CoroutineScope
     private lateinit var menu: PopupMenuView
     private lateinit var navigator: BookmarksNavigator
+    private lateinit var callback: BookmarksNavigator.ShellCallback
 
     private val vb = ViewBookmarksPanelBinding.inflate(LayoutInflater.from(context), this)
     override val panel: View get() = vb.llPanel
@@ -52,6 +58,25 @@ class BookmarksPanelView @JvmOverloads constructor(
         vb.rvItems.adapter = adapter
         vb.ibBack.setOnClickListener { onBack() }
         vb.ibMenu.setOnClickListener { showPanelMenu() }
+        vb.ibSearch.setOnClickListener { navigator.startSearch() }
+        vb.ibVoice.setOnClickListener {
+            hideKeyboard()
+            callback.startVoiceSearch { text ->
+                if (screen !is Screen.Search) return@startVoiceSearch
+                vb.etSearch.setText(text)
+                vb.etSearch.setSelection(vb.etSearch.length())
+            }
+        }
+        vb.etSearch.doAfterTextChanged { text ->
+            if (screen is Screen.Search) navigator.search(text?.toString() ?: "")
+        }
+        //the search key of the keyboard goes to the results
+        vb.etSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId != EditorInfo.IME_ACTION_SEARCH) return@setOnEditorActionListener false
+            hideKeyboard()
+            if (adapter.rows.isNotEmpty()) focusRow(null, 0)
+            true
+        }
         vb.llThisPage.setOnClickListener { navigator.onThisPageClick() }
         vb.llFolder.setOnClickListener { navigator.chooseFormFolder() }
         vb.btnSave.setOnClickListener { saveForm() }
@@ -71,6 +96,7 @@ class BookmarksPanelView @JvmOverloads constructor(
     fun attach(scope: CoroutineScope, menu: PopupMenuView, callback: BookmarksNavigator.ShellCallback) {
         this.scope = scope
         this.menu = menu
+        this.callback = callback
         navigator = BookmarksNavigator(context, TVBro.container.data.favorites, scope, object : BookmarksNavigator.Host {
             override fun currentPage() = callback.currentPage()
 
@@ -126,10 +152,16 @@ class BookmarksPanelView @JvmOverloads constructor(
     }
 
     private fun render(screen: Screen, focus: BookmarksNavigator.Focus) {
-        hideKeyboard()
+        //the results follow the typing: the keyboard stays open
+        if (screen !is Screen.Search) hideKeyboard()
         this.screen = screen
         vb.tvTitle.text = screen.title
         vb.ibBack.isVisible = screen.canGoBack
+        vb.ibBack.contentDescription = context.getString(if (screen is Screen.Search) R.string.end_search else R.string.back)
+        vb.tvTitle.isVisible = screen !is Screen.Search
+        vb.llSearch.isVisible = screen is Screen.Search
+        vb.ibSearch.isVisible = screen is Screen.Folder
+        vb.tvStatus.isVisible = screen is Screen.Search && screen.status != null
         when (screen) {
             is Screen.Folder -> {
                 showSections(list = true, thisPage = screen.thisPage != null, form = false)
@@ -146,6 +178,18 @@ class BookmarksPanelView @JvmOverloads constructor(
                 showSections(list = true, thisPage = false, form = false)
                 vb.ibMenu.isVisible = false
                 vb.tvEmpty.isVisible = false
+                adapter.rows = screen.rows
+            }
+            is Screen.Search -> {
+                showSections(list = true, thisPage = false, form = false)
+                vb.ibMenu.isVisible = false
+                vb.tvEmpty.isVisible = false
+                vb.tvStatus.text = screen.status
+                //set once: the field is not reset while it is typed in
+                if (vb.etSearch.text.toString() != screen.query) {
+                    vb.etSearch.setText(screen.query)
+                    vb.etSearch.setSelection(vb.etSearch.length())
+                }
                 adapter.rows = screen.rows
             }
             is Screen.Form -> {
@@ -166,16 +210,30 @@ class BookmarksPanelView @JvmOverloads constructor(
             pendingShow = null
             it()
         }
-        if (screen is Screen.Form) {
-            if (focus.key == BookmarksNavigator.FORM_FOLDER) {
+        when {
+            screen is Screen.Form -> if (focus.key == BookmarksNavigator.FORM_FOLDER) {
                 vb.llFolder.requestFocus()
             } else {
                 vb.etName.requestFocus()
                 vb.etName.setSelection(vb.etName.length())
             }
-        } else {
-            focusRow(focus.key, focus.index)
+            focus.key == BookmarksNavigator.SEARCH_FIELD -> if (!vb.etSearch.hasFocus()) vb.etSearch.requestFocus()
+            focus.key == BookmarksNavigator.SEARCH_BUTTON -> vb.ibSearch.requestFocus()
+            else -> focusRow(focus.key, focus.index)
         }
+    }
+
+    /** Letters typed in a folder (on a remote with a keyboard) start the search with them */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (isOpen && screen is Screen.Folder && event.action == KeyEvent.ACTION_DOWN && findFocus() !is EditText &&
+            !event.isCtrlPressed && !event.isAltPressed && !event.isMetaPressed) {
+            val char = event.unicodeChar.toChar()
+            if (event.unicodeChar != 0 && char.isLetter()) {
+                navigator.startSearch(char.toString())
+                return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     private fun saveForm() {
@@ -215,6 +273,7 @@ class BookmarksPanelView @JvmOverloads constructor(
 
     /** What gets the focus when the list has no rows */
     private fun fallbackFocus(): View = when {
+        vb.llSearch.isVisible -> vb.etSearch
         vb.llThisPage.isVisible -> vb.llThisPage
         vb.ibMenu.isVisible -> vb.ibMenu
         else -> vb.ibBack

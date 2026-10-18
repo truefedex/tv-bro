@@ -75,6 +75,17 @@
     <string name="options_of">Options of %s</string>
     <!-- %s: the name of the folder -->
     <string name="delete_folder_with_bookmarks">Delete the folder “%s” with everything in it?</string>
+    <string name="search_bookmarks">Search bookmarks</string>
+    <string name="search_bookmarks_by_voice">Search bookmarks by voice</string>
+    <string name="end_search">End search</string>
+    <string name="clear_search">Clear search</string>
+    <string name="no_bookmarks_found">No bookmarks found</string>
+    <!-- a search result: %1$s: the name of its folder, %2$s: its host -->
+    <string name="folder_and_host">%1$s · %2$s</string>
+    <plurals name="bookmarks_found">
+        <item quantity="one">%d bookmark in all folders</item>
+        <item quantity="other">%d bookmarks in all folders</item>
+    </plurals>
     <string name="new_bookmark">New bookmark</string>
     <string name="done">Done</string>
     <string name="title">Title</string>
