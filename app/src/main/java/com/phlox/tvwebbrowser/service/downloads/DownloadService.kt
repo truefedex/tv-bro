@@ -25,10 +25,12 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.DownloadFileActions
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
 /**
@@ -74,6 +76,11 @@ class DownloadService : Service() {
         //were left by a process that died
         val startTime = System.currentTimeMillis()
         recovery = scope.launch {
+            //the partial files of those that can not be resumed are of no use
+            val interrupted = repository.withStatus(Download.Status.IN_PROGRESS).filter { it.time < startTime && !it.resumable }
+            withContext(Dispatchers.IO) {
+                interrupted.forEach { DownloadFileActions.deleteFile(this@DownloadService, it) }
+            }
             repository.markInterrupted(startTime, Download.Error.INTERRUPTED)
         }
     }

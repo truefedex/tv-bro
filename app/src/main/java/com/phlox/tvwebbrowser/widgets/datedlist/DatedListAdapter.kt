@@ -1,7 +1,9 @@
 package com.phlox.tvwebbrowser.widgets.datedlist
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -12,17 +14,25 @@ import java.util.Date
 
 /** A row of a list grouped by days: the header of a day or an item */
 sealed class DatedRow<out T : Any> {
-    /** [day] is the start of the day in the local time zone */
+    /** [day] is the start of the day in the local time zone, or [PINNED_GROUP] */
     data class Header(val day: Long) : DatedRow<Nothing>()
     data class Item<T : Any>(val value: T) : DatedRow<T>()
+
+    companion object {
+        /** The [Header.day] of the group of items before the days (the downloads in progress) */
+        const val PINNED_GROUP = Long.MAX_VALUE
+    }
 }
 
-/** The rows for [items] (sorted by time, the latest first): each day starts with its header */
-fun <T : Any> buildDatedRows(items: List<T>, timeOf: (T) -> Long): List<DatedRow<T>> {
+/**
+ * The rows for [items] (sorted by time, the latest first): each day starts with its header. The items
+ * that are [pinned] (they come first) are a group of their own before the days.
+ */
+fun <T : Any> buildDatedRows(items: List<T>, pinned: (T) -> Boolean = { false }, timeOf: (T) -> Long): List<DatedRow<T>> {
     val rows = ArrayList<DatedRow<T>>(items.size + 8)
     var lastDay = Long.MIN_VALUE
     for (item in items) {
-        val day = startOfDay(timeOf(item))
+        val day = if (pinned(item)) DatedRow.PINNED_GROUP else startOfDay(timeOf(item))
         if (day != lastDay) {
             rows.add(DatedRow.Header(day))
             lastDay = day
@@ -65,13 +75,15 @@ abstract class DatedListAdapter<T : Any>(itemDiff: DiffUtil.ItemCallback<T>) :
     private var headerPositions = IntArray(0)
 
     protected abstract fun timeOf(item: T): Long
+    /** The items of the group before the days: they come first */
+    protected open fun isPinned(item: T): Boolean = false
     protected abstract fun onCreateItemViewHolder(parent: ViewGroup): RecyclerView.ViewHolder
     protected abstract fun onBindItem(holder: RecyclerView.ViewHolder, item: T, payloads: List<Any>)
 
     /** Shows [items]; [onCommitted] runs when the rows are in the adapter (the diff is computed in the background) */
     fun submitItems(items: List<T>, onCommitted: (() -> Unit)? = null) {
         this.items = items
-        submitList(buildDatedRows(items, ::timeOf), onCommitted?.let { Runnable(it) })
+        submitList(buildDatedRows(items, ::isPinned, ::timeOf), onCommitted?.let { Runnable(it) })
     }
 
     fun row(position: Int): DatedRow<T> = getItem(position)
@@ -100,16 +112,22 @@ abstract class DatedListAdapter<T : Any>(itemDiff: DiffUtil.ItemCallback<T>) :
         }
     }
 
-    fun createHeaderViewHolder(parent: ViewGroup) =
-        HeaderViewHolder(ViewDatedListHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+    open fun createHeaderViewHolder(parent: ViewGroup): HeaderViewHolder {
+        val vb = ViewDatedListHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return HeaderViewHolder(vb.root, vb.tvDate, ::headerTitle)
+    }
 
-    class HeaderViewHolder(private val vb: ViewDatedListHeaderBinding) : RecyclerView.ViewHolder(vb.root) {
+    /** The title of the header of the [day] (or of the [DatedRow.PINNED_GROUP]) */
+    protected open fun headerTitle(day: Long): String = DateFormat.getDateInstance().format(Date(day))
+
+    class HeaderViewHolder(view: View, private val title: TextView, private val titleOf: (Long) -> String) :
+        RecyclerView.ViewHolder(view) {
         var day = Long.MIN_VALUE
             private set
 
         fun bind(day: Long) {
             this.day = day
-            vb.tvDate.text = DateFormat.getDateInstance().format(Date(day))
+            title.text = titleOf(day)
         }
     }
 

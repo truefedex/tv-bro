@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A filter of all downloads on TV (a segment of the group of filters): selected when chosen -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.TVBro.TextSegment.Ds"
+    tools:text="@string/filter_all" />

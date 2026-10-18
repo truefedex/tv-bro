@@ -4,14 +4,22 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.view.View
+import androidx.annotation.AttrRes
+import androidx.annotation.DimenRes
 import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.utils.themeColor
 
-/** A divider under each row but the last one, like the dividers of a ListView */
-class ListDividerDecoration(private val recyclerView: RecyclerView, adapter: RecyclerView.Adapter<*>) : RecyclerView.ItemDecoration() {
-    private val paint = Paint().apply { color = recyclerView.context.themeColor(R.attr.tbColorDivider) }
-    private val height = recyclerView.resources.getDimensionPixelSize(R.dimen.list_divider_height)
+/**
+ * A divider under each row but the last one, like the dividers of a ListView, of the color [colorAttr]
+ * and the height [heightRes]
+ */
+class ListDividerDecoration(
+    private val recyclerView: RecyclerView, adapter: RecyclerView.Adapter<*>,
+    @AttrRes colorAttr: Int = R.attr.tbColorDivider, @DimenRes heightRes: Int = R.dimen.list_divider_height
+) : RecyclerView.ItemDecoration() {
+    private val paint = Paint().apply { color = recyclerView.context.themeColor(colorAttr) }
+    private val height = recyclerView.resources.getDimensionPixelSize(heightRes)
 
     init {
         //the row that was the last one gets its divider when rows are added after it

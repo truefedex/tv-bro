@@ -21,15 +21,20 @@ import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.BookmarksPanelView
+import com.phlox.tvwebbrowser.activity.main.view.ClearDownloadsDialog
 import com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
 import com.phlox.tvwebbrowser.activity.main.view.TabMenuView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
+import com.phlox.tvwebbrowser.browser.DownloadEvent
+import com.phlox.tvwebbrowser.browser.DownloadsModel
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.themeColor
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
@@ -214,7 +219,49 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
     }
 
-    override fun showDownloads() = host.showDownloads()
+    /** The Downloads button of the bar */
+    override fun showDownloads() {
+        vb.vDownloadsPanel.show(vb.vActionBar.downloadsButton, vb.vActionBar.functionsGroup)
+    }
+
+    override fun showAllDownloads(focusId: Long?) {
+        vb.vDownloadsPanel.hide()
+        vb.vDownloadsScreen.show(focusId)
+    }
+
+    private val downloadsModel = ActiveModelsRepository.get(DownloadsModel::class, activity)
+
+    private val downloadsCallback = object : DownloadsNavigator.ShellCallback {
+        override val downloads get() = downloadsModel.downloads
+        override val downloadCommands get() = host.downloadCommands
+        override val downloadDevice = DeviceDownloads(activity)
+
+        override fun showMessage(icon: Int, message: String) {
+            NotificationView.show(vb.rlRoot, icon, message)
+        }
+
+        override fun confirmClearAll(request: DownloadsNavigator.ClearAllRequest, onConfirm: (Boolean) -> Unit) =
+            ClearDownloadsDialog.show(activity, request, onConfirm)
+    }
+
+    /** All downloads closed: the focus goes back to the bar, or to the page if the bar is closed */
+    private fun onDownloadsScreenClosed() {
+        if (vb.rlActionBar.isVisible) {
+            vb.vActionBar.downloadsButton.requestFocus()
+        } else {
+            controller.currentTab.value?.webEngine?.getView()?.requestFocus()
+        }
+    }
+
+    /** Toasts tell when downloads end; the panel is not opened by itself (it would take the remote from the page) */
+    private fun onDownloadEvent(event: DownloadEvent) {
+        when (event) {
+            is DownloadEvent.Completed -> NotificationView.show(vb.rlRoot, R.drawable.ic_downloads,
+                activity.getString(R.string.download_complete_named, event.item.filename))
+            is DownloadEvent.Failed -> NotificationView.show(vb.rlRoot, R.drawable.ic_error,
+                activity.getString(R.string.download_failed_named, event.item.filename))
+        }
+    }
 
     override fun showHistory() {
         host.showHistory()
@@ -292,6 +339,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vSitePanel.callback = sitePanelCallback
         vb.vTabMenu.callback = tabMenuCallback
         vb.vBookmarksPanel.attach(lifecycleScope, vb.vPopupMenu, bookmarksCallback)
+        vb.vDownloadsPanel.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback) { showAllDownloads(it) }
+        vb.vDownloadsScreen.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback, ::onDownloadsScreenClosed)
+        lifecycleScope.launch { downloadsModel.events.collect(::onDownloadEvent) }
         vb.rlRoot.viewTreeObserver.addOnGlobalFocusChangeListener(tabOptionsHintFocusListener)
         vb.rlRoot.viewTreeObserver.addOnPreDrawListener(tabOptionsHintDrawListener)
 
@@ -348,8 +398,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
     }
 
-    override fun onDownloadStarted() {
-        showMenuOverlay()
+    override fun onDownloadStarted(download: Download) {
+        NotificationView.show(vb.rlRoot, R.drawable.ic_downloads,
+            activity.getString(R.string.downloading_named_file, download.filename))
     }
 
     override fun showContextMenu(
@@ -491,6 +542,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, vb.vSitePanel.backCallback)
         dispatcher.addCallback(activity, vb.vTabMenu.backCallback)
         dispatcher.addCallback(activity, vb.vBookmarksPanel.backCallback)
+        dispatcher.addCallback(activity, vb.vDownloadsScreen.backCallback)
+        dispatcher.addCallback(activity, vb.vDownloadsPanel.backCallback)
         dispatcher.addCallback(activity, vb.vPopupMenu.backCallback)
         dispatcher.addCallback(activity, fullscreen)
         dispatcher.addCallback(activity, vb.vCursorMenu.backCallback)
@@ -558,6 +611,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vTabMenu.hide()
         vb.vPopupMenu.hide()
         vb.vBookmarksPanel.hide()
+        vb.vDownloadsPanel.hide()
         tabOptionsHintAnchor = null
         vb.llTabOptionsHint.visibility = View.GONE
 

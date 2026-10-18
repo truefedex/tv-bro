@@ -33,6 +33,8 @@ open class NotificationView @JvmOverloads constructor(
             lp.addRule(RelativeLayout.CENTER_HORIZONTAL)
             lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
             lp.bottomMargin = parent.resources.getDimensionPixelSize(R.dimen.ds_toast_margin_bottom)
+            //above the panels and screens over the page (all downloads covers the whole window)
+            view.elevation = parent.resources.getDimension(R.dimen.ds_toast_elevation)
             parent.addView(view, lp)
             val lv = lastView
             if (lv != null && lv.isAttachedToWindow) {

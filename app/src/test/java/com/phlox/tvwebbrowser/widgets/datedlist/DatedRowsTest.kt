@@ -60,4 +60,14 @@ class DatedRowsTest {
         assertArrayEquals(intArrayOf(0, 0, 0, 3, 3, 5, 5), headerPositions(rows))
         assertArrayEquals(intArrayOf(), headerPositions(emptyList()))
     }
+
+    @Test
+    fun pinnedItemsAreAGroupBeforeTheDays() {
+        val rows = buildDatedRows(listOf(noon13, late15, early15, late14), { it == noon13 || it == late15 }) { it.time }
+        assertEquals(listOf(
+            DatedRow.Header(DatedRow.PINNED_GROUP), DatedRow.Item(noon13), DatedRow.Item(late15),
+            DatedRow.Header(startOfDay(early15.time)), DatedRow.Item(early15),
+            DatedRow.Header(startOfDay(late14.time)), DatedRow.Item(late14),
+        ), rows)
+    }
 }

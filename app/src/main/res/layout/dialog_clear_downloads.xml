@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Clear all downloads: how many go from the list and stay, and whether to delete their files too -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/ds_phone_form_padding"
+    android:paddingEnd="@dimen/ds_phone_form_padding"
+    android:paddingTop="@dimen/ds_panel_field_gap">
+
+  <TextView
+      style="@style/Widget.TVBro.Text.Body"
+      android:id="@+id/tvMessage"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      tools:text="24 downloads will be removed from the list. The 2 in progress or paused stay." />
+
+  <CheckBox
+      android:id="@+id/cbDeleteFiles"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/ds_panel_field_gap"
+      android:minHeight="@dimen/ds_phone_field_height"
+      tools:text="Also delete the files\n1.4 GB in Downloads" />
+</LinearLayout>

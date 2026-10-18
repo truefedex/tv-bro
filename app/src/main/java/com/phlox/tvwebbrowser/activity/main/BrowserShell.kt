@@ -10,6 +10,7 @@ import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
@@ -71,7 +72,11 @@ interface BrowserShell {
     /** Something the user started will show a page (a new tab, a voice search): hide what covers it */
     fun showPage()
 
-    fun onDownloadStarted()
+    /** The [download] started: the shell tells about it */
+    fun onDownloadStarted(download: Download)
+
+    /** Opens all downloads, the download [focusId] focused (else the first one) */
+    fun showAllDownloads(focusId: Long? = null)
 
     fun showContextMenu(
         tab: BrowserTab, uiHost: EngineUiHost, cursorDrawer: CursorDrawerDelegate,
@@ -88,6 +93,8 @@ interface BrowserShell {
         val settingsModel: SettingsModel
         /** Actions of hotkeys and buttons */
         val commands: BrowserCommands
+        /** What the downloads screens change */
+        val downloadCommands: DownloadsNavigator.Commands
         /** Turns Back events of keys, the system and game controllers into the screen's Back */
         val backEvents: BackNavigationEventsAdapter
 

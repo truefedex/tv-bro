@@ -20,6 +20,8 @@ import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.databinding.ActivityMainPhoneBinding
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.SystemBars
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
@@ -310,7 +312,11 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vBookmarks.hide()
     }
 
-    override fun onDownloadStarted() {}
+    override fun onDownloadStarted(download: Download) {
+        Utils.showToast(activity, activity.getString(R.string.downloading_named_file, download.filename))
+    }
+
+    override fun showAllDownloads(focusId: Long?) = host.showDownloads()
 
     /** A long press on a link: the actions for the link (there is no cursor menu) */
     override fun showContextMenu(

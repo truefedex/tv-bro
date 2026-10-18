@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The header of a section of all downloads: In progress, or a day -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/ds_downloads_section_height"
+    android:paddingStart="@dimen/ds_downloads_screen_padding"
+    android:paddingEnd="@dimen/ds_downloads_screen_padding"
+    android:background="?attr/tbColorDsBgChrome">
+
+  <TextView
+      style="@style/Widget.TVBro.Text.MenuCaption"
+      android:id="@+id/tvTitle"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_vertical"
+      android:fontFamily="sans-serif-medium"
+      android:textColor="?attr/tbColorDsInk"
+      tools:text="@string/in_progress" />
+</FrameLayout>

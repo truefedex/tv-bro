@@ -76,9 +76,11 @@ class DownloadsNavigator(
 
     /** What the downloads screens need from their shell */
     interface ShellCallback {
+        val downloads: Flow<List<DownloadItem>>
         val downloadCommands: Commands
         val downloadDevice: Device
         fun showMessage(@DrawableRes icon: Int, message: String)
+        fun confirmClearAll(request: ClearAllRequest, onConfirm: (deleteFiles: Boolean) -> Unit)
     }
 
     /** What changes the downloads */

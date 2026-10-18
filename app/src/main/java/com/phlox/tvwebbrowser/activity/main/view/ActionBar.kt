@@ -8,8 +8,6 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.view.View.OnFocusChangeListener
 import android.view.View.OnKeyListener
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
@@ -29,7 +27,6 @@ class ActionBar @JvmOverloads constructor(
 
     private val vb = ViewActionbarBinding.inflate( LayoutInflater.from(context),this)
     var callback: Callback? = null
-    private var downloadAnimation: Animation? = null
     private var downloadsModel = ActiveModelsRepository.get(DownloadsModel::class, context)
     /**
      * The address is edited: the field is selected and its text has the focus. Otherwise the address
@@ -132,19 +129,14 @@ class ActionBar @JvmOverloads constructor(
 
 
         (context as AppCompatActivity).lifecycleScope.launch {
-            downloadsModel.activeCount.collect {
-            if (it > 0) {
-                if (downloadAnimation == null) {
-                    downloadAnimation = AnimationUtils.loadAnimation(context, R.anim.infinite_fadeinout_anim)
-                    vb.ibDownloads.startAnimation(downloadAnimation)
+            downloadsModel.activeCount.collect { count ->
+                vb.tvDownloadsBadge.visibility = if (count > 0) VISIBLE else GONE
+                vb.tvDownloadsBadge.text = count.toString()
+                vb.ibDownloads.contentDescription = if (count > 0) {
+                    resources.getQuantityString(R.plurals.downloads_in_progress, count, count)
+                } else {
+                    context.getString(R.string.downloads)
                 }
-            } else {
-                downloadAnimation?.apply {
-                    this.reset()
-                    vb.ibDownloads.clearAnimation()
-                    downloadAnimation = null
-                }
-            }
             }
         }
     }
@@ -180,6 +172,7 @@ class ActionBar @JvmOverloads constructor(
 
     /** The bookmarks panel opens under the star, its end under the end of the group of the star */
     val favoritesButton: View get() = vb.ibFavorites
+    val downloadsButton: View get() = vb.ibDownloads
     val functionsGroup: View get() = vb.llFunctions
 
     /**

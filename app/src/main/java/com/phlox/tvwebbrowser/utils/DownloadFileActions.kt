@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.utils
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -17,6 +18,8 @@ import java.io.File
 object DownloadFileActions {
     private const val TAG = "DownloadFileActions"
     const val APK_MIME_TYPE = "application/vnd.android.package-archive"
+    /** Android TV: the activities that tell there is no app for an intent */
+    private const val TV_STUBS_PACKAGE = "com.android.tv.frameworkpackagestubs"
 
     /** A uri other apps can read, null when the file is gone */
     fun uriOf(context: Context, download: Download): Uri? {
@@ -66,13 +69,21 @@ object DownloadFileActions {
         }
     }
 
-    private fun start(context: Context, intent: Intent): Boolean = try {
-        context.startActivity(intent)
-        true
-    } catch (e: ActivityNotFoundException) {
-        false
-    } catch (e: SecurityException) {
-        Log.w(TAG, "Can not start $intent", e)
-        false
+    /**
+     * Starts the activity of the [intent], @return false if there is none. Android TV sends intents no
+     * app handles to its stubs, which only show a toast: they count as none.
+     */
+    fun start(context: Context, intent: Intent): Boolean {
+        val resolved = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        if (resolved?.activityInfo?.packageName == TV_STUBS_PACKAGE) return false
+        return try {
+            context.startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Can not start $intent", e)
+            false
+        }
     }
 }

@@ -2,7 +2,6 @@ package com.phlox.tvwebbrowser.activity.main
 
 import android.app.Activity
 import android.app.DownloadManager
-import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -53,18 +52,15 @@ class DeviceDownloads(private val activity: Activity) : DownloadsNavigator.Devic
             //file managers that take a directory
             Intent(Intent.ACTION_VIEW).setDataAndType(Uri.fromFile(downloadsDirectory), "resource/folder")
         )
-        for (intent in intents) {
+        return intents.any {
             try {
-                activity.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                return true
-            } catch (e: ActivityNotFoundException) {
-                continue
+                DownloadFileActions.start(activity, it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             } catch (e: Exception) {
                 //a file uri may be refused (FileUriExposedException)
-                Log.w(TAG, "Can not open the folder with $intent", e)
+                Log.w(TAG, "Can not open the folder with $it", e)
+                false
             }
         }
-        return false
     }
 
     override fun share(item: DownloadItem): Boolean {
@@ -74,12 +70,9 @@ class DeviceDownloads(private val activity: Activity) : DownloadsNavigator.Devic
             .setType(item.mimeType ?: activity.contentResolver.getType(uri) ?: "*/*")
             .putExtra(Intent.EXTRA_STREAM, uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        return try {
-            activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.share)))
-            true
-        } catch (e: ActivityNotFoundException) {
-            false
-        }
+        //the chooser itself always starts: see first whether some app takes the file
+        if (activity.packageManager.queryIntentActivities(intent, 0).isEmpty()) return false
+        return DownloadFileActions.start(activity, Intent.createChooser(intent, activity.getString(R.string.share)))
     }
 
     override suspend fun deleteFile(item: DownloadItem) = withContext(Dispatchers.IO) {

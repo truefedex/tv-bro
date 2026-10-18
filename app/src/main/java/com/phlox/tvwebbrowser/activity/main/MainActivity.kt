@@ -41,6 +41,7 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
+import com.phlox.tvwebbrowser.browser.DownloadItem
 import com.phlox.tvwebbrowser.browser.UrlInputResolver
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.BrowserTab
@@ -86,7 +87,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         }
     protected val config = AppContext.provideConfig()
     private val voiceSearchHelper = VoiceSearchHelper(this)
-    private val downloadLauncher = DownloadLauncher(this) { onDownloadStarted(it.filename) }
+    private val downloadLauncher = DownloadLauncher(this) { shell.onDownloadStarted(it) }
     var openUrlInExternalAppDialog: AlertDialog? = null
     private var tabsLoaded = false
     /** Url to open that arrived before the tabs were loaded */
@@ -211,6 +212,24 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         startActivity(Intent(this@MainActivity, DownloadsActivity::class.java))
     }
 
+    override val downloadCommands = object : DownloadsNavigator.Commands {
+        /** Repeated and resumed downloads get the cookies and the user agent of the current tab */
+        private val engine get() = controller.currentTab.value?.takeIf { it.isWebEngineCreated }?.webEngine
+
+        override fun pause(id: Long) = downloadLauncher.pause(id)
+
+        override fun resume(item: DownloadItem) = downloadLauncher.resume(item, engine?.getCookies(item.url))
+
+        override fun cancel(id: Long) = downloadLauncher.cancel(id)
+
+        override fun downloadAgain(item: DownloadItem) {
+            val engine = engine
+            downloadLauncher.downloadAgain(item, engine?.userAgentString, engine?.getCookies(item.url))
+        }
+
+        override suspend fun remove(ids: List<Long>) = TVBro.container.data.downloads.delete(ids)
+    }
+
     override fun showHistory() {
         launchForResult(ActivityResultContracts.StartActivityForResult(),
             Intent(this@MainActivity, HistoryActivity::class.java)) { result ->
@@ -289,7 +308,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false)) {
-            showDownloads()
+            shell.showAllDownloads()
         }
         if (intent.data != null) {
             if (tabsLoaded) {
@@ -327,7 +346,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
         shell.onTabsLoaded()
         if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false)) {
-            showDownloads()
+            shell.showAllDownloads()
         }
         if (autoUpdateModel.needAutoCheckUpdates &&
             autoUpdateModel.updateChecker.versionCheckResult == null &&
@@ -620,11 +639,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
         return true
-    }
-
-    private fun onDownloadStarted(fileName: String) {
-        Utils.showToast(this, getString(R.string.downloading_named_file, fileName))
-        shell.onDownloadStarted()
     }
 
     private fun initiateVoiceSearch() {

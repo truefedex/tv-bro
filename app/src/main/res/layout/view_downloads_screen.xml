@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+All downloads on TV, over the whole window: the header (back, the title, the filters by the kind of the
+file, Open folder with the free space, Clear all), then the downloads in progress and the others by days.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="vertical">
+
+  <LinearLayout
+      android:id="@+id/llHeader"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_space_screen_x"
+      android:paddingEnd="@dimen/ds_space_screen_x"
+      android:paddingTop="@dimen/ds_space_screen_top"
+      android:paddingBottom="@dimen/ds_downloads_screen_header_padding_bottom"
+      android:background="?attr/tbColorDsBgChrome">
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Standalone"
+        android:id="@+id/ibBack"
+        android:src="@drawable/ic_back"
+        android:contentDescription="@string/back_to_browser" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:textSize="@dimen/ds_text_downloads_title"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:text="@string/downloads" />
+
+    <!-- All, then the kinds there are files of -->
+    <LinearLayout
+        style="@style/Widget.TVBro.ToolbarGroup"
+        android:id="@+id/llFilters"
+        android:layout_height="@dimen/ds_size_chrome_control"
+        android:layout_marginStart="@dimen/ds_space_gutter" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:id="@+id/llOpenFolder"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/ds_size_chrome_control"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_downloads_header_button_padding"
+        android:paddingEnd="@dimen/ds_downloads_header_button_padding"
+        android:background="@drawable/ds_icon_button_bg"
+        android:focusable="true"
+        android:clickable="true">
+
+      <ImageView
+          style="@style/Widget.TVBro.MenuIcon"
+          android:layout_width="@dimen/ds_size_icon_toolbar"
+          android:layout_height="@dimen/ds_size_icon_toolbar"
+          android:src="@drawable/ic_folder" />
+
+      <LinearLayout
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="@dimen/ds_downloads_header_icon_text"
+          android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="?attr/tbColorDsInk"
+            android:text="@string/open_downloads_folder" />
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuCaption"
+            android:id="@+id/tvFreeSpace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/tbColorDsInk"
+            tools:text="12.4 GB free" />
+      </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llClearAll"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/ds_size_chrome_control"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_downloads_header_button_padding"
+        android:paddingEnd="@dimen/ds_downloads_header_button_padding"
+        android:background="@drawable/ds_icon_button_bg"
+        android:focusable="true"
+        android:clickable="true">
+
+      <ImageView
+          style="@style/Widget.TVBro.MenuIcon"
+          android:layout_width="@dimen/ds_size_icon_toolbar"
+          android:layout_height="@dimen/ds_size_icon_toolbar"
+          android:src="@drawable/ic_clear_all" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="@dimen/ds_downloads_header_icon_text"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:text="@string/clear_all" />
+    </LinearLayout>
+  </LinearLayout>
+
+  <View style="@style/Widget.TVBro.MenuSeparator" />
+
+  <FrameLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1">
+
+    <com.phlox.tvwebbrowser.widgets.NearestFocusRecyclerView
+        android:id="@+id/rvItems"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuItem"
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/ds_bookmarks_empty_padding"
+        android:gravity="center"
+        android:textColor="?attr/tbColorDsInk"
+        android:text="@string/no_downloads_yet"
+        android:visibility="gone" />
+  </FrameLayout>
+</merge>

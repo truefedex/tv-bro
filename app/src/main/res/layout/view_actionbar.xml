@@ -160,12 +160,39 @@ to each button never changes.
 
     <View style="@style/Widget.TVBro.ToolbarSeparator" />
 
-    <ImageButton
-        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
-        android:id="@+id/ibDownloads"
-        android:src="@drawable/ic_downloads"
-        android:nextFocusDown="@+id/vTabs"
-        android:contentDescription="@string/downloads" />
+    <FrameLayout
+        android:layout_width="@dimen/ds_size_toolbar_segment"
+        android:layout_height="match_parent">
+
+      <!-- selected (activated) while its panel is open -->
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+          android:id="@+id/ibDownloads"
+          android:layout_width="match_parent"
+          android:src="@drawable/ic_downloads"
+          android:nextFocusDown="@+id/vTabs"
+          android:contentDescription="@string/downloads" />
+
+      <!-- downloads in progress and paused -->
+      <TextView
+          style="@style/Widget.TVBro.Text.CountBadge"
+          android:id="@+id/tvDownloadsBadge"
+          android:layout_width="wrap_content"
+          android:layout_height="@dimen/ds_size_badge_height"
+          android:layout_gravity="top|end"
+          android:layout_marginTop="@dimen/ds_badge_margin_top"
+          android:layout_marginEnd="@dimen/ds_badge_margin_end"
+          android:minWidth="@dimen/ds_size_badge_min_width"
+          android:paddingStart="@dimen/ds_badge_padding_horizontal"
+          android:paddingEnd="@dimen/ds_badge_padding_horizontal"
+          android:gravity="center"
+          android:background="@drawable/ds_badge_bg"
+          android:textColor="?attr/tbColorDsOnBadge"
+          android:importantForAccessibility="no"
+          android:visibility="gone"
+          tools:text="2"
+          tools:visibility="visible" />
+    </FrameLayout>
 
     <View style="@style/Widget.TVBro.ToolbarSeparator" />
 

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The TV downloads panel under the Downloads button of the bar: the latest downloads (those in progress
+first), and All downloads in its header. The focus does not leave the panel while it is open.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+  <LinearLayout
+      android:id="@+id/llPanel"
+      android:layout_width="@dimen/ds_downloads_panel_width"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:background="@drawable/ds_menu_bg"
+      android:elevation="4dp"
+      android:clickable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ds_bookmarks_header_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_space_menu_inset"
+        android:paddingEnd="@dimen/ds_bookmarks_header_padding">
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          android:text="@string/downloads" />
+
+      <TextView
+          style="@style/Widget.TVBro.TextButton.Ds"
+          android:id="@+id/btnAll"
+          android:layout_height="@dimen/ds_panel_button_size"
+          android:paddingEnd="@dimen/ds_bookmarks_header_padding"
+          android:textSize="@dimen/ds_text_menu_item"
+          android:textColor="?attr/tbColorDsInk"
+          android:drawableEnd="@drawable/ic_chevron_right"
+          android:text="@string/all_downloads" />
+    </LinearLayout>
+
+    <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuItem"
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/ds_bookmarks_empty_padding"
+        android:gravity="center"
+        android:textColor="?attr/tbColorDsInk"
+        android:text="@string/no_downloads_yet"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvItems"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+  </LinearLayout>
+</merge>

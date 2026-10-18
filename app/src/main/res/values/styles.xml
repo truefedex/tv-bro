@@ -179,6 +179,41 @@
         <item name="android:background">?attr/tbColorDsLine</item>
     </style>
 
+    <!-- The progress of a download in a row -->
+    <style name="Widget.TVBro.DownloadProgress" parent="@android:style/Widget.ProgressBar.Horizontal">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/ds_download_progress_height</item>
+        <item name="android:layout_marginTop">@dimen/ds_download_progress_margin</item>
+        <item name="android:progressDrawable">@drawable/ds_progress</item>
+        <item name="android:indeterminateTint">?attr/tbColorDsIcon</item>
+        <item name="android:max">1000</item>
+    </style>
+
+    <!-- The icon of the kind of a downloaded file, in a circle -->
+    <style name="Widget.TVBro.DownloadIcon" parent="">
+        <item name="android:layout_width">@dimen/ds_download_icon</item>
+        <item name="android:layout_height">@dimen/ds_download_icon</item>
+        <item name="android:padding">@dimen/ds_download_icon_padding</item>
+        <item name="android:background">@drawable/ds_download_icon_bg</item>
+        <item name="tint">?attr/tbColorDsIcon</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+
+    <!-- A text segment of a toolbar group (the filters of the downloads) -->
+    <style name="Widget.TVBro.TextSegment.Ds" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/ds_downloads_filter_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_downloads_filter_padding</item>
+        <item name="android:background">@drawable/ds_control_bg</item>
+        <item name="android:textSize">@dimen/ds_text_menu_item</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
     <!-- An icon button of a panel: in its header, the options of a row -->
     <style name="Widget.TVBro.ImageButton.Ds.Panel">
         <item name="android:layout_width">@dimen/ds_panel_button_size</item>

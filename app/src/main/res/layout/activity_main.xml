@@ -147,7 +147,22 @@
         android:elevation="7dp"
         android:outlineProvider="none" />
 
-    <!-- the menus of the bookmarks panel, above it -->
+    <!-- all downloads, over the whole window and the bar; its menus and the downloads panel go above it -->
+    <com.phlox.tvwebbrowser.activity.main.view.DownloadsScreenView
+        android:id="@+id/vDownloadsScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="7dp"
+        android:outlineProvider="none" />
+
+    <com.phlox.tvwebbrowser.activity.main.view.DownloadsPanelView
+        android:id="@+id/vDownloadsPanel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="7dp"
+        android:outlineProvider="none" />
+
+    <!-- the menus of the bookmarks and downloads panels, above them -->
     <com.phlox.tvwebbrowser.activity.main.view.PopupMenuView
         android:id="@+id/vPopupMenu"
         android:layout_width="match_parent"
