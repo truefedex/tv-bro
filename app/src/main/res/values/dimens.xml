@@ -145,4 +145,25 @@
     <dimen name="ds_panel_title_icon_text">10dp</dimen>
     <dimen name="ds_panel_value_max_width">140dp</dimen>
     <dimen name="ds_text_menu_caption">11sp</dimen>
+    <!-- the bookmarks panel of the TV bar -->
+    <dimen name="ds_bookmarks_panel_width">380dp</dimen>
+    <dimen name="ds_bookmarks_panel_margin_bottom">16dp</dimen>
+    <dimen name="ds_bookmarks_header_height">40dp</dimen>
+    <dimen name="ds_bookmarks_header_padding">4dp</dimen>
+    <dimen name="ds_bookmarks_empty_padding">24dp</dimen>
+    <dimen name="ds_bookmark_row_height">48dp</dimen>
+    <dimen name="ds_bookmark_icon">24dp</dimen>
+    <dimen name="ds_bookmark_folder_indent">20dp</dimen>
+    <dimen name="ds_bookmark_options_margin">6dp</dimen>
+    <dimen name="ds_bookmark_menu_width">230dp</dimen>
+    <dimen name="ds_panel_button_size">36dp</dimen>
+    <dimen name="ds_panel_button_icon_padding">9dp</dimen>
+    <dimen name="ds_panel_form_padding">16dp</dimen>
+    <dimen name="ds_panel_field_height">40dp</dimen>
+    <dimen name="ds_panel_field_padding">12dp</dimen>
+    <dimen name="ds_panel_field_gap">12dp</dimen>
+    <dimen name="ds_panel_label_gap">4dp</dimen>
+    <dimen name="ds_panel_text_button_height">36dp</dimen>
+    <dimen name="ds_panel_text_button_padding">16dp</dimen>
+    <dimen name="ds_panel_buttons_gap">12dp</dimen>
 </resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A row of a popup menu: an icon and a label -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.TVBro.MenuRow">
+
+  <ImageView
+      style="@style/Widget.TVBro.MenuIcon"
+      android:id="@+id/ivIcon" />
+
+  <TextView
+      style="@style/Widget.TVBro.Text.MenuItem.Row"
+      android:id="@+id/tvLabel" />
+</LinearLayout>

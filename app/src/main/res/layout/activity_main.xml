@@ -140,6 +140,21 @@
         android:elevation="7dp"
         android:outlineProvider="none" />
 
+    <com.phlox.tvwebbrowser.activity.main.view.BookmarksPanelView
+        android:id="@+id/vBookmarksPanel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="7dp"
+        android:outlineProvider="none" />
+
+    <!-- the menus of the bookmarks panel, above it -->
+    <com.phlox.tvwebbrowser.activity.main.view.PopupMenuView
+        android:id="@+id/vPopupMenu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="8dp"
+        android:outlineProvider="none" />
+
     <com.phlox.tvwebbrowser.activity.main.view.CursorMenuView
         android:id="@+id/vCursorMenu"
         android:layout_width="match_parent"

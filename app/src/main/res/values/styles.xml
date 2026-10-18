@@ -179,6 +179,50 @@
         <item name="android:background">?attr/tbColorDsLine</item>
     </style>
 
+    <!-- An icon button of a panel: in its header, the options of a row -->
+    <style name="Widget.TVBro.ImageButton.Ds.Panel">
+        <item name="android:layout_width">@dimen/ds_panel_button_size</item>
+        <item name="android:layout_height">@dimen/ds_panel_button_size</item>
+        <item name="android:background">@drawable/ds_panel_button_bg</item>
+        <item name="android:padding">@dimen/ds_panel_button_icon_padding</item>
+    </style>
+
+    <!-- A text button of a panel form (Save, Cancel) -->
+    <style name="Widget.TVBro.TextButton.Ds" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/ds_panel_text_button_height</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/ds_panel_text_button_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_panel_text_button_padding</item>
+        <item name="android:background">@drawable/ds_icon_button_bg</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:textSize">@dimen/ds_text_menu_item</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <!-- A text field of a panel form -->
+    <style name="Widget.TVBro.Field.Ds" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/ds_panel_field_height</item>
+        <item name="android:paddingStart">@dimen/ds_panel_field_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_panel_field_padding</item>
+        <item name="android:background">@drawable/ds_address_field_bg</item>
+        <item name="android:textSize">@dimen/ds_text_menu_item</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <!-- The label over a field of a panel form -->
+    <style name="Widget.TVBro.Text.FieldLabel" parent="Widget.TVBro.Text.MenuCaption">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/ds_panel_field_gap</item>
+        <item name="android:layout_marginBottom">@dimen/ds_panel_label_gap</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+    </style>
+
     <!-- A divider inside the address field -->
     <style name="Widget.TVBro.FieldDivider" parent="">
         <item name="android:layout_width">@dimen/ds_border_hairline</item>

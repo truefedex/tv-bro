@@ -14,11 +14,14 @@ import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
+import com.phlox.tvwebbrowser.activity.main.view.BookmarksPanelView
 import com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
 import com.phlox.tvwebbrowser.activity.main.view.TabMenuView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
@@ -217,8 +220,43 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     }
 
     override fun showFavorites() {
-        host.showFavorites()
-        hideMenuOverlay()
+        vb.vBookmarksPanel.show(vb.vActionBar.favoritesButton, vb.vActionBar.functionsGroup)
+    }
+
+    private val bookmarksCallback = object : BookmarksPanelView.Callback {
+        override fun currentPage(): BookmarksPanelView.PageInfo? {
+            val tab = controller.currentTab.value ?: return null
+            val url = tab.url
+            //the built-in home page is not bookmarked
+            if (url.isBlank() || url == Config.HOME_PAGE_URL || url == Config.HOME_URL_ALIAS) return null
+            return BookmarksPanelView.PageInfo(tab.title, url)
+        }
+
+        override fun openBookmark(url: String) {
+            hideMenuOverlay()
+            host.navigate(url)
+        }
+
+        override fun openBookmarkInNewTab(url: String) {
+            host.openInNewTab(url, controller.tabsStates.size)
+        }
+
+        //the home page shows the bookmarks of its folder
+        override fun onBookmarksChanged() {
+            controller.modelScope.launch { controller.homePageLinks.load() }
+        }
+
+        override fun showMessage(icon: Int, message: String) {
+            NotificationView.show(vb.rlRoot, icon, message)
+        }
+
+        override fun confirm(message: String, action: () -> Unit) {
+            AlertDialog.Builder(activity)
+                .setMessage(message)
+                .setPositiveButton(R.string.delete) { _, _ -> action() }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
     }
 
     override fun showSettings() = host.showSettings()
@@ -253,6 +291,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vActionBar.callback = this
         vb.vSitePanel.callback = sitePanelCallback
         vb.vTabMenu.callback = tabMenuCallback
+        vb.vBookmarksPanel.attach(lifecycleScope, vb.vPopupMenu, bookmarksCallback)
         vb.rlRoot.viewTreeObserver.addOnGlobalFocusChangeListener(tabOptionsHintFocusListener)
         vb.rlRoot.viewTreeObserver.addOnPreDrawListener(tabOptionsHintDrawListener)
 
@@ -451,6 +490,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, menuBackCallback)
         dispatcher.addCallback(activity, vb.vSitePanel.backCallback)
         dispatcher.addCallback(activity, vb.vTabMenu.backCallback)
+        dispatcher.addCallback(activity, vb.vBookmarksPanel.backCallback)
+        dispatcher.addCallback(activity, vb.vPopupMenu.backCallback)
         dispatcher.addCallback(activity, fullscreen)
         dispatcher.addCallback(activity, vb.vCursorMenu.backCallback)
         dispatcher.addCallback(activity, cursorModesBackCallback)
@@ -515,6 +556,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
         vb.vSitePanel.hide()
         vb.vTabMenu.hide()
+        vb.vPopupMenu.hide()
+        vb.vBookmarksPanel.hide()
         tabOptionsHintAnchor = null
         vb.llTabOptionsHint.visibility = View.GONE
 

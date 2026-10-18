@@ -40,6 +40,38 @@
     <string name="add">Add</string>
     <string name="edit">Edit</string>
     <string name="no_bookmarks_yet">No bookmarks yet</string>
+    <!-- the bookmarks panel of the TV bar -->
+    <string name="add_this_page">Add this page</string>
+    <!-- %s: the name of the folder that is open -->
+    <string name="add_this_page_to">Add this page to %s</string>
+    <string name="edit_bookmark_of_this_page">Edit bookmark for this page</string>
+    <!-- %1$s: a page title, %2$s: its host -->
+    <string name="page_title_and_host">%1$s · %2$s</string>
+    <!-- %s: the host of the page -->
+    <string name="bookmarked_host">Bookmarked · %s</string>
+    <plurals name="bookmark_count">
+        <item quantity="one">%d bookmark</item>
+        <item quantity="other">%d bookmarks</item>
+    </plurals>
+    <string name="edit_bookmark">Edit bookmark</string>
+    <string name="new_folder">New folder</string>
+    <string name="rename_folder">Rename folder</string>
+    <string name="rename">Rename</string>
+    <string name="move_to_folder">Move to folder</string>
+    <!-- %s: the name of the moved bookmark or folder -->
+    <string name="move_item_to">Move “%s” to</string>
+    <!-- %s: the name of the folder -->
+    <string name="moved_to_folder">Moved to %s</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
+    <string name="name">Name</string>
+    <string name="folder">Folder</string>
+    <string name="back">Back</string>
+    <string name="more_actions">More actions</string>
+    <!-- %s: the name of a bookmark or folder -->
+    <string name="options_of">Options of %s</string>
+    <!-- %s: the name of the folder -->
+    <string name="delete_folder_with_bookmarks">Delete the folder “%s” with everything in it?</string>
     <string name="new_bookmark">New bookmark</string>
     <string name="done">Done</string>
     <string name="title">Title</string>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A row of the bookmarks panel: a folder, a bookmark or a folder to choose, with the button of its options -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+  <View
+      style="@style/Widget.TVBro.MenuSeparator"
+      android:id="@+id/vDivider" />
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="@dimen/ds_bookmark_row_height"
+      android:orientation="horizontal"
+      android:gravity="center_vertical">
+
+    <LinearLayout
+        android:id="@+id/llMain"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_space_menu_inset"
+        android:paddingEnd="@dimen/ds_space_icon_text"
+        android:background="@drawable/ds_menu_row_bg"
+        android:focusable="true"
+        android:clickable="true">
+
+      <ImageView
+          android:id="@+id/ivIcon"
+          android:layout_width="@dimen/ds_bookmark_icon"
+          android:layout_height="@dimen/ds_bookmark_icon"
+          android:scaleType="fitCenter"
+          android:importantForAccessibility="no" />
+
+      <LinearLayout
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_space_icon_text"
+          android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuItem"
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/tbColorDsInk"
+            android:singleLine="true"
+            android:ellipsize="end"
+            tools:text="Wikipedia" />
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuCaption"
+            android:id="@+id/tvCaption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/tbColorDsInk"
+            android:singleLine="true"
+            android:ellipsize="end"
+            tools:text="www.wikipedia.org" />
+      </LinearLayout>
+
+      <!-- a chevron on folders, a check on the folder that is chosen -->
+      <ImageView
+          style="@style/Widget.TVBro.MenuIcon"
+          android:id="@+id/ivEnd"
+          android:layout_marginStart="@dimen/ds_space_icon_text"
+          tools:src="@drawable/ic_chevron_right" />
+    </LinearLayout>
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Panel"
+        android:id="@+id/ibOptions"
+        android:layout_marginStart="@dimen/ds_bookmark_options_margin"
+        android:layout_marginEnd="@dimen/ds_bookmark_options_margin"
+        android:src="@drawable/ic_more_vert"
+        tools:contentDescription="Options of Wikipedia" />
+  </LinearLayout>
+</LinearLayout>

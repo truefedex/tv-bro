@@ -16,6 +16,8 @@ import java.util.Locale
 
 /**
  * Links shown on the built-in home page: bookmarks, latest or most visited history items.
+ * The bookmarks are the ones of the Home page folder, in its order: a link's order is its place
+ * on the page, and the page leaves out those it has no room for.
  */
 class HomePageLinks(
     private val config: Config,
@@ -50,34 +52,34 @@ class HomePageLinks(
                         favorites.save(s)
                     }
                     config.initialBookmarksSuggestionsLoaded = true
-                    _links.value = suggestions.map { HomePageLink.fromBookmarkItem(it) }
+                    _links.value = suggestions.mapIndexed { i, item -> HomePageLink.fromBookmarkItem(item, i) }
                 } else {
-                    _links.value = bookmarks.map { HomePageLink.fromBookmarkItem(it) }
+                    _links.value = bookmarks.mapIndexed { i, item -> HomePageLink.fromBookmarkItem(item, i) }
                 }
             }
         }
     }
 
+    /** The links that follow the removed one move up a place */
     suspend fun remove(link: HomePageLink) {
         _links.update { it - link }
         link.favoriteId?.let {
             favorites.delete(it)
         }
+        load()
     }
 
     /**
-     * Saves the bookmark edited (or created, if its id is 0) by the user and updates its link.
+     * Saves the bookmark edited (or created, if its id is 0: it goes after the others) by the user and
+     * updates the links.
      */
     suspend fun onBookmarkEdited(item: FavoriteItem) {
-        val isNew = item.id == 0L
-        favorites.save(item)
-        if (isNew) {
-            _links.update { it + HomePageLink.fromBookmarkItem(item) }
-        } else {
-            _links.update { links ->
-                links.map { if (it.favoriteId == item.id) HomePageLink.fromBookmarkItem(item) else it }
-            }
+        if (item.id == 0L) {
+            item.homePageBookmark = true
+            item.order = favorites.nextHomePageOrder()
         }
+        favorites.save(item)
+        load()
     }
 
     suspend fun markRecommendationAsUseful(bookmarkOrder: Int) {

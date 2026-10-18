@@ -110,6 +110,24 @@ class HomePageLinksTest {
     }
 
     @Test
+    fun linksTakeThePlacesOfTheFolderOrder() = runBlocking {
+        db.favoritesDao().insert(bookmark("a", 0))
+        //a gap left by an empty tile of older versions
+        db.favoritesDao().insert(bookmark("c", 5))
+        links.load()
+        assertEquals(listOf(0, 1), links.links.value.map { it.order })
+
+        //a new bookmark goes after the others
+        links.onBookmarkEdited(FavoriteItem().apply { title = "new"; url = "https://new.com/" })
+        assertEquals(listOf("a", "c", "new"), links.links.value.map { it.title })
+        assertEquals(listOf(0, 1, 2), links.links.value.map { it.order })
+
+        links.remove(links.links.value[0])
+        assertEquals(listOf("c", "new"), links.links.value.map { it.title })
+        assertEquals(listOf(0, 1), links.links.value.map { it.order })
+    }
+
+    @Test
     fun removedLinkDeletesItsBookmark() = runBlocking {
         db.favoritesDao().insert(bookmark("a", 0))
         db.favoritesDao().insert(bookmark("b", 1))

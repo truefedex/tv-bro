@@ -174,6 +174,10 @@ class ActionBar @JvmOverloads constructor(
     /** The site panel opens under it, and gives the focus back to it */
     val siteButton: View get() = vb.ibSite
 
+    /** The bookmarks panel opens under the star, its end under the end of the group of the star */
+    val favoritesButton: View get() = vb.ibFavorites
+    val functionsGroup: View get() = vb.llFunctions
+
     /**
      * @param blocked ads and pop-ups blocked on the page, shown as a badge
      * @param hasSite false if the page has no site (no host): the button stays focusable but is dimmed

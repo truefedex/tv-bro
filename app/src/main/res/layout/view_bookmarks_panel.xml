@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The TV bookmarks panel under the star of the bar. One page at a time: a folder (the bookmarks of the
+top level or of a folder, with the row of the current page), the form of a bookmark or folder, or the
+choice of a folder. The focus does not leave the panel while it is open.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+  <LinearLayout
+      android:id="@+id/llPanel"
+      android:layout_width="@dimen/ds_bookmarks_panel_width"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:background="@drawable/ds_menu_bg"
+      android:elevation="4dp"
+      android:clickable="true">
+
+    <LinearLayout
+        android:id="@+id/llHeader"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ds_bookmarks_header_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_bookmarks_header_padding"
+        android:paddingEnd="@dimen/ds_bookmarks_header_padding">
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Panel"
+          android:id="@+id/ibBack"
+          android:src="@drawable/ic_back"
+          android:contentDescription="@string/back" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:id="@+id/tvTitle"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_panel_title_icon_text"
+          android:layout_marginEnd="@dimen/ds_panel_title_icon_text"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          tools:text="@string/bookmarks" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Panel"
+          android:id="@+id/ibMenu"
+          android:src="@drawable/ic_more_vert"
+          android:contentDescription="@string/more_actions" />
+    </LinearLayout>
+
+    <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <!-- Add this page, or Edit bookmark for this page -->
+    <LinearLayout
+        style="@style/Widget.TVBro.PanelRow"
+        android:id="@+id/llThisPage">
+
+      <ImageView
+          style="@style/Widget.TVBro.MenuIcon"
+          android:id="@+id/ivThisPage"
+          android:src="@drawable/ic_favorites" />
+
+      <LinearLayout
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_panel_icon_text"
+          android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuItem"
+            android:id="@+id/tvThisPageTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/tbColorDsInk"
+            android:singleLine="true"
+            android:ellipsize="end"
+            tools:text="@string/add_this_page" />
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuCaption"
+            android:id="@+id/tvThisPageCaption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/tbColorDsInk"
+            android:singleLine="true"
+            android:ellipsize="end"
+            tools:text="Wikipedia · www.wikipedia.org" />
+      </LinearLayout>
+    </LinearLayout>
+
+    <View
+        style="@style/Widget.TVBro.MenuSeparator"
+        android:id="@+id/vThisPageSeparator" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuItem"
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/ds_bookmarks_empty_padding"
+        android:gravity="center"
+        android:textColor="?attr/tbColorDsInk"
+        android:text="@string/no_bookmarks_yet"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvItems"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="vertical" />
+
+    <!-- the form of a bookmark or a folder -->
+    <LinearLayout
+        android:id="@+id/llForm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/ds_panel_form_padding"
+        android:paddingEnd="@dimen/ds_panel_form_padding"
+        android:paddingBottom="@dimen/ds_panel_form_padding"
+        android:visibility="gone">
+
+      <TextView
+          style="@style/Widget.TVBro.Text.FieldLabel"
+          android:labelFor="@+id/etName"
+          android:text="@string/name" />
+
+      <EditText
+          style="@style/Widget.TVBro.Field.Ds"
+          android:id="@+id/etName"
+          android:inputType="text"
+          android:imeOptions="actionNext"
+          android:importantForAutofill="no" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.FieldLabel"
+          android:id="@+id/tvUrlLabel"
+          android:labelFor="@+id/etUrl"
+          android:text="@string/url" />
+
+      <EditText
+          style="@style/Widget.TVBro.Field.Ds"
+          android:id="@+id/etUrl"
+          android:inputType="textUri"
+          android:imeOptions="actionDone"
+          android:importantForAutofill="no" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.FieldLabel"
+          android:id="@+id/tvFolderLabel"
+          android:text="@string/folder" />
+
+      <LinearLayout
+          android:id="@+id/llFolder"
+          android:layout_width="match_parent"
+          android:layout_height="@dimen/ds_panel_field_height"
+          android:orientation="horizontal"
+          android:gravity="center_vertical"
+          android:paddingStart="@dimen/ds_panel_field_padding"
+          android:paddingEnd="@dimen/ds_panel_field_padding"
+          android:background="@drawable/ds_address_field_bg"
+          android:focusable="true"
+          android:clickable="true">
+
+        <ImageView
+            style="@style/Widget.TVBro.MenuIcon"
+            android:src="@drawable/ic_folder" />
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuItem.Row"
+            android:id="@+id/tvFolder"
+            tools:text="@string/bookmarks" />
+
+        <ImageView
+            style="@style/Widget.TVBro.MenuIcon"
+            android:src="@drawable/ic_chevron_right" />
+      </LinearLayout>
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="@dimen/ds_panel_form_padding"
+          android:orientation="horizontal">
+
+        <TextView
+            style="@style/Widget.TVBro.TextButton.Ds"
+            android:id="@+id/btnDelete"
+            android:text="@string/delete" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            style="@style/Widget.TVBro.TextButton.Ds"
+            android:id="@+id/btnCancel"
+            android:text="@string/cancel" />
+
+        <TextView
+            style="@style/Widget.TVBro.TextButton.Ds"
+            android:id="@+id/btnSave"
+            android:layout_marginStart="@dimen/ds_panel_buttons_gap"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/save" />
+      </LinearLayout>
+    </LinearLayout>
+  </LinearLayout>
+</merge>

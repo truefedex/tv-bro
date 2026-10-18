@@ -152,7 +152,7 @@ class TabUiHost(
                 favoriteItem = FavoriteItem()
                 favoriteItem.title = bookmark?.title
                 favoriteItem.url = bookmark?.url
-                favoriteItem.order = index
+                //an empty tile adds a bookmark after the others (HomePageLinks.onBookmarkEdited)
                 favoriteItem.homePageBookmark = true
                 editHomePageBookmark(favoriteItem)
             } else {
