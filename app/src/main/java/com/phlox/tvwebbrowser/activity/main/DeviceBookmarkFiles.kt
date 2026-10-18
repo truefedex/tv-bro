@@ -56,6 +56,7 @@ class DeviceBookmarkFiles(private val activity: ComponentActivity) : BookmarksNa
                     size = bytes.size.toLong()
                     bytesReceived = size
                     mimeType = MIME_TYPE
+                    status = Download.Status.DONE
                 })
                 savedName
             } catch (e: Exception) {

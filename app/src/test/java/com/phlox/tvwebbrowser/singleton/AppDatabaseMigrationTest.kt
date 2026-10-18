@@ -3,7 +3,9 @@ package com.phlox.tvwebbrowser.singleton
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
+import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.TabEntity
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.After
@@ -117,7 +119,7 @@ class AppDatabaseMigrationTest {
         assertEquals(1, runBlocking { db.historyDao().count() })
 
         val sqlDb = db.openHelper.readableDatabase
-        assertEquals(23, sqlDb.version)
+        assertEquals(24, sqlDb.version)
         sqlDb.query("PRAGMA table_info(tabs)").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
             val columns = ArrayList<String>()
@@ -227,6 +229,57 @@ class AppDatabaseMigrationTest {
             while (cursor.moveToNext()) columns.add(cursor.getString(nameIndex))
             assertFalse(columns.contains("adblock"))
         }
+    }
+
+    @Test
+    fun migrate23To24GivesDownloadsTheirStatus() {
+        createDatabase(23) { db ->
+            fun download(id: Long, size: Long, bytesReceived: Long) =
+                db.insert("downloads", null, ContentValues().apply {
+                    put("id", id)
+                    put("time", 1000L + id)
+                    put("filename", "file$id.zip")
+                    put("filepath", "/sdcard/Download/file$id.zip")
+                    put("url", "https://example.com/file$id.zip")
+                    put("size", size)
+                    put("bytes_received", bytesReceived)
+                })
+            download(1, 100, 100)
+            download(2, -2, 40)
+            download(3, -3, 0)
+            //bookmarks exported to Downloads have no url
+            db.insert("downloads", null, ContentValues().apply {
+                put("id", 4L)
+                put("time", 2000L)
+                put("filename", "bookmarks.html")
+                put("filepath", "content://media/external/downloads/4")
+                put("url", "")
+                put("size", 10L)
+                put("bytes_received", 10L)
+            })
+        }
+
+        val db = openMigrated()
+        val dao = db.downloadDao()
+        val done = runBlocking { dao.get(1) }!!
+        assertEquals(Download.Status.DONE, done.status)
+        assertEquals(100L, done.size)
+        assertEquals(100L, done.bytesReceived)
+        assertFalse(done.resumable)
+        assertNull(done.referer)
+        assertNull(done.mimeType)
+
+        val failed = runBlocking { dao.get(2) }!!
+        assertEquals(Download.Status.FAILED, failed.status)
+        assertEquals(0L, failed.size)
+        assertEquals(40L, failed.bytesReceived)
+
+        val cancelled = runBlocking { dao.get(3) }!!
+        assertEquals(Download.Status.CANCELLED, cancelled.status)
+        assertEquals(0L, cancelled.size)
+
+        assertEquals(Download.Status.DONE, runBlocking { dao.get(4) }!!.status)
+        assertEquals(listOf(4L, 3L, 2L, 1L), runBlocking { dao.observeAll().first() }.map { it.id })
     }
 
     @Test

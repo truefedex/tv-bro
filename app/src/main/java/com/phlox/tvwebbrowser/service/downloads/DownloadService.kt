@@ -22,6 +22,7 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import java.io.File
 import java.util.*
 import java.util.concurrent.Executors
+import kotlinx.coroutines.runBlocking
 
 /**
  * Created by PDT on 23.01.2017.
@@ -49,7 +50,8 @@ class DownloadService : Service() {
         }
 
         override fun onError(task: DownloadTask, responseCode: Int, responseMessage: String) {
-            TVBro.container.data.downloads.update(task.downloadInfo)
+            task.downloadInfo.error = if (responseCode > 0) "HTTP $responseCode" else responseMessage
+            runBlocking { TVBro.container.data.downloads.update(task.downloadInfo) }
             handler.post {
                 model.notifyListenersAboutError(task, responseCode, responseMessage)
                 onTaskEnded(task)
@@ -57,7 +59,7 @@ class DownloadService : Service() {
         }
 
         override fun onDone(task: DownloadTask) {
-            TVBro.container.data.downloads.update(task.downloadInfo)
+            runBlocking { TVBro.container.data.downloads.update(task.downloadInfo) }
             handler.post {
                 model.notifyListenersAboutDownloadProgress(task)
                 onTaskEnded(task)

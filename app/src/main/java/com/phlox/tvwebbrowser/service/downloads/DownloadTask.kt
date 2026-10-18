@@ -14,6 +14,7 @@ import com.phlox.tvwebbrowser.utils.DownloadUtils
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlinx.coroutines.runBlocking
 
 /**
  * Created by PDT on 23.01.2017.
@@ -37,7 +38,7 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
     }
 
     override fun run() {
-        downloadInfo.id = TVBro.container.data.downloads.insert(downloadInfo)
+        downloadInfo.id = runBlocking { TVBro.container.data.downloads.insert(downloadInfo) }
 
         var input: InputStream? = null
         var output: OutputStream? = null
@@ -71,13 +72,13 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
                     HttpURLConnection.HTTP_UNAVAILABLE -> {
                         retries++
                         if (retries >= MAX_CONNECT_RETRIES) {
-                            downloadInfo.size = Download.BROKEN_MARK
+                            downloadInfo.status = Download.Status.FAILED
                             callback.onError(this, connection.responseCode, connection.responseMessage)
                             return
                         }
                     }
                     else -> {
-                        downloadInfo.size = Download.BROKEN_MARK
+                        downloadInfo.status = Download.Status.FAILED
                         callback.onError(this, connection.responseCode, connection.responseMessage)
                         return
                     }
@@ -86,8 +87,8 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
 
             input = connection!!.inputStream
 
-            val fileLength = connection.contentLength
-            downloadInfo.size = fileLength.toLong()
+            val fileLength = connection.contentLengthLong.coerceAtLeast(0)
+            downloadInfo.size = fileLength
 
             if (connection.headerFields.containsKey("Content-Disposition")) {
                 val mime = connection.getHeaderField("Content-Type")
@@ -102,8 +103,7 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
             var count = input.read(data)
             while (count != -1) {
                 if (downloadInfo.cancelled) {
-                    downloadInfo.bytesReceived = 0
-                    downloadInfo.size = Download.CANCELLED_MARK
+                    downloadInfo.status = Download.Status.CANCELLED
                     callback.onDone(this)
                     return
                 }
@@ -114,7 +114,7 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
                 count = input.read(data)
             }
         } catch (e: Exception) {
-            downloadInfo.size = Download.BROKEN_MARK
+            downloadInfo.status = Download.Status.FAILED
             callback.onError(this, 0, e.toString())
             return
         } finally {
@@ -128,6 +128,7 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
             cancelDownloadIfNeeded(downloadInfo)
         }
         downloadInfo.size = downloadInfo.bytesReceived
+        downloadInfo.status = Download.Status.DONE
         callback.onDone(this)
     }
 }
@@ -135,7 +136,7 @@ class FileDownloadTask(override var downloadInfo: Download, private val userAgen
 class BlobDownloadTask(override var downloadInfo: Download, val blobBase64Data: String, val callback: DownloadTask.Callback) : Runnable, DownloadTask {
 
     override fun run() {
-        downloadInfo.id = TVBro.container.data.downloads.insert(downloadInfo)
+        downloadInfo.id = runBlocking { TVBro.container.data.downloads.insert(downloadInfo) }
 
         try {
             val blobAsBytes: ByteArray = Base64.decode(blobBase64Data.replaceFirst("data:${downloadInfo.mimeType};base64,", ""), 0)
@@ -143,8 +144,9 @@ class BlobDownloadTask(override var downloadInfo: Download, val blobBase64Data: 
             output.buffered().use{ it.write(blobAsBytes) }
             downloadInfo.size = blobAsBytes.size.toLong()
             downloadInfo.bytesReceived = downloadInfo.size
+            downloadInfo.status = Download.Status.DONE
         } catch (e: Exception) {
-            downloadInfo.size = Download.BROKEN_MARK
+            downloadInfo.status = Download.Status.FAILED
             callback.onError(this, 0, e.toString())
             return
         } finally {
@@ -156,7 +158,7 @@ class BlobDownloadTask(override var downloadInfo: Download, val blobBase64Data: 
 
 class StreamDownloadTask(override var downloadInfo: Download, val stream: InputStream, val callback: DownloadTask.Callback) : Runnable, DownloadTask {
     override fun run() {
-        downloadInfo.id = TVBro.container.data.downloads.insert(downloadInfo)
+        downloadInfo.id = runBlocking { TVBro.container.data.downloads.insert(downloadInfo) }
 
         var output: OutputStream? = null
         try {
@@ -166,8 +168,7 @@ class StreamDownloadTask(override var downloadInfo: Download, val stream: InputS
             var count = stream.read(data)
             while (count != -1) {
                 if (downloadInfo.cancelled) {
-                    downloadInfo.bytesReceived = 0
-                    downloadInfo.size = Download.CANCELLED_MARK
+                    downloadInfo.status = Download.Status.CANCELLED
                     callback.onDone(this)
                     return
                 }
@@ -178,7 +179,7 @@ class StreamDownloadTask(override var downloadInfo: Download, val stream: InputS
                 count = stream.read(data)
             }
         } catch (e: Exception) {
-            downloadInfo.size = Download.BROKEN_MARK
+            downloadInfo.status = Download.Status.FAILED
             callback.onError(this, 0, e.toString())
             return
         } finally {
@@ -191,6 +192,7 @@ class StreamDownloadTask(override var downloadInfo: Download, val stream: InputS
             cancelDownloadIfNeeded(downloadInfo)
         }
         downloadInfo.size = downloadInfo.bytesReceived
+        downloadInfo.status = Download.Status.DONE
         callback.onDone(this)
     }
 }
@@ -236,7 +238,7 @@ private fun prepareDownloadOutput(downloadInfo: Download): OutputStream {
         }
         val fd = contentResolver.openFileDescriptor(downloadUri, "w", null)
         downloadInfo.filepath = downloadUri.toString()
-        TVBro.container.data.downloads.update(downloadInfo)
+        runBlocking { TVBro.container.data.downloads.update(downloadInfo) }
         AutoCloseOutputStream(fd)
     } else {
         FileOutputStream(downloadInfo.filepath)

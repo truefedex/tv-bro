@@ -17,23 +17,36 @@ class Download() {
     var filepath: String = ""
     var url: String = ""
 
+    /** The full size of the file, 0 when it is not known */
     @Volatile
     var size: Long = 0
     @Volatile @ColumnInfo(name = "bytes_received")
     var bytesReceived: Long = 0
-    @Ignore
-    var operationAfterDownload = OperationAfterDownload.NOP
+    /** One of [Status]. The default of the column is [Status.DONE], for the rows older than the column */
+    @Volatile @ColumnInfo(defaultValue = "3")
+    var status: Int = Status.IN_PROGRESS
+    @ColumnInfo(name = "mime_type")
+    var mimeType: String? = null
+    /** The url of the page the download was started from (none for incognito downloads) */
+    var referer: String? = null
+    @ColumnInfo(name = "user_agent")
+    var userAgentString: String? = null
+    /** A short reason of the failure, for a [Status.FAILED] download */
+    var error: String? = null
+    /** Validators of the file on the server, for resuming the download */
+    var etag: String? = null
+    @ColumnInfo(name = "last_modified")
+    var lastModified: String? = null
+    /** The server accepts byte ranges, so the download can be paused and resumed */
+    @ColumnInfo(defaultValue = "0")
+    var resumable: Boolean = false
 
     //non-db fields
     @Ignore
+    var operationAfterDownload = OperationAfterDownload.NOP
+    @Ignore
     @Volatile
     var cancelled: Boolean = false
-    @Ignore
-    var mimeType: String? = null
-    @Ignore
-    var referer: String? = null
-    @Ignore
-    var userAgentString: String? = null
     @Ignore
     var cookies: String? = null
     @Ignore
@@ -43,6 +56,15 @@ class Download() {
 
     enum class OperationAfterDownload {
         NOP, INSTALL
+    }
+
+    /** Values of [status] */
+    object Status {
+        const val IN_PROGRESS = 1
+        const val PAUSED = 2
+        const val DONE = 3
+        const val FAILED = 4
+        const val CANCELLED = 5
     }
 
     constructor(url: String, filename: String, filepath: String?, operationAfterDownload: OperationAfterDownload,
@@ -58,10 +80,5 @@ class Download() {
         this.base64BlobData = base64BlobData
         this.stream = stream
         this.size = size
-    }
-
-    companion object {
-        val BROKEN_MARK: Long = -2
-        val CANCELLED_MARK: Long = -3
     }
 }

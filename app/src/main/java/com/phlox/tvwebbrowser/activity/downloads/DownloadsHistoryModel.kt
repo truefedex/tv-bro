@@ -5,6 +5,7 @@ import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class DownloadsHistoryModel: ActiveModel() {
@@ -19,7 +20,7 @@ class DownloadsHistoryModel: ActiveModel() {
     }
     loading = true
 
-    val newItems = TVBro.container.data.downloads.page(allItems.size.toLong())
+    val newItems = TVBro.container.data.downloads.observeAll().first().drop(allItems.size)
     if (newItems.isEmpty()) endReached = true
     allItems.addAll(newItems)
     lastLoadedItems.value = newItems

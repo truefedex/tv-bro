@@ -103,7 +103,7 @@ class DownloadsActivity : AppCompatActivity(), ActiveDownloadsModel.Listener {
     fun onItemClick(v: DownloadListItemView) {
         val download = v.download ?: return
 
-        if (download.size != download.bytesReceived) {
+        if (download.status != Download.Status.DONE) {
             //file should be already marked in UI as broken
             return
         }
@@ -138,8 +138,7 @@ class DownloadsActivity : AppCompatActivity(), ActiveDownloadsModel.Listener {
 
     fun onItemLongClick(v: DownloadListItemView): Boolean {
         val download = v.download ?: return false
-        if (download.size == Download.BROKEN_MARK || download.size == Download.CANCELLED_MARK ||
-                download.size == download.bytesReceived) {
+        if (download.status != Download.Status.IN_PROGRESS) {
             showFinishedDownloadOptionsPopup(v)
         } else {
             showUnfinishedDownloadOptionsPopup(v)
@@ -161,7 +160,7 @@ class DownloadsActivity : AppCompatActivity(), ActiveDownloadsModel.Listener {
         val download = v.download ?: return
         val pm = PopupMenu(this, v, Gravity.BOTTOM)
         if (download.filename.endsWith(".apk", true) &&
-            download.size == download.bytesReceived) {
+            download.status == Download.Status.DONE) {
             pm.menu.add(0, 0, 0, R.string.install)
         }
         pm.menu.add(0, 1, 1, R.string.open_folder)

@@ -58,12 +58,13 @@ class DownloadListItemView(context: Context, attrs: AttributeSet?) : LinearLayou
         }
         this.download?.size = download.size
         this.download?.bytesReceived = download.bytesReceived
+        this.download?.status = download.status
         tvSize!!.setTextColor(defaultTextColor)
-        if (download.size == Download.CANCELLED_MARK) {
+        if (download.status == Download.Status.CANCELLED) {
             tvSize!!.setText(R.string.cancelled)
             progressBar!!.visibility = View.INVISIBLE
             progressBar2!!.visibility = View.GONE
-        } else if (download.size == Download.BROKEN_MARK) {
+        } else if (download.status == Download.Status.FAILED) {
             tvSize!!.setText(R.string.error)
             tvSize!!.setTextColor(Color.RED)
             progressBar!!.visibility = View.INVISIBLE
@@ -73,7 +74,7 @@ class DownloadListItemView(context: Context, attrs: AttributeSet?) : LinearLayou
             progressBar!!.visibility = View.INVISIBLE
             progressBar2!!.visibility = View.VISIBLE
         } else if (download.size > 0) {
-            if (download.size == download.bytesReceived) {
+            if (download.status == Download.Status.DONE) {
                 tvSize!!.text = Formatter.formatShortFileSize(context, download.size)
                 progressBar!!.visibility = View.INVISIBLE
                 progressBar2!!.visibility = View.GONE
