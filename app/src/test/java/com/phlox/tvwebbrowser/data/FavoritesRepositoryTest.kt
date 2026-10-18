@@ -203,4 +203,65 @@ class FavoritesRepositoryTest {
         assertEquals(BookmarksHtml.Folder("Home page", listOf(BookmarksHtml.Link("t1", "https://t1.com/"),
             BookmarksHtml.Link("t2", "https://t2.com/")), isHomePage = true), favorites.exportTree("Home page").first())
     }
+
+    private fun link(title: String) = BookmarksHtml.Link(title, "https://$title.com/")
+
+    @Test
+    fun importIntoANewFolderKeepsTheTreeAndSkipsSavedAddresses() = runBlocking {
+        favorites.add(bookmark("saved"), ROOT)
+        val result = favorites.importBookmarks(listOf(
+            BookmarksHtml.Folder("Home page", listOf(link("saved"), link("t1"), link("t2")), isHomePage = true),
+            BookmarksHtml.Folder("Empty", emptyList()),
+            BookmarksHtml.Folder("Only saved", listOf(link("saved"))),
+            BookmarksHtml.Folder("Outer", listOf(BookmarksHtml.Folder("Inner", listOf(link("deep"))))),
+            link("b"),
+            link("c"),
+            link("b")
+        ), FavoritesRepository.ImportMode.NEW_FOLDER, "file")
+        assertEquals(5, result.added)
+        assertEquals(0, result.updated)
+        assertEquals(3, result.skipped)
+        val folder = result.folder!!
+        assertEquals(listOf("file", "saved"), titles(ROOT))
+        //the file's order, folders first; folders that would be empty are not made
+        assertEquals(listOf("Home page", "Outer", "b", "c"), titles(folder.id))
+        val homePage = favorites.children(folder.id).first()
+        assertEquals(listOf("t1", "t2"), titles(homePage.id))
+        assertFalse(favorites.children(homePage.id).any { it.homePageBookmark })
+        assertTrue(favorites.children(HOME_PAGE).isEmpty())
+        val outer = favorites.children(folder.id)[1]
+        assertEquals(listOf("deep"), titles(favorites.children(outer.id).single().id))
+
+        //nothing new: no folder
+        val again = favorites.importBookmarks(listOf(link("b")), FavoritesRepository.ImportMode.NEW_FOLDER, "again")
+        assertNull(again.folder)
+        assertEquals(1, again.skipped)
+        assertEquals(listOf("file", "saved"), titles(ROOT))
+    }
+
+    @Test
+    fun mergeJoinsFoldersAndTheHomePageAndOverwritesSavedAddresses() = runBlocking {
+        val news = folder("News")
+        favorites.add(news, ROOT)
+        favorites.add(bookmark("n1"), news.id)
+        favorites.add(bookmark("x").apply { title = "Old x" }, ROOT)
+        favorites.add(bookmark("t1"), HOME_PAGE)
+        val result = favorites.importBookmarks(listOf(
+            BookmarksHtml.Folder("Home page", listOf(link("t1"), link("t2"), BookmarksHtml.Folder("Sub", listOf(link("s")))),
+                isHomePage = true),
+            BookmarksHtml.Folder(" news ", listOf(link("n2"), BookmarksHtml.Link("New x", "https://x.com/"))),
+            link("y"),
+            link("z"),
+            link("y")
+        ), FavoritesRepository.ImportMode.MERGE, "file")
+        assertNull(result.folder)
+        assertEquals(5, result.added)
+        assertEquals(1, result.updated)
+        assertEquals(2, result.skipped)
+        assertEquals(listOf("t1", "t2"), titles(HOME_PAGE))
+        //the folders of the Home page folder go to the top level
+        assertEquals(listOf("Sub", "News", "y", "z"), titles(ROOT))
+        assertEquals(listOf("New x", "n2", "n1"), titles(news.id))
+        assertEquals(1, favorites.folders().count { it.title == "News" })
+    }
 }

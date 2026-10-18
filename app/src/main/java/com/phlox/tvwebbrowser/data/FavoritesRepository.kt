@@ -2,6 +2,8 @@ package com.phlox.tvwebbrowser.data
 
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.dao.FavoritesDao
+import java.util.Collections
+import java.util.IdentityHashMap
 
 /**
  * Bookmarks: the user's ones and the ones of the built-in home page.
@@ -19,6 +21,29 @@ class FavoritesRepository(private val dao: FavoritesDao) {
         /** The folder of the home page bookmarks */
         const val HOME_PAGE = -1L
     }
+
+    /** How the bookmarks of a file are added to the user's ones */
+    enum class ImportMode {
+        /**
+         * Into a new folder at the top level, keeping the folders of the file (its Home page folder becomes a
+         * plain folder there); addresses that are saved already are skipped, and folders that would stay
+         * empty are not made
+         */
+        NEW_FOLDER,
+        /**
+         * Folders with the same name (ignoring case) in the same place are joined, the Home page folder of the
+         * file joins [HOME_PAGE] (its folders, which [HOME_PAGE] can not hold, join the top level); a bookmark
+         * whose address is saved already gets the title and the folder of the file's one
+         */
+        MERGE
+    }
+
+    /**
+     * @param skipped bookmarks of the file left out: their address is saved already (or comes again in
+     *   the file), and in [ImportMode.MERGE] also those that are saved already with the same title and folder
+     * @param folder the folder made by [ImportMode.NEW_FOLDER], null if nothing was added
+     */
+    class ImportResult(val added: Int, val updated: Int, val skipped: Int, val folder: FavoriteItem?)
 
     suspend fun all(): List<FavoriteItem> = dao.getAll()
 
@@ -79,6 +104,139 @@ class FavoritesRepository(private val dao: FavoritesDao) {
         val homePage = nodes(HOME_PAGE)
         val top = nodes(ROOT)
         return if (homePage.isEmpty()) top else listOf(BookmarksHtml.Folder(homePageTitle, homePage, isHomePage = true)) + top
+    }
+
+    /**
+     * Adds the folders and bookmarks of a file ([nodes] is its top level) as the [mode] says; [folderName]
+     * names the folder of [ImportMode.NEW_FOLDER]. New items of a folder go to its top (to the end of
+     * [HOME_PAGE]) in the order of the file.
+     */
+    suspend fun importBookmarks(nodes: List<BookmarksHtml.Node>, mode: ImportMode, folderName: String): ImportResult {
+        //a user's bookmark before a home page one, the newest first, as findByUrl()
+        val saved = HashMap<String, FavoriteItem>()
+        for (item in dao.getBookmarks().sortedWith(compareBy<FavoriteItem> { it.homePageBookmark }.thenByDescending { it.id })) {
+            saved.putIfAbsent(item.url ?: continue, item)
+        }
+        val importer = Importer(saved)
+        val folder = when (mode) {
+            ImportMode.NEW_FOLDER -> importer.importIntoNewFolder(nodes, folderName)
+            ImportMode.MERGE -> {
+                importer.merge(nodes, ROOT)
+                null
+            }
+        }
+        return ImportResult(importer.added, importer.updated, importer.skipped, folder)
+    }
+
+    private inner class Importer(private val saved: MutableMap<String, FavoriteItem>) {
+        var added = 0
+        var updated = 0
+        var skipped = 0
+        /** The addresses of the file met so far */
+        private val seen = HashSet<String>()
+
+        suspend fun importIntoNewFolder(nodes: List<BookmarksHtml.Node>, name: String): FavoriteItem? {
+            //the bookmarks to add, chosen before anything is made, so that folders that would stay empty are left out
+            val toAdd = Collections.newSetFromMap(IdentityHashMap<BookmarksHtml.Link, Boolean>())
+            fun choose(nodes: List<BookmarksHtml.Node>) {
+                for (node in nodes) when (node) {
+                    is BookmarksHtml.Folder -> choose(node.children)
+                    is BookmarksHtml.Link -> if (seen.add(node.url) && !saved.containsKey(node.url)) {
+                        toAdd += node
+                    } else {
+                        skipped++
+                    }
+                }
+            }
+            choose(nodes)
+            if (toAdd.isEmpty()) return null
+
+            fun hasNew(node: BookmarksHtml.Node): Boolean =
+                if (node is BookmarksHtml.Folder) node.children.any { hasNew(it) } else node in toAdd
+
+            suspend fun addAll(nodes: List<BookmarksHtml.Node>, parent: Long) {
+                val items = ArrayList<FavoriteItem>()
+                for (node in nodes) {
+                    if (!hasNew(node)) continue
+                    val item = newItem(node)
+                    add(item, parent)
+                    items += item
+                    when (node) {
+                        is BookmarksHtml.Folder -> addAll(node.children, item.id)
+                        is BookmarksHtml.Link -> added++
+                    }
+                }
+                keepFileOrder(items)
+            }
+            val folder = newItem(BookmarksHtml.Folder(name, emptyList()))
+            add(folder, ROOT)
+            addAll(nodes, folder.id)
+            return folder
+        }
+
+        suspend fun merge(nodes: List<BookmarksHtml.Node>, parent: Long) {
+            val newItems = ArrayList<FavoriteItem>()
+            //the folders of the Home page folder go to the top level
+            val subfolders = ArrayList<BookmarksHtml.Folder>()
+            for (node in nodes) {
+                when (node) {
+                    is BookmarksHtml.Folder -> when {
+                        node.isHomePage && parent == ROOT -> merge(node.children, HOME_PAGE)
+                        parent == HOME_PAGE -> subfolders += node
+                        else -> {
+                            val title = node.title.trim()
+                            var folder = children(parent).firstOrNull {
+                                it.isFolder && (it.title ?: "").trim().equals(title, ignoreCase = true)
+                            }
+                            if (folder == null) {
+                                folder = newItem(node)
+                                add(folder, parent)
+                                newItems += folder
+                            }
+                            merge(node.children, folder.id)
+                        }
+                    }
+                    is BookmarksHtml.Link -> {
+                        val existing = saved[node.url]
+                        when {
+                            !seen.add(node.url) -> skipped++
+                            existing == null -> {
+                                val item = newItem(node)
+                                add(item, parent)
+                                saved[node.url] = item
+                                newItems += item
+                                added++
+                            }
+                            existing.title == node.title && folderOf(existing) == parent -> skipped++
+                            else -> {
+                                existing.title = node.title
+                                moveTo(existing, parent)
+                                updated++
+                            }
+                        }
+                    }
+                }
+            }
+            keepFileOrder(newItems)
+            if (subfolders.isNotEmpty()) merge(subfolders, ROOT)
+        }
+
+        private fun newItem(node: BookmarksHtml.Node) = FavoriteItem().apply {
+            title = node.title
+            url = (node as? BookmarksHtml.Link)?.url
+        }
+
+        /**
+         * The items were added one by one to the top of their folder, which put them in the reverse order of
+         * the file: they get their orders back in the order of the file (new home page bookmarks go to the
+         * end, so they keep theirs)
+         */
+        private suspend fun keepFileOrder(items: List<FavoriteItem>) {
+            if (items.size < 2) return
+            val orders = items.map { it.order }.sorted()
+            items.forEachIndexed { i, item -> item.order = orders[i] }
+            dao.update(items)
+        }
     }
 
     /**

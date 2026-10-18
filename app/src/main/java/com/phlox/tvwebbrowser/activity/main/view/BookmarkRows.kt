@@ -13,8 +13,12 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.BookmarksNavigator
 import com.phlox.tvwebbrowser.activity.main.BookmarksNavigator.Action
 import com.phlox.tvwebbrowser.activity.main.BookmarksNavigator.Row
+import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.HOME_PAGE
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.ROOT
+
+/** The ways to import a file are explained in their captions */
+private const val IMPORT_CHOICE_CAPTION_LINES = 4
 
 /** The views of a row of the bookmarks screens (the TV panel, the phone screen) */
 class BookmarkRowViews(val icon: ImageView, val title: TextView, val caption: TextView, val end: ImageView, val options: View)
@@ -31,10 +35,16 @@ fun bindBookmarkRow(row: Row, views: BookmarkRowViews, iconTint: ColorStateList,
         ImageViewCompat.setImageTintList(views.icon, iconTint)
         views.icon.setImageResource(icon)
     }
-    fun setTexts(title: String, caption: String?) {
+    fun setTexts(title: String, caption: String?, captionLines: Int = 1) {
         views.title.text = title
         views.caption.text = caption
         views.caption.isVisible = caption != null
+        if (captionLines == 1) {
+            views.caption.isSingleLine = true
+        } else {
+            views.caption.isSingleLine = false
+            views.caption.maxLines = captionLines
+        }
     }
     fun setEnd(@DrawableRes icon: Int) {
         views.end.isVisible = icon != 0
@@ -76,6 +86,27 @@ fun bindBookmarkRow(row: Row, views: BookmarkRowViews, iconTint: ColorStateList,
             setTexts(context.getString(R.string.new_folder), null)
             setEnd(0)
             setOptions(false, "")
+        }
+        is Row.ImportFile -> {
+            setIcon(R.drawable.ic_file)
+            setTexts(row.file.name, row.caption.ifEmpty { null })
+            setEnd(0)
+            setOptions(false, row.file.name)
+        }
+        Row.OtherFiles -> {
+            setIcon(R.drawable.ic_folder)
+            setTexts(context.getString(R.string.other_files), context.getString(R.string.other_files_caption))
+            setEnd(R.drawable.ic_chevron_right)
+            setOptions(false, "")
+        }
+        is Row.ImportChoice -> {
+            setIcon(when (row.mode) {
+                FavoritesRepository.ImportMode.NEW_FOLDER -> R.drawable.ic_create_new_folder
+                FavoritesRepository.ImportMode.MERGE -> R.drawable.ic_move_to_folder
+            })
+            setTexts(row.title, row.caption, IMPORT_CHOICE_CAPTION_LINES)
+            setEnd(0)
+            setOptions(false, row.title)
         }
     }
 }

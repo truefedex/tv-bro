@@ -30,7 +30,8 @@ import kotlinx.coroutines.launch
 
 /**
  * The TV bookmarks panel, under the star of the bar, over the page: the screens of [BookmarksNavigator]
- * (a folder, the form of a bookmark or folder, the choice of a folder, the search). OK opens a bookmark in
+ * (a folder, the form of a bookmark or folder, the choice of a folder, the search, the import of a file:
+ * the files in Downloads and Other files, then the ways to import it). OK opens a bookmark in
  * the current tab or a folder in the panel; the button at the end of a row opens its options. The search
  * button turns the header into the search field (OK on it opens the keyboard; typing letters in a folder
  * starts the search with them), Down goes from the field to the results. Back goes back a screen (ends the
@@ -161,7 +162,14 @@ class BookmarksPanelView @JvmOverloads constructor(
         vb.tvTitle.isVisible = screen !is Screen.Search
         vb.llSearch.isVisible = screen is Screen.Search
         vb.ibSearch.isVisible = screen is Screen.Folder
-        vb.tvStatus.isVisible = screen is Screen.Search && screen.status != null
+        val status = when (screen) {
+            is Screen.Search -> screen.status
+            is Screen.ImportFiles -> screen.status
+            is Screen.ImportOptions -> screen.summary
+            else -> null
+        }
+        vb.tvStatus.isVisible = status != null
+        vb.tvStatus.text = status
         when (screen) {
             is Screen.Folder -> {
                 showSections(list = true, thisPage = screen.thisPage != null, form = false)
@@ -184,13 +192,18 @@ class BookmarksPanelView @JvmOverloads constructor(
                 showSections(list = true, thisPage = false, form = false)
                 vb.ibMenu.isVisible = false
                 vb.tvEmpty.isVisible = false
-                vb.tvStatus.text = screen.status
                 //set once: the field is not reset while it is typed in
                 if (vb.etSearch.text.toString() != screen.query) {
                     vb.etSearch.setText(screen.query)
                     vb.etSearch.setSelection(vb.etSearch.length())
                 }
                 adapter.rows = screen.rows
+            }
+            is Screen.ImportFiles, is Screen.ImportOptions -> {
+                showSections(list = true, thisPage = false, form = false)
+                vb.ibMenu.isVisible = false
+                vb.tvEmpty.isVisible = false
+                adapter.rows = if (screen is Screen.ImportFiles) screen.rows else (screen as Screen.ImportOptions).rows
             }
             is Screen.Form -> {
                 showSections(list = false, thisPage = false, form = true)
@@ -219,6 +232,7 @@ class BookmarksPanelView @JvmOverloads constructor(
             }
             focus.key == BookmarksNavigator.SEARCH_FIELD -> if (!vb.etSearch.hasFocus()) vb.etSearch.requestFocus()
             focus.key == BookmarksNavigator.SEARCH_BUTTON -> vb.ibSearch.requestFocus()
+            focus.key == BookmarksNavigator.MENU_BUTTON -> vb.ibMenu.requestFocus()
             else -> focusRow(focus.key, focus.index)
         }
     }
@@ -250,6 +264,9 @@ class BookmarksPanelView @JvmOverloads constructor(
         val items = listOf(
             PopupMenuView.Item(R.drawable.ic_create_new_folder, context.getString(R.string.new_folder),
                 enabled = folder.canCreateFolder) { navigator.createFolder() },
+            PopupMenuView.Item(R.drawable.ic_downloads, context.getString(R.string.import_bookmarks)) {
+                navigator.startImport(pickDirectly = false)
+            },
             PopupMenuView.Item(R.drawable.ic_export, context.getString(R.string.export_bookmarks)) { navigator.export() }
         )
         menu.show(vb.ibMenu, items, alignEnd = true)

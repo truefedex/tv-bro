@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import android.content.ActivityNotFoundException
 import androidx.room.Room
 import com.phlox.tvwebbrowser.activity.main.BookmarksNavigator.Action
 import com.phlox.tvwebbrowser.activity.main.BookmarksNavigator.Focus
@@ -42,11 +43,31 @@ class BookmarksNavigatorTest {
     /** Files in memory, as if Downloads held them */
     private class FakeFiles : BookmarksNavigator.Files {
         val saved = LinkedHashMap<String, String>()
+        val downloads = ArrayList<BookmarksNavigator.FileInfo>()
+        val contents = HashMap<String, String>()
+        /** What the picker gives; null for no picker */
+        var picked: BookmarksNavigator.FileInfo? = null
+        var hasPicker = true
 
         override suspend fun saveToDownloads(name: String, html: String): String {
             val savedName = if (saved.containsKey(name)) name.replace(".html", " (1).html") else name
             saved[savedName] = html
             return savedName
+        }
+
+        override suspend fun listDownloads() = downloads
+
+        override suspend fun pick(): BookmarksNavigator.FileInfo? {
+            if (!hasPicker) throw ActivityNotFoundException()
+            return picked
+        }
+
+        override suspend fun read(file: BookmarksNavigator.FileInfo) = contents[file.uri]?.let { BookmarksHtml.parse(it) }
+
+        fun add(name: String, nodes: List<BookmarksHtml.Node>): BookmarksNavigator.FileInfo {
+            val file = BookmarksNavigator.FileInfo(name, "content://downloads/$name", 1_700_000_000_000, 2048)
+            contents[file.uri] = BookmarksHtml.write(nodes)
+            return file
         }
     }
 
@@ -333,5 +354,88 @@ class BookmarksNavigatorTest {
             BookmarksHtml.Folder("f", listOf(BookmarksHtml.Link("inner", "https://inner.com/"))),
             BookmarksHtml.Link("top", "https://top.com/")
         ), BookmarksHtml.parse(html))
+    }
+
+    private val sampleFile = listOf(
+        BookmarksHtml.Folder("Home page", listOf(BookmarksHtml.Link("tile", "https://tile.com/")), isHomePage = true),
+        BookmarksHtml.Folder("News", listOf(BookmarksHtml.Link("bbc", "https://bbc.com/"))),
+        BookmarksHtml.Link("top", "https://top.com/")
+    )
+
+    @Test
+    fun importListsTheFilesOfDownloadsThenAsksHowToImport() {
+        val file = files.add("bookmarks_10_12.html", sampleFile)
+        files.downloads += file
+        navigator.start()
+        navigator.startImport(pickDirectly = false)
+        val list = screen as Screen.ImportFiles
+        assertEquals(listOf("file:${file.uri}", BookmarksNavigator.OTHER_FILES), list.rows.map { it.key })
+        assertEquals("Bookmark files in Downloads", list.status)
+
+        navigator.onRowClick(list.rows.first())
+        val options = screen as Screen.ImportOptions
+        assertEquals("Import bookmarks_10_12.html", options.title)
+        assertEquals("3 bookmarks in 2 folders, Home page among them", options.summary)
+        assertEquals(listOf("mode:NEW_FOLDER", "mode:MERGE"), options.rows.map { it.key })
+        assertTrue((options.rows.first() as BookmarksNavigator.Row.ImportChoice).caption.contains("“bookmarks_10_12”"))
+        assertNull(focus.key)
+        assertEquals(0, focus.index)
+
+        //Back goes to the file, then to the menu of the folder
+        assertTrue(navigator.back())
+        assertEquals("file:${file.uri}", focus.key)
+        assertTrue(navigator.back())
+        assertTrue(screen is Screen.Folder)
+        assertEquals(BookmarksNavigator.MENU_BUTTON, focus.key)
+    }
+
+    @Test
+    fun importIntoANewFolderGoesBackToTheFolderWithTheNewFolderFocused() {
+        bookmark("top")
+        files.downloads += files.add("file.html", sampleFile)
+        navigator.start()
+        navigator.startImport(pickDirectly = false)
+        navigator.onRowClick((screen as Screen.ImportFiles).rows.first())
+        navigator.onRowClick((screen as Screen.ImportOptions).rows.first())
+        assertTrue(screen is Screen.Folder)
+        val folder = runBlocking { favorites.children(ROOT) }.first()
+        assertEquals("file", folder.title)
+        assertEquals("f${folder.id}", focus.key)
+        assertEquals(listOf("Bookmarks imported: 2 added, 0 updated, 1 skipped"), messages)
+    }
+
+    @Test
+    fun theFilePickedOnThePhoneIsMerged() {
+        files.picked = files.add("picked.html", sampleFile)
+        navigator.start()
+        navigator.startImport(pickDirectly = true)
+        val options = screen as Screen.ImportOptions
+        navigator.onRowClick(options.rows[1])
+        assertEquals(listOf("Bookmarks imported: 3 added, 0 updated, 0 skipped"), messages)
+        assertEquals(listOf("tile"), runBlocking { favorites.children(HOME_PAGE) }.map { it.title })
+        assertTrue(screen is Screen.Folder)
+        assertEquals(BookmarksNavigator.MENU_BUTTON, focus.key)
+    }
+
+    @Test
+    fun aMissingPickerOrAFileWithoutBookmarksIsReported() {
+        files.hasPicker = false
+        navigator.start()
+        navigator.startImport(pickDirectly = true)
+        assertTrue(screen is Screen.Folder)
+        assertEquals(listOf("This device has no file picker"), messages)
+
+        messages.clear()
+        navigator.startImport(pickDirectly = false)
+        assertEquals("No bookmark files in Downloads", (screen as Screen.ImportFiles).status)
+        assertEquals(listOf(BookmarksNavigator.OTHER_FILES), (screen as Screen.ImportFiles).rows.map { it.key })
+        navigator.back()
+        val empty = BookmarksNavigator.FileInfo("empty.html", "content://downloads/empty.html")
+        files.contents[empty.uri] = "<html><body>Hello</body></html>"
+        files.downloads += empty
+        navigator.startImport(pickDirectly = false)
+        navigator.onRowClick((screen as Screen.ImportFiles).rows.first())
+        assertTrue(screen is Screen.ImportFiles)
+        assertEquals(listOf("No bookmarks in this file"), messages)
     }
 }

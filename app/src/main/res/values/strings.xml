@@ -92,6 +92,29 @@
     <!-- %s: the name of the file -->
     <string name="bookmarks_exported">Bookmarks saved to Downloads: %s</string>
     <string name="bookmarks_not_exported">Could not save the bookmarks file</string>
+    <string name="import_bookmarks">Import bookmarks</string>
+    <string name="bookmark_files_in_downloads">Bookmark files in Downloads</string>
+    <string name="no_bookmark_files_in_downloads">No bookmark files in Downloads</string>
+    <string name="other_files">Other files</string>
+    <string name="other_files_caption">USB drive, other folders</string>
+    <!-- %s: the name of the file -->
+    <string name="import_file">Import %s</string>
+    <string name="import_into_new_folder">Into a new folder</string>
+    <!-- %s: the name of the new folder -->
+    <string name="import_into_new_folder_caption">Folder “%s”. Your bookmarks stay as they are; addresses you already have are skipped.</string>
+    <string name="import_merge">Merge with my bookmarks</string>
+    <string name="import_merge_caption">Folders with the same name are joined. A bookmark with an address you already have is overwritten by the one from the file.</string>
+    <plurals name="folder_count">
+        <item quantity="one">%d folder</item>
+        <item quantity="other">%d folders</item>
+    </plurals>
+    <!-- what a bookmarks file holds; %1$s: the number of bookmarks, %2$s: the number of folders -->
+    <string name="import_summary">%1$s in %2$s</string>
+    <string name="import_summary_with_home_page">%1$s in %2$s, Home page among them</string>
+    <string name="bookmarks_imported">Bookmarks imported: %1$d added, %2$d updated, %3$d skipped</string>
+    <string name="bookmarks_file_not_read">Could not read the file</string>
+    <string name="no_bookmarks_in_file">No bookmarks in this file</string>
+    <string name="no_file_picker">This device has no file picker</string>
     <string name="new_bookmark">New bookmark</string>
     <string name="done">Done</string>
     <string name="title">Title</string>

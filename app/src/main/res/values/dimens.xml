@@ -156,6 +156,8 @@
     <dimen name="ds_bookmarks_search_button_margin">2dp</dimen>
     <dimen name="ds_bookmarks_status_padding">7dp</dimen>
     <dimen name="ds_bookmark_row_height">48dp</dimen>
+    <!-- around the texts of a row whose caption takes more lines -->
+    <dimen name="ds_bookmark_row_text_padding">6dp</dimen>
     <dimen name="ds_bookmark_icon">24dp</dimen>
     <dimen name="ds_bookmark_folder_indent">20dp</dimen>
     <dimen name="ds_bookmark_options_margin">6dp</dimen>

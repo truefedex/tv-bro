@@ -33,7 +33,8 @@ import kotlinx.coroutines.launch
 
 /**
  * The bookmarks screen of the phone UI over the whole window, like the tab switcher: the screens of
- * [BookmarksNavigator] (a folder, the form of a bookmark or folder, the choice of a folder, the search). A tap
+ * [BookmarksNavigator] (a folder, the form of a bookmark or folder, the choice of a folder, the search, the
+ * ways to import a file picked in the system picker). A tap
  * opens a bookmark in the current tab or a folder in place; ⋮ on a row opens the sheet of its actions, a long
  * press picks a row up to drag it to another place. The search button turns the header into the search
  * field with the keyboard open. Back ([backCallback]) goes back a screen (ends the search), and closes the
@@ -252,7 +253,14 @@ class PhoneBookmarksView @JvmOverloads constructor(
         vb.ibSearch.isVisible = screen is Screen.Folder
         vb.tvTitle.isVisible = screen !is Screen.Search
         vb.llSearch.isVisible = screen is Screen.Search
-        vb.tvStatus.isVisible = screen is Screen.Search && screen.status != null
+        val status = when (screen) {
+            is Screen.Search -> screen.status
+            is Screen.ImportFiles -> screen.status
+            is Screen.ImportOptions -> screen.summary
+            else -> null
+        }
+        vb.tvStatus.isVisible = status != null
+        vb.tvStatus.text = status
         vb.btnSave.isVisible = screen is Screen.Form
         val thisPage = (screen as? Screen.Folder)?.thisPage
         vb.flThisPage.isVisible = thisPage != null
@@ -277,7 +285,6 @@ class PhoneBookmarksView @JvmOverloads constructor(
                 scrollToRow(focus)
             }
             is Screen.Search -> {
-                vb.tvStatus.text = screen.status
                 //set once: the field is not reset while it is typed in
                 if (vb.etSearch.text.toString() != screen.query) {
                     vb.etSearch.setText(screen.query)
@@ -290,6 +297,11 @@ class PhoneBookmarksView @JvmOverloads constructor(
                     vb.etSearch.requestFocus()
                     vb.etSearch.post { showKeyboard(vb.etSearch) }
                 }
+            }
+            is Screen.ImportFiles, is Screen.ImportOptions -> {
+                hideKeyboard()
+                adapter.setRows(if (screen is Screen.ImportFiles) screen.rows else (screen as Screen.ImportOptions).rows)
+                scrollToRow(focus)
             }
             is Screen.Form -> {
                 vb.etName.setText(screen.name)
@@ -348,6 +360,10 @@ class PhoneBookmarksView @JvmOverloads constructor(
         sheet.show(null, null, listOf(
             PopupMenuView.Item(R.drawable.ic_create_new_folder, context.getString(R.string.new_folder),
                 enabled = folder.canCreateFolder) { navigator.createFolder() },
+            //phones have the system picker
+            PopupMenuView.Item(R.drawable.ic_downloads, context.getString(R.string.import_bookmarks)) {
+                navigator.startImport(pickDirectly = true)
+            },
             PopupMenuView.Item(R.drawable.ic_export, context.getString(R.string.export_bookmarks)) { navigator.export() }
         ))
     }

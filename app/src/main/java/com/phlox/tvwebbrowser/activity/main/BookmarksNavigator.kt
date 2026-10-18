@@ -1,6 +1,8 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.text.format.Formatter
 import androidx.annotation.DrawableRes
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
@@ -8,11 +10,13 @@ import com.phlox.tvwebbrowser.data.BookmarksHtml
 import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.HOME_PAGE
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.ROOT
+import com.phlox.tvwebbrowser.data.FavoritesRepository.ImportMode
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -24,8 +28,10 @@ import java.util.Locale
  *   first at the top level, while it has bookmarks) and the bookmarks;
  * - the form of a bookmark or a folder;
  * - the choice of a folder, to move a bookmark or folder to, or for the form;
- * - the search of bookmarks in every folder, over the folder it was started from.
- * All bookmarks can be exported to a bookmarks file in Downloads ([BookmarksHtml]).
+ * - the search of bookmarks in every folder, over the folder it was started from;
+ * - the import of a bookmarks file ([BookmarksHtml]): the files in Downloads (on TV, the phone has the
+ *   system picker right away), then the choice of how to import the chosen one.
+ * All bookmarks can be exported to a bookmarks file in Downloads.
  * Each change of the screen goes to [Host.render] with the row (or field) to focus.
  */
 class BookmarksNavigator(
@@ -72,7 +78,23 @@ class BookmarksNavigator(
          * @return the name it got, null if it could not be saved
          */
         suspend fun saveToDownloads(name: String, html: String): String?
+
+        /** The HTML files in Downloads that can be read, the newest first */
+        suspend fun listDownloads(): List<FileInfo>
+
+        /**
+         * Lets the user pick a file in the system picker.
+         * @return null if none was picked
+         * @throws ActivityNotFoundException if there is no picker
+         */
+        suspend fun pick(): FileInfo?
+
+        /** The top level of the bookmarks file ([BookmarksHtml.parse]), null if it can not be read */
+        suspend fun read(file: FileInfo): List<BookmarksHtml.Node>?
     }
+
+    /** @param modified the time of the last change in ms (0 if unknown), [size] in bytes (-1 if unknown) */
+    class FileInfo(val name: String, val uri: String, val modified: Long = 0, val size: Long = -1)
 
     class PageInfo(val title: String, val url: String) {
         companion object {
@@ -93,6 +115,12 @@ class BookmarksNavigator(
         /** A folder to choose, [depth] in the tree of folders */
         class Target(val id: Long, val title: String, val depth: Int, val chosen: Boolean) : Row("t$id")
         object NewFolder : Row("new")
+        /** A bookmarks file to import; [caption] tells its date and size */
+        class ImportFile(val file: FileInfo, val caption: String) : Row("file:${file.uri}")
+        /** Opens the system file picker to choose a file to import */
+        object OtherFiles : Row(OTHER_FILES)
+        /** A way to import the file */
+        class ImportChoice(val mode: ImportMode, val title: String, val caption: String) : Row("mode:$mode")
     }
 
     /** The row of the current page in a folder */
@@ -112,11 +140,18 @@ class BookmarksNavigator(
 
         /** The [rows] are the bookmarks found for the [query]; [status] tells how many (null for no query) */
         class Search(title: String, val query: String, val rows: List<Row>, val status: String?) : Screen(title, true)
+
+        /** The bookmarks files in Downloads, then Other files; [status] tells whether there are any */
+        class ImportFiles(title: String, val rows: List<Row>, val status: String) : Screen(title, true)
+
+        /** The ways to import a file; [summary] tells what it holds */
+        class ImportOptions(title: String, val summary: String, val rows: List<Row>) : Screen(title, true)
     }
 
     /**
      * Focus the row of the [key], else the row at [index]; [FORM_FOLDER] and [FORM_NAME] are the fields of the
-     * form, [SEARCH_FIELD] the field of the search (focused if it is not), [SEARCH_BUTTON] the button that opens it
+     * form, [SEARCH_FIELD] the field of the search (focused if it is not), [SEARCH_BUTTON] the button that opens it,
+     * [MENU_BUTTON] the button of the menu of the screen
      */
     class Focus(val key: String?, val index: Int = 0)
 
@@ -144,6 +179,11 @@ class BookmarksNavigator(
         class PickFolder(val item: FavoriteItem, val form: Form?, val returnIndex: Int) : Page()
 
         class Search(var query: String) : Page()
+
+        class ImportFiles : Page()
+
+        /** @param returnKey the row that opened the file, focused on the page under this one */
+        class ImportOptions(val file: FileInfo, val nodes: List<BookmarksHtml.Node>, val returnKey: String) : Page()
     }
 
     private val pages = ArrayList<Page>()
@@ -189,6 +229,8 @@ class BookmarksNavigator(
             is Page.Form -> if (page.item.id != 0L) keyOf(page.item) else null
             is Page.PickFolder -> if (page.form != null) FORM_FOLDER else keyOf(page.item)
             is Page.Search -> SEARCH_BUTTON
+            is Page.ImportFiles -> MENU_BUTTON
+            is Page.ImportOptions -> page.returnKey
         }
         renderTop(focusKey, if (page is Page.PickFolder) page.returnIndex else 0)
         return true
@@ -232,6 +274,24 @@ class BookmarksNavigator(
                 }
                 host.render(Screen.Search(context.getString(R.string.search_bookmarks), page.query, rows, status),
                     Focus(focusKey, focusIndex))
+            }
+            is Page.ImportFiles -> {
+                val found = files.listDownloads()
+                rows = found.map { Row.ImportFile(it, fileCaption(it)) } + Row.OtherFiles
+                val status = context.getString(if (found.isEmpty()) R.string.no_bookmark_files_in_downloads else
+                    R.string.bookmark_files_in_downloads)
+                host.render(Screen.ImportFiles(context.getString(R.string.import_bookmarks), rows, status),
+                    Focus(focusKey, focusIndex))
+            }
+            is Page.ImportOptions -> {
+                rows = listOf(
+                    Row.ImportChoice(ImportMode.NEW_FOLDER, context.getString(R.string.import_into_new_folder),
+                        context.getString(R.string.import_into_new_folder_caption, importFolderName(page.file))),
+                    Row.ImportChoice(ImportMode.MERGE, context.getString(R.string.import_merge),
+                        context.getString(R.string.import_merge_caption))
+                )
+                host.render(Screen.ImportOptions(context.getString(R.string.import_file, page.file.name),
+                    importSummary(page.nodes), rows), Focus(focusKey, focusIndex))
             }
         }
     }
@@ -308,6 +368,12 @@ class BookmarksNavigator(
             }
             is Row.Target -> onFolderChosen(row.id, row.title)
             Row.NewFolder -> openForm(FavoriteItem(), ROOT) { folder -> onFolderChosen(folder.id, folder.title ?: "") }
+            is Row.ImportFile -> {
+                renderJob?.cancel()
+                renderJob = scope.launch { openFile(row.file, row.key) }
+            }
+            Row.OtherFiles -> pickFile()
+            is Row.ImportChoice -> importFile(row.mode)
         }
     }
 
@@ -329,6 +395,100 @@ class BookmarksNavigator(
             host.showMessage(R.drawable.ic_export, if (name != null) context.getString(R.string.bookmarks_exported, name)
                 else context.getString(R.string.bookmarks_not_exported))
         }
+    }
+
+    // --- import
+
+    /** Opens the list of the bookmarks files in Downloads, or the system picker right away ([pickDirectly]) */
+    fun startImport(pickDirectly: Boolean) {
+        if (topPage !is Page.Folder) return
+        if (pickDirectly) {
+            pickFile()
+        } else {
+            pages += Page.ImportFiles()
+            renderTop(null)
+        }
+    }
+
+    private fun pickFile() {
+        scope.launch {
+            val file = try {
+                files.pick()
+            } catch (e: ActivityNotFoundException) {
+                host.showMessage(R.drawable.ic_folder, context.getString(R.string.no_file_picker))
+                null
+            } ?: return@launch
+            openFile(file, OTHER_FILES)
+        }
+    }
+
+    /** Reads the file and asks how to import it; [returnKey] is the row that opened it */
+    private suspend fun openFile(file: FileInfo, returnKey: String) {
+        val nodes = files.read(file)
+        when {
+            //the screen was closed meanwhile
+            pages.isEmpty() -> {}
+            nodes == null -> host.showMessage(R.drawable.ic_file, context.getString(R.string.bookmarks_file_not_read))
+            countBookmarks(nodes) == 0 ->
+                host.showMessage(R.drawable.ic_file, context.getString(R.string.no_bookmarks_in_file))
+            else -> {
+                val page = Page.ImportOptions(file, nodes, returnKey)
+                pages += page
+                render(page, null, 0)
+            }
+        }
+    }
+
+    private var importing = false
+
+    /** Imports the file and goes back to the folder the import was started from; a message tells the counts */
+    private fun importFile(mode: ImportMode) {
+        val page = topPage as? Page.ImportOptions ?: return
+        if (importing) return
+        importing = true
+        //not with the rendering: going to another screen does not stop it
+        scope.launch {
+            val result = try {
+                favorites.importBookmarks(page.nodes, mode, importFolderName(page.file))
+            } finally {
+                importing = false
+            }
+            host.onBookmarksChanged()
+            host.showMessage(R.drawable.ic_downloads,
+                context.getString(R.string.bookmarks_imported, result.added, result.updated, result.skipped))
+            if (topPage != page) return@launch
+            while (topPage is Page.ImportOptions || topPage is Page.ImportFiles) pages.removeAt(pages.lastIndex)
+            renderTop(result.folder?.let { keyOf(it) } ?: MENU_BUTTON)
+        }
+    }
+
+    /** The folder of the new folder import: the name of the file without its extension */
+    private fun importFolderName(file: FileInfo): String = file.name.substringBeforeLast('.').ifBlank { file.name }
+
+    private fun countBookmarks(nodes: List<BookmarksHtml.Node>): Int =
+        nodes.sumOf { if (it is BookmarksHtml.Folder) countBookmarks(it.children) else 1 }
+
+    private fun countFolders(nodes: List<BookmarksHtml.Node>): Int =
+        nodes.sumOf { if (it is BookmarksHtml.Folder) 1 + countFolders(it.children) else 0 }
+
+    /** How many bookmarks and folders the file holds, and whether TV Bro's Home page folder is among them */
+    private fun importSummary(nodes: List<BookmarksHtml.Node>): String {
+        val res = context.resources
+        val bookmarkCount = countBookmarks(nodes)
+        val folderCount = countFolders(nodes)
+        val bookmarks = res.getQuantityString(R.plurals.bookmark_count, bookmarkCount, bookmarkCount)
+        if (folderCount == 0) return bookmarks
+        val folders = res.getQuantityString(R.plurals.folder_count, folderCount, folderCount)
+        val hasHomePage = nodes.any { it is BookmarksHtml.Folder && it.isHomePage }
+        return context.getString(if (hasHomePage) R.string.import_summary_with_home_page else R.string.import_summary,
+            bookmarks, folders)
+    }
+
+    private fun fileCaption(file: FileInfo): String {
+        val parts = ArrayList<String>()
+        if (file.modified > 0) parts += DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(file.modified))
+        if (file.size >= 0) parts += Formatter.formatShortFileSize(context, file.size)
+        return parts.joinToString(" · ")
     }
 
     // --- the search
@@ -567,6 +727,10 @@ class BookmarksNavigator(
         const val SEARCH_FIELD = "search"
         /** The button that opens the search, focused when the search is closed */
         const val SEARCH_BUTTON = "searchButton"
+        /** The button of the menu of a folder, focused when the import is closed */
+        const val MENU_BUTTON = "menuButton"
+        /** The row that opens the system file picker */
+        const val OTHER_FILES = "otherFiles"
 
         private fun folderKey(id: Long) = "f$id"
         private fun bookmarkKey(id: Long) = "b$id"
