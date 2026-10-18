@@ -181,6 +181,27 @@
     <string name="downloads">Downloads</string>
     <string name="downloading_named_file">Downloading %s</string>
     <string name="downloaded_of">%1$s of %2$s</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="download_speed">%s/s</string>
+    <string name="download_paused">Paused</string>
+    <string name="download_failed">Failed: %s</string>
+    <string name="download_cancelled">Cancelled</string>
+    <string name="download_error_unknown">error</string>
+    <string name="download_error_interrupted">interrupted</string>
+    <string name="download_error_connection">connection lost</string>
+    <string name="download_error_storage">can not write the file</string>
+    <string name="download_error_timeout">took too long</string>
+    <string name="time_left_seconds">%d s left</string>
+    <string name="time_left_minutes">%d min left</string>
+    <string name="time_left_hours">%1$d h %2$d min left</string>
+    <string name="link_copied">Link copied</string>
+    <string name="share">Share</string>
+    <string name="no_folder_app">No app to open folders, install a file manager from the store</string>
+    <string name="nothing_to_clear">No finished downloads to clear</string>
+    <plurals name="downloads_removed">
+        <item quantity="one">%d download removed from the list</item>
+        <item quantity="other">%d downloads removed from the list</item>
+    </plurals>
     <string name="downloads_notifications_description">Notifications regarding download statuses</string>
     <string name="main">Main</string>
     <string name="version_and_updates"><![CDATA[Version & updates]]></string>

@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.browser.DownloadItem
 import com.phlox.tvwebbrowser.browser.decodeBase64Data
 import com.phlox.tvwebbrowser.browser.toDownload
 import com.phlox.tvwebbrowser.model.Download
@@ -71,6 +72,24 @@ class DownloadLauncher(
 
     fun cancel(id: Long) {
         service.send(command(DownloadCommands.CANCEL, id))
+    }
+
+    fun pause(id: Long) {
+        service.send(command(DownloadCommands.PAUSE, id))
+    }
+
+    /** Continues the paused download [item] with the [cookies] the browser has now for its site */
+    fun resume(item: DownloadItem, cookies: String?) {
+        service.send(command(DownloadCommands.RESUME, item.id).apply {
+            data.putString(DownloadCommands.KEY_COOKIES, cookies)
+            data.putString(DownloadCommands.KEY_REFERER, item.referer)
+        })
+    }
+
+    /** Downloads the url of the [item] again, as a new download */
+    fun downloadAgain(item: DownloadItem, userAgent: String?, cookies: String?) {
+        download(DownloadRequest(url = item.url, referer = item.referer ?: "", userAgent = userAgent,
+            cookies = cookies, fileName = item.filename, mimeType = item.mimeType))
     }
 
     private fun start(download: Download) {
