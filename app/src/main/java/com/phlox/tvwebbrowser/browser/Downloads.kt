@@ -14,3 +14,9 @@ fun DownloadRequest.toDownload(): Download {
         it.cookies = cookies
     }
 }
+
+/** The bytes of a `data:` url (`data:image/png;base64,...`) or of plain base64 data */
+fun decodeBase64Data(data: String): ByteArray {
+    val base64 = if (data.startsWith("data:")) data.substringAfter(',') else data
+    return android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
+}

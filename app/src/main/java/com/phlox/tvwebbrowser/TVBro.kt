@@ -16,6 +16,8 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.IOException
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.util.concurrent.ArrayBlockingQueue
@@ -45,6 +47,8 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         const val CHANNEL_ID_DOWNLOADS: String = "downloads"
+        /** The process of DownloadService (see the manifest) */
+        private const val DOWNLOADS_PROCESS_SUFFIX = ":downloads"
         const val MAIN_PREFS_NAME = "main.xml"
         val TAG = TVBro::class.simpleName
     }
@@ -72,6 +76,12 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
 
         AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_MULTI_PROCESS)))
 
+        if (isDownloadsProcess()) {
+            //the process of DownloadService needs the database and the notification channel only
+            initNotificationChannels()
+            return
+        }
+
         val maxThreadsInOfflineJobsPool = Runtime.getRuntime().availableProcessors()
         threadPool = ThreadPoolExecutor(0, maxThreadsInOfflineJobsPool, 20,
                 TimeUnit.SECONDS, ArrayBlockingQueue(maxThreadsInOfflineJobsPool))
@@ -91,6 +101,18 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         registerActivityLifecycleCallbacks(this)
+    }
+
+    private fun isDownloadsProcess(): Boolean {
+        val processName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            getProcessName()
+        } else try {
+            File("/proc/self/cmdline").readText().trimEnd(Char(0))
+        } catch (e: IOException) {
+            Log.e(TAG, "Can not read the process name", e)
+            ""
+        }
+        return processName.endsWith(DOWNLOADS_PROCESS_SUFFIX)
     }
 
     private fun clearUpdateFilesAfterAppUpdate() {

@@ -6,7 +6,6 @@
   <string name="bookmarks">Закладки</string>
   <string name="can_not_recognize">Не вдалося розпізнати</string>
   <string name="deny">Заборонити</string>
-  <string name="download_started">Завантаження розпочато…\nФайл буде збережено в:\n%s</string>
   <string name="downloading_file">Завантаження файлу…</string>
   <string name="edit">Редагувати</string>
   <string name="err_cant_open_file_chooser">Не вдалося відкрити вибір файлів</string>

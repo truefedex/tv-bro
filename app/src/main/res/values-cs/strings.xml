@@ -11,7 +11,6 @@
     <string name="deny">Zamítnout</string>
     <string name="location">Poloha</string>
     <string name="open_in_new_tab">Otevřít na nové kartě</string>
-    <string name="download_started">Stahování zahájeno…\nSoubor bude uložen do:\n%s</string>
     <string name="downloading_file">Stahování souboru…</string>
     <string name="err_cant_open_file_chooser">Nelze otevřít výběr souborů</string>
     <string name="bookmarks">Záložky</string>

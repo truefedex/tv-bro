@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser
 import android.content.Context
 import com.phlox.tvwebbrowser.browser.TabFilesStore
 import com.phlox.tvwebbrowser.data.DataRepositories
+import com.phlox.tvwebbrowser.service.downloads.DownloadServiceClient
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.utils.SerialWriteQueue
 import kotlinx.coroutines.CoroutineScope
@@ -20,6 +21,9 @@ class AppContainer(context: Context) {
 
     /** Tabs database and files writes */
     val tabWrites = SerialWriteQueue(appScope)
+
+    /** Commands to the download service, which runs in its own process */
+    val downloadService by lazy { DownloadServiceClient(appContext) }
 
     /** Engine states and thumbnails of tabs */
     val tabFiles = TabFilesStore(context.filesDir, context.cacheDir)

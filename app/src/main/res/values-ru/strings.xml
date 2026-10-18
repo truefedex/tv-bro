@@ -6,7 +6,6 @@
   <string name="bookmarks">Закладки</string>
   <string name="can_not_recognize">Не удалось распознать</string>
   <string name="deny">Запретить</string>
-  <string name="download_started">Загрузка начата…\nФайл будет сохранён по пути:\n%s</string>
   <string name="downloading_file">Загрузка файла…</string>
   <string name="edit">Редактировать</string>
   <string name="err_cant_open_file_chooser">Не удалось открыть окно выбора файла</string>

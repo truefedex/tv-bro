@@ -45,10 +45,10 @@ class Download() {
     @Ignore
     var operationAfterDownload = OperationAfterDownload.NOP
     @Ignore
-    @Volatile
-    var cancelled: Boolean = false
-    @Ignore
     var cookies: String? = null
+    /** The Referer header of the requests, also for incognito downloads that do not keep [referer] */
+    @Ignore
+    var refererHeader: String? = null
     @Ignore
     var base64BlobData: String? = null
     @Ignore
@@ -67,6 +67,18 @@ class Download() {
         const val CANCELLED = 5
     }
 
+    /** Values of [error] the screens explain; other values are shown as they are (HTTP 404) */
+    object Error {
+        /** The process of the download service died during the download */
+        const val INTERRUPTED = "interrupted"
+        const val CONNECTION = "connection"
+        const val STORAGE = "storage"
+        /** The system stopped the download service, it runs too long */
+        const val TIMEOUT = "timeout"
+
+        fun http(code: Int) = "HTTP $code"
+    }
+
     constructor(url: String, filename: String, filepath: String?, operationAfterDownload: OperationAfterDownload,
                 mimeType: String?, referer: String?, userAgentString: String?, base64BlobData: String?,
                 stream: InputStream?, size: Long = 0L) : this() {
@@ -76,6 +88,7 @@ class Download() {
         this.operationAfterDownload = operationAfterDownload
         this.mimeType = mimeType
         this.referer = referer
+        this.refererHeader = referer
         this.userAgentString = userAgentString
         this.base64BlobData = base64BlobData
         this.stream = stream

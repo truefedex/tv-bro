@@ -10,7 +10,6 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.Process
@@ -58,7 +57,6 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.io.File
 import java.util.Calendar
 import kotlin.system.exitProcess
 
@@ -70,6 +68,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
         const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
+        /** Open the downloads (the notification of the download service) */
+        const val KEY_SHOW_DOWNLOADS = "show_downloads"
     }
 
     private lateinit var uiMode: UiMode
@@ -288,6 +288,9 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     @SuppressLint("MissingSuperCall")
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false)) {
+            showDownloads()
+        }
         if (intent.data != null) {
             if (tabsLoaded) {
                 handleIntent(intent)
@@ -323,6 +326,9 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         }
 
         shell.onTabsLoaded()
+        if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false)) {
+            showDownloads()
+        }
         if (autoUpdateModel.needAutoCheckUpdates &&
             autoUpdateModel.updateChecker.versionCheckResult == null &&
                 !autoUpdateModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
@@ -617,8 +623,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     }
 
     private fun onDownloadStarted(fileName: String) {
-        Utils.showToast(this, getString(R.string.download_started,
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + File.separator + fileName))
+        Utils.showToast(this, getString(R.string.downloading_named_file, fileName))
         shell.onDownloadStarted()
     }
 

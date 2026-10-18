@@ -131,8 +131,10 @@
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />
 
+        <!-- its own process: the downloads go on while the browser switches to or from incognito -->
         <service
             android:name=".service.downloads.DownloadService"
+            android:process=":downloads"
             android:foregroundServiceType="dataSync"
             android:exported="false"/>
 

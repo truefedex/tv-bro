@@ -11,7 +11,6 @@
     <string name="deny">Refuser</string>
     <string name="location">Position</string>
     <string name="open_in_new_tab">Ouvrir dans un nouvel onglet</string>
-    <string name="download_started">Téléchargement commencé…\nLe fichier sera enregistré dans :\n%s</string>
     <string name="downloading_file">Téléchargement du fichier…</string>
     <string name="err_cant_open_file_chooser">Impossible d’ouvrir le sélecteur de fichiers</string>
     <string name="bookmarks">Favoris</string>

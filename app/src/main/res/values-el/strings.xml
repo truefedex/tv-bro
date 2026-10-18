@@ -11,7 +11,6 @@
     <string name="deny">Άρνηση</string>
     <string name="location">Τοποθεσία</string>
     <string name="open_in_new_tab">Άνοιγμα σε νέα καρτέλα</string>
-    <string name="download_started">Η λήψη ξεκίνησε…\nΤο αρχείο θα αποθηκευτεί στο:\n%s</string>
     <string name="downloading_file">Λήψη αρχείου…</string>
     <string name="err_cant_open_file_chooser">Δεν είναι δυνατό το άνοιγμα της επιλογής αρχείων</string>
     <string name="bookmarks">Σελιδοδείκτες</string>

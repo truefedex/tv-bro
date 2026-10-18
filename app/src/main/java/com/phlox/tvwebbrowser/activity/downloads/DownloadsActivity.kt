@@ -17,12 +17,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.activity.main.DownloadLauncher
+import com.phlox.tvwebbrowser.browser.DownloadsModel
 import com.phlox.tvwebbrowser.databinding.ActivityDownloadsBinding
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.utils.DownloadFileActions
 import com.phlox.tvwebbrowser.utils.SystemBars
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
@@ -31,26 +33,15 @@ import com.phlox.tvwebbrowser.widgets.datedlist.StickyHeaderDecoration
 import com.phlox.tvwebbrowser.widgets.datedlist.StickyHeaderLayoutManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.*
 
-class DownloadsActivity : AppCompatActivity(), ActiveDownloadsModel.Listener {
+class DownloadsActivity : AppCompatActivity() {
     private lateinit var vb: ActivityDownloadsBinding
     private lateinit var adapter: DownloadListAdapter
-    private val listeners = ArrayList<ActiveDownloadsModel.Listener>()
-
-    private lateinit var activeDownloadsModel: ActiveDownloadsModel
-    private lateinit var downloadsHistoryModel: DownloadsHistoryModel
-
-    private val onListScrollListener = object : RecyclerView.OnScrollListener() {
-        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-            val count = adapter.itemCount
-            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-            if (count != 0 && layoutManager.findLastVisibleItemPosition() >= count - 2) {
-                downloadsHistoryModel.loadNextItems()
-            }
-        }
-    }
+    private lateinit var downloadsModel: DownloadsModel
+    private val downloadLauncher = DownloadLauncher(this) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,8 +50,7 @@ class DownloadsActivity : AppCompatActivity(), ActiveDownloadsModel.Listener {
         setContentView(vb.root)
         SystemBars.matchIconsToTheme(window)
 
-        activeDownloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, this)
-        downloadsHistoryModel = ActiveModelsRepository.get(DownloadsHistoryModel::class, this)
+        downloadsModel = ActiveModelsRepository.get(DownloadsModel::class, this)
 
         adapter = DownloadListAdapter(this)
         val stickyHeader = StickyHeaderDecoration(adapter)
@@ -69,35 +59,32 @@ class DownloadsActivity : AppCompatActivity(), ActiveDownloadsModel.Listener {
         vb.listView.addItemDecoration(ListDividerDecoration(vb.listView, adapter))
         vb.listView.addItemDecoration(stickyHeader)
         vb.listView.adapter = adapter
-        vb.listView.addOnScrollListener(onListScrollListener)
 
-        downloadsHistoryModel.lastLoadedItems.subscribe(this, false, {
-            if (it.isNotEmpty()) showItems()
-        })
-
-        if (downloadsHistoryModel.allItems.isEmpty()) {
-            downloadsHistoryModel.loadNextItems()
-        } else {
-            showItems()
+        lifecycleScope.launch {
+            downloadsModel.downloads.collect { items ->
+                if (items.isEmpty()) return@collect
+                vb.tvPlaceholder.visibility = View.GONE
+                val first = adapter.items.isEmpty()
+                adapter.submitItems(items.map { it.toDownload() }) {
+                    if (first) vb.listView.requestFocus()
+                }
+            }
         }
     }
 
-    private fun showItems() {
-        vb.tvPlaceholder.visibility = View.GONE
-        val first = adapter.items.isEmpty()
-        adapter.submitItems(downloadsHistoryModel.allItems.toList()) {
-            if (first) vb.listView.requestFocus()
-        }
+    override fun onStart() {
+        super.onStart()
+        downloadLauncher.bindService()
     }
 
-    override fun onResume() {
-        super.onResume()
-        activeDownloadsModel.registerListener(this)
+    override fun onStop() {
+        super.onStop()
+        downloadLauncher.unbindService()
     }
 
-    override fun onPause() {
-        activeDownloadsModel.unregisterListener(this@DownloadsActivity)
-        super.onPause()
+    override fun onDestroy() {
+        ActiveModelsRepository.markAsNeedless(downloadsModel, this)
+        super.onDestroy()
     }
 
     fun onItemClick(v: DownloadListItemView) {
@@ -150,7 +137,7 @@ class DownloadsActivity : AppCompatActivity(), ActiveDownloadsModel.Listener {
         val pm = PopupMenu(this, v, Gravity.BOTTOM)
         pm.menu.add(R.string.cancel)
         pm.setOnMenuItemClickListener {
-            activeDownloadsModel.cancelDownload(v.download!!)
+            downloadLauncher.cancel(v.download!!.id)
             true
         }
         pm.show()
@@ -224,32 +211,9 @@ class DownloadsActivity : AppCompatActivity(), ActiveDownloadsModel.Listener {
 
     private fun deleteItem(v: DownloadListItemView) = lifecycleScope.launch(Dispatchers.Main) {
         v.download?.let {
-            activeDownloadsModel.deleteItem(it)
-            downloadsHistoryModel.remove(it)
-            adapter.submitItems(downloadsHistoryModel.allItems.toList())
+            withContext(Dispatchers.IO) { DownloadFileActions.deleteFile(this@DownloadsActivity, it) }
+            TVBro.container.data.downloads.delete(it)
         }
-    }
-
-    override fun onDownloadUpdated(downloadInfo: Download) {
-        for (i in listeners.indices) {
-            listeners[i].onDownloadUpdated(downloadInfo)
-        }
-    }
-
-    override fun onDownloadError(downloadInfo: Download, responseCode: Int, responseMessage: String) {
-        for (i in listeners.indices) {
-            listeners[i].onDownloadError(downloadInfo, responseCode, responseMessage)
-        }
-    }
-
-    override fun onAllDownloadsComplete() {}
-
-    fun registerListener(listener: ActiveDownloadsModel.Listener) {
-        listeners.add(listener)
-    }
-
-    fun unregisterListener(listener: ActiveDownloadsModel.Listener) {
-        listeners.remove(listener)
     }
 
     companion object {

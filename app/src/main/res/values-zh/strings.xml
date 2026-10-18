@@ -11,7 +11,6 @@
   <string name="deny">拒绝</string>
   <string name="location">位置信息</string>
   <string name="open_in_new_tab">在新标签页中打开</string>
-  <string name="download_started">开始下载…\n文件将保存到：\n%s</string>
   <string name="downloading_file">正在下载文件…</string>
   <string name="err_cant_open_file_chooser">无法打开文件选择器</string>
   <string name="bookmarks">书签</string>

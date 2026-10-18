@@ -11,7 +11,6 @@
   <string name="deny">Ablehnen</string>
   <string name="location">Standort</string>
   <string name="open_in_new_tab">In neuem Tab öffnen</string>
-  <string name="download_started">Download gestartet…\nDie Datei wird gespeichert unter:\n%s</string>
   <string name="downloading_file">Datei wird heruntergeladen…</string>
   <string name="err_cant_open_file_chooser">Dateiauswahl kann nicht geöffnet werden</string>
   <string name="bookmarks">Lesezeichen</string>

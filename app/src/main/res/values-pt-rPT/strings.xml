@@ -11,7 +11,6 @@
     <string name="deny">Recusar</string>
     <string name="location">Localização</string>
     <string name="open_in_new_tab">Abrir num novo separador</string>
-    <string name="download_started">Transferência iniciada…\nO ficheiro será guardado em:\n%s</string>
     <string name="downloading_file">A transferir ficheiro…</string>
     <string name="err_cant_open_file_chooser">Não é possível abrir o seletor de ficheiros</string>
     <string name="bookmarks">Marcadores</string>

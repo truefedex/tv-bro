@@ -13,13 +13,15 @@ import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
-import com.phlox.tvwebbrowser.activity.downloads.ActiveDownloadsModel
+import com.phlox.tvwebbrowser.browser.DownloadsModel
 import com.phlox.tvwebbrowser.databinding.ViewActionbarBinding
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
+import kotlinx.coroutines.launch
 
 class ActionBar @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -28,7 +30,7 @@ class ActionBar @JvmOverloads constructor(
     private val vb = ViewActionbarBinding.inflate( LayoutInflater.from(context),this)
     var callback: Callback? = null
     private var downloadAnimation: Animation? = null
-    private var downloadsModel = ActiveModelsRepository.get(ActiveDownloadsModel::class, context)
+    private var downloadsModel = ActiveModelsRepository.get(DownloadsModel::class, context)
     /**
      * The address is edited: the field is selected and its text has the focus. Otherwise the address
      * is a focus stop (focused, not edited), so Left and Right move between the bar buttons
@@ -129,8 +131,9 @@ class ActionBar @JvmOverloads constructor(
         vb.etUrl.setOnKeyListener(etUrlKeyListener)
 
 
-        downloadsModel.activeDownloads.subscribe(context as AppCompatActivity) {
-            if (it.isNotEmpty()) {
+        (context as AppCompatActivity).lifecycleScope.launch {
+            downloadsModel.activeCount.collect {
+            if (it > 0) {
                 if (downloadAnimation == null) {
                     downloadAnimation = AnimationUtils.loadAnimation(context, R.anim.infinite_fadeinout_anim)
                     vb.ibDownloads.startAnimation(downloadAnimation)
@@ -141,6 +144,7 @@ class ActionBar @JvmOverloads constructor(
                     vb.ibDownloads.clearAnimation()
                     downloadAnimation = null
                 }
+            }
             }
         }
     }

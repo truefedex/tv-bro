@@ -18,7 +18,6 @@ class DownloadListAdapter(private val downloadsActivity: DownloadsActivity) : Da
 
     override fun onCreateItemViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.view_download_item, parent, false) as DownloadListItemView
-        view.updates = downloadsActivity
         view.setOnClickListener { downloadsActivity.onItemClick(view) }
         view.setOnLongClickListener { downloadsActivity.onItemLongClick(view) }
         return object : RecyclerView.ViewHolder(view) {}
@@ -30,7 +29,7 @@ class DownloadListAdapter(private val downloadsActivity: DownloadsActivity) : Da
 
     private object ItemDiff : DiffUtil.ItemCallback<Download>() {
         override fun areItemsTheSame(oldItem: Download, newItem: Download) = oldItem.id == newItem.id
-        //the progress of a download comes to its row directly (see DownloadListItemView)
+        //the rows are new objects whenever the database changes
         override fun areContentsTheSame(oldItem: Download, newItem: Download) = oldItem === newItem
     }
 }

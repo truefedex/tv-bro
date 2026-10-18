@@ -1,27 +1,32 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Handler
-import android.os.IBinder
-import android.os.Looper
+import android.os.Bundle
+import android.os.Message
+import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.browser.decodeBase64Data
 import com.phlox.tvwebbrowser.browser.toDownload
 import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.service.downloads.DownloadService
+import com.phlox.tvwebbrowser.service.downloads.DownloadCommands
 import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.ByteArrayInputStream
+import java.io.IOException
+import java.io.InputStream
 
 /**
- * Starts downloads in [DownloadService] on behalf of the [activity]: asks for the needed
- * permissions first and keeps the service bound while the activity is started.
+ * Starts and controls downloads in [DownloadService] (its own process) on behalf of the
+ * [activity]: asks for the needed permissions, inserts the database row of a new download and
+ * sends the commands. The service is bound while the activity is started.
  */
 class DownloadLauncher(
     private val activity: ComponentActivity,
@@ -31,37 +36,15 @@ class DownloadLauncher(
         private const val TAG = "DownloadLauncher"
     }
 
-    private var service: DownloadService? = null
-    private val handler = Handler(Looper.getMainLooper())
+    private val service get() = TVBro.container.downloadService
 
-    private val connection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, binder: IBinder) {
-            val downloadServiceBinder = binder as? DownloadService.Binder
-            if (downloadServiceBinder == null) {
-                Log.e(TAG, "Download service connection failed")
-                //probably service still in another process due to incognito mode process switch
-                //so we will try to reconnect in a few seconds
-                handler.postDelayed({
-                    activity.bindService(Intent(activity, DownloadService::class.java),
-                        this, Context.BIND_AUTO_CREATE)
-                }, 1000)
-                return
-            }
-            service = downloadServiceBinder.service
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            service = null
-        }
-    }
-
+    /** Keeps the service bound while the activity is started */
     fun bindService() {
-        activity.bindService(Intent(activity, DownloadService::class.java), connection, Context.BIND_AUTO_CREATE)
+        service.acquire()
     }
 
     fun unbindService() {
-        activity.unbindService(connection)
-        service = null
+        service.release()
     }
 
     fun download(request: DownloadRequest) {
@@ -86,8 +69,64 @@ class DownloadLauncher(
         }
     }
 
+    fun cancel(id: Long) {
+        service.send(command(DownloadCommands.CANCEL, id))
+    }
+
     private fun start(download: Download) {
-        service?.startDownload(download)
-        onDownloadStarted(download)
+        val referer = download.referer
+        //incognito downloads do not keep the page they came from
+        if (AppContext.provideConfig().incognitoMode) download.referer = null
+        download.time = System.currentTimeMillis()
+        download.status = Download.Status.IN_PROGRESS
+        //the row outlives the activity, it is the download now
+        TVBro.container.appScope.launch {
+            download.id = TVBro.container.data.downloads.insert(download)
+            val message = command(DownloadCommands.START, download.id).apply {
+                data.putString(DownloadCommands.KEY_COOKIES, download.cookies)
+                data.putString(DownloadCommands.KEY_REFERER, referer)
+                data.putBoolean(DownloadCommands.KEY_INSTALL,
+                    download.operationAfterDownload == Download.OperationAfterDownload.INSTALL)
+                engineInput(download)?.let { data.putParcelable(DownloadCommands.KEY_STREAM, pipe(it)) }
+            }
+            service.send(message)
+            onDownloadStarted(download)
+        }
+    }
+
+    /** The contents of a download the web engine fetched itself, they can not be fetched again */
+    private fun engineInput(download: Download): InputStream? {
+        download.stream?.let { return it }
+        val blobData = download.base64BlobData ?: return null
+        return try {
+            ByteArrayInputStream(decodeBase64Data(blobData))
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "Wrong blob data of ${download.url}", e)
+            ByteArrayInputStream(ByteArray(0))
+        }
+    }
+
+    /**
+     * The read end of a pipe the [input] is copied to, for the service process. If this process
+     * dies or the input fails, the service gets an error at the end of the pipe.
+     */
+    private fun pipe(input: InputStream): ParcelFileDescriptor {
+        val (readEnd, writeEnd) = ParcelFileDescriptor.createReliablePipe()
+        TVBro.container.appScope.launch(Dispatchers.IO) {
+            try {
+                input.use { ParcelFileDescriptor.AutoCloseOutputStream(writeEnd).use { output -> input.copyTo(output, 64 * 1024) } }
+            } catch (e: IOException) {
+                Log.w(TAG, "Can not pass the download to the service", e)
+                try {
+                    writeEnd.closeWithError(e.message ?: "IOException")
+                } catch (ignored: IOException) {
+                }
+            }
+        }
+        return readEnd
+    }
+
+    private fun command(what: Int, id: Long) = Message.obtain(null, what).apply {
+        data = Bundle().apply { putLong(DownloadCommands.KEY_ID, id) }
     }
 }

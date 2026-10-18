@@ -11,7 +11,6 @@
   <string name="deny">Odmów</string>
   <string name="location">Lokalizacja</string>
   <string name="open_in_new_tab">Otwórz w nowej karcie</string>
-  <string name="download_started">Rozpoczęto pobieranie…\nPlik zostanie zapisany w:\n%s</string>
   <string name="downloading_file">Pobieranie pliku…</string>
   <string name="err_cant_open_file_chooser">Nie można otworzyć programu do wybierania plików</string>
   <string name="bookmarks">Zakładki</string>

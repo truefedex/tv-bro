@@ -11,7 +11,6 @@
     <string name="deny">Denegar</string>
     <string name="location">Ubicación</string>
     <string name="open_in_new_tab">Abrir en una pestaña nueva</string>
-    <string name="download_started">Descarga iniciada…\nEl archivo se guardará en:\n%s</string>
     <string name="downloading_file">Descargando archivo…</string>
     <string name="err_cant_open_file_chooser">No se puede abrir el selector de archivos</string>
     <string name="bookmarks">Marcadores</string>

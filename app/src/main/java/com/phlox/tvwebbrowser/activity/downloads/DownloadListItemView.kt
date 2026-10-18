@@ -19,8 +19,8 @@ import java.util.Locale
  * Created by PDT on 24.01.2017.
  */
 
-/** A row of the downloads list (the root of view_download_item); it shows the progress of its download */
-class DownloadListItemView(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs), ActiveDownloadsModel.Listener {
+/** A row of the downloads list (the root of view_download_item) */
+class DownloadListItemView(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs) {
     private var defaultTextColor: Int = 0
     private var tvTitle: TextView? = null
     private var tvURL: TextView? = null
@@ -28,8 +28,6 @@ class DownloadListItemView(context: Context, attrs: AttributeSet?) : LinearLayou
     private var progressBar: ProgressBar? = null
     private var progressBar2: ProgressBar? = null
     private var tvSize: TextView? = null
-    /** Where the row gets the updates of downloads while it is attached */
-    var updates: DownloadsActivity? = null
     var download: Download? = null
     set(value) {
         field = value
@@ -91,28 +89,4 @@ class DownloadListItemView(context: Context, attrs: AttributeSet?) : LinearLayou
             }
         }
     }
-
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-        updates?.registerListener(this)
-    }
-
-    override fun onDetachedFromWindow() {
-        updates?.unregisterListener(this)
-        super.onDetachedFromWindow()
-    }
-
-    override fun onDownloadUpdated(downloadInfo: Download) {
-        if (downloadInfo.id == this.download?.id) {
-            updateUI(downloadInfo)
-        }
-    }
-
-    override fun onDownloadError(downloadInfo: Download, responseCode: Int, responseMessage: String) {
-        if (downloadInfo.id == this.download?.id) {
-            updateUI(downloadInfo)
-        }
-    }
-
-    override fun onAllDownloadsComplete() {}
 }

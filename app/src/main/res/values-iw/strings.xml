@@ -11,7 +11,6 @@
   <string name="deny">דחה</string>
   <string name="location">מיקום</string>
   <string name="open_in_new_tab">פתח בכרטיסייה חדשה</string>
-  <string name="download_started">ההורדה התחילה…\nהקובץ יישמר ב:\n%s</string>
   <string name="downloading_file">מוריד קובץ…</string>
   <string name="err_cant_open_file_chooser">לא ניתן לפתוח את בוחר הקבצים</string>
   <string name="bookmarks">סימניות</string>

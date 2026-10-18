@@ -11,7 +11,6 @@
   <string name="deny">Từ chối</string>
   <string name="location">Vị trí</string>
   <string name="open_in_new_tab">Mở trong tab mới</string>
-  <string name="download_started">Đã bắt đầu tải xuống…\nTệp sẽ được lưu tại:\n%s</string>
   <string name="downloading_file">Đang tải tệp xuống…</string>
   <string name="err_cant_open_file_chooser">Không thể mở Trình chọn tệp</string>
   <string name="bookmarks">Dấu trang</string>

@@ -35,7 +35,6 @@
     <string name="tab_options">Tab options</string>
     <!-- %s: the title of the tab -->
     <string name="tab_closed">%s tab closed</string>
-    <string name="download_started">Download started…\nFile will be stored at:\n%s</string>
     <string name="downloading_file">Downloading file…</string>
     <string name="err_cant_open_file_chooser">Cannot open file chooser</string>
     <string name="bookmarks">Bookmarks</string>
@@ -180,6 +179,8 @@
     <string name="new_version_dialog_title">New version available</string>
     <string name="later">Later</string>
     <string name="downloads">Downloads</string>
+    <string name="downloading_named_file">Downloading %s</string>
+    <string name="downloaded_of">%1$s of %2$s</string>
     <string name="downloads_notifications_description">Notifications regarding download statuses</string>
     <string name="main">Main</string>
     <string name="version_and_updates"><![CDATA[Version & updates]]></string>
