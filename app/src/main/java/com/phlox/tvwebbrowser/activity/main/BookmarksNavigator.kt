@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.annotation.DrawableRes
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.data.BookmarksHtml
 import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.HOME_PAGE
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.ROOT
@@ -12,6 +13,9 @@ import com.phlox.tvwebbrowser.model.FavoriteItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * What the bookmarks screens show and do, without their look (the TV panel, the phone screen). One
@@ -21,11 +25,13 @@ import kotlinx.coroutines.launch
  * - the form of a bookmark or a folder;
  * - the choice of a folder, to move a bookmark or folder to, or for the form;
  * - the search of bookmarks in every folder, over the folder it was started from.
+ * All bookmarks can be exported to a bookmarks file in Downloads ([BookmarksHtml]).
  * Each change of the screen goes to [Host.render] with the row (or field) to focus.
  */
 class BookmarksNavigator(
     private val context: Context,
     private val favorites: FavoritesRepository,
+    private val files: Files,
     private val scope: CoroutineScope,
     private val host: Host
 ) {
@@ -56,6 +62,16 @@ class BookmarksNavigator(
         fun confirm(message: String, action: () -> Unit)
         /** Recognizes speech for the search field; [onResult] gets the text */
         fun startVoiceSearch(onResult: (String) -> Unit)
+        val bookmarkFiles: Files
+    }
+
+    /** The bookmarks files on the device */
+    interface Files {
+        /**
+         * Saves the [html] in Downloads as [name], or under another name if it is taken.
+         * @return the name it got, null if it could not be saved
+         */
+        suspend fun saveToDownloads(name: String, html: String): String?
     }
 
     class PageInfo(val title: String, val url: String) {
@@ -300,6 +316,19 @@ class BookmarksNavigator(
         val page = topPage as? Page.Folder ?: return
         if (page.id == HOME_PAGE) return
         openForm(FavoriteItem(), page.id)
+    }
+
+    // --- export
+
+    /** Writes every bookmark and folder into a bookmarks file in Downloads; a message names the file */
+    fun export() {
+        scope.launch {
+            val html = BookmarksHtml.write(favorites.exportTree(homePageTitle))
+            val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+            val name = files.saveToDownloads(context.getString(R.string.bookmarks_file_name, date), html)
+            host.showMessage(R.drawable.ic_export, if (name != null) context.getString(R.string.bookmarks_exported, name)
+                else context.getString(R.string.bookmarks_not_exported))
+        }
     }
 
     // --- the search

@@ -65,6 +65,23 @@ class FavoritesRepository(private val dao: FavoritesDao) {
     }
 
     /**
+     * Every folder and bookmark as the tree of a bookmarks file: the Home page folder (named [homePageTitle],
+     * left out when it is empty) first, as it is shown, then the top level; each folder in its order.
+     */
+    suspend fun exportTree(homePageTitle: String): List<BookmarksHtml.Node> {
+        suspend fun nodes(folder: Long): List<BookmarksHtml.Node> = children(folder).map { item ->
+            if (item.isFolder) {
+                BookmarksHtml.Folder(item.title ?: "", nodes(item.id))
+            } else {
+                BookmarksHtml.Link(item.title ?: "", item.url ?: "")
+            }
+        }
+        val homePage = nodes(HOME_PAGE)
+        val top = nodes(ROOT)
+        return if (homePage.isEmpty()) top else listOf(BookmarksHtml.Folder(homePageTitle, homePage, isHomePage = true)) + top
+    }
+
+    /**
      * Inserts (id 0, the id is set to the item) or updates the bookmark.
      */
     suspend fun save(item: FavoriteItem) {

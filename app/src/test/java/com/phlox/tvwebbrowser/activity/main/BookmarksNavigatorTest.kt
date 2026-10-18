@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.phlox.tvwebbrowser.activity.main.BookmarksNavigator.Action
 import com.phlox.tvwebbrowser.activity.main.BookmarksNavigator.Focus
 import com.phlox.tvwebbrowser.activity.main.BookmarksNavigator.Screen
+import com.phlox.tvwebbrowser.data.BookmarksHtml
 import com.phlox.tvwebbrowser.data.DataRepositories
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.HOME_PAGE
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.ROOT
@@ -36,8 +37,20 @@ class BookmarksNavigatorTest {
     private val messages = ArrayList<String>()
     private var closed = false
     private var opened: String? = null
+    private val files = FakeFiles()
 
-    private val navigator = BookmarksNavigator(context, favorites, CoroutineScope(Dispatchers.Unconfined),
+    /** Files in memory, as if Downloads held them */
+    private class FakeFiles : BookmarksNavigator.Files {
+        val saved = LinkedHashMap<String, String>()
+
+        override suspend fun saveToDownloads(name: String, html: String): String {
+            val savedName = if (saved.containsKey(name)) name.replace(".html", " (1).html") else name
+            saved[savedName] = html
+            return savedName
+        }
+    }
+
+    private val navigator = BookmarksNavigator(context, favorites, files, CoroutineScope(Dispatchers.Unconfined),
         object : BookmarksNavigator.Host {
             override fun currentPage() = page
             override fun render(screen: Screen, focus: Focus) {
@@ -302,5 +315,23 @@ class BookmarksNavigatorTest {
 
         navigator.onRowClick(searchScreen.rows.single())
         assertEquals("https://alpha.com/", opened)
+    }
+
+    @Test
+    fun everythingIsExportedToAFileThatTheMessageNames() {
+        bookmark("tile", HOME_PAGE)
+        val f = folder("f")
+        bookmark("inner", f.id)
+        bookmark("top")
+        navigator.start()
+        navigator.export()
+        val (name, html) = files.saved.entries.single()
+        assertTrue(name.matches(Regex("""tvbro-bookmarks-\d{4}-\d{2}-\d{2}\.html""")))
+        assertEquals(listOf("Bookmarks saved to Downloads: $name"), messages)
+        assertEquals(listOf(
+            BookmarksHtml.Folder("Home page", listOf(BookmarksHtml.Link("tile", "https://tile.com/")), isHomePage = true),
+            BookmarksHtml.Folder("f", listOf(BookmarksHtml.Link("inner", "https://inner.com/"))),
+            BookmarksHtml.Link("top", "https://top.com/")
+        ), BookmarksHtml.parse(html))
     }
 }

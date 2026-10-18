@@ -181,4 +181,26 @@ class FavoritesRepositoryTest {
         //folders are not found
         assertTrue(favorites.search("f").none { it.isFolder })
     }
+
+    @Test
+    fun exportedTreeHasTheHomePageFirstAndFoldersInTheirOrder() = runBlocking {
+        assertTrue(favorites.exportTree("Home page").isEmpty())
+        val outer = folder("outer")
+        favorites.add(outer, ROOT)
+        val inner = folder("inner")
+        favorites.add(inner, outer.id)
+        favorites.add(bookmark("deep"), inner.id)
+        favorites.add(bookmark("a"), ROOT)
+        favorites.add(bookmark("b"), ROOT)
+        assertEquals(listOf(
+            BookmarksHtml.Folder("outer", listOf(BookmarksHtml.Folder("inner", listOf(BookmarksHtml.Link("deep", "https://deep.com/"))))),
+            BookmarksHtml.Link("b", "https://b.com/"),
+            BookmarksHtml.Link("a", "https://a.com/")
+        ), favorites.exportTree("Home page"))
+
+        favorites.add(bookmark("t1"), HOME_PAGE)
+        favorites.add(bookmark("t2"), HOME_PAGE)
+        assertEquals(BookmarksHtml.Folder("Home page", listOf(BookmarksHtml.Link("t1", "https://t1.com/"),
+            BookmarksHtml.Link("t2", "https://t2.com/")), isHomePage = true), favorites.exportTree("Home page").first())
+    }
 }

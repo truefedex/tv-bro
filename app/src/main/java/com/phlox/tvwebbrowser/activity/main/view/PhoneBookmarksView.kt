@@ -164,7 +164,7 @@ class PhoneBookmarksView @JvmOverloads constructor(
         this.scope = scope
         this.sheet = sheet
         this.callback = callback
-        navigator = BookmarksNavigator(context, TVBro.container.data.favorites, scope, object : BookmarksNavigator.Host {
+        navigator = BookmarksNavigator(context, TVBro.container.data.favorites, callback.bookmarkFiles, scope, object : BookmarksNavigator.Host {
             override fun currentPage() = callback.currentPage()
 
             override fun render(screen: Screen, focus: BookmarksNavigator.Focus) = this@PhoneBookmarksView.render(screen, focus)
@@ -347,7 +347,8 @@ class PhoneBookmarksView @JvmOverloads constructor(
         val folder = screen as? Screen.Folder ?: return
         sheet.show(null, null, listOf(
             PopupMenuView.Item(R.drawable.ic_create_new_folder, context.getString(R.string.new_folder),
-                enabled = folder.canCreateFolder) { navigator.createFolder() }
+                enabled = folder.canCreateFolder) { navigator.createFolder() },
+            PopupMenuView.Item(R.drawable.ic_export, context.getString(R.string.export_bookmarks)) { navigator.export() }
         ))
     }
 

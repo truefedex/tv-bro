@@ -171,6 +171,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         }
 
         override fun startVoiceSearch(onResult: (String) -> Unit) = bookmarksVoiceSearch.recognize(onResult)
+
+        override val bookmarkFiles = DeviceBookmarkFiles(activity)
     }
 
     /** The switcher stays open when tabs are closed, it closes when a tab is chosen or opened */

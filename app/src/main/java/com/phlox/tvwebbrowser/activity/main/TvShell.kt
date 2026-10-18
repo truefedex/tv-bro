@@ -255,6 +255,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
 
         override fun startVoiceSearch(onResult: (String) -> Unit) = bookmarksVoiceSearch.recognize(onResult)
+
+        override val bookmarkFiles = DeviceBookmarkFiles(activity)
     }
 
     override fun showSettings() = host.showSettings()
