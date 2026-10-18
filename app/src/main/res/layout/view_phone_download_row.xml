@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+A row of the phone downloads (the list draws the dividers between rows): the icon of the kind of the
+file, its name, a caption and the progress of a download in progress; then pause or resume and cancel
+for a download in progress, else the button of its options.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="?attr/tbColorDsSurface">
+
+  <!-- not match_parent: the row is as tall as its texts -->
+  <LinearLayout
+      android:id="@+id/llMain"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:minHeight="@dimen/ds_phone_download_row_height"
+      android:layout_weight="1"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_phone_bookmark_row_padding"
+      android:paddingEnd="@dimen/ds_phone_menu_row_padding"
+      android:background="@drawable/ds_menu_row_bg"
+      android:clickable="true"
+      android:longClickable="true">
+
+    <ImageView
+        style="@style/Widget.TVBro.DownloadIcon.Phone"
+        android:id="@+id/ivIcon"
+        tools:src="@drawable/ic_app" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingTop="@dimen/ds_bookmark_row_text_padding"
+        android:paddingBottom="@dimen/ds_bookmark_row_text_padding"
+        android:layout_marginStart="@dimen/ds_phone_bookmark_icon_text"
+        android:orientation="vertical">
+
+      <TextView
+          android:id="@+id/tvTitle"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textSize="@dimen/ds_text_phone_menu_item"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="middle"
+          tools:text="tvbro-2.4.0-arm64-v8a.apk" />
+
+      <TextView
+          android:id="@+id/tvCaption"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textSize="@dimen/ds_text_phone_caption"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          tools:text="29.1 of 48.2 MB · 8 s left" />
+
+      <ProgressBar
+          style="@style/Widget.TVBro.DownloadProgress"
+          android:id="@+id/pbProgress"
+          tools:progress="600" />
+    </LinearLayout>
+  </LinearLayout>
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+      android:id="@+id/ibFirst"
+      tools:src="@drawable/ic_pause" />
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+      android:id="@+id/ibSecond"
+      tools:src="@drawable/ic_close" />
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+      android:id="@+id/ibOptions"
+      android:layout_marginEnd="@dimen/ds_phone_bar_padding_horizontal"
+      android:src="@drawable/ic_more_vert"
+      tools:contentDescription="Options of tvbro-2.4.0-arm64-v8a.apk" />
+</LinearLayout>

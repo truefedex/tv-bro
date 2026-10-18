@@ -23,7 +23,6 @@
   <string name="save">Сохранить</string>
   <string name="search_engine_url_with_query_placeholder_query">URL поисковой системы с параметром запроса [query]</string>
   <string name="cancel">Отмена</string>
-  <string name="cancelled">Отменено</string>
   <string name="choose_user_agent_string">Выберите строку User Agent</string>
   <string name="delete">Удалить</string>
   <string name="download">Скачать</string>
@@ -40,9 +39,7 @@
   <string name="history">История</string>
   <string name="navigate_back">Назад</string>
   <string name="navigate_home">На домашнюю страницу</string>
-  <string name="no_file_explorer_msg">Похоже, на вашем устройстве нет подходящего файлового менеджера</string>
   <string name="not_set">Не задано</string>
-  <string name="open_folder">Открыть папку</string>
   <string name="press_any_key">Нажмите любую клавишу...</string>
   <string name="shortcut_key_reserved_for_navigation">Эта клавиша зарезервирована для навигации в браузере</string>
   <string name="refresh_page">Обновить страницу</string>
@@ -54,8 +51,6 @@
   <string name="install">Установить</string>
   <string name="turn_on_unknown_sources">Пожалуйста, включите системную настройку «Неизвестные источники»</string>
   <string name="turn_on_unknown_sources_for_app">Пожалуйста, разрешите TV Bro устанавливать приложения из «Неизвестных источников» в настройках системы</string>
-  <string name="storage_not_mounted">Хранилище не подключено</string>
-  <string name="can_not_create_downloads">Не удалось создать папку для загрузок</string>
   <string name="voice_search_not_found">Приложение голосового поиска не найдено</string>
   <string name="msg_delete_history_all">Удалить всю историю?</string>
   <string name="downloads">Загрузки</string>

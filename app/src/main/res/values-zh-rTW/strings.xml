@@ -28,7 +28,6 @@
     <string name="choose_user_agent_string">選擇使用者代理字串</string>
     <string name="edit_user_agent_string">編輯使用者代理字串</string>
     <string name="nothing">尚無下載內容</string>
-    <string name="cancelled">已取消</string>
     <string name="download">下載</string>
     <string name="file_not_found">找不到檔案</string>
     <string name="no_app_for_file_type">找不到能夠開啟此檔案類型的應用程式</string>
@@ -36,8 +35,6 @@
     <string name="cancel">取消</string>
     <string name="msg_delete_history">要刪除所選的歷史紀錄項目嗎？</string>
     <string name="msg_delete_history_all">要刪除所有歷史紀錄項目嗎？</string>
-    <string name="open_folder">開啟儲存資料夾</string>
-    <string name="no_file_explorer_msg">您的裝置似乎沒有安裝任何可用的檔案瀏覽器應用程式</string>
     <string name="shortcuts">快捷鍵</string>
     <string name="favorites">我的最愛</string>
     <string name="history">歷史紀錄</string>
@@ -57,8 +54,6 @@
     <string name="install">安裝</string>
     <string name="turn_on_unknown_sources">請在系統設定中啟用「未知來源」</string>
     <string name="turn_on_unknown_sources_for_app">請在系統設定中允許 TV Bro 安裝來自「未知來源」的應用程式</string>
-    <string name="storage_not_mounted">儲存空間未掛接</string>
-    <string name="can_not_create_downloads">無法建立下載目錄</string>
     <string name="voice_search_not_found">找不到語音搜尋</string>
     <string name="new_version_dialog_title">有可用的新版本</string>
     <string name="later">稍後</string>

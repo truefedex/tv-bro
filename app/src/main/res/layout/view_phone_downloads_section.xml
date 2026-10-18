@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The header of a section of the phone downloads: In progress, or a day -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/ds_phone_downloads_section_height"
+    android:paddingStart="@dimen/ds_phone_bookmark_row_padding"
+    android:paddingEnd="@dimen/ds_phone_bookmark_row_padding"
+    android:background="?attr/tbColorDsBgChrome">
+
+  <TextView
+      android:id="@+id/tvTitle"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_vertical"
+      android:textSize="@dimen/ds_text_phone_caption"
+      android:fontFamily="sans-serif-medium"
+      android:textColor="?attr/tbColorDsInk"
+      tools:text="@string/in_progress" />
+</FrameLayout>

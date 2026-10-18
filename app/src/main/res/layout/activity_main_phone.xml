@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 The phone screen: the page and the bar under it, between the system bars and the keyboard (the shell
-applies their insets as the padding of the content), and the menu sheet, the tab switcher and the
-bookmarks over the whole window.
+applies their insets as the padding of the content), and the menu sheet, the tab switcher, the
+bookmarks and the downloads over the whole window.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/flRoot"
@@ -39,6 +39,15 @@ bookmarks over the whole window.
             android:progressBackgroundTint="@android:color/transparent"
             android:visibility="gone" />
 
+        <!-- tells about downloads, above the bar -->
+        <com.phlox.tvwebbrowser.activity.main.view.PhoneSnackbar
+            android:id="@+id/vSnackbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/vPhoneBar"
+            android:layout_margin="@dimen/ds_phone_snackbar_margin"
+            android:elevation="@dimen/ds_phone_snackbar_elevation" />
+
         <ProgressBar
             android:id="@+id/progressBarGeneric"
             style="?android:attr/progressBarStyleLarge"
@@ -66,7 +75,13 @@ bookmarks over the whole window.
         android:layout_height="match_parent"
         android:elevation="8dp" />
 
-    <!-- the actions of a bookmark, above the bookmarks -->
+    <com.phlox.tvwebbrowser.activity.main.view.PhoneDownloadsView
+        android:id="@+id/vDownloads"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="8dp" />
+
+    <!-- the actions of a bookmark or a download, above them -->
     <com.phlox.tvwebbrowser.activity.main.view.PhoneActionsSheet
         android:id="@+id/vActionsSheet"
         android:layout_width="match_parent"

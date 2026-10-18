@@ -28,7 +28,6 @@
     <string name="choose_user_agent_string">Elige la cadena de agente de usuario</string>
     <string name="edit_user_agent_string">Editar cadena de agente de usuario</string>
     <string name="nothing">Nada</string>
-    <string name="cancelled">Cancelado</string>
     <string name="download">Descargar</string>
     <string name="file_not_found">Archivo no encontrado</string>
     <string name="no_app_for_file_type">No se encontraron aplicaciones para abrir este tipo de archivo</string>
@@ -36,8 +35,6 @@
     <string name="cancel">Cancelar</string>
     <string name="msg_delete_history">¿Eliminar los elementos del historial seleccionados?</string>
     <string name="msg_delete_history_all">¿Eliminar todo el historial?</string>
-    <string name="open_folder">Abrir carpeta contenedora</string>
-    <string name="no_file_explorer_msg">Parece que no hay ningún explorador de archivos adecuado instalado en tu dispositivo</string>
     <string name="shortcuts">Atajos</string>
     <string name="favorites">Favoritos</string>
     <string name="history">Historial</string>
@@ -57,8 +54,6 @@
     <string name="install">Instalar</string>
     <string name="turn_on_unknown_sources">Activa el ajuste del sistema \"Orígenes desconocidos\"</string>
     <string name="turn_on_unknown_sources_for_app">Permite que TV Bro instale aplicaciones de \"Orígenes desconocidos\" en los ajustes del sistema</string>
-    <string name="storage_not_mounted">Almacenamiento no montado</string>
-    <string name="can_not_create_downloads">No se puede crear la carpeta de descargas</string>
     <string name="voice_search_not_found">Búsqueda por voz no disponible</string>
     <string name="new_version_dialog_title">Nueva versión disponible</string>
     <string name="later">Más tarde</string>

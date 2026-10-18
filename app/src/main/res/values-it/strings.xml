@@ -28,7 +28,6 @@
   <string name="choose_user_agent_string">Scegli la stringa User Agent</string>
   <string name="edit_user_agent_string">Modifica la stringa User Agent</string>
   <string name="nothing">Nessun elemento</string>
-  <string name="cancelled">Annullato</string>
   <string name="download">Scarica</string>
   <string name="file_not_found">File non trovato</string>
   <string name="no_app_for_file_type">Nessuna app disponibile per aprire questo tipo di file</string>
@@ -36,8 +35,6 @@
   <string name="cancel">Annulla</string>
   <string name="msg_delete_history">Eliminare gli elementi selezionati dalla cronologia?</string>
   <string name="msg_delete_history_all">Eliminare tutta la cronologia?</string>
-  <string name="open_folder">Apri cartella di destinazione</string>
-  <string name="no_file_explorer_msg">Sembra che sul dispositivo non sia installato alcun gestore file adatto</string>
   <string name="shortcuts">Scorciatoie</string>
   <string name="favorites">Preferiti</string>
   <string name="history">Cronologia</string>
@@ -57,8 +54,6 @@
   <string name="install">Installa</string>
   <string name="turn_on_unknown_sources">Attiva l\'impostazione di sistema \"Origini sconosciute\"</string>
   <string name="turn_on_unknown_sources_for_app">Consenti a TV Bro di installare app da \"Origini sconosciute\" nelle impostazioni di sistema</string>
-  <string name="storage_not_mounted">Memoria non montata</string>
-  <string name="can_not_create_downloads">Impossibile creare cartella di download</string>
   <string name="voice_search_not_found">Ricerca vocale non trovata</string>
   <string name="new_version_dialog_title">Nuova versione disponibile</string>
   <string name="later">Più tardi</string>

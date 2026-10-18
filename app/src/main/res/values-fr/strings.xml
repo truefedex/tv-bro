@@ -28,7 +28,6 @@
     <string name="choose_user_agent_string">Choisissez la chaîne d’agent utilisateur</string>
     <string name="edit_user_agent_string">Modifier la chaîne d’agent utilisateur</string>
     <string name="nothing">Rien</string>
-    <string name="cancelled">Annulé</string>
     <string name="download">Télécharger</string>
     <string name="file_not_found">Fichier introuvable</string>
     <string name="no_app_for_file_type">Aucune application trouvée pour ouvrir ce type de fichier</string>
@@ -36,8 +35,6 @@
     <string name="cancel">Annuler</string>
     <string name="msg_delete_history">Supprimer les éléments sélectionnés de l’historique ?</string>
     <string name="msg_delete_history_all">Supprimer tout l’historique ?</string>
-    <string name="open_folder">Ouvrir le dossier</string>
-    <string name="no_file_explorer_msg">Il semble qu’aucun gestionnaire de fichiers adapté ne soit installé sur votre appareil</string>
     <string name="shortcuts">Raccourcis</string>
     <string name="favorites">Favoris</string>
     <string name="history">Historique</string>
@@ -57,8 +54,6 @@
     <string name="install">Installer</string>
     <string name="turn_on_unknown_sources">Veuillez activer le paramètre système « Sources inconnues »</string>
     <string name="turn_on_unknown_sources_for_app">Veuillez autoriser TV Bro à installer des applications de « Sources inconnues » dans les paramètres système</string>
-    <string name="storage_not_mounted">Stockage non monté</string>
-    <string name="can_not_create_downloads">Impossible de créer le dossier de téléchargements</string>
     <string name="voice_search_not_found">Recherche vocale introuvable</string>
     <string name="new_version_dialog_title">Nouvelle version disponible</string>
     <string name="later">Plus tard</string>

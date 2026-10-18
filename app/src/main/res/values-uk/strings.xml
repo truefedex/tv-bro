@@ -23,7 +23,6 @@
   <string name="engine">Пошукова система</string>
   <string name="choose_default_search_engine">Виберіть типову пошукову систему</string>
   <string name="cancel">Скасувати</string>
-  <string name="cancelled">Скасовано</string>
   <string name="choose_user_agent_string">Виберіть рядок User Agent</string>
   <string name="delete">Видалити</string>
   <string name="download">Завантажити</string>
@@ -40,9 +39,7 @@
   <string name="history">Історія</string>
   <string name="navigate_back">Назад</string>
   <string name="navigate_home">На домашню сторінку</string>
-  <string name="no_file_explorer_msg">Схоже, на вашому пристрої немає відповідного файлового менеджера</string>
   <string name="not_set">Не задано</string>
-  <string name="open_folder">Відкрити папку</string>
   <string name="press_any_key">Натисніть будь-яку клавішу...</string>
   <string name="shortcut_key_reserved_for_navigation">Ця клавіша зарезервована для навігації в браузері</string>
   <string name="refresh_page">Оновити сторінку</string>
@@ -54,8 +51,6 @@
   <string name="install">Встановити</string>
   <string name="turn_on_unknown_sources">Будь ласка, увімкніть системне налаштування «Невідомі джерела»</string>
   <string name="turn_on_unknown_sources_for_app">Будь ласка, дозвольте TV Bro встановлювати додатки з «Невідомих джерел» у системних налаштуваннях</string>
-  <string name="storage_not_mounted">Сховище не змонтовано</string>
-  <string name="can_not_create_downloads">Не вдалося створити папку для завантажень</string>
   <string name="voice_search_not_found">Додаток голосового пошуку не знайдено</string>
   <string name="msg_delete_history_all">Видалити усю історію?</string>
   <string name="new_version_dialog_title">Доступна нова версія</string>

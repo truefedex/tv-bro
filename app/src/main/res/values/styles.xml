@@ -199,6 +199,27 @@
         <item name="android:importantForAccessibility">no</item>
     </style>
 
+    <!-- The icon of the kind of a downloaded file on the phone -->
+    <style name="Widget.TVBro.DownloadIcon.Phone">
+        <item name="android:layout_width">@dimen/ds_phone_download_icon</item>
+        <item name="android:layout_height">@dimen/ds_phone_download_icon</item>
+        <item name="android:padding">@dimen/ds_phone_download_icon_padding</item>
+    </style>
+
+    <!-- A filter chip of the phone downloads -->
+    <style name="Widget.TVBro.Chip.Ds" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/ds_phone_chip_height</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/ds_phone_chip_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_phone_chip_padding</item>
+        <item name="android:background">@drawable/ds_chip_bg</item>
+        <item name="android:textSize">@dimen/ds_text_menu_item</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:clickable">true</item>
+    </style>
+
     <!-- A text segment of a toolbar group (the filters of the downloads) -->
     <style name="Widget.TVBro.TextSegment.Ds" parent="">
         <item name="android:layout_width">wrap_content</item>

@@ -26,7 +26,6 @@
   <string name="choose_user_agent_string">Chọn chuỗi User Agent</string>
   <string name="edit_user_agent_string">Chỉnh sửa chuỗi User Agent</string>
   <string name="nothing">Chưa có tệp tải xuống nào</string>
-  <string name="cancelled">Đã hủy</string>
   <string name="download">Tải xuống</string>
   <string name="file_not_found">Không tìm thấy tệp</string>
   <string name="no_app_for_file_type">Không tìm thấy ứng dụng nào để mở loại tệp này</string>
@@ -34,8 +33,6 @@
   <string name="cancel">Hủy</string>
   <string name="msg_delete_history">Xóa các mục lịch sử đã chọn?</string>
   <string name="msg_delete_history_all">Xóa toàn bộ lịch sử?</string>
-  <string name="open_folder">Mở thư mục chứa</string>
-  <string name="no_file_explorer_msg">Có vẻ như không có bất kỳ ứng dụng quản lý tệp phù hợp nào được cài đặt trên thiết bị của bạn</string>
   <string name="shortcuts">Phím tắt</string>
   <string name="favorites">Yêu thích</string>
   <string name="history">Lịch sử</string>
@@ -55,8 +52,6 @@
   <string name="install">Cài đặt</string>
   <string name="turn_on_unknown_sources">Vui lòng bật cài đặt hệ thống \"Nguồn không xác định\"</string>
   <string name="turn_on_unknown_sources_for_app">Vui lòng cho phép TV Bro cài đặt ứng dụng từ \"Nguồn không xác định\" trong cài đặt hệ thống</string>
-  <string name="storage_not_mounted">Bộ nhớ không được gắn kết</string>
-  <string name="can_not_create_downloads">Không thể tạo thư mục tải xuống</string>
   <string name="voice_search_not_found">Không tìm thấy tìm kiếm bằng giọng nói</string>
   <string name="new_version_dialog_title">Có phiên bản mới</string>
   <string name="later">Để sau</string>

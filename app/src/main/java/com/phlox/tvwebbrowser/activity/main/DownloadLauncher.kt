@@ -93,9 +93,10 @@ class DownloadLauncher(
     }
 
     private fun start(download: Download) {
-        val referer = download.referer
+        //a page, not about:blank or the like
+        val referer = download.referer?.takeIf { it.startsWith("http://") || it.startsWith("https://") }
         //incognito downloads do not keep the page they came from
-        if (AppContext.provideConfig().incognitoMode) download.referer = null
+        download.referer = if (AppContext.provideConfig().incognitoMode) null else referer
         download.time = System.currentTimeMillis()
         download.status = Download.Status.IN_PROGRESS
         //the row outlives the activity, it is the download now

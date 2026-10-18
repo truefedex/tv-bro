@@ -26,7 +26,6 @@
   <string name="choose_user_agent_string">Zeichenfolge des User-Agenten wählen</string>
   <string name="edit_user_agent_string">Zeichenfolge des User-Agenten bearbeiten</string>
   <string name="nothing">Nichts</string>
-  <string name="cancelled">Abgebrochen</string>
   <string name="download">Download</string>
   <string name="file_not_found">Datei nicht gefunden</string>
   <string name="no_app_for_file_type">Keine App zum Öffnen der Datei gefunden</string>
@@ -34,8 +33,6 @@
   <string name="cancel">Abbrechen</string>
   <string name="msg_delete_history">Ausgewählte Verlaufseinträge löschen?</string>
   <string name="msg_delete_history_all">Gesamten Verlauf löschen?</string>
-  <string name="open_folder">Ordner öffnen</string>
-  <string name="no_file_explorer_msg">Auf dem Gerät ist kein geeigneter Dateimanager installiert</string>
   <string name="shortcuts">Tastenkürzel</string>
   <string name="favorites">Favoriten</string>
   <string name="history">Verlauf</string>
@@ -55,8 +52,6 @@
   <string name="install">Installieren</string>
   <string name="turn_on_unknown_sources">Bitte aktivieren Sie die Systemeinstellung „Unbekannte Quellen“</string>
   <string name="turn_on_unknown_sources_for_app">Bitte erlauben Sie TV Bro in den Systemeinstellungen, Apps aus „Unbekannten Quellen“ zu installieren</string>
-  <string name="storage_not_mounted">Speicher nicht verfügbar</string>
-  <string name="can_not_create_downloads">Download-Ordner kann nicht erstellt werden</string>
   <string name="voice_search_not_found">Sprachsuche nicht gefunden</string>
   <string name="new_version_dialog_title">Neue Version verfügbar</string>
   <string name="later">Später</string>

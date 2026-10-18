@@ -26,7 +26,6 @@
   <string name="choose_user_agent_string">בחר מחרוזת סוכן משתמש</string>
   <string name="edit_user_agent_string">ערוך מחרוזת סוכן משתמש</string>
   <string name="nothing">אין הורדות עדיין</string>
-  <string name="cancelled">בוטל</string>
   <string name="download">הורד</string>
   <string name="file_not_found">לא ניתן למצוא את הקובץ</string>
   <string name="no_app_for_file_type">לא נמצאו יישומים לפתיחת סוג הקובץ המבוקש</string>
@@ -34,8 +33,6 @@
   <string name="cancel">ביטול</string>
   <string name="msg_delete_history">למחוק את פריטי ההיסטוריה שנבחרו?</string>
   <string name="msg_delete_history_all">למחוק את כל פריטי ההיסטוריה?</string>
-  <string name="open_folder">פתח תיקייה</string>
-  <string name="no_file_explorer_msg">נראה שאין יישום פתיחת קבצים מתאים שמותקן על המכשיר</string>
   <string name="shortcuts">קיצורי דרך</string>
   <string name="favorites">מועדפים</string>
   <string name="history">היסטוריה</string>
@@ -55,8 +52,6 @@
   <string name="install">התקן</string>
   <string name="turn_on_unknown_sources">אנא הפעל את \"התקן ממקורות לא ידועים\" בהגדרות המערכת</string>
   <string name="turn_on_unknown_sources_for_app">אנא אפשר ל-TV Bro להתקין אפליקציות מ\"מקורות לא ידועים\" בהגדרות המערכת</string>
-  <string name="storage_not_mounted">האחסון אינו מחובר</string>
-  <string name="can_not_create_downloads">לא ניתן ליצור ספריית הורדות</string>
   <string name="voice_search_not_found">חיפוש קולי לא נמצא</string>
   <string name="new_version_dialog_title">גרסה חדשה זמינה</string>
   <string name="later">מאוחר יותר</string>

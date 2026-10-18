@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The downloads page of the phone UI over the whole window: the header (back, the title, the Downloads
+folder, the menu with Clear all), the filters in a row that scrolls sideways, then the downloads in
+progress and the others by days.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.RelativeLayout">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ds_phone_switcher_header_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_phone_bar_padding_horizontal"
+        android:paddingEnd="@dimen/ds_phone_bar_padding_horizontal"
+        android:background="?attr/tbColorDsBgChrome">
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibBack"
+          android:src="@drawable/ic_back"
+          android:contentDescription="@string/back" />
+
+      <TextView
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_phone_bar_padding_horizontal"
+          android:textSize="@dimen/ds_text_phone_switcher_title"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:text="@string/downloads" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibFolder"
+          android:src="@drawable/ic_folder"
+          android:contentDescription="@string/open_downloads_folder" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibMenu"
+          android:src="@drawable/ic_more_vert"
+          android:contentDescription="@string/more_actions" />
+    </LinearLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/svFilters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/tbColorDsBgChrome"
+        android:scrollbars="none">
+
+      <LinearLayout
+          android:id="@+id/llFilters"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:paddingStart="@dimen/ds_phone_bookmark_row_padding"
+          android:paddingEnd="@dimen/ds_phone_bookmark_row_padding"
+          android:paddingBottom="@dimen/ds_phone_chips_padding_bottom" />
+    </HorizontalScrollView>
+
+    <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="?attr/tbColorDsSurface">
+
+      <androidx.recyclerview.widget.RecyclerView
+          android:id="@+id/rvItems"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:clipToPadding="false" />
+
+      <TextView
+          android:id="@+id/tvEmpty"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:padding="@dimen/ds_bookmarks_empty_padding"
+          android:gravity="center"
+          android:textSize="@dimen/ds_text_phone_menu_item"
+          android:textColor="?attr/tbColorDsInk"
+          android:text="@string/no_downloads_yet"
+          android:visibility="gone" />
+    </FrameLayout>
+  </LinearLayout>
+</merge>

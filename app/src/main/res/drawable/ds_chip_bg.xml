@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A filter chip of the phone: selected when chosen (activated), the focused control while pressed -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_phone_chip_radius" />
+            <solid android:color="?attr/tbColorDsControlFocused" />
+            <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+        </shape>
+    </item>
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_phone_chip_radius" />
+            <solid android:color="?attr/tbColorDsControlSelected" />
+            <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_phone_chip_radius" />
+            <solid android:color="?attr/tbColorDsControl" />
+            <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+        </shape>
+    </item>
+</selector>

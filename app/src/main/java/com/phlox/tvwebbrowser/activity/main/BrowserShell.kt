@@ -107,7 +107,6 @@ interface BrowserShell {
         /** Leaves the incognito mode if it is on and finishes the activity */
         fun closeWindow()
         fun toggleIncognitoMode()
-        fun showDownloads()
         fun showHistory()
         fun showSettings()
         /** Turns ad blocking of the current site on or off; the page reloads */

@@ -68,6 +68,8 @@ class DownloadRowTextTest {
     fun hostOfThePageElseOfTheLink() {
         assertEquals("github.com", DownloadRowText.hostOf(item(Download.Status.DONE)))
         assertEquals("cdn.github.com", DownloadRowText.hostOf(item(Download.Status.DONE, referer = null)))
+        //a page without a host (a link opened in a new tab)
+        assertEquals("cdn.github.com", DownloadRowText.hostOf(item(Download.Status.DONE, referer = "about:blank")))
         assertNull(DownloadRowText.hostOf(item(Download.Status.DONE, referer = null).copy(url = "blob:null/123")))
     }
 }

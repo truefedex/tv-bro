@@ -35,7 +35,6 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
-import com.phlox.tvwebbrowser.activity.downloads.DownloadsActivity
 import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.browser.BrowserCommands
@@ -206,10 +205,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
             }
             finish()
         }
-    }
-
-    override fun showDownloads() {
-        startActivity(Intent(this@MainActivity, DownloadsActivity::class.java))
     }
 
     override val downloadCommands = object : DownloadsNavigator.Commands {

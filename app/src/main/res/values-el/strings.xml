@@ -28,7 +28,6 @@
     <string name="choose_user_agent_string">Επιλέξτε συμβολοσειρά User Agent</string>
     <string name="edit_user_agent_string">Επεξεργασία συμβολοσειράς User Agent</string>
     <string name="nothing">Τίποτα</string>
-    <string name="cancelled">Ακυρώθηκε</string>
     <string name="download">Λήψη</string>
     <string name="file_not_found">Το αρχείο δεν βρέθηκε</string>
     <string name="no_app_for_file_type">Δεν βρέθηκαν εφαρμογές για το άνοιγμα αυτού του τύπου αρχείου</string>
@@ -36,8 +35,6 @@
     <string name="cancel">Ακύρωση</string>
     <string name="msg_delete_history">Διαγραφή των επιλεγμένων στοιχείων ιστορικού;</string>
     <string name="msg_delete_history_all">Διαγραφή όλου του ιστορικού;</string>
-    <string name="open_folder">Άνοιγμα φακέλου</string>
-    <string name="no_file_explorer_msg">Φαίνεται ότι δεν είναι εγκατεστημένη κατάλληλη εφαρμογή διαχείρισης αρχείων στη συσκευή σας</string>
     <string name="shortcuts">Συντομεύσεις</string>
     <string name="favorites">Αγαπημένα</string>
     <string name="history">Ιστορικό</string>
@@ -57,8 +54,6 @@
     <string name="install">Εγκατάσταση</string>
     <string name="turn_on_unknown_sources">Ενεργοποιήστε τη ρύθμιση συστήματος «Άγνωστες πηγές»</string>
     <string name="turn_on_unknown_sources_for_app">Επιτρέψτε στο TV Bro να εγκαθιστά εφαρμογές από «Άγνωστες πηγές» στις ρυθμίσεις συστήματος</string>
-    <string name="storage_not_mounted">Ο αποθηκευτικός χώρος δεν είναι προσαρτημένος</string>
-    <string name="can_not_create_downloads">Δεν είναι δυνατή η δημιουργία φακέλου λήψεων</string>
     <string name="voice_search_not_found">Η φωνητική αναζήτηση δεν βρέθηκε</string>
     <string name="new_version_dialog_title">Υπάρχει διαθέσιμη νέα έκδοση</string>
     <string name="later">Αργότερα</string>

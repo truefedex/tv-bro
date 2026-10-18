@@ -5,12 +5,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.activity.main.view.ClearDownloadsDialog
 import com.phlox.tvwebbrowser.activity.main.view.PhoneBar
 import com.phlox.tvwebbrowser.activity.main.view.PhoneMenuSheet
 import com.phlox.tvwebbrowser.activity.main.view.PhoneTabSwitcher
@@ -18,12 +19,15 @@ import com.phlox.tvwebbrowser.activity.main.view.ScrollAwayBar
 import com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
+import com.phlox.tvwebbrowser.browser.DownloadEvent
+import com.phlox.tvwebbrowser.browser.DownloadsModel
 import com.phlox.tvwebbrowser.databinding.ActivityMainPhoneBinding
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.Download
-import com.phlox.tvwebbrowser.utils.Utils
-import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
+import com.phlox.tvwebbrowser.utils.DownloadFileActions
 import com.phlox.tvwebbrowser.utils.SystemBars
+import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
+import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
 import com.phlox.tvwebbrowser.widgets.NotificationView
@@ -67,6 +71,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vMenuSheet.setInsets(bars.left, bars.right, bars.bottom)
             vb.vTabSwitcher.setInsets(bars.left, bars.top, bars.right, bars.bottom)
             vb.vBookmarks.setInsets(bars.left, bars.top, bars.right, bars.bottom, keyboard.bottom)
+            vb.vDownloads.setInsets(bars.left, bars.top, bars.right, bars.bottom)
             vb.vActionsSheet.setInsets(bars.left, bars.right, bars.bottom)
             WindowInsetsCompat.CONSUMED
         }
@@ -131,7 +136,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
 
         override fun showBookmarks() = vb.vBookmarks.show()
 
-        override fun showDownloads() = host.showDownloads()
+        override fun showDownloads() = vb.vDownloads.show()
 
         override fun showSettings() = host.showSettings()
     }
@@ -199,6 +204,40 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         override fun toggleIncognitoMode() = host.toggleIncognitoMode()
     }
 
+    private val downloadsModel = ActiveModelsRepository.get(DownloadsModel::class, activity)
+    private val downloadDevice = DeviceDownloads(activity)
+
+    private val downloadsCallback = object : DownloadsNavigator.ShellCallback {
+        override val downloads get() = downloadsModel.downloads
+        override val downloadCommands get() = host.downloadCommands
+        override val downloadDevice get() = this@PhoneShell.downloadDevice
+
+        override fun showMessage(icon: Int, message: String) {
+            NotificationView.show(vb.rlRoot, icon, message)
+        }
+
+        override fun confirmClearAll(request: DownloadsNavigator.ClearAllRequest, onConfirm: (Boolean) -> Unit) =
+            ClearDownloadsDialog.show(activity, request, onConfirm)
+    }
+
+    /** The snackbar tells when a download ends, with the action OK would do on its row */
+    private fun onDownloadEvent(event: DownloadEvent) {
+        if (vb.vDownloads.isOpen) return
+        val item = event.item
+        when (event) {
+            is DownloadEvent.Completed -> {
+                val apk = DownloadFileActions.isApk(item.toDownload())
+                vb.vSnackbar.show(R.drawable.ic_check, activity.getString(R.string.download_complete), item.filename,
+                    activity.getString(if (apk) R.string.install else R.string.open)) {
+                    if (apk) downloadDevice.install(item) else downloadDevice.open(item)
+                }
+            }
+            is DownloadEvent.Failed -> vb.vSnackbar.show(R.drawable.ic_error,
+                activity.getString(R.string.download_failed_named, item.filename), null,
+                activity.getString(R.string.show)) { vb.vDownloads.show(item.id) }
+        }
+    }
+
     /** The site settings keep the sheet open: changing ad blocking reloads the page under it */
     private val siteSettingsCallback = object : SiteSettingsView.Callback {
         override fun toggleAdBlock() = host.toggleSiteAdBlock()
@@ -214,6 +253,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vTabSwitcher.bind(controller)
         vb.vTabSwitcher.callback = tabSwitcherCallback
         vb.vBookmarks.attach(activity.lifecycleScope, vb.vActionsSheet, bookmarksCallback)
+        vb.vDownloads.attach(activity.lifecycleScope, vb.vActionsSheet, downloadsCallback)
+        activity.lifecycleScope.launch { downloadsModel.events.collect(::onDownloadEvent) }
         controller.tabsStates.subscribe(activity, observer = { vb.vPhoneBar.setTabCount(it.size) })
     }
 
@@ -233,6 +274,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         dispatcher.addCallback(activity, vb.vMenuSheet.backCallback)
         dispatcher.addCallback(activity, vb.vTabSwitcher.backCallback)
         dispatcher.addCallback(activity, vb.vBookmarks.backCallback)
+        dispatcher.addCallback(activity, vb.vDownloads.backCallback)
         dispatcher.addCallback(activity, vb.vActionsSheet.backCallback)
         dispatcher.addCallback(activity, fullscreen)
     }
@@ -246,6 +288,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vTabSwitcher.hide()
             vb.vActionsSheet.hide()
             vb.vBookmarks.hide()
+            vb.vDownloads.hide()
+            vb.vSnackbar.hide()
             scrollAwayBar.show(animate = false)
         }
         vb.vPhoneBar.visibility = if (fullscreen) View.GONE else View.VISIBLE
@@ -310,13 +354,18 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vTabSwitcher.hide()
         vb.vActionsSheet.hide()
         vb.vBookmarks.hide()
+        vb.vDownloads.hide()
     }
 
     override fun onDownloadStarted(download: Download) {
-        Utils.showToast(activity, activity.getString(R.string.downloading_named_file, download.filename))
+        vb.vSnackbar.show(R.drawable.ic_downloads, activity.getString(R.string.downloading_named_file, download.filename),
+            null, activity.getString(R.string.show)) { vb.vDownloads.show(download.id) }
     }
 
-    override fun showAllDownloads(focusId: Long?) = host.showDownloads()
+    override fun showAllDownloads(focusId: Long?) {
+        vb.vMenuSheet.hide()
+        vb.vDownloads.show(focusId)
+    }
 
     /** A long press on a link: the actions for the link (there is no cursor menu) */
     override fun showContextMenu(

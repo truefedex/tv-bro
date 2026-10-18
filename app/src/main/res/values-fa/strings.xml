@@ -26,7 +26,6 @@
   <string name="choose_user_agent_string">رشته عامل کاربر را انتخاب کنید</string>
   <string name="edit_user_agent_string">ویرایش رشته عامل کاربر</string>
   <string name="nothing">هنوز هیچ بارگیری‌ای وجود ندارد</string>
-  <string name="cancelled">لغو شد</string>
   <string name="download">بارگیری</string>
   <string name="file_not_found">پرونده یافت نشد</string>
   <string name="no_app_for_file_type">هیچ برنامه‌ای برای باز کردن این نوع پرونده یافت نشد</string>
@@ -34,8 +33,6 @@
   <string name="cancel">لغو</string>
   <string name="msg_delete_history">موارد تاریخچه انتخاب شده حذف شود؟</string>
   <string name="msg_delete_history_all">همه موارد تاریخچه حذف شود؟</string>
-  <string name="open_folder">باز کردن پوشه</string>
-  <string name="no_file_explorer_msg">به نظر می‌رسد هیچ برنامه مناسبی برای مرور فایل روی دستگاه شما نصب نشده است</string>
   <string name="shortcuts">میانبرها</string>
   <string name="favorites">موارد دلخواه</string>
   <string name="history">تاریخچه</string>
@@ -55,8 +52,6 @@
   <string name="install">نصب</string>
   <string name="turn_on_unknown_sources">لطفاً تنظیم سیستمی «منابع ناشناخته» را فعال کنید</string>
   <string name="turn_on_unknown_sources_for_app">لطفاً در تنظیمات سیستم به TV Bro اجازه دهید برنامه‌ها را از «منابع ناشناخته» نصب کند</string>
-  <string name="storage_not_mounted">حافظه متصل نشده است</string>
-  <string name="can_not_create_downloads">نمی‌توان پوشه بارگیری‌ها را ایجاد کرد</string>
   <string name="voice_search_not_found">جستجوی صوتی یافت نشد</string>
   <string name="new_version_dialog_title">نسخه جدید در دسترس است</string>
   <string name="later">بعداً</string>

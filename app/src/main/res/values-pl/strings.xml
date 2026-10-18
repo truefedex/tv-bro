@@ -28,7 +28,6 @@
   <string name="choose_user_agent_string">Wybierz zawartość nagłówka User-Agent</string>
   <string name="edit_user_agent_string">Edytuj zawartość nagłówka User-Agent</string>
   <string name="nothing">Brak pobranych plików</string>
-  <string name="cancelled">Anulowano</string>
   <string name="download">Pobierz</string>
   <string name="file_not_found">Nie znaleziono pliku</string>
   <string name="no_app_for_file_type">Nie znaleziono aplikacji do otwierania tego typu plików</string>
@@ -36,8 +35,6 @@
   <string name="cancel">Anuluj</string>
   <string name="msg_delete_history">Usunąć wybrane elementy z historii przeglądania?</string>
   <string name="msg_delete_history_all">Usunąć całą historię przeglądania?</string>
-  <string name="open_folder">Otwórz folder</string>
-  <string name="no_file_explorer_msg">Wygląda na to, że na urządzeniu nie ma zainstalowanej odpowiedniej aplikacji do przeglądania plików</string>
   <string name="shortcuts">Skróty</string>
   <string name="favorites">Ulubione</string>
   <string name="history">Historia</string>
@@ -57,8 +54,6 @@
   <string name="install">Zainstaluj</string>
   <string name="turn_on_unknown_sources">Włącz ustawienie systemowe „Nieznane źródła”</string>
   <string name="turn_on_unknown_sources_for_app">Zezwól aplikacji TV Bro na instalowanie aplikacji z „Nieznanych źródeł” w ustawieniach systemu</string>
-  <string name="storage_not_mounted">Nie zamontowano nośnika</string>
-  <string name="can_not_create_downloads">Nie można utworzyć folderu pobierania</string>
   <string name="voice_search_not_found">Nie znaleziono wyszukiwania głosowego</string>
   <string name="new_version_dialog_title">Dostępna nowa wersja!</string>
   <string name="later">Później</string>

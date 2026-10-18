@@ -87,13 +87,13 @@ class DownloadRowText(private val context: Context) {
 
     companion object {
         /** The host of the page the download came from, else of its url (none for blob and data urls) */
-        fun hostOf(item: DownloadItem): String? {
-            val url = item.referer?.takeIf { it.isNotEmpty() } ?: item.url
-            return try {
-                Uri.parse(url).host?.removePrefix("www.")?.takeIf { it.isNotEmpty() }
-            } catch (e: Exception) {
-                null
-            }
+        fun hostOf(item: DownloadItem): String? = item.referer?.let { hostOf(it) } ?: hostOf(item.url)
+
+        /** The host without www, null for urls without one (about:blank, blob:, data:) */
+        private fun hostOf(url: String): String? = try {
+            Uri.parse(url).host?.removePrefix("www.")?.takeIf { it.isNotEmpty() }
+        } catch (e: Exception) {
+            null
         }
     }
 }

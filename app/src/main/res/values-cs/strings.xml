@@ -28,7 +28,6 @@
     <string name="choose_user_agent_string">Vyberte řetězec User Agent</string>
     <string name="edit_user_agent_string">Upravit řetězec User Agent</string>
     <string name="nothing">Nic</string>
-    <string name="cancelled">Zrušeno</string>
     <string name="download">Stáhnout</string>
     <string name="file_not_found">Soubor nebyl nalezen</string>
     <string name="no_app_for_file_type">Nebyla nalezena žádná aplikace pro otevření tohoto typu souboru</string>
@@ -36,8 +35,6 @@
     <string name="cancel">Zrušit</string>
     <string name="msg_delete_history">Smazat vybrané položky historie?</string>
     <string name="msg_delete_history_all">Smazat celou historii?</string>
-    <string name="open_folder">Otevřít složku</string>
-    <string name="no_file_explorer_msg">Zdá se, že ve vašem zařízení není nainstalován žádný vhodný správce souborů</string>
     <string name="shortcuts">Zkratky</string>
     <string name="favorites">Oblíbené</string>
     <string name="history">Historie</string>
@@ -57,8 +54,6 @@
     <string name="install">Instalovat</string>
     <string name="turn_on_unknown_sources">Zapněte prosím systémové nastavení „Neznámé zdroje“</string>
     <string name="turn_on_unknown_sources_for_app">Povolte prosím v nastavení systému aplikaci TV Bro instalovat aplikace z „Neznámých zdrojů“</string>
-    <string name="storage_not_mounted">Úložiště není připojeno</string>
-    <string name="can_not_create_downloads">Nelze vytvořit složku pro stahování</string>
     <string name="voice_search_not_found">Hlasové vyhledávání nebylo nalezeno</string>
     <string name="new_version_dialog_title">Je k dispozici nová verze</string>
     <string name="later">Později</string>

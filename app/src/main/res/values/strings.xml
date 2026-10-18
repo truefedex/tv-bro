@@ -126,7 +126,6 @@
     <string name="choose_user_agent_string">Choose user agent string</string>
     <string name="edit_user_agent_string">Edit user agent string</string>
     <string name="nothing">Nothing</string>
-    <string name="cancelled">Cancelled</string>
     <string name="download">Download</string>
     <string name="file_not_found">File not found</string>
     <string name="no_app_for_file_type">No apps found to open this file type</string>
@@ -134,8 +133,6 @@
     <string name="cancel">Cancel</string>
     <string name="msg_delete_history">Delete selected history items?</string>
     <string name="msg_delete_history_all">Delete all history items?</string>
-    <string name="open_folder">Open containing folder</string>
-    <string name="no_file_explorer_msg">It seems there is no suitable file explorer app installed on your device</string>
     <string name="shortcuts">Shortcuts</string>
     <string name="favorites">Favorites</string>
     <string name="history">History</string>
@@ -173,8 +170,6 @@
     <string name="install">Install</string>
     <string name="turn_on_unknown_sources">Please turn on \"Unknown sources\" system setting</string>
     <string name="turn_on_unknown_sources_for_app">Please allow TV Bro to install apps from \"Unknown sources\" in system settings</string>
-    <string name="storage_not_mounted">Storage not mounted</string>
-    <string name="can_not_create_downloads">Cannot create downloads folder</string>
     <string name="voice_search_not_found">Voice search not found</string>
     <string name="new_version_dialog_title">New version available</string>
     <string name="later">Later</string>
@@ -196,6 +191,7 @@
     <string name="time_left_minutes">%d min left</string>
     <string name="time_left_hours">%1$d h %2$d min left</string>
     <string name="link_copied">Link copied</string>
+    <string name="show">Show</string>
     <string name="all_downloads">All downloads</string>
     <string name="no_downloads_yet">No downloads yet</string>
     <string name="in_progress">In progress</string>
