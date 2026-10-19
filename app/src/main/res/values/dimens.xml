@@ -7,8 +7,6 @@
     <dimen name="text_size_caption">14sp</dimen>
     <dimen name="text_size_badge">12sp</dimen>
 
-    <dimen name="cursor_menu_button_size">48dp</dimen>
-
     <dimen name="list_item_padding_horizontal">15dp</dimen>
     <dimen name="list_item_padding_vertical">10dp</dimen>
     <dimen name="list_divider_height">1dp</dimen>
@@ -78,6 +76,13 @@
     <dimen name="ds_toast_padding_horizontal">24dp</dimen>
     <dimen name="ds_toast_margin_bottom">30dp</dimen>
     <dimen name="ds_toast_elevation">10dp</dimen>
+    <!-- The cursor menu: a round plate (a board pixel is half a dp) with four buttons around the grab button -->
+    <dimen name="ds_cursor_menu_size">170dp</dimen>
+    <dimen name="ds_cursor_menu_button">44dp</dimen>
+    <dimen name="ds_cursor_menu_inset">7dp</dimen>
+    <dimen name="ds_cursor_menu_icon_padding">11dp</dimen>
+    <dimen name="ds_cursor_menu_center_icon_padding">9dp</dimen>
+    <dimen name="ds_cursor_menu_elevation">4dp</dimen>
 
     <!-- The phone UI (phone boards are 390x844, a board pixel is a dp). Touch targets are 44dp or more. -->
     <dimen name="ds_phone_bar_padding_vertical">4dp</dimen>

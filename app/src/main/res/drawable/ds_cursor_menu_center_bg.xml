@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The grab button in the middle of the cursor menu. It keeps the focus while the menu is shown, so its
+focused look is the stronger selected fill (the focused control fill is too faint on the light plate)
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="oval">
+            <solid android:color="?attr/tbColorDsControlSelected" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
+        </shape>
+    </item>
+    <item android:state_hovered="true">
+        <shape android:shape="oval">
+            <solid android:color="?attr/tbColorDsControlSelected" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="?attr/tbColorDsControl" />
+        </shape>
+    </item>
+</selector>

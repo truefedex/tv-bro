@@ -15,7 +15,6 @@
     <color name="icon_disabled">#BDBDBD</color>
     <color name="icon_subtle">#BDBDBD</color>
     <color name="icon_placeholder">#9D9D9D</color>
-    <color name="icon_cursor_menu">#60768E</color>
     <color name="accent">#5FACFF</color>
     <color name="indicator">#5FACFF</color>
     <color name="progress">#75D5FA</color>

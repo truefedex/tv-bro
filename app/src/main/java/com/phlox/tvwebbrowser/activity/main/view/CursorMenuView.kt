@@ -33,6 +33,7 @@ class CursorMenuView @JvmOverloads constructor(
     private var menuContext: MenuContext? = null
     private var handler = Handler(Looper.getMainLooper())
     private var lastShowTime = 0L
+    private var openAnimator: ValueAnimator? = null
 
     /** Closes the menu on Back while it is shown */
     val backCallback = object : OnBackPressedCallback(false) {
@@ -135,27 +136,32 @@ class CursorMenuView @JvmOverloads constructor(
         params.topMargin = y - vb.root.height / 2
         layoutParams = params
 
-        val animator = ValueAnimator.ofFloat(0f, 1f)
-        animator.duration = 500
-        animator.interpolator = OvershootInterpolator()
-        animator.addUpdateListener { valueAnimator ->
-            val animatedValue = valueAnimator.animatedValue as Float
-            vb.root.alpha = animatedValue
-            vb.btnZoomOut.x = (vb.root.width * 0.5f - vb.btnZoomOut.width * 0.5f) * (1 - animatedValue)
-            vb.btnZoomOut.y = (vb.root.height * 0.25f - vb.btnDPADMode.height * 0.5f) * (1 - animatedValue) + vb.root.height * 0.5f - vb.btnDPADMode.height * 0.5f
-            vb.btnZoomIn.x = (vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f) * animatedValue + vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f
-            vb.btnZoomIn.y = (vb.root.height * 0.25f - vb.btnContextMenu.height * 0.5f) * animatedValue + vb.root.height * 0.25f
-            vb.btnContextMenu.y = (vb.root.height * 0.5f - vb.btnContextMenu.height * 0.5f) * (1 - animatedValue)
-            vb.btnContextMenu.x = (vb.root.width * 0.25f - vb.btnZoomOut.width * 0.5f) * animatedValue + vb.root.width * 0.25f
-            vb.btnDPADMode.y = (vb.root.height * 0.5f - vb.btnDPADMode.height * 0.5f) * animatedValue + vb.root.height * 0.5f - vb.btnDPADMode.height * 0.5f
-            vb.btnDPADMode.x = (vb.root.width * 0.25f - vb.btnZoomIn.width * 0.5f) * (1 - animatedValue) + vb.root.width * 0.5f - vb.btnZoomIn.width * 0.5f
+        //the plate grows from the cursor, the buttons slide out from under the grab button to their places
+        val buttons = arrayOf(vb.btnContextMenu, vb.btnZoomOut, vb.btnZoomIn, vb.btnDPADMode)
+        val centerX = vb.root.width * 0.5f
+        val centerY = vb.root.height * 0.5f
+        openAnimator?.cancel()
+        openAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 500
+            interpolator = OvershootInterpolator()
+            addUpdateListener { valueAnimator ->
+                val animatedValue = valueAnimator.animatedValue as Float
+                vb.root.alpha = animatedValue.coerceIn(0f, 1f)
+                vb.root.scaleX = 0.6f + 0.4f * animatedValue
+                vb.root.scaleY = vb.root.scaleX
+                for (button in buttons) {
+                    button.translationX = (centerX - button.left - button.width * 0.5f) * (1 - animatedValue)
+                    button.translationY = (centerY - button.top - button.height * 0.5f) * (1 - animatedValue)
+                }
+            }
+            start()
         }
-        animator.start()
     }
 
     /** Hides the menu immediately (no animation). Used before showing a dialog so focus does not re-trigger menu actions. */
     private fun closeWithoutAnimation() {
         Log.d("CursorMenuView", "closeWithoutAnimation")
+        openAnimator?.cancel()
         menuContext = null
         backCallback.isEnabled = false
         visibility = GONE
@@ -167,6 +173,7 @@ class CursorMenuView @JvmOverloads constructor(
 
     fun close(animation: CloseAnimation = CloseAnimation.FADE_OUT) {
         Log.d("CursorMenuView", "close")
+        openAnimator?.cancel()
         menuContext = null
         backCallback.isEnabled = false
         val animator = ObjectAnimator.ofFloat(vb.root, "alpha", 1f, 0f)

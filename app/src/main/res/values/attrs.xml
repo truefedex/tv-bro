@@ -29,8 +29,6 @@
     <attr name="tbColorIconSubtle" format="color" />
     <!-- Big placeholder icons -->
     <attr name="tbColorIconPlaceholder" format="color" />
-    <!-- Icons of the cursor menu -->
-    <attr name="tbColorIconCursorMenu" format="color" />
     <!-- Selected item text (the current tab) -->
     <attr name="tbColorAccent" format="color" />
     <!-- Selection indicator (the settings tab underline) -->

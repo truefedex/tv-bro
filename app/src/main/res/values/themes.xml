@@ -26,7 +26,6 @@
         <item name="tbColorIconDisabled">@color/icon_disabled</item>
         <item name="tbColorIconSubtle">@color/icon_subtle</item>
         <item name="tbColorIconPlaceholder">@color/icon_placeholder</item>
-        <item name="tbColorIconCursorMenu">@color/icon_cursor_menu</item>
         <item name="tbColorAccent">@color/accent</item>
         <item name="tbColorIndicator">@color/indicator</item>
         <item name="tbColorProgress">@color/progress</item>

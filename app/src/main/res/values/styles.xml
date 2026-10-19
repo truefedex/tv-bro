@@ -18,12 +18,6 @@
         <item name="android:background">@drawable/button_bg_selector</item>
     </style>
 
-    <!-- Buttons around the cursor in the cursor menu -->
-    <style name="Widget.TVBro.ImageButton.CursorMenu">
-        <item name="android:scaleType">fitCenter</item>
-        <item name="tint">?attr/tbColorIconCursorMenu</item>
-    </style>
-
     <!--
     The browser bar of the redesign. Its buttons have fixed sizes; the paddings fit icons of any
     intrinsic size to the board size, and the icons get the design system icon color.
@@ -34,6 +28,21 @@
         <item name="android:scaleType">fitCenter</item>
         <item name="android:focusable">true</item>
         <item name="tint">?attr/tbColorDsIcon</item>
+    </style>
+
+    <!-- A round button around the cursor in the cursor menu -->
+    <style name="Widget.TVBro.ImageButton.Ds.CursorMenu">
+        <item name="android:layout_width">@dimen/ds_cursor_menu_button</item>
+        <item name="android:layout_height">@dimen/ds_cursor_menu_button</item>
+        <item name="android:background">@drawable/ds_cursor_menu_button_bg</item>
+        <item name="android:padding">@dimen/ds_cursor_menu_icon_padding</item>
+        <item name="android:defaultFocusHighlightEnabled">false</item>
+    </style>
+
+    <!-- The grab button in the middle of the cursor menu -->
+    <style name="Widget.TVBro.ImageButton.Ds.CursorMenu.Center">
+        <item name="android:background">@drawable/ds_cursor_menu_center_bg</item>
+        <item name="android:padding">@dimen/ds_cursor_menu_center_icon_padding</item>
     </style>
 
     <!-- A segment of a toolbar group -->
