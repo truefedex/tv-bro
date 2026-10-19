@@ -1,8 +1,8 @@
 package com.phlox.tvwebbrowser.activity
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.app.AlertDialog
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity

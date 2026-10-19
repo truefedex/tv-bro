@@ -267,6 +267,21 @@
         <item name="android:singleLine">true</item>
     </style>
 
+    <!-- A button of an alert dialog (set by ThemeOverlay.TVBro.Dialog.Alert): a text button of a panel form -->
+    <style name="Widget.TVBro.DialogButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">@dimen/ds_panel_text_button_height</item>
+        <item name="android:paddingStart">@dimen/ds_panel_text_button_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_panel_text_button_padding</item>
+        <item name="android:layout_marginStart">@dimen/ds_panel_buttons_gap</item>
+        <item name="android:background">@drawable/ds_icon_button_bg</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:textSize">@dimen/ds_text_menu_item</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+    </style>
+
     <!-- A text field of a panel form -->
     <style name="Widget.TVBro.Field.Ds" parent="">
         <item name="android:layout_width">match_parent</item>

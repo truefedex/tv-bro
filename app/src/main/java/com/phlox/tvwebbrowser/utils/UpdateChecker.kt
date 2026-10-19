@@ -1,18 +1,19 @@
 package com.phlox.tvwebbrowser.utils
 
 import android.app.Activity
-import android.app.ProgressDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.text.Html
+import android.view.LayoutInflater
 import android.webkit.MimeTypeMap
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.databinding.DialogUpdateDownloadBinding
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.File
@@ -110,12 +111,12 @@ class UpdateChecker(val currentVersionCode: Int) {
 
     suspend fun downloadUpdate(context: Activity, modelScope: CoroutineScope) {
         val update = versionCheckResult ?: return
-        val dialog = ProgressDialog(context)
-        dialog.setCancelable(true)
-        dialog.setMessage(context.getString(R.string.downloading_file))
-        dialog.isIndeterminate = false
-        dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
-        dialog.show()
+        val vb = DialogUpdateDownloadBinding.inflate(LayoutInflater.from(context))
+        val progressBar = vb.progressBar
+        val dialog = AlertDialog.Builder(context)
+            .setView(vb.root)
+            .setCancelable(true)
+            .show()
         var downloaded = false
         var downloadedFile = Utils.createTempFile(context, UPDATE_APK_FILE_NAME)
         var nextDialogUpdateTime = System.currentTimeMillis()
@@ -140,8 +141,7 @@ class UpdateChecker(val currentVersionCode: Int) {
                 var fileLength = connection.contentLength.toLong()
                 if (fileLength == -1L) {
                     withContext(Dispatchers.Main) {
-                        dialog.isIndeterminate = true
-                        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER)
+                        progressBar.isIndeterminate = true
                     }
                 }
 
@@ -161,8 +161,7 @@ class UpdateChecker(val currentVersionCode: Int) {
                     }
                     if (fileLength != -1L && System.currentTimeMillis() >= nextDialogUpdateTime) {
                         withContext(Dispatchers.Main) {
-                            val progress = total * 100 / fileLength
-                            dialog.progress = progress.toInt()
+                            progressBar.progress = (total * progressBar.max / fileLength).toInt()
                         }
                         nextDialogUpdateTime += 50
                     }

@@ -59,6 +59,31 @@
         <item name="tbColorDsOnBadge">@color/ds_on_badge</item>
         <item name="tbColorDsAccent">@color/ds_accent</item>
         <item name="tbColorDsScrim">@color/ds_scrim</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.TVBro.Dialog.Alert</item>
+    </style>
+
+    <!--
+    Alert dialogs (androidx.appcompat.app.AlertDialog) in the design system: a surface window, ink
+    text, buttons with the focused look of the bar, list rows with the focused look of menus. It is
+    laid over the activity theme, so the tokens resolve to their day or night values.
+    -->
+    <style name="ThemeOverlay.TVBro.Dialog.Alert" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/ds_dialog_bg</item>
+        <item name="colorBackgroundFloating">?attr/tbColorDsSurface</item>
+        <item name="android:colorBackground">?attr/tbColorDsSurface</item>
+        <item name="android:textColorPrimary">?attr/tbColorDsInk</item>
+        <item name="android:textColorSecondary">?attr/tbColorDsInk</item>
+        <item name="android:textColorHint">?attr/tbColorDsInkFaint</item>
+        <item name="textColorAlertDialogListItem">?attr/tbColorDsInk</item>
+        <item name="colorAccent">?attr/tbColorDsSelected</item>
+        <item name="colorControlActivated">?attr/tbColorDsSelected</item>
+        <item name="colorControlNormal">?attr/tbColorDsIcon</item>
+        <item name="colorControlHighlight">?attr/tbColorDsControlFocused</item>
+        <item name="listChoiceBackgroundIndicator">@drawable/ds_menu_row_bg</item>
+        <item name="android:listChoiceBackgroundIndicator">@drawable/ds_menu_row_bg</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.TVBro.DialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.TVBro.DialogButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.TVBro.DialogButton</item>
     </style>
 
     <style name="SettingsDialog">

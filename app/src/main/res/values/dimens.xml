@@ -209,6 +209,8 @@
     <dimen name="ds_panel_text_button_height">36dp</dimen>
     <dimen name="ds_panel_text_button_padding">16dp</dimen>
     <dimen name="ds_panel_buttons_gap">12dp</dimen>
+    <!-- alert dialogs: the window is inset from the edges of the screen -->
+    <dimen name="ds_dialog_inset">16dp</dimen>
     <!-- the bookmarks screen of the phone UI -->
     <dimen name="ds_phone_bookmark_row_height">64dp</dimen>
     <dimen name="ds_phone_bookmark_row_padding">16dp</dimen>

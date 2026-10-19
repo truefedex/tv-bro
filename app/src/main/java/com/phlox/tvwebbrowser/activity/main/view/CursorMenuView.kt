@@ -2,7 +2,6 @@ package com.phlox.tvwebbrowser.activity.main.view
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
-import android.app.AlertDialog
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -15,6 +14,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.CheckBox
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ViewCursorMenuBinding

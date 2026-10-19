@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The download of an update: a message and its progress -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="?attr/dialogPreferredPadding"
+    android:paddingTop="?attr/dialogPreferredPadding"
+    android:paddingEnd="?attr/dialogPreferredPadding"
+    android:paddingBottom="?attr/dialogPreferredPadding">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/downloading_file"
+        android:textSize="@dimen/ds_text_menu_item"
+        android:textColor="?attr/tbColorDsInk" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="@style/Widget.TVBro.DownloadProgress" />
+</LinearLayout>

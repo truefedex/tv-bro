@@ -1,7 +1,6 @@
 package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -18,6 +17,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import android.widget.AdapterView.OnItemClickListener
+import androidx.appcompat.app.AlertDialog
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import com.phlox.tvwebbrowser.webengine.gecko.R
 import org.mozilla.geckoview.AllowOrDeny

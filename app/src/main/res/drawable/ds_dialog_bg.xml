@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The window of an alert dialog: a surface in a hairline border, inset from the edges of the window -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="@dimen/ds_dialog_inset"
+    android:insetTop="@dimen/ds_dialog_inset"
+    android:insetRight="@dimen/ds_dialog_inset"
+    android:insetBottom="@dimen/ds_dialog_inset">
+    <shape android:shape="rectangle">
+        <corners android:radius="@dimen/ds_radius_lg" />
+        <solid android:color="?attr/tbColorDsSurface" />
+        <stroke android:color="?attr/tbColorDsLine" android:width="@dimen/ds_border_hairline" />
+    </shape>
+</inset>

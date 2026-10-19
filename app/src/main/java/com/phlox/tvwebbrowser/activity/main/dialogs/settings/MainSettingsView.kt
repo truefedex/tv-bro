@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.activity.main.dialogs.settings
 
-import android.app.AlertDialog
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -11,6 +10,7 @@ import android.widget.ArrayAdapter
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.AppContext
