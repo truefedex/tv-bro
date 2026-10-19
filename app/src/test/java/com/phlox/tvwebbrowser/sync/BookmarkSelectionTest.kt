@@ -69,6 +69,18 @@ class BookmarkSelectionTest {
     }
 
     @Test
+    fun aTreeOfAnotherDeviceIsChosenFrom() {
+        val tree = SyncBookmark.Folder("", all = true, children = listOf(
+            SyncBookmark.Folder("Home page", all = true, homePage = true, children = listOf(SyncBookmark.Link("h", "https://h.com/", 2))),
+            SyncBookmark.Folder("F", all = true, children = listOf(SyncBookmark.Link("a", "https://a.com/")))
+        ))
+        val selection = BookmarkSelection.of(tree)
+        assertNull(selection.tree())
+        selection.setAll(true)
+        assertEquals(tree, selection.tree())
+    }
+
+    @Test
     fun rowsShowTheContentsOfExpandedFolders() {
         news.expanded = true
         selection.toggle(deep)

@@ -8,6 +8,8 @@ import com.phlox.tvwebbrowser.data.PairedDevicesRepository
 import com.phlox.tvwebbrowser.model.PairedDevice
 import com.phlox.tvwebbrowser.sync.BookmarkSelection
 import com.phlox.tvwebbrowser.sync.BookmarksReplacer
+import com.phlox.tvwebbrowser.sync.LocalBookmarks
+import com.phlox.tvwebbrowser.sync.SyncBookmark
 import com.phlox.tvwebbrowser.sync.SyncChannel
 import com.phlox.tvwebbrowser.sync.SyncClient
 import com.phlox.tvwebbrowser.sync.SyncException
@@ -21,14 +23,18 @@ import java.io.IOException
 
 /**
  * What the page of the phone that sends to TVs shows and does, without views: the paired TVs (whether each
- * is found now), the actions for a TV, the choice of tabs and of bookmarks to send, pairing with the link of
- * a QR code. A stack of screens: [back] goes to the previous one. The phone shell draws it through [Host].
+ * is found now), the actions for a TV, the choice of tabs and of bookmarks to send, the choice of bookmarks
+ * of the TV to take (into the [local] bookmarks of the phone, which can then be brought back), pairing with
+ * the link of a QR code. A stack of screens: [back] goes to the previous one. The phone shell draws it
+ * through [Host].
  */
 class PhoneSyncNavigator(
     private val context: Context,
     private val client: SyncClient,
     private val devices: PairedDevicesRepository,
     private val favorites: FavoritesRepository,
+    /** The bookmarks of this phone, as the bookmarks taken from a TV change them */
+    private val local: LocalBookmarks,
     private val scope: CoroutineScope,
     private val host: Host
 ) {
@@ -42,7 +48,10 @@ class PhoneSyncNavigator(
         fun showMessage(message: String)
         /** The phone may not reach devices of the local network until the user allows it */
         fun ensureLocalNetworkAccess(onGranted: () -> Unit)
-        fun confirmBookmarks(tv: PairedDevice, changes: BookmarksReplacer.Changes, onConfirm: () -> Unit)
+        /** @param title the question: which device gets the changes */
+        fun confirmBookmarks(title: String, changes: BookmarksReplacer.Changes, onConfirm: () -> Unit)
+        /** The bookmarks of this phone changed */
+        fun onBookmarksChanged()
         fun confirmForget(tv: PairedDevice, onConfirm: () -> Unit)
         /** The pages of the tabs of the phone, and the index of the current one (-1 if none) */
         fun tabs(): Pair<List<SyncTab>, Int>
@@ -57,10 +66,12 @@ class PhoneSyncNavigator(
 
     sealed class Screen {
         data class Tvs(val tvs: List<TvItem>) : Screen()
-        data class Tv(val tv: PairedDevice) : Screen()
+        /** @param canUndo the bookmarks this phone took last can be given back */
+        data class Tv(val tv: PairedDevice, val canUndo: Boolean = false) : Screen()
         data class Tabs(val tv: PairedDevice, val tabs: List<TabItem>) : Screen()
+        /** @param fromTv the bookmarks of the TV, to take into this phone (else the ones of the phone, to send) */
         data class Bookmarks(val tv: PairedDevice, val rows: List<BookmarkSelection.Row>,
-                             val all: BookmarkSelection.State) : Screen()
+                             val all: BookmarkSelection.State, val fromTv: Boolean) : Screen()
     }
 
     private val stack = ArrayList<Screen>()
@@ -98,7 +109,8 @@ class PhoneSyncNavigator(
     }
 
     private fun render() {
-        val screen = stack.lastOrNull() ?: return
+        var screen = stack.lastOrNull() ?: return
+        if (screen is Screen.Tv) screen = screen.copy(canUndo = local.canRestore)
         host.render(screen, busy)
     }
 
@@ -134,6 +146,7 @@ class PhoneSyncNavigator(
             SyncClient.UNREACHABLE -> context.getString(R.string.sync_unreachable, name)
             SyncChannel.UNKNOWN_PAIRING -> context.getString(R.string.sync_tv_forgot, name)
             SyncRequests.CHANGED -> context.getString(R.string.sync_tv_changed)
+            SyncRequests.UNSUPPORTED -> context.getString(R.string.sync_tv_too_old, name)
             else -> context.getString(R.string.sync_failed)
         }
     }
@@ -256,37 +269,42 @@ class PhoneSyncNavigator(
         }
     }
 
-    fun chooseBookmarks(tv: PairedDevice) {
+    /** @param fromTv choose bookmarks of the TV to take, else bookmarks of this phone to send */
+    fun chooseBookmarks(tv: PairedDevice, fromTv: Boolean) {
         work(context.getString(R.string.sync_connecting), tv) {
-            val selection = BookmarkSelection.load(favorites, context.getString(R.string.home_page))
+            val selection = if (fromTv) {
+                BookmarkSelection.of(client.session(tv) { it.getBookmarks() })
+            } else {
+                BookmarkSelection.load(favorites, context.getString(R.string.home_page))
+            }
             this.selection = selection
-            stack += bookmarksScreen(tv, selection)
+            stack += Screen.Bookmarks(tv, selection.rows(), selection.state, fromTv)
         }
     }
 
-    private fun bookmarksScreen(tv: PairedDevice, selection: BookmarkSelection) =
-        Screen.Bookmarks(tv, selection.rows(), selection.state)
+    private fun bookmarksScreen(screen: Screen.Bookmarks, selection: BookmarkSelection) =
+        screen.copy(rows = selection.rows(), all = selection.state)
 
     /** Chooses or unchooses the bookmark or folder (with all in it) */
     fun toggleBookmark(node: BookmarkSelection.Node) {
         val screen = stack.lastOrNull() as? Screen.Bookmarks ?: return
         val selection = selection ?: return
         selection.toggle(node)
-        replaceTop(bookmarksScreen(screen.tv, selection))
+        replaceTop(bookmarksScreen(screen, selection))
     }
 
     fun expandFolder(node: BookmarkSelection.Node) {
         val screen = stack.lastOrNull() as? Screen.Bookmarks ?: return
         val selection = selection ?: return
         node.expanded = !node.expanded
-        replaceTop(bookmarksScreen(screen.tv, selection))
+        replaceTop(bookmarksScreen(screen, selection))
     }
 
     fun setAllBookmarks(checked: Boolean) {
         val screen = stack.lastOrNull() as? Screen.Bookmarks ?: return
         val selection = selection ?: return
         selection.setAll(checked)
-        replaceTop(bookmarksScreen(screen.tv, selection))
+        replaceTop(bookmarksScreen(screen, selection))
     }
 
     /** Asks the TV what would change, lets the user confirm, then sends */
@@ -297,19 +315,53 @@ class PhoneSyncNavigator(
             host.showMessage(context.getString(R.string.sync_nothing_selected))
             return
         }
+        if (screen.fromTv) {
+            takeBookmarks(screen, tree)
+            return
+        }
         work(context.getString(R.string.sync_connecting), screen.tv) {
             val preview = client.session(screen.tv) { it.previewBookmarks(tree) }
             if (preview.isEmpty) {
                 host.showMessage(context.getString(R.string.sync_bookmarks_same))
                 return@work
             }
-            host.confirmBookmarks(screen.tv, preview) {
+            host.confirmBookmarks(context.getString(R.string.sync_bookmarks_preview_title, screen.tv.name), preview) {
                 work(context.getString(R.string.sync_connecting), screen.tv) {
                     client.session(screen.tv) { it.replaceBookmarks(tree, preview) }
                     host.showMessage(context.getString(R.string.sync_bookmarks_sent, screen.tv.name))
                     stack.remove(screen)
                     selection = null
                 }
+            }
+        }
+    }
+
+    /** Puts the chosen bookmarks of the TV into the ones of this phone, after the user confirms what changes */
+    private fun takeBookmarks(screen: Screen.Bookmarks, tree: SyncBookmark.Folder) {
+        work(context.getString(R.string.sync_connecting), screen.tv) {
+            val preview = local.preview(tree)
+            if (preview.isEmpty) {
+                host.showMessage(context.getString(R.string.sync_bookmarks_same_phone))
+                return@work
+            }
+            host.confirmBookmarks(context.getString(R.string.sync_bookmarks_preview_title_phone), preview) {
+                work(context.getString(R.string.sync_connecting), screen.tv) {
+                    local.replace(tree, preview)
+                    host.onBookmarksChanged()
+                    host.showMessage(context.getString(R.string.sync_bookmarks_received))
+                    stack.remove(screen)
+                    selection = null
+                }
+            }
+        }
+    }
+
+    /** Gives this phone back the bookmarks it had before it took the last ones from a TV */
+    fun undoBookmarks() {
+        work(context.getString(R.string.sync_connecting), null) {
+            if (local.restore() != null) {
+                host.onBookmarksChanged()
+                host.showMessage(context.getString(R.string.sync_bookmarks_restored))
             }
         }
     }

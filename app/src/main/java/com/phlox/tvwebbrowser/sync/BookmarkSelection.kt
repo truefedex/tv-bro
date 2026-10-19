@@ -88,18 +88,17 @@ class BookmarkSelection(val nodes: List<Node>) {
     }
 
     companion object {
-        /** The Home page folder (named [homePageTitle], even if it is empty) first, then the top level */
-        suspend fun load(favorites: FavoritesRepository, homePageTitle: String): BookmarkSelection {
-            suspend fun nodes(folder: Long): List<Node> = favorites.children(folder).mapNotNull { item ->
-                when {
-                    item.isFolder -> Node(item.title ?: "", null, nodes(item.id))
-                    SyncRequests.isAllowedUrl(item.url!!) -> Node(item.title ?: "", item.url,
-                        order = if (item.homePageBookmark) item.order else null)
-                    else -> null
-                }
+        /** The bookmarks of this device: the Home page folder (named [homePageTitle], even if it is empty) first */
+        suspend fun load(favorites: FavoritesRepository, homePageTitle: String): BookmarkSelection =
+            of(SyncBookmark.fromFavorites(favorites, homePageTitle))
+
+        /** The bookmarks of a [tree] (all the bookmarks of a TV), nothing chosen */
+        fun of(tree: SyncBookmark.Folder): BookmarkSelection {
+            fun node(bookmark: SyncBookmark): Node = when (bookmark) {
+                is SyncBookmark.Folder -> Node(bookmark.title, null, bookmark.children.map(::node), bookmark.homePage)
+                is SyncBookmark.Link -> Node(bookmark.title, bookmark.url, order = bookmark.order)
             }
-            val home = Node(homePageTitle, null, nodes(FavoritesRepository.HOME_PAGE), homePage = true)
-            return BookmarkSelection(listOf(home) + nodes(FavoritesRepository.ROOT))
+            return BookmarkSelection(tree.children.map(::node))
         }
     }
 }

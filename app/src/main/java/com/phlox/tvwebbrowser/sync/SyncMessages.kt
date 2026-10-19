@@ -68,6 +68,8 @@ data class SyncTab(val url: String, val title: String)
  */
 object SyncRequests {
     const val OPEN_TABS = "tabs.open"
+    /** All the bookmarks of the TV, for the phone to take some */
+    const val GET_BOOKMARKS = "bookmarks.get"
     const val PREVIEW_BOOKMARKS = "bookmarks.preview"
     const val REPLACE_BOOKMARKS = "bookmarks.replace"
     const val FORGET = "device.forget"
@@ -75,7 +77,7 @@ object SyncRequests {
     const val ERROR = "error"
 
     /** What a TV of this version handles */
-    val TV_CAPABILITIES = setOf(OPEN_TABS, PREVIEW_BOOKMARKS, REPLACE_BOOKMARKS, FORGET)
+    val TV_CAPABILITIES = setOf(OPEN_TABS, GET_BOOKMARKS, PREVIEW_BOOKMARKS, REPLACE_BOOKMARKS, FORGET)
 
     const val MAX_URL_LENGTH = 8192
     const val MAX_TITLE_LENGTH = 1024

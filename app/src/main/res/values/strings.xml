@@ -398,6 +398,15 @@
     <string name="sync_send_tabs_summary">Open pages of this phone on the TV</string>
     <string name="sync_send_bookmarks">Send bookmarks</string>
     <string name="sync_send_bookmarks_summary">Chosen folders replace the same folders on the TV</string>
+    <string name="sync_get_bookmarks">Get bookmarks</string>
+    <string name="sync_get_bookmarks_summary">Chosen folders of the TV replace the same folders on this phone</string>
+    <string name="sync_undo_bookmarks_phone_summary">Bring back the bookmarks of this phone as they were before</string>
+    <string name="sync_bookmarks_hint_from_tv">A folder of the TV chosen with all its contents replaces the same folder on this phone. A folder chosen in part only adds new and renamed bookmarks.</string>
+    <string name="sync_bookmarks_preview_title_phone">Update bookmarks on this phone?</string>
+    <string name="sync_bookmarks_same_phone">This phone has the same bookmarks</string>
+    <string name="sync_bookmarks_received">Bookmarks updated on this phone</string>
+    <!-- %s: the name of the TV -->
+    <string name="sync_tv_too_old">%s needs a newer TV Bro</string>
     <string name="sync_send">Send</string>
     <string name="sync_next">Next</string>
     <string name="sync_select_all">Select all</string>

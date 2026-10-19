@@ -117,7 +117,8 @@ class PhoneSyncView @JvmOverloads constructor(
             }
             is Screen.Tv -> {
                 vb.tvTitle.text = screen.tv.name
-                listOf(Row.Action(ACTION_TABS), Row.Action(ACTION_BOOKMARKS))
+                listOf(Row.Action(ACTION_TABS), Row.Action(ACTION_BOOKMARKS), Row.Action(ACTION_GET_BOOKMARKS)) +
+                    if (screen.canUndo) listOf(Row.Action(ACTION_UNDO_BOOKMARKS)) else emptyList()
             }
             is Screen.Tabs -> {
                 vb.tvTitle.setText(R.string.sync_send_tabs)
@@ -128,10 +129,11 @@ class PhoneSyncView @JvmOverloads constructor(
                 screen.tabs.mapIndexed { i, item -> Row.Tab(i, item) }
             }
             is Screen.Bookmarks -> {
-                vb.tvTitle.setText(R.string.sync_send_bookmarks)
+                vb.tvTitle.setText(if (screen.fromTv) R.string.sync_get_bookmarks else R.string.sync_send_bookmarks)
                 vb.btnAction.setText(R.string.sync_next)
                 setSelectAllIcon(screen.all)
-                listOf<Row>(Row.Hint(context.getString(R.string.sync_bookmarks_hint))) + screen.rows.map { Row.Bookmark(it) }
+                val hint = if (screen.fromTv) R.string.sync_bookmarks_hint_from_tv else R.string.sync_bookmarks_hint
+                listOf<Row>(Row.Hint(context.getString(hint))) + screen.rows.map { Row.Bookmark(it) }
             }
         }
         adapter.rows = rows
@@ -191,8 +193,11 @@ class PhoneSyncView @JvmOverloads constructor(
             val screen = screen
             when (val row = row) {
                 is Row.Tv -> navigator.openTv(row.item.tv)
-                is Row.Action -> if (screen is Screen.Tv) {
-                    if (row.action == ACTION_TABS) navigator.chooseTabs(screen.tv) else navigator.chooseBookmarks(screen.tv)
+                is Row.Action -> if (screen is Screen.Tv) when (row.action) {
+                    ACTION_TABS -> navigator.chooseTabs(screen.tv)
+                    ACTION_BOOKMARKS -> navigator.chooseBookmarks(screen.tv, fromTv = false)
+                    ACTION_GET_BOOKMARKS -> navigator.chooseBookmarks(screen.tv, fromTv = true)
+                    ACTION_UNDO_BOOKMARKS -> navigator.undoBookmarks()
                 }
                 is Row.Tab -> navigator.toggleTab(row.index)
                 is Row.Bookmark -> if (row.row.node.isFolder) navigator.expandFolder(row.row.node)
@@ -225,11 +230,19 @@ class PhoneSyncView @JvmOverloads constructor(
                     vb.ivEnd.setImageResource(R.drawable.ic_chevron_right)
                 }
                 is Row.Action -> {
-                    val tabs = row.action == ACTION_TABS
-                    vb.ivIcon.setImageResource(if (tabs) R.drawable.ic_new_tab else R.drawable.ic_favorites)
-                    vb.tvTitle.setText(if (tabs) R.string.sync_send_tabs else R.string.sync_send_bookmarks)
-                    vb.tvCaption.setText(if (tabs) R.string.sync_send_tabs_summary else R.string.sync_send_bookmarks_summary)
-                    vb.ivEnd.isVisible = true
+                    val (icon, title, caption) = when (row.action) {
+                        ACTION_TABS -> Triple(R.drawable.ic_new_tab, R.string.sync_send_tabs, R.string.sync_send_tabs_summary)
+                        ACTION_BOOKMARKS -> Triple(R.drawable.ic_favorites, R.string.sync_send_bookmarks,
+                            R.string.sync_send_bookmarks_summary)
+                        ACTION_GET_BOOKMARKS -> Triple(R.drawable.ic_downloads, R.string.sync_get_bookmarks,
+                            R.string.sync_get_bookmarks_summary)
+                        else -> Triple(R.drawable.ic_refresh, R.string.sync_undo_bookmarks, R.string.sync_undo_bookmarks_phone_summary)
+                    }
+                    vb.ivIcon.setImageResource(icon)
+                    vb.tvTitle.setText(title)
+                    vb.tvCaption.setText(caption)
+                    //undo acts at once, the others open a screen
+                    vb.ivEnd.isVisible = row.action != ACTION_UNDO_BOOKMARKS
                     vb.ivEnd.setImageResource(R.drawable.ic_chevron_right)
                 }
                 is Row.Tab -> {
@@ -279,5 +292,7 @@ class PhoneSyncView @JvmOverloads constructor(
         private const val HIDDEN_SHIFT = 0.05f
         private const val ACTION_TABS = 0
         private const val ACTION_BOOKMARKS = 1
+        private const val ACTION_GET_BOOKMARKS = 2
+        private const val ACTION_UNDO_BOOKMARKS = 3
     }
 }

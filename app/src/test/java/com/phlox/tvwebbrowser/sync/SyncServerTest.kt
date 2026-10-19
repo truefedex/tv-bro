@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.sync
 import android.content.Context
 import androidx.room.Room
 import com.phlox.tvwebbrowser.data.DataRepositories
+import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.HOME_PAGE
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.ROOT
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.PairedDevice
@@ -44,6 +45,9 @@ class SyncServerTest {
     private val tvSettings = SyncSettings(context, context.getSharedPreferences("tv", Context.MODE_PRIVATE))
     private val phoneSettings = SyncSettings(context, context.getSharedPreferences("phone", Context.MODE_PRIVATE))
     private val backup = BookmarksBackup(File(context.filesDir, "tv"))
+    private val tvBookmarks = LocalBookmarks({ tvData }, backup, "Home page")
+    private val phoneBackup = BookmarksBackup(File(context.filesDir, "phone"))
+    private val phoneBookmarks = LocalBookmarks({ phoneData }, phoneBackup, "Home page")
 
     private val opened = Collections.synchronizedList(ArrayList<SyncTab>())
     private val paired = Collections.synchronizedList(ArrayList<PairedDevice>())
@@ -58,7 +62,7 @@ class SyncServerTest {
         //the server calls its host on the main thread: here on the thread of the session
         Dispatchers.setMain(Dispatchers.Unconfined)
         SyncKeyStore.setInstanceForTests(PlainSyncKeyStore())
-        server = SyncServer(tvSettings, { tvData }, backup, "Home page", object : SyncServer.Host {
+        server = SyncServer(tvSettings, { tvData }, tvBookmarks, object : SyncServer.Host {
             override fun openTabs(from: PairedDevice, tabs: List<SyncTab>) {
                 opened += tabs
             }
@@ -82,6 +86,7 @@ class SyncServerTest {
     fun tearDown() {
         server.destroy()
         backup.delete()
+        phoneBackup.delete()
         SyncKeyStore.setInstanceForTests(null)
         Dispatchers.resetMain()
         tvDb.close()
@@ -181,7 +186,7 @@ class SyncServerTest {
         assertEquals(1, replaced.size)
         assertTrue(backup.exists)
 
-        assertNotNull(server.restoreBookmarks())
+        assertNotNull(tvBookmarks.restore())
         assertEquals(before, favorites.exportTree("Home page"))
         assertFalse(backup.exists)
     }
@@ -203,6 +208,41 @@ class SyncServerTest {
         assertEquals(SyncRequests.CHANGED, result)
         assertEquals(listOf("Late"), tvData.favorites.children(ROOT).map { it.title })
         assertFalse(backup.exists)
+    }
+
+    @Test
+    fun thePhoneTakesChosenBookmarksOfTheTv() = runBlocking {
+        val tv = pair()
+        val tvFavorites = tvData.favorites
+        val news = FavoriteItem().apply { title = "News" }
+        tvFavorites.add(news, ROOT)
+        tvFavorites.add(FavoriteItem().apply { title = "BBC"; url = "https://bbc.com/" }, news.id)
+        tvFavorites.add(FavoriteItem().apply { title = "TV only"; url = "https://tv.com/" }, ROOT)
+        tvFavorites.add(FavoriteItem().apply { title = "Home"; url = "https://home.com/" }, HOME_PAGE)
+        val phoneFavorites = phoneData.favorites
+        phoneFavorites.add(FavoriteItem().apply { title = "Phone only"; url = "https://phone.com/" }, ROOT)
+        val before = phoneFavorites.exportTree("Home page")
+
+        val tvTree = client.session(tv) { it.getBookmarks() }
+        //the Home page folder comes first, with the places of its bookmarks
+        val home = tvTree.children[0] as SyncBookmark.Folder
+        assertTrue(home.homePage)
+        assertEquals(listOf("https://home.com/"), home.children.map { (it as SyncBookmark.Link).url })
+
+        //the phone takes the News folder only
+        val selection = BookmarkSelection.of(tvTree)
+        selection.toggle(selection.nodes.first { it.title == "News" })
+        val tree = selection.tree()!!
+        val preview = phoneBookmarks.preview(tree)
+        assertEquals(1, preview.added)
+        phoneBookmarks.replace(tree, preview)
+        assertEquals(listOf("News", "Phone only"), phoneFavorites.children(ROOT).map { it.title })
+        assertTrue(phoneFavorites.children(HOME_PAGE).isEmpty())
+        //the TV is not changed
+        assertFalse(backup.exists)
+
+        assertNotNull(phoneBookmarks.restore())
+        assertEquals(before, phoneFavorites.exportTree("Home page"))
     }
 
     @Test

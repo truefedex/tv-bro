@@ -1,15 +1,23 @@
 package com.phlox.tvwebbrowser.sync
 
+import androidx.room.withTransaction
 import com.phlox.tvwebbrowser.data.BookmarksHtml
+import com.phlox.tvwebbrowser.data.DataRepositories
 import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.model.FavoriteItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
 /**
- * Bookmarks a phone sends to a TV: the folders and bookmarks the user chose. A folder chosen with all
- * that is in it ([Folder.all]) replaces the folder of the TV; a folder chosen in part only adds and updates.
+ * Bookmarks one device sends to another: the folders and bookmarks the user chose (a phone sends them to a
+ * TV, or takes them from all the bookmarks of the TV, [fromFavorites]). A folder chosen with all that is in
+ * it ([Folder.all]) replaces the folder of the device that gets it; a folder chosen in part only adds and
+ * updates.
  */
 sealed class SyncBookmark {
     abstract val title: String
@@ -68,6 +76,24 @@ sealed class SyncBookmark {
                 )
             }
             return parse(json, 0) as? Folder ?: throw SyncException(SyncChannel.BAD_MESSAGE)
+        }
+
+        /**
+         * All the bookmarks of the device: the Home page folder (named [homePageTitle], even if it is empty,
+         * its bookmarks with their places on the page) first, then the top level; bookmarks of pages other
+         * than http and https are left out
+         */
+        suspend fun fromFavorites(favorites: FavoritesRepository, homePageTitle: String): Folder {
+            suspend fun nodes(folder: Long): List<SyncBookmark> = favorites.children(folder).mapNotNull { item ->
+                when {
+                    item.isFolder -> Folder(item.title ?: "", all = true, children = nodes(item.id))
+                    SyncRequests.isAllowedUrl(item.url!!) -> Link(item.title ?: "", item.url!!,
+                        order = if (item.homePageBookmark) item.order else null)
+                    else -> null
+                }
+            }
+            val home = Folder(homePageTitle, all = true, children = nodes(FavoritesRepository.HOME_PAGE), homePage = true)
+            return Folder("", all = true, children = listOf(home) + nodes(FavoritesRepository.ROOT))
         }
 
         /**
@@ -246,7 +272,7 @@ class BookmarksReplacer(private val favorites: FavoritesRepository) {
 }
 
 /**
- * The bookmarks of a TV as they were before the last change made by a phone, in a bookmarks file:
+ * The bookmarks of a device as they were before the last change made by the sync, in a bookmarks file:
  * they can be brought back ([SyncBookmark.everything]).
  */
 class BookmarksBackup(dir: File) {
@@ -269,5 +295,58 @@ class BookmarksBackup(dir: File) {
 
     fun delete() {
         file.delete()
+    }
+}
+
+/**
+ * The bookmarks of this device as the sync reads and changes them, one change at a time: a TV changes them
+ * for a phone, a phone for the bookmarks it takes from a TV. A change keeps the bookmarks of before in the
+ * [backup], so it can be undone ([restore]).
+ */
+class LocalBookmarks(
+    private val data: () -> DataRepositories,
+    private val backup: BookmarksBackup,
+    private val homePageTitle: String
+) {
+    private val lock = Mutex()
+
+    /** A change can be undone */
+    val canRestore: Boolean get() = backup.exists
+
+    /** All the bookmarks, as they are sent ([SyncBookmark.fromFavorites]) */
+    suspend fun tree(): SyncBookmark.Folder = SyncBookmark.fromFavorites(data().favorites, homePageTitle)
+
+    /** What [replace] would change, changing nothing */
+    suspend fun preview(tree: SyncBookmark.Folder): BookmarksReplacer.Changes = lock.withLock { run(tree, dryRun = true) }
+
+    /**
+     * Puts the bookmarks of the [tree] into these ones, keeping these in the backup first (if anything changes).
+     * @param expected the changes of the preview the user saw
+     * @throws SyncException [SyncRequests.CHANGED] if it would now change anything else (nothing is changed)
+     */
+    suspend fun replace(tree: SyncBookmark.Folder, expected: BookmarksReplacer.Changes?): BookmarksReplacer.Changes =
+        lock.withLock {
+            val preview = run(tree, dryRun = true)
+            if (expected != null && (expected.added != preview.added || expected.updated != preview.updated ||
+                    expected.removed != preview.removed)) {
+                throw SyncException(SyncRequests.CHANGED)
+            }
+            if (preview.isEmpty) return@withLock preview
+            val before = data().favorites.exportTree(homePageTitle)
+            withContext(Dispatchers.IO) { backup.save(before) }
+            run(tree, dryRun = false)
+        }
+
+    /** Brings back the bookmarks of before the last change; null if there is no backup */
+    suspend fun restore(): BookmarksReplacer.Changes? = lock.withLock {
+        val nodes = withContext(Dispatchers.IO) { backup.read() } ?: return@withLock null
+        val changes = run(SyncBookmark.everything(nodes), dryRun = false)
+        withContext(Dispatchers.IO) { backup.delete() }
+        changes
+    }
+
+    private suspend fun run(tree: SyncBookmark.Folder, dryRun: Boolean): BookmarksReplacer.Changes {
+        val data = data()
+        return data.database.withTransaction { BookmarksReplacer(data.favorites).replace(tree, dryRun) }
     }
 }

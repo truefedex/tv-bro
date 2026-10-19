@@ -46,6 +46,7 @@ import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.PairedDevice
 import com.phlox.tvwebbrowser.sync.BookmarksBackup
 import com.phlox.tvwebbrowser.sync.BookmarksReplacer
+import com.phlox.tvwebbrowser.sync.LocalBookmarks
 import com.phlox.tvwebbrowser.sync.SyncDiscovery
 import com.phlox.tvwebbrowser.sync.SyncLink
 import com.phlox.tvwebbrowser.sync.SyncServer
@@ -346,11 +347,13 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         this.fullscreen = fullscreen
     }
 
-    private val bookmarksBackup = BookmarksBackup(activity.filesDir)
+    /** The bookmarks of the TV that phones change, with the backup of before the last change */
+    private val bookmarks = LocalBookmarks({ TVBro.container.data }, BookmarksBackup(activity.filesDir),
+        activity.getString(R.string.home_page))
 
     /** Listens for paired phones while the activity is started */
     private val syncServer = SyncServer(SyncSettings(activity, AppContext.provideConfig().prefs), { TVBro.container.data },
-        bookmarksBackup, activity.getString(R.string.home_page), object : SyncServer.Host {
+        bookmarks, object : SyncServer.Host {
             override fun openTabs(from: PairedDevice, tabs: List<SyncTab>) = openTabsFromPhone(from, tabs)
 
             override fun onBookmarksReplaced(from: PairedDevice, changes: BookmarksReplacer.Changes) {
@@ -406,7 +409,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private val syncScreenCallback = object : TvSyncScreenView.Callback {
         override val pairingLink get() = syncServer.pairingLink
         override val phones get() = TVBro.container.data.pairedDevices.observe(PairedDevice.KIND_PHONE)
-        override val canUndoBookmarks: Boolean get() = bookmarksBackup.exists
+        override val canUndoBookmarks: Boolean get() = bookmarks.canRestore
 
         override fun startPairing() = syncServer.startPairing()
 
@@ -427,7 +430,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 .setMessage(R.string.sync_undo_bookmarks_confirm)
                 .setPositiveButton(R.string.sync_restore) { _, _ ->
                     lifecycleScope.launch {
-                        if (syncServer.restoreBookmarks() != null) {
+                        if (bookmarks.restore() != null) {
                             controller.homePageLinks.load()
                             NotificationView.show(vb.rlRoot, R.drawable.ic_favorites, activity.getString(R.string.sync_bookmarks_restored))
                         }

@@ -8,7 +8,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.model.PairedDevice
+import com.phlox.tvwebbrowser.sync.BookmarksBackup
 import com.phlox.tvwebbrowser.sync.BookmarksReplacer
+import com.phlox.tvwebbrowser.sync.LocalBookmarks
 import com.phlox.tvwebbrowser.sync.SyncClient
 import com.phlox.tvwebbrowser.sync.SyncDiscovery
 import com.phlox.tvwebbrowser.sync.SyncLink
@@ -274,18 +276,23 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             }
         }
 
-        override fun confirmBookmarks(tv: PairedDevice, changes: BookmarksReplacer.Changes, onConfirm: () -> Unit) {
+        override fun confirmBookmarks(title: String, changes: BookmarksReplacer.Changes, onConfirm: () -> Unit) {
             var message = activity.getString(R.string.sync_bookmarks_preview, changes.added, changes.updated, changes.removed)
             if (changes.removedTitles.isNotEmpty()) {
                 message += "\n\n" + activity.getString(R.string.sync_bookmarks_will_be_deleted) + "\n" +
                     changes.removedTitles.joinToString("\n") { "• $it" }
             }
             AlertDialog.Builder(activity)
-                .setTitle(activity.getString(R.string.sync_bookmarks_preview_title, tv.name))
+                .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(R.string.sync_update) { _, _ -> onConfirm() }
                 .setNegativeButton(R.string.cancel, null)
                 .show()
+        }
+
+        //the home page shows the bookmarks of its folder
+        override fun onBookmarksChanged() {
+            controller.modelScope.launch { controller.homePageLinks.load() }
         }
 
         override fun confirmForget(tv: PairedDevice, onConfirm: () -> Unit) {
@@ -306,7 +313,9 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     }
 
     private val syncNavigator = PhoneSyncNavigator(activity, syncClient, TVBro.container.data.pairedDevices,
-        TVBro.container.data.favorites, activity.lifecycleScope, syncHost)
+        TVBro.container.data.favorites,
+        LocalBookmarks({ TVBro.container.data }, BookmarksBackup(activity.filesDir), activity.getString(R.string.home_page)),
+        activity.lifecycleScope, syncHost)
 
     /** The link of the QR code of a TV: pairs with it */
     override fun handleSyncLink(link: SyncLink?): Boolean {

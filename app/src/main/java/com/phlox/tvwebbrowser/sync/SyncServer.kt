@@ -1,7 +1,6 @@
 package com.phlox.tvwebbrowser.sync
 
 import android.util.Log
-import androidx.room.withTransaction
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.data.DataRepositories
 import com.phlox.tvwebbrowser.model.PairedDevice
@@ -16,8 +15,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -40,8 +37,8 @@ import java.net.SocketTimeoutException
 class SyncServer(
     private val settings: SyncSettings,
     private val data: () -> DataRepositories,
-    private val backup: BookmarksBackup,
-    private val homePageTitle: String,
+    /** The bookmarks of the TV, which phones change */
+    private val bookmarks: LocalBookmarks,
     private val host: Host,
     private val appVersion: Int = BuildConfig.VERSION_CODE,
     /** All interfaces; tests listen on the loopback only */
@@ -67,7 +64,6 @@ class SyncServer(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var serverSocket: ServerSocket? = null
     private var acceptJob: Job? = null
-    private val bookmarksLock = Mutex()
 
     @Volatile
     private var pairingSecret: ByteArray? = null
@@ -231,28 +227,18 @@ class SyncServer(
             withContext(Dispatchers.Main) { host.openTabs(device, tabs) }
             SyncRequests.result().put("opened", tabs.size)
         }
+        SyncRequests.GET_BOOKMARKS -> SyncRequests.result().put("tree", SyncBookmark.toJson(bookmarks.tree()))
         SyncRequests.PREVIEW_BOOKMARKS -> {
             val tree = SyncBookmark.fromJson(request.optJSONObject("tree") ?: throw SyncException(SyncChannel.BAD_MESSAGE))
-            val changes = bookmarksLock.withLock { replaceBookmarks(tree, dryRun = true) }
-            changesJson(changes)
+            changesJson(bookmarks.preview(tree))
         }
         SyncRequests.REPLACE_BOOKMARKS -> {
             val tree = SyncBookmark.fromJson(request.optJSONObject("tree") ?: throw SyncException(SyncChannel.BAD_MESSAGE))
-            val expected = request.optJSONObject("expect")
-            val changes = bookmarksLock.withLock {
-                //what the phone showed to the user must still be what is done
-                val preview = replaceBookmarks(tree, dryRun = true)
-                if (expected != null && (expected.optInt("added") != preview.added ||
-                        expected.optInt("updated") != preview.updated || expected.optInt("removed") != preview.removed)) {
-                    throw SyncException(SyncRequests.CHANGED)
-                }
-                if (preview.isEmpty) preview else {
-                    val favorites = data().favorites
-                    val before = favorites.exportTree(homePageTitle)
-                    withContext(Dispatchers.IO) { backup.save(before) }
-                    replaceBookmarks(tree, dryRun = false)
-                }
+            //what the phone showed to the user must still be what is done
+            val expected = request.optJSONObject("expect")?.let {
+                BookmarksReplacer.Changes(it.optInt("added"), it.optInt("updated"), it.optInt("removed"), emptyList())
             }
+            val changes = bookmarks.replace(tree, expected)
             withContext(Dispatchers.Main) { host.onBookmarksReplaced(device, changes) }
             changesJson(changes)
         }
@@ -262,19 +248,6 @@ class SyncServer(
             SyncRequests.result()
         }
         else -> SyncRequests.error(SyncRequests.UNSUPPORTED)
-    }
-
-    /** Brings back the bookmarks of the [backup] (the change made by a phone is undone) */
-    suspend fun restoreBookmarks(): BookmarksReplacer.Changes? = bookmarksLock.withLock {
-        val nodes = withContext(Dispatchers.IO) { backup.read() } ?: return@withLock null
-        val changes = replaceBookmarks(SyncBookmark.everything(nodes), dryRun = false)
-        withContext(Dispatchers.IO) { backup.delete() }
-        changes
-    }
-
-    private suspend fun replaceBookmarks(tree: SyncBookmark.Folder, dryRun: Boolean): BookmarksReplacer.Changes {
-        val data = data()
-        return data.database.withTransaction { BookmarksReplacer(data.favorites).replace(tree, dryRun) }
     }
 
     private fun changesJson(changes: BookmarksReplacer.Changes): JSONObject = SyncRequests.result()

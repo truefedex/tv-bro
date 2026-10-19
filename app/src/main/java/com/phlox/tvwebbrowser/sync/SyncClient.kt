@@ -62,6 +62,17 @@ class SyncClient(
         /** @return the number of the tabs the TV opened */
         fun openTabs(tabs: List<SyncTab>): Int = request(SyncRequests.openTabs(tabs)).optInt("opened")
 
+        /**
+         * All the bookmarks of the TV
+         * @throws SyncException [SyncRequests.UNSUPPORTED] from a TV of an older version
+         */
+        fun getBookmarks(): SyncBookmark.Folder {
+            if (!supports(SyncRequests.GET_BOOKMARKS)) throw SyncException(SyncRequests.UNSUPPORTED)
+            val tree = request(JSONObject().put("type", SyncRequests.GET_BOOKMARKS)).optJSONObject("tree")
+                ?: throw SyncException(SyncChannel.BAD_MESSAGE)
+            return SyncBookmark.fromJson(tree)
+        }
+
         fun previewBookmarks(tree: SyncBookmark.Folder): BookmarksReplacer.Changes =
             changesOf(request(JSONObject().put("type", SyncRequests.PREVIEW_BOOKMARKS).put("tree", SyncBookmark.toJson(tree))))
 
