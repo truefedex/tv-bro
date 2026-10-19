@@ -257,7 +257,7 @@ class PhoneTabSwitcher @JvmOverloads constructor(
         }
 
         private fun loadFavicon(tab: BrowserTab) {
-            vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
+            vb.ivFavicon.setImageResource(R.mipmap.ic_launcher)
             val url = tab.url
             if (url == Config.HOME_PAGE_URL || url == Config.HOME_URL_ALIAS) return
             scope.launch {

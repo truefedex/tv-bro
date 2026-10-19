@@ -28,7 +28,7 @@ inside the outline of the card (the padding keeps the picture off the stroke)
         android:layout_height="@dimen/ds_phone_tab_card_favicon"
         android:scaleType="centerCrop"
         android:importantForAccessibility="no"
-        tools:src="@drawable/ic_launcher" />
+        tools:src="@mipmap/ic_launcher" />
 
     <TextView
         style="@style/Widget.TVBro.Text.TabTitle"

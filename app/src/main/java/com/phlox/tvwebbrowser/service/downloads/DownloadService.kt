@@ -250,7 +250,7 @@ class DownloadService : Service() {
         val builder = notificationBuilder ?: NotificationCompat.Builder(this, TVBro.CHANNEL_ID_DOWNLOADS)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(PendingIntent.getActivity(this, 0,
                 Intent(this, MainActivity::class.java)
                     .putExtra(MainActivity.KEY_SHOW_DOWNLOADS, true)

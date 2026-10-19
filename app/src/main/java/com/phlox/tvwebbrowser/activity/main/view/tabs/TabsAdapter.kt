@@ -101,7 +101,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
             //the current tab looks selected; the focused one has the focus look
             vb.root.isActivated = tabState == controller?.currentTab?.value
 
-            vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
+            vb.ivFavicon.setImageResource(R.mipmap.ic_launcher)
 
             val url = tabState.url
             if (url != Config.HOME_PAGE_URL && url != Config.HOME_URL_ALIAS) {
@@ -114,7 +114,7 @@ class TabsAdapter(private val tabsView: TabsView) : RecyclerView.Adapter<TabView
                     favicon?.let {
                         vb.ivFavicon.setImageBitmap(it)
                     } ?: run {
-                        vb.ivFavicon.setImageResource(R.drawable.ic_launcher)
+                        vb.ivFavicon.setImageResource(R.mipmap.ic_launcher)
                     }
                 }
             }

@@ -19,7 +19,7 @@
         android:layout_height="@dimen/ds_size_favicon_tab"
         android:scaleType="centerCrop"
         android:importantForAccessibility="no"
-        tools:src="@drawable/ic_launcher" />
+        tools:src="@mipmap/ic_launcher" />
 
     <TextView
         style="@style/Widget.TVBro.Text.TabTitle"
