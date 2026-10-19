@@ -125,19 +125,14 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
     }
 
-    @Suppress("KotlinConstantConditions")
     private fun initWebEngineStuff() {
         Log.i(TAG, "initWebEngineStuff")
 
+        //the engine of this variant of the app registers itself in WebEngineFactory
         try {
-            Class.forName("com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine")
+            Class.forName(BuildConfig.WEB_ENGINE_CLASS)
         } catch (e: ClassNotFoundException) {
-            throw AssertionError(e) // WebViews are always available
-        }
-        try {
-            Class.forName("com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine")
-        } catch (e: ClassNotFoundException) {
-            Log.w(TAG, "GeckoWebEngine not found")//it is ok
+            throw AssertionError(e)
         }
 
         val cookieManager = CookieManager()

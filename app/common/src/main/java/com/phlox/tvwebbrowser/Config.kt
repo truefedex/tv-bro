@@ -31,7 +31,6 @@ class Config(val prefs: SharedPreferences) {
         const val DIRECT_NAVIGATION_MODE_HINT_SUPPRESS_KEY = "direct_navigation_mode_hint_suppress"
         const val HOME_PAGE_MODE = "home_page_mode"
         const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
-        const val WEB_ENGINE = "web_engine"
         const val ALLOW_AUTOPLAY_MEDIA = "allow_autoplay_media"
         const val WEBVIEW_USE_ALGORITHMIC_DARKENING_WITH_DARK_UI_MODE_KEY =
             "webview_use_algorithmic_darkening_with_dark_ui_mode"
@@ -41,11 +40,7 @@ class Config(val prefs: SharedPreferences) {
         const val ADBLOCK_LAST_UPDATE_LIST_KEY = "adblock_last_update"
         const val ADBLOCK_LIST_URL_KEY = "adblock_list_url"
         const val APP_WEB_EXTENSION_VERSION_KEY = "app_web_extension_version"
-        const val NOTIFICATION_ABOUT_ENGINE_CHANGE_SHOWN_KEY = "notification_about_engine_change_shown"
         const val APP_VERSION_CODE_MARK_KEY = "app_version_code_mark"
-
-        const val ENGINE_GECKO_VIEW = "GeckoView"
-        const val ENGINE_WEB_VIEW = "WebView"
 
         const val DEFAULT_ADBLOCK_LIST_URL = "https://easylist.to/easylist/easylist.txt"
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Startpage", "Custom")
@@ -53,14 +48,8 @@ class Config(val prefs: SharedPreferences) {
         val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
             "https://search.yahoo.com/search?p=[query]", "https://duckduckgo.com/?q=[query]",
             "https://yandex.com/search/?text=[query]", "https://www.startpage.com/sp/search?query=[query]", "")
-        val SupportedWebEngines = arrayOf(ENGINE_GECKO_VIEW, ENGINE_WEB_VIEW)
         const val HOME_PAGE_URL = "https://tvbro.phlox.dev/appcontent/home/"
         //const val HOME_PAGE_URL = "http://10.0.2.2:5000/appcontent/home/"
-
-        //Recommendation is disabled for now.
-        //There are plans to keep its support, but user reports and internal testing show
-        // that, at least for now, in terms of performance and stability, it is inferior to WebView.
-        const val GECKO_VIEW_RECOMMENDED = false
     }
 
     enum class Theme {
@@ -182,20 +171,6 @@ class Config(val prefs: SharedPreferences) {
 
     var searchEngineURL = ObservableStringPreference(SearchEnginesURLs[0], SEARCH_ENGINE_URL_PREF_KEY)
 
-    var webEngine: String
-        get() {
-            if (!prefs.contains(WEB_ENGINE)) {
-                prefs.edit().putString(
-                    WEB_ENGINE, if (GECKO_VIEW_RECOMMENDED)
-                    SupportedWebEngines[0] else SupportedWebEngines[1]).apply()
-            }
-
-            return prefs.getString(WEB_ENGINE, SupportedWebEngines[0])!!
-        }
-        set(value) {
-            prefs.edit().putString(WEB_ENGINE, value).apply()
-        }
-
     var allowAutoplayMedia: Boolean
         get() = prefs.getBoolean(ALLOW_AUTOPLAY_MEDIA, false)
         set(value) {
@@ -240,13 +215,6 @@ class Config(val prefs: SharedPreferences) {
         get() = prefs.getInt(APP_WEB_EXTENSION_VERSION_KEY, 0)
         set(value) {
             prefs.edit().putInt(APP_WEB_EXTENSION_VERSION_KEY, value).apply()
-        }
-
-    //0 - not shown, any other value - app version code where notification already shown (to show only once after update)
-    var notificationAboutEngineChangeShown: Int
-        get() = prefs.getInt(NOTIFICATION_ABOUT_ENGINE_CHANGE_SHOWN_KEY, 0)
-        set(value) {
-            prefs.edit().putInt(NOTIFICATION_ABOUT_ENGINE_CHANGE_SHOWN_KEY, value).apply()
         }
 
     var autoCheckUpdates: Boolean

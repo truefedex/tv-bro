@@ -38,8 +38,6 @@ class MainSettingsView @JvmOverloads constructor(
     var config = AppContext.provideConfig()
 
     init {
-        initWebBrowserEngineSettingsUI()
-
         initHomePageAndSearchEngineConfigUI()
 
         initUAStringConfigUI(context)
@@ -74,54 +72,6 @@ class MainSettingsView @JvmOverloads constructor(
         vb.llCursorSettings.visibility = View.GONE
         vb.scKeepScreenOn.nextFocusDownId = R.id.btnClearWebCache
         vb.btnClearWebCache.nextFocusUpId = R.id.scKeepScreenOn
-    }
-
-    private fun initWebBrowserEngineSettingsUI() {
-        val registeredEngines = WebEngineFactory.getProviders().map { it.name }
-        val engines = Config.SupportedWebEngines.filter { registeredEngines.contains(it) }
-        if (engines.size < 2) {
-            vb.llWebEngine.visibility = View.GONE
-            return
-        }
-
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, engines)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
-        vb.spWebEngine.adapter = adapter
-
-        vb.spWebEngine.setSelection(engines.indexOf(config.webEngine), false)
-
-        vb.spWebEngine.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                val engine = engines[position]
-                if (config.webEngine == engine) return
-                val message = when {
-                    engine == Config.ENGINE_GECKO_VIEW && !Config.GECKO_VIEW_RECOMMENDED ->
-                        context.getString(R.string.settings_engine_change_gecko_msg)
-                    engine == Config.ENGINE_WEB_VIEW ->
-                        context.getString(R.string.settings_engine_change_webview_msg)
-                    else -> null
-                }
-                if (message != null) {
-                    AlertDialog.Builder(context)
-                        .setTitle(R.string.warning)
-                        .setMessage(message)
-                        .setPositiveButton(R.string.ok) { _, _ ->
-                            config.webEngine = engine
-                            showRestartDialog()
-                        }
-                        .setNegativeButton(R.string.cancel) { _, _ ->
-                            vb.spWebEngine.setSelection(engines.indexOf(config.webEngine), false)
-                        }
-                        .show()
-                    return
-                }
-                config.webEngine = engine
-                showRestartDialog()
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>) {}
-        }
     }
 
     private fun showRestartDialog() {

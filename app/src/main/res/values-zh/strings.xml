@@ -138,7 +138,6 @@
     <item>最常访问</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">浏览器引擎</string>
   <string name="need_restart_message">重新启动应用以应用此更改</string>
   <string name="yes">是</string>
   <string name="no">否</string>
@@ -146,8 +145,6 @@
   <string name="site_asks_to_open_unknown_url_message">要在外部应用中打开此 URL 吗？</string>
   <string name="err_no_app_to_handle_url">找不到合适的应用来处理此 URL</string>
   <string name="home_page_links">主页上的链接</string>
-  <string name="settings_engine_change_gecko_msg">GeckoView 的加载速度比 WebView 稍慢。您要继续吗？</string>
-  <string name="settings_engine_change_webview_msg">WebView 会独立于主应用进行更新。您要继续吗？</string>
   <string name="http_auth_title">需要身份验证</string>
   <string name="play_pause">播放/暂停</string>
   <string name="media_stop">停止媒体</string>

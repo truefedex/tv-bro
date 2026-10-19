@@ -138,7 +138,6 @@
     <item>Самые посещаемые</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">Движок браузера</string>
   <string name="need_restart_message">Перезапустите приложение, чтобы применить изменения</string>
   <string name="yes">Да</string>
   <string name="no">Нет</string>
@@ -146,8 +145,6 @@
   <string name="site_asks_to_open_unknown_url_message">Вы хотите открыть этот URL-адрес во внешнем приложении?</string>
   <string name="err_no_app_to_handle_url">Не удаётся найти подходящее приложение для обработки этого URL-адреса</string>
   <string name="home_page_links">Ссылки на домашней странице</string>
-  <string name="settings_engine_change_gecko_msg">GeckoView загружается немного медленнее, чем WebView. Продолжить?</string>
-  <string name="settings_engine_change_webview_msg">WebView обновляется отдельно от основного приложения. Продолжить?</string>
   <string name="http_auth_title">Требуется аутентификация</string>
   <string name="play_pause">Воспроизведение/Пауза</string>
   <string name="media_stop">Остановить воспроизведение</string>

@@ -9,32 +9,11 @@
     android:paddingRight="@dimen/settings_content_padding"
     >
 
-    <LinearLayout
-        android:id="@+id/llWebEngine"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <TextView
-            style="@style/Widget.TVBro.Text.Body"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/web_browser_engine_temporary_setting"
-            />
-
-        <Spinner
-            android:id="@+id/spWebEngine"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:dropDownWidth="300dp"
-            />
-    </LinearLayout>
-
     <TextView
         style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/choose_default_search_engine"
-        android:layout_marginTop="@dimen/settings_section_spacing"
         />
 
     <Spinner

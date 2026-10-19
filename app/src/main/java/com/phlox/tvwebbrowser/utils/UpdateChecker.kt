@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.webkit.MimeTypeMap
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import com.phlox.tvwebbrowser.R
@@ -22,7 +23,11 @@ import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-class UpdateChecker(val currentVersionCode: Int) {
+/**
+ * @param variant the variant of the app (`BuildConfig.FLAVOR_webengine`): the WebView and the GeckoView variants are
+ * different apps, so each one updates only from its own APKs
+ */
+class UpdateChecker(val currentVersionCode: Int, val variant: String) {
     var versionCheckResult: UpdateCheckResult? = null
 
     class ChangelogEntry(val versionCode: Int, val versionName: String, val changes: String)
@@ -38,50 +43,59 @@ class UpdateChecker(val currentVersionCode: Int) {
         val urlConnection = URL(urlOfVersionFile).openConnection() as HttpURLConnection
         try {
             val content = urlConnection.inputStream.bufferedReader().use { it.readText() }
-            val json = JSONObject(content)
-            val channelsJson = json.getJSONArray("channels")
-            var latestVersionCode = 0
-            var latestVersionName = ""
-            var url = ""
-            var latestVersionChannelName = ""
-            val availableChannels = ArrayList<String>()
-            val currentCPUArch = Build.SUPPORTED_ABIS[0]
-            for (i in 0 until channelsJson.length()) {
-                val channelJson = channelsJson.getJSONObject(i)
-                availableChannels.add(channelJson.getString("name"))
-                if (channelsToCheck.contains(channelJson.getString("name"))) {
-                    val minAPI = if (channelJson.has("minAPI")) channelJson.getInt("minAPI") else 21
-                    if (latestVersionCode < channelJson.getInt("latestVersionCode") &&
-                            minAPI <= Build.VERSION.SDK_INT) {
-                        latestVersionCode = channelJson.getInt("latestVersionCode")
-                        latestVersionName = channelJson.getString("latestVersionName")
-                        url = channelJson.getString("url")
-                        if (channelJson.has("urls")) {
-                            val urls = channelJson.getJSONArray("urls")
-                            for (j in 0 until urls.length()) {
-                                val fileUrl = urls.getString(j)
-                                if (fileUrl.endsWith("$currentCPUArch.apk")) {
-                                    url = fileUrl
-                                    break
-                                }
-                            }
-                        }
-                        latestVersionChannelName = channelJson.getString("name")
-                    }
-                }
-            }
-            val changelogJson = json.getJSONArray("changelog")
-            val changelog = ArrayList<ChangelogEntry>()
-            for (i in 0 until changelogJson.length()) {
-                val versionChangesJson = changelogJson.getJSONObject(i)
-                changelog.add(ChangelogEntry(versionChangesJson.getInt("versionCode"),
-                        versionChangesJson.getString("versionName"),
-                        versionChangesJson.getString("changes")))
-            }
-            versionCheckResult = UpdateCheckResult(latestVersionCode, latestVersionName, latestVersionChannelName, url, changelog, availableChannels.toTypedArray())
+            versionCheckResult = parseVersionFile(content, channelsToCheck, Build.SUPPORTED_ABIS[0], Build.VERSION.SDK_INT)
         } finally {
             urlConnection.disconnect()
         }
+    }
+
+    /**
+     * A channel gives its APK in `url`, the APKs for each ABI in `urls` and the lowest Android version in `minAPI`.
+     * These fields are for [CHANNEL_APKS_VARIANT], also read by the versions that know no variants; the other variants
+     * take them from the object of their name in `variants` of the channel and get no update from a channel without it.
+     */
+    @VisibleForTesting
+    fun parseVersionFile(content: String, channelsToCheck: Array<String>, currentCPUArch: String, sdkInt: Int): UpdateCheckResult {
+        val json = JSONObject(content)
+        val channelsJson = json.getJSONArray("channels")
+        var latestVersionCode = 0
+        var latestVersionName = ""
+        var url = ""
+        var latestVersionChannelName = ""
+        val availableChannels = ArrayList<String>()
+        for (i in 0 until channelsJson.length()) {
+            val channelJson = channelsJson.getJSONObject(i)
+            availableChannels.add(channelJson.getString("name"))
+            if (!channelsToCheck.contains(channelJson.getString("name"))) continue
+            val apksJson = channelJson.optJSONObject("variants")?.optJSONObject(variant)
+                ?: if (variant == CHANNEL_APKS_VARIANT) channelJson else continue
+            val minAPI = apksJson.optInt("minAPI", channelJson.optInt("minAPI", 21))
+            if (latestVersionCode < channelJson.getInt("latestVersionCode") && minAPI <= sdkInt) {
+                latestVersionCode = channelJson.getInt("latestVersionCode")
+                latestVersionName = channelJson.getString("latestVersionName")
+                url = apksJson.getString("url")
+                if (apksJson.has("urls")) {
+                    val urls = apksJson.getJSONArray("urls")
+                    for (j in 0 until urls.length()) {
+                        val fileUrl = urls.getString(j)
+                        if (fileUrl.endsWith("$currentCPUArch.apk")) {
+                            url = fileUrl
+                            break
+                        }
+                    }
+                }
+                latestVersionChannelName = channelJson.getString("name")
+            }
+        }
+        val changelogJson = json.getJSONArray("changelog")
+        val changelog = ArrayList<ChangelogEntry>()
+        for (i in 0 until changelogJson.length()) {
+            val versionChangesJson = changelogJson.getJSONObject(i)
+            changelog.add(ChangelogEntry(versionChangesJson.getInt("versionCode"),
+                    versionChangesJson.getString("versionName"),
+                    versionChangesJson.getString("changes")))
+        }
+        return UpdateCheckResult(latestVersionCode, latestVersionName, latestVersionChannelName, url, changelog, availableChannels.toTypedArray())
     }
 
     fun showUpdateDialog(context: Activity, callback: DialogCallback) {
@@ -209,6 +223,8 @@ class UpdateChecker(val currentVersionCode: Int) {
     }
 
     companion object {
+        /** The variant that has the app id of the versions knowing no variants: the APKs of a channel are its ones */
+        const val CHANNEL_APKS_VARIANT = "geckoExcluded"
         private const val UPDATE_APK_FILE_NAME = "update.apk"
         fun clearTempFilesIfAny(context: Context) {
             var tempFile = File(context.cacheDir, UPDATE_APK_FILE_NAME)

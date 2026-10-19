@@ -144,15 +144,12 @@
         <item>Mais visitados</item>
     </array>
 
-    <string name="web_browser_engine_temporary_setting">Motor do navegador</string>
     <string name="need_restart_message">Reinicie a aplicação para aplicar as alterações</string>
     <string name="yes">Sim</string>
     <string name="no">Não</string>
     <string name="site_asks_to_open_unknown_url">O site pretende abrir um URL desconhecido</string>
     <string name="site_asks_to_open_unknown_url_message">Pretende abrir este URL numa aplicação externa?</string>
     <string name="err_no_app_to_handle_url">Não foi encontrada nenhuma aplicação adequada para abrir este URL</string>
-    <string name="settings_engine_change_gecko_msg">O GeckoView carrega um pouco mais devagar do que o WebView. Pretende continuar?</string>
-    <string name="settings_engine_change_webview_msg">O WebView é atualizado separadamente da aplicação principal. Pretende continuar?</string>
     <string name="http_auth_title">Autenticação necessária</string>
     <string name="play_pause">Reproduzir/Pausa</string>
     <string name="media_stop">Parar multimédia</string>

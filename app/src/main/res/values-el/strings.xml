@@ -144,15 +144,12 @@
         <item>Οι πιο συχνές επισκέψεις</item>
     </array>
 
-    <string name="web_browser_engine_temporary_setting">Μηχανή προγράμματος περιήγησης</string>
     <string name="need_restart_message">Επανεκκινήστε την εφαρμογή για να εφαρμοστούν οι αλλαγές</string>
     <string name="yes">Ναι</string>
     <string name="no">Όχι</string>
     <string name="site_asks_to_open_unknown_url">Ο ιστότοπος ζητά να ανοίξει άγνωστο URL</string>
     <string name="site_asks_to_open_unknown_url_message">Θέλετε να ανοίξετε αυτό το URL σε εξωτερική εφαρμογή;</string>
     <string name="err_no_app_to_handle_url">Δεν βρέθηκε κατάλληλη εφαρμογή για το άνοιγμα αυτού του URL</string>
-    <string name="settings_engine_change_gecko_msg">Το GeckoView φορτώνει λίγο πιο αργά από το WebView. Θέλετε να συνεχίσετε;</string>
-    <string name="settings_engine_change_webview_msg">Το WebView ενημερώνεται ξεχωριστά από την κύρια εφαρμογή. Θέλετε να συνεχίσετε;</string>
     <string name="http_auth_title">Απαιτείται έλεγχος ταυτότητας</string>
     <string name="play_pause">Αναπαραγωγή/Παύση</string>
     <string name="media_stop">Διακοπή πολυμέσων</string>

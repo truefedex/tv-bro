@@ -2,16 +2,14 @@ package com.phlox.tvwebbrowser.webengine
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import android.view.ViewGroup
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
-import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.BrowserTab
 
 /**
- * Settings that only some engines support: the settings screen shows them only when the selected engine does.
+ * Settings that only some engines support: the settings screen shows them only when the engine does.
  */
 enum class EngineSpecificSetting {
     /** Darkening of pages that have no dark theme while the dark UI mode is on */
@@ -46,34 +44,28 @@ data class WebEngineProvider(
     val callback: WebEngineProviderCallback
 )
 
+/**
+ * The web engine of the app. Each variant of the app has one engine, which registers itself here
+ * (see `TVBro.initWebEngineStuff`).
+ */
 object WebEngineFactory {
     const val TAG = "WebEngineFactory"
-    private val engineProviders = mutableListOf<WebEngineProvider>()
+    private var registeredProvider: WebEngineProvider? = null
     private lateinit var initializedProvider: WebEngineProvider
 
     fun registerProvider(provider: WebEngineProvider) {
-        engineProviders.add(provider)
-    }
-
-    fun getProviders(): List<WebEngineProvider> {
-        return engineProviders
+        val registered = registeredProvider
+        check(registered == null || registered.name == provider.name) {
+            "Web engine ${registered?.name} is registered already, can not register ${provider.name}"
+        }
+        registeredProvider = provider
     }
 
     @UiThread
     suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
-        val config = AppContext.provideConfig()
-        var webEngineProvider = engineProviders.find { it.name == config.webEngine }
-        if (webEngineProvider == null && engineProviders.isNotEmpty()) {
-            webEngineProvider = engineProviders[0]
-            Log.w(TAG, "WebEngineProvider with name ${config.webEngine} not found, using ${webEngineProvider.name}")
-            config.webEngine = webEngineProvider.name
-        }
-        if (webEngineProvider != null) {
-            webEngineProvider.callback.initialize(context, webViewContainer)
-            initializedProvider = webEngineProvider
-        } else {
-            throw IllegalArgumentException("WebEngineProvider with name ${config.webEngine} not found")
-        }
+        val provider = registeredProvider ?: throw IllegalStateException("No web engine is registered")
+        provider.callback.initialize(context, webViewContainer)
+        initializedProvider = provider
     }
 
     /** Makes [createWebEngine] use the [provider] without [initialize] */
@@ -82,14 +74,10 @@ object WebEngineFactory {
         initializedProvider = provider
     }
 
-    /**
-     * The provider of the engine chosen in the settings (or the first registered one, like [initialize] does).
-     * Available before [initialize].
-     */
+    /** The provider of the engine, available before [initialize] */
     private fun selectedProvider(): WebEngineProvider? {
         if (this::initializedProvider.isInitialized) return initializedProvider
-        val config = AppContext.provideConfig()
-        return engineProviders.find { it.name == config.webEngine } ?: engineProviders.firstOrNull()
+        return registeredProvider
     }
 
     fun prepareIncognitoProcess() {
@@ -108,7 +96,7 @@ object WebEngineFactory {
         selectedProvider()?.callback?.onViewCreationFailed(activity, error)
     }
 
-    /** Whether the engine chosen in the settings supports [setting] */
+    /** Whether the engine supports [setting] */
     fun supportsSetting(setting: EngineSpecificSetting): Boolean =
         selectedProvider()?.callback?.supportsSetting(setting) ?: false
 

@@ -144,15 +144,12 @@
         <item>Nejnavštěvovanější</item>
     </array>
 
-    <string name="web_browser_engine_temporary_setting">Jádro webového prohlížeče</string>
     <string name="need_restart_message">Pro použití změn restartujte aplikaci</string>
     <string name="yes">Ano</string>
     <string name="no">Ne</string>
     <string name="site_asks_to_open_unknown_url">Web žádá o otevření neznámé URL</string>
     <string name="site_asks_to_open_unknown_url_message">Chcete tuto URL otevřít v externí aplikaci?</string>
     <string name="err_no_app_to_handle_url">Nelze najít vhodnou aplikaci pro otevření této URL</string>
-    <string name="settings_engine_change_gecko_msg">GeckoView se načítá o něco pomaleji než WebView. Chcete pokračovat?</string>
-    <string name="settings_engine_change_webview_msg">WebView se aktualizuje odděleně od hlavní aplikace. Chcete pokračovat?</string>
     <string name="http_auth_title">Vyžadováno ověření</string>
     <string name="play_pause">Přehrát/Pozastavit</string>
     <string name="media_stop">Zastavit přehrávání</string>

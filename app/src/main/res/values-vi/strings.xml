@@ -138,7 +138,6 @@
     <item>Truy cập nhiều nhất</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">Công cụ trình duyệt web</string>
   <string name="need_restart_message">Khởi động lại ứng dụng để áp dụng các thay đổi</string>
   <string name="yes">Có</string>
   <string name="no">Không</string>
@@ -146,8 +145,6 @@
   <string name="site_asks_to_open_unknown_url_message">Bạn có muốn mở URL này trong ứng dụng bên ngoài không?</string>
   <string name="err_no_app_to_handle_url">Không thể tìm thấy ứng dụng phù hợp để xử lý URL này</string>
   <string name="home_page_links">Liên kết trên trang chủ</string>
-  <string name="settings_engine_change_gecko_msg">GeckoView tải chậm hơn một chút so với WebView. Bạn có muốn tiếp tục không?</string>
-  <string name="settings_engine_change_webview_msg">WebView được cập nhật độc lập với ứng dụng chính. Bạn có muốn tiếp tục không?</string>
   <string name="http_auth_title">Yêu cầu xác thực</string>
   <string name="play_pause">Phát/Tạm dừng</string>
   <string name="media_stop">Dừng phương tiện</string>

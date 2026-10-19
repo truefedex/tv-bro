@@ -117,15 +117,12 @@
     <string name="custom_home_page_url">自訂首頁網址</string>
     <string name="home_page_links">首頁顯示連結</string>
 
-    <string name="web_browser_engine_temporary_setting">網頁瀏覽器引擎</string>
     <string name="need_restart_message">重新啟動應用程式以套用變更</string>
     <string name="yes">是</string>
     <string name="no">否</string>
     <string name="site_asks_to_open_unknown_url">網站要求開啟未知網址</string>
     <string name="site_asks_to_open_unknown_url_message">您要在外部應用程式開啟此網址嗎？</string>
     <string name="err_no_app_to_handle_url">找不到能夠處理此網址的合適應用程式</string>
-    <string name="settings_engine_change_gecko_msg">GeckoView 的載入速度比 WebView 稍慢。您要繼續嗎？</string>
-    <string name="settings_engine_change_webview_msg">WebView 會獨立於主應用程式進行更新。您要繼續嗎？</string>
     <string-array name="home_page_links_modes">
         <item>書籤</item>
         <item>最近的歷史紀錄</item>

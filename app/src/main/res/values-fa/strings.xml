@@ -138,7 +138,6 @@
     <item>بیشترین بازدید</item>
   </string-array>
 
-  <string name="web_browser_engine_temporary_setting">موتور مرورگر وب</string>
   <string name="need_restart_message">برای اعمال تغییرات، برنامه را مجددا راه‌اندازی کنید</string>
   <string name="yes">بله</string>
   <string name="no">خیر</string>
@@ -146,8 +145,6 @@
   <string name="site_asks_to_open_unknown_url_message">آیا می‌خواهید این URL را در برنامه خارجی باز کنید؟</string>
   <string name="err_no_app_to_handle_url">نمی‌توان برنامه مناسبی برای مدیریت این URL پیدا کرد</string>
   <string name="home_page_links">لینک‌ها در صفحه اصلی</string>
-  <string name="settings_engine_change_gecko_msg">GeckoView کمی کندتر از WebView بارگذاری می‌شود. می‌خواهید ادامه دهید؟</string>
-  <string name="settings_engine_change_webview_msg">WebView به‌صورت جداگانه از برنامهٔ اصلی به‌روزرسانی می‌شود. می‌خواهید ادامه دهید؟</string>
   <string name="http_auth_title">احراز هویت لازم است</string>
   <string name="play_pause">پخش/توقف</string>
   <string name="media_stop">توقف رسانه</string>

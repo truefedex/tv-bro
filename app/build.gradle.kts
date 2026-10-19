@@ -64,12 +64,19 @@ android {
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
         }
 
+        // each variant has one web engine, registered by TVBro.initWebEngineStuff()
         create("geckoIncluded") {
             dimension = "webengine"
+            // a separate app: it can be installed next to the WebView one
+            applicationIdSuffix = ".gecko"
             minSdk = 26 // geckoview requires minSdk 26
+            buildConfigField("String", "WEB_ENGINE_CLASS",
+                "\"com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine\"")
         }
         create("geckoExcluded") {
             dimension = "webengine"
+            buildConfigField("String", "WEB_ENGINE_CLASS",
+                "\"com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine\"")
         }
     }
 
