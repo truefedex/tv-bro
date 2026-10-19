@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
+import androidx.annotation.DimenRes
 import androidx.annotation.DrawableRes
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.databinding.ViewPopupMenuBinding
@@ -21,15 +22,23 @@ class PopupMenuView @JvmOverloads constructor(
 
     private val vb = ViewPopupMenuBinding.inflate(LayoutInflater.from(context), this)
     override val panel: View get() = vb.llMenu
+    private val defaultWidth = resources.getDimensionPixelSize(R.dimen.ds_bookmark_menu_width)
+    /** The anchor is selected while the menu is open */
+    private var activatedAnchor: View? = null
 
     init {
         vb.llMenu.clipToOutline = true
     }
 
     /**
-     * @param alignEnd the menu's end goes under the anchor's end (an anchor at the end of a row)
+     * @param alignEnd the menu's end goes under the end of [endAlignTo] (an anchor at the end of a row)
+     * @param endAlignTo the view whose end the menu's end is under, the anchor if not given
+     * @param gap between the anchor and the menu
+     * @param width the width of the menu, the one of the menus of the panels if not given
+     * @param activateAnchor the anchor is selected (activated) while the menu is open
      */
-    fun show(anchor: View, items: List<Item>, alignEnd: Boolean) {
+    fun show(anchor: View, items: List<Item>, alignEnd: Boolean, endAlignTo: View = anchor, gap: Int = 0,
+             @DimenRes width: Int? = null, activateAnchor: Boolean = false) {
         val inflater = LayoutInflater.from(context)
         vb.llMenu.removeAllViews()
         var firstRow: View? = null
@@ -51,7 +60,14 @@ class PopupMenuView @JvmOverloads constructor(
             if (firstRow == null) firstRow = row.root
         }
         val margin = resources.getDimensionPixelSize(R.dimen.ds_bookmarks_panel_margin_bottom)
-        showUnder(anchor, 0, firstRow ?: return, if (alignEnd) anchor else null, margin)
+        vb.llMenu.layoutParams = vb.llMenu.layoutParams.apply {
+            this.width = if (width == null) defaultWidth else resources.getDimensionPixelSize(width)
+        }
+        if (activateAnchor) {
+            anchor.isActivated = true
+            activatedAnchor = anchor
+        }
+        showUnder(anchor, gap, firstRow ?: return, if (alignEnd) endAlignTo else null, margin)
         //no room under the anchor: the menu goes above it
         val screenHeight = (parent as View).height
         val lp = vb.llMenu.layoutParams as LayoutParams
@@ -62,6 +78,11 @@ class PopupMenuView @JvmOverloads constructor(
             lp.topMargin = maxOf(margin, lp.topMargin - anchor.height - menuHeight)
             vb.llMenu.layoutParams = lp
         }
+    }
+
+    override fun onHidden() {
+        activatedAnchor?.isActivated = false
+        activatedAnchor = null
     }
 
     companion object {

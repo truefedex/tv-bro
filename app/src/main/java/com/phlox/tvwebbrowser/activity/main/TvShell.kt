@@ -31,6 +31,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.BookmarksPanelView
 import com.phlox.tvwebbrowser.activity.main.view.ClearDownloadsDialog
+import com.phlox.tvwebbrowser.activity.main.view.PopupMenuView
 import com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
 import com.phlox.tvwebbrowser.activity.main.view.TabMenuView
 import com.phlox.tvwebbrowser.activity.main.view.TvSyncScreenView
@@ -281,9 +282,21 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
     }
 
-    override fun showHistory() {
+    private fun showHistory() {
         host.showHistory()
         hideMenuOverlay()
+    }
+
+    /** Under the ⋮ button, its end under the end of the group of the button, as the panels of the bar */
+    override fun showMoreMenu() {
+        val items = listOf(
+            PopupMenuView.Item(R.drawable.ic_history, activity.getString(R.string.history)) { showHistory() },
+            PopupMenuView.Item(R.drawable.ic_phone, activity.getString(R.string.sync_phone_sync)) { showPhoneSync() },
+            PopupMenuView.Item(R.drawable.ic_settings, activity.getString(R.string.settings)) { showSettings() }
+        )
+        vb.vPopupMenu.show(vb.vActionBar.moreButton, items, alignEnd = true, endAlignTo = vb.vActionBar.functionsGroup,
+            gap = activity.resources.getDimensionPixelSize(R.dimen.ds_site_panel_gap),
+            width = R.dimen.ds_size_tab_menu_width, activateAnchor = true)
     }
 
     override fun showFavorites() {
@@ -324,7 +337,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         override val bookmarkFiles = DeviceBookmarkFiles(activity)
     }
 
-    override fun showSettings() = host.showSettings()
+    private fun showSettings() = host.showSettings()
 
     /** A page shows a fullscreen view (a video): tabs sent by a phone wait behind it */
     private var fullscreen = false
@@ -382,7 +395,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     }
 
     /** Android 17 asks the user before the app talks to devices of the local network */
-    override fun showPhoneSync() {
+    private fun showPhoneSync() {
         vb.vSyncScreen.show()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN && ContextCompat.checkSelfPermission(activity,
                 Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED) {
@@ -425,10 +438,10 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 .show()
         }
 
-        /** The focus goes back to the button of the bar, or to the page if the bar is closed */
+        /** The focus goes back to the ⋮ button of the bar (its menu opened it), or to the page if the bar is closed */
         override fun onClosed() {
             if (vb.rlActionBar.isVisible) {
-                vb.vActionBar.phoneButton.requestFocus()
+                vb.vActionBar.moreButton.requestFocus()
             } else {
                 controller.currentTab.value?.webEngine?.getView()?.requestFocus()
             }

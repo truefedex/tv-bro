@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-The row of the browser bar: close app, page navigation, the address field, browser functions.
+The row of the browser bar: close app, page navigation, the address field, browser functions (the less
+used ones in the menu of the last button).
 Back stays away from the close button and every button stays focusable, so the number of presses
 to each button never changes.
 -->
@@ -144,15 +145,6 @@ to each button never changes.
 
     <ImageButton
         style="@style/Widget.TVBro.ImageButton.Ds.Segment"
-        android:id="@+id/ibHistory"
-        android:src="@drawable/ic_history"
-        android:nextFocusDown="@+id/vTabs"
-        android:contentDescription="@string/history" />
-
-    <View style="@style/Widget.TVBro.ToolbarSeparator" />
-
-    <ImageButton
-        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
         android:id="@+id/ibFavorites"
         android:src="@drawable/ic_favorites"
         android:nextFocusDown="@+id/vTabs"
@@ -206,21 +198,12 @@ to each button never changes.
 
     <View style="@style/Widget.TVBro.ToolbarSeparator" />
 
-    <!-- pairing of phones that send tabs and bookmarks to the TV -->
+    <!-- History, Phone sync and Settings; selected (activated) while its menu is open -->
     <ImageButton
         style="@style/Widget.TVBro.ImageButton.Ds.Segment"
-        android:id="@+id/ibPhone"
-        android:src="@drawable/ic_phone"
+        android:id="@+id/ibMore"
+        android:src="@drawable/ic_more_vert"
         android:nextFocusDown="@+id/vTabs"
-        android:contentDescription="@string/sync_connect_phone" />
-
-    <View style="@style/Widget.TVBro.ToolbarSeparator" />
-
-    <ImageButton
-        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
-        android:id="@+id/ibSettings"
-        android:src="@drawable/ic_settings"
-        android:nextFocusDown="@+id/vTabs"
-        android:contentDescription="@string/settings" />
+        android:contentDescription="@string/more_actions" />
   </LinearLayout>
 </merge>

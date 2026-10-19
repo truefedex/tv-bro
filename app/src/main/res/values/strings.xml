@@ -350,6 +350,8 @@
 
     <!-- sync of a phone with a TV: the TV side -->
     <string name="sync_connect_phone">Connect a phone</string>
+    <!-- the row of the ⋮ menu of the TV bar that opens the pairing of phones -->
+    <string name="sync_phone_sync">Phone sync</string>
     <string name="sync_scan_title">Scan with your phone</string>
     <string name="sync_scan_steps">Point the camera of your phone at the code and open the link in TV Bro. You can then send tabs and bookmarks from the phone to this TV.</string>
     <!-- %s: the addresses of the TV -->
