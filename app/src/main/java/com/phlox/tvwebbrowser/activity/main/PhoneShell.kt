@@ -1,6 +1,21 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import android.Manifest
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.model.PairedDevice
+import com.phlox.tvwebbrowser.sync.BookmarksReplacer
+import com.phlox.tvwebbrowser.sync.SyncClient
+import com.phlox.tvwebbrowser.sync.SyncDiscovery
+import com.phlox.tvwebbrowser.sync.SyncLink
+import com.phlox.tvwebbrowser.sync.SyncRequests
+import com.phlox.tvwebbrowser.sync.SyncSettings
+import com.phlox.tvwebbrowser.sync.SyncTab
+import com.phlox.tvwebbrowser.utils.launchForResult
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
@@ -72,6 +87,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vTabSwitcher.setInsets(bars.left, bars.top, bars.right, bars.bottom)
             vb.vBookmarks.setInsets(bars.left, bars.top, bars.right, bars.bottom, keyboard.bottom)
             vb.vDownloads.setInsets(bars.left, bars.top, bars.right, bars.bottom)
+            vb.vSync.setInsets(bars.left, bars.top, bars.right, bars.bottom)
             vb.vActionsSheet.setInsets(bars.left, bars.right, bars.bottom)
             WindowInsetsCompat.CONSUMED
         }
@@ -137,6 +153,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         override fun showBookmarks() = vb.vBookmarks.show()
 
         override fun showDownloads() = vb.vDownloads.show()
+
+        override fun showSendToTv() = vb.vSync.show()
 
         override fun showSettings() = host.showSettings()
     }
@@ -220,6 +238,89 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             ClearDownloadsDialog.show(activity, request, onConfirm)
     }
 
+    private val syncSettings = SyncSettings(activity, AppContext.provideConfig().prefs)
+    private val syncDiscovery = SyncDiscovery(activity)
+    private val syncClient = SyncClient(syncSettings, { TVBro.container.data.pairedDevices }, syncDiscovery::find)
+
+    /** Callbacks waiting for the answer of the user about the local network */
+    private var localNetworkCallbacks: MutableList<() -> Unit>? = null
+
+    private val syncHost = object : PhoneSyncNavigator.Host {
+        override fun render(screen: PhoneSyncNavigator.Screen, busy: String?) = vb.vSync.render(screen, busy)
+
+        override fun showMessage(message: String) {
+            NotificationView.show(if (vb.vSync.isOpen) vb.vSync else vb.rlRoot, R.drawable.ic_tv, message)
+        }
+
+        override fun ensureLocalNetworkAccess(onGranted: () -> Unit) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.CINNAMON_BUN || ContextCompat.checkSelfPermission(activity,
+                    Manifest.permission.ACCESS_LOCAL_NETWORK) == PackageManager.PERMISSION_GRANTED) {
+                onGranted()
+                return
+            }
+            localNetworkCallbacks?.let {
+                it += onGranted
+                return
+            }
+            val callbacks = mutableListOf(onGranted)
+            localNetworkCallbacks = callbacks
+            activity.launchForResult(ActivityResultContracts.RequestPermission(), Manifest.permission.ACCESS_LOCAL_NETWORK) { granted ->
+                localNetworkCallbacks = null
+                if (granted) {
+                    callbacks.forEach { it() }
+                } else {
+                    showMessage(activity.getString(R.string.sync_local_network_needed))
+                }
+            }
+        }
+
+        override fun confirmBookmarks(tv: PairedDevice, changes: BookmarksReplacer.Changes, onConfirm: () -> Unit) {
+            var message = activity.getString(R.string.sync_bookmarks_preview, changes.added, changes.updated, changes.removed)
+            if (changes.removedTitles.isNotEmpty()) {
+                message += "\n\n" + activity.getString(R.string.sync_bookmarks_will_be_deleted) + "\n" +
+                    changes.removedTitles.joinToString("\n") { "• $it" }
+            }
+            AlertDialog.Builder(activity)
+                .setTitle(activity.getString(R.string.sync_bookmarks_preview_title, tv.name))
+                .setMessage(message)
+                .setPositiveButton(R.string.sync_update) { _, _ -> onConfirm() }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        override fun confirmForget(tv: PairedDevice, onConfirm: () -> Unit) {
+            AlertDialog.Builder(activity)
+                .setMessage(activity.getString(R.string.sync_forget_tv_confirm, tv.name))
+                .setPositiveButton(R.string.sync_forget) { _, _ -> onConfirm() }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        /** The tabs with web pages */
+        override fun tabs(): Pair<List<SyncTab>, Int> {
+            val tabs = controller.tabsStates.filter { SyncRequests.isAllowedUrl(it.url) }
+            return tabs.map { SyncTab(it.url, it.title) } to tabs.indexOf(controller.currentTab.value)
+        }
+
+        override fun close() = vb.vSync.hide()
+    }
+
+    private val syncNavigator = PhoneSyncNavigator(activity, syncClient, TVBro.container.data.pairedDevices,
+        TVBro.container.data.favorites, activity.lifecycleScope, syncHost)
+
+    /** The link of the QR code of a TV: pairs with it */
+    override fun handleSyncLink(link: SyncLink?): Boolean {
+        if (link != null && syncSettings.isUsedPairingLink(link)) return true
+        showPage()
+        vb.vSync.show()
+        if (link == null) {
+            syncHost.showMessage(activity.getString(R.string.sync_pairing_failed))
+        } else {
+            syncNavigator.pair(link) { syncSettings.markPairingLinkUsed(link) }
+        }
+        return true
+    }
+
     /** The snackbar tells when a download ends, with the action OK would do on its row */
     private fun onDownloadEvent(event: DownloadEvent) {
         if (vb.vDownloads.isOpen) return
@@ -254,6 +355,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vTabSwitcher.callback = tabSwitcherCallback
         vb.vBookmarks.attach(activity.lifecycleScope, vb.vActionsSheet, bookmarksCallback)
         vb.vDownloads.attach(activity.lifecycleScope, vb.vActionsSheet, downloadsCallback)
+        vb.vSync.attach(syncNavigator)
         activity.lifecycleScope.launch { downloadsModel.events.collect(::onDownloadEvent) }
         controller.tabsStates.subscribe(activity, observer = { vb.vPhoneBar.setTabCount(it.size) })
     }
@@ -275,6 +377,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         dispatcher.addCallback(activity, vb.vTabSwitcher.backCallback)
         dispatcher.addCallback(activity, vb.vBookmarks.backCallback)
         dispatcher.addCallback(activity, vb.vDownloads.backCallback)
+        dispatcher.addCallback(activity, vb.vSync.backCallback)
         dispatcher.addCallback(activity, vb.vActionsSheet.backCallback)
         dispatcher.addCallback(activity, fullscreen)
     }
@@ -289,6 +392,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vActionsSheet.hide()
             vb.vBookmarks.hide()
             vb.vDownloads.hide()
+            vb.vSync.hide()
             vb.vSnackbar.hide()
             scrollAwayBar.show(animate = false)
         }
@@ -349,6 +453,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     }
 
     override fun showPage() {
+        vb.vSync.hide()
         vb.vPhoneBar.stopEditing()
         vb.vMenuSheet.hide()
         vb.vTabSwitcher.hide()

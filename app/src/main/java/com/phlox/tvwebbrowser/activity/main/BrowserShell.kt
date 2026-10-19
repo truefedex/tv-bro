@@ -11,6 +11,7 @@ import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.sync.SyncLink
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
@@ -77,6 +78,12 @@ interface BrowserShell {
 
     /** Opens all downloads, the download [focusId] focused (else the first one) */
     fun showAllDownloads(focusId: Long? = null)
+
+    /**
+     * The link of a pairing of a phone with a TV was opened ([link] is null if it is of another version of
+     * the protocol). @return false to open it as a page
+     */
+    fun handleSyncLink(link: SyncLink?): Boolean = false
 
     fun showContextMenu(
         tab: BrowserTab, uiHost: EngineUiHost, cursorDrawer: CursorDrawerDelegate,

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The screen of the TV that pairs phones, over the whole window: the header (back, the title), then the QR code
+of the pairing with how to use it, and the paired phones with Undo of the last change of bookmarks.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="vertical">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_space_screen_x"
+      android:paddingEnd="@dimen/ds_space_screen_x"
+      android:paddingTop="@dimen/ds_space_screen_top"
+      android:paddingBottom="@dimen/ds_downloads_screen_header_padding_bottom"
+      android:background="?attr/tbColorDsBgChrome">
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Standalone"
+        android:id="@+id/ibBack"
+        android:src="@drawable/ic_back"
+        android:contentDescription="@string/back_to_browser" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:textSize="@dimen/ds_text_downloads_title"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:text="@string/sync_connect_phone" />
+  </LinearLayout>
+
+  <View style="@style/Widget.TVBro.MenuSeparator" />
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1"
+      android:orientation="horizontal"
+      android:padding="@dimen/ds_sync_padding">
+
+    <LinearLayout
+        android:layout_width="@dimen/ds_sync_qr_column_width"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+      <!-- dark modules on white in both themes: cameras read it best -->
+      <FrameLayout
+          android:layout_width="@dimen/ds_sync_qr_size"
+          android:layout_height="@dimen/ds_sync_qr_size">
+
+        <ImageView
+            android:id="@+id/ivQr"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
+
+        <ProgressBar
+            android:id="@+id/pbQr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+      </FrameLayout>
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="@dimen/ds_sync_padding"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:textSize="@dimen/ds_text_address"
+          android:text="@string/sync_scan_title" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="@dimen/ds_sync_text_gap"
+          android:textColor="?attr/tbColorDsInk"
+          android:text="@string/sync_scan_steps" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuCaption"
+          android:id="@+id/tvNetwork"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="@dimen/ds_sync_text_gap"
+          android:textColor="?attr/tbColorDsInkFaint"
+          tools:text="The phone must be on the same network as the TV (192.168.0.120)." />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/ds_sync_column_gap"
+        android:orientation="vertical">
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:textSize="@dimen/ds_text_address"
+          android:text="@string/sync_paired_phones" />
+
+      <FrameLayout
+          android:layout_width="match_parent"
+          android:layout_height="0dp"
+          android:layout_weight="1"
+          android:layout_marginTop="@dimen/ds_sync_text_gap">
+
+        <com.phlox.tvwebbrowser.widgets.NearestFocusRecyclerView
+            android:id="@+id/rvPhones"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical" />
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuItem"
+            android:id="@+id/tvNoPhones"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/tbColorDsInkFaint"
+            android:text="@string/sync_no_paired_phones"
+            android:visibility="gone" />
+      </FrameLayout>
+
+      <LinearLayout
+          android:id="@+id/llUndoBookmarks"
+          android:layout_width="wrap_content"
+          android:layout_height="@dimen/ds_size_chrome_control"
+          android:layout_marginTop="@dimen/ds_sync_text_gap"
+          android:orientation="horizontal"
+          android:gravity="center_vertical"
+          android:paddingStart="@dimen/ds_downloads_header_button_padding"
+          android:paddingEnd="@dimen/ds_downloads_header_button_padding"
+          android:background="@drawable/ds_icon_button_bg"
+          android:focusable="true"
+          android:clickable="true"
+          android:visibility="gone"
+          tools:visibility="visible">
+
+        <ImageView
+            style="@style/Widget.TVBro.MenuIcon"
+            android:layout_width="@dimen/ds_size_icon_toolbar"
+            android:layout_height="@dimen/ds_size_icon_toolbar"
+            android:src="@drawable/ic_favorites" />
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/ds_downloads_header_icon_text"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="?attr/tbColorDsInk"
+            android:text="@string/sync_undo_bookmarks" />
+      </LinearLayout>
+    </LinearLayout>
+  </LinearLayout>
+</merge>

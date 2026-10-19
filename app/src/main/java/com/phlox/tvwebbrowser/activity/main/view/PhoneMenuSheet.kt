@@ -32,6 +32,8 @@ class PhoneMenuSheet @JvmOverloads constructor(
         fun showHistory()
         fun showBookmarks()
         fun showDownloads()
+        /** The page that sends tabs and bookmarks to TVs */
+        fun showSendToTv()
         fun showSettings()
     }
 
@@ -61,6 +63,7 @@ class PhoneMenuSheet @JvmOverloads constructor(
         onRow(vb.llHistory) { callback?.showHistory() }
         onRow(vb.llBookmarks) { callback?.showBookmarks() }
         onRow(vb.llDownloads) { callback?.showDownloads() }
+        onRow(vb.llSendToTv) { callback?.showSendToTv() }
         onRow(vb.llSettings) { callback?.showSettings() }
     }
 

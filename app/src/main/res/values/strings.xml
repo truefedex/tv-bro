@@ -347,4 +347,79 @@
     <string name="media_fast_forward">Fast-forward media</string>
     <string name="long_press">Long press</string>
     <string name="local_network_access_denied">Local network access denied</string>
+
+    <!-- sync of a phone with a TV: the TV side -->
+    <string name="sync_connect_phone">Connect a phone</string>
+    <string name="sync_scan_title">Scan with your phone</string>
+    <string name="sync_scan_steps">Point the camera of your phone at the code and open the link in TV Bro. You can then send tabs and bookmarks from the phone to this TV.</string>
+    <!-- %s: the addresses of the TV -->
+    <string name="sync_same_network">The phone must be on the same network as the TV (%s).</string>
+    <string name="sync_no_network">The TV is not connected to a network.</string>
+    <string name="sync_starting">Starting…</string>
+    <string name="sync_paired_phones">Paired phones</string>
+    <string name="sync_no_paired_phones">No phones yet</string>
+    <!-- %s: a relative time, like "5 minutes ago" -->
+    <string name="sync_last_seen">Last connected %s</string>
+    <string name="sync_forget">Forget</string>
+    <!-- %s: the name of the phone -->
+    <string name="sync_forget_phone_confirm">Forget %s? It will have to scan the code again.</string>
+    <string name="sync_undo_bookmarks">Undo the last change of bookmarks</string>
+    <string name="sync_undo_bookmarks_confirm">Bring back the bookmarks as they were before the last change sent from a phone?</string>
+    <string name="sync_restore">Restore</string>
+    <string name="sync_bookmarks_restored">Bookmarks restored</string>
+    <!-- %s: the name of the phone -->
+    <string name="sync_phone_paired">%s connected</string>
+    <!-- %1$s: the name of the phone -->
+    <plurals name="sync_tabs_opened">
+        <item quantity="one">%1$s sent %2$d tab</item>
+        <item quantity="other">%1$s sent %2$d tabs</item>
+    </plurals>
+    <!-- %s: the name of the phone -->
+    <string name="sync_bookmarks_updated">%s updated the bookmarks</string>
+    <string name="sync_phone_forgotten">%s is forgotten</string>
+    <string name="sync_link_on_tv">Open this link on a phone</string>
+
+    <!-- sync of a phone with a TV: the phone side -->
+    <string name="sync_send_to_tv">Send to TV</string>
+    <string name="sync_tvs">TVs</string>
+    <string name="sync_no_tvs">No TVs yet</string>
+    <string name="sync_how_to_pair">On the TV, open TV Bro, choose the phone button of its bar and scan the code with the camera of this phone.</string>
+    <!-- %s: the name of the TV -->
+    <string name="sync_pairing">Connecting to %s…</string>
+    <string name="sync_paired">%s added</string>
+    <string name="sync_pairing_failed">Cannot connect to the TV</string>
+    <string name="sync_unreachable">%s is not found</string>
+    <string name="sync_tv_forgot">%s forgot this phone</string>
+    <string name="sync_failed">Something went wrong</string>
+    <string name="sync_connecting">Connecting…</string>
+    <string name="sync_send_tabs">Send tabs</string>
+    <string name="sync_send_tabs_summary">Open pages of this phone on the TV</string>
+    <string name="sync_send_bookmarks">Send bookmarks</string>
+    <string name="sync_send_bookmarks_summary">Chosen folders replace the same folders on the TV</string>
+    <string name="sync_send">Send</string>
+    <string name="sync_next">Next</string>
+    <string name="sync_select_all">Select all</string>
+    <string name="sync_select_none">Select none</string>
+    <string name="sync_nothing_selected">Nothing is selected</string>
+    <plurals name="sync_tabs_sent">
+        <item quantity="one">%d tab sent</item>
+        <item quantity="other">%d tabs sent</item>
+    </plurals>
+    <string name="sync_bookmarks_hint">A folder chosen with all its contents replaces the same folder on the TV. A folder chosen in part only gets new and renamed bookmarks.</string>
+    <!-- %s: the name of the TV -->
+    <string name="sync_bookmarks_preview_title">Update bookmarks on %s?</string>
+    <string name="sync_bookmarks_preview">Added: %1$d\nRenamed: %2$d\nDeleted: %3$d</string>
+    <string name="sync_bookmarks_will_be_deleted">Will be deleted:</string>
+    <string name="sync_bookmarks_same">The TV has the same bookmarks</string>
+    <string name="sync_update">Update</string>
+    <string name="sync_bookmarks_sent">Bookmarks updated on %s</string>
+    <string name="sync_tv_changed">The TV bookmarks changed. Try again</string>
+    <string name="sync_forget_tv_confirm">Forget %s?</string>
+    <string name="sync_status_checking">Looking for it…</string>
+    <string name="sync_status_found">Ready</string>
+    <string name="sync_status_not_found">Not found: open TV Bro on it</string>
+    <string name="sync_status_forgot">Does not know this phone any more</string>
+    <!-- %d: the number of chosen tabs -->
+    <string name="sync_send_count">Send (%d)</string>
+    <string name="sync_local_network_needed">Allow access to the local network</string>
 </resources>

@@ -108,6 +108,13 @@ the settings of the current site, then History, Bookmarks, Downloads and Setting
         <View style="@style/Widget.TVBro.MenuSeparator" />
         <LinearLayout
             style="@style/Widget.TVBro.PhoneMenuRow"
+            android:id="@+id/llSendToTv">
+          <ImageView style="@style/Widget.TVBro.PhoneMenuIcon" android:src="@drawable/ic_tv" />
+          <TextView style="@style/Widget.TVBro.Text.PhoneMenuItem" android:text="@string/sync_send_to_tv" />
+        </LinearLayout>
+        <View style="@style/Widget.TVBro.MenuSeparator" />
+        <LinearLayout
+            style="@style/Widget.TVBro.PhoneMenuRow"
             android:id="@+id/llSettings">
           <ImageView style="@style/Widget.TVBro.PhoneMenuIcon" android:src="@drawable/ic_settings" />
           <TextView style="@style/Widget.TVBro.Text.PhoneMenuItem" android:text="@string/settings" />

@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.model.PairedDevice
 import com.phlox.tvwebbrowser.model.TabEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -119,7 +120,7 @@ class AppDatabaseMigrationTest {
         assertEquals(1, runBlocking { db.historyDao().count() })
 
         val sqlDb = db.openHelper.readableDatabase
-        assertEquals(24, sqlDb.version)
+        assertEquals(25, sqlDb.version)
         sqlDb.query("PRAGMA table_info(tabs)").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
             val columns = ArrayList<String>()
@@ -280,6 +281,27 @@ class AppDatabaseMigrationTest {
 
         assertEquals(Download.Status.DONE, runBlocking { dao.get(4) }!!.status)
         assertEquals(listOf(4L, 3L, 2L, 1L), runBlocking { dao.observeAll().first() }.map { it.id })
+    }
+
+    @Test
+    fun migrate24To25AddsPairedDevices() {
+        createDatabase(24) { db ->
+            db.insert("history", null, ContentValues().apply {
+                put("id", 1L)
+                put("time", 100L)
+                put("title", "History")
+                put("url", "https://history.com/")
+            })
+        }
+
+        val db = openMigrated()
+        assertEquals(1, runBlocking { db.historyDao().count() })
+        val dao = db.pairedDevicesDao()
+        val device = PairedDevice(pairingId = "p1", peerId = "phone", kind = PairedDevice.KIND_PHONE, name = "Phone",
+            wrappedKey = "key", createdAt = 10, lastSeenAt = 20)
+        val id = runBlocking { dao.insert(device) }
+        assertEquals(device.copy(id = id), runBlocking { dao.findByPairingId("p1") })
+        assertEquals(listOf(id), runBlocking { dao.observe(PairedDevice.KIND_PHONE).first() }.map { it.id })
     }
 
     @Test

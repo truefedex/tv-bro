@@ -120,6 +120,27 @@
                 <data android:scheme="http" />
                 <data android:scheme="https" />
             </intent-filter>
+            <!-- the QR code of a TV that pairs with a phone (see SyncLink); verified with the
+                 assetlinks.json of the site, so the camera opens it in the app -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="tvbro.phlox.dev" />
+                <data android:pathPrefix="/sync" />
+            </intent-filter>
+            <!-- the same link from the page of the site, for phones where the link was not verified -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="tvbro" android:host="sync" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".activity.history.HistoryActivity"

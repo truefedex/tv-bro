@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+A row of the phone page that sends to TVs: a TV, an action, a tab or a bookmark to choose (indented in its
+folder, its check toggles it, a tap on a folder opens or closes it).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llMain"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/ds_phone_bookmark_row_height"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="@dimen/ds_phone_menu_row_padding"
+    android:paddingEnd="@dimen/ds_phone_bookmark_row_padding"
+    android:background="@drawable/ds_menu_row_bg"
+    android:focusable="true"
+    android:clickable="true">
+
+  <Space
+      android:id="@+id/vIndent"
+      android:layout_width="0dp"
+      android:layout_height="0dp" />
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+      android:id="@+id/ibCheck"
+      android:src="@drawable/ic_check_box_blank"
+      android:visibility="gone"
+      tools:visibility="visible" />
+
+  <ImageView
+      android:id="@+id/ivIcon"
+      android:layout_width="@dimen/ds_phone_quick_button_icon"
+      android:layout_height="@dimen/ds_phone_quick_button_icon"
+      android:layout_marginStart="@dimen/ds_phone_menu_row_padding"
+      android:scaleType="fitCenter"
+      android:importantForAccessibility="no"
+      tools:src="@drawable/ic_tv" />
+
+  <LinearLayout
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_weight="1"
+      android:paddingTop="@dimen/ds_bookmark_row_text_padding"
+      android:paddingBottom="@dimen/ds_bookmark_row_text_padding"
+      android:layout_marginStart="@dimen/ds_phone_bookmark_icon_text"
+      android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/ds_text_phone_menu_item"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="SHIELD Android TV" />
+
+    <TextView
+        android:id="@+id/tvCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/ds_text_phone_caption"
+        android:textColor="?attr/tbColorDsInkFaint"
+        android:maxLines="2"
+        android:ellipsize="end"
+        tools:text="Found" />
+  </LinearLayout>
+
+  <ImageView
+      style="@style/Widget.TVBro.MenuIcon"
+      android:id="@+id/ivEnd"
+      android:layout_marginStart="@dimen/ds_phone_menu_row_padding"
+      tools:src="@drawable/ic_chevron_right" />
+</LinearLayout>

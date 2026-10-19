@@ -81,6 +81,13 @@ bookmarks and the downloads over the whole window.
         android:layout_height="match_parent"
         android:elevation="8dp" />
 
+    <!-- sending tabs and bookmarks to TVs -->
+    <com.phlox.tvwebbrowser.activity.main.view.PhoneSyncView
+        android:id="@+id/vSync"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="8dp" />
+
     <!-- the actions of a bookmark or a download, above them -->
     <com.phlox.tvwebbrowser.activity.main.view.PhoneActionsSheet
         android:id="@+id/vActionsSheet"

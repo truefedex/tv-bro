@@ -1,6 +1,11 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import android.Manifest
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import com.phlox.tvwebbrowser.utils.launchForResult
 import android.graphics.Color
 import android.os.Build
 import android.os.Handler
@@ -17,13 +22,18 @@ import androidx.activity.OnBackPressedDispatcher
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.BookmarksPanelView
 import com.phlox.tvwebbrowser.activity.main.view.ClearDownloadsDialog
 import com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
 import com.phlox.tvwebbrowser.activity.main.view.TabMenuView
+import com.phlox.tvwebbrowser.activity.main.view.TvSyncScreenView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.DownloadEvent
@@ -32,6 +42,14 @@ import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.databinding.ActivityMainBinding
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.model.PairedDevice
+import com.phlox.tvwebbrowser.sync.BookmarksBackup
+import com.phlox.tvwebbrowser.sync.BookmarksReplacer
+import com.phlox.tvwebbrowser.sync.SyncDiscovery
+import com.phlox.tvwebbrowser.sync.SyncLink
+import com.phlox.tvwebbrowser.sync.SyncServer
+import com.phlox.tvwebbrowser.sync.SyncSettings
+import com.phlox.tvwebbrowser.sync.SyncTab
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
@@ -308,6 +326,121 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun showSettings() = host.showSettings()
 
+    /** A page shows a fullscreen view (a video): tabs sent by a phone wait behind it */
+    private var fullscreen = false
+
+    override fun onFullscreenChanged(fullscreen: Boolean) {
+        this.fullscreen = fullscreen
+    }
+
+    private val bookmarksBackup = BookmarksBackup(activity.filesDir)
+
+    /** Listens for paired phones while the activity is started */
+    private val syncServer = SyncServer(SyncSettings(activity, AppContext.provideConfig().prefs), { TVBro.container.data },
+        bookmarksBackup, activity.getString(R.string.home_page), object : SyncServer.Host {
+            override fun openTabs(from: PairedDevice, tabs: List<SyncTab>) = openTabsFromPhone(from, tabs)
+
+            override fun onBookmarksReplaced(from: PairedDevice, changes: BookmarksReplacer.Changes) {
+                controller.modelScope.launch { controller.homePageLinks.load() }
+                vb.vSyncScreen.refresh()
+                NotificationView.show(vb.rlRoot, R.drawable.ic_favorites, activity.getString(R.string.sync_bookmarks_updated, from.name))
+            }
+
+            override fun onPaired(device: PairedDevice) {
+                NotificationView.show(vb.rlRoot, R.drawable.ic_phone, activity.getString(R.string.sync_phone_paired, device.name))
+            }
+
+            override fun onForgotten(device: PairedDevice) {
+                NotificationView.show(vb.rlRoot, R.drawable.ic_phone, activity.getString(R.string.sync_phone_forgotten, device.name))
+            }
+        }, discovery = SyncDiscovery(activity))
+
+    /**
+     * The first tab is shown (the screen of the pairing and the bar close), the others wait at the end of
+     * the tabs; all of them wait while a video is fullscreen. A page that is open already is not opened
+     * again: its tab is shown instead.
+     */
+    private fun openTabsFromPhone(from: PairedDevice, tabs: List<SyncTab>) {
+        if (!controller.loaded) return
+        tabs.forEachIndexed { i, tab ->
+            val open = controller.tabsStates.firstOrNull { it.url == tab.url }
+            if (i == 0 && !fullscreen) {
+                vb.vSyncScreen.hide()
+                vb.vDownloadsScreen.hide()
+                if (open != null) {
+                    controller.changeTab(open)
+                    showPage()
+                } else {
+                    host.openInNewTab(tab.url, controller.tabsStates.size)
+                }
+            } else if (open == null) {
+                controller.addBackgroundTab(tab.url, tab.title, controller.tabsStates.size)
+            }
+        }
+        NotificationView.show(vb.rlRoot, R.drawable.ic_phone,
+            activity.resources.getQuantityString(R.plurals.sync_tabs_opened, tabs.size, from.name, tabs.size))
+    }
+
+    /** Android 17 asks the user before the app talks to devices of the local network */
+    override fun showPhoneSync() {
+        vb.vSyncScreen.show()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN && ContextCompat.checkSelfPermission(activity,
+                Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED) {
+            activity.launchForResult(ActivityResultContracts.RequestPermission(), Manifest.permission.ACCESS_LOCAL_NETWORK) {}
+        }
+    }
+
+    private val syncScreenCallback = object : TvSyncScreenView.Callback {
+        override val pairingLink get() = syncServer.pairingLink
+        override val phones get() = TVBro.container.data.pairedDevices.observe(PairedDevice.KIND_PHONE)
+        override val canUndoBookmarks: Boolean get() = bookmarksBackup.exists
+
+        override fun startPairing() = syncServer.startPairing()
+
+        override fun stopPairing() = syncServer.stopPairing()
+
+        override fun forget(phone: PairedDevice) {
+            AlertDialog.Builder(activity)
+                .setMessage(activity.getString(R.string.sync_forget_phone_confirm, phone.name))
+                .setPositiveButton(R.string.sync_forget) { _, _ ->
+                    lifecycleScope.launch { TVBro.container.data.pairedDevices.delete(phone) }
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        override fun undoBookmarks() {
+            AlertDialog.Builder(activity)
+                .setMessage(R.string.sync_undo_bookmarks_confirm)
+                .setPositiveButton(R.string.sync_restore) { _, _ ->
+                    lifecycleScope.launch {
+                        if (syncServer.restoreBookmarks() != null) {
+                            controller.homePageLinks.load()
+                            NotificationView.show(vb.rlRoot, R.drawable.ic_favorites, activity.getString(R.string.sync_bookmarks_restored))
+                        }
+                        vb.vSyncScreen.refresh()
+                    }
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        /** The focus goes back to the button of the bar, or to the page if the bar is closed */
+        override fun onClosed() {
+            if (vb.rlActionBar.isVisible) {
+                vb.vActionBar.phoneButton.requestFocus()
+            } else {
+                controller.currentTab.value?.webEngine?.getView()?.requestFocus()
+            }
+        }
+    }
+
+    /** A link of a pairing is for a phone */
+    override fun handleSyncLink(link: SyncLink?): Boolean {
+        NotificationView.show(vb.rlRoot, R.drawable.ic_phone, activity.getString(R.string.sync_link_on_tv))
+        return true
+    }
+
     override fun showSitePanel() {
         //a page without a host has no site settings
         if (controller.currentTabState.value.host.isEmpty()) return
@@ -341,6 +474,12 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vBookmarksPanel.attach(lifecycleScope, vb.vPopupMenu, bookmarksCallback)
         vb.vDownloadsPanel.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback) { showAllDownloads(it) }
         vb.vDownloadsScreen.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback, ::onDownloadsScreenClosed)
+        vb.vSyncScreen.attach(lifecycleScope, syncScreenCallback)
+        activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) = syncServer.start()
+            override fun onStop(owner: LifecycleOwner) = syncServer.stop()
+            override fun onDestroy(owner: LifecycleOwner) = syncServer.destroy()
+        })
         lifecycleScope.launch { downloadsModel.events.collect(::onDownloadEvent) }
         vb.rlRoot.viewTreeObserver.addOnGlobalFocusChangeListener(tabOptionsHintFocusListener)
         vb.rlRoot.viewTreeObserver.addOnPreDrawListener(tabOptionsHintDrawListener)
@@ -543,6 +682,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, vb.vTabMenu.backCallback)
         dispatcher.addCallback(activity, vb.vBookmarksPanel.backCallback)
         dispatcher.addCallback(activity, vb.vDownloadsScreen.backCallback)
+        dispatcher.addCallback(activity, vb.vSyncScreen.backCallback)
         dispatcher.addCallback(activity, vb.vDownloadsPanel.backCallback)
         dispatcher.addCallback(activity, vb.vPopupMenu.backCallback)
         dispatcher.addCallback(activity, fullscreen)

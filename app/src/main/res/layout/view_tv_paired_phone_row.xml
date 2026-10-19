@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A paired phone on the TV: its name and when it connected last; OK asks whether to forget it -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llMain"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/ds_download_row_height"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="@dimen/ds_space_menu_inset"
+    android:paddingEnd="@dimen/ds_space_menu_inset"
+    android:background="@drawable/ds_menu_row_bg"
+    android:focusable="true"
+    android:clickable="true">
+
+  <ImageView
+      style="@style/Widget.TVBro.MenuIcon"
+      android:layout_width="@dimen/ds_size_icon_toolbar"
+      android:layout_height="@dimen/ds_size_icon_toolbar"
+      android:src="@drawable/ic_phone" />
+
+  <LinearLayout
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_weight="1"
+      android:layout_marginStart="@dimen/ds_space_icon_text"
+      android:paddingTop="@dimen/ds_bookmark_row_text_padding"
+      android:paddingBottom="@dimen/ds_bookmark_row_text_padding"
+      android:orientation="vertical">
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuItem"
+        android:id="@+id/tvName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="Pixel 6a" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuCaption"
+        android:id="@+id/tvCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/tbColorDsInkFaint"
+        android:singleLine="true"
+        tools:text="Last connected 5 minutes ago" />
+  </LinearLayout>
+
+  <TextView
+      style="@style/Widget.TVBro.Text.MenuCaption"
+      android:id="@+id/tvHint"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="@dimen/ds_space_icon_text"
+      android:textColor="?attr/tbColorDsInkFaint"
+      android:text="@string/sync_forget"
+      android:visibility="gone" />
+</LinearLayout>

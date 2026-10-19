@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The page of the phone UI that sends to TVs, over the whole window: the header (back, the title, Select all,
+the menu of a TV), a hint, the list of the screen (TVs, actions, tabs or bookmarks to choose), the button that
+sends what is chosen, and the waiting overlay.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.RelativeLayout">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ds_phone_switcher_header_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_phone_bar_padding_horizontal"
+        android:paddingEnd="@dimen/ds_phone_bar_padding_horizontal"
+        android:background="?attr/tbColorDsBgChrome">
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibBack"
+          android:src="@drawable/ic_back"
+          android:contentDescription="@string/back" />
+
+      <TextView
+          android:id="@+id/tvTitle"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_phone_bar_padding_horizontal"
+          android:textSize="@dimen/ds_text_phone_switcher_title"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          android:text="@string/sync_send_to_tv" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibSelectAll"
+          android:src="@drawable/ic_check_box_blank"
+          android:contentDescription="@string/sync_select_all"
+          android:visibility="gone" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibMenu"
+          android:src="@drawable/ic_more_vert"
+          android:contentDescription="@string/more_actions"
+          android:visibility="gone" />
+    </LinearLayout>
+
+    <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="?attr/tbColorDsSurface">
+
+      <androidx.recyclerview.widget.RecyclerView
+          android:id="@+id/rvItems"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:clipToPadding="false" />
+
+      <TextView
+          android:id="@+id/tvEmpty"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:padding="@dimen/ds_bookmarks_empty_padding"
+          android:gravity="center"
+          android:textSize="@dimen/ds_text_phone_menu_item"
+          android:textColor="?attr/tbColorDsInk"
+          android:visibility="gone" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/llBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?attr/tbColorDsBgChrome"
+        android:visibility="gone">
+
+      <View style="@style/Widget.TVBro.MenuSeparator" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.PhoneTextButton"
+          android:id="@+id/btnAction"
+          android:layout_height="@dimen/ds_phone_save_button_height"
+          android:layout_gravity="end"
+          android:layout_margin="@dimen/ds_phone_menu_row_padding"
+          android:paddingStart="@dimen/ds_phone_save_button_padding"
+          android:paddingEnd="@dimen/ds_phone_save_button_padding"
+          android:fontFamily="sans-serif-medium"
+          tools:text="Send" />
+    </LinearLayout>
+  </LinearLayout>
+
+  <!-- the screen waits for the TV -->
+  <LinearLayout
+      android:id="@+id/llBusy"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical"
+      android:gravity="center"
+      android:background="?attr/tbColorDsScrim"
+      android:clickable="true"
+      android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_phone_form_padding"
+        android:layout_marginEnd="@dimen/ds_phone_form_padding"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="@dimen/ds_phone_form_padding"
+        android:background="@drawable/ds_dialog_bg">
+
+      <ProgressBar
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content" />
+
+      <TextView
+          android:id="@+id/tvBusy"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="@dimen/ds_phone_bookmark_icon_text"
+          android:textSize="@dimen/ds_text_phone_menu_item"
+          android:textColor="?attr/tbColorDsInk"
+          tools:text="Connecting…" />
+    </LinearLayout>
+  </LinearLayout>
+</merge>

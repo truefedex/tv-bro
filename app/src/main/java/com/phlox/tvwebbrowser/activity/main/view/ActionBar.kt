@@ -46,6 +46,8 @@ class ActionBar @JvmOverloads constructor(
         fun showFavorites()
         fun showHistory()
         fun showSettings()
+        /** Pairing of phones */
+        fun showPhoneSync()
         fun initiateVoiceSearch()
         fun search(text: String)
         fun onUrlInputDone()
@@ -106,6 +108,7 @@ class ActionBar @JvmOverloads constructor(
         vb.ibHistory.setOnClickListener { callback?.showHistory() }
         vb.ibIncognito.setOnClickListener { callback?.toggleIncognitoMode() }
         vb.ibSettings.setOnClickListener { callback?.showSettings() }
+        vb.ibPhone.setOnClickListener { callback?.showPhoneSync() }
 
         //the groups and the address field clip their buttons to the rounded border
         vb.llNavigation.clipToOutline = true
@@ -173,6 +176,7 @@ class ActionBar @JvmOverloads constructor(
     /** The bookmarks panel opens under the star, its end under the end of the group of the star */
     val favoritesButton: View get() = vb.ibFavorites
     val downloadsButton: View get() = vb.ibDownloads
+    val phoneButton: View get() = vb.ibPhone
     val functionsGroup: View get() = vb.llFunctions
 
     /**

@@ -27,6 +27,8 @@ android {
     buildTypes {
         getByName("debug") {
             isDebuggable = true
+            // -PdebugApplicationIdSuffix=.dev installs a debug build next to a release one
+            (project.findProperty("debugApplicationIdSuffix") as String?)?.let { applicationIdSuffix = it }
         }
         getByName("release") {
             isDebuggable = false
@@ -125,6 +127,7 @@ dependencies {
 
     implementation(libs.segmented.button)
     implementation(libs.ad.block)
+    implementation(libs.qrcodegen)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

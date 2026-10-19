@@ -45,6 +45,7 @@ import com.phlox.tvwebbrowser.browser.UrlInputResolver
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
+import com.phlox.tvwebbrowser.sync.SyncLink
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
@@ -355,7 +356,12 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     }
 
     private fun handleIntent(intent: Intent) {
-        Log.d(TAG, "handleIntent: " + intent.data)
+        Log.d(TAG, "handleIntent: " + intent.data?.buildUpon()?.fragment(null)?.build())
+        val url = intent.data.toString()
+        if (SyncLink.isSyncUrl(url) && shell.handleSyncLink(SyncLink.parse(url))) {
+            if (controller.currentTab.value == null) controller.selectStartTab()
+            return
+        }
         if (intent.getBooleanExtra("com.phlox.tvwebbrowser.EXTRA_OPEN_IN_SAME_TAB", false) &&
             controller.tabsStates.isNotEmpty()) {
             if (controller.currentTab.value == null) {

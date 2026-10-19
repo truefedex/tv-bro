@@ -303,6 +303,16 @@ class BrowserController : ActiveModel() {
     }
 
     /**
+     * Adds a tab at [index] without showing it: its page loads when it is shown, like a restored tab.
+     */
+    fun addBackgroundTab(url: String, title: String, index: Int): BrowserTab {
+        val tab = BrowserTab(url = url, title = title, incognito = config.incognitoMode)
+        tabsStates.add(index.coerceIn(0, tabsStates.size), tab)
+        saveTab(tab, withFiles = false)
+        return tab
+    }
+
+    /**
      * Opens a new tab right after the current one (at the end if there is no current tab).
      */
     fun openInNewTabAfterCurrent(url: String, navigateImmediately: Boolean): BrowserTab? {

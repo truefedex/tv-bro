@@ -185,6 +185,13 @@
     <dimen name="ds_downloads_header_button_padding">14dp</dimen>
     <dimen name="ds_downloads_header_icon_text">10dp</dimen>
     <dimen name="ds_text_downloads_title">20sp</dimen>
+    <!-- the screen of the TV that pairs phones -->
+    <dimen name="ds_sync_qr_size">220dp</dimen>
+    <dimen name="ds_sync_qr_padding">12dp</dimen>
+    <dimen name="ds_sync_padding">24dp</dimen>
+    <dimen name="ds_sync_column_gap">40dp</dimen>
+    <dimen name="ds_sync_text_gap">12dp</dimen>
+    <dimen name="ds_sync_qr_column_width">360dp</dimen>
     <dimen name="ds_phone_download_row_height">64dp</dimen>
     <dimen name="ds_phone_download_icon">40dp</dimen>
     <dimen name="ds_phone_download_icon_padding">9dp</dimen>

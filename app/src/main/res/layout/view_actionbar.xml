@@ -206,6 +206,16 @@ to each button never changes.
 
     <View style="@style/Widget.TVBro.ToolbarSeparator" />
 
+    <!-- pairing of phones that send tabs and bookmarks to the TV -->
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibPhone"
+        android:src="@drawable/ic_phone"
+        android:nextFocusDown="@+id/vTabs"
+        android:contentDescription="@string/sync_connect_phone" />
+
+    <View style="@style/Widget.TVBro.ToolbarSeparator" />
+
     <ImageButton
         style="@style/Widget.TVBro.ImageButton.Ds.Segment"
         android:id="@+id/ibSettings"
