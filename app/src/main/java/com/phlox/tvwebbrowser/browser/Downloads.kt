@@ -12,6 +12,11 @@ fun DownloadRequest.toDownload(): Download {
     return Download(url, fileName, null, operationAfterDownload,
         mimeType, referer, userAgent, base64BlobData, stream, size).also {
         it.cookies = cookies
+        //a response the engine fetched itself can be continued by the download service
+        it.resumable = acceptsRanges && size > 0 &&
+            (url.startsWith("http://", ignoreCase = true) || url.startsWith("https://", ignoreCase = true))
+        it.etag = etag
+        it.lastModified = lastModified
     }
 }
 

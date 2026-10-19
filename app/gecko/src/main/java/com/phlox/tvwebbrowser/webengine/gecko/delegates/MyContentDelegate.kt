@@ -105,7 +105,10 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
             mimeType = mimetype,
             contentDisposition = contentDisposition,
             size = contentLength,
-            stream = response.body
+            stream = response.body,
+            acceptsRanges = response.headers["accept-ranges"]?.trim().equals("bytes", ignoreCase = true),
+            etag = response.headers["etag"],
+            lastModified = response.headers["last-modified"]
         ))
     }
 

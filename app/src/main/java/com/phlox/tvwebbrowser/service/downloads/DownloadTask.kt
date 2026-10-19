@@ -11,7 +11,6 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.DownloadFileActions
-import com.phlox.tvwebbrowser.utils.DownloadUtils
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileInputStream
@@ -20,13 +19,10 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * Created by PDT on 23.01.2017.
  */
-
-const val MAX_CONNECT_RETRIES = 5
 
 /**
  * A download running in [DownloadService], on a thread of its own: copies the input to the file
@@ -71,6 +67,9 @@ abstract class DownloadTask(val download: Download, private val listener: Listen
     /** Opens the input, filling what the response tells about the file (its size, name, type) */
     protected abstract fun openInput(): InputStream
 
+    /** The input is the file from this byte: the file already has the bytes before it */
+    protected var startOffset = 0L
+
     /** Called when the input is read to its end, may throw if it was cut */
     protected open fun checkInputComplete() {}
 
@@ -82,10 +81,11 @@ abstract class DownloadTask(val download: Download, private val listener: Listen
         try {
             openInput().use { input ->
                 output = try {
-                    openOutput(download)
+                    if (download.filepath.isEmpty()) openOutput(download) else reopenOutput(download, startOffset)
                 } catch (e: Exception) {
                     throw StorageException(e)
                 }
+                download.bytesReceived = startOffset
                 runBlocking { repository.update(download) }
                 copy(input, output!!)
             }
@@ -135,17 +135,19 @@ abstract class DownloadTask(val download: Download, private val listener: Listen
 
     private fun finish(error: String?) {
         val stopped = stopRequest == Stop.PAUSE || stopRequest == Stop.TIMEOUT
+        //a resumable download that stops or loses its connection is paused: its file is kept
+        val canResume = download.resumable && download.bytesReceived > 0
         val status = when {
             stopRequest == Stop.CANCEL -> Download.Status.CANCELLED
-            stopped && download.resumable -> Download.Status.PAUSED
+            (stopped || error == Download.Error.CONNECTION) && canResume -> Download.Status.PAUSED
             stopped || error != null -> Download.Status.FAILED
             else -> Download.Status.DONE
         }
         download.status = status
         download.error = when {
-            status != Download.Status.FAILED -> null
+            status == Download.Status.DONE || status == Download.Status.CANCELLED -> null
             stopRequest == Stop.TIMEOUT -> Download.Error.TIMEOUT
-            stopRequest == Stop.PAUSE -> Download.Error.INTERRUPTED
+            stopRequest == Stop.PAUSE -> if (status == Download.Status.PAUSED) null else Download.Error.INTERRUPTED
             else -> error
         }
         when (status) {
@@ -162,49 +164,21 @@ abstract class DownloadTask(val download: Download, private val listener: Listen
     }
 }
 
-/** Downloads [Download.url] itself */
-class HttpDownloadTask(download: Download, listener: Listener) : DownloadTask(download, listener) {
+/**
+ * Downloads [Download.url] itself; [resume] continues from the bytes the file has (the whole file is
+ * downloaded again if the server can not give the rest, or the file is gone)
+ */
+class HttpDownloadTask(download: Download, listener: Listener, private val resume: Boolean = false) :
+    DownloadTask(download, listener) {
     private var connection: HttpURLConnection? = null
 
     override fun openInput(): InputStream {
-        val url = URL(download.url)
-        var retries = 0
-        while (true) {
-            if (retries > 0) {
-                //trust me, sometimes this helps! Don't ask me how...
-                Thread.sleep(3000)
-            }
-            val connection = (url.openConnection() as HttpURLConnection).apply {
-                readTimeout = 10000
-                connectTimeout = 20000
-                useCaches = false
-                download.userAgentString?.let { setRequestProperty("User-Agent", it) }
-                download.mimeType?.takeIf { it != "application/octet-stream" }?.let { setRequestProperty("Accept", it) }
-                download.refererHeader?.takeIf { it.isNotEmpty() }?.let { setRequestProperty("Referer", it) }
-                download.cookies?.let { setRequestProperty("Cookie", it) }
-            }
-            this.connection = connection
-            connection.connect()
-            when (val code = connection.responseCode) {
-                HttpURLConnection.HTTP_OK -> break
-                HttpURLConnection.HTTP_GATEWAY_TIMEOUT, HttpURLConnection.HTTP_UNAVAILABLE -> {
-                    connection.disconnect()
-                    retries++
-                    if (retries >= MAX_CONNECT_RETRIES) throw HttpException(code)
-                }
-                else -> throw HttpException(code)
-            }
-        }
-        val connection = connection!!
-        download.size = connection.contentLengthLong.coerceAtLeast(0)
-        val contentType = connection.getHeaderField("Content-Type")
-        connection.getHeaderField("Content-Disposition")?.let {
-            download.filename = DownloadUtils.guessFileName(download.url, it, contentType)
-        }
-        if (download.mimeType == null && contentType != null) {
-            download.mimeType = contentType.substringBefore(';').trim()
-        }
-        return connection.inputStream
+        val offset = if (resume && download.bytesReceived > 0 && fileExists(download)) download.bytesReceived else 0L
+        if (offset == 0L && resume && !fileExists(download)) download.filepath = ""
+        val response = HttpDownloads.open(download, offset)
+        connection = response.connection
+        startOffset = response.start
+        return response.input
     }
 
     override fun closeInput() {
@@ -233,8 +207,6 @@ class StreamDownloadTask(download: Download, private val pipe: ParcelFileDescrip
         }
     }
 }
-
-class HttpException(val code: Int) : IOException("HTTP $code")
 
 private class StorageException(cause: Throwable) : IOException(cause)
 
@@ -273,6 +245,37 @@ private fun openOutput(download: Download): OutputStream {
     download.filename = file.name
     download.filepath = file.absolutePath
     return FileOutputStream(file)
+}
+
+/**
+ * Opens the file of a download that had started, its bytes from [offset] on dropped (the rest is written
+ * again); on Android 11+ it stays pending a while longer.
+ */
+private fun reopenOutput(download: Download, offset: Long): OutputStream {
+    val fd = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        val resolver = AppContext.get().contentResolver
+        val uri = Uri.parse(download.filepath)
+        resolver.update(uri, ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 1) }, null, null)
+        resolver.openFileDescriptor(uri, "rw") ?: throw IOException("Can not open the file")
+    } else {
+        ParcelFileDescriptor.open(File(download.filepath),
+            ParcelFileDescriptor.MODE_READ_WRITE or ParcelFileDescriptor.MODE_CREATE)
+    }
+    val output = ParcelFileDescriptor.AutoCloseOutputStream(fd)
+    output.channel.truncate(offset)
+    output.channel.position(offset)
+    return output
+}
+
+private fun fileExists(download: Download): Boolean {
+    if (download.filepath.isEmpty()) return false
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return File(download.filepath).exists()
+    return try {
+        AppContext.get().contentResolver.query(Uri.parse(download.filepath), arrayOf(MediaStore.Downloads._ID),
+            null, null, null)?.use { it.count > 0 } ?: false
+    } catch (e: Exception) {
+        false
+    }
 }
 
 /** `name.ext`, else `name_(1).ext` and so on */

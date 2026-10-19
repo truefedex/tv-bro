@@ -113,6 +113,9 @@ class DownloadService : Service() {
                     data.getBoolean(DownloadCommands.KEY_INSTALL), stream)
             }
             DownloadCommands.CANCEL -> cancel(id)
+            DownloadCommands.PAUSE -> tasks[id]?.stop(DownloadTask.Stop.PAUSE)
+            DownloadCommands.RESUME -> resume(id, data.getString(DownloadCommands.KEY_COOKIES),
+                data.getString(DownloadCommands.KEY_REFERER))
             else -> Log.w(TAG, "Unknown command ${message.what}")
         }
     }
@@ -136,6 +139,32 @@ class DownloadService : Service() {
             Log.d(TAG, "Start to download ${download.url}")
             val task = if (stream != null) StreamDownloadTask(download, stream, taskListener)
                 else HttpDownloadTask(download, taskListener)
+            tasks[id] = task
+            if (cancelledBeforeStart.remove(id)) task.stop(DownloadTask.Stop.CANCEL)
+            executor.execute(task)
+            updateNotification(force = true)
+        }
+    }
+
+    /** Continues a paused download from the bytes its file has */
+    private fun resume(id: Long, cookies: String?, referer: String?) {
+        startService(Intent(this, DownloadService::class.java))
+        startForeground()
+        scope.launch {
+            recovery.join()
+            val download = repository.get(id)
+            if (download == null || download.status != Download.Status.PAUSED || tasks.containsKey(id)) {
+                Log.w(TAG, "Download $id can not be resumed")
+                stopIfIdle()
+                return@launch
+            }
+            download.status = Download.Status.IN_PROGRESS
+            download.error = null
+            repository.setStatus(id, Download.Status.IN_PROGRESS)
+            download.cookies = cookies
+            download.refererHeader = referer
+            Log.d(TAG, "Resume to download ${download.url} from ${download.bytesReceived}")
+            val task = HttpDownloadTask(download, taskListener, resume = true)
             tasks[id] = task
             if (cancelledBeforeStart.remove(id)) task.stop(DownloadTask.Stop.CANCEL)
             executor.execute(task)

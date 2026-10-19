@@ -48,6 +48,8 @@ class DownloadRowTextTest {
     @Test
     fun pausedFailedAndCancelled() {
         assertEquals("Paused · $progress", text.caption(item(Download.Status.PAUSED), false, false, now))
+        assertEquals("Paused: connection lost · $progress",
+            text.caption(item(Download.Status.PAUSED, error = Download.Error.CONNECTION), false, false, now))
         assertEquals("Failed: connection lost · 3:18 PM · github.com",
             text.caption(item(Download.Status.FAILED, error = Download.Error.CONNECTION), true, false, now))
         assertEquals("Failed: HTTP 404 · 3:18 PM",

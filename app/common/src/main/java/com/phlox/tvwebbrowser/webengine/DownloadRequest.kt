@@ -22,6 +22,11 @@ data class DownloadRequest(
     val base64BlobData: String? = null,
     /** Content already opened by the engine */
     val stream: InputStream? = null,
+    /** The response of the engine tells the server gives byte ranges of the file: it can be resumed */
+    val acceptsRanges: Boolean = false,
+    /** The validators of the version of the file in the response of the engine, for resuming it */
+    val etag: String? = null,
+    val lastModified: String? = null,
     val operationAfterDownload: Download.OperationAfterDownload = Download.OperationAfterDownload.NOP
 ) {
     companion object {

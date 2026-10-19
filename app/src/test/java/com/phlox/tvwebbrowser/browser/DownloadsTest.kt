@@ -4,6 +4,8 @@ import android.webkit.MimeTypeMap
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Test
@@ -74,5 +76,21 @@ class DownloadsTest {
         assertEquals("sid=1", request.cookies)
         assertNull(request.fileName)
         assertEquals("app.apk", request.toDownload().filename)
+    }
+
+    @Test
+    fun engineResponsesThatGiveRangesCanBeResumed() {
+        val stream = ByteArrayInputStream(ByteArray(0))
+        val download = DownloadRequest(url = "https://site.com/a.zip", referer = "", userAgent = null, size = 100,
+            stream = stream, acceptsRanges = true, etag = "\"v1\"", lastModified = "Sat, 17 Oct 2026 10:00:00 GMT")
+            .toDownload()
+        assertTrue(download.resumable)
+        assertEquals("\"v1\"", download.etag)
+        assertEquals("Sat, 17 Oct 2026 10:00:00 GMT", download.lastModified)
+        //the size is needed to know what is left, and only links can be requested again
+        assertFalse(DownloadRequest(url = "https://site.com/a.zip", referer = "", userAgent = null, stream = stream,
+            acceptsRanges = true).toDownload().resumable)
+        assertFalse(DownloadRequest(url = "blob:https://site.com/1", referer = "", userAgent = null, size = 100,
+            acceptsRanges = true).toDownload().resumable)
     }
 }

@@ -17,7 +17,7 @@ class DownloadRowText(private val context: Context) {
 
     /**
      * - in progress: "18.6 MB of 48.2 MB · 2.4 MB/s · 12 s left";
-     * - paused: "Paused · 0.7 GB of 6.0 GB";
+     * - paused: "Paused · 0.7 GB of 6.0 GB" ("Paused: connection lost · ..." when it was not the user);
      * - complete: "601 KB · 15:18 · site.com";
      * - failed: "Failed: connection lost · 11:02 · site.com", cancelled: "Cancelled · 18:44 · site.com".
      * @param withHost adds the host of the page the download came from (else of its url)
@@ -36,7 +36,9 @@ class DownloadRowText(private val context: Context) {
                 }
             }
             Download.Status.PAUSED -> {
-                parts += context.getString(R.string.download_paused)
+                //paused by the user, or when the connection was lost
+                parts += if (item.error == null) context.getString(R.string.download_paused)
+                    else context.getString(R.string.download_paused_reason, reason(item.error))
                 parts += progress(item)
             }
             else -> {
