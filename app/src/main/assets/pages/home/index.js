@@ -49,6 +49,24 @@ if (!window.TVBro && typeof browser !== "undefined" && browser.runtime && browse
 var homePageLinksMode = "RECOMMENDATIONS";
 
 function onIcoLoadError(element) {
+    //icons of links may go away from the sites: the app looks for the current icon of the site, once
+    var pageUrl = element.dataset.pageUrl;
+    element.dataset.pageUrl = "";
+    if (pageUrl && window.hasOwnProperty( "TVBro" )) {
+        if (TVBro.requestFavicon) {
+            //GeckoView: the app sends the icon to onFaviconLoaded
+            element.dataset.faviconRequest = pageUrl;
+            TVBro.requestFavicon(pageUrl);
+        } else {
+            //WebView
+            try {
+                element.src = "favicon://" + new URL(pageUrl).host;
+                return;
+            } catch (e) {
+                console.log("Invalid URL: " + pageUrl);
+            }
+        }
+    }
     element.src='ic_not_available.svg';
     element.style.filter = "invert(1)";
 }
@@ -74,7 +92,7 @@ function loadRecommendations() {
         {"title": "Wikipedia - the free encyclopedia", "url":"https://www.wikipedia.org", "favicon": "https://ru.wikipedia.org/static/apple-touch/wikipedia.png"},
         {"title": "Reddit - Dive into anything", "url":"https://www.reddit.com", "favicon": "https://www.redditstatic.com/desktop2x/img/favicon/apple-icon-120x120.png"},
         {"title": "My Tuner", "url":"https://mytuner-radio.com/", "favicon": "https://static2.mytuner.mobi/static/icons/apple-touch-icon-120x120-precomposed.png"},
-        {"title": "Instagram", "url":"https://www.instagram.com", "favicon": "https://static.cdninstagram.com/rsrc.php/v3/ys/r/aM-g435MtEX.png"},
+        {"title": "Instagram", "url":"https://www.instagram.com"},
         {"title": "IMDb", "url":"https://www.imdb.com/", "favicon": "https://m.media-amazon.com/images/G/01/imdb/images-ANDW73HA/favicon_iPhone_retina_180x180._CB1582158069_UX60_.png"},
         {"title": "eBay", "url":"https://www.ebay.com/", "favicon": "https://www.ebay.com/apple-touch-icon.png"},
         {"title": "Itch.io", "url":"https://itch.io/games/input-gamepad/platform-web", "favicon": "https://itch.io/static/images/itchio-square-144.png"},
@@ -93,19 +111,14 @@ function renderLinks(mode, linksArray) {
             var urlStr = c.url;
             try {
                 var url = new URL(urlStr);
-                c.favicon = url.origin + "/favicon.ico";
-
-                if (window.hasOwnProperty( "TVBro" )) {
-                    if (TVBro.requestFavicon) {
-                        //GeckoView
-                        TVBro.requestFavicon(urlStr);
-                    } else {
-                        //WebView
-                        c.favicon = "favicon://" + url.host;
-                    }                    
+                if (window.hasOwnProperty( "TVBro" ) && !TVBro.requestFavicon) {
+                    //WebView serves the icon the app has for the site
+                    c.favicon = "favicon://" + url.host;
+                } else {
+                    //GeckoView asks the app (onIcoLoadError) when the site has no such icon
+                    c.favicon = url.origin + "/favicon.ico";
                 }
             } catch (e) {
-                console.log("Invalid URL: " + urlStr);
                 console.log("Invalid URL: " + urlStr);
             }
         }
@@ -129,7 +142,11 @@ function renderLinks(mode, linksArray) {
             var titleElement = suggElement.getElementsByClassName("sugg-title")[0];
             var descriptionElement = suggElement.getElementsByClassName("sugg-desk")[0];
             var icon = suggElement.getElementsByClassName("sugg-ico")[0];
+            //an answer to an earlier request would be for another link
+            icon.dataset.faviconRequest = "";
             if (link) {
+                //the icon of the app is the last resort, not tried again
+                icon.dataset.pageUrl = link.favicon && link.favicon.indexOf("favicon://") === 0 ? "" : link.url;
                 icon.src = link.favicon;
                 //color-scheme: only light;
                 icon.style.filter = "";
@@ -137,6 +154,7 @@ function renderLinks(mode, linksArray) {
                 titleElement.textContent = link.title;
                 descriptionElement.textContent = link.description ? link.description : link.url;
             } else {
+                icon.dataset.pageUrl = "";
                 icon.src = "ic_not_available.svg";
                 //color-scheme: default;
                 icon.style.filter = "invert(1)";
@@ -202,10 +220,12 @@ function performSearch(text) {
 
 //callback called from TVBro/GeckoView
 function onFaviconLoaded(url, data) {
-    let imgElements = document.getElementsByTagName("img");
-    for (let i = 0; i < imgElements.length; i++) {
-        if (imgElements[i].src == "favicon://" + url) {
-            imgElements[i].src = data;
+    var icons = document.getElementsByClassName("sugg-ico");
+    for (var i = 0; i < icons.length; i++) {
+        if (icons[i].dataset.faviconRequest === url) {
+            icons[i].dataset.faviconRequest = "";
+            icons[i].src = data;
+            icons[i].style.filter = "";
         }
     }
 }
