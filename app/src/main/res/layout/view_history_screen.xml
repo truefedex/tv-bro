@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The history on TV, over the whole window: the header (back, the title, the field of the search with
+the number found, Clear all; in the selection mode: leave, the number chosen, Select all and Delete),
+then the history by days.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="vertical">
+
+  <LinearLayout
+      android:id="@+id/llHeader"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_space_screen_x"
+      android:paddingEnd="@dimen/ds_space_screen_x"
+      android:paddingTop="@dimen/ds_space_screen_top"
+      android:paddingBottom="@dimen/ds_downloads_screen_header_padding_bottom"
+      android:background="?attr/tbColorDsBgChrome">
+
+    <!-- back, or leave the selection mode -->
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Standalone"
+        android:id="@+id/ibBack"
+        android:src="@drawable/ic_back"
+        android:contentDescription="@string/back_to_browser" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:textSize="@dimen/ds_text_downloads_title"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:text="@string/history" />
+
+    <LinearLayout
+        android:id="@+id/llSearch"
+        android:layout_width="@dimen/ds_history_search_width"
+        android:layout_height="@dimen/ds_size_chrome_control"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_panel_field_padding"
+        android:paddingEnd="@dimen/ds_bookmarks_search_button_margin"
+        android:background="@drawable/ds_address_field_bg"
+        android:addStatesFromChildren="true">
+
+      <ImageView
+          style="@style/Widget.TVBro.MenuIcon"
+          android:src="@drawable/ic_search" />
+
+      <EditText
+          android:id="@+id/etSearch"
+          android:layout_width="0dp"
+          android:layout_height="match_parent"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_panel_title_icon_text"
+          android:background="@null"
+          android:textSize="@dimen/ds_text_address"
+          android:textColor="?attr/tbColorDsInk"
+          android:textColorHint="?attr/tbColorDsInkFaint"
+          android:hint="@string/search_history"
+          android:singleLine="true"
+          android:inputType="text"
+          android:imeOptions="actionSearch"
+          android:importantForAutofill="no" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Panel"
+          android:id="@+id/ibClearSearch"
+          android:src="@drawable/ic_close"
+          android:contentDescription="@string/clear_search"
+          android:visibility="gone" />
+
+      <View
+          style="@style/Widget.TVBro.FieldDivider"
+          android:layout_marginStart="@dimen/ds_bookmarks_search_button_margin"
+          android:layout_marginEnd="@dimen/ds_bookmarks_search_button_margin" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Panel"
+          android:id="@+id/ibVoice"
+          android:src="@drawable/ic_voice_search"
+          android:contentDescription="@string/search_history_by_voice" />
+    </LinearLayout>
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuItem"
+        android:id="@+id/tvFound"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:visibility="gone"
+        tools:text="6 found"
+        tools:visibility="visible" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:id="@+id/llSelectAll"
+        style="@style/Widget.TVBro.HeaderButton.Ds"
+        android:visibility="gone">
+
+      <ImageView
+          style="@style/Widget.TVBro.MenuIcon"
+          android:layout_width="@dimen/ds_size_icon_toolbar"
+          android:layout_height="@dimen/ds_size_icon_toolbar"
+          android:src="@drawable/ic_check_box" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.HeaderButton"
+          android:text="@string/select_all" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llDelete"
+        style="@style/Widget.TVBro.HeaderButton.Ds"
+        android:visibility="gone">
+
+      <ImageView
+          style="@style/Widget.TVBro.MenuIcon"
+          android:layout_width="@dimen/ds_size_icon_toolbar"
+          android:layout_height="@dimen/ds_size_icon_toolbar"
+          android:src="@drawable/ic_delete" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.HeaderButton"
+          android:text="@string/delete" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llClearAll"
+        style="@style/Widget.TVBro.HeaderButton.Ds">
+
+      <ImageView
+          style="@style/Widget.TVBro.MenuIcon"
+          android:layout_width="@dimen/ds_size_icon_toolbar"
+          android:layout_height="@dimen/ds_size_icon_toolbar"
+          android:src="@drawable/ic_clear_all" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.HeaderButton"
+          android:text="@string/clear_all" />
+    </LinearLayout>
+  </LinearLayout>
+
+  <View style="@style/Widget.TVBro.MenuSeparator" />
+
+  <FrameLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1">
+
+    <com.phlox.tvwebbrowser.widgets.NearestFocusRecyclerView
+        android:id="@+id/rvItems"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuItem"
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/ds_bookmarks_empty_padding"
+        android:gravity="center"
+        android:textColor="?attr/tbColorDsInk"
+        android:visibility="gone"
+        tools:text="@string/no_history_yet" />
+  </FrameLayout>
+</merge>

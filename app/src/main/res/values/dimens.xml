@@ -182,6 +182,8 @@
     <dimen name="ds_downloads_screen_list_width">960dp</dimen>
     <dimen name="ds_downloads_section_height">32dp</dimen>
     <dimen name="ds_downloads_filter_padding">14dp</dimen>
+    <dimen name="ds_history_search_width">456dp</dimen>
+    <dimen name="ds_history_time_width">56dp</dimen>
     <dimen name="ds_downloads_header_button_padding">14dp</dimen>
     <dimen name="ds_downloads_header_icon_text">10dp</dimen>
     <dimen name="ds_text_downloads_title">20sp</dimen>

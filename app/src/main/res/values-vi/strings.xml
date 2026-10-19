@@ -31,7 +31,6 @@
   <string name="no_app_for_file_type">Không tìm thấy ứng dụng nào để mở loại tệp này</string>
   <string name="delete">Xóa</string>
   <string name="cancel">Hủy</string>
-  <string name="msg_delete_history">Xóa các mục lịch sử đã chọn?</string>
   <string name="msg_delete_history_all">Xóa toàn bộ lịch sử?</string>
   <string name="shortcuts">Phím tắt</string>
   <string name="favorites">Yêu thích</string>

@@ -33,7 +33,6 @@
     <string name="no_app_for_file_type">Aucune application trouvée pour ouvrir ce type de fichier</string>
     <string name="delete">Supprimer</string>
     <string name="cancel">Annuler</string>
-    <string name="msg_delete_history">Supprimer les éléments sélectionnés de l’historique ?</string>
     <string name="msg_delete_history_all">Supprimer tout l’historique ?</string>
     <string name="shortcuts">Raccourcis</string>
     <string name="favorites">Favoris</string>

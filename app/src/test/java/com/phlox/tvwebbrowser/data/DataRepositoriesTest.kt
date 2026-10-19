@@ -66,6 +66,6 @@ class DataRepositoriesTest {
         data.history.trim()
         //the old item went, the recent ones stay
         assertEquals(5000, db.historyDao().count())
-        assertEquals(0, data.history.page(0).count { it.time == old })
+        assertEquals(0, data.history.all().count { it.time == old })
     }
 }

@@ -33,7 +33,6 @@
   <string name="no_app_for_file_type">Nessuna app disponibile per aprire questo tipo di file</string>
   <string name="delete">Elimina</string>
   <string name="cancel">Annulla</string>
-  <string name="msg_delete_history">Eliminare gli elementi selezionati dalla cronologia?</string>
   <string name="msg_delete_history_all">Eliminare tutta la cronologia?</string>
   <string name="shortcuts">Scorciatoie</string>
   <string name="favorites">Preferiti</string>

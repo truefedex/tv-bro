@@ -31,7 +31,6 @@
   <string name="no_app_for_file_type">Keine App zum Öffnen der Datei gefunden</string>
   <string name="delete">Löschen</string>
   <string name="cancel">Abbrechen</string>
-  <string name="msg_delete_history">Ausgewählte Verlaufseinträge löschen?</string>
   <string name="msg_delete_history_all">Gesamten Verlauf löschen?</string>
   <string name="shortcuts">Tastenkürzel</string>
   <string name="favorites">Favoriten</string>

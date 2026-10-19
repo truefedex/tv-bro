@@ -33,7 +33,6 @@
     <string name="no_app_for_file_type">找不到能夠開啟此檔案類型的應用程式</string>
     <string name="delete">刪除</string>
     <string name="cancel">取消</string>
-    <string name="msg_delete_history">要刪除所選的歷史紀錄項目嗎？</string>
     <string name="msg_delete_history_all">要刪除所有歷史紀錄項目嗎？</string>
     <string name="shortcuts">快捷鍵</string>
     <string name="favorites">我的最愛</string>

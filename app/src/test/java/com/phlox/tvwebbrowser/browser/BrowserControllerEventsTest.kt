@@ -275,6 +275,31 @@ class BrowserControllerEventsTest {
     }
 
     @Test
+    fun visitsGetTheTitlesOfTheirOwnPages() {
+        val tab = open("https://a.com/")
+        tab.callback.onPageStarted("https://a.com/")
+        tab.callback.onVisited("https://a.com/")
+        tab.callback.onReceivedTitle("A")
+        tab.callback.onPageFinished("https://a.com/")
+        assertEquals(listOf("A https://a.com/"), storedHistory(1))
+        //the page changes its url itself (history.pushState): the engine reports no page load
+        tab.fakeEngine.loadedUrls += "https://a.com/watch"
+        tab.callback.onVisited("https://a.com/watch")
+        tab.callback.onReceivedTitle("Video")
+        assertEquals(listOf("A https://a.com/", "Video https://a.com/watch"), storedHistory(2))
+    }
+
+    @Test
+    fun visitOfAPageStillLoadingDoesNotTakeTheTitleOfThePreviousOne() {
+        val tab = open("https://a.com/")
+        tab.callback.onReceivedTitle("A")
+        tab.fakeEngine.loadedUrls += "https://b.com/"
+        tab.callback.onPageStarted("https://b.com/")
+        tab.callback.onVisited("https://b.com/")
+        assertEquals(listOf(" https://b.com/"), storedHistory(1))
+    }
+
+    @Test
     fun progressIsReported() {
         val tab = open("https://a.com/")
         events.clear()

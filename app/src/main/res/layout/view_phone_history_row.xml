@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+A row of the phone history (the list draws the dividers between rows): the favicon (the check box in the
+selection mode), the title, the time and the address; then the button of its options (not in the
+selection mode).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="?attr/tbColorDsSurface">
+
+  <!-- not match_parent: the row is as tall as its texts -->
+  <LinearLayout
+      android:id="@+id/llMain"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:minHeight="@dimen/ds_phone_download_row_height"
+      android:layout_weight="1"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_phone_bookmark_row_padding"
+      android:paddingEnd="@dimen/ds_phone_menu_row_padding"
+      android:background="@drawable/ds_menu_row_bg"
+      android:clickable="true"
+      android:longClickable="true">
+
+    <ImageView
+        android:id="@+id/ivIcon"
+        android:layout_width="@dimen/ds_phone_quick_button_icon"
+        android:layout_height="@dimen/ds_phone_quick_button_icon"
+        android:scaleType="fitCenter"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_not_available" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingTop="@dimen/ds_bookmark_row_text_padding"
+        android:paddingBottom="@dimen/ds_bookmark_row_text_padding"
+        android:layout_marginStart="@dimen/ds_phone_bookmark_icon_text"
+        android:orientation="vertical">
+
+      <TextView
+          android:id="@+id/tvTitle"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textSize="@dimen/ds_text_phone_menu_item"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          tools:text="Wikipedia, the free encyclopedia" />
+
+      <TextView
+          android:id="@+id/tvCaption"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textSize="@dimen/ds_text_phone_caption"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          tools:text="14:32 · en.wikipedia.org" />
+    </LinearLayout>
+  </LinearLayout>
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+      android:id="@+id/ibOptions"
+      android:layout_marginEnd="@dimen/ds_phone_bar_padding_horizontal"
+      android:src="@drawable/ic_more_vert"
+      tools:contentDescription="Options of Wikipedia" />
+</LinearLayout>

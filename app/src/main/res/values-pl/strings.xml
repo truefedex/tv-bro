@@ -33,7 +33,6 @@
   <string name="no_app_for_file_type">Nie znaleziono aplikacji do otwierania tego typu plików</string>
   <string name="delete">Usuń</string>
   <string name="cancel">Anuluj</string>
-  <string name="msg_delete_history">Usunąć wybrane elementy z historii przeglądania?</string>
   <string name="msg_delete_history_all">Usunąć całą historię przeglądania?</string>
   <string name="shortcuts">Skróty</string>
   <string name="favorites">Ulubione</string>

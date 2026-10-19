@@ -131,8 +131,29 @@
     <string name="no_app_for_file_type">No apps found to open this file type</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
-    <string name="msg_delete_history">Delete selected history items?</string>
     <string name="msg_delete_history_all">Delete all history items?</string>
+    <plurals name="delete_history_items">
+        <item quantity="one">Delete %d history item?</item>
+        <item quantity="other">Delete %d history items?</item>
+    </plurals>
+    <string name="search_history">Search history</string>
+    <string name="search_history_by_voice">Search history by voice</string>
+    <plurals name="history_found">
+        <item quantity="one">%d found</item>
+        <item quantity="other">%d found</item>
+    </plurals>
+    <plurals name="items_selected">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <string name="select">Select</string>
+    <string name="select_all">Select all</string>
+    <string name="leave_selection">Leave the selection</string>
+    <string name="nothing_selected">Nothing selected</string>
+    <string name="no_history_yet">No history yet</string>
+    <string name="no_history_found">Nothing found in the history</string>
+    <string name="history_is_empty">The history is empty</string>
+    <string name="history_time_and_address" translatable="false">%1$s · %2$s</string>
     <string name="shortcuts">Shortcuts</string>
     <string name="favorites">Favorites</string>
     <string name="history">History</string>

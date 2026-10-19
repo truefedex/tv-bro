@@ -31,7 +31,6 @@
   <string name="no_app_for_file_type">هیچ برنامه‌ای برای باز کردن این نوع پرونده یافت نشد</string>
   <string name="delete">حذف</string>
   <string name="cancel">لغو</string>
-  <string name="msg_delete_history">موارد تاریخچه انتخاب شده حذف شود؟</string>
   <string name="msg_delete_history_all">همه موارد تاریخچه حذف شود؟</string>
   <string name="shortcuts">میانبرها</string>
   <string name="favorites">موارد دلخواه</string>

@@ -31,7 +31,6 @@
   <string name="no_app_for_file_type">找不到打开此文件类型的应用程序</string>
   <string name="delete">删除</string>
   <string name="cancel">取消</string>
-  <string name="msg_delete_history">删除所选的历史记录项？</string>
   <string name="msg_delete_history_all">删除所有历史记录？</string>
   <string name="shortcuts">快捷键</string>
   <string name="favorites">收藏夹</string>

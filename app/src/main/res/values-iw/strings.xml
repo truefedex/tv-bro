@@ -31,7 +31,6 @@
   <string name="no_app_for_file_type">לא נמצאו יישומים לפתיחת סוג הקובץ המבוקש</string>
   <string name="delete">מחק</string>
   <string name="cancel">ביטול</string>
-  <string name="msg_delete_history">למחוק את פריטי ההיסטוריה שנבחרו?</string>
   <string name="msg_delete_history_all">למחוק את כל פריטי ההיסטוריה?</string>
   <string name="shortcuts">קיצורי דרך</string>
   <string name="favorites">מועדפים</string>

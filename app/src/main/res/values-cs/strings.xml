@@ -33,7 +33,6 @@
     <string name="no_app_for_file_type">Nebyla nalezena žádná aplikace pro otevření tohoto typu souboru</string>
     <string name="delete">Smazat</string>
     <string name="cancel">Zrušit</string>
-    <string name="msg_delete_history">Smazat vybrané položky historie?</string>
     <string name="msg_delete_history_all">Smazat celou historii?</string>
     <string name="shortcuts">Zkratky</string>
     <string name="favorites">Oblíbené</string>

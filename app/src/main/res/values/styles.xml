@@ -181,6 +181,30 @@
         <item name="android:importantForAccessibility">no</item>
     </style>
 
+    <!-- A button with an icon and a label in the header of a TV screen over the window -->
+    <style name="Widget.TVBro.HeaderButton.Ds" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/ds_size_chrome_control</item>
+        <item name="android:layout_marginStart">@dimen/ds_space_gutter</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">@dimen/ds_downloads_header_button_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_downloads_header_button_padding</item>
+        <item name="android:background">@drawable/ds_icon_button_bg</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <!-- The label of a header button -->
+    <style name="Widget.TVBro.Text.HeaderButton" parent="Widget.TVBro.Text.MenuItem">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">@dimen/ds_downloads_header_icon_text</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
     <!-- A hairline between menu or panel rows -->
     <style name="Widget.TVBro.MenuSeparator" parent="">
         <item name="android:layout_width">match_parent</item>

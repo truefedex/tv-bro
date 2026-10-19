@@ -31,7 +31,6 @@
   <string name="no_app_for_file_type">Не найдено приложений для открытия файлов этого типа</string>
   <string name="nothing">Ничего</string>
   <string name="user_agent_string">Строка User Agent</string>
-  <string name="msg_delete_history">Удалить выбранные элементы истории?</string>
   <string name="action">Действие:</string>
   <string name="clear">Очистить</string>
   <string name="current_key">Текущая клавиша:</string>

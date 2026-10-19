@@ -33,7 +33,6 @@
     <string name="no_app_for_file_type">Δεν βρέθηκαν εφαρμογές για το άνοιγμα αυτού του τύπου αρχείου</string>
     <string name="delete">Διαγραφή</string>
     <string name="cancel">Ακύρωση</string>
-    <string name="msg_delete_history">Διαγραφή των επιλεγμένων στοιχείων ιστορικού;</string>
     <string name="msg_delete_history_all">Διαγραφή όλου του ιστορικού;</string>
     <string name="shortcuts">Συντομεύσεις</string>
     <string name="favorites">Αγαπημένα</string>

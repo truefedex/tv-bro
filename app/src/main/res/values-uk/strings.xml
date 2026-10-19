@@ -31,7 +31,6 @@
   <string name="no_app_for_file_type">Не знайдено додатків для відкриття файлів цього типу</string>
   <string name="nothing">Нічого</string>
   <string name="user_agent_string">Рядок User Agent</string>
-  <string name="msg_delete_history">Видалити вибрані елементи історії?</string>
   <string name="action">Дія:</string>
   <string name="clear">Очистити</string>
   <string name="current_key">Поточна клавіша:</string>

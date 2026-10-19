@@ -89,6 +89,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vTabSwitcher.setInsets(bars.left, bars.top, bars.right, bars.bottom)
             vb.vBookmarks.setInsets(bars.left, bars.top, bars.right, bars.bottom, keyboard.bottom)
             vb.vDownloads.setInsets(bars.left, bars.top, bars.right, bars.bottom)
+            vb.vHistory.setInsets(bars.left, bars.top, bars.right, bars.bottom, keyboard.bottom)
             vb.vSync.setInsets(bars.left, bars.top, bars.right, bars.bottom)
             vb.vActionsSheet.setInsets(bars.left, bars.right, bars.bottom)
             WindowInsetsCompat.CONSUMED
@@ -150,7 +151,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             }
         }
 
-        override fun showHistory() = host.showHistory()
+        override fun showHistory() = vb.vHistory.show()
 
         override fun showBookmarks() = vb.vBookmarks.show()
 
@@ -200,6 +201,28 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         override fun startVoiceSearch(onResult: (String) -> Unit) = bookmarksVoiceSearch.recognize(onResult)
 
         override val bookmarkFiles = DeviceBookmarkFiles(activity)
+    }
+
+    private val historyCallback = object : HistoryNavigator.ShellCallback {
+        override fun open(url: String) = host.navigate(url)
+
+        override fun openInNewTab(url: String) {
+            host.openInNewTab(url, controller.tabsStates.size)
+        }
+
+        override fun showMessage(icon: Int, message: String) {
+            NotificationView.show(vb.rlRoot, icon, message)
+        }
+
+        override fun confirm(message: String, action: () -> Unit) {
+            AlertDialog.Builder(activity)
+                .setMessage(message)
+                .setPositiveButton(R.string.delete) { _, _ -> action() }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        override fun startVoiceSearch(onResult: (String) -> Unit) = bookmarksVoiceSearch.recognize(onResult)
     }
 
     /** The switcher stays open when tabs are closed, it closes when a tab is chosen or opened */
@@ -364,6 +387,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vTabSwitcher.callback = tabSwitcherCallback
         vb.vBookmarks.attach(activity.lifecycleScope, vb.vActionsSheet, bookmarksCallback)
         vb.vDownloads.attach(activity.lifecycleScope, vb.vActionsSheet, downloadsCallback)
+        vb.vHistory.attach(activity.lifecycleScope, vb.vActionsSheet, historyCallback)
         vb.vSync.attach(syncNavigator)
         activity.lifecycleScope.launch { downloadsModel.events.collect(::onDownloadEvent) }
         controller.tabsStates.subscribe(activity, observer = { vb.vPhoneBar.setTabCount(it.size) })
@@ -386,6 +410,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         dispatcher.addCallback(activity, vb.vTabSwitcher.backCallback)
         dispatcher.addCallback(activity, vb.vBookmarks.backCallback)
         dispatcher.addCallback(activity, vb.vDownloads.backCallback)
+        dispatcher.addCallback(activity, vb.vHistory.backCallback)
         dispatcher.addCallback(activity, vb.vSync.backCallback)
         dispatcher.addCallback(activity, vb.vActionsSheet.backCallback)
         dispatcher.addCallback(activity, fullscreen)
@@ -401,6 +426,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vActionsSheet.hide()
             vb.vBookmarks.hide()
             vb.vDownloads.hide()
+            vb.vHistory.hide()
             vb.vSync.hide()
             vb.vSnackbar.hide()
             scrollAwayBar.show(animate = false)
@@ -469,6 +495,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vActionsSheet.hide()
         vb.vBookmarks.hide()
         vb.vDownloads.hide()
+        vb.vHistory.hide()
     }
 
     override fun onDownloadStarted(download: Download) {

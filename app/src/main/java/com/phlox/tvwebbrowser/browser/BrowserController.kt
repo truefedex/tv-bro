@@ -138,7 +138,8 @@ class BrowserController : ActiveModel() {
         Log.d(TAG, "initHistory")
         data.history.trim()
         try {
-            historyLogger.lastHistoryItem = data.history.last(1).firstOrNull()
+            //its title changes when the page shown again gets one
+            historyLogger.lastHistoryItem = data.history.last(1).firstOrNull()?.also { it.saved = true }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -609,7 +610,8 @@ class BrowserController : ActiveModel() {
             tab.title = title
             sendUiEvent(BrowserUiEvent.TabUpdated(tab))
             if (!config.incognitoMode) {
-                historyLogger.onTitleUpdated(tab.url, tab.title)
+                //the address of the page now: tab.url is not changed by redirects and history.pushState
+                historyLogger.onTitleUpdated(tab.webEngine.url ?: tab.url, title)
             }
             publishState()
         }
@@ -732,7 +734,11 @@ class BrowserController : ActiveModel() {
 
         override fun onVisited(url: String) {
             if (!config.incognitoMode) {
-                historyLogger.logVisited(tab.title, url)
+                //the title of the tab may still be the one of the previous page
+                historyLogger.logVisited(url) {
+                    //asked later: the tab may be closed by then (its engine released)
+                    if (tab.isWebEngineCreated && !tab.loading && tab.webEngine.url == url) tab.title else null
+                }
             }
         }
 

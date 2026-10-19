@@ -142,13 +142,6 @@
                 <data android:scheme="tvbro" android:host="sync" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".activity.history.HistoryActivity"
-            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:screenOrientation="behind"
-            android:windowSoftInputMode="adjustResize"
-            tools:ignore="DiscouragedApi" />
-
         <activity android:name=".activity.IncognitoModeMainActivity"
             android:process=":incognito"
             android:exported="false"

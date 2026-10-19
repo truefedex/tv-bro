@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The history page of the phone UI over the whole window: the header (back, the title, the search, the
+menu with Clear all; while searching its field in place of the title; in the selection mode: leave, the
+number chosen, Select all and Delete), then the history by days.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.RelativeLayout">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ds_phone_switcher_header_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_phone_bar_padding_horizontal"
+        android:paddingEnd="@dimen/ds_phone_bar_padding_horizontal"
+        android:background="?attr/tbColorDsBgChrome">
+
+      <!-- back, closes the search, or leaves the selection mode -->
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibBack"
+          android:src="@drawable/ic_back"
+          android:contentDescription="@string/back" />
+
+      <TextView
+          android:id="@+id/tvTitle"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_phone_bar_padding_horizontal"
+          android:textSize="@dimen/ds_text_phone_switcher_title"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          android:text="@string/history" />
+
+      <!-- the field of the search, in place of the title -->
+      <LinearLayout
+          android:id="@+id/llSearch"
+          android:layout_width="0dp"
+          android:layout_height="@dimen/ds_phone_pill_height"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_phone_bar_padding_horizontal"
+          android:layout_marginEnd="@dimen/ds_phone_bookmarks_search_margin_end"
+          android:orientation="horizontal"
+          android:gravity="center_vertical"
+          android:paddingStart="@dimen/ds_phone_pill_search_inset"
+          android:background="@drawable/ds_address_field_bg"
+          android:addStatesFromChildren="true"
+          android:visibility="gone">
+
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@null"
+            android:textSize="@dimen/ds_text_phone_menu_item"
+            android:textColor="?attr/tbColorDsInk"
+            android:textColorHint="?attr/tbColorDsInkFaint"
+            android:hint="@string/search_history"
+            android:singleLine="true"
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:importantForAutofill="no" />
+
+        <!-- the mic while the field is empty, Clear when it has text -->
+        <ImageButton
+            style="@style/Widget.TVBro.ImageButton.Ds.PhonePill"
+            android:id="@+id/ibVoice"
+            android:src="@drawable/ic_voice_search"
+            android:contentDescription="@string/search_history_by_voice" />
+
+        <ImageButton
+            style="@style/Widget.TVBro.ImageButton.Ds.PhonePill"
+            android:id="@+id/ibClearSearch"
+            android:src="@drawable/ic_close"
+            android:contentDescription="@string/clear_search"
+            android:visibility="gone" />
+      </LinearLayout>
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibSearch"
+          android:src="@drawable/ic_search"
+          android:contentDescription="@string/search_history" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibMenu"
+          android:src="@drawable/ic_more_vert"
+          android:contentDescription="@string/more_actions" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibSelectAll"
+          android:src="@drawable/ic_check_box"
+          android:contentDescription="@string/select_all"
+          android:visibility="gone" />
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibDelete"
+          android:src="@drawable/ic_delete"
+          android:contentDescription="@string/delete"
+          android:visibility="gone" />
+    </LinearLayout>
+
+    <View style="@style/Widget.TVBro.MenuSeparator" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="?attr/tbColorDsSurface">
+
+      <androidx.recyclerview.widget.RecyclerView
+          android:id="@+id/rvItems"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:clipToPadding="false" />
+
+      <TextView
+          android:id="@+id/tvEmpty"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:padding="@dimen/ds_bookmarks_empty_padding"
+          android:gravity="center"
+          android:textSize="@dimen/ds_text_phone_menu_item"
+          android:textColor="?attr/tbColorDsInk"
+          android:visibility="gone"
+          tools:text="@string/no_history_yet" />
+    </FrameLayout>
+  </LinearLayout>
+</merge>

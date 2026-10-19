@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.data
 
+import com.phlox.tvwebbrowser.activity.main.HistoryNavigator
 import com.phlox.tvwebbrowser.browser.VisitedHistoryLogger
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.model.dao.HistoryDao
@@ -8,7 +9,7 @@ import java.util.Calendar
 /**
  * The browsing history.
  */
-class HistoryRepository(private val dao: HistoryDao) : VisitedHistoryLogger.Store {
+class HistoryRepository(private val dao: HistoryDao) : VisitedHistoryLogger.Store, HistoryNavigator.Store {
     companion object {
         private const val MAX_ITEMS = 5000
         private const val KEPT_MONTHS_WHEN_TRIMMED = 3
@@ -28,15 +29,15 @@ class HistoryRepository(private val dao: HistoryDao) : VisitedHistoryLogger.Stor
 
     suspend fun mostVisited(): List<HistoryItem> = dao.frequentlyUsedUrls()
 
-    /** A page of the history, the latest items first */
-    suspend fun page(offset: Long): List<HistoryItem> = dao.allByLimitOffset(offset)
+    /**
+     * The whole history, the latest items first. [trim] keeps it small enough to be searched in memory
+     * (SQLite's LIKE folds the case of ASCII letters only).
+     */
+    override suspend fun all(): List<HistoryItem> = dao.allByTime()
 
-    /** Items with the query in the title or the url */
-    suspend fun search(query: String): List<HistoryItem> = dao.search(query, query)
+    override suspend fun delete(items: List<HistoryItem>) = dao.delete(*items.toTypedArray())
 
-    suspend fun delete(items: List<HistoryItem>) = dao.delete(*items.toTypedArray())
-
-    suspend fun deleteAll() = dao.deleteWhereTimeLessThan(Long.MAX_VALUE)
+    override suspend fun deleteAll() = dao.deleteWhereTimeLessThan(Long.MAX_VALUE)
 
     override suspend fun insert(item: HistoryItem): Long = dao.insert(item)
 

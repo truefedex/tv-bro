@@ -2,7 +2,6 @@ package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
@@ -35,7 +34,6 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
-import com.phlox.tvwebbrowser.activity.history.HistoryActivity
 import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
@@ -224,18 +222,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         }
 
         override suspend fun remove(ids: List<Long>) = TVBro.container.data.downloads.delete(ids)
-    }
-
-    override fun showHistory() {
-        launchForResult(ActivityResultContracts.StartActivityForResult(),
-            Intent(this@MainActivity, HistoryActivity::class.java)) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val url = result.data?.getStringExtra(HistoryActivity.KEY_URL)
-                if (url != null) {
-                    navigate(url)
-                }
-            }
-        }
     }
 
     override fun showSettings() {

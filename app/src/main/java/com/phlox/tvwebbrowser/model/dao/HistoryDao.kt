@@ -31,11 +31,8 @@ interface HistoryDao {
     @Query("SELECT \"\" as id, title, url, count(url) as cnt , max(time) as time FROM history GROUP BY title, url ORDER BY cnt DESC, time DESC LIMIT 8")
     suspend fun frequentlyUsedUrls(): List<HistoryItem>
 
-    @Query("SELECT * FROM history ORDER BY time DESC LIMIT 100 OFFSET :offset")
-    suspend fun allByLimitOffset(offset: Long): List<HistoryItem>
-
-    @Query("SELECT * FROM history WHERE (title LIKE :titleQuery) OR (url LIKE :urlQuery) ORDER BY time DESC LIMIT 100")
-    suspend fun search(titleQuery: String, urlQuery: String): List<HistoryItem>
+    @Query("SELECT * FROM history ORDER BY time DESC")
+    suspend fun allByTime(): List<HistoryItem>
 
     @Query("UPDATE history SET title = :title WHERE id = :id")
     suspend fun updateTitle(id: Long, title: String)

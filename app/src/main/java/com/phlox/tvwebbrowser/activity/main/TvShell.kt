@@ -284,8 +284,42 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     }
 
     private fun showHistory() {
-        host.showHistory()
-        hideMenuOverlay()
+        vb.vPopupMenu.hide()
+        vb.vHistoryScreen.show()
+    }
+
+    private val historyCallback = object : HistoryNavigator.ShellCallback {
+        override fun open(url: String) {
+            hideMenuOverlay()
+            host.navigate(url)
+        }
+
+        override fun openInNewTab(url: String) {
+            host.openInNewTab(url, controller.tabsStates.size)
+        }
+
+        override fun showMessage(icon: Int, message: String) {
+            NotificationView.show(vb.rlRoot, icon, message)
+        }
+
+        override fun confirm(message: String, action: () -> Unit) {
+            AlertDialog.Builder(activity)
+                .setMessage(message)
+                .setPositiveButton(R.string.delete) { _, _ -> action() }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        override fun startVoiceSearch(onResult: (String) -> Unit) = bookmarksVoiceSearch.recognize(onResult)
+    }
+
+    /** The history closed: the focus goes back to the ⋮ button of the bar, or to the page if the bar is closed */
+    private fun onHistoryScreenClosed() {
+        if (vb.rlActionBar.isVisible) {
+            vb.vActionBar.moreButton.requestFocus()
+        } else {
+            controller.currentTab.value?.webEngine?.getView()?.requestFocus()
+        }
     }
 
     /** Under the ⋮ button, its end under the end of the group of the button, as the panels of the bar */
@@ -383,6 +417,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             if (i == 0 && !fullscreen) {
                 vb.vSyncScreen.hide()
                 vb.vDownloadsScreen.hide()
+                vb.vHistoryScreen.hide()
                 if (open != null) {
                     controller.changeTab(open)
                     showPage()
@@ -490,6 +525,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vBookmarksPanel.attach(lifecycleScope, vb.vPopupMenu, bookmarksCallback)
         vb.vDownloadsPanel.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback) { showAllDownloads(it) }
         vb.vDownloadsScreen.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback, ::onDownloadsScreenClosed)
+        vb.vHistoryScreen.attach(lifecycleScope, vb.vPopupMenu, historyCallback, ::onHistoryScreenClosed)
         vb.vSyncScreen.attach(lifecycleScope, syncScreenCallback)
         activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) = syncServer.start()
@@ -698,6 +734,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, vb.vTabMenu.backCallback)
         dispatcher.addCallback(activity, vb.vBookmarksPanel.backCallback)
         dispatcher.addCallback(activity, vb.vDownloadsScreen.backCallback)
+        dispatcher.addCallback(activity, vb.vHistoryScreen.backCallback)
         dispatcher.addCallback(activity, vb.vSyncScreen.backCallback)
         dispatcher.addCallback(activity, vb.vDownloadsPanel.backCallback)
         dispatcher.addCallback(activity, vb.vPopupMenu.backCallback)
