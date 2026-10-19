@@ -48,15 +48,12 @@ class DeviceDownloads(private val activity: Activity) : DownloadsNavigator.Devic
             Intent(DownloadManager.ACTION_VIEW_DOWNLOADS),
             //the Downloads root of the system files app
             Intent(Intent.ACTION_VIEW).setDataAndType(DocumentsContract.buildRootUri(DOWNLOADS_DOCUMENTS, "downloads"),
-                DocumentsContract.Root.MIME_TYPE_ITEM),
-            //file managers that take a directory
-            Intent(Intent.ACTION_VIEW).setDataAndType(Uri.fromFile(downloadsDirectory), "resource/folder")
+                DocumentsContract.Root.MIME_TYPE_ITEM)
         )
         return intents.any {
             try {
                 DownloadFileActions.start(activity, it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             } catch (e: Exception) {
-                //a file uri may be refused (FileUriExposedException)
                 Log.w(TAG, "Can not open the folder with $it", e)
                 false
             }
@@ -71,7 +68,7 @@ class DeviceDownloads(private val activity: Activity) : DownloadsNavigator.Devic
             .putExtra(Intent.EXTRA_STREAM, uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         //the chooser itself always starts: see first whether some app takes the file
-        if (activity.packageManager.queryIntentActivities(intent, 0).isEmpty()) return false
+        if (!DownloadFileActions.hasApp(activity, intent)) return false
         return DownloadFileActions.start(activity, Intent.createChooser(intent, activity.getString(R.string.share)))
     }
 

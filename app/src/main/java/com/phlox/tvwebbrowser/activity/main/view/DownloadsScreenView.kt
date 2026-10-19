@@ -214,11 +214,13 @@ class DownloadsScreenView @JvmOverloads constructor(
                 item?.let { showRowMenu(it, vb.ibOptions) }
                 true
             }
-            vb.llMain.setOnKeyListener { _, keyCode, event ->
-                if (keyCode != KeyEvent.KEYCODE_MENU) return@setOnKeyListener false
+            //the Menu key opens the options from the row and from its buttons
+            val menuKey = View.OnKeyListener { _, keyCode, event ->
+                if (keyCode != KeyEvent.KEYCODE_MENU) return@OnKeyListener false
                 if (event.action == KeyEvent.ACTION_UP) item?.let { showRowMenu(it, vb.ibOptions) }
                 true
             }
+            for (view in listOf(vb.llMain, vb.ibFirst, vb.ibSecond, vb.ibOptions)) view.setOnKeyListener(menuKey)
             vb.llMain.setOnFocusChangeListener { _, _ -> updateHint() }
             vb.ibOptions.setOnClickListener { item?.let { showRowMenu(it, vb.ibOptions) } }
         }

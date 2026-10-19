@@ -69,6 +69,11 @@ object DownloadFileActions {
         }
     }
 
+    /** Some app other than the stubs of Android TV takes the [intent] */
+    fun hasApp(context: Context, intent: Intent): Boolean =
+        context.packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+            .any { it.activityInfo.packageName != TV_STUBS_PACKAGE }
+
     /**
      * Starts the activity of the [intent], @return false if there is none. Android TV sends intents no
      * app handles to its stubs, which only show a toast: they count as none.

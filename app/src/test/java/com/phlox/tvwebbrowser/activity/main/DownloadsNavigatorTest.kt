@@ -32,6 +32,7 @@ class DownloadsNavigatorTest {
     private val commandsLog = ArrayList<String>()
     private val deletedFiles = ArrayList<Long>()
     private var hasFolderApp = true
+    private var hasShareApp = true
 
     private val commands = object : DownloadsNavigator.Commands {
         override fun pause(id: Long) { commandsLog += "pause $id" }
@@ -48,7 +49,7 @@ class DownloadsNavigatorTest {
         override fun open(item: DownloadItem) = fileExists(item).also { if (it) commandsLog += "open ${item.id}" }
         override fun install(item: DownloadItem) = fileExists(item).also { if (it) commandsLog += "install ${item.id}" }
         override fun openFolder() = hasFolderApp
-        override fun share(item: DownloadItem) = fileExists(item)
+        override fun share(item: DownloadItem) = fileExists(item) && hasShareApp
         override suspend fun deleteFile(item: DownloadItem) { deletedFiles += item.id }
         override fun copyLink(url: String) { commandsLog += "copy $url" }
         override fun freeSpace() = 12_000L
@@ -145,8 +146,8 @@ class DownloadsNavigatorTest {
         val blob = item(6, Download.Status.FAILED, url = "blob:https://site.com/123")
 
         val panel = navigator(Look.PANEL)
-        assertEquals(listOf(Action.INSTALL, Action.OPEN_FOLDER, Action.COPY_LINK, Action.SHOW_IN_ALL, Action.DELETE_FILE),
-            panel.actionsOf(done))
+        assertEquals(listOf(Action.INSTALL, Action.OPEN_FOLDER, Action.COPY_LINK, Action.SHARE, Action.SHOW_IN_ALL,
+            Action.DELETE_FILE), panel.actionsOf(done))
         assertEquals(listOf(Action.CANCEL, Action.COPY_LINK), panel.actionsOf(inProgress))
         assertEquals(listOf(Action.PAUSE, Action.CANCEL, Action.COPY_LINK), panel.actionsOf(resumable))
         assertEquals(listOf(Action.RESUME, Action.CANCEL, Action.COPY_LINK), panel.actionsOf(paused))
@@ -156,7 +157,7 @@ class DownloadsNavigatorTest {
         assertEquals(listOf(Action.CANCEL), panel.rowButtonsOf(inProgress))
         assertEquals(listOf(Action.RESUME, Action.CANCEL), panel.rowButtonsOf(paused))
 
-        assertEquals(listOf(Action.OPEN, Action.OPEN_FOLDER, Action.COPY_LINK, Action.DOWNLOAD_AGAIN,
+        assertEquals(listOf(Action.OPEN, Action.OPEN_FOLDER, Action.COPY_LINK, Action.SHARE, Action.DOWNLOAD_AGAIN,
             Action.REMOVE_FROM_LIST, Action.DELETE_FILE), navigator(Look.SCREEN).actionsOf(item(7)))
         assertEquals(listOf(Action.OPEN, Action.OPEN_FOLDER, Action.COPY_LINK, Action.SHARE, Action.DOWNLOAD_AGAIN,
             Action.REMOVE_FROM_LIST, Action.DELETE_FILE), navigator(Look.PHONE).actionsOf(item(7)))
@@ -254,5 +255,10 @@ class DownloadsNavigatorTest {
         hasFolderApp = false
         navigator.openFolder()
         assertEquals(context.getString(com.phlox.tvwebbrowser.R.string.no_folder_app), messages.last())
+
+        //a TV may have no app to share files with
+        hasShareApp = false
+        navigator.perform(screen.items[1], Action.SHARE)
+        assertEquals(context.getString(com.phlox.tvwebbrowser.R.string.no_app_to_share), messages.last())
     }
 }

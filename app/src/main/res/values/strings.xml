@@ -234,6 +234,7 @@
         <item quantity="other">Downloads, %d in progress</item>
     </plurals>
     <string name="share">Share</string>
+    <string name="no_app_to_share">No app to share this file with</string>
     <string name="no_folder_app">No app to open folders, install a file manager from the store</string>
     <string name="nothing_to_clear">No finished downloads to clear</string>
     <plurals name="downloads_removed">

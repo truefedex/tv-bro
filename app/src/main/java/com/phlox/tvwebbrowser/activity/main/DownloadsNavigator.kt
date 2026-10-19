@@ -210,7 +210,7 @@ class DownloadsNavigator(
                 actions += if (isApk(item)) Action.INSTALL else Action.OPEN
                 actions += Action.OPEN_FOLDER
                 if (repeatable) actions += Action.COPY_LINK
-                if (look == Look.PHONE) actions += Action.SHARE
+                actions += Action.SHARE
                 if (look == Look.PANEL) {
                     actions += Action.SHOW_IN_ALL
                 } else {
@@ -255,9 +255,8 @@ class DownloadsNavigator(
                 device.copyLink(item.url)
                 host.showMessage(R.drawable.ic_link, context.getString(R.string.link_copied))
             }
-            Action.SHARE -> if (!device.share(item)) {
-                host.showMessage(R.drawable.ic_error, context.getString(R.string.file_not_found))
-            }
+            Action.SHARE -> if (!device.share(item)) host.showMessage(R.drawable.ic_error, context.getString(
+                if (!device.fileExists(item)) R.string.file_not_found else R.string.no_app_to_share))
             Action.SHOW_IN_ALL -> host.showAll(item.id)
             Action.DOWNLOAD_AGAIN -> {
                 commands.downloadAgain(item)
