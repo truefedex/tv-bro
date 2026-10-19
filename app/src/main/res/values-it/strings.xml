@@ -79,12 +79,8 @@
   <string name="ssl_idmismatch">Hostname non corrispondente</string>
   <string name="ssl_date_invalid">La data del certificato non è valida</string>
   <string name="ssl_invalid">Si è verificato un errore generico</string>
-  <string name="back_to_safety">Torna al sicuro</string>
   <string name="go_im_aware">Continua. Sono consapevole del rischio</string>
-  <string name="connection_isnt_secure">Connessione non sicura</string>
-  <string name="hostname">Hostname:</string>
-  <string name="err_desk">Descrizione errore:</string>
-  <string name="details">Dettagli:</string>
+  <string name="err_desk">Descrizione errore</string>
   <string name="exit">Esci</string>
   <string name="find_in_apps_store">Cerca nello store</string>
   <string name="close_application">Chiudi app</string>

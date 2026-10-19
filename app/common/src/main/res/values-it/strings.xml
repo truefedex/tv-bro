@@ -2,4 +2,21 @@
 <resources>
   <string name="username">Nome utente</string>
   <string name="password">Password</string>
+  <string name="connection_isnt_secure">Connessione non sicura</string>
+  <string name="back_to_safety">Torna al sicuro</string>
+  <string name="hostname">Hostname</string>
+  <string name="details">Dettagli</string>
+  <string name="error_page_insecure_message">Qualcuno potrebbe tentare di rubare le tue informazioni da questo sito</string>
+  <string name="error_page_error_code">Codice di errore</string>
+  <string name="error_page_try_again">Riprova</string>
+  <string name="error_page_reload">Ricarica</string>
+  <string name="error_page_back">Indietro</string>
+  <string name="error_page_dangerous_title">Sito pericoloso</string>
+  <string name="error_page_dangerous_message">Questo sito è segnalato come pericoloso: potrebbe tentare di rubare le tue informazioni o danneggiare il dispositivo</string>
+  <string name="error_page_crashed_title">Questa pagina si è bloccata</string>
+  <string name="error_page_crashed_message">La pagina potrebbe aver esaurito la memoria. Ricaricala per riprovare</string>
+  <string name="error_page_network_title">Impossibile raggiungere il sito</string>
+  <string name="error_page_network_message">Controlla la connessione di rete e riprova</string>
+  <string name="error_page_generic_title">Impossibile aprire questa pagina</string>
+  <string name="error_page_generic_message">Si è verificato un errore durante il caricamento della pagina</string>
 </resources>

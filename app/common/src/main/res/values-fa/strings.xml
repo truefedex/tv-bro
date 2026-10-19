@@ -2,4 +2,21 @@
 <resources>
   <string name="username">نام کاربری</string>
   <string name="password">کلمه عبور</string>
+  <string name="connection_isnt_secure">اتصال امن نیست</string>
+  <string name="back_to_safety">بازگشت به صفحه امن</string>
+  <string name="hostname">نام میزبان</string>
+  <string name="details">جزئیات</string>
+  <string name="error_page_insecure_message">ممکن است مهاجمان در تلاش برای سرقت اطلاعات شما از این سایت باشند</string>
+  <string name="error_page_error_code">کد خطا</string>
+  <string name="error_page_try_again">تلاش دوباره</string>
+  <string name="error_page_reload">بارگیری مجدد</string>
+  <string name="error_page_back">بازگشت</string>
+  <string name="error_page_dangerous_title">سایت خطرناک</string>
+  <string name="error_page_dangerous_message">این سایت به‌عنوان خطرناک گزارش شده است: ممکن است اطلاعات شما را سرقت کند یا به دستگاه شما آسیب بزند</string>
+  <string name="error_page_crashed_title">این صفحه از کار افتاد</string>
+  <string name="error_page_crashed_message">ممکن است حافظهٔ صفحه تمام شده باشد. برای تلاش دوباره آن را بارگیری مجدد کنید</string>
+  <string name="error_page_network_title">دسترسی به این سایت ممکن نیست</string>
+  <string name="error_page_network_message">اتصال شبکه را بررسی کنید و دوباره تلاش کنید</string>
+  <string name="error_page_generic_title">باز کردن این صفحه ممکن نیست</string>
+  <string name="error_page_generic_message">هنگام بارگیری این صفحه خطایی رخ داد</string>
 </resources>

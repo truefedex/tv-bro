@@ -2,4 +2,21 @@
 <resources>
   <string name="username">שם משתמש</string>
   <string name="password">סיסמה</string>
+  <string name="connection_isnt_secure">החיבור אינו מאובטח</string>
+  <string name="back_to_safety">חזרה לדף בטוח</string>
+  <string name="hostname">שם מארח</string>
+  <string name="details">פרטים</string>
+  <string name="error_page_insecure_message">ייתכן שתוקפים מנסים לגנוב את המידע שלך מאתר זה</string>
+  <string name="error_page_error_code">קוד שגיאה</string>
+  <string name="error_page_try_again">נסה שוב</string>
+  <string name="error_page_reload">טען מחדש</string>
+  <string name="error_page_back">חזרה</string>
+  <string name="error_page_dangerous_title">אתר מסוכן</string>
+  <string name="error_page_dangerous_message">אתר זה דווח כמסוכן: הוא עלול לנסות לגנוב את המידע שלך או לפגוע במכשיר</string>
+  <string name="error_page_crashed_title">הדף קרס</string>
+  <string name="error_page_crashed_message">ייתכן שלדף אזל הזיכרון. טען אותו מחדש כדי לנסות שוב</string>
+  <string name="error_page_network_title">לא ניתן להגיע לאתר זה</string>
+  <string name="error_page_network_message">בדוק את חיבור הרשת ונסה שוב</string>
+  <string name="error_page_generic_title">לא ניתן לפתוח דף זה</string>
+  <string name="error_page_generic_message">אירעה שגיאה בעת טעינת הדף</string>
 </resources>

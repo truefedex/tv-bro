@@ -2,4 +2,21 @@
 <resources>
   <string name="username">Имя пользователя</string>
   <string name="password">Пароль</string>
+  <string name="connection_isnt_secure">Соединение не защищено</string>
+  <string name="back_to_safety">Вернуться к безопасной странице</string>
+  <string name="hostname">Имя хоста</string>
+  <string name="details">Подробности</string>
+  <string name="error_page_insecure_message">Злоумышленники могут пытаться похитить ваши данные с этого сайта</string>
+  <string name="error_page_error_code">Код ошибки</string>
+  <string name="error_page_try_again">Повторить</string>
+  <string name="error_page_reload">Перезагрузить</string>
+  <string name="error_page_back">Назад</string>
+  <string name="error_page_dangerous_title">Опасный сайт</string>
+  <string name="error_page_dangerous_message">Этот сайт отмечен как опасный: он может попытаться похитить ваши данные или навредить устройству</string>
+  <string name="error_page_crashed_title">Произошёл сбой страницы</string>
+  <string name="error_page_crashed_message">Возможно, странице не хватило памяти. Перезагрузите её, чтобы попробовать снова</string>
+  <string name="error_page_network_title">Не удаётся открыть сайт</string>
+  <string name="error_page_network_message">Проверьте подключение к сети и повторите попытку</string>
+  <string name="error_page_generic_title">Не удаётся открыть страницу</string>
+  <string name="error_page_generic_message">При загрузке страницы произошла ошибка</string>
 </resources>

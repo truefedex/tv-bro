@@ -2,4 +2,21 @@
 <resources>
     <string name="username">Όνομα χρήστη</string>
     <string name="password">Κωδικός πρόσβασης</string>
+    <string name="connection_isnt_secure">Η σύνδεση δεν είναι ασφαλής</string>
+    <string name="back_to_safety">Επιστροφή σε ασφάλεια</string>
+    <string name="hostname">Όνομα κεντρικού υπολογιστή</string>
+    <string name="details">Λεπτομέρειες</string>
+    <string name="error_page_insecure_message">Κάποιοι εισβολείς ίσως προσπαθούν να υποκλέψουν τα στοιχεία σας από αυτόν τον ιστότοπο</string>
+    <string name="error_page_error_code">Κωδικός σφάλματος</string>
+    <string name="error_page_try_again">Δοκιμάστε ξανά</string>
+    <string name="error_page_reload">Επαναφόρτωση</string>
+    <string name="error_page_back">Πίσω</string>
+    <string name="error_page_dangerous_title">Επικίνδυνος ιστότοπος</string>
+    <string name="error_page_dangerous_message">Αυτός ο ιστότοπος έχει αναφερθεί ως επικίνδυνος: μπορεί να προσπαθήσει να υποκλέψει τα στοιχεία σας ή να βλάψει τη συσκευή σας</string>
+    <string name="error_page_crashed_title">Αυτή η σελίδα κατέρρευσε</string>
+    <string name="error_page_crashed_message">Η σελίδα ίσως εξάντλησε τη μνήμη. Φορτώστε την ξανά για να δοκιμάσετε πάλι</string>
+    <string name="error_page_network_title">Δεν είναι δυνατή η πρόσβαση σε αυτόν τον ιστότοπο</string>
+    <string name="error_page_network_message">Ελέγξτε τη σύνδεση δικτύου και δοκιμάστε ξανά</string>
+    <string name="error_page_generic_title">Δεν είναι δυνατό το άνοιγμα αυτής της σελίδας</string>
+    <string name="error_page_generic_message">Παρουσιάστηκε σφάλμα κατά τη φόρτωση αυτής της σελίδας</string>
 </resources>

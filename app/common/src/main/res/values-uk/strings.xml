@@ -2,4 +2,21 @@
 <resources>
   <string name="username">Ім\'я користувача</string>
   <string name="password">Пароль</string>
+  <string name="connection_isnt_secure">З\'єднання не захищене</string>
+  <string name="back_to_safety">Назад у безпечне місце</string>
+  <string name="hostname">Ім\'я хоста</string>
+  <string name="details">Деталі</string>
+  <string name="error_page_insecure_message">Зловмисники можуть намагатися викрасти ваші дані з цього сайту</string>
+  <string name="error_page_error_code">Код помилки</string>
+  <string name="error_page_try_again">Повторити</string>
+  <string name="error_page_reload">Перезавантажити</string>
+  <string name="error_page_back">Назад</string>
+  <string name="error_page_dangerous_title">Небезпечний сайт</string>
+  <string name="error_page_dangerous_message">Цей сайт позначено як небезпечний: він може спробувати викрасти ваші дані або зашкодити пристрою</string>
+  <string name="error_page_crashed_title">Стався збій сторінки</string>
+  <string name="error_page_crashed_message">Можливо, сторінці забракло пам\'яті. Перезавантажте її, щоб спробувати знову</string>
+  <string name="error_page_network_title">Не вдається відкрити сайт</string>
+  <string name="error_page_network_message">Перевірте підключення до мережі та повторіть спробу</string>
+  <string name="error_page_generic_title">Не вдається відкрити сторінку</string>
+  <string name="error_page_generic_message">Під час завантаження сторінки сталася помилка</string>
 </resources>

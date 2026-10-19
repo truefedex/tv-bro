@@ -1,96 +1,283 @@
 <!DOCTYPE html>
-<html>
+<html dir="{{dir}}">
 <head>
-    <title>Security warning</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            color:#343a3c;
-            background-color:#ffffff;
-        }
-
-        .interstitial-wrapper {
-            box-sizing: border-box;
-            margin: 7vh auto 12px;
-            padding: 0 24px;
-            position: relative;
-            max-width: 736px;
-            font-size: 1em;
-            line-height: 1.6em;
-            width: 100%;
-            font-weight: normal;
-            line-height: 1.25em;
-        }
-
-        #certErrorAndCaptivePortalButtonContainer {
-            margin-top: 2em;
-        }
-
-        button {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            font-size: .933em;
-            margin: 6px 0;
-            transform: translatez(0);
-            border: 0;
-            border-radius: 4px;
-            box-sizing: border-box;
-            color: var(--primary-button-text-color);
-            cursor: pointer;
-            float: right;
-            font-size: .875em;
-            margin: 0;
-            padding: 8px 16px;
-            transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none;
-            border-radius: 16px;
-        }
-
-        #returnButton {
-            background-color: #a4a4ff;
-            color: white;
-            float: left;
-        }
-
-        #goForwardButton {
-            background-color: #ffa4a4;
-            color: white;
-            float: right;
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<style>
+:root {
+    --bg-page: #EDF6FF;
+    --surface: #FFFFFF;
+    --surface-focused: #F3F6FA;
+    --control: #E6ECF4;
+    --control-focused: #E8F4F9;
+    --control-selected: #B7E5F6;
+    --line: #CFDEEE;
+    --focus: #A5D0FF;
+    --ink: #4F4F4F;
+    --icon: #60768E;
+    --danger: #C5221F;
+    --shadow: 0 4px 24px rgba(95, 172, 255, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-page: #343A3C;
+        --surface: #1B1B1B;
+        --surface-focused: #343A3C;
+        --control: #323940;
+        --control-focused: #003E4F;
+        --control-selected: #5A5A5A;
+        --line: #4E4E4E;
+        --ink: #F8F9FA;
+        --icon: #FDFDFD;
+        --danger: #FF8A80;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+}
+html, body {
+    margin: 0;
+    min-height: 100%;
+}
+body {
+    box-sizing: border-box;
+    min-height: 100vh;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-page);
+    color: var(--ink);
+    font-family: Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+}
+[hidden] {
+    display: none !important;
+}
+main {
+    width: 100%;
+    max-width: 600px;
+    box-sizing: border-box;
+    padding: 32px 36px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+.plate {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    background: var(--control);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.plate svg {
+    fill: var(--danger);
+}
+h1 {
+    margin: 20px 0 0;
+    font-size: 24px;
+    line-height: 30px;
+    font-weight: 500;
+}
+p {
+    margin: 8px 0 0;
+}
+dl {
+    margin: 20px 0 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 16px;
+    row-gap: 8px;
+}
+dt {
+    font-weight: 500;
+}
+dd {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.buttons {
+    margin-top: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+button {
+    height: 40px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--control);
+    color: var(--ink);
+    font: 500 14px Roboto, sans-serif;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    outline: none;
+}
+button svg {
+    flex: none;
+    fill: var(--icon);
+}
+button.with-icon {
+    padding-inline-start: 14px;
+}
+button.toggle {
+    padding-inline-end: 12px;
+    gap: 6px;
+}
+button[aria-expanded="true"] {
+    background: var(--control-selected);
+}
+button[aria-expanded="true"] svg {
+    transform: rotate(180deg);
+}
+button:hover, button:focus {
+    background: var(--control-focused);
+    box-shadow: 0 0 0 1.5px var(--focus);
+}
+[dir="rtl"] .back-icon {
+    transform: scaleX(-1);
+}
+#details-section {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+pre {
+    margin: 0;
+    align-self: stretch;
+    box-sizing: border-box;
+    max-height: 120px;
+    overflow: auto;
+    padding: 12px 14px;
+    background: var(--surface-focused);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font: 12px/18px "Roboto Mono", monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+#continue {
+    color: var(--danger);
+}
+@media (max-width: 600px) {
+    body {
+        padding: 0;
+        align-items: stretch;
+    }
+    main {
+        max-width: none;
+        padding: 96px 24px 32px;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        background: var(--bg-page);
+        display: flex;
+        flex-direction: column;
+    }
+    h1 {
+        font-size: 22px;
+        line-height: 28px;
+    }
+    dl {
+        margin-top: 24px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+    }
+    dd + dt {
+        margin-top: 12px;
+    }
+    .buttons {
+        order: 1;
+        margin-top: auto;
+        padding-top: 28px;
+        flex-direction: column;
+    }
+    button {
+        height: 48px;
+        font-size: 15px;
+    }
+    .buttons button {
+        width: 100%;
+    }
+    .buttons .primary {
+        background: var(--control-selected);
+    }
+    #continue {
+        width: 100%;
+        height: 48px;
+    }
+    button:focus:not(:focus-visible), button:hover {
+        box-shadow: none;
+    }
+}
+</style>
 </head>
-<body onload="onLoad();">
-<div class="interstitial-wrapper">
-    <div>
-        <img src="file:///android_asset/pages/ic_warning.svg">
-        <!--<img src="ic_warning.svg">-->
-        <h1 id="caption" style="margin-bottom: 28px;"></h1>
-        <p><b id="hostnameLabel"></b> <span id="hostname"></span></p>
-        <p><b id="errorDeskr"></b> <span id="error"></span></p>
-        <p><b id="details"></b><br> <span id="error-details"></span></p>
-
-        <div id="certErrorAndCaptivePortalButtonContainer">
-            <button id="returnButton" onclick="history.back();"></button>
-            <button id="goForwardButton" onclick="TVBro.reloadWithSslTrust();"></button>
-        </div>
+<body>
+<main>
+    <div class="plate">
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
     </div>
-</div>
+    <h1>{{title}}</h1>
+    <p>{{message}}</p>
+    <dl>
+        <dt>{{hostnameLabel}}</dt>
+        <dd>{{hostname}}</dd>
+        <dt>{{errorLabel}}</dt>
+        <dd>{{error}}</dd>
+    </dl>
+    <div class="buttons">
+        <button id="back" class="primary with-icon" type="button" data-home="{{homeUrl}}">
+            <svg class="back-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            {{backToSafety}}
+        </button>
+        <button id="details" class="toggle" type="button" aria-expanded="false" aria-controls="details-section">
+            {{details}}
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>
+        </button>
+    </div>
+    <section id="details-section" hidden>
+        <pre>{{errorDetails}}</pre>
+        <button id="continue" type="button">{{continue}}</button>
+    </section>
+</main>
 <script>
-function onLoad() {
-    //translate captions first
-    document.getElementById("caption").innerHTML = TVBro.getStringByName('connection_isnt_secure');
-    document.getElementById("hostnameLabel").innerHTML = TVBro.getStringByName('hostname');
-    document.getElementById("errorDeskr").innerHTML = TVBro.getStringByName('err_desk');
-    document.getElementById("details").innerHTML = TVBro.getStringByName('details');
-    document.getElementById("returnButton").innerHTML = TVBro.getStringByName('back_to_safety');
-    document.getElementById("goForwardButton").innerHTML = TVBro.getStringByName('go_im_aware');
+const back = document.getElementById("back");
+const details = document.getElementById("details");
+const detailsSection = document.getElementById("details-section");
 
-    //show error info
-    let url = new URL(TVBro.currentUrl());
-    document.getElementById("hostname").innerHTML = url.hostname;
-    let error = TVBro.lastSSLError(false);
-    document.getElementById("error").innerHTML = error;
-    error = TVBro.lastSSLError(true);
-    document.getElementById("error-details").innerHTML = error;
+back.addEventListener("click", function () {
+    if (history.length > 1) {
+        history.back();
+    } else {
+        location.href = back.dataset.home;
+    }
+});
+details.addEventListener("click", function () {
+    const expand = detailsSection.hidden;
+    detailsSection.hidden = !expand;
+    details.setAttribute("aria-expanded", String(expand));
+});
+document.getElementById("continue").addEventListener("click", function () {
+    TVBro.reloadWithSslTrust();
+});
+if (!matchMedia("(max-width: 600px)").matches) {
+    back.focus();
 }
 </script>
 </body>

@@ -2,4 +2,21 @@
 <resources>
     <string name="username">Username</string>
     <string name="password">Password</string>
+    <string name="connection_isnt_secure">Connection is not secure</string>
+    <string name="back_to_safety">Back to safety</string>
+    <string name="hostname">Hostname</string>
+    <string name="details">Details</string>
+    <string name="error_page_insecure_message">Attackers might be trying to steal your information from this site</string>
+    <string name="error_page_error_code">Error code</string>
+    <string name="error_page_try_again">Try again</string>
+    <string name="error_page_reload">Reload</string>
+    <string name="error_page_back">Back</string>
+    <string name="error_page_dangerous_title">Dangerous site</string>
+    <string name="error_page_dangerous_message">This site is reported as dangerous: it may try to steal your information or harm your device</string>
+    <string name="error_page_crashed_title">This page crashed</string>
+    <string name="error_page_crashed_message">The page may have run out of memory. Reload it to try again</string>
+    <string name="error_page_network_title">Can\'t reach this site</string>
+    <string name="error_page_network_message">Check the network connection and try again</string>
+    <string name="error_page_generic_title">Can\'t open this page</string>
+    <string name="error_page_generic_message">Something went wrong while loading this page</string>
 </resources>

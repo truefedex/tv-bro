@@ -262,12 +262,8 @@
     <string name="ssl_idmismatch">Hostname mismatch</string>
     <string name="ssl_date_invalid">The date of the certificate is invalid</string>
     <string name="ssl_invalid">A generic error occurred</string>
-    <string name="back_to_safety">Back to safety</string>
     <string name="go_im_aware">Continue. I understand the risk</string>
-    <string name="connection_isnt_secure">Connection is not secure</string>
-    <string name="hostname">Hostname:</string>
-    <string name="err_desk">Error description:</string>
-    <string name="details">Details:</string>
+    <string name="err_desk">Error description</string>
     <string name="exit">Exit</string>
     <string name="find_in_apps_store">Find in app store</string>
     <string name="close_application">Close app</string>

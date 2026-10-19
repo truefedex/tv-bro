@@ -1,8 +1,12 @@
 package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
+import android.util.Base64
 import android.util.Log
+import androidx.core.net.toUri
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
+import com.phlox.tvwebbrowser.common.R
+import com.phlox.tvwebbrowser.webengine.ErrorPageTemplate
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
@@ -115,11 +119,9 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
             "onLoadError=" + uri + " error category=" + error.category + " error=" + error.code
         )
 
+        val page = createErrorPage(uri, error.category, error.code)
         return GeckoResult.fromValue(
-            "data:text/html," + createErrorPage(
-                error.category,
-                error.code
-            )
+            "data:text/html;charset=utf-8;base64," + Base64.encodeToString(page.toByteArray(), Base64.NO_WRAP)
         )
     }
 
@@ -170,15 +172,26 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
         }
     }
 
-    private fun createErrorPage(category: Int, error: Int): String {
-        return createErrorPage(
-            categoryToString(category) + " : " + errorToString(error)
-        )
-    }
-
-    private fun createErrorPage(error: String): String {
-        val template = readErrorTemplate() ?: "\$ERROR"
-        return template.replace("\$ERROR", error)
+    private fun createErrorPage(uri: String?, category: Int, error: Int): String {
+        val errorCode = categoryToString(category).removePrefix("ERROR_CATEGORY_") + " : " + errorToString(error)
+        val template = readErrorTemplate() ?: "{{errorCode}}"
+        val context = AppContext.get()
+        val kind = LoadErrorKind.of(category, error)
+        return ErrorPageTemplate.fill(template, mapOf(
+            "dir" to ErrorPageTemplate.textDirection(context),
+            "state" to kind.state,
+            "title" to context.getString(kind.title),
+            "message" to context.getString(kind.message),
+            "hostnameLabel" to context.getString(R.string.hostname),
+            "hostname" to (uri?.toUri()?.host ?: ""),
+            "errorCodeLabel" to context.getString(R.string.error_page_error_code),
+            "errorCode" to errorCode,
+            "url" to (uri ?: ""),
+            "retry" to context.getString(
+                if (kind == LoadErrorKind.CRASHED) R.string.error_page_reload else R.string.error_page_try_again),
+            "back" to context.getString(if (kind.leadsBack) R.string.back_to_safety else R.string.error_page_back),
+            "homeUrl" to Config.HOME_PAGE_URL
+        ))
     }
 
     private fun readErrorTemplate(): String? {

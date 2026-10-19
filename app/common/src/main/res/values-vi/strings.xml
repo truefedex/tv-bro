@@ -2,4 +2,21 @@
 <resources>
   <string name="username">Tên tài khoản</string>
   <string name="password">Mật khẩu</string>
+  <string name="connection_isnt_secure">Kết nối không an toàn</string>
+  <string name="back_to_safety">Quay lại trang an toàn</string>
+  <string name="hostname">Tên máy chủ</string>
+  <string name="details">Chi tiết</string>
+  <string name="error_page_insecure_message">Kẻ tấn công có thể đang tìm cách đánh cắp thông tin của bạn từ trang web này</string>
+  <string name="error_page_error_code">Mã lỗi</string>
+  <string name="error_page_try_again">Thử lại</string>
+  <string name="error_page_reload">Tải lại</string>
+  <string name="error_page_back">Quay lại</string>
+  <string name="error_page_dangerous_title">Trang web nguy hiểm</string>
+  <string name="error_page_dangerous_message">Trang web này bị báo cáo là nguy hiểm: trang có thể tìm cách đánh cắp thông tin hoặc gây hại cho thiết bị của bạn</string>
+  <string name="error_page_crashed_title">Trang này đã gặp sự cố</string>
+  <string name="error_page_crashed_message">Có thể trang đã hết bộ nhớ. Hãy tải lại để thử lại</string>
+  <string name="error_page_network_title">Không thể truy cập trang web này</string>
+  <string name="error_page_network_message">Hãy kiểm tra kết nối mạng và thử lại</string>
+  <string name="error_page_generic_title">Không thể mở trang này</string>
+  <string name="error_page_generic_message">Đã xảy ra lỗi khi tải trang này</string>
 </resources>

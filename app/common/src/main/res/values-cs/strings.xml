@@ -2,4 +2,21 @@
 <resources>
     <string name="username">Uživatelské jméno</string>
     <string name="password">Heslo</string>
+    <string name="connection_isnt_secure">Připojení není zabezpečené</string>
+    <string name="back_to_safety">Zpět do bezpečí</string>
+    <string name="hostname">Název hostitele</string>
+    <string name="details">Podrobnosti</string>
+    <string name="error_page_insecure_message">Útočníci se možná pokoušejí z tohoto webu ukrást vaše údaje</string>
+    <string name="error_page_error_code">Kód chyby</string>
+    <string name="error_page_try_again">Zkusit znovu</string>
+    <string name="error_page_reload">Načíst znovu</string>
+    <string name="error_page_back">Zpět</string>
+    <string name="error_page_dangerous_title">Nebezpečný web</string>
+    <string name="error_page_dangerous_message">Tento web je nahlášen jako nebezpečný: může se pokusit ukrást vaše údaje nebo poškodit zařízení</string>
+    <string name="error_page_crashed_title">Stránka spadla</string>
+    <string name="error_page_crashed_message">Stránce možná došla paměť. Načtěte ji znovu</string>
+    <string name="error_page_network_title">Web není dostupný</string>
+    <string name="error_page_network_message">Zkontrolujte připojení k síti a zkuste to znovu</string>
+    <string name="error_page_generic_title">Stránku nelze otevřít</string>
+    <string name="error_page_generic_message">Při načítání stránky došlo k chybě</string>
 </resources>

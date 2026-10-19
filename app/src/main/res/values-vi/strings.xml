@@ -77,12 +77,8 @@
   <string name="ssl_idmismatch">Tên máy chủ không khớp</string>
   <string name="ssl_date_invalid">Ngày tháng của chứng chỉ không hợp lệ</string>
   <string name="ssl_invalid">Đã xảy ra lỗi chung</string>
-  <string name="back_to_safety">Quay lại trang an toàn</string>
   <string name="go_im_aware">Tiếp tục. Tôi chấp nhận rủi ro</string>
-  <string name="connection_isnt_secure">Kết nối không an toàn</string>
-  <string name="hostname">Tên máy chủ:</string>
-  <string name="err_desk">Mô tả lỗi:</string>
-  <string name="details">Chi tiết:</string>
+  <string name="err_desk">Mô tả lỗi</string>
   <string name="exit">Thoát</string>
   <string name="find_in_apps_store">Tìm trong kho ứng dụng</string>
   <string name="close_application">Đóng ứng dụng</string>

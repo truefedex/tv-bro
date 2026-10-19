@@ -79,12 +79,8 @@
     <string name="ssl_idmismatch">Le nom d’hôte ne correspond pas</string>
     <string name="ssl_date_invalid">La date du certificat n’est pas valide</string>
     <string name="ssl_invalid">Une erreur générique s’est produite</string>
-    <string name="back_to_safety">Retour en lieu sûr</string>
     <string name="go_im_aware">Continuer. Je suis conscient du risque</string>
-    <string name="connection_isnt_secure">La connexion n’est pas sécurisée</string>
-    <string name="hostname">Nom d’hôte :</string>
-    <string name="err_desk">Description de l’erreur :</string>
-    <string name="details">Détails :</string>
+    <string name="err_desk">Description de l’erreur</string>
     <string name="exit">Quitter</string>
     <string name="find_in_apps_store">Rechercher dans la boutique d’applications</string>
     <string name="close_application">Fermer l’application</string>

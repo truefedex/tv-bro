@@ -79,12 +79,8 @@
     <string name="ssl_idmismatch">El nombre de host no coincide</string>
     <string name="ssl_date_invalid">La fecha del certificado no es válida</string>
     <string name="ssl_invalid">Se ha producido un error genérico</string>
-    <string name="back_to_safety">Volver a un lugar seguro</string>
     <string name="go_im_aware">Continuar. Soy consciente del riesgo</string>
-    <string name="connection_isnt_secure">La conexión no es segura</string>
-    <string name="hostname">Nombre de host:</string>
-    <string name="err_desk">Descripción del error:</string>
-    <string name="details">Detalles:</string>
+    <string name="err_desk">Descripción del error</string>
     <string name="exit">Salir</string>
     <string name="find_in_apps_store">Buscar en la tienda de aplicaciones</string>
     <string name="close_application">Cerrar aplicación</string>

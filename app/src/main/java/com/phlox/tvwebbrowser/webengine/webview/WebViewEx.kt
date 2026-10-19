@@ -50,6 +50,7 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
+import com.phlox.tvwebbrowser.webengine.ErrorPageTemplate
 import java.net.URLEncoder
 import java.util.UUID
 
@@ -546,8 +547,9 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                     INTERNAL_SCHEME_WARNING_DOMAIN -> {
                         when (uri.getQueryParameter("type")) {
                             INTERNAL_SCHEME_WARNING_DOMAIN_TYPE_CERT -> {
-                                val data = context.assets.open("pages/warning-certificate.html").bufferedReader().use { it.readText() }
-                                loadDataWithBaseURL("file:///android_asset/", data, "text/html", "UTF-8", uri.getQueryParameter("url"))
+                                val failedUrl = uri.getQueryParameter("url")
+                                loadDataWithBaseURL("file:///android_asset/", certificateErrorPage(failedUrl),
+                                    "text/html", "UTF-8", failedUrl)
                             }
                         }
                     }
@@ -558,6 +560,33 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 super.loadUrl(url)
             }
         }
+    }
+
+    private fun certificateErrorPage(failedUrl: String?): String {
+        val template = context.assets.open("pages/warning-certificate.html").bufferedReader().use { it.readText() }
+        val error = lastSSLError
+        return ErrorPageTemplate.fill(template, mapOf(
+            "dir" to ErrorPageTemplate.textDirection(context),
+            "title" to context.getString(com.phlox.tvwebbrowser.common.R.string.connection_isnt_secure),
+            "message" to context.getString(com.phlox.tvwebbrowser.common.R.string.error_page_insecure_message),
+            "hostnameLabel" to context.getString(com.phlox.tvwebbrowser.common.R.string.hostname),
+            "hostname" to (failedUrl?.toUri()?.host ?: ""),
+            "errorLabel" to context.getString(R.string.err_desk),
+            "error" to (error?.let { sslErrorDescription(it) } ?: ""),
+            "backToSafety" to context.getString(com.phlox.tvwebbrowser.common.R.string.back_to_safety),
+            "details" to context.getString(com.phlox.tvwebbrowser.common.R.string.details),
+            "errorDetails" to (error?.toString() ?: ""),
+            "continue" to context.getString(R.string.go_im_aware),
+            "homeUrl" to Config.HOME_PAGE_URL
+        ))
+    }
+
+    private fun sslErrorDescription(error: SslError): String = when (error.primaryError) {
+        SslError.SSL_EXPIRED -> context.getString(R.string.ssl_expired)
+        SslError.SSL_IDMISMATCH -> context.getString(R.string.ssl_idmismatch)
+        SslError.SSL_DATE_INVALID -> context.getString(R.string.ssl_date_invalid)
+        SslError.SSL_INVALID -> context.getString(R.string.ssl_invalid)
+        else -> ""
     }
 
     private fun getGenericJSInjects(): String {

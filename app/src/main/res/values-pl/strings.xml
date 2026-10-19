@@ -79,12 +79,8 @@
   <string name="ssl_idmismatch">Niedopasowanie nazwy hosta</string>
   <string name="ssl_date_invalid">Data certyfikatu jest nieważna</string>
   <string name="ssl_invalid">Wystąpił błąd ogólny</string>
-  <string name="back_to_safety">Wróć do bezpiecznej strony</string>
   <string name="go_im_aware">Przejdź dalej. Rozumiem ryzyko</string>
-  <string name="connection_isnt_secure">Połączenie nie jest zabezpieczone</string>
-  <string name="hostname">Nazwa hosta:</string>
-  <string name="err_desk">Opis błędu:</string>
-  <string name="details">Szczegóły:</string>
+  <string name="err_desk">Opis błędu</string>
   <string name="exit">Wyjdź</string>
   <string name="find_in_apps_store">Znajdź w sklepie z aplikacjami</string>
   <string name="close_application">Zamknij aplikację</string>

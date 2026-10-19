@@ -79,12 +79,8 @@
     <string name="ssl_idmismatch">主機名稱不相符</string>
     <string name="ssl_date_invalid">憑證日期無效</string>
     <string name="ssl_invalid">發生一般錯誤</string>
-    <string name="back_to_safety">返回安全頁面</string>
     <string name="go_im_aware">繼續。我了解風險</string>
-    <string name="connection_isnt_secure">連線不安全</string>
-    <string name="hostname">主機名稱：</string>
-    <string name="err_desk">錯誤說明：</string>
-    <string name="details">詳細資訊：</string>
+    <string name="err_desk">錯誤說明</string>
     <string name="exit">結束</string>
     <string name="find_in_apps_store">在應用程式商店搜尋</string>
     <string name="close_application">關閉應用程式</string>

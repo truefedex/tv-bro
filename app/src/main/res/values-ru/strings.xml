@@ -77,12 +77,8 @@
   <string name="ssl_idmismatch">Несоответствие имени хоста</string>
   <string name="ssl_date_invalid">Дата сертификата недействительна</string>
   <string name="ssl_invalid">Произошла общая ошибка</string>
-  <string name="back_to_safety">Вернуться к безопасной странице</string>
   <string name="go_im_aware">Продолжить. Я осознаю риск</string>
-  <string name="connection_isnt_secure">Соединение не защищено</string>
-  <string name="hostname">Имя хоста:</string>
-  <string name="err_desk">Описание ошибки:</string>
-  <string name="details">Подробности:</string>
+  <string name="err_desk">Описание ошибки</string>
   <string name="exit">Выход</string>
   <string name="find_in_apps_store">Найти в магазине приложений</string>
   <string name="close_application">Закрыть приложение</string>

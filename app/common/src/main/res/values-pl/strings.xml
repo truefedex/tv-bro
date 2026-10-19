@@ -2,4 +2,21 @@
 <resources>
   <string name="username">Nazwa użytkownika</string>
   <string name="password">Hasło</string>
+  <string name="connection_isnt_secure">Połączenie nie jest zabezpieczone</string>
+  <string name="back_to_safety">Wróć do bezpiecznej strony</string>
+  <string name="hostname">Nazwa hosta</string>
+  <string name="details">Szczegóły</string>
+  <string name="error_page_insecure_message">Atakujący mogą próbować wykraść Twoje dane z tej witryny</string>
+  <string name="error_page_error_code">Kod błędu</string>
+  <string name="error_page_try_again">Spróbuj ponownie</string>
+  <string name="error_page_reload">Odśwież</string>
+  <string name="error_page_back">Wstecz</string>
+  <string name="error_page_dangerous_title">Niebezpieczna witryna</string>
+  <string name="error_page_dangerous_message">Ta witryna została zgłoszona jako niebezpieczna: może próbować wykraść Twoje dane lub uszkodzić urządzenie</string>
+  <string name="error_page_crashed_title">Ta strona uległa awarii</string>
+  <string name="error_page_crashed_message">Stronie mogło zabraknąć pamięci. Odśwież ją, aby spróbować ponownie</string>
+  <string name="error_page_network_title">Nie można połączyć się z tą witryną</string>
+  <string name="error_page_network_message">Sprawdź połączenie sieciowe i spróbuj ponownie</string>
+  <string name="error_page_generic_title">Nie można otworzyć tej strony</string>
+  <string name="error_page_generic_message">Podczas wczytywania tej strony wystąpił błąd</string>
 </resources>

@@ -77,12 +77,8 @@
   <string name="ssl_idmismatch">Hostname stimmt nicht überein</string>
   <string name="ssl_date_invalid">Datum des Zertifikats ungültig</string>
   <string name="ssl_invalid">Ein allgemeiner Fehler ist aufgetreten</string>
-  <string name="back_to_safety">Zurück zu sicherer Seite</string>
   <string name="go_im_aware">Weiter. Ich kenne das Risiko</string>
-  <string name="connection_isnt_secure">Unsichere Verbindung</string>
-  <string name="hostname">Hostname:</string>
-  <string name="err_desk">Fehlerbeschreibung:</string>
-  <string name="details">Details:</string>
+  <string name="err_desk">Fehlerbeschreibung</string>
   <string name="exit">Beenden</string>
   <string name="find_in_apps_store">Im App-Store suchen</string>
   <string name="close_application">App schließen</string>

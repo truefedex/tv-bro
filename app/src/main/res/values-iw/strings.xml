@@ -76,12 +76,8 @@
   <string name="ssl_idmismatch">שם המארח אינו תואם</string>
   <string name="ssl_date_invalid">תאריך התעודה אינו תקין</string>
   <string name="ssl_invalid">אירעה שגיאה כללית</string>
-  <string name="back_to_safety">חזרה לדף בטוח</string>
   <string name="go_im_aware">המשך, הסיכון ידוע לי</string>
-  <string name="connection_isnt_secure">החיבור אינו מאובטח</string>
-  <string name="hostname">שם מארח:</string>
-  <string name="err_desk">תיאור שגיאה:</string>
-  <string name="details">פרטים:</string>
+  <string name="err_desk">תיאור שגיאה</string>
   <string name="exit">יציאה</string>
   <string name="find_in_apps_store">מצא בחנות האפליקציות</string>
   <string name="close_application">סגור אפליקציה</string>

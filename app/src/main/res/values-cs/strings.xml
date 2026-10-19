@@ -79,12 +79,8 @@
     <string name="ssl_idmismatch">Název hostitele se neshoduje</string>
     <string name="ssl_date_invalid">Datum certifikátu je neplatné</string>
     <string name="ssl_invalid">Došlo k obecné chybě</string>
-    <string name="back_to_safety">Zpět do bezpečí</string>
     <string name="go_im_aware">Pokračovat. Jsem si vědom rizika</string>
-    <string name="connection_isnt_secure">Připojení není zabezpečené</string>
-    <string name="hostname">Název hostitele:</string>
-    <string name="err_desk">Popis chyby:</string>
-    <string name="details">Podrobnosti:</string>
+    <string name="err_desk">Popis chyby</string>
     <string name="exit">Ukončit</string>
     <string name="find_in_apps_store">Hledat v obchodě s aplikacemi</string>
     <string name="close_application">Zavřít aplikaci</string>

@@ -76,12 +76,8 @@
   <string name="ssl_idmismatch">عدم تطابق نام میزبان</string>
   <string name="ssl_date_invalid">تاریخ گواهی نامعتبر است</string>
   <string name="ssl_invalid">یک خطای عمومی رخ داد</string>
-  <string name="back_to_safety">بازگشت به صفحه امن</string>
   <string name="go_im_aware">ادامه. از خطر آگاه هستم</string>
-  <string name="connection_isnt_secure">اتصال امن نیست</string>
-  <string name="hostname">نام میزبان:</string>
-  <string name="err_desk">شرح خطا:</string>
-  <string name="details">جزئیات:</string>
+  <string name="err_desk">شرح خطا</string>
   <string name="exit">خروج</string>
   <string name="find_in_apps_store">جستجو در فروشگاه برنامه‌ها</string>
   <string name="close_application">بستن برنامه</string>

@@ -2,4 +2,21 @@
 <resources>
     <string name="username">Nome de usuário</string>
     <string name="password">Senha</string>
+    <string name="connection_isnt_secure">A conexão não é segura</string>
+    <string name="back_to_safety">Voltar para a segurança</string>
+    <string name="hostname">Nome do host</string>
+    <string name="details">Detalhes</string>
+    <string name="error_page_insecure_message">Invasores podem estar tentando roubar suas informações deste site</string>
+    <string name="error_page_error_code">Código do erro</string>
+    <string name="error_page_try_again">Tentar novamente</string>
+    <string name="error_page_reload">Recarregar</string>
+    <string name="error_page_back">Voltar</string>
+    <string name="error_page_dangerous_title">Site perigoso</string>
+    <string name="error_page_dangerous_message">Este site foi denunciado como perigoso: ele pode tentar roubar suas informações ou danificar seu dispositivo</string>
+    <string name="error_page_crashed_title">Esta página travou</string>
+    <string name="error_page_crashed_message">A página pode ter ficado sem memória. Recarregue-a para tentar novamente</string>
+    <string name="error_page_network_title">Não é possível acessar este site</string>
+    <string name="error_page_network_message">Verifique a conexão de rede e tente novamente</string>
+    <string name="error_page_generic_title">Não é possível abrir esta página</string>
+    <string name="error_page_generic_message">Ocorreu um erro ao carregar esta página</string>
 </resources>

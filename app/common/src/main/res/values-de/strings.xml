@@ -2,4 +2,21 @@
 <resources>
     <string name="username">Nutzername</string>
     <string name="password">Passwort</string>
+    <string name="connection_isnt_secure">Unsichere Verbindung</string>
+    <string name="back_to_safety">Zurück zu sicherer Seite</string>
+    <string name="hostname">Hostname</string>
+    <string name="details">Details</string>
+    <string name="error_page_insecure_message">Angreifer versuchen möglicherweise, Ihre Daten von dieser Website zu stehlen</string>
+    <string name="error_page_error_code">Fehlercode</string>
+    <string name="error_page_try_again">Erneut versuchen</string>
+    <string name="error_page_reload">Neu laden</string>
+    <string name="error_page_back">Zurück</string>
+    <string name="error_page_dangerous_title">Gefährliche Website</string>
+    <string name="error_page_dangerous_message">Diese Website wurde als gefährlich gemeldet: Sie könnte versuchen, Ihre Daten zu stehlen oder Ihrem Gerät zu schaden</string>
+    <string name="error_page_crashed_title">Diese Seite ist abgestürzt</string>
+    <string name="error_page_crashed_message">Möglicherweise war nicht genug Speicher frei. Laden Sie die Seite neu, um es erneut zu versuchen</string>
+    <string name="error_page_network_title">Diese Website ist nicht erreichbar</string>
+    <string name="error_page_network_message">Prüfen Sie die Netzwerkverbindung und versuchen Sie es erneut</string>
+    <string name="error_page_generic_title">Diese Seite kann nicht geöffnet werden</string>
+    <string name="error_page_generic_message">Beim Laden dieser Seite ist ein Fehler aufgetreten</string>
 </resources>
