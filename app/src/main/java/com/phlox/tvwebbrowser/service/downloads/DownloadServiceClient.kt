@@ -31,10 +31,14 @@ class DownloadServiceClient(private val context: Context) {
     private var bound = false
     private var messenger: Messenger? = null
     private val pendingCommands = ArrayList<Message>()
+    private val pendingActions = ArrayList<() -> Unit>()
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, binder: IBinder) {
             messenger = Messenger(binder)
+            val actions = pendingActions.toList()
+            pendingActions.clear()
+            actions.forEach { it() }
             val commands = pendingCommands.toList()
             pendingCommands.clear()
             commands.forEach { send(it) }
@@ -54,6 +58,20 @@ class DownloadServiceClient(private val context: Context) {
     fun release() {
         users--
         unbindIfUnused()
+    }
+
+    /**
+     * Runs the [action] once the service is bound (at once if it is). The service has then checked the
+     * downloads a dead process left: a row inserted from now on is not taken for one of them. Keep the
+     * service bound ([acquire]) until the work the action starts is done.
+     */
+    fun whenConnected(action: () -> Unit) {
+        if (messenger != null) {
+            action()
+            return
+        }
+        pendingActions.add(action)
+        bind()
     }
 
     fun send(message: Message) {
@@ -97,7 +115,7 @@ class DownloadServiceClient(private val context: Context) {
     }
 
     private fun unbindIfUnused() {
-        if (!bound || users > 0 || pendingCommands.isNotEmpty()) return
+        if (!bound || users > 0 || pendingCommands.isNotEmpty() || pendingActions.isNotEmpty()) return
         context.unbindService(connection)
         bound = false
         messenger = null

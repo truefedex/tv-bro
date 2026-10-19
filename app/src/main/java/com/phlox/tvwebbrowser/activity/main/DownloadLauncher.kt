@@ -97,20 +97,29 @@ class DownloadLauncher(
         val referer = download.referer?.takeIf { it.startsWith("http://") || it.startsWith("https://") }
         //incognito downloads do not keep the page they came from
         download.referer = if (AppContext.provideConfig().incognitoMode) null else referer
-        download.time = System.currentTimeMillis()
         download.status = Download.Status.IN_PROGRESS
-        //the row outlives the activity, it is the download now
-        TVBro.container.appScope.launch {
-            download.id = TVBro.container.data.downloads.insert(download)
-            val message = command(DownloadCommands.START, download.id).apply {
-                data.putString(DownloadCommands.KEY_COOKIES, download.cookies)
-                data.putString(DownloadCommands.KEY_REFERER, referer)
-                data.putBoolean(DownloadCommands.KEY_INSTALL,
-                    download.operationAfterDownload == Download.OperationAfterDownload.INSTALL)
-                engineInput(download)?.let { data.putParcelable(DownloadCommands.KEY_STREAM, pipe(it)) }
+        //the row is inserted when the service has checked the rows a dead process left, and it outlives
+        //the activity: it is the download now
+        service.acquire()
+        service.whenConnected {
+            TVBro.container.appScope.launch {
+                try {
+                    //later than the start of the service: its check of the rows left does not take it
+                    download.time = System.currentTimeMillis()
+                    download.id = TVBro.container.data.downloads.insert(download)
+                    val message = command(DownloadCommands.START, download.id).apply {
+                        data.putString(DownloadCommands.KEY_COOKIES, download.cookies)
+                        data.putString(DownloadCommands.KEY_REFERER, referer)
+                        data.putBoolean(DownloadCommands.KEY_INSTALL,
+                            download.operationAfterDownload == Download.OperationAfterDownload.INSTALL)
+                        engineInput(download)?.let { data.putParcelable(DownloadCommands.KEY_STREAM, pipe(it)) }
+                    }
+                    service.send(message)
+                    onDownloadStarted(download)
+                } finally {
+                    service.release()
+                }
             }
-            service.send(message)
-            onDownloadStarted(download)
         }
     }
 
