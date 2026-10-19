@@ -247,7 +247,15 @@ class TabUiHost(
             it.setOnDismissListener {
                 container.removeView(anchor)
             }
-            it.show()
+            //the popup takes the place of its anchor when shown, so wait until the new anchor is laid
+            //out (Android 8+ moves the popup to it later, older versions leave it at the top left corner)
+            anchor.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
+                override fun onLayoutChange(v: View, left: Int, top: Int, right: Int, bottom: Int,
+                                            oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int) {
+                    v.removeOnLayoutChangeListener(this)
+                    it.show()
+                }
+            })
         }
     }
 }
