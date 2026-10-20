@@ -24,8 +24,21 @@ data class CurrentTabState(
     val blockedPopups: Int = 0,
     /** Popup blocking of the site, one of HostConfig.POPUP_BLOCK_* */
     val popupBlockLevel: Int = HostConfig.DEFAULT_BLOCK_POPUPS_VALUE,
-    val certificateError: Boolean = false
+    val connection: SiteConnection = SiteConnection.NONE
 )
+
+/** How the page of the current tab came: the site button and the site settings show it */
+enum class SiteConnection {
+    /** The page has no site (no host) */
+    NONE,
+    SECURE,
+    /** Plain http: others on the network can see and change the page */
+    HTTP,
+    /** The certificate of the site was refused (and maybe the user went on despite it) */
+    CERTIFICATE_ERROR;
+
+    val insecure: Boolean get() = this == HTTP || this == CERTIFICATE_ERROR
+}
 
 /**
  * One-time things the UI should react to.

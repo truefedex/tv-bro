@@ -98,6 +98,8 @@
     <attr name="tbColorDsOnBadge" format="color" />
     <!-- The voice search mic of the search bar -->
     <attr name="tbColorDsAccent" format="color" />
+    <!-- Danger only: the glyph of an insecure connection (never a fill) -->
+    <attr name="tbColorDsDanger" format="color" />
     <!-- Behind sheets (32% black) -->
     <attr name="tbColorDsScrim" format="color" />
 </resources>

@@ -44,4 +44,5 @@
     <color name="ds_ink_faint">#BBBBBB</color>
     <color name="ds_icon">#FDFDFD</color>
     <color name="ds_on_badge">#1B1B1B</color>
+    <color name="ds_danger">#FF8A80</color>
 </resources>

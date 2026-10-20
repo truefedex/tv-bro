@@ -16,6 +16,7 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.browser.DownloadsModel
+import com.phlox.tvwebbrowser.browser.SiteConnection
 import com.phlox.tvwebbrowser.databinding.ViewActionbarBinding
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
@@ -177,13 +178,12 @@ class ActionBar @JvmOverloads constructor(
     val functionsGroup: View get() = vb.llFunctions
 
     /**
-     * @param blocked ads and pop-ups blocked on the page, shown as a badge
-     * @param hasSite false if the page has no site (no host): the button stays focusable but is dimmed
+     * @param host "" if the page has no site: the button stays focusable but is dimmed
+     * @param connection a page without a secure connection shows the warning sign instead of the sliders
      */
-    fun setSiteState(blocked: Int, hasSite: Boolean) {
-        vb.tvSiteBadge.visibility = if (blocked > 0) VISIBLE else GONE
-        vb.tvSiteBadge.text = blocked.toString()
-        vb.ibSite.imageAlpha = if (hasSite) OPAQUE else DIMMED
+    fun setSiteState(host: String, connection: SiteConnection) {
+        vb.ibSite.showSiteConnection(host, connection)
+        vb.ibSite.imageAlpha = if (host.isNotEmpty()) OPAQUE else DIMMED
     }
 
     fun setAddressBoxText(text: String) {
@@ -195,10 +195,6 @@ class ActionBar @JvmOverloads constructor(
 
     /** The user is editing the address */
     fun isEditingAddress(): Boolean = editing
-
-    fun setAddressBoxTextColor(color: Int) {
-        vb.etUrl.setTextColor(color)
-    }
 
     /**
      * @param selectAllLater select the address after the keyboard is shown (some Android TV keyboards

@@ -38,8 +38,11 @@ class BrowserTab(var id: Long = 0,
     val isWebEngineCreated: Boolean get() = webEngineHolder.isInitialized()
     var blockedAds = 0
     var blockedPopups = 0
-    /** The page has a certificate error; cleared when the user navigates somewhere */
-    var certificateError = false
+    /**
+     * The host whose certificate was refused on this tab: its pages stay insecure (also after the user
+     * went on despite the error) until the user navigates somewhere or the tab shows another host
+     */
+    var certificateErrorHost: String? = null
     /** A page is loading; known only while the tab is the current one (other tabs' engines report nothing) */
     var loading = false
 

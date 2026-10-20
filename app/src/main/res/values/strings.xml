@@ -164,6 +164,13 @@
     <string name="refresh_page">Refresh page</string>
     <string name="stop_loading">Stop loading</string>
     <string name="site_settings">Site settings</string>
+    <!-- the site button, for accessibility -->
+    <string name="site_settings_of">Settings of %s</string>
+    <string name="site_settings_insecure_of">Connection is not secure. Settings of %s</string>
+    <!-- the header of the site settings -->
+    <string name="connection_is_secure">Connection is secure</string>
+    <string name="connection_http_reason">Others on the network can see or change what you send and receive here. Don\'t enter passwords or payment details.</string>
+    <string name="connection_certificate_reason">The certificate of this site is not valid, so it may not be the site it claims to be. Don\'t enter passwords or payment details.</string>
     <string name="ad_blocking">Ad blocking</string>
     <string name="popups">Pop-ups</string>
     <string name="state_on">On</string>

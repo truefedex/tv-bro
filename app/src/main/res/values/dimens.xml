@@ -96,14 +96,10 @@
     <dimen name="ds_phone_pill_text_inset">6dp</dimen>
     <dimen name="ds_phone_pill_search_inset">12dp</dimen>
     <dimen name="ds_phone_pill_search_icon">18dp</dimen>
-    <dimen name="ds_phone_badge_height">16dp</dimen>
-    <dimen name="ds_phone_badge_min_width">18dp</dimen>
-    <dimen name="ds_phone_badge_margin_top">3dp</dimen>
     <dimen name="ds_phone_tab_count_size">22dp</dimen>
     <dimen name="ds_phone_tab_count_radius">4dp</dimen>
     <dimen name="ds_phone_tab_count_stroke">2dp</dimen>
     <dimen name="ds_text_phone_address">16sp</dimen>
-    <dimen name="ds_text_phone_badge">11sp</dimen>
     <dimen name="ds_text_phone_tab_count">12sp</dimen>
     <dimen name="ds_phone_sheet_radius">16dp</dimen>
     <dimen name="ds_phone_sheet_padding_horizontal">16dp</dimen>
@@ -149,6 +145,9 @@
     <dimen name="ds_panel_padding_vertical">12dp</dimen>
     <dimen name="ds_panel_icon_text">16dp</dimen>
     <dimen name="ds_panel_title_icon_text">10dp</dimen>
+    <dimen name="ds_panel_header_gap">3dp</dimen>
+    <dimen name="ds_size_icon_connection">13dp</dimen>
+    <dimen name="ds_panel_connection_icon_text">6dp</dimen>
     <dimen name="ds_panel_value_max_width">140dp</dimen>
     <dimen name="ds_text_menu_caption">11sp</dimen>
     <!-- the bookmarks panel of the TV bar -->

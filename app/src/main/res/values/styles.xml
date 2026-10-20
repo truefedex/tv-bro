@@ -468,7 +468,7 @@
         <item name="android:textSize">@dimen/ds_text_menu_caption</item>
     </style>
 
-    <!-- The count of blocked ads and pop-ups on the site button -->
+    <!-- The count of active downloads on the Downloads button -->
     <style name="Widget.TVBro.Text.CountBadge">
         <item name="android:textSize">@dimen/ds_text_badge</item>
         <item name="android:textStyle">bold</item>

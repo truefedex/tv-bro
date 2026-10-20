@@ -32,36 +32,12 @@ Refresh), the tab count and the menu.
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
-      <FrameLayout
-          android:layout_width="@dimen/ds_phone_pill_button_width"
-          android:layout_height="match_parent">
-
-        <ImageButton
-            style="@style/Widget.TVBro.ImageButton.Ds.PhonePill"
-            android:id="@+id/ibSite"
-            android:layout_width="match_parent"
-            android:src="@drawable/ic_site"
-            android:contentDescription="@string/site_settings" />
-
-        <TextView
-            android:id="@+id/tvSiteBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/ds_phone_badge_height"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="@dimen/ds_phone_badge_margin_top"
-            android:minWidth="@dimen/ds_phone_badge_min_width"
-            android:paddingStart="@dimen/ds_badge_padding_horizontal"
-            android:paddingEnd="@dimen/ds_badge_padding_horizontal"
-            android:gravity="center"
-            android:background="@drawable/ds_badge_bg"
-            android:textColor="?attr/tbColorDsOnBadge"
-            android:textSize="@dimen/ds_text_phone_badge"
-            android:textStyle="bold"
-            android:importantForAccessibility="no"
-            android:visibility="gone"
-            tools:text="14"
-            tools:visibility="visible" />
-      </FrameLayout>
+      <!-- sliders, or a warning sign on a page without a secure connection -->
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.PhonePill"
+          android:id="@+id/ibSite"
+          android:src="@drawable/ic_site"
+          android:contentDescription="@string/site_settings" />
 
       <TextView
           style="@style/Widget.TVBro.Text.PhoneAddress"

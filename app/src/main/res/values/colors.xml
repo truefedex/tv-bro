@@ -49,5 +49,6 @@
     <color name="ds_icon">#60768E</color>
     <color name="ds_on_badge">#FFFFFF</color>
     <color name="ds_accent">#48A0FF</color>
+    <color name="ds_danger">#C5221F</color>
     <color name="ds_scrim">#52000000</color>
 </resources>

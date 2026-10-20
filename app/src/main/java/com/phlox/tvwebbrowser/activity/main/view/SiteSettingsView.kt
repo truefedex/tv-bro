@@ -1,16 +1,21 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.browser.CurrentTabState
+import com.phlox.tvwebbrowser.browser.SiteConnection
 import com.phlox.tvwebbrowser.databinding.ViewSiteSettingsBinding
+import com.phlox.tvwebbrowser.utils.themeColor
+import com.phlox.tvwebbrowser.common.R as CommonR
 
 /**
- * The settings of the site of the current page: its host, ad blocking (On/Off with the ads blocked on
+ * The settings of the site of the current page: its host and the state of its connection, ad blocking (On/Off with the ads blocked on
  * the page) and the popup blocking level (with the pop-ups blocked). The TV site panel and the phone
  * menu sheet show it.
  */
@@ -39,6 +44,7 @@ class SiteSettingsView @JvmOverloads constructor(
 
     fun render(state: CurrentTabState) {
         vb.tvHost.text = state.host
+        renderConnection(state.connection)
         vb.tvAdBlockValue.setText(if (state.adBlockEnabled) R.string.state_on else R.string.state_off)
         vb.tvAdBlockCount.text = resources.getQuantityString(R.plurals.blocked_on_page,
             state.blockedAds, state.blockedAds)
@@ -46,5 +52,19 @@ class SiteSettingsView @JvmOverloads constructor(
             .getOrElse(state.popupBlockLevel) { "" }
         vb.tvPopupsCount.text = resources.getQuantityString(R.plurals.blocked_on_page,
             state.blockedPopups, state.blockedPopups)
+    }
+
+    /** "Connection is secure" with a lock, or the warning sign in the danger color and the reason */
+    private fun renderConnection(connection: SiteConnection) {
+        val reason = connection.reason()
+        val insecure = reason != null
+        vb.ivConnection.setImageResource(if (insecure) R.drawable.ic_warning else R.drawable.ic_lock)
+        vb.ivConnection.imageTintList = ColorStateList.valueOf(context.themeColor(
+            if (insecure) R.attr.tbColorDsDanger else R.attr.tbColorDsIcon))
+        vb.tvConnection.text = context.getString(if (insecure) CommonR.string.connection_isnt_secure else
+            R.string.connection_is_secure)
+        vb.tvConnection.setTypeface(null, if (insecure) Typeface.BOLD else Typeface.NORMAL)
+        vb.tvConnectionReason.visibility = if (insecure) VISIBLE else GONE
+        if (reason != null) vb.tvConnectionReason.setText(reason)
     }
 }

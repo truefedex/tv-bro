@@ -228,14 +228,37 @@ class BrowserControllerEventsTest {
     }
 
     @Test
-    fun certificateErrorLastsUntilNavigation() {
+    fun connectionFollowsTheScheme() {
+        val tab = open("https://a.com/")
+        assertEquals(SiteConnection.SECURE, state.connection)
+        controller.navigate("http://b.com/")
+        tab.callback.onPageStarted("http://b.com/")
+        assertEquals(SiteConnection.HTTP, state.connection)
+        controller.navigate(Config.HOME_URL_ALIAS)
+        tab.callback.onPageStarted(Config.HOME_URL_ALIAS)
+        assertEquals(SiteConnection.NONE, state.connection)
+    }
+
+    @Test
+    fun certificateErrorStaysWithItsHostUntilNavigation() {
         val tab = open("https://a.com/")
         tab.callback.onPageCertificateError("https://a.com/")
-        assertTrue(state.certificateError)
+        assertEquals(SiteConnection.CERTIFICATE_ERROR, state.connection)
+        //the warning page, then the page itself after the user went on
         tab.callback.onPageStarted(null)
-        assertTrue(state.certificateError)
-        controller.navigate("https://b.com/")
-        assertFalse(state.certificateError)
+        assertEquals(SiteConnection.CERTIFICATE_ERROR, state.connection)
+        controller.navigate("https://a.com/other")
+        assertEquals(SiteConnection.SECURE, state.connection)
+    }
+
+    @Test
+    fun certificateErrorEndsOnAnotherHost() {
+        val tab = open("https://a.com/")
+        tab.callback.onPageCertificateError("https://a.com/")
+        //a link of the page
+        tab.fakeEngine.loadedUrls += "https://b.com/"
+        tab.callback.onPageStarted("https://b.com/")
+        assertEquals(SiteConnection.SECURE, state.connection)
     }
 
     @Test
@@ -243,9 +266,9 @@ class BrowserControllerEventsTest {
         val a = open("https://a.com/")
         a.callback.onPageCertificateError("https://a.com/")
         open("https://b.com/")
-        assertFalse(state.certificateError)
+        assertEquals(SiteConnection.SECURE, state.connection)
         controller.changeTab(a)
-        assertTrue(state.certificateError)
+        assertEquals(SiteConnection.CERTIFICATE_ERROR, state.connection)
     }
 
     @Test

@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.HomePageLink
 import com.phlox.tvwebbrowser.model.HostConfig
@@ -392,7 +393,7 @@ class BrowserController : ActiveModel() {
         Log.d(TAG, "navigate: $url")
         val tab = currentTab.value
         if (tab != null) {
-            tab.certificateError = false
+            tab.certificateErrorHost = null
             publishState()
             tab.url = url
             tab.webEngine.loadUrl(HomePageUrl.resolve(url, config))
@@ -522,8 +523,12 @@ class BrowserController : ActiveModel() {
         }
     }
 
-    /** Null for urls without a host (about:home and the like); asked for every request, so it does not log */
-    private fun hostNameOf(tab: BrowserTab): String? = tab.url.toUri().host?.takeIf { it.isNotEmpty() }
+    /**
+     * Null for urls without a host (about:home and the like) and for the built-in home page, which is
+     * not a site; asked for every request, so it does not log
+     */
+    private fun hostNameOf(tab: BrowserTab): String? =
+        if (tab.url.startsWith(Config.HOME_PAGE_URL)) null else tab.url.toUri().host?.takeIf { it.isNotEmpty() }
 
     /**
      * The config of the tab's current host as it is known now, without the database: it is loaded
@@ -576,8 +581,19 @@ class BrowserController : ActiveModel() {
             blockedAds = tab.blockedAds,
             blockedPopups = tab.blockedPopups,
             popupBlockLevel = findHostConfig(tab)?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE,
-            certificateError = tab.certificateError
+            connection = connectionOf(tab)
         )
+    }
+
+    private fun connectionOf(tab: BrowserTab): SiteConnection {
+        val host = hostNameOf(tab) ?: return SiteConnection.NONE
+        val uri = tab.url.toUri()
+        return when {
+            host == tab.certificateErrorHost -> SiteConnection.CERTIFICATE_ERROR
+            uri.scheme.equals("https", ignoreCase = true) -> SiteConnection.SECURE
+            uri.scheme.equals("http", ignoreCase = true) -> SiteConnection.HTTP
+            else -> SiteConnection.NONE
+        }
     }
 
     private fun needsLocalNetworkPermission(url: String): Boolean =
@@ -666,6 +682,9 @@ class BrowserController : ActiveModel() {
 
         override fun onPageStarted(url: String?) {
             updateUrl(url)
+            //a certificate error stays with its host (pages without a host, like the warning, keep it too)
+            val host = hostNameOf(tab)
+            if (host != null && host != tab.certificateErrorHost) tab.certificateErrorHost = null
             tab.blockedAds = 0
             tab.blockedPopups = 0
             tab.loading = true
@@ -700,7 +719,7 @@ class BrowserController : ActiveModel() {
         }
 
         override fun onPageCertificateError(url: String?) {
-            tab.certificateError = true
+            tab.certificateErrorHost = url?.toUri()?.host?.takeIf { it.isNotEmpty() } ?: hostNameOf(tab)
             publishState()
         }
 

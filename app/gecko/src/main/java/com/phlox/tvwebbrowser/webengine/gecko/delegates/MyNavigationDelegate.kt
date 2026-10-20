@@ -119,6 +119,10 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
             "onLoadError=" + uri + " error category=" + error.category + " error=" + error.code
         )
 
+        //the site button and the site settings tell that the connection is not secure
+        if (LoadErrorKind.of(error.category, error.code) == LoadErrorKind.INSECURE) {
+            webEngine.callback?.onPageCertificateError(uri)
+        }
         val page = createErrorPage(uri, error.category, error.code)
         return GeckoResult.fromValue(
             "data:text/html;charset=utf-8;base64," + Base64.encodeToString(page.toByteArray(), Base64.NO_WRAP)

@@ -58,6 +58,7 @@
         <item name="tbColorDsIcon">@color/ds_icon</item>
         <item name="tbColorDsOnBadge">@color/ds_on_badge</item>
         <item name="tbColorDsAccent">@color/ds_accent</item>
+        <item name="tbColorDsDanger">@color/ds_danger</item>
         <item name="tbColorDsScrim">@color/ds_scrim</item>
         <item name="alertDialogTheme">@style/ThemeOverlay.TVBro.Dialog.Alert</item>
     </style>

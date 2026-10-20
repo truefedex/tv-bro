@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.phlox.tvwebbrowser.utils.launchForResult
-import android.graphics.Color
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -55,7 +54,6 @@ import com.phlox.tvwebbrowser.sync.SyncTab
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.BaseAnimationListener
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
-import com.phlox.tvwebbrowser.utils.themeColor
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
@@ -607,11 +605,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     override fun render(state: CurrentTabState) {
         vb.vActionBar.setNavigationState(state.canGoBack, state.canGoForward, state.loading)
 
-        vb.vActionBar.setSiteState(state.blockedAds + state.blockedPopups, hasSite = state.host.isNotEmpty())
+        vb.vActionBar.setSiteState(state.host, state.connection)
         vb.vSitePanel.render(state)
-
-        vb.vActionBar.setAddressBoxTextColor(if (state.certificateError) Color.RED else
-            activity.themeColor(R.attr.tbColorDsInk))
 
         val tabChanged = state.tabIdentity != renderedTabIdentity
         renderedTabIdentity = state.tabIdentity

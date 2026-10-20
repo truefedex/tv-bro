@@ -78,9 +78,7 @@ class PhoneBar @JvmOverloads constructor(
         url = state.url
         homePage = isHomePage(state.url)
         vb.tvHost.text = state.host.removePrefix("www.").ifEmpty { state.url }
-        val blocked = state.blockedAds + state.blockedPopups
-        vb.tvSiteBadge.visibility = if (blocked > 0) VISIBLE else GONE
-        vb.tvSiteBadge.text = blocked.toString()
+        vb.ibSite.showSiteConnection(state.host, state.connection)
         //disabled icons are drawn at 40%
         vb.ibBack.imageAlpha = if (state.canGoBack) 255 else 102
         vb.ibRefresh.setImageResource(if (state.loading) R.drawable.ic_stop else R.drawable.ic_refresh)

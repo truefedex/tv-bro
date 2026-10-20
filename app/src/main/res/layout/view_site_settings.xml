@@ -1,38 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-The settings of the site of the current page: its host, ad blocking and pop-up blocking.
+The settings of the site of the current page: its host and connection, ad blocking and pop-up blocking.
 In the TV site panel the focus does not leave its two rows.
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.LinearLayout"
     tools:orientation="vertical">
 
+  <!-- the host and the state of its connection -->
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      android:gravity="center_vertical"
+      android:orientation="vertical"
       android:paddingStart="@dimen/ds_space_menu_inset"
       android:paddingEnd="@dimen/ds_space_menu_inset"
       android:paddingTop="@dimen/ds_panel_padding_vertical"
       android:paddingBottom="@dimen/ds_panel_padding_vertical">
-
-    <ImageView
-        style="@style/Widget.TVBro.MenuIcon"
-        android:src="@drawable/ic_site" />
 
     <TextView
         style="@style/Widget.TVBro.Text.MenuItem"
         android:id="@+id/tvHost"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/ds_panel_title_icon_text"
         android:fontFamily="sans-serif-medium"
         android:textColor="?attr/tbColorDsInk"
         android:singleLine="true"
         android:ellipsize="end"
         tools:text="www.wikipedia.org" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/ds_panel_header_gap"
+        android:orientation="horizontal">
+
+      <!-- a lock, or the warning sign in the danger color -->
+      <ImageView
+          android:id="@+id/ivConnection"
+          android:layout_width="@dimen/ds_size_icon_connection"
+          android:layout_height="@dimen/ds_size_icon_connection"
+          android:layout_marginEnd="@dimen/ds_panel_connection_icon_text"
+          android:importantForAccessibility="no"
+          android:src="@drawable/ic_lock"
+          app:tint="?attr/tbColorDsIcon" />
+
+      <LinearLayout
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuCaption"
+            android:id="@+id/tvConnection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/tbColorDsInk"
+            tools:text="@string/connection_is_secure" />
+
+        <!-- why it is not secure -->
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuCaption"
+            android:id="@+id/tvConnectionReason"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/ds_panel_header_gap"
+            android:textColor="?attr/tbColorDsInk"
+            android:visibility="gone"
+            tools:text="@string/connection_http_reason" />
+      </LinearLayout>
+    </LinearLayout>
   </LinearLayout>
 
   <View style="@style/Widget.TVBro.MenuSeparator" />
