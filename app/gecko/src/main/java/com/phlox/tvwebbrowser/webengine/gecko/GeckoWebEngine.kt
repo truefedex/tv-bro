@@ -19,6 +19,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
+import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,7 +54,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
+class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, SiteViewSupport,
     CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
@@ -202,10 +203,22 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport,
         get() = session.settings.userAgentOverride
         set(value) { session.settings.userAgentOverride = value }
 
+    /** The desktop User-Agent and viewport of GeckoView; a change takes effect with the next load */
+    override var desktopView: Boolean
+        get() = session.settings.userAgentMode == GeckoSessionSettings.USER_AGENT_MODE_DESKTOP
+        set(value) {
+            if (value == desktopView) return
+            session.settings.userAgentMode = if (value) GeckoSessionSettings.USER_AGENT_MODE_DESKTOP else
+                GeckoSessionSettings.USER_AGENT_MODE_MOBILE
+            session.settings.viewportMode = if (value) GeckoSessionSettings.VIEWPORT_MODE_DESKTOP else
+                GeckoSessionSettings.VIEWPORT_MODE_MOBILE
+        }
+
     init {
         Log.d(TAG, "init")
         session = GeckoSession(GeckoSessionSettings.Builder()
             .usePrivateMode(AppContext.provideConfig().incognitoMode)
+            //the browser core gives the view of the page's host before it loads
             .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE)
             .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
             //the setting of the page's host comes with onUpdateAdblockSetting when the tab is attached

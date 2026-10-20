@@ -76,6 +76,13 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
             return GeckoResult.deny()
         }
 
+        //the page of another site may need another view: the settings of the session change before the
+        //load goes on (it is not started again, which would turn a POST into a GET); if they come too late,
+        //the browser core loads the page again after it starts
+        if (request.uri.startsWith("http:") || request.uri.startsWith("https:")) {
+            webEngine.desktopView = callback.isDesktopView(request.uri)
+        }
+
         return GeckoResult.allow()
     }
 

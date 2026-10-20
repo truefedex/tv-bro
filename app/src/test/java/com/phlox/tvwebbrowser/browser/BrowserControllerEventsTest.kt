@@ -272,6 +272,53 @@ class BrowserControllerEventsTest {
     }
 
     @Test
+    fun siteViewFollowsTheInterfaceByDefault() {
+        controller.interfaceDesktopView = false
+        val tab = open("https://a.com/")
+        assertFalse(tab.fakeEngine.desktopView)
+        assertFalse(state.desktopView)
+        assertTrue(state.siteViewIsDefault)
+        controller.interfaceDesktopView = true
+        controller.navigate("https://b.com/")
+        assertTrue(tab.fakeEngine.desktopView)
+    }
+
+    @Test
+    fun siteViewOfAHostIsKeptOnlyWhileItDiffersFromTheDefault() {
+        val tab = open("https://a.com/")
+        assertTrue(tab.fakeEngine.desktopView)
+        tab.fakeEngine.log.clear()
+        awaitWrite(controller.setSiteView(tab, desktop = false))
+        assertFalse(tab.fakeEngine.desktopView)
+        assertEquals(listOf("reload"), tab.fakeEngine.log)
+        assertFalse(state.desktopView)
+        assertFalse(state.siteViewIsDefault)
+        assertEquals(false, runBlocking { db.hostsDao().findByHostName("a.com") }!!.desktopView)
+
+        awaitWrite(controller.setSiteView(tab, desktop = true))
+        assertTrue(tab.fakeEngine.desktopView)
+        assertTrue(state.siteViewIsDefault)
+        assertNull(runBlocking { db.hostsDao().findByHostName("a.com") }!!.desktopView)
+    }
+
+    @Test
+    fun pageInTheViewOfAnotherHostLoadsAgainOnce() {
+        val tab = open("https://a.com/")
+        awaitWrite(controller.setSiteView(tab, desktop = false))
+        //going back to a page of another host, which the engine did not switch the view for
+        tab.fakeEngine.loadedUrls += "https://b.com/"
+        tab.fakeEngine.log.clear()
+        tab.callback.onPageStarted("https://b.com/")
+        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(listOf("reload"), tab.fakeEngine.log)
+        //the page loaded again redirects back by its view: no second reload
+        tab.fakeEngine.loadedUrls += "https://a.com/"
+        tab.callback.onPageStarted("https://a.com/")
+        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(listOf("reload"), tab.fakeEngine.log)
+    }
+
+    @Test
     fun titleUpdatesTheTabAndTheHistory() {
         val tab = open("https://a.com/")
         events.clear()

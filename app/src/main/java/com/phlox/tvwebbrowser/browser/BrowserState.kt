@@ -24,7 +24,13 @@ data class CurrentTabState(
     val blockedPopups: Int = 0,
     /** Popup blocking of the site, one of HostConfig.POPUP_BLOCK_* */
     val popupBlockLevel: Int = HostConfig.DEFAULT_BLOCK_POPUPS_VALUE,
-    val connection: SiteConnection = SiteConnection.NONE
+    val connection: SiteConnection = SiteConnection.NONE,
+    /** The engine can show the site as on a desktop computer or a phone */
+    val siteViewAvailable: Boolean = false,
+    /** The site loads in the desktop view */
+    val desktopView: Boolean = false,
+    /** The site view is the default for all sites, not a setting of this site */
+    val siteViewIsDefault: Boolean = true
 )
 
 /** How the page of the current tab came: the site button and the site settings show it */

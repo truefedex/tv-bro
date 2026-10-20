@@ -29,6 +29,7 @@ import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.TabEngineEvents
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
+import com.phlox.tvwebbrowser.webengine.siteView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -65,6 +66,12 @@ class BrowserController : ActiveModel() {
 
     /** Set while an activity shows the tabs */
     var viewHost: TabViewHost? = null
+    /**
+     * The site view of sites without their own: the activity sets it from the interface it shows
+     * (desktop on TV, mobile on phones)
+     */
+    @Volatile
+    var interfaceDesktopView = true
     var adBlocker: AdBlocker = object : AdBlocker {
         override fun isAd(url: Uri, type: String?, baseUri: Uri) = false
     }
@@ -396,6 +403,7 @@ class BrowserController : ActiveModel() {
             tab.certificateErrorHost = null
             publishState()
             tab.url = url
+            applySiteView(tab)
             tab.webEngine.loadUrl(HomePageUrl.resolve(url, config))
         } else {
             openInNewTab(url, 0, navigateImmediately = true)
@@ -477,6 +485,48 @@ class BrowserController : ActiveModel() {
         return write
     }
 
+    /**
+     * Whether pages of the [url]'s host load in the desktop view: its own setting or the default.
+     * Can be called from any thread.
+     */
+    fun isDesktopView(url: String): Boolean {
+        val host = hostNameOf(url) ?: return defaultDesktopView
+        return hostConfigs.desktopViewSetting(host) ?: defaultDesktopView
+    }
+
+    /** The site view of sites without their own */
+    val defaultDesktopView: Boolean get() = interfaceDesktopView
+
+    /**
+     * Sets the site view of the tab's current host and reloads the tab if its view changes.
+     * A host keeps its own setting only while it differs from the default one.
+     * @return the write of the setting; null if the tab's url has no host
+     */
+    fun setSiteView(tab: BrowserTab, desktop: Boolean): Job? {
+        val host = hostNameOf(tab) ?: return null
+        val setting = if (desktop == defaultDesktopView) null else desktop
+        //the in-memory setting changes right away, the write is not cancelled with the model
+        val write = TVBro.container.appScope.launch { hostConfigs.setDesktopView(host, setting) }
+        if (applySiteView(tab) && tab == currentTab.value) {
+            tab.webEngine.reload()
+        }
+        publishState()
+        return write
+    }
+
+    /**
+     * Gives the engine of the tab the view of its host (it takes effect with the next load).
+     * @return true if the view changed
+     */
+    private fun applySiteView(tab: BrowserTab): Boolean {
+        if (!tab.isWebEngineCreated) return false
+        val siteView = tab.webEngine.siteView ?: return false
+        val desktop = isDesktopView(tab.url)
+        if (siteView.desktopView == desktop) return false
+        siteView.desktopView = desktop
+        return true
+    }
+
     fun changeTab(newTab: BrowserTab) {
         val host = viewHost ?: return
         if (currentTab.value == newTab && newTab.webEngine.getView() != null) return
@@ -498,17 +548,24 @@ class BrowserController : ActiveModel() {
         }
         var wv = newTab.webEngine.getView()
         var needReloadUrl = false
+        val needsRestore = wv == null
         if (wv == null) {
             wv = host.createTabView(newTab)
             if (wv == null) {
                 return
             }
+        }
+        //before the page is restored or loaded; a shown page whose view changed meanwhile loads again
+        val siteViewChanged = applySiteView(newTab)
+        if (needsRestore) {
             needReloadUrl = !tabFiles.restoreEngineState(newTab)
         }
         newTab.webEngine.onAttachToWindow(engineCallback(newTab, host), host.tabsContainer)
         newTab.webEngine.onUpdateAdblockSetting(isAdBlockEnabled(newTab))
         if (needReloadUrl) {
             newTab.webEngine.loadUrl(HomePageUrl.resolve(newTab.url, config))
+        } else if (siteViewChanged && !needsRestore) {
+            newTab.webEngine.reload()
         }
         newTab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(AppContext.get()))
         if (switched) {
@@ -527,8 +584,10 @@ class BrowserController : ActiveModel() {
      * Null for urls without a host (about:home and the like) and for the built-in home page, which is
      * not a site; asked for every request, so it does not log
      */
-    private fun hostNameOf(tab: BrowserTab): String? =
-        if (tab.url.startsWith(Config.HOME_PAGE_URL)) null else tab.url.toUri().host?.takeIf { it.isNotEmpty() }
+    private fun hostNameOf(tab: BrowserTab): String? = hostNameOf(tab.url)
+
+    private fun hostNameOf(url: String): String? =
+        if (url.startsWith(Config.HOME_PAGE_URL)) null else url.toUri().host?.takeIf { it.isNotEmpty() }
 
     /**
      * The config of the tab's current host as it is known now, without the database: it is loaded
@@ -581,7 +640,10 @@ class BrowserController : ActiveModel() {
             blockedAds = tab.blockedAds,
             blockedPopups = tab.blockedPopups,
             popupBlockLevel = findHostConfig(tab)?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE,
-            connection = connectionOf(tab)
+            connection = connectionOf(tab),
+            siteViewAvailable = tab.webEngine.siteView != null,
+            desktopView = isDesktopView(tab.url),
+            siteViewIsDefault = hostNameOf(tab)?.let { hostConfigs.desktopViewSetting(it) } == null
         )
     }
 
@@ -606,6 +668,9 @@ class BrowserController : ActiveModel() {
      * What the engine of the [tab] reports. The engine calls it only while the tab is the current one.
      */
     private inner class TabEvents(val tab: BrowserTab, val policies: TabPolicies) : TabEngineEvents {
+        /** The page is being loaded again in the view of its host */
+        private var siteViewCorrected = false
+
         override fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine? {
             val newTab = openInNewTabAfterCurrent(url, navigateImmediately) ?: return null
             sendUiEvent(BrowserUiEvent.TabOpenedByPage)
@@ -690,6 +755,14 @@ class BrowserController : ActiveModel() {
             tab.loading = true
             //engines that keep the setting per session (not per request) get the one of the new host
             tab.webEngine.onUpdateAdblockSetting(isAdBlockEnabled(tab))
+            //a page that came in the view of another host (going back, a redirect) loads again in its own,
+            //once: hosts redirecting to each other by the view must not reload forever
+            if (!siteViewCorrected && applySiteView(tab)) {
+                siteViewCorrected = true
+                tab.webEngine.reload()
+            } else {
+                siteViewCorrected = false
+            }
             publishState()
             //for the popup blocking of this page
             modelScope.launch {

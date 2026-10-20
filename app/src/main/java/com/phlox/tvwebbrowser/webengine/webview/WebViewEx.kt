@@ -84,6 +84,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     var currentOriginalUrl: Uri? = null
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
+    private val desktopView = DesktopView(this)
 
     interface Callback {
         fun getActivity(): Activity?
@@ -98,6 +99,11 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onReceivedIcon(icon: Bitmap)
         fun requestPermissions(array: Array<String>, geo: Boolean)
         fun shouldOverrideUrlLoading(url: String): Boolean
+        /**
+         * The page goes to [url]: gives the view the site view of its host.
+         * @return true if the view changed (the navigation starts again with it)
+         */
+        fun switchSiteView(url: String): Boolean
         fun onPageStarted(url: String?)
         fun onScrolled(scrollY: Int, dy: Int)
         fun onPageFinished(url: String?)
@@ -369,7 +375,17 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 Log.d(TAG, "shouldOverrideUrlLoading url: ${request.url}")
-                return callback.shouldOverrideUrlLoading(request.url.toString())
+                val url = request.url.toString()
+                if (callback.shouldOverrideUrlLoading(url)) return true
+                //the page of another site may need another view; the User-Agent of a navigation is chosen
+                //when it starts, so it starts again (POST requests and redirects do not come here,
+                //the browser core loads such pages again after they start)
+                if (request.isForMainFrame && !request.isRedirect && request.url.scheme.let { it == "http" || it == "https" } &&
+                    callback.switchSiteView(url)) {
+                    loadUrl(url)
+                    return true
+                }
+                return false
             }
 
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -538,6 +554,9 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 "&url=" + URLEncoder.encode(error.url, "UTF-8")
         loadUrl(url)
     }
+
+    /** Pages load as on a desktop computer or as on a phone; takes effect with the next load */
+    fun setDesktopView(desktop: Boolean) = desktopView.apply(desktop)
 
     override fun loadUrl(url: String) {
         when {

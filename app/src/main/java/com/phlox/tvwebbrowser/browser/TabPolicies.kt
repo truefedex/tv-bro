@@ -37,4 +37,6 @@ class TabPolicies(
         val hostConfig = controller.findHostConfig(tab)
         return PopupBlockPolicy.shouldBlockNewWindow(hostConfig?.popupBlockLevel, dialog, userGesture)
     }
+
+    override fun isDesktopView(url: String): Boolean = controller.isDesktopView(url)
 }

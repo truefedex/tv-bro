@@ -29,6 +29,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
+import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,7 +39,8 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 
 
-class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, CursorDrawerDelegate.Callback {
+class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, SiteViewSupport,
+    CursorDrawerDelegate.Callback {
     private var webView: WebViewEx? = null
     internal var callback: WebEngineCallbacks? = null
     /** The cursor surface around [webView] and the fullscreen view, created and dropped together with [webView] */
@@ -65,6 +67,12 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, C
             if (value != null) {
                 webView?.settings?.userAgentString = value
             }
+        }
+
+    override var desktopView = false
+        set(value) {
+            field = value
+            webView?.setDesktopView(value)
         }
 
     override fun saveState(): Any {
@@ -135,6 +143,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, C
     override fun getOrCreateView(activityContext: Context): View {
         if (webView == null) {
             val webView = WebViewEx(activityContext, webViewCallback, jsInterface)
+            if (desktopView) webView.setDesktopView(true)
             cursorLayout = CursorLayout(activityContext).apply {
                 addView(webView)
                 cursorDrawerDelegate.callback = this@WebViewWebEngine
@@ -324,6 +333,13 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, C
 
         override fun shouldOverrideUrlLoading(url: String): Boolean {
             return callback?.shouldOverrideUrlLoading(url) ?: false
+        }
+
+        override fun switchSiteView(url: String): Boolean {
+            val desktop = callback?.isDesktopView(url) ?: return false
+            if (desktop == desktopView) return false
+            desktopView = desktop
+            return true
         }
 
         override fun onPageStarted(url: String?) {

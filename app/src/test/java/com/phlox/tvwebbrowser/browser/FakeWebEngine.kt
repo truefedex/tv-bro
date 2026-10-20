@@ -10,11 +10,12 @@ import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
+import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 
 /**
  * Web engine that only records what is done with it.
  */
-class FakeWebEngine(val tab: BrowserTab) : WebEngine {
+class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport {
     companion object {
         val provider = WebEngineProvider("Fake", object : WebEngineProviderCallback {
             override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {}
@@ -32,6 +33,7 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine {
     var engineView: View? = null
     var canGoBackValue = false
     var adblockSetting: Boolean? = null
+    override var desktopView = false
 
     override val url: String? get() = loadedUrls.lastOrNull()
     override var userAgentString: String? = null

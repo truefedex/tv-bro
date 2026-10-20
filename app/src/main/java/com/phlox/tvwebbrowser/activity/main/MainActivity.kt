@@ -125,6 +125,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         setContentView(shell.root)
         controller.viewHost = tabViewHost
         controller.adBlocker = adblockModel
+        controller.interfaceDesktopView = uiMode == UiMode.TV
 
         config.userAgentString.subscribe(this.lifecycle, false) {
             for (tab in controller.tabsStates) {

@@ -33,13 +33,15 @@ interface TabEngineEvents {
 }
 
 /**
- * Content blocking decisions the engine asks for.
+ * Content blocking and site view decisions the engine asks for.
  */
 interface EnginePolicies {
     fun isAd(url: Uri, acceptHeader: String?, baseUri: Uri): Boolean?
     fun isAdBlockingEnabled(): Boolean
     fun isDialogsBlockingEnabled(): Boolean
     fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean
+    /** The pages of the [url]'s host load in the desktop view (see [SiteViewSupport]) */
+    fun isDesktopView(url: String): Boolean
 }
 
 /**
