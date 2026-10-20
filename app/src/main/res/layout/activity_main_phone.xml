@@ -63,6 +63,13 @@ bookmarks and the downloads over the whole window.
         android:layout_height="match_parent"
         android:elevation="8dp" />
 
+    <!-- the settings of the current site, from the site button of the bar or the menu sheet -->
+    <com.phlox.tvwebbrowser.activity.main.view.PhoneSiteSheet
+        android:id="@+id/vSiteSheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="8dp" />
+
     <com.phlox.tvwebbrowser.activity.main.view.PhoneTabSwitcher
         android:id="@+id/vTabSwitcher"
         android:layout_width="match_parent"

@@ -86,6 +86,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
                 vb.rlRoot.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, keyboard.bottom))
             }
             vb.vMenuSheet.setInsets(bars.left, bars.right, bars.bottom)
+            vb.vSiteSheet.setInsets(bars.left, bars.right, bars.bottom)
             vb.vTabSwitcher.setInsets(bars.left, bars.top, bars.right, bars.bottom)
             vb.vBookmarks.setInsets(bars.left, bars.top, bars.right, bars.bottom, keyboard.bottom)
             vb.vDownloads.setInsets(bars.left, bars.top, bars.right, bars.bottom)
@@ -110,8 +111,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             if (controller.currentTabState.value.loading) controller.stopLoading() else controller.reload()
         }
 
-        //the site settings are in the menu sheet
-        override fun showSiteSettings() = showMenuSheet()
+        override fun showSiteSettings() = showSiteSheet()
 
         override fun showTabs() {
             vb.vPhoneBar.stopEditing()
@@ -160,6 +160,13 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         override fun showSendToTv() = vb.vSync.show()
 
         override fun showSettings() = host.showSettings()
+    }
+
+    private fun showSiteSheet() {
+        if (controller.currentTabState.value.host.isEmpty()) return
+        vb.vPhoneBar.stopEditing()
+        vb.vMenuSheet.hide()
+        vb.vSiteSheet.show()
     }
 
     /** The Bookmark button of the sheet is selected on a page that is bookmarked */
@@ -371,7 +378,10 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         }
     }
 
-    /** The site settings keep the sheet open: changing ad blocking reloads the page under it */
+    /**
+     * The site settings of the site sheet and of the menu sheet keep the sheet open: changing ad blocking
+     * or the site view reloads the page under it. The site header of the menu sheet opens the site sheet.
+     */
     private val siteSettingsCallback = object : SiteSettingsView.Callback {
         override fun toggleAdBlock() = host.toggleSiteAdBlock()
 
@@ -380,6 +390,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         override fun chooseSiteView() = host.chooseSiteView()
 
         override fun clearSiteData() = host.clearSiteData()
+
+        override fun openSiteSettings() = showSiteSheet()
     }
 
     //after the callbacks: properties are initialized in their order
@@ -387,6 +399,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vPhoneBar.callback = barCallback
         vb.vMenuSheet.callback = menuCallback
         vb.vMenuSheet.siteSettings.callback = siteSettingsCallback
+        vb.vSiteSheet.siteSettings.callback = siteSettingsCallback
         vb.vTabSwitcher.bind(controller)
         vb.vTabSwitcher.callback = tabSwitcherCallback
         vb.vBookmarks.attach(activity.lifecycleScope, vb.vActionsSheet, bookmarksCallback)
@@ -411,6 +424,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         dispatcher.addCallback(activity, pageBackCallback)
         dispatcher.addCallback(activity, editingBackCallback)
         dispatcher.addCallback(activity, vb.vMenuSheet.backCallback)
+        dispatcher.addCallback(activity, vb.vSiteSheet.backCallback)
         dispatcher.addCallback(activity, vb.vTabSwitcher.backCallback)
         dispatcher.addCallback(activity, vb.vBookmarks.backCallback)
         dispatcher.addCallback(activity, vb.vDownloads.backCallback)
@@ -426,6 +440,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         if (fullscreen) {
             vb.vPhoneBar.stopEditing()
             vb.vMenuSheet.hide()
+            vb.vSiteSheet.hide()
             vb.vTabSwitcher.hide()
             vb.vActionsSheet.hide()
             vb.vBookmarks.hide()
@@ -461,6 +476,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         renderedLoading = state.loading
         vb.vPhoneBar.render(state)
         vb.vMenuSheet.render(state)
+        vb.vSiteSheet.render(state)
     }
 
     /**
@@ -495,6 +511,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vSync.hide()
         vb.vPhoneBar.stopEditing()
         vb.vMenuSheet.hide()
+        vb.vSiteSheet.hide()
         vb.vTabSwitcher.hide()
         vb.vActionsSheet.hide()
         vb.vBookmarks.hide()

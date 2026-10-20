@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The site sheet of the phone UI over a scrim: the settings of the current site, Clear site data included -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+  <View
+      android:id="@+id/vScrim"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="?attr/tbColorDsScrim" />
+
+  <LinearLayout
+      android:id="@+id/llSheet"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="bottom"
+      android:orientation="vertical"
+      android:paddingStart="@dimen/ds_phone_sheet_padding_horizontal"
+      android:paddingEnd="@dimen/ds_phone_sheet_padding_horizontal"
+      android:paddingTop="@dimen/ds_phone_sheet_padding_top"
+      android:paddingBottom="@dimen/ds_phone_sheet_padding_bottom"
+      android:background="@drawable/ds_sheet_bg"
+      android:elevation="8dp"
+      android:clickable="true">
+
+    <View
+        android:layout_width="@dimen/ds_phone_sheet_handle_width"
+        android:layout_height="@dimen/ds_phone_sheet_handle_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="@dimen/ds_phone_sheet_section_gap"
+        android:background="@drawable/ds_sheet_handle_bg" />
+
+    <com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
+        android:id="@+id/vSiteSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:siteSettingsVariant="sheet" />
+  </LinearLayout>
+</merge>

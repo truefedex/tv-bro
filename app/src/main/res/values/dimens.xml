@@ -233,6 +233,27 @@
     <dimen name="ds_phone_save_button_height">40dp</dimen>
     <dimen name="ds_phone_save_button_padding">20dp</dimen>
     <dimen name="ds_phone_sheet_header_padding">8dp</dimen>
+    <!-- the site settings on the phone: the site sheet and the site section of the menu sheet -->
+    <dimen name="ds_phone_site_row_padding_start">16dp</dimen>
+    <dimen name="ds_phone_site_row_padding_end">8dp</dimen>
+    <dimen name="ds_phone_site_sheet_row_height">60dp</dimen>
+    <dimen name="ds_phone_site_sheet_gap">16dp</dimen>
+    <dimen name="ds_phone_site_sheet_icon">24dp</dimen>
+    <dimen name="ds_phone_site_sheet_header_padding">4dp</dimen>
+    <dimen name="ds_phone_site_connection_icon">16dp</dimen>
+    <dimen name="ds_phone_site_connection_icon_text">8dp</dimen>
+    <dimen name="ds_phone_site_chevron">20dp</dimen>
+    <dimen name="ds_phone_site_menu_row_height">56dp</dimen>
+    <dimen name="ds_phone_site_menu_gap">8dp</dimen>
+    <dimen name="ds_phone_site_menu_header_height">45dp</dimen>
+    <dimen name="ds_phone_site_menu_header_icon">20dp</dimen>
+    <dimen name="ds_phone_site_menu_header_icon_text">12dp</dimen>
+    <dimen name="ds_text_phone_site_host">18sp</dimen>
+    <dimen name="ds_text_phone_site_connection">14sp</dimen>
+    <dimen name="ds_text_phone_site_sheet_title">16sp</dimen>
+    <dimen name="ds_text_phone_site_menu_title">14sp</dimen>
+    <dimen name="ds_text_phone_site_caption">12sp</dimen>
+    <dimen name="ds_text_phone_site_value">14sp</dimen>
     <dimen name="ds_phone_bookmarks_search_margin_end">8dp</dimen>
     <dimen name="ds_phone_bookmarks_status_padding">10dp</dimen>
     <dimen name="ds_text_phone_caption">13sp</dimen>

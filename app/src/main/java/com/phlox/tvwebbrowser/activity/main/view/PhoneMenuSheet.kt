@@ -16,8 +16,8 @@ import com.phlox.tvwebbrowser.databinding.ViewPhoneMenuSheetBinding
 /**
  * The menu of the phone UI, a sheet from the bottom over a scrim. It holds what the TV bar has and the
  * phone bar does not: quick buttons (Forward, New tab, Incognito, Bookmark: adds the page, or opens its
- * bookmark when it has one), the settings of the current
- * site (they keep the sheet open), then History, Bookmarks, Downloads and Settings.
+ * bookmark when it has one), the settings of the current site (they keep the sheet open; their header
+ * opens the site sheet, which also has Clear site data), then History, Bookmarks, Downloads and Settings.
  * A tap on the scrim or Back ([backCallback]) closes it.
  */
 class PhoneMenuSheet @JvmOverloads constructor(
