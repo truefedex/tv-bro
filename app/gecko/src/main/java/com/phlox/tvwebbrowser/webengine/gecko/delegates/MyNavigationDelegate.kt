@@ -24,6 +24,8 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
     var canGoForward = false
     var locationURL: String? = null
     private var errorTemplate: String? = null
+    /** A redirect was started again in the view of its host; until a page commits, no other is */
+    private var redirectRestarted = false
 
     override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
         this.canGoBack = canGoBack
@@ -40,6 +42,7 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
         hasUserGesture: Boolean
     ) {
         Log.d(TAG, "onLocationChange: $url")
+        redirectRestarted = false
         if (url != null && url.startsWith(Config.HOME_PAGE_URL) && webEngine.loadLocalHomePage(replace = true)) {
             return
         }
@@ -77,10 +80,21 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
         }
 
         //the page of another site may need another view: the settings of the session change before the
-        //load goes on (it is not started again, which would turn a POST into a GET); if they come too late,
-        //the browser core loads the page again after it starts
+        //load goes on (it is not started again, which would turn a POST into a GET). A redirect keeps the
+        //headers of the request it follows, the User-Agent too, so it starts again, once: hosts redirecting
+        //to each other by the view must not do it forever (the browser core then loads the page again once)
         if (request.uri.startsWith("http:") || request.uri.startsWith("https:")) {
-            webEngine.desktopView = callback.isDesktopView(request.uri)
+            val desktop = callback.isDesktopView(request.uri)
+            if (desktop != webEngine.desktopView) {
+                if (!request.isRedirect) {
+                    webEngine.desktopView = desktop
+                } else if (!redirectRestarted) {
+                    redirectRestarted = true
+                    webEngine.desktopView = desktop
+                    session.loadUri(request.uri)
+                    return GeckoResult.deny()
+                }
+            }
         }
 
         return GeckoResult.allow()
