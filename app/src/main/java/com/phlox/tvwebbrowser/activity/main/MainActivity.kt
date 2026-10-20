@@ -127,12 +127,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         controller.adBlocker = adblockModel
         controller.interfaceDesktopView = uiMode == UiMode.TV
 
-        config.userAgentString.subscribe(this.lifecycle, false) {
-            for (tab in controller.tabsStates) {
-                tab.webEngine.userAgentString = it
-            }
-        }
-
         config.theme.subscribe(this.lifecycle, false) {
             when (it) {
                 Config.Theme.BLACK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
@@ -446,14 +440,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
             return null
         }
 
-        var ua = config.userAgentString.value
-        if (ua?.contains(Config.TV_BRO_UA_PREFIX) == true) {//legacy ua string - now default one should be used
-            config.userAgentString.value = null
-            ua = null
-        }
-        if (ua != null) {
-            tab.webEngine.userAgentString = ua
-        }
         shell.onTabViewCreated(tab)
 
         return webView

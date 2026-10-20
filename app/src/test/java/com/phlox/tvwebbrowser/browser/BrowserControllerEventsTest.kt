@@ -302,6 +302,19 @@ class BrowserControllerEventsTest {
     }
 
     @Test
+    fun defaultSiteViewSettingWinsOverTheInterface() {
+        val tab = open("https://a.com/")
+        assertTrue(tab.fakeEngine.desktopView)
+        tab.fakeEngine.log.clear()
+        config.defaultDesktopView = false
+        controller.onDefaultSiteViewChanged()
+        assertFalse(tab.fakeEngine.desktopView)
+        assertEquals(listOf("reload"), tab.fakeEngine.log)
+        assertFalse(state.desktopView)
+        config.defaultDesktopView = null
+    }
+
+    @Test
     fun pageInTheViewOfAnotherHostLoadsAgainOnce() {
         val tab = open("https://a.com/")
         awaitWrite(controller.setSiteView(tab, desktop = false))

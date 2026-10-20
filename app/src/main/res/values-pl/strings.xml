@@ -24,9 +24,6 @@
   <string name="choose_default_search_engine">Wybierz domyślną wyszukiwarkę</string>
   <string name="save">Zapisz</string>
   <string name="search_engine_url_with_query_placeholder_query">Adres URL wyszukiwarki z symbolem zastępczym zapytania [query]</string>
-  <string name="user_agent_string">Nagłówek User-Agent</string>
-  <string name="choose_user_agent_string">Wybierz zawartość nagłówka User-Agent</string>
-  <string name="edit_user_agent_string">Edytuj zawartość nagłówka User-Agent</string>
   <string name="nothing">Brak pobranych plików</string>
   <string name="download">Pobierz</string>
   <string name="file_not_found">Nie znaleziono pliku</string>

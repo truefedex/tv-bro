@@ -22,9 +22,6 @@
   <string name="choose_default_search_engine">موتور جستجوی پیش‌فرض را انتخاب کنید</string>
   <string name="save">ذخیره</string>
   <string name="search_engine_url_with_query_placeholder_query">URL موتور جستجو با جای‌نگهدار عبارت جستجو [query]</string>
-  <string name="user_agent_string">رشته عامل کاربر (User Agent)</string>
-  <string name="choose_user_agent_string">رشته عامل کاربر را انتخاب کنید</string>
-  <string name="edit_user_agent_string">ویرایش رشته عامل کاربر</string>
   <string name="nothing">هنوز هیچ بارگیری‌ای وجود ندارد</string>
   <string name="download">بارگیری</string>
   <string name="file_not_found">پرونده یافت نشد</string>

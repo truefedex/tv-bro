@@ -24,9 +24,6 @@
   <string name="choose_default_search_engine">Imposta il motore di ricerca predefinito</string>
   <string name="save">Salva</string>
   <string name="search_engine_url_with_query_placeholder_query">URL del motore di ricerca con il segnaposto [query]</string>
-  <string name="user_agent_string">Stringa User Agent</string>
-  <string name="choose_user_agent_string">Scegli la stringa User Agent</string>
-  <string name="edit_user_agent_string">Modifica la stringa User Agent</string>
   <string name="nothing">Nessun elemento</string>
   <string name="download">Scarica</string>
   <string name="file_not_found">File non trovato</string>

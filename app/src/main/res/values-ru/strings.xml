@@ -23,14 +23,11 @@
   <string name="save">Сохранить</string>
   <string name="search_engine_url_with_query_placeholder_query">URL поисковой системы с параметром запроса [query]</string>
   <string name="cancel">Отмена</string>
-  <string name="choose_user_agent_string">Выберите строку User Agent</string>
   <string name="delete">Удалить</string>
   <string name="download">Скачать</string>
-  <string name="edit_user_agent_string">Редактировать строку User Agent</string>
   <string name="file_not_found">Файл не найден</string>
   <string name="no_app_for_file_type">Не найдено приложений для открытия файлов этого типа</string>
   <string name="nothing">Ничего</string>
-  <string name="user_agent_string">Строка User Agent</string>
   <string name="action">Действие:</string>
   <string name="clear">Очистить</string>
   <string name="current_key">Текущая клавиша:</string>

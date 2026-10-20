@@ -24,9 +24,6 @@
     <string name="choose_default_search_engine">Επιλέξτε την προεπιλεγμένη μηχανή αναζήτησης</string>
     <string name="save">Αποθήκευση</string>
     <string name="search_engine_url_with_query_placeholder_query">URL μηχανής αναζήτησης με το σύμβολο θέσης ερωτήματος [query]</string>
-    <string name="user_agent_string">Συμβολοσειρά User Agent</string>
-    <string name="choose_user_agent_string">Επιλέξτε συμβολοσειρά User Agent</string>
-    <string name="edit_user_agent_string">Επεξεργασία συμβολοσειράς User Agent</string>
     <string name="nothing">Τίποτα</string>
     <string name="download">Λήψη</string>
     <string name="file_not_found">Το αρχείο δεν βρέθηκε</string>

@@ -494,8 +494,18 @@ class BrowserController : ActiveModel() {
         return hostConfigs.desktopViewSetting(host) ?: defaultDesktopView
     }
 
-    /** The site view of sites without their own */
-    val defaultDesktopView: Boolean get() = interfaceDesktopView
+    /** The site view of sites without their own: the setting, or the one of the interface */
+    val defaultDesktopView: Boolean get() = config.defaultDesktopView ?: interfaceDesktopView
+
+    /** Tabs get the new default view; the current tab loads again if its view changed */
+    fun onDefaultSiteViewChanged() {
+        for (tab in tabsStates) {
+            if (applySiteView(tab) && tab == currentTab.value) {
+                tab.webEngine.reload()
+            }
+        }
+        publishState()
+    }
 
     /**
      * Sets the site view of the tab's current host and reloads the tab if its view changes.

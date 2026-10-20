@@ -22,9 +22,6 @@
   <string name="choose_default_search_engine">בחר מנוע חיפוש ברירת מחדל</string>
   <string name="save">שמור</string>
   <string name="search_engine_url_with_query_placeholder_query">כתובת URL של מנוע החיפוש עם מציין המיקום [query]</string>
-  <string name="user_agent_string">מחרוזת סוכן משתמש (User Agent)</string>
-  <string name="choose_user_agent_string">בחר מחרוזת סוכן משתמש</string>
-  <string name="edit_user_agent_string">ערוך מחרוזת סוכן משתמש</string>
   <string name="nothing">אין הורדות עדיין</string>
   <string name="download">הורד</string>
   <string name="file_not_found">לא ניתן למצוא את הקובץ</string>

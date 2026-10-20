@@ -22,9 +22,6 @@
   <string name="choose_default_search_engine">Chọn công cụ tìm kiếm mặc định</string>
   <string name="save">Lưu</string>
   <string name="search_engine_url_with_query_placeholder_query">URL của công cụ tìm kiếm với trình giữ chỗ truy vấn [query]</string>
-  <string name="user_agent_string">Chuỗi User Agent</string>
-  <string name="choose_user_agent_string">Chọn chuỗi User Agent</string>
-  <string name="edit_user_agent_string">Chỉnh sửa chuỗi User Agent</string>
   <string name="nothing">Chưa có tệp tải xuống nào</string>
   <string name="download">Tải xuống</string>
   <string name="file_not_found">Không tìm thấy tệp</string>

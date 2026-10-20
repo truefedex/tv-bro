@@ -23,14 +23,11 @@
   <string name="engine">Пошукова система</string>
   <string name="choose_default_search_engine">Виберіть типову пошукову систему</string>
   <string name="cancel">Скасувати</string>
-  <string name="choose_user_agent_string">Виберіть рядок User Agent</string>
   <string name="delete">Видалити</string>
   <string name="download">Завантажити</string>
-  <string name="edit_user_agent_string">Редагувати рядок User Agent</string>
   <string name="file_not_found">Файл не знайдено</string>
   <string name="no_app_for_file_type">Не знайдено додатків для відкриття файлів цього типу</string>
   <string name="nothing">Нічого</string>
-  <string name="user_agent_string">Рядок User Agent</string>
   <string name="action">Дія:</string>
   <string name="clear">Очистити</string>
   <string name="current_key">Поточна клавіша:</string>

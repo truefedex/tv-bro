@@ -24,9 +24,6 @@
     <string name="choose_default_search_engine">Choisissez le moteur de recherche par défaut</string>
     <string name="save">Enregistrer</string>
     <string name="search_engine_url_with_query_placeholder_query">URL du moteur de recherche avec l’espace réservé [query]</string>
-    <string name="user_agent_string">Chaîne d’agent utilisateur</string>
-    <string name="choose_user_agent_string">Choisissez la chaîne d’agent utilisateur</string>
-    <string name="edit_user_agent_string">Modifier la chaîne d’agent utilisateur</string>
     <string name="nothing">Rien</string>
     <string name="download">Télécharger</string>
     <string name="file_not_found">Fichier introuvable</string>

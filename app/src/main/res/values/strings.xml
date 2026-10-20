@@ -122,9 +122,6 @@
     <string name="choose_default_search_engine">Choose default search engine</string>
     <string name="save">Save</string>
     <string name="search_engine_url_with_query_placeholder_query">Search engine URL with query placeholder [query]</string>
-    <string name="user_agent_string">User agent string</string>
-    <string name="choose_user_agent_string">Choose user agent string</string>
-    <string name="edit_user_agent_string">Edit user agent string</string>
     <string name="nothing">Nothing</string>
     <string name="download">Download</string>
     <string name="file_not_found">File not found</string>
@@ -164,6 +161,13 @@
     <string name="refresh_page">Refresh page</string>
     <string name="stop_loading">Stop loading</string>
     <string name="site_settings">Site settings</string>
+    <!-- the setting of the site view of sites without their own -->
+    <string name="default_site_view">Default site view</string>
+    <!-- how sites are shown: as on a desktop computer or as on a phone (the order is used by the app) -->
+    <array name="site_views">
+        <item>Desktop</item>
+        <item>Mobile</item>
+    </array>
     <!-- the site button, for accessibility -->
     <string name="site_settings_of">Settings of %s</string>
     <string name="site_settings_insecure_of">Connection is not secure. Settings of %s</string>

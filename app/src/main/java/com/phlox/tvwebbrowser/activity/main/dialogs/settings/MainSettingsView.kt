@@ -20,6 +20,9 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.AdblockModel
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.activity.main.SettingsModel
+import com.phlox.tvwebbrowser.activity.main.SITE_VIEW_DESKTOP
+import com.phlox.tvwebbrowser.activity.main.siteViewPosition
+import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.databinding.ViewSettingsMainBinding
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.activity
@@ -40,7 +43,7 @@ class MainSettingsView @JvmOverloads constructor(
     init {
         initHomePageAndSearchEngineConfigUI()
 
-        initUAStringConfigUI(context)
+        initDefaultSiteViewUI()
 
         initAdBlockConfigUI()
 
@@ -257,42 +260,23 @@ class MainSettingsView @JvmOverloads constructor(
         vb.pbAdBlockerListLoading.visibility = if (loadingAdBlockList) View.VISIBLE else View.GONE
     }
 
-    private fun initUAStringConfigUI(context: Context) {
-        if (config.userAgentString.value?.contains("TV Bro/1.0 ") == true) {//legacy ua string - now default one should be used
-            config.userAgentString.value = null
-        }
-        val selected = if (config.userAgentString.value == null) {
-            0
-        } else {
-            settingsModel.uaStrings.indexOf(config.userAgentString.value ?: "")
-        }
-
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, settingsModel.userAgentStringTitles)
+    /** Sites without their own site view use this one; it follows the interface until it is chosen */
+    private fun initDefaultSiteViewUI() {
+        val controller = ActiveModelsRepository.get(BrowserController::class, activity!!)
+        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item,
+            context.resources.getStringArray(R.array.site_views))
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        vb.spTitles.adapter = adapter
-
-        if (selected != -1) {
-            vb.spTitles.setSelection(selected, false)
-            vb.etUAString.setText(settingsModel.uaStrings[selected])
-        } else {
-            vb.spTitles.setSelection(settingsModel.userAgentStringTitles.size - 1, false)
-            vb.llUAString.visibility = View.VISIBLE
-            vb.etUAString.setText(config.userAgentString.value ?: "")
-            vb.etUAString.requestFocus()
-        }
-        vb.spTitles.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-                if (position == settingsModel.userAgentStringTitles.size - 1 && vb.llUAString.visibility == View.GONE) {
-                    vb.llUAString.visibility = View.VISIBLE
-                    vb.llUAString.startAnimation(AnimationUtils.loadAnimation(context, android.R.anim.fade_in))
-                    vb.etUAString.requestFocus()
-                }
-                vb.etUAString.setText(settingsModel.uaStrings[position])
+        vb.spDefaultSiteView.adapter = adapter
+        vb.spDefaultSiteView.setSelection(siteViewPosition(controller.defaultDesktopView), false)
+        vb.spDefaultSiteView.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val desktop = position == SITE_VIEW_DESKTOP
+                if (desktop == controller.defaultDesktopView) return
+                config.defaultDesktopView = desktop
+                controller.onDefaultSiteViewChanged()
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>) {
-
-            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
     }
 
@@ -369,8 +353,6 @@ class MainSettingsView @JvmOverloads constructor(
         val homePageLinksMode = Config.HomePageLinksMode.entries[vb.spHomePageLinks.selectedItemPosition]
         settingsModel.setHomePageProperties(homePageMode, customHomePageURL, homePageLinksMode)
 
-        val userAgent = vb.etUAString.text.toString().trim(' ')
-        config.userAgentString.value = userAgent.ifEmpty { null }
         saveAdBlockListUrl()
     }
 }

@@ -22,9 +22,6 @@
   <string name="choose_default_search_engine">Standardsuchmaschine auswählen</string>
   <string name="save">Speichern</string>
   <string name="search_engine_url_with_query_placeholder_query">URL der Suchmaschine mit dem Platzhalter [query] für den Suchbegriff</string>
-  <string name="user_agent_string">User-Agent-Zeichenfolge</string>
-  <string name="choose_user_agent_string">Zeichenfolge des User-Agenten wählen</string>
-  <string name="edit_user_agent_string">Zeichenfolge des User-Agenten bearbeiten</string>
   <string name="nothing">Nichts</string>
   <string name="download">Download</string>
   <string name="file_not_found">Datei nicht gefunden</string>

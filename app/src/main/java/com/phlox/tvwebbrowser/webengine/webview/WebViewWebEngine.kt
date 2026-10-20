@@ -61,13 +61,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     override val url: String?
         get() = webView?.url
 
-    override var userAgentString: String? = null
-        set(value) {
-            field = value
-            if (value != null) {
-                webView?.settings?.userAgentString = value
-            }
-        }
+    override val userAgentString: String?
+        get() = webView?.settings?.userAgentString
 
     override var desktopView = false
         set(value) {

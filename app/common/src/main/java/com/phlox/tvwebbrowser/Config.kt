@@ -10,13 +10,12 @@ class Config(val prefs: SharedPreferences) {
         const val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
         const val SEARCH_ENGINE_AS_HOME_PAGE_KEY = "search_engine_as_home_page"
         const val HOME_PAGE_KEY = "home_page"
-        const val USER_AGENT_PREF_KEY = "user_agent"
+        const val DEFAULT_SITE_VIEW_KEY = "default_desktop_view"
         const val THEME_KEY = "theme"
         const val INTERFACE_MODE_KEY = "interface_mode"
         const val LAST_UPDATE_USER_NOTIFICATION_TIME_KEY = "last_update_notif"
         const val AUTO_CHECK_UPDATES_KEY = "auto_check_updates"
         const val UPDATE_CHANNEL_KEY = "update_channel"
-        const val TV_BRO_UA_PREFIX = "TV Bro/1.0 "
         const val HOME_URL_ALIAS = "about:home"
         const val KEEP_SCREEN_ON_KEY = "keep_screen_on"
         /** When true, analog stick / hat axes from generic motion events are not translated to DPAD keys. */
@@ -195,7 +194,16 @@ class Config(val prefs: SharedPreferences) {
             prefs.edit().putBoolean(INITIAL_BOOKMARKS_SUGGESTIONS_LOADED, value).apply()
         }
 
-    var userAgentString = ObservableOptStringPreference(null, USER_AGENT_PREF_KEY)
+    /**
+     * The site view of sites without their own: true for desktop, false for mobile; null follows the
+     * interface (desktop on TV, mobile on phones). Can be read from any thread.
+     */
+    var defaultDesktopView: Boolean?
+        get() = if (prefs.contains(DEFAULT_SITE_VIEW_KEY)) prefs.getBoolean(DEFAULT_SITE_VIEW_KEY, true) else null
+        set(value) {
+            if (value == null) prefs.edit().remove(DEFAULT_SITE_VIEW_KEY).apply()
+            else prefs.edit().putBoolean(DEFAULT_SITE_VIEW_KEY, value).apply()
+        }
 
     var adBlockEnabled: Boolean
         get() = prefs.getBoolean(ADBLOCK_ENABLED_PREF_KEY, true)
@@ -246,16 +254,6 @@ class Config(val prefs: SharedPreferences) {
         override var value: String = prefs.getString(prefsKey, default)!!
             set(value) {
                 prefs.edit().putString(prefsKey, value).apply()
-                field = value
-                notifyObservers()
-            }
-    }
-
-    inner class ObservableOptStringPreference(default: String?, private val prefsKey: String) : ObservableValue<String?>(default) {
-        override var value: String? = prefs.getString(prefsKey, default)
-            set(value) {
-                if (value == null) prefs.edit().remove(prefsKey).apply()
-                else prefs.edit().putString(prefsKey, value).apply()
                 field = value
                 notifyObservers()
             }

@@ -24,9 +24,6 @@
     <string name="choose_default_search_engine">Vyberte výchozí vyhledávač</string>
     <string name="save">Uložit</string>
     <string name="search_engine_url_with_query_placeholder_query">URL vyhledávače se zástupným symbolem dotazu [query]</string>
-    <string name="user_agent_string">Řetězec User Agent</string>
-    <string name="choose_user_agent_string">Vyberte řetězec User Agent</string>
-    <string name="edit_user_agent_string">Upravit řetězec User Agent</string>
     <string name="nothing">Nic</string>
     <string name="download">Stáhnout</string>
     <string name="file_not_found">Soubor nebyl nalezen</string>

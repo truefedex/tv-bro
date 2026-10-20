@@ -7,7 +7,8 @@ import android.view.ViewGroup
 
 interface WebEngine {
     val url: String?
-    var userAgentString: String?
+    /** The User-Agent the engine sends now (it follows the site view), for downloads; null if unknown */
+    val userAgentString: String?
 
     fun getWebEngineName(): String
 

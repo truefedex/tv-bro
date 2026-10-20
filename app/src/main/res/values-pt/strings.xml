@@ -24,9 +24,6 @@
     <string name="choose_default_search_engine">Escolha o mecanismo de pesquisa padrão</string>
     <string name="save">Salvar</string>
     <string name="search_engine_url_with_query_placeholder_query">URL do mecanismo de pesquisa com o marcador de consulta [query]</string>
-    <string name="user_agent_string">String do user agent</string>
-    <string name="choose_user_agent_string">Escolha a string do user agent</string>
-    <string name="edit_user_agent_string">Editar string do user agent</string>
     <string name="nothing">Nada</string>
     <string name="download">Baixar</string>
     <string name="file_not_found">Arquivo não encontrado</string>

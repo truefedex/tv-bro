@@ -36,7 +36,7 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport {
     override var desktopView = false
 
     override val url: String? get() = loadedUrls.lastOrNull()
-    override var userAgentString: String? = null
+    override val userAgentString: String? = null
 
     override fun getWebEngineName(): String = "Fake"
     override var stateFilePrefix: String = ""

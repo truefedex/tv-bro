@@ -118,47 +118,21 @@
             />
     </LinearLayout>
 
+    <!-- sites without their own site view: desktop or mobile -->
     <TextView
         style="@style/Widget.TVBro.Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/choose_user_agent_string"
+        android:text="@string/default_site_view"
         android:layout_marginTop="@dimen/settings_section_spacing"
         />
 
     <Spinner
-        android:id="@+id/spTitles"
+        android:id="@+id/spDefaultSiteView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:dropDownWidth="300dp"
         />
-
-    <LinearLayout
-        android:id="@+id/llUAString"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="gone"
-        >
-
-      <TextView
-          style="@style/Widget.TVBro.Text.Body"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="5dp"
-          android:text="@string/user_agent_string"
-          />
-
-      <EditText
-          android:id="@+id/etUAString"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:ems="10"
-          android:hint="@string/edit_user_agent_string"
-          android:importantForAutofill="no"
-          android:inputType="textUri"
-          />
-    </LinearLayout>
 
     <LinearLayout
         style="@style/Widget.TVBro.SettingsRow"

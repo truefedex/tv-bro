@@ -24,9 +24,6 @@
     <string name="choose_default_search_engine">選擇預設搜尋引擎</string>
     <string name="save">儲存</string>
     <string name="search_engine_url_with_query_placeholder_query">含查詢預留位置 [query] 的搜尋引擎網址</string>
-    <string name="user_agent_string">使用者代理字串</string>
-    <string name="choose_user_agent_string">選擇使用者代理字串</string>
-    <string name="edit_user_agent_string">編輯使用者代理字串</string>
     <string name="nothing">尚無下載內容</string>
     <string name="download">下載</string>
     <string name="file_not_found">找不到檔案</string>

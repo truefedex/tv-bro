@@ -24,9 +24,6 @@
     <string name="choose_default_search_engine">Escolha o motor de pesquisa predefinido</string>
     <string name="save">Guardar</string>
     <string name="search_engine_url_with_query_placeholder_query">URL do motor de pesquisa com o marcador de consulta [query]</string>
-    <string name="user_agent_string">Cadeia do agente do utilizador</string>
-    <string name="choose_user_agent_string">Escolha a cadeia do agente do utilizador</string>
-    <string name="edit_user_agent_string">Editar cadeia do agente do utilizador</string>
     <string name="nothing">Nada</string>
     <string name="download">Transferir</string>
     <string name="file_not_found">Ficheiro não encontrado</string>

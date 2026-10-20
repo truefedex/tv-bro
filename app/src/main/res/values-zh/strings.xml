@@ -22,9 +22,6 @@
   <string name="choose_default_search_engine">选择默认搜索引擎</string>
   <string name="save">保存</string>
   <string name="search_engine_url_with_query_placeholder_query">带有查询占位符 [query] 的搜索引擎网址</string>
-  <string name="user_agent_string">用户代理字符串</string>
-  <string name="choose_user_agent_string">选择用户代理字符串</string>
-  <string name="edit_user_agent_string">编辑用户代理字符串</string>
   <string name="nothing">暂无下载内容</string>
   <string name="download">下载</string>
   <string name="file_not_found">文件未找到</string>
