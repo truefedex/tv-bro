@@ -37,7 +37,9 @@ import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyPermissionDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyProgressDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyPromptDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MySelectionActionDelegate
+import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyTextInputDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
+import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
@@ -199,6 +201,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     /** The last scroll position of the page in pixels, to report how far it scrolled; unknown when -1 */
     private var lastScrollY = -1
     /** GeckoView reports the offset of the visual viewport in CSS pixels */
+    /** The default text input of GeckoView, plus the soft keyboard for fields the cursor's mouse clicks */
+    private val textInputDelegate by lazy { MyTextInputDelegate(session.textInput.delegate) }
     private val scrollDelegate = object : GeckoSession.ScrollDelegate {
         override fun onScrollChanged(session: GeckoSession, scrollX: Int, scrollY: Int) {
             val y = (scrollY * AppContext.get().resources.displayMetrics.density).roundToInt()
@@ -228,7 +232,14 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                 GeckoSessionSettings.USER_AGENT_MODE_MOBILE
             session.settings.viewportMode = if (value) GeckoSessionSettings.VIEWPORT_MODE_DESKTOP else
                 GeckoSessionSettings.VIEWPORT_MODE_MOBILE
+            //the view is shared by all tabs: only the attached one sets its cursor
+            if (callback != null) applyPointerMode()
         }
+
+    /** The cursor is a mouse for pages in the desktop view, a finger for the others */
+    private fun applyPointerMode() {
+        webView?.cursorDrawerDelegate?.pointerMode = if (desktopView) PointerMode.MOUSE else PointerMode.TOUCH
+    }
 
     init {
         Log.d(TAG, "init")
@@ -251,6 +262,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         session.mediaSessionDelegate = mediaSessionDelegate
         session.selectionActionDelegate = selectionActionDelegate
         session.scrollDelegate = scrollDelegate
+        session.textInput.setDelegate(textInputDelegate)
 
         webExtObserver = { ext: WebExtension? ->
             if (ext != null) {
@@ -531,6 +543,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         val webView = this.webView ?: throw IllegalStateException("WebView is null")
         //the view is shared by all tabs: its cursor reports to the attached one
         webView.cursorDrawerDelegate.callback = this
+        webView.onCursorMouseClick = { textInputDelegate.onCursorMouseClick(session) }
+        applyPointerMode()
         _cursorModes.value = CursorModes(
             directNavigation = !webView.virtualCursorMode,
             grab = webView.cursorDrawerDelegate.canHandleBackNavigation()

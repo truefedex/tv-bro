@@ -6,8 +6,10 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.ViewConfiguration
 import android.widget.FrameLayout
 import androidx.core.view.ViewCompat
+import androidx.core.view.ViewConfigurationCompat
 import androidx.core.view.WindowInsetsCompat
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
@@ -17,10 +19,13 @@ import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
  * Created by PDT on 25.08.2016.
  */
 class CursorLayout @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null):
-    FrameLayout(context, attrs) {
+    FrameLayout(context, attrs), PointerTarget {
     var cursorEnabled: Boolean
         get() = !willNotDraw()
         set(value) {
+            if (value == cursorEnabled) return
+            // the page must not keep a press or a hover whose end can no longer reach the cursor
+            if (!value) cursorDrawerDelegate.cancelActiveGestures()
             setWillNotDraw(!value)
         }
     lateinit var cursorDrawerDelegate: CursorDrawerDelegate
@@ -43,7 +48,7 @@ class CursorLayout @JvmOverloads constructor(context: Context, attrs: AttributeS
             return
         }
         setWillNotDraw(false)
-        cursorDrawerDelegate = CursorDrawerDelegate(context, this)
+        cursorDrawerDelegate = CursorDrawerDelegate(context, this, this)
         cursorDrawerDelegate.init()
     }
 
@@ -83,6 +88,16 @@ class CursorLayout @JvmOverloads constructor(context: Context, attrs: AttributeS
 
         return super.dispatchGenericMotionEvent(event)
     }
+
+    override fun dispatchSyntheticTouch(event: MotionEvent): Boolean = dispatchTouchEvent(event)
+
+    /** `super`: the hover and wheel events of the cursor go to the page, not to the D-pad adapter */
+    override fun dispatchSyntheticGenericMotion(event: MotionEvent): Boolean =
+        super.dispatchGenericMotionEvent(event)
+
+    /** WebView scrolls by the scroll factor of the system for one wheel click */
+    override val wheelScrollFactor: Float
+        get() = ViewConfigurationCompat.getScaledVerticalScrollFactor(ViewConfiguration.get(context), context)
 
     override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)

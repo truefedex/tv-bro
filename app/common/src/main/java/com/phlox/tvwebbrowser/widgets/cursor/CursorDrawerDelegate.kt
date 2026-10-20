@@ -3,66 +3,134 @@ package com.phlox.tvwebbrowser.widgets.cursor
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.graphics.Point
 import android.graphics.PointF
-import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
-import android.os.SystemClock
-import android.util.Log
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
-import com.phlox.tvwebbrowser.utils.Utils
 
-class CursorDrawerDelegate(val context: Context, val surface: View) {
-    private var cursorRadius: Int = 0
-    private var cursorRadiusPressed: Int = 0
+/**
+ * The virtual cursor: D-pad key handling, movement, visibility timing, press and grab state.
+ * The concrete work goes to collaborators: [CursorRenderer] (drawing), a [PointerEmulator] (the
+ * synthetic click/drag stream: a finger or a mouse, see [pointerMode]), [CursorScroller] (scrolling
+ * at the edges, including the scroll hack) and [PinchZoomGesture].
+ *
+ * [surface] is the view the cursor is drawn over and moves in; synthetic events go to [target].
+ */
+class CursorDrawerDelegate(val context: Context, val surface: View, private val target: PointerTarget) {
+    private val touchEmulator = TouchEmulator(target)
+    private val mouseEmulator = MouseEmulator(target)
+    private val renderer = CursorRenderer(context)
+    private val scroller = CursorScroller(surface, touchEmulator)
+    private val pinchZoom = PinchZoomGesture(surface, target)
+
+    /** The emulator [pointerMode] selects; every synthetic pointer event of the cursor goes through it */
+    private var pointer: PointerEmulator = touchEmulator
+
+    /**
+     * How the cursor talks to the page, a finger or a mouse. The engine sets it (a mouse for pages
+     * in the desktop view). Switching it ends the gesture in flight first.
+     */
+    var pointerMode: PointerMode = PointerMode.TOUCH
+        set(value) {
+            if (field == value) return
+            // the stream in flight belongs to the old emulator: it is closed before the swap
+            cancelActiveGestures()
+            field = value
+            pointer = if (value == PointerMode.MOUSE) mouseEmulator else touchEmulator
+            scroller.pointer = pointer
+        }
+
     private var cursorRadiusAnimationMultiplier: Float = 1f
     /** Pixels/sec cap baseline from display width (see [init]); scaled by [Config.cursorMaxSpeedPercent]. */
     private var maxSpeedBaselinePx: Float = 0f
     private var scrollStartPadding = 100
-    private var cursorStrokeWidth: Float = 0f
     private val cursorDirection = Point(0, 0)
     val cursorPosition = PointF(0f, 0f)
     private val cursorSpeed = PointF(0f, 0f)
-    private val paint = Paint()
     private var lastCursorUpdate = System.currentTimeMillis() - CURSOR_DISAPPEAR_TIMEOUT
     private var dpadCenterPressed = false
-    internal var tmpPointF = PointF()
+    /**
+     * The click key is held but the mouse press is not sent yet (only in [PointerMode.MOUSE]). A mouse
+     * cannot cancel a press: its release is a click, and GeckoView keeps the pressed element `:active`
+     * after a cancel. So the press waits for the cursor to move (a drag) or the key to go up (a
+     * click), and a long press, which opens the menu of the cursor, leaves nothing in the page.
+     */
+    private var mousePressPending = false
+    private val tmpPointF = PointF()
     var callback: Callback? = null
-    var customScrollCallback: CustomScrollCallback? = null
+    var customScrollCallback: CustomScrollCallback?
+        get() = scroller.customScrollCallback
+        set(value) {
+            scroller.customScrollCallback = value
+        }
     private val cursorHideRunnable = Runnable { surface.invalidate() }
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var scrollHackStarted = false
-    private val scrollHackCoords = PointF()
-    private val scrollHackActiveRect = Rect()
     private var grabMode = false
         set(value) {
             if (field == value) return
             field = value
             callback?.onGrabModeChanged(value)
         }
-    private var downTime: Long = 0L
 
     //handle long press
     private val longPressRunnable = Runnable {
-        // End the synthetic finger stream before clearing state. Otherwise WebView still has an
+        // End the synthetic pointer stream before clearing state. Otherwise the page still has an
         // active pointer while dpadCenterPressed is false — scroll-hack or the next frame can inject
         // another ACTION_DOWN, which yields ACTION_CANCEL + ACTION_DOWN and a spurious tap.
         if (dpadCenterPressed) {
-            dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_CANCEL)
-            dpadCenterPressed = false
+            endPress(cancel = true)
+            if (pointerMode == PointerMode.MOUSE && target.contextClickOnLongPress) {
+                pointer.contextClick(cursorPosition.x, cursorPosition.y)
+            }
         }
         surface.keyDispatcherState.reset(this@CursorDrawerDelegate)
         grabMode = false
         callback?.onLongPress(cursorPosition.x.toInt(), cursorPosition.y.toInt())
+    }
+
+    /** The click key went down: a finger touches at once, a mouse waits (see [mousePressPending]) */
+    private fun startPress() {
+        dpadCenterPressed = true
+        if (pointerMode == PointerMode.MOUSE) {
+            mousePressPending = true
+            // A mouse hovers where it presses. The cursor may not have moved since the page loaded,
+            // and a long press needs the page to know the element under it well before the menu
+            // asks (WebView finds the link of the menu from the last hovered element).
+            pointer.move(cursorPosition.x, cursorPosition.y, false)
+        } else {
+            pointer.press(cursorPosition.x, cursorPosition.y)
+        }
+    }
+
+    /** Sends the mouse press that waited, at the point where the key went down */
+    private fun flushPendingPress(x: Float, y: Float) {
+        if (mousePressPending) {
+            mousePressPending = false
+            pointer.press(x, y)
+        }
+    }
+
+    /** Releases (a click) or cancels the press; a mouse press that did not start is clicked or dropped */
+    private fun endPress(cancel: Boolean) {
+        if (!dpadCenterPressed) return
+        dpadCenterPressed = false
+        if (mousePressPending) {
+            mousePressPending = false
+            if (!cancel) {
+                pointer.press(cursorPosition.x, cursorPosition.y)
+                pointer.release(cursorPosition.x, cursorPosition.y)
+            }
+        } else if (cancel) {
+            pointer.cancel(cursorPosition.x, cursorPosition.y)
+        } else {
+            pointer.release(cursorPosition.x, cursorPosition.y)
+        }
     }
 
     private val isCursorDisappear: Boolean
@@ -86,29 +154,47 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     }
 
     fun init() {
-        paint.isAntiAlias = true
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val display = wm.defaultDisplay
         val displaySize = Point()
-        display.getSize(displaySize)
-        cursorStrokeWidth = (displaySize.x / 400).toFloat()
-        cursorRadius = displaySize.x / 100
-        cursorRadiusPressed = cursorRadius - Utils.D2P(context, 5f).toInt()
+        @Suppress("DEPRECATION")
+        wm.defaultDisplay.getSize(displaySize)
         maxSpeedBaselinePx = (displaySize.x / 25).toFloat()
         scrollStartPadding = displaySize.x / 15
     }
 
     fun onSizeChanged(w: Int, h: Int, ow: Int, oh: Int) {
         cursorPosition.set(w / 2.0f, h / 2.0f)
-        scrollHackActiveRect.set(0, 0, surface.width, surface.height)
-        scrollHackActiveRect.inset(SCROLL_HACK_PADDING, SCROLL_HACK_PADDING)
+        scroller.onSizeChanged(w, h)
         scheduleCursorHide()
     }
 
     /** Shows the cursor at the point of the surface (kept inside it) */
     fun moveTo(x: Float, y: Float) {
         cursorPosition.set(bound(x, 0f, (surface.width - 1).toFloat()), bound(y, 0f, (surface.height - 1).toFloat()))
+        if (!dpadCenterPressed) {
+            // a mouse hovers the new place, a finger in the air reports nothing
+            pointer.move(cursorPosition.x, cursorPosition.y, false)
+        }
         animateAppearing()
+    }
+
+    /**
+     * Ends everything the page still believes is in flight (the press, the scroll hack, the hover
+     * of a mouse) and stops the movement. Called when the cursor is turned off or its [pointerMode]
+     * changes: from then on the key up events can no longer reach the cursor, so without this the
+     * page would keep a stuck pointer. The grab mode is left as it is.
+     */
+    fun cancelActiveGestures() {
+        surface.removeCallbacks(longPressRunnable)
+        surface.removeCallbacks(cursorUpdateRunnable)
+        endPress(cancel = true)
+        scroller.cancelScrollHack()
+        pointer.detach()
+        cursorDirection.set(0, 0)
+        cursorSpeed.set(0f, 0f)
+        // null while the view is not attached to a window
+        surface.keyDispatcherState?.reset(this)
+        surface.postInvalidate()
     }
 
     fun canHandleBackNavigation(): Boolean {
@@ -122,7 +208,6 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     }
 
     fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        //Log.d(TAG, "dispatchKeyEvent: $event")
         when (event.keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
                 if (event.action == KeyEvent.ACTION_DOWN) {
@@ -195,7 +280,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
                 // [DPADNavigationEventsAdapter] may emit several selection key codes for one physical
                 // click; each is a distinct KeyEvent so keyDispatcherState.isTracking is per-key.
-                // Map them to a single touch DOWN/UP stream.
+                // Map them to a single pointer press/release stream.
                 if (event.action == KeyEvent.ACTION_DOWN &&
                     event.repeatCount == 0 &&
                     !surface.keyDispatcherState.isTracking(event)
@@ -206,8 +291,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
                     } else {
                         surface.keyDispatcherState.startTracking(event, this)
                         if (!isCursorDisappear && !dpadCenterPressed) {
-                            dpadCenterPressed = true
-                            dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_DOWN)
+                            startPress()
                             surface.postInvalidate()
                             surface.postDelayed(longPressRunnable, LONG_PRESS_TIMEOUT)
                         }
@@ -222,10 +306,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
                         surface.postInvalidate()
                         scheduleCursorHide()
                     } else {
-                        if (dpadCenterPressed) {
-                            dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
-                            dpadCenterPressed = false
-                        }
+                        endPress(cancel = false)
                         surface.postInvalidate()
                     }
                 }
@@ -234,33 +315,6 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             }
         }
         return false
-    }
-
-    private fun dispatchMotionEvent(x: Float, y: Float, action: Int, pointerId: Int = 0) {
-        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
-            downTime = SystemClock.uptimeMillis()
-        }
-        val eventTime = SystemClock.uptimeMillis()
-        val properties = arrayOfNulls<MotionEvent.PointerProperties>(1)
-        val pp1 = MotionEvent.PointerProperties()
-        pp1.id = pointerId
-        pp1.toolType = MotionEvent.TOOL_TYPE_FINGER
-        properties[0] = pp1
-        val pointerCoords = arrayOfNulls<MotionEvent.PointerCoords>(1)
-        val pc1 = MotionEvent.PointerCoords()
-        pc1.x = x
-        pc1.y = y
-        pc1.pressure = 1f
-        pc1.size = 1f
-        pointerCoords[0] = pc1
-        val motionEvent = MotionEvent.obtain(downTime, eventTime,
-            action, 1, properties,
-            pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0)
-        try {
-            surface.dispatchTouchEvent(motionEvent)
-        } finally {
-            motionEvent.recycle()
-        }
     }
 
     private fun handleDirectionKeyEvent(event: KeyEvent, x: Int, y: Int, keyDown: Boolean) {
@@ -275,51 +329,11 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         } else {
             surface.keyDispatcherState.handleUpEvent(event)
             cursorSpeed.set(0f, 0f)
-            if (scrollHackStarted) {
-                dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_CANCEL)
-                scrollHackStarted = false
-            }
+            scroller.cancelScrollHack()
         }
 
         cursorDirection.set(if (x == UNCHANGED) cursorDirection.x else x, if (y == UNCHANGED) cursorDirection.y else y)
     }
-
-    private fun scrollWebViewBy(scrollX: Int, scrollY: Int) {
-        if (scrollX == 0 && scrollY == 0) {
-            return
-        }
-
-        if ((scrollX != 0 && surface.canScrollHorizontally(scrollX)) || (scrollY != 0 && surface.canScrollVertically(scrollY))) {
-            surface.scrollTo(surface.scrollX + scrollX, surface.scrollY + scrollY)
-        } else if (customScrollCallback != null && customScrollCallback?.onScroll(scrollX, scrollY) == true) {
-            return
-        } else if (USE_SCROLL_HACK && !dpadCenterPressed) {
-            var justStarted = false
-            if (!scrollHackStarted) {
-                scrollHackCoords.set(
-                    bound(cursorPosition.x, scrollHackActiveRect.left.toFloat(), scrollHackActiveRect.right.toFloat()),
-                    bound(cursorPosition.y, scrollHackActiveRect.top.toFloat(), scrollHackActiveRect.bottom.toFloat()))
-                dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_DOWN)
-                scrollHackStarted = true
-                justStarted = true
-            }
-            scrollHackCoords.x -= scrollX
-            scrollHackCoords.y -= scrollY
-            if (scrollHackCoords.x < scrollHackActiveRect.left || scrollHackCoords.x >= scrollHackActiveRect.right ||
-                scrollHackCoords.y < scrollHackActiveRect.top || scrollHackCoords.y >= scrollHackActiveRect.bottom) {
-                scrollHackCoords.x += scrollX
-                scrollHackCoords.y += scrollY
-                dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_CANCEL)
-                scrollHackStarted = false
-                if (!justStarted) {
-                    scrollWebViewBy(scrollX, scrollY)
-                }
-                return
-            }
-            dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_MOVE)
-        }
-    }
-
 
     private fun bound(value: Float, max: Float): Float {
         return if (value > max) {
@@ -343,28 +357,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
 
     fun dispatchDraw(canvas: Canvas) {
         if (grabMode || !isCursorDisappear) {
-            val cx = cursorPosition.x
-            val cy = cursorPosition.y
-            val radius = if (dpadCenterPressed) cursorRadiusPressed else
-                    (cursorRadius * cursorRadiusAnimationMultiplier)
-
-            paint.color = when {
-                grabMode -> Color.argb(128, 200, 200, 255)
-                else -> Color . argb (128, 255, 255, 255)
-            }
-            paint.style = Paint.Style.FILL
-            canvas.drawCircle(cx, cy, radius.toFloat(), paint)
-
-            paint.color = Color.GRAY
-            paint.strokeWidth = cursorStrokeWidth
-            paint.style = Paint.Style.STROKE
-            canvas.drawCircle(cx, cy, radius.toFloat(), paint)
-
-            if (grabMode) {
-                val halfRadius = radius.toFloat() / 2
-                canvas.drawLine(cx - halfRadius, cy, cx + halfRadius, cy, paint)
-                canvas.drawLine(cx, cy - halfRadius, cx, cy + halfRadius, paint)
-            }
+            renderer.draw(canvas, cursorPosition, dpadCenterPressed, grabMode, cursorRadiusAnimationMultiplier)
         }
     }
 
@@ -374,7 +367,8 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     }
 
     fun exitGrabMode() {
-        dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
+        // the grab mode holds no press of its own: this UP is what it has always sent, as a finger
+        touchEmulator.release(cursorPosition.x, cursorPosition.y)
         dpadCenterPressed = false
         grabMode = false
         surface.postInvalidate()
@@ -391,16 +385,12 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
             val cfg = AppContext.provideConfig()
             val speedCap = maxSpeedBaselinePx * (cfg.cursorMaxSpeedPercent / 100f)
             val accelerationFactor = 0.05f * (cfg.cursorAccelerationPercent / 100f) * dTime
-            //float decelerationFactor = 1 - Math.min(0.5f, 0.005f * dTime);
-            cursorSpeed.set(bound(cursorSpeed.x/* * decelerationFactor*/ + bound(cursorDirection.x.toFloat(), 1f) * accelerationFactor, speedCap),
-                bound(cursorSpeed.y/* * decelerationFactor*/ + bound(cursorDirection.y.toFloat(), 1f) * accelerationFactor, speedCap))
+            cursorSpeed.set(bound(cursorSpeed.x + bound(cursorDirection.x.toFloat(), 1f) * accelerationFactor, speedCap),
+                bound(cursorSpeed.y + bound(cursorDirection.y.toFloat(), 1f) * accelerationFactor, speedCap))
             if (Math.abs(cursorSpeed.x) < 0.1f) cursorSpeed.x = 0f
             if (Math.abs(cursorSpeed.y) < 0.1f) cursorSpeed.y = 0f
             if (cursorDirection.x == 0 && cursorDirection.y == 0 && cursorSpeed.x == 0f && cursorSpeed.y == 0f) {
-                if (scrollHackStarted) {
-                    dispatchMotionEvent(scrollHackCoords.x, scrollHackCoords.y, MotionEvent.ACTION_CANCEL)
-                    scrollHackStarted = false
-                }
+                scroller.cancelScrollHack()
                 scheduleCursorHide()
                 return
             }
@@ -438,13 +428,16 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
                 }
             }
             if (dx != 0 || dy != 0) {
-                scrollWebViewBy(dx, dy)
+                // The scroll hack stays off while "click" is held (it would open a second synthetic
+                // touch stream on top of the drag). A mouse ignores it: its wheel is no gesture.
+                scroller.scrollBy(dx, dy, cursorPosition, allowScrollHack = !dpadCenterPressed)
             }
-            // Touch MOVE only while "click" is held (scroll-hack uses its own touch at scrollHackCoords).
-            if (dpadCenterPressed &&
-                (tmpPointF.x != cursorPosition.x || tmpPointF.y != cursorPosition.y)
-            ) {
-                dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_MOVE)
+            // A finger reports a move only while "click" is held (the scroll hack runs its own
+            // stream), a mouse hovers the rest of the time
+            if (tmpPointF.x != cursorPosition.x || tmpPointF.y != cursorPosition.y) {
+                // a drag starts where the key went down
+                flushPendingPress(tmpPointF.x, tmpPointF.y)
+                pointer.move(cursorPosition.x, cursorPosition.y, dpadCenterPressed)
             }
 
             surface.invalidate()
@@ -453,11 +446,11 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
     }
 
     fun tryZoomIn() {
-        generateZoomGesture(true)
+        pinchZoom.start(zoomIn = true)
     }
 
     fun tryZoomOut() {
-        generateZoomGesture(false)
+        pinchZoom.start(zoomIn = false)
     }
 
     fun animateAppearing() {
@@ -473,199 +466,17 @@ class CursorDrawerDelegate(val context: Context, val surface: View) {
         animator.start()
     }
 
-    //https://stackoverflow.com/questions/11523423/how-to-generate-zoom-pinch-gesture-for-testing-for-android
-    var pinchZoomStartTime = 0L
-    val pinchZoomDuration = 1000
-    var pinchZoomIn = true
-    val zoomFactor = 0.1f
-    private fun generateZoomGesture(pinchZoomIn: Boolean) {
-        if (pinchZoomStartTime != 0L) {
-            return
-        }
-        this.pinchZoomIn = pinchZoomIn
-        this.pinchZoomStartTime = System.currentTimeMillis()
-        val deltaX = zoomFactor / 2f * surface.height
-        val deltaY = zoomFactor / 2f * surface.height
-        val deltaX2 = deltaX / 2f
-        val deltaY2 = deltaY / 2f
-        val startPoint1: PointF = if (pinchZoomIn) {
-            PointF(surface.width / 2f - deltaX2, surface.height / 2f - deltaY2)
-        } else {
-            PointF(surface.width / 2f - deltaX, surface.height / 2f - deltaY)
-        }
-        val startPoint2: PointF = if (pinchZoomIn) {
-            PointF(surface.width / 2f + deltaX2, surface.height / 2f + deltaY2)
-        } else {
-            PointF(surface.width / 2f + deltaX, surface.height / 2f + deltaY)
-        }
-        var event: MotionEvent?
-        val eventX1: Float = startPoint1.x
-        val eventY1: Float = startPoint1.y
-        val eventX2: Float = startPoint2.x
-        val eventY2: Float = startPoint2.y
-
-        // specify the property for the two touch points
-        val properties = arrayOfNulls<MotionEvent.PointerProperties>(2)
-        val pp1 = MotionEvent.PointerProperties()
-        pp1.id = 0
-        pp1.toolType = MotionEvent.TOOL_TYPE_FINGER
-        val pp2 = MotionEvent.PointerProperties()
-        pp2.id = 1
-        pp2.toolType = MotionEvent.TOOL_TYPE_FINGER
-        properties[0] = pp1
-        properties[1] = pp2
-
-        //specify the coordinations of the two touch points
-        //NOTE: you MUST set the pressure and size value, or it doesn't work
-        val pointerCoords = arrayOfNulls<MotionEvent.PointerCoords>(2)
-        val pc1 = MotionEvent.PointerCoords()
-        pc1.x = eventX1
-        pc1.y = eventY1
-        pc1.pressure = 1f
-        pc1.size = 1f
-        val pc2 = MotionEvent.PointerCoords()
-        pc2.x = eventX2
-        pc2.y = eventY2
-        pc2.pressure = 1f
-        pc2.size = 1f
-        pointerCoords[0] = pc1
-        pointerCoords[1] = pc2
-
-        //////////////////////////////////////////////////////////////
-        // events sequence of zoom gesture
-        // 1. send ACTION_DOWN event of one start point
-        // 2. send ACTION_POINTER_2_DOWN of two start points
-        // 3. send ACTION_MOVE of two middle points
-        // 4. repeat step 3 with updated middle points (x,y),
-        //      until reach the end points
-        // 5. send ACTION_POINTER_2_UP of two end points
-        // 6. send ACTION_UP of one end point
-        //////////////////////////////////////////////////////////////
-
-        // step 1
-        event = MotionEvent.obtain(
-            pinchZoomStartTime, pinchZoomStartTime,
-            MotionEvent.ACTION_DOWN, 1, properties,
-            pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
-        )
-        surface.dispatchTouchEvent(event)
-
-        //step 2
-        event = MotionEvent.obtain(
-            pinchZoomStartTime, pinchZoomStartTime,
-            MotionEvent.ACTION_POINTER_2_DOWN, 2,
-            properties, pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
-        )
-        surface.dispatchTouchEvent(event)
-
-        surface.post(pinchZoomRunnable)
-    }
-
     fun hideCursor() {
-        if (dpadCenterPressed) {
-            dispatchMotionEvent(cursorPosition.x, cursorPosition.y, MotionEvent.ACTION_UP)
-            dpadCenterPressed = false
-        }
+        // a press already in the page is released as before, a mouse press that waited is dropped
+        endPress(cancel = mousePressPending)
         grabMode = false
         lastCursorUpdate = System.currentTimeMillis() - CURSOR_DISAPPEAR_TIMEOUT
         surface.postInvalidate()
     }
 
-    private val pinchZoomRunnable: Runnable by lazy {
-        object : Runnable {
-            override fun run() {
-                if (pinchZoomStartTime == 0L) {
-                    return
-                }
-                val deltaX = zoomFactor / 2 * surface.height
-                val deltaY = zoomFactor / 2 * surface.height
-                val deltaX2 = deltaX / 2
-                val deltaY2 = deltaY / 2
-                val startPoint1: PointF = if (pinchZoomIn) {
-                    PointF(surface.width / 2f - deltaX2, surface.height / 2f - deltaY2)
-                } else {
-                    PointF(surface.width / 2f - deltaX, surface.height / 2f - deltaY)
-                }
-                val startPoint2: PointF = if (pinchZoomIn) {
-                    PointF(surface.width / 2f + deltaX2, surface.height / 2f + deltaY2)
-                } else {
-                    PointF(surface.width / 2f + deltaX, surface.height / 2f + deltaY)
-                }
-                val endPoint1: PointF = if (pinchZoomIn) {
-                    PointF(surface.width / 2f - deltaX, surface.height / 2f - deltaY)
-                } else {
-                    PointF(surface.width / 2f - deltaX2, surface.height / 2f - deltaY2)
-                }
-                val endPoint2: PointF = if (pinchZoomIn) {
-                    PointF(surface.width / 2f + deltaX, surface.height / 2f + deltaY)
-                } else {
-                    PointF(surface.width / 2f + deltaX2, surface.height / 2f + deltaY2)
-                }
-
-                val properties = arrayOfNulls<MotionEvent.PointerProperties>(2)
-                val pp1 = MotionEvent.PointerProperties()
-                pp1.id = 0
-                pp1.toolType = MotionEvent.TOOL_TYPE_FINGER
-                val pp2 = MotionEvent.PointerProperties()
-                pp2.id = 1
-                pp2.toolType = MotionEvent.TOOL_TYPE_FINGER
-                properties[0] = pp1
-                properties[1] = pp2
-                val pointerCoords = arrayOfNulls<MotionEvent.PointerCoords>(2)
-                val pc1 = MotionEvent.PointerCoords()
-                val pc2 = MotionEvent.PointerCoords()
-                val now = System.currentTimeMillis()
-                if (now - pinchZoomStartTime < pinchZoomDuration) {
-                    val progress = (now - pinchZoomStartTime).toFloat() / pinchZoomDuration
-                    //step 3, 4
-                    // update the move events
-                    pc1.x = startPoint1.x + (endPoint1.x - startPoint1.x) * progress
-                    pc1.y = startPoint1.y + (endPoint1.y - startPoint1.y) * progress
-                    pc2.x = startPoint2.x + (endPoint2.x - startPoint2.x) * progress
-                    pc2.y = startPoint2.y + (endPoint2.y - startPoint2.y) * progress
-                    pointerCoords[0] = pc1
-                    pointerCoords[1] = pc2
-                    val event = MotionEvent.obtain(
-                        pinchZoomStartTime, now,
-                        MotionEvent.ACTION_MOVE, 2, properties,
-                        pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
-                    )
-                    surface.dispatchTouchEvent(event)
-                    surface.post(pinchZoomRunnable)
-                } else {
-                    //step 5
-                    pc1.x = endPoint1.x
-                    pc1.y = endPoint1.y
-                    pc2.x = endPoint2.x
-                    pc2.y = endPoint2.y
-                    pointerCoords[0] = pc1
-                    pointerCoords[1] = pc2
-                    var event = MotionEvent.obtain(
-                        pinchZoomStartTime, now,
-                        MotionEvent.ACTION_POINTER_2_UP, 2, properties,
-                        pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
-                    )
-                    surface.dispatchTouchEvent(event)
-
-                    // step 6
-                    event = MotionEvent.obtain(
-                        pinchZoomStartTime, now,
-                        MotionEvent.ACTION_UP, 1, properties,
-                        pointerCoords, 0, 0, 1f, 1f, 0, 0, 0, 0
-                    )
-                    surface.dispatchTouchEvent(event)
-                    pinchZoomStartTime = 0
-                }
-            }
-        }
-    }
-
     companion object {
-        private val TAG = CursorDrawerDelegate::class.java.simpleName
         private const val UNCHANGED = Integer.MIN_VALUE
         private const val CURSOR_DISAPPEAR_TIMEOUT = 5000
-        private const val USE_SCROLL_HACK = true
-        private const val SCROLL_HACK_PADDING = 300
         //100ms more to let underlying view handle long press first
         //idea to let geckoview handle long press first (and receive ContentDelegate.onContextMenu callback)
         //and if it doesn't handle it, then we handle it as long press

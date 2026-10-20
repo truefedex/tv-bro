@@ -2,4 +2,5 @@
 
 -keepclassmembers class org.mozilla.geckoview.** {
     *** mDisplay;
+    *** sTreatMouseAsTouch;
 }

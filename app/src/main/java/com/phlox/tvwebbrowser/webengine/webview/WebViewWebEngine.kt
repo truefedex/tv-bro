@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
+import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 
 
 class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, SiteViewSupport,
@@ -68,7 +69,13 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         set(value) {
             field = value
             webView?.setDesktopView(value)
+            applyPointerMode()
         }
+
+    /** The cursor is a mouse for pages in the desktop view, a finger for the others */
+    private fun applyPointerMode() {
+        cursorLayout?.cursorDrawerDelegate?.pointerMode = if (desktopView) PointerMode.MOUSE else PointerMode.TOUCH
+    }
 
     override fun saveState(): Any {
         val bundle = Bundle()
@@ -143,6 +150,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                 addView(webView)
                 cursorDrawerDelegate.callback = this@WebViewWebEngine
             }
+            applyPointerMode()
             //a new cursor surface starts in the cursor mode
             _cursorModes.value = CursorModes()
             this.webView = webView
