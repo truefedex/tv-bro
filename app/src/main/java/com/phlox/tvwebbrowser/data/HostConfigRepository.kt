@@ -6,7 +6,7 @@ import com.phlox.tvwebbrowser.model.dao.HostsDao
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Settings of hosts: the popup blocking level, the ads blocking and the favicon file. The looked up
+ * Settings of hosts: the popup blocking level, the ads blocking, the site view and the favicon file. The looked up
  * configs are kept in memory (also the absence of one), so the main thread reads them without the database.
  * Each setting is written to its own column: one writer does not overwrite another's setting.
  */
@@ -17,12 +17,13 @@ class HostConfigRepository(private val dao: HostsDao) {
     private val cache = LruCache<String, Entry>(CACHE_SIZE)
 
     /**
-     * Ads blocking settings of all hosts that have one. Engines ask for them on their own threads
-     * when requests start, before a config of the page's host could be loaded, so all are in memory.
+     * Ads blocking and site view settings of all hosts that have one. Engines ask for them on their own
+     * threads when requests start, before a config of the page's host could be loaded, so all are in memory.
      */
     private val adBlockSettings = ConcurrentHashMap<String, Boolean>()
+    private val desktopViewSettings = ConcurrentHashMap<String, Boolean>()
     @Volatile
-    private var adBlockSettingsLoaded = false
+    private var siteSettingsLoaded = false
 
     /**
      * The config if it was looked up already; null if it was not or the host has none.
@@ -44,17 +45,17 @@ class HostConfigRepository(private val dao: HostsDao) {
         reload(host)
     }
 
-    /** Loads [adBlockSetting]s, once */
-    suspend fun loadAdBlockSettings() {
-        if (adBlockSettingsLoaded) return
-        val stored = dao.adBlockSettings()
+    /** Loads [adBlockSetting]s and [desktopViewSetting]s, once */
+    suspend fun loadSiteSettings() {
+        if (siteSettingsLoaded) return
         //settings changed while loading are newer
-        stored.forEach { adBlockSettings.putIfAbsent(it.hostName, it.adblock) }
-        adBlockSettingsLoaded = true
+        dao.adBlockSettings().forEach { adBlockSettings.putIfAbsent(it.hostName, it.adblock) }
+        dao.desktopViewSettings().forEach { desktopViewSettings.putIfAbsent(it.hostName, it.desktopView) }
+        siteSettingsLoaded = true
     }
 
     /**
-     * The ads blocking setting of the host; null if it has none (or [loadAdBlockSettings] was not done yet).
+     * The ads blocking setting of the host; null if it has none (or [loadSiteSettings] was not done yet).
      * Can be called from any thread.
      */
     fun adBlockSetting(host: String): Boolean? = adBlockSettings[host]
@@ -66,6 +67,22 @@ class HostConfigRepository(private val dao: HostsDao) {
     suspend fun setAdBlock(host: String, adblock: Boolean?) {
         if (adblock == null) adBlockSettings.remove(host) else adBlockSettings[host] = adblock
         dao.setAdBlock(host, adblock)
+        reload(host)
+    }
+
+    /**
+     * The site view setting of the host (true: desktop); null if it has none (or [loadSiteSettings] was
+     * not done yet). Can be called from any thread.
+     */
+    fun desktopViewSetting(host: String): Boolean? = desktopViewSettings[host]
+
+    /**
+     * Sets the site view of the host, null to follow the default. [desktopViewSetting] gives the new value
+     * right away, before the write is done.
+     */
+    suspend fun setDesktopView(host: String, desktopView: Boolean?) {
+        if (desktopView == null) desktopViewSettings.remove(host) else desktopViewSettings[host] = desktopView
+        dao.setDesktopView(host, desktopView)
         reload(host)
     }
 

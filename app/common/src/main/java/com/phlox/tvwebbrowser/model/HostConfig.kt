@@ -20,6 +20,9 @@ class HostConfig(
     var favicon: String? = null
     /** Ads blocking on this host; null if it follows the global setting */
     var adblock: Boolean? = null
+    /** Pages of this host load as on a desktop computer (true) or a phone (false); null if it follows the default */
+    @ColumnInfo(name = "desktop_view")
+    var desktopView: Boolean? = null
 
     companion object {
         const val POPUP_BLOCK_NONE = 0

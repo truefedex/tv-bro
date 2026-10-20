@@ -128,7 +128,7 @@ class BrowserController : ActiveModel() {
             }
         }
         //engines ask for them synchronously as soon as pages start loading
-        hostConfigs.loadAdBlockSettings()
+        hostConfigs.loadSiteSettings()
         //tabs of the previous activity instance may be still saving
         writes.awaitPending()
         tabsStates.replaceAll(data.tabs.load(config.incognitoMode).map(BrowserTab::fromEntity))

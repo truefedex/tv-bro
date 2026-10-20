@@ -6,6 +6,7 @@ import androidx.room.Room
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.PairedDevice
 import com.phlox.tvwebbrowser.model.TabEntity
+import com.phlox.tvwebbrowser.model.dao.HostsDao
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -120,7 +121,7 @@ class AppDatabaseMigrationTest {
         assertEquals(1, runBlocking { db.historyDao().count() })
 
         val sqlDb = db.openHelper.readableDatabase
-        assertEquals(25, sqlDb.version)
+        assertEquals(26, sqlDb.version)
         sqlDb.query("PRAGMA table_info(tabs)").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
             val columns = ArrayList<String>()
@@ -320,5 +321,28 @@ class AppDatabaseMigrationTest {
         val newTab = TabEntity(url = "https://new.com/")
         val id = runBlocking { db.tabsDao().insert(newTab) }
         assertEquals(6L, id)
+    }
+
+    @Test
+    fun migrate25To26AddsTheSiteViewOfHosts() {
+        createDatabase(25) { db ->
+            db.insert("hosts", null, ContentValues().apply {
+                put("id", 1L)
+                put("host_name", "example.com")
+                put("popup_block_level", 0)
+                put("favicon", "example.png")
+                put("adblock", 0)
+            })
+        }
+
+        val db = openMigrated()
+        val host = runBlocking { db.hostsDao().findByHostName("example.com") }!!
+        assertNull(host.desktopView)
+        assertEquals(0, host.popupBlockLevel)
+        assertEquals("example.png", host.favicon)
+        assertEquals(false, host.adblock)
+        runBlocking { db.hostsDao().setDesktopView("example.com", true) }
+        assertEquals(listOf(HostsDao.DesktopViewSetting("example.com", true)),
+            runBlocking { db.hostsDao().desktopViewSettings() })
     }
 }

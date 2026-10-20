@@ -57,7 +57,7 @@ class HostConfigRepositoryTest {
         db.hostsDao().setAdBlock("b.com", true)
         db.hostsDao().setPopupBlockLevel("c.com", HostConfig.POPUP_BLOCK_NONE)
         assertNull(repository.adBlockSetting("a.com"))
-        repository.loadAdBlockSettings()
+        repository.loadSiteSettings()
         assertEquals(false, repository.adBlockSetting("a.com"))
         assertEquals(true, repository.adBlockSetting("b.com"))
         assertNull(repository.adBlockSetting("c.com"))
@@ -76,6 +76,35 @@ class HostConfigRepositoryTest {
         assertNull(repository.adBlockSetting("a.com"))
         assertNull(db.hostsDao().findByHostName("a.com")!!.adblock)
         assertEquals(emptyList<HostsDao.AdBlockSetting>(), db.hostsDao().adBlockSettings())
+    }
+
+    @Test
+    fun desktopViewSettingsOfAllHostsAreLoaded() = runBlocking {
+        db.hostsDao().setDesktopView("a.com", true)
+        db.hostsDao().setDesktopView("b.com", false)
+        db.hostsDao().setAdBlock("c.com", false)
+        assertNull(repository.desktopViewSetting("a.com"))
+        repository.loadSiteSettings()
+        assertEquals(true, repository.desktopViewSetting("a.com"))
+        assertEquals(false, repository.desktopViewSetting("b.com"))
+        assertNull(repository.desktopViewSetting("c.com"))
+        assertEquals(false, repository.adBlockSetting("c.com"))
+    }
+
+    @Test
+    fun desktopViewSettingIsStoredWithTheOtherSettings() = runBlocking {
+        repository.setAdBlock("a.com", false)
+        repository.setDesktopView("a.com", true)
+        assertEquals(true, repository.desktopViewSetting("a.com"))
+        val stored = db.hostsDao().findByHostName("a.com")!!
+        assertEquals(true, stored.desktopView)
+        assertEquals(false, stored.adblock)
+
+        repository.setDesktopView("a.com", null)
+        assertNull(repository.desktopViewSetting("a.com"))
+        assertNull(db.hostsDao().findByHostName("a.com")!!.desktopView)
+        assertEquals(false, repository.adBlockSetting("a.com"))
+        assertEquals(emptyList<HostsDao.DesktopViewSetting>(), db.hostsDao().desktopViewSettings())
     }
 
     @Test

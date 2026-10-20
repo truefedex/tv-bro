@@ -14,11 +14,20 @@ interface HostsDao {
         val adblock: Boolean
     )
 
+    /** The site view setting of a host that has one */
+    data class DesktopViewSetting(
+        @ColumnInfo(name = "host_name") val hostName: String,
+        @ColumnInfo(name = "desktop_view") val desktopView: Boolean
+    )
+
     @Query("SELECT * FROM hosts WHERE host_name = :name")
     suspend fun findByHostName(name: String): HostConfig?
 
     @Query("SELECT host_name, adblock FROM hosts WHERE adblock IS NOT NULL")
     suspend fun adBlockSettings(): List<AdBlockSetting>
+
+    @Query("SELECT host_name, desktop_view FROM hosts WHERE desktop_view IS NOT NULL")
+    suspend fun desktopViewSettings(): List<DesktopViewSetting>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIfAbsent(item: HostConfig): Long
@@ -31,6 +40,9 @@ interface HostsDao {
 
     @Query("UPDATE hosts SET adblock = :adblock WHERE host_name = :host")
     suspend fun updateAdBlock(host: String, adblock: Boolean?)
+
+    @Query("UPDATE hosts SET desktop_view = :desktopView WHERE host_name = :host")
+    suspend fun updateDesktopView(host: String, desktopView: Boolean?)
 
     @Transaction
     suspend fun setPopupBlockLevel(host: String, level: Int?) {
@@ -48,5 +60,11 @@ interface HostsDao {
     suspend fun setAdBlock(host: String, adblock: Boolean?) {
         insertIfAbsent(HostConfig(host))
         updateAdBlock(host, adblock)
+    }
+
+    @Transaction
+    suspend fun setDesktopView(host: String, desktopView: Boolean?) {
+        insertIfAbsent(HostConfig(host))
+        updateDesktopView(host, desktopView)
     }
 }
