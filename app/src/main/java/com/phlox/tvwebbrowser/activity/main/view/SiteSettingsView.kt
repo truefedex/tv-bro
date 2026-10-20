@@ -143,6 +143,8 @@ class SiteSettingsView @JvmOverloads constructor(
             section.background = AppCompatResources.getDrawable(context, R.drawable.ds_section_bg)
             section.clipToOutline = true
         }
+        //the row is its own section: its states go over the section
+        vb.llClearData.foreground = AppCompatResources.getDrawable(context, R.drawable.ds_menu_row_bg)
         vb.llClearData.updateLayoutParams<MarginLayoutParams> { topMargin = px(R.dimen.ds_phone_sheet_section_gap) }
     }
 
