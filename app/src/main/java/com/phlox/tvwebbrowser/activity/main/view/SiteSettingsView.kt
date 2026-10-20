@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.activity.main.siteViewPosition
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.browser.SiteConnection
 import com.phlox.tvwebbrowser.databinding.ViewSiteSettingsBinding
@@ -16,7 +17,7 @@ import com.phlox.tvwebbrowser.common.R as CommonR
 
 /**
  * The settings of the site of the current page: its host and the state of its connection, ad blocking (On/Off with the ads blocked on
- * the page) and the popup blocking level (with the pop-ups blocked). The TV site panel and the phone
+ * the page), the popup blocking level (with the pop-ups blocked) and the site view (desktop or mobile). The TV site panel and the phone
  * menu sheet show it.
  */
 class SiteSettingsView @JvmOverloads constructor(
@@ -27,6 +28,8 @@ class SiteSettingsView @JvmOverloads constructor(
         fun toggleAdBlock()
         /** Opens the popup blocking levels */
         fun choosePopupBlockLevel()
+        /** Opens the choice of the site view, desktop or mobile; the page reloads */
+        fun chooseSiteView()
     }
 
     var callback: Callback? = null
@@ -40,6 +43,7 @@ class SiteSettingsView @JvmOverloads constructor(
         clipToOutline = true
         vb.llAdBlock.setOnClickListener { callback?.toggleAdBlock() }
         vb.llPopups.setOnClickListener { callback?.choosePopupBlockLevel() }
+        vb.llSiteView.setOnClickListener { callback?.chooseSiteView() }
     }
 
     fun render(state: CurrentTabState) {
@@ -52,6 +56,11 @@ class SiteSettingsView @JvmOverloads constructor(
             .getOrElse(state.popupBlockLevel) { "" }
         vb.tvPopupsCount.text = resources.getQuantityString(R.plurals.blocked_on_page,
             state.blockedPopups, state.blockedPopups)
+        val siteView = if (state.siteViewAvailable) VISIBLE else GONE
+        vb.vSiteViewSeparator.visibility = siteView
+        vb.llSiteView.visibility = siteView
+        vb.tvSiteViewValue.text = resources.getStringArray(R.array.site_views)[siteViewPosition(state.desktopView)]
+        vb.tvSiteViewCaption.setText(if (state.siteViewIsDefault) R.string.site_view_default else R.string.site_view_of_site)
     }
 
     /** "Connection is secure" with a lock, or the warning sign in the danger color and the reason */

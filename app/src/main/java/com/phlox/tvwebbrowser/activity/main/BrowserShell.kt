@@ -119,5 +119,7 @@ interface BrowserShell {
         fun toggleSiteAdBlock()
         /** Lets the user choose the popup blocking level of the current site */
         fun choosePopupBlockLevel()
+        /** Lets the user choose the site view (desktop or mobile) of the current site; the page reloads */
+        fun chooseSiteView()
     }
 }

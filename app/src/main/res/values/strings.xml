@@ -161,6 +161,12 @@
     <string name="refresh_page">Refresh page</string>
     <string name="stop_loading">Stop loading</string>
     <string name="site_settings">Site settings</string>
+    <!-- the row of the site settings: the site view (desktop or mobile) of the site -->
+    <string name="site_view">Site view</string>
+    <string name="site_view_default">Default for all sites</string>
+    <string name="site_view_of_site">Set for this site</string>
+    <!-- the title of the choice of the site view, %s is the host -->
+    <string name="site_view_s">Site view (%s)</string>
     <!-- the setting of the site view of sites without their own -->
     <string name="default_site_view">Default site view</string>
     <!-- how sites are shown: as on a desktop computer or as on a phone (the order is used by the app) -->

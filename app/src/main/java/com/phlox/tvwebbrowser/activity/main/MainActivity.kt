@@ -246,6 +246,19 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         }
     }
 
+    override fun chooseSiteView() {
+        val tab = controller.currentTab.value ?: return
+        val state = controller.currentTabState.value
+        if (state.host.isEmpty()) return
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.site_view_s, state.host))
+            .setSingleChoiceItems(R.array.site_views, siteViewPosition(state.desktopView)) { dialog, position ->
+                controller.setSiteView(tab, desktop = position == SITE_VIEW_DESKTOP)
+                dialog.dismiss()
+            }
+            .show()
+    }
+
     override val commands: BrowserCommands = object : BrowserCommands {
         override fun goBack() {
             if (controller.goBack()) {
