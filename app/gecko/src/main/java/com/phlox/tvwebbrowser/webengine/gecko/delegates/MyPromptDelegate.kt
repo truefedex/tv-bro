@@ -45,10 +45,7 @@ class MyPromptDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Prom
         session: GeckoSession,
         prompt: GeckoSession.PromptDelegate.AlertPrompt
     ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
-        if (webEngine.callback?.isDialogsBlockingEnabled() == true) {
-            webEngine.callback?.onBlockedDialog(true)
-            return GeckoResult.fromValue(prompt.dismiss())
-        }
+        blockScriptDialog(prompt)?.let { return it }
         val activity: Activity = webEngine.callback?.getActivity()
             ?: return GeckoResult.fromValue(prompt.dismiss())
         val builder = AlertDialog.Builder(activity)
@@ -94,10 +91,6 @@ class MyPromptDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Prom
         session: GeckoSession,
         prompt: GeckoSession.PromptDelegate.RepostConfirmPrompt
     ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
-        if (webEngine.callback?.isDialogsBlockingEnabled() == true) {
-            webEngine.callback?.onBlockedDialog(true)
-            return GeckoResult.fromValue(prompt.dismiss())
-        }
         val activity: Activity = webEngine.callback?.getActivity()
             ?: return GeckoResult.fromValue<PromptResponse>(prompt.dismiss())
         val builder: AlertDialog.Builder = AlertDialog.Builder(activity)
@@ -128,10 +121,7 @@ class MyPromptDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Prom
         session: GeckoSession,
         prompt: GeckoSession.PromptDelegate.ButtonPrompt
     ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
-        if (webEngine.callback?.isDialogsBlockingEnabled() == true) {
-            webEngine.callback?.onBlockedDialog(true)
-            return GeckoResult.fromValue(prompt.dismiss())
-        }
+        blockScriptDialog(prompt)?.let { return it }
         val activity: Activity = webEngine.callback?.getActivity()
             ?: return GeckoResult.fromValue<PromptResponse>(prompt.dismiss())
         val builder =
@@ -161,10 +151,7 @@ class MyPromptDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Prom
         session: GeckoSession,
         prompt: GeckoSession.PromptDelegate.TextPrompt
     ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
-        if (webEngine.callback?.isDialogsBlockingEnabled() == true) {
-            webEngine.callback?.onBlockedDialog(true)
-            return GeckoResult.fromValue(prompt.dismiss())
-        }
+        blockScriptDialog(prompt)?.let { return it }
         val activity: Activity = webEngine.callback?.getActivity()
             ?: return GeckoResult.fromValue<PromptResponse>(prompt.dismiss())
         val builder = AlertDialog.Builder(activity)
@@ -253,10 +240,6 @@ class MyPromptDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Prom
         session: GeckoSession,
         prompt: GeckoSession.PromptDelegate.ColorPrompt
     ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
-        if (webEngine.callback?.isDialogsBlockingEnabled() == true) {
-            webEngine.callback?.onBlockedDialog(true)
-            return GeckoResult.fromValue(prompt.dismiss())
-        }
         val activity: Activity = webEngine.callback?.getActivity()
             ?: return GeckoResult.fromValue<PromptResponse>(prompt.dismiss())
         val builder = AlertDialog.Builder(activity)
@@ -335,10 +318,6 @@ class MyPromptDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Prom
         session: GeckoSession,
         prompt: GeckoSession.PromptDelegate.DateTimePrompt
     ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
-        if (webEngine.callback?.isDialogsBlockingEnabled() == true) {
-            webEngine.callback?.onBlockedDialog(true)
-            return GeckoResult.fromValue(prompt.dismiss())
-        }
         val activity: Activity = webEngine.callback?.getActivity()
             ?: return GeckoResult.fromValue<PromptResponse>(prompt.dismiss())
         val format: String
@@ -602,6 +581,18 @@ class MyPromptDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Prom
         return super.onAddressSelect(session, request)
     }
 
+    /**
+     * The dialogs blocker stops only the dialogs of page scripts: alert(), confirm() and prompt(),
+     * as WebView does. The pickers of form controls (select, color, date and time) and the
+     * browser's own prompts (resending a form) open on actions of the user.
+     */
+    private fun blockScriptDialog(prompt: BasePrompt): GeckoResult<PromptResponse>? {
+        val callback = webEngine.callback ?: return null
+        if (!callback.isDialogsBlockingEnabled()) return null
+        callback.onBlockedDialog(newTab = false)
+        return GeckoResult.fromValue(prompt.dismiss())
+    }
+
     private fun createStandardDialog(
         builder: AlertDialog.Builder,
         prompt: BasePrompt,
@@ -693,11 +684,6 @@ class MyPromptDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Prom
         prompt: ChoicePrompt,
         res: GeckoResult<PromptResponse>
     ) {
-        if (webEngine.callback?.isDialogsBlockingEnabled() == true) {
-            webEngine.callback?.onBlockedDialog(true)
-            res.complete(prompt.dismiss())
-            return
-        }
         val activity = webEngine.callback?.getActivity()
         if (activity == null) {
             res.complete(prompt.dismiss())
