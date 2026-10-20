@@ -167,6 +167,12 @@
     <string name="site_view_of_site">Set for this site</string>
     <!-- the title of the choice of the site view, %s is the host -->
     <string name="site_view_s">Site view (%s)</string>
+    <!-- the last row of the site settings, and its confirmation; %s is the host -->
+    <string name="clear_site_data">Clear site data…</string>
+    <string name="clear_site_data_caption">Cookies, sign-ins and stored data</string>
+    <string name="clear_site_data_title">Clear the data of %s?</string>
+    <string name="clear_site_data_message">This removes from this device:\n\n• cookies: you will be signed out of the site\n• stored data (local storage, IndexedDB and the like)\n• the cache of the site\n\nThe settings of the site and its history stay.</string>
+    <string name="clear_site_data_failed">Could not clear the site data</string>
     <!-- the setting of the site view of sites without their own -->
     <string name="default_site_view">Default site view</string>
     <!-- how sites are shown: as on a desktop computer or as on a phone (the order is used by the app) -->

@@ -315,6 +315,20 @@ class BrowserControllerEventsTest {
     }
 
     @Test
+    fun clearingSiteDataClearsTheHostAndReloads() {
+        FakeWebEngine.clearedSites.clear()
+        val tab = open("https://www.a.com/page")
+        runBlocking { db.hostsDao().setDesktopView("www.a.com", false) }
+        tab.fakeEngine.log.clear()
+        runBlocking { controller.clearSiteData(tab) }
+        assertEquals(listOf("www.a.com"), FakeWebEngine.clearedSites)
+        assertEquals(listOf("reload"), tab.fakeEngine.log)
+        assertTrue(state.siteDataClearable)
+        //the settings of the site stay
+        assertEquals(false, runBlocking { db.hostsDao().findByHostName("www.a.com") }!!.desktopView)
+    }
+
+    @Test
     fun pageInTheViewOfAnotherHostLoadsAgainOnce() {
         val tab = open("https://a.com/")
         awaitWrite(controller.setSiteView(tab, desktop = false))

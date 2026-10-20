@@ -102,4 +102,11 @@
     <attr name="tbColorDsDanger" format="color" />
     <!-- Behind sheets (32% black) -->
     <attr name="tbColorDsScrim" format="color" />
+    <declare-styleable name="SiteSettingsView">
+        <!-- panel: the TV site panel and the phone site sheet; menu: the site section of the phone menu sheet -->
+        <attr name="siteSettingsVariant" format="enum">
+            <enum name="panel" value="0" />
+            <enum name="menu" value="1" />
+        </attr>
+    </declare-styleable>
 </resources>

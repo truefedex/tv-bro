@@ -30,7 +30,9 @@ data class CurrentTabState(
     /** The site loads in the desktop view */
     val desktopView: Boolean = false,
     /** The site view is the default for all sites, not a setting of this site */
-    val siteViewIsDefault: Boolean = true
+    val siteViewIsDefault: Boolean = true,
+    /** The engine can clear the data of the site */
+    val siteDataClearable: Boolean = false
 )
 
 /** How the page of the current tab came: the site button and the site settings show it */

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 The settings of the site of the current page: its host and connection, ad blocking, pop-up blocking
-and the site view. In the TV site panel the focus does not leave its rows.
+and the site view, and apart at the bottom Clear site data. In the TV site panel the focus does not
+leave its rows.
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -188,7 +189,7 @@ and the site view. In the TV site panel the focus does not leave its rows.
       style="@style/Widget.TVBro.PanelRow"
       android:id="@+id/llSiteView"
       android:nextFocusUp="@+id/llPopups"
-      android:nextFocusDown="@+id/llSiteView"
+      android:nextFocusDown="@+id/llClearData"
       android:nextFocusLeft="@+id/llSiteView"
       android:nextFocusRight="@+id/llSiteView">
 
@@ -236,5 +237,48 @@ and the site view. In the TV site panel the focus does not leave its rows.
     <ImageView
         style="@style/Widget.TVBro.MenuIcon"
         android:src="@drawable/ic_chevron_right" />
+  </LinearLayout>
+
+  <!-- apart at the bottom; not in the menu variant -->
+  <View
+      android:id="@+id/vClearDataSeparator"
+      android:layout_width="match_parent"
+      android:layout_height="@dimen/ds_panel_section_divider"
+      android:background="?attr/tbColorDsLine" />
+
+  <LinearLayout
+      style="@style/Widget.TVBro.PanelRow"
+      android:id="@+id/llClearData"
+      android:nextFocusUp="@+id/llSiteView"
+      android:nextFocusDown="@+id/llClearData"
+      android:nextFocusLeft="@+id/llClearData"
+      android:nextFocusRight="@+id/llClearData">
+
+    <ImageView
+        style="@style/Widget.TVBro.MenuIcon"
+        android:src="@drawable/ic_delete" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/ds_panel_icon_text"
+        android:orientation="vertical">
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="?attr/tbColorDsInk"
+          android:text="@string/clear_site_data" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuCaption"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:text="@string/clear_site_data_caption" />
+    </LinearLayout>
   </LinearLayout>
 </merge>

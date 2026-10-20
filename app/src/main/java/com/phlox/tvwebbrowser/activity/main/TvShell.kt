@@ -503,6 +503,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         override fun choosePopupBlockLevel() = host.choosePopupBlockLevel()
 
         override fun chooseSiteView() = host.chooseSiteView()
+
+        override fun clearSiteData() = host.clearSiteData()
     }
 
     override fun initiateVoiceSearch() = host.commands.startVoiceSearch()

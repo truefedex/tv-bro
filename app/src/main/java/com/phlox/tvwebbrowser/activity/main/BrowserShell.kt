@@ -121,5 +121,7 @@ interface BrowserShell {
         fun choosePopupBlockLevel()
         /** Lets the user choose the site view (desktop or mobile) of the current site; the page reloads */
         fun chooseSiteView()
+        /** Asks whether to clear the cookies, stored data and cache of the current site; the page reloads */
+        fun clearSiteData()
     }
 }

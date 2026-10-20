@@ -151,6 +151,23 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                     }
                 }
 
+                override fun supportsSiteDataClearing(): Boolean = true
+
+                override suspend fun clearSiteData(context: Context, host: String) {
+                    //not the permissions (SITE_DATA has them) and not the history
+                    val flags = StorageController.ClearFlags.COOKIES or StorageController.ClearFlags.DOM_STORAGES or
+                        StorageController.ClearFlags.AUTH_SESSIONS or StorageController.ClearFlags.ALL_CACHES
+                    suspendCoroutine { cont ->
+                        runtime.storageController.clearDataFromHost(host, flags).then({
+                            cont.resume(Unit)
+                            GeckoResult.fromValue(null)
+                        }, {
+                            cont.resumeWithException(it)
+                            GeckoResult.fromValue(null)
+                        })
+                    }
+                }
+
                 override fun onThemeSettingUpdated(value: Config.Theme) {
                     GeckoWebEngine.onThemeSettingUpdated(value)
                 }

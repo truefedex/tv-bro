@@ -30,10 +30,18 @@ class SiteSettingsView @JvmOverloads constructor(
         fun choosePopupBlockLevel()
         /** Opens the choice of the site view, desktop or mobile; the page reloads */
         fun chooseSiteView()
+        /** Asks whether to clear the data of the site; the page reloads */
+        fun clearSiteData()
     }
 
     var callback: Callback? = null
     private val vb = ViewSiteSettingsBinding.inflate(LayoutInflater.from(context), this)
+    /** The site section of the phone menu sheet: without Clear site data */
+    private val menuVariant = context.obtainStyledAttributes(attrs, R.styleable.SiteSettingsView).run {
+        val variant = getInt(R.styleable.SiteSettingsView_siteSettingsVariant, VARIANT_PANEL)
+        recycle()
+        variant == VARIANT_MENU
+    }
 
     /** The first row, ad blocking: it gets the focus when the TV panel opens */
     val firstRow: View get() = vb.llAdBlock
@@ -44,6 +52,7 @@ class SiteSettingsView @JvmOverloads constructor(
         vb.llAdBlock.setOnClickListener { callback?.toggleAdBlock() }
         vb.llPopups.setOnClickListener { callback?.choosePopupBlockLevel() }
         vb.llSiteView.setOnClickListener { callback?.chooseSiteView() }
+        vb.llClearData.setOnClickListener { callback?.clearSiteData() }
     }
 
     fun render(state: CurrentTabState) {
@@ -61,6 +70,13 @@ class SiteSettingsView @JvmOverloads constructor(
         vb.llSiteView.visibility = siteView
         vb.tvSiteViewValue.text = resources.getStringArray(R.array.site_views)[siteViewPosition(state.desktopView)]
         vb.tvSiteViewCaption.setText(if (state.siteViewIsDefault) R.string.site_view_default else R.string.site_view_of_site)
+        val clearData = if (state.siteDataClearable && !menuVariant) VISIBLE else GONE
+        vb.vClearDataSeparator.visibility = clearData
+        vb.llClearData.visibility = clearData
+        //the focus goes through the shown rows only
+        val lastAbove = if (state.siteViewAvailable) vb.llSiteView else vb.llPopups
+        vb.llPopups.nextFocusDownId = if (state.siteViewAvailable) R.id.llSiteView else R.id.llClearData
+        vb.llClearData.nextFocusUpId = lastAbove.id
     }
 
     /** "Connection is secure" with a lock, or the warning sign in the danger color and the reason */
@@ -75,5 +91,10 @@ class SiteSettingsView @JvmOverloads constructor(
         vb.tvConnection.setTypeface(null, if (insecure) Typeface.BOLD else Typeface.NORMAL)
         vb.tvConnectionReason.visibility = if (insecure) VISIBLE else GONE
         if (reason != null) vb.tvConnectionReason.setText(reason)
+    }
+
+    private companion object {
+        const val VARIANT_PANEL = 0
+        const val VARIANT_MENU = 1
     }
 }

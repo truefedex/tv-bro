@@ -146,6 +146,8 @@
     <dimen name="ds_panel_icon_text">16dp</dimen>
     <dimen name="ds_panel_title_icon_text">10dp</dimen>
     <dimen name="ds_panel_header_gap">3dp</dimen>
+    <!-- sets Clear site data apart in the site panel -->
+    <dimen name="ds_panel_section_divider">4dp</dimen>
     <dimen name="ds_size_icon_connection">13dp</dimen>
     <dimen name="ds_panel_connection_icon_text">6dp</dimen>
     <dimen name="ds_panel_value_max_width">140dp</dimen>

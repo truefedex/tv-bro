@@ -23,7 +23,11 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport {
             override suspend fun clearCache(ctx: Context) {}
             override fun onThemeSettingUpdated(value: Config.Theme) {}
             override fun getWebEngineVersionString(): String = "fake"
+            override fun supportsSiteDataClearing(): Boolean = true
+            override suspend fun clearSiteData(context: Context, host: String) { clearedSites += host }
         })
+        /** The hosts whose data was cleared */
+        val clearedSites = ArrayList<String>()
     }
 
     val log = ArrayList<String>()

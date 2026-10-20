@@ -4,6 +4,7 @@ The menu sheet of the phone UI over a scrim: quick buttons (Forward, New tab, In
 the settings of the current site, then History, Bookmarks, Downloads and Settings.
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -75,6 +76,7 @@ the settings of the current site, then History, Bookmarks, Downloads and Setting
 
       <com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
           android:id="@+id/vSiteSettings"
+          app:siteSettingsVariant="menu"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:layout_marginTop="@dimen/ds_phone_sheet_section_gap"

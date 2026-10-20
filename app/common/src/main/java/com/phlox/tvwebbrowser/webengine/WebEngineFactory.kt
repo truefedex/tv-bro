@@ -37,6 +37,15 @@ interface WebEngineProviderCallback {
     fun onViewCreationFailed(activity: Activity, error: Throwable) {}
 
     fun supportsSetting(setting: EngineSpecificSetting): Boolean = false
+
+    /** The engine can clear the data of one site ([clearSiteData]) */
+    fun supportsSiteDataClearing(): Boolean = false
+
+    /**
+     * Removes the cookies (the user is signed out), the stored data (local storage, IndexedDB and the like)
+     * and the cache of the site of [host]. The browser keeps the settings and the history of the site.
+     */
+    suspend fun clearSiteData(context: Context, host: String) {}
 }
 
 data class WebEngineProvider(
@@ -106,6 +115,12 @@ object WebEngineFactory {
 
     suspend fun clearCache(ctx: Context) {
         initializedProvider.callback.clearCache(ctx)
+    }
+
+    fun supportsSiteDataClearing(): Boolean = selectedProvider()?.callback?.supportsSiteDataClearing() ?: false
+
+    suspend fun clearSiteData(context: Context, host: String) {
+        initializedProvider.callback.clearSiteData(context, host)
     }
 
     fun onThemeSettingUpdated(value: Config.Theme) {

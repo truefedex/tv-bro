@@ -29,6 +29,7 @@ import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.TabEngineEvents
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.siteView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -537,6 +538,18 @@ class BrowserController : ActiveModel() {
         return true
     }
 
+    /**
+     * Removes the cookies, the stored data and the cache of the tab's site (its settings and history stay)
+     * and reloads the tab.
+     */
+    suspend fun clearSiteData(tab: BrowserTab) {
+        val host = hostNameOf(tab) ?: return
+        WebEngineFactory.clearSiteData(AppContext.get(), host)
+        if (tab == currentTab.value && tab.isWebEngineCreated) {
+            tab.webEngine.reload()
+        }
+    }
+
     fun changeTab(newTab: BrowserTab) {
         val host = viewHost ?: return
         if (currentTab.value == newTab && newTab.webEngine.getView() != null) return
@@ -653,7 +666,8 @@ class BrowserController : ActiveModel() {
             connection = connectionOf(tab),
             siteViewAvailable = tab.webEngine.siteView != null,
             desktopView = isDesktopView(tab.url),
-            siteViewIsDefault = hostNameOf(tab)?.let { hostConfigs.desktopViewSetting(it) } == null
+            siteViewIsDefault = hostNameOf(tab)?.let { hostConfigs.desktopViewSetting(it) } == null,
+            siteDataClearable = WebEngineFactory.supportsSiteDataClearing()
         )
     }
 

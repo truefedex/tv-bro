@@ -259,6 +259,27 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
             .show()
     }
 
+    override fun clearSiteData() {
+        val tab = controller.currentTab.value ?: return
+        val host = controller.currentTabState.value.host
+        if (host.isEmpty()) return
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.clear_site_data_title, host))
+            .setMessage(R.string.clear_site_data_message)
+            .setPositiveButton(R.string.clear) { _, _ ->
+                lifecycleScope.launch {
+                    try {
+                        controller.clearSiteData(tab)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "clearSiteData", e)
+                        Utils.showToast(this@MainActivity, R.string.clear_site_data_failed)
+                    }
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
     override val commands: BrowserCommands = object : BrowserCommands {
         override fun goBack() {
             if (controller.goBack()) {

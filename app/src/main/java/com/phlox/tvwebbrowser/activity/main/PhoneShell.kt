@@ -378,6 +378,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         override fun choosePopupBlockLevel() = host.choosePopupBlockLevel()
 
         override fun chooseSiteView() = host.chooseSiteView()
+
+        override fun clearSiteData() = host.clearSiteData()
     }
 
     //after the callbacks: properties are initialized in their order

@@ -453,6 +453,12 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     WebViewIncognitoData.deleteData()
                 }
 
+                override fun supportsSiteDataClearing(): Boolean = true
+
+                override suspend fun clearSiteData(context: Context, host: String) {
+                    WebViewSiteData.clear(context, host)
+                }
+
                 override fun onViewCreationFailed(activity: Activity, error: Throwable) {
                     showWebViewNotAvailableDialog(activity)
                 }
