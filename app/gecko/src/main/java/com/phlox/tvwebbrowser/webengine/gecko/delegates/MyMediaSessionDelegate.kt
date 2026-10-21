@@ -10,7 +10,6 @@ class MyMediaSessionDelegate: MediaSession.Delegate {
         super.onActivated(session, mediaSession)
         this.mediaSession = mediaSession
         this.paused = false
-        mediaSession.nextTrack()
     }
 
     override fun onDeactivated(session: GeckoSession, mediaSession: MediaSession) {

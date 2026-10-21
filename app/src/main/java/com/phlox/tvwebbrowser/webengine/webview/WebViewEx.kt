@@ -85,6 +85,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
     private val desktopView = DesktopView(this)
+    private val mediaControls = WebViewMediaControls(this)
 
     interface Callback {
         fun getActivity(): Activity?
@@ -432,6 +433,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 super.onPageStarted(view, url, favicon)
                 Log.d(TAG, "onPageStarted url: $url")
                 currentOriginalUrl = url.toUri()
+                mediaControls.onPageStarted()
                 callback.onPageStarted(url)
             }
 
@@ -440,6 +442,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 Log.d(TAG, "onPageFinished url: $url")
                 callback.onPageFinished(url)
                 evaluateJavascript(getGenericJSInjects(), null)
+                mediaControls.onPageFinished()
             }
 
             override fun onLoadResource(view: WebView, url: String) {
@@ -638,6 +641,9 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         super.draw(canvas)
         return thumbnail
     }
+
+    /** A media key of the remote for the media of the page */
+    fun mediaCommand(command: MediaCommand) = mediaControls.command(command)
 
     fun hideCustomView() {
         webChromeClient_.onHideCustomView()

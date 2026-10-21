@@ -191,19 +191,19 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     }
 
     override fun togglePlayback() {
-        webView?.evaluateJavascript("tvBroTogglePlayback()", null)
+        webView?.mediaCommand(MediaCommand.TOGGLE)
     }
 
     override fun stopPlayback() {
-        webView?.evaluateJavascript("tvBroStopPlayback()", null)
+        webView?.mediaCommand(MediaCommand.STOP)
     }
 
     override fun rewind() {
-        webView?.evaluateJavascript("tvBroRewind()", null)
+        webView?.mediaCommand(MediaCommand.REWIND)
     }
 
     override fun fastForward() {
-        webView?.evaluateJavascript("tvBroFastForward()", null)
+        webView?.mediaCommand(MediaCommand.FAST_FORWARD)
     }
 
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {

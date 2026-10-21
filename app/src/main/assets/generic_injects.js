@@ -26,46 +26,6 @@ if (!window.tvBroClicksListener) {
     document.addEventListener("click", window.tvBroClicksListener);
 }
 
-// video playback control support
-Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
-    get: function(){
-        return !!(this.currentTime > 0 && !this.paused && !this.ended && this.readyState > 2);
-    }
-})
-
-window.tvBroTogglePlayback = function() {
-  var media = document.querySelector('video') || document.querySelector('audio');
-  if (media) {
-      if (media.playing) {
-        media.pause();
-      } else {
-        media.play();
-      }
-  }
-}
-
-window.tvBroStopPlayback = function() {
-  var media = document.querySelector('video') || document.querySelector('audio');
-  if (media) {
-      media.pause();
-      media.currentTime = 0;
-  }
-}
-
-window.tvBroRewind = function() {
-    var media = document.querySelector('video') || document.querySelector('audio');
-    if (media) {
-        media.currentTime -= 10;
-    }
-}
-
-window.tvBroFastForward = function() {
-    var media = document.querySelector('video') || document.querySelector('audio');
-    if (media) {
-        media.currentTime += 10;
-    }
-}
-
 // context menu support
 window.addEventListener("touchstart", function(e) {
     window.TVBRO_activeElement = e.target;
