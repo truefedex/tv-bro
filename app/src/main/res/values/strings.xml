@@ -151,11 +151,9 @@
     <string name="no_history_found">Nothing found in the history</string>
     <string name="history_is_empty">The history is empty</string>
     <string name="history_time_and_address" translatable="false">%1$s · %2$s</string>
-    <string name="shortcuts">Shortcuts</string>
     <string name="favorites">Favorites</string>
     <string name="history">History</string>
     <string name="settings">Settings</string>
-    <string name="shortcut">Shortcut</string>
     <string name="navigate_back">Navigate back</string>
     <string name="navigate_home">Navigate home</string>
     <string name="refresh_page">Refresh page</string>
@@ -207,9 +205,6 @@
     <string name="not_set">Not set</string>
     <string name="action">Action:</string>
     <string name="current_key">Current key:</string>
-    <string name="set_key_for_action">Set key for action</string>
-    <string name="press_any_key">Press any key...</string>
-    <string name="shortcut_key_reserved_for_navigation">This key is reserved for browser navigation</string>
     <string name="clear">Clear</string>
     <string name="install">Install</string>
     <string name="turn_on_unknown_sources">Please turn on \"Unknown sources\" system setting</string>
@@ -286,17 +281,8 @@
         <item quantity="other">%d downloads removed from the list</item>
     </plurals>
     <string name="downloads_notifications_description">Notifications regarding download statuses</string>
-    <string name="main">Main</string>
-    <string name="version_and_updates"><![CDATA[Version & updates]]></string>
-    <string name="version_s">Version: %s</string>
-    <string name="build_flavor_s">Build flavor: %1$s · %2$s</string>
-    <string name="support_the_author">☕ Support the author</string>
-    <string name="view_license">📃 License</string>
-    <string name="privacy_policy">🔒 Privacy policy</string>
-    <string name="update_channel">Update channel:</string>
     <string name="auto_check_for_updates">Auto check for updates</string>
     <string name="update">Update</string>
-    <string name="new_version_available_s">New version available: %s</string>
     <string name="web_browser_optimized_for_tvs">Web browser optimized for TVs</string>
     <string name="warning">Warning</string>
     <string name="err_webview_can_not_link">Cannot link to the WebView component. Try to install the Android System WebView component first.</string>
@@ -313,29 +299,12 @@
     <string name="close_application">Close app</string>
     <string name="close_tab">Close tab</string>
     <string name="navigate_forward">Navigate forward</string>
-    <string name="toggle_ads_blocking">Toggle ads blocking</string>
-    <string name="never">never</string>
-    <string name="last_update">Last update</string>
-    <string name="update_ad_blocker_list">Update ad-blocker list</string>
     <string name="toggle_keep_screen_on">Keep screen on</string>
-    <string name="navigate_with_joystick_axes">Navigate with joystick axes</string>
-    <string name="cursor_max_speed">Virtual cursor max speed</string>
-    <string name="cursor_acceleration">Virtual cursor acceleration</string>
-    <string name="cursor_physics_percent">%d%% of default</string>
     <string name="direct_navigation_mode_title">Direct navigation mode</string>
     <string name="direct_navigation_mode_message">Direct navigation hides the on-screen cursor and sends keys from your remote or game controller straight to the web page, so sites that support TV or keyboard focus can highlight links and controls.\n\nTo exit this mode: press Back on your TV remote, or press and hold the B button on a game controller.\n\nThis mode works best with the WebView engine: WebView supports moving focus through the page with the D-pad.</string>
-    <string name="need_restart">App restart required</string>
     <string name="theme">Theme</string>
     <string name="interface_mode">Interface</string>
     <!-- the order of Config.InterfaceMode -->
-    <array name="interface_modes">
-        <item>Auto</item>
-        <item>TV (remote control)</item>
-        <item>Phone (touch)</item>
-    </array>
-    <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorithmic darkening for web pages (dark theme, WebView only, restart required)</string>
-    <string name="allow_autoplay_media">Allow autoplay for media</string>
-    <string name="web_engine_debug">Web engine debugging (restart required)</string>
     <string name="web_engine_debug_warning_message">Enabling web engine debugging can expose page content, cookies, and sensitive session data to anyone with device debugging access. Enable only on trusted devices for troubleshooting.</string>
     <array name="themes">
         <item>System</item>
@@ -346,7 +315,6 @@
     <string name="incognito_mode_hint">Now you can browse privately, and other people who use this device won’t see your activity. TV Bro won’t save your browsing history, cookies and site data, or information entered in forms.\n\nHowever, downloads and bookmarks will be saved. Your activity might still be visible to websites you visit, your organization or internet service provider.</string>
     <string name="don_t_show_again">Don\'t show again</string>
     <string name="why_icon_changed">Why did the icon change?</string>
-    <string name="clear_web_cache">Clear web cache</string>
     <string name="block_popups">Popup blocking</string>
     <string name="block_popups_s">Popup blocking (%s)</string>
     <string name="popup_dialog_blocked">Popup dialog blocked</string>
@@ -363,8 +331,6 @@
     <string name="open_in_external_application">Open in external app</string>
     <string name="external_app_open_error">Cannot find a suitable app</string>
     <string name="home_page">Home page</string>
-    <string name="custom_home_page_url">Custom home page URL</string>
-    <string name="home_page_links">Links on home page</string>
     <array name="home_page_modes">
         <item>TV Bro Home</item>
         <item>Search engine</item>
@@ -378,7 +344,6 @@
         <item>Most visited</item>
     </array>
 
-    <string name="need_restart_message">Restart app to apply changes</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="site_asks_to_open_unknown_url">Site asks to open unknown URL</string>
@@ -477,4 +442,109 @@
     <!-- %d: the number of chosen tabs -->
     <string name="sync_send_count">Send (%d)</string>
     <string name="sync_local_network_needed">Allow access to the local network</string>
+    <!-- the settings screens: the categories -->
+    <string name="settings_search_and_home">Search and home page</string>
+    <string name="settings_sites">Sites</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_remote">Remote and cursor</string>
+    <string name="settings_advanced">Advanced</string>
+    <string name="settings_about">About</string>
+    <!-- the summaries of the categories on the phone; %1$s and %2$s: two values -->
+    <string name="settings_summary_two">%1$s · %2$s</string>
+    <string name="settings_summary_ads_blocked">Ads blocked</string>
+    <string name="settings_summary_ads_shown">Ads not blocked</string>
+    <!-- %s: Auto, Desktop or Mobile -->
+    <string name="settings_summary_site_view">Site view: %s</string>
+    <!-- %s: Auto, TV or Phone -->
+    <string name="settings_summary_interface">Interface: %s</string>
+    <!-- %s: System, Light or Dark -->
+    <string name="settings_summary_theme">Theme: %s</string>
+    <string name="settings_summary_remote">Cursor, keys of the remote</string>
+    <string name="settings_summary_advanced">Web cache, engine debugging</string>
+    <!-- marks a setting that applies after a restart of the app -->
+    <string name="settings_after_restart">After restart</string>
+    <string name="settings_restart_message">Restart TV Bro to apply the changes</string>
+    <string name="settings_restart_now">Restart now</string>
+    <string name="settings_turn_on">Turn on</string>
+    <!-- the state of a switch, for accessibility -->
+    <string name="settings_on">On</string>
+    <string name="settings_off">Off</string>
+    <!-- Search and home page -->
+    <string name="settings_group_search">Search</string>
+    <string name="settings_search_engine">Search engine</string>
+    <string name="settings_search_engine_summary">For searches from the address bar and voice search</string>
+    <string name="settings_custom_url">Custom URL</string>
+    <string name="settings_search_url">Search address</string>
+    <string name="settings_search_url_hint">Address with [query] in place of the words</string>
+    <string name="settings_group_home_page">Home page</string>
+    <string name="settings_home_page_summary">The page of the Home button</string>
+    <string name="settings_home_page_url">Home page address</string>
+    <string name="settings_home_page_url_hint">https://…</string>
+    <string name="settings_home_page_links">Links on the home page</string>
+    <string name="settings_home_page_links_summary">Tiles under the search bar</string>
+    <!-- Sites -->
+    <string name="settings_group_site_view">Site view</string>
+    <string name="settings_auto">Auto</string>
+    <string name="settings_desktop">Desktop</string>
+    <string name="settings_mobile">Mobile</string>
+    <string name="settings_site_view_summary_tv">For sites without their own choice. Auto: desktop on a TV</string>
+    <string name="settings_site_view_summary_phone">For sites without their own choice. Auto: mobile on a phone</string>
+    <string name="settings_autoplay">Autoplay media</string>
+    <string name="settings_autoplay_summary">Videos and sounds start without a click</string>
+    <string name="settings_group_ad_blocking">Ad blocking</string>
+    <string name="settings_block_ads">Block ads</string>
+    <string name="settings_block_ads_summary_tv">Each site can turn it off in its site panel</string>
+    <string name="settings_block_ads_summary_phone">Each site can turn it off in its site sheet</string>
+    <string name="settings_filter_list">Filter list</string>
+    <!-- %s: the time and the date -->
+    <string name="settings_filter_list_updated_s">Updated %s</string>
+    <string name="settings_filter_list_never_updated">Never updated</string>
+    <string name="settings_filter_list_updating">Updating…</string>
+    <!-- Appearance -->
+    <string name="settings_group_interface">Interface</string>
+    <string name="settings_interface_tv">TV</string>
+    <string name="settings_interface_phone">Phone</string>
+    <string name="settings_interface_summary">Auto: the phone interface on touch phones</string>
+    <string name="settings_theme_summary">System follows the night mode of the device</string>
+    <string name="settings_darken_pages">Darken web pages</string>
+    <string name="settings_darken_pages_summary">Pages without a dark look get one in the dark theme</string>
+    <string name="settings_group_screen">Screen</string>
+    <string name="settings_keep_screen_on_summary_tv">The TV does not go to sleep while the browser is open</string>
+    <string name="settings_keep_screen_on_summary_phone">The phone does not lock while the browser is open</string>
+    <!-- Remote and cursor -->
+    <string name="settings_group_cursor">Virtual cursor</string>
+    <string name="settings_cursor_speed">Cursor speed</string>
+    <string name="settings_cursor_speed_summary">The top speed while a key is held</string>
+    <string name="settings_cursor_acceleration">Cursor acceleration</string>
+    <string name="settings_cursor_acceleration_summary">How fast it gets to the top speed</string>
+    <!-- %d: a percent of the default -->
+    <string name="settings_percent">%d%%</string>
+    <string name="settings_joystick">Navigate with joystick sticks</string>
+    <string name="settings_joystick_summary">Sticks of game controllers move the focus like the D-pad</string>
+    <string name="settings_group_keys">Keys of the remote</string>
+    <string name="settings_press_key">Press a key on the remote. Hold it to set a long press</string>
+    <!-- %s: the key of the shortcut now -->
+    <string name="settings_key_now_s">Now: %s</string>
+    <!-- Advanced -->
+    <string name="settings_web_cache">Web cache</string>
+    <string name="settings_web_cache_summary">Pages load again from the network</string>
+    <string name="settings_web_cache_cleared">Web cache cleared</string>
+    <string name="settings_engine_debug">Web engine debugging</string>
+    <string name="settings_engine_debug_summary">A computer connected for debugging can see pages and cookies</string>
+    <!-- About; %s: the version name -->
+    <string name="settings_version_s">Version %s</string>
+    <!-- %1$s: the version name, %2$s: the build (generic, google, foss), %3$s: the web engine and its version -->
+    <string name="settings_version_line">Version %1$s (%2$s) · %3$s</string>
+    <string name="settings_group_updates">Updates</string>
+    <!-- %s: the version name -->
+    <string name="settings_new_version_s">Version %s is available</string>
+    <!-- %s: the name of the update channel -->
+    <string name="settings_channel_s">Channel: %s</string>
+    <string name="settings_update_channel">Update channel</string>
+    <string name="settings_update_channel_summary">Beta gets new versions first</string>
+    <string name="settings_group_links">Links</string>
+    <string name="settings_source_code">Source code</string>
+    <string name="settings_support_author">Support the author</string>
+    <string name="settings_license">License</string>
+    <string name="settings_privacy_policy">Privacy policy</string>
 </resources>

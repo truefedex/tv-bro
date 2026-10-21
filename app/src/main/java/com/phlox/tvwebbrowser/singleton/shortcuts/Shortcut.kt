@@ -35,23 +35,46 @@ data class KeyBinding(val keyCode: Int, val modifiers: Int = 0, val longPress: B
         if (modifiers != 0) {
             allKeys += modifiersToString(modifiers)
         }
-        allKeys += KeyEvent.keyCodeToString(keyCode)
+        allKeys += keyName(keyCode)
         return allKeys
     }
 
     companion object {
         val NONE = KeyBinding(0)
 
+        /** Names of keys that read better than the ones made from their constants */
+        private val KEY_NAMES = mapOf(
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE to "Play/Pause",
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD to "Fast forward",
+            KeyEvent.KEYCODE_PROG_RED to "Red",
+            KeyEvent.KEYCODE_PROG_GREEN to "Green",
+            KeyEvent.KEYCODE_PROG_YELLOW to "Yellow",
+            KeyEvent.KEYCODE_PROG_BLUE to "Blue"
+        )
+
+        /**
+         * The name of a key as on a remote: "Refresh" for KEYCODE_REFRESH, "Rewind" for KEYCODE_MEDIA_REWIND
+         * (a key without a constant keeps its number)
+         */
+        fun keyName(keyCode: Int): String = KEY_NAMES[keyCode] ?: nameOfConstant(KeyEvent.keyCodeToString(keyCode))
+
+        /** "Rewind" for "KEYCODE_MEDIA_REWIND"; a key without a constant keeps its number */
+        fun nameOfConstant(constant: String): String {
+            if (!constant.startsWith("KEYCODE_")) return constant
+            val words = constant.removePrefix("KEYCODE_").removePrefix("MEDIA_").lowercase().replace('_', ' ')
+            return words.replaceFirstChar { it.uppercase() }
+        }
+
         private fun modifiersToString(modifiers: Int): String {
             var result = ""
             if (modifiers and KeyEvent.META_ALT_ON != 0) {
-                result += "ALT+"
+                result += "Alt+"
             }
             if (modifiers and KeyEvent.META_CTRL_ON != 0) {
-                result += "CTRL+"
+                result += "Ctrl+"
             }
             if (modifiers and KeyEvent.META_SHIFT_ON != 0) {
-                result += "SHIFT+"
+                result += "Shift+"
             }
             return result
         }

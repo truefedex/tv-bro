@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The thumb of a slider: the surface in an icon ring, in a focus halo when focused or hovered -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <size android:width="@dimen/ds_settings_slider_thumb_focus" android:height="@dimen/ds_settings_slider_thumb_focus" />
+                    <solid android:color="?attr/tbColorDsFocus" />
+                </shape>
+            </item>
+            <item android:top="@dimen/ds_settings_slider_thumb_inset" android:bottom="@dimen/ds_settings_slider_thumb_inset"
+                android:left="@dimen/ds_settings_slider_thumb_inset" android:right="@dimen/ds_settings_slider_thumb_inset">
+                <shape android:shape="oval">
+                    <solid android:color="?attr/tbColorDsSurface" />
+                    <stroke android:color="?attr/tbColorDsIcon" android:width="@dimen/ds_settings_slider_thumb_ring" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_hovered="true">
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <size android:width="@dimen/ds_settings_slider_thumb_focus" android:height="@dimen/ds_settings_slider_thumb_focus" />
+                    <solid android:color="?attr/tbColorDsFocus" />
+                </shape>
+            </item>
+            <item android:top="@dimen/ds_settings_slider_thumb_inset" android:bottom="@dimen/ds_settings_slider_thumb_inset"
+                android:left="@dimen/ds_settings_slider_thumb_inset" android:right="@dimen/ds_settings_slider_thumb_inset">
+                <shape android:shape="oval">
+                    <solid android:color="?attr/tbColorDsSurface" />
+                    <stroke android:color="?attr/tbColorDsIcon" android:width="@dimen/ds_settings_slider_thumb_ring" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item>
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <size android:width="@dimen/ds_settings_slider_thumb_focus" android:height="@dimen/ds_settings_slider_thumb_focus" />
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
+            <item android:top="@dimen/ds_settings_slider_thumb_inset" android:bottom="@dimen/ds_settings_slider_thumb_inset"
+                android:left="@dimen/ds_settings_slider_thumb_inset" android:right="@dimen/ds_settings_slider_thumb_inset">
+                <shape android:shape="oval">
+                    <solid android:color="?attr/tbColorDsSurface" />
+                    <stroke android:color="?attr/tbColorDsIcon" android:width="@dimen/ds_settings_slider_thumb_ring" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

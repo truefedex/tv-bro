@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A row with a button at its end (Clear of the web cache, Update of the app) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.TVBro.SettingsRow.Ds">
+
+  <include layout="@layout/view_settings_row_text" />
+
+  <TextView
+      style="@style/Widget.TVBro.SettingsButton"
+      android:id="@+id/btnAction"
+      android:layout_marginStart="@dimen/ds_settings_row_gap"
+      tools:text="Clear" />
+</LinearLayout>

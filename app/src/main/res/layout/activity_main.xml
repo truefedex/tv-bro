@@ -163,6 +163,14 @@
         android:elevation="7dp"
         android:outlineProvider="none" />
 
+    <!-- the settings, over the whole window and the bar -->
+    <com.phlox.tvwebbrowser.activity.main.view.SettingsScreenView
+        android:id="@+id/vSettingsScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="7dp"
+        android:outlineProvider="none" />
+
     <!-- pairing of phones, over the whole window and the bar -->
     <com.phlox.tvwebbrowser.activity.main.view.TvSyncScreenView
         android:id="@+id/vSyncScreen"

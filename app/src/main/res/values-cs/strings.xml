@@ -31,11 +31,9 @@
     <string name="delete">Smazat</string>
     <string name="cancel">Zrušit</string>
     <string name="msg_delete_history_all">Smazat celou historii?</string>
-    <string name="shortcuts">Zkratky</string>
     <string name="favorites">Oblíbené</string>
     <string name="history">Historie</string>
     <string name="settings">Nastavení</string>
-    <string name="shortcut">Zkratka</string>
     <string name="navigate_back">Zpět</string>
     <string name="navigate_home">Přejít na domovskou stránku</string>
     <string name="refresh_page">Obnovit stránku</string>
@@ -43,9 +41,6 @@
     <string name="not_set">Nenastaveno</string>
     <string name="action">Akce:</string>
     <string name="current_key">Aktuální klávesa:</string>
-    <string name="set_key_for_action">Nastavit klávesu pro akci</string>
-    <string name="press_any_key">Stiskněte libovolnou klávesu...</string>
-    <string name="shortcut_key_reserved_for_navigation">Tato klávesa je vyhrazena pro navigaci v prohlížeči</string>
     <string name="clear">Vymazat</string>
     <string name="install">Instalovat</string>
     <string name="turn_on_unknown_sources">Zapněte prosím systémové nastavení „Neznámé zdroje“</string>
@@ -55,17 +50,8 @@
     <string name="later">Později</string>
     <string name="downloads">Stažené soubory</string>
     <string name="downloads_notifications_description">Oznámení o stavu stahování</string>
-    <string name="main">Obecné</string>
-    <string name="version_and_updates">Verze a aktualizace</string>
-    <string name="version_s">Verze: %s</string>
-    <string name="build_flavor_s">Varianta sestavení: %1$s · %2$s</string>
-    <string name="support_the_author">☕ Podpořte autora</string>
-    <string name="view_license">📃 Licence</string>
-    <string name="privacy_policy">🔒 Zásady ochrany osobních údajů</string>
-    <string name="update_channel">Kanál aktualizací:</string>
     <string name="auto_check_for_updates">Automaticky kontrolovat aktualizace</string>
     <string name="update">Aktualizovat</string>
-    <string name="new_version_available_s">K dispozici je nová verze: %s</string>
     <string name="web_browser_optimized_for_tvs">Webový prohlížeč optimalizovaný pro televizory</string>
     <string name="warning">Upozornění</string>
     <string name="err_webview_can_not_link">Nelze se propojit s komponentou WebView. Zkuste nejprve nainstalovat Android System WebView.</string>
@@ -82,22 +68,10 @@
     <string name="close_application">Zavřít aplikaci</string>
     <string name="close_tab">Zavřít kartu</string>
     <string name="navigate_forward">Vpřed</string>
-    <string name="toggle_ads_blocking">Zapnout/vypnout blokování reklam</string>
-    <string name="never">nikdy</string>
-    <string name="last_update">Poslední aktualizace</string>
-    <string name="update_ad_blocker_list">Aktualizovat seznam blokování reklam</string>
     <string name="toggle_keep_screen_on">Nechat obrazovku zapnutou</string>
-    <string name="navigate_with_joystick_axes">Navigovat pomocí os joysticku</string>
-    <string name="cursor_max_speed">Maximální rychlost virtuálního kurzoru</string>
-    <string name="cursor_acceleration">Zrychlení virtuálního kurzoru</string>
-    <string name="cursor_physics_percent">%d %% výchozí hodnoty</string>
     <string name="direct_navigation_mode_title">Režim přímé navigace</string>
     <string name="direct_navigation_mode_message">Přímá navigace skryje kurzor na obrazovce a posílá klávesy z dálkového ovladače nebo herního ovladače přímo webové stránce, takže weby podporující fokus pro TV nebo klávesnici mohou zvýrazňovat odkazy a ovládací prvky.\n\nUkončení tohoto režimu: stiskněte Zpět na dálkovém ovladači televizoru nebo podržte tlačítko B na herním ovladači.\n\nTento režim funguje nejlépe s jádrem WebView: WebView podporuje přesouvání fokusu po stránce pomocí směrových tlačítek (D-pad).</string>
-    <string name="need_restart">Je nutný restart aplikace</string>
     <string name="theme">Motiv</string>
-    <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algoritmické ztmavení webových stránek (tmavý motiv, pouze WebView, vyžaduje restart)</string>
-    <string name="allow_autoplay_media">Povolit automatické přehrávání médií</string>
-    <string name="web_engine_debug">Ladění webového jádra (vyžaduje restart)</string>
     <string name="web_engine_debug_warning_message">Zapnutí ladění webového jádra může zpřístupnit obsah stránek, soubory cookie a citlivá data relace komukoli s ladicím přístupem k zařízení. Zapínejte jej pouze na důvěryhodných zařízeních při řešení problémů.</string>
     <array name="themes">
         <item>Systémový</item>
@@ -108,7 +82,6 @@
     <string name="incognito_mode_hint">Nyní můžete prohlížet soukromě a ostatní lidé, kteří toto zařízení používají, neuvidí vaši aktivitu. TV Bro nebude ukládat historii prohlížení, soubory cookie a data webů ani informace zadané do formulářů.\n\nStažené soubory a záložky se však uloží. Vaše aktivita může být stále viditelná pro navštěvované weby, vaši organizaci nebo poskytovatele internetových služeb.</string>
     <string name="don_t_show_again">Znovu nezobrazovat</string>
     <string name="why_icon_changed">Proč se změnila ikona?</string>
-    <string name="clear_web_cache">Vymazat webovou mezipaměť</string>
     <string name="block_popups">Blokování vyskakovacích oken</string>
     <string name="block_popups_s">Blokování vyskakovacích oken (%s)</string>
     <string name="popup_dialog_blocked">Vyskakovací dialog zablokován</string>
@@ -125,8 +98,6 @@
     <string name="open_in_external_application">Otevřít v externí aplikaci</string>
     <string name="external_app_open_error">Nelze najít vhodnou aplikaci</string>
     <string name="home_page">Domovská stránka</string>
-    <string name="custom_home_page_url">URL vlastní domovské stránky</string>
-    <string name="home_page_links">Odkazy na domovské stránce</string>
     <array name="home_page_modes">
         <item>Domovská stránka TV Bro</item>
         <item>Vyhledávač</item>
@@ -140,7 +111,6 @@
         <item>Nejnavštěvovanější</item>
     </array>
 
-    <string name="need_restart_message">Pro použití změn restartujte aplikaci</string>
     <string name="yes">Ano</string>
     <string name="no">Ne</string>
     <string name="site_asks_to_open_unknown_url">Web žádá o otevření neznámé URL</string>

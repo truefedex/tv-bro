@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A category of the phone settings: its icon in a circle, its name and summary, a marker (Update), the chevron -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/ds_phone_settings_row_min_height"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="@dimen/ds_phone_settings_row_padding"
+    android:paddingEnd="@dimen/ds_phone_settings_row_padding"
+    android:paddingTop="@dimen/ds_settings_row_vertical_padding"
+    android:paddingBottom="@dimen/ds_settings_row_vertical_padding"
+    android:background="@drawable/ds_phone_button_bg"
+    android:focusable="true"
+    android:clickable="true">
+
+  <ImageView
+      android:id="@+id/ivIcon"
+      android:layout_width="@dimen/ds_phone_settings_badge"
+      android:layout_height="@dimen/ds_phone_settings_badge"
+      android:padding="@dimen/ds_phone_settings_badge_icon_padding"
+      android:background="@drawable/ds_settings_badge_bg"
+      app:tint="?attr/tbColorDsIcon"
+      android:importantForAccessibility="no"
+      tools:src="@drawable/ic_search" />
+
+  <LinearLayout
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_weight="1"
+      android:layout_marginStart="@dimen/ds_phone_settings_row_padding"
+      android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/ds_text_phone_settings_title"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="Search and home page" />
+
+    <TextView
+        android:id="@+id/tvSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/ds_settings_summary_gap"
+        android:textSize="@dimen/ds_text_phone_settings_summary"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="Google · TV Bro Home" />
+  </LinearLayout>
+
+  <TextView
+      style="@style/Widget.TVBro.Text.SettingsTag"
+      android:id="@+id/tvBadge"
+      android:layout_marginStart="@dimen/ds_settings_tag_gap"
+      android:visibility="gone"
+      tools:text="Update"
+      tools:visibility="visible" />
+
+  <ImageView
+      android:layout_width="@dimen/ds_size_icon_menu"
+      android:layout_height="@dimen/ds_size_icon_menu"
+      android:layout_marginStart="@dimen/ds_settings_tag_gap"
+      android:src="@drawable/ic_chevron_right"
+      app:tint="?attr/tbColorDsIcon"
+      android:importantForAccessibility="no" />
+</LinearLayout>

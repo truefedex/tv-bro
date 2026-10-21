@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The key of a shortcut, as a key cap -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/ds_settings_tag_radius" />
+    <solid android:color="?attr/tbColorDsControl" />
+    <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+</shape>

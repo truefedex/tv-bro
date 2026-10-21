@@ -125,7 +125,6 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
-    implementation(libs.segmented.button)
     implementation(libs.ad.block)
     implementation(libs.qrcodegen)
 

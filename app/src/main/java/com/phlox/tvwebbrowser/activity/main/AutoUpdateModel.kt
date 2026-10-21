@@ -110,7 +110,7 @@ class AutoUpdateModel: ActiveModel() {
 
             override fun settings() {
                 if (!activity.isFinishing) {
-                    activity.showSettings()
+                    activity.showSettings(SettingsNavigator.Category.ABOUT)
                 }
             }
         })

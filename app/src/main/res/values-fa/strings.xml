@@ -29,11 +29,9 @@
   <string name="delete">حذف</string>
   <string name="cancel">لغو</string>
   <string name="msg_delete_history_all">همه موارد تاریخچه حذف شود؟</string>
-  <string name="shortcuts">میانبرها</string>
   <string name="favorites">موارد دلخواه</string>
   <string name="history">تاریخچه</string>
   <string name="settings">تنظیمات</string>
-  <string name="shortcut">میانبر</string>
   <string name="navigate_back">بازگشت</string>
   <string name="navigate_home">رفتن به صفحه اصلی</string>
   <string name="refresh_page">تازه‌سازی صفحه</string>
@@ -41,9 +39,6 @@
   <string name="not_set">تنظیم نشده</string>
   <string name="action">اقدام:</string>
   <string name="current_key">کلید فعلی:</string>
-  <string name="set_key_for_action">کلید را برای اقدام تنظیم کنید</string>
-  <string name="press_any_key">کلیدی را فشار دهید…</string>
-  <string name="shortcut_key_reserved_for_navigation">این کلید برای پیمایش مرورگر رزرو شده است</string>
   <string name="clear">پاک کردن</string>
   <string name="install">نصب</string>
   <string name="turn_on_unknown_sources">لطفاً تنظیم سیستمی «منابع ناشناخته» را فعال کنید</string>
@@ -53,17 +48,8 @@
   <string name="later">بعداً</string>
   <string name="downloads">بارگیری‌ها</string>
   <string name="downloads_notifications_description">اعلان‌های مربوط به وضعیت بارگیری‌ها</string>
-  <string name="main">اصلی</string>
-  <string name="version_and_updates">نسخه و به‌روزرسانی‌ها</string>
-  <string name="version_s">نسخه: %s</string>
-  <string name="build_flavor_s">نوع ساخت: %1$s · %2$s</string>
-  <string name="support_the_author">☕ حمایت از نویسنده</string>
-  <string name="view_license">📃 مجوز</string>
-  <string name="privacy_policy">🔒 سیاست حریم خصوصی</string>
-  <string name="update_channel">کانال به‌روزرسانی:</string>
   <string name="auto_check_for_updates">بررسی خودکار برای به‌روزرسانی‌ها</string>
   <string name="update">به‌روزرسانی</string>
-  <string name="new_version_available_s">نسخه جدید موجود است: %s</string>
   <string name="warning">هشدار</string>
   <string name="err_webview_can_not_link">اتصال به مؤلفه WebView ممکن نیست. ابتدا Android System WebView را نصب کنید.</string>
   <string name="open_a_new_tab_here">یک برگه جدید در اینجا باز کنید</string>
@@ -80,11 +66,6 @@
   <string name="close_tab">بستن برگه</string>
   <string name="navigate_forward">جلو</string>
   <string name="web_browser_optimized_for_tvs">مرورگر وب بهینه‌شده برای تلویزیون</string>
-  <string name="never">هرگز</string>
-  <string name="last_update">آخرین به‌روزرسانی</string>
-  <string name="update_ad_blocker_list">به‌روزرسانی فهرست مسدودکننده تبلیغات</string>
-  <string name="toggle_ads_blocking">روشن/خاموش کردن مسدودسازی تبلیغات</string>
-  <string name="need_restart">نیاز به راه‌اندازی مجدد برنامه</string>
   <string name="theme">طرح زمینه</string>
   <array name="themes">
     <item>پیش‌فرض سیستم</item>
@@ -92,17 +73,12 @@
     <item>تیره</item>
   </array>
   <string name="toggle_keep_screen_on">صفحه‌نمایش را روشن بگذارید</string>
-  <string name="navigate_with_joystick_axes">پیمایش با محورهای جوی‌استیک</string>
-  <string name="cursor_max_speed">حداکثر سرعت مکان‌نمای مجازی</string>
-  <string name="cursor_acceleration">شتاب مکان‌نمای مجازی</string>
-  <string name="cursor_physics_percent">%d%% از پیش‌فرض</string>
   <string name="direct_navigation_mode_title">حالت پیمایش مستقیم</string>
   <string name="direct_navigation_mode_message">پیمایش مستقیم مکان‌نما را پنهان می‌کند و فشردن کلیدهای ریموت یا دسته بازی را مستقیماً به صفحه وب می‌فرستد تا سایت‌هایی که فوکوس تلویزیونی یا صفحه‌کلید را پشتیبانی می‌کنند بتوانند پیوندها و کنترل‌ها را برجسته کنند.\n\nبرای خروج از این حالت: «برگشت» را روی ریموت تلویزیون بزنید یا دکمه B دسته را نگه دارید.\n\nاین حالت با موتور WebView بهتر کار می‌کند: WebView جابه‌جایی فوکوس در صفحه با D-pad را پشتیبانی می‌کند.</string>
   <string name="incognito_mode">حالت ناشناس</string>
   <string name="incognito_mode_hint">اکنون می‌توانید به‌صورت خصوصی مرور کنید و سایر افرادی که از این دستگاه استفاده می‌کنند فعالیت شما را نخواهند دید. TV Bro تاریخچه مرور، کوکی‌ها، داده‌های سایت‌ها و اطلاعات واردشده در فرم‌ها را ذخیره نمی‌کند.\n\nبا این حال، بارگیری‌ها و نشانک‌ها ذخیره خواهند شد. ممکن است فعالیت شما همچنان برای وب‌سایت‌هایی که بازدید می‌کنید، سازمان شما یا ارائه‌دهنده خدمات اینترنت قابل مشاهده باشد.</string>
   <string name="don_t_show_again">دیگر نشان نده</string>
   <string name="why_icon_changed">چرا نماد تغییر کرد؟</string>
-  <string name="clear_web_cache">پاک کردن حافظه پنهان وب</string>
   <string name="no_bookmarks_yet">هنوز هیچ نشانکی وجود ندارد</string>
   <string name="done">تمام</string>
   <string name="block_popups">مسدودسازی پنجره‌های بازشو</string>
@@ -121,7 +97,6 @@
     <item>مسدود کردن هر پنجره جدید (حداکثر مسدودسازی)</item>
   </string-array>
   <string name="home_page">صفحه اصلی</string>
-  <string name="custom_home_page_url">URL صفحه اصلی سفارشی</string>
   <string-array name="home_page_modes">
     <item>صفحه اصلی TV Bro</item>
     <item>موتور جستجو</item>
@@ -134,13 +109,11 @@
     <item>بیشترین بازدید</item>
   </string-array>
 
-  <string name="need_restart_message">برای اعمال تغییرات، برنامه را مجددا راه‌اندازی کنید</string>
   <string name="yes">بله</string>
   <string name="no">خیر</string>
   <string name="site_asks_to_open_unknown_url">سایت می‌خواهد URL ناشناخته را باز کند</string>
   <string name="site_asks_to_open_unknown_url_message">آیا می‌خواهید این URL را در برنامه خارجی باز کنید؟</string>
   <string name="err_no_app_to_handle_url">نمی‌توان برنامه مناسبی برای مدیریت این URL پیدا کرد</string>
-  <string name="home_page_links">لینک‌ها در صفحه اصلی</string>
   <string name="http_auth_title">احراز هویت لازم است</string>
   <string name="play_pause">پخش/توقف</string>
   <string name="media_stop">توقف رسانه</string>
@@ -148,8 +121,5 @@
   <string name="media_fast_forward">جلو بردن سریع رسانه</string>
   <string name="long_press">فشار طولانی</string>
   <string name="local_network_access_denied">دسترسی به شبکه محلی رد شد</string>
-  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">تیره‌سازی الگوریتمی برای صفحات وب (تم تیره، فقط WebView، نیاز به راه‌اندازی مجدد)</string>
-  <string name="allow_autoplay_media">اجازه پخش خودکار رسانه</string>
-  <string name="web_engine_debug">اشکال‌زدایی موتور وب (نیاز به راه‌اندازی مجدد)</string>
   <string name="web_engine_debug_warning_message">فعال‌سازی اشکال‌زدایی موتور وب می‌تواند محتوای صفحات، کوکی‌ها و داده‌های حساس نشست را برای هر کسی که به اشکال‌زدایی دستگاه دسترسی دارد افشا کند. فقط برای رفع اشکال و روی دستگاه‌های مورداعتماد فعال کنید.</string>
 </resources>

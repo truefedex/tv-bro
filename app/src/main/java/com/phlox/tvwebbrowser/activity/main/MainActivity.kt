@@ -34,7 +34,6 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
-import com.phlox.tvwebbrowser.activity.main.dialogs.settings.SettingsDialog
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
@@ -111,6 +110,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         if (incognitoMode) {
             WebEngineFactory.prepareIncognitoProcess()
         }
+        AppSettingsStore.rememberStartupValues(config)
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
         adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
         controller = ActiveModelsRepository.get(BrowserController::class, this)
@@ -219,9 +219,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         override suspend fun remove(ids: List<Long>) = TVBro.container.data.downloads.delete(ids)
     }
 
-    override fun showSettings() {
-        SettingsDialog(this, settingsModel, touchUi = uiMode == UiMode.PHONE).show()
-    }
+    /** Opens the settings of the shell at the [category] (the update dialog opens About) */
+    fun showSettings(category: SettingsNavigator.Category? = null) = shell.showSettings(category)
 
     override fun toggleSiteAdBlock() {
         val tab = controller.currentTab.value ?: return

@@ -36,13 +36,8 @@
   <string name="navigate_back">Назад</string>
   <string name="navigate_home">На домашню сторінку</string>
   <string name="not_set">Не задано</string>
-  <string name="press_any_key">Натисніть будь-яку клавішу...</string>
-  <string name="shortcut_key_reserved_for_navigation">Ця клавіша зарезервована для навігації в браузері</string>
   <string name="refresh_page">Оновити сторінку</string>
-  <string name="set_key_for_action">Встановити клавішу для дії</string>
   <string name="settings">Налаштування</string>
-  <string name="shortcut">Швидка клавіша</string>
-  <string name="shortcuts">Швидкі клавіші</string>
   <string name="voice_search">Голосовий пошук</string>
   <string name="install">Встановити</string>
   <string name="turn_on_unknown_sources">Будь ласка, увімкніть системне налаштування «Невідомі джерела»</string>
@@ -54,18 +49,9 @@
   <string name="downloads_notifications_description">Сповіщення про завантаження</string>
   <string name="downloads">Завантаження</string>
   <string name="auto_check_for_updates">Автоматично перевіряти оновлення</string>
-  <string name="main">Основні</string>
   <string name="update">Оновити</string>
-  <string name="update_channel">Канал оновлень:</string>
-  <string name="version_and_updates">Версія та оновлення</string>
-  <string name="version_s">Версія: %s</string>
-  <string name="build_flavor_s">Варіант збірки: %1$s · %2$s</string>
-  <string name="support_the_author">☕ Підтримати автора</string>
-  <string name="view_license">📃 Ліцензія</string>
-  <string name="privacy_policy">🔒 Політика конфіденційності</string>
   <string name="warning">Увага</string>
   <string name="web_browser_optimized_for_tvs">Браузер, оптимізований для телевізорів</string>
-  <string name="new_version_available_s">Доступна нова версія: %s</string>
   <string name="err_webview_can_not_link">Не вдалося підключитися до компонента WebView. Спробуйте спочатку встановити Android System WebView.</string>
   <string name="open_a_new_tab_here">Відкрити нову вкладку тут</string>
   <string name="tabs">Вкладки</string>
@@ -80,11 +66,6 @@
   <string name="close_application">Закрити додаток</string>
   <string name="close_tab">Закрити вкладку</string>
   <string name="navigate_forward">Вперед</string>
-  <string name="toggle_ads_blocking">Увімкнути/вимкнути блокування реклами</string>
-  <string name="never">ніколи</string>
-  <string name="last_update">Останнє оновлення</string>
-  <string name="update_ad_blocker_list">Оновити список блокувальника реклами</string>
-  <string name="need_restart">Потрібен перезапуск додатка</string>
   <string name="theme">Тема</string>
   <array name="themes">
     <item>Системна</item>
@@ -92,17 +73,12 @@
     <item>Темна</item>
   </array>
   <string name="toggle_keep_screen_on">Не вимикати екран</string>
-  <string name="navigate_with_joystick_axes">Навігація осями джойстика</string>
-  <string name="cursor_max_speed">Максимальна швидкість віртуального курсора</string>
-  <string name="cursor_acceleration">Прискорення віртуального курсора</string>
-  <string name="cursor_physics_percent">%d%% від типового значення</string>
   <string name="direct_navigation_mode_title">Режим прямої навігації</string>
   <string name="direct_navigation_mode_message">Пряма навігація приховує курсор на екрані й передає натискання з пульта чи геймпада безпосередньо на вебсторінку, щоб сайти з підтримкою фокусу для ТБ або клавіатури могли виділяти посилання та елементи керування.\n\nЩоб вийти з цього режиму: натисніть «Назад» на пульті телевізора або утримуйте кнопку B на геймпаді.\n\nЦей режим найкраще працює з рушієм WebView: WebView підтримує переміщення фокусу сторінкою за допомогою D-pad.</string>
   <string name="incognito_mode">Режим анонімного перегляду</string>
   <string name="incognito_mode_hint">Тепер ви можете переглядати сторінки приватно, і інші люди, які використовують цей пристрій, не бачитимуть ваших дій. TV Bro не зберігатиме історію переглядів, файли cookie, дані сайтів та інформацію, введену у форми.\n\nОднак завантаження та закладки буде збережено. Ваші дії все ще можуть бачити вебсайти, які ви відвідуєте, ваша організація чи інтернет-провайдер.</string>
   <string name="don_t_show_again">Не показувати знову</string>
   <string name="why_icon_changed">Чому змінився значок?</string>
-  <string name="clear_web_cache">Очистити вебкеш</string>
   <string name="no_bookmarks_yet">Закладок ще немає</string>
   <string name="done">Готово</string>
   <string name="block_popups">Блокування спливаючих вікон</string>
@@ -121,7 +97,6 @@
     <item>Блокувати будь-які нові вікна (максимальне блокування)</item>
   </string-array>
   <string name="home_page">Домашня сторінка</string>
-  <string name="custom_home_page_url">URL власної домашньої сторінки</string>
   <string-array name="home_page_modes">
     <item>Домашня сторінка TV Bro</item>
     <item>Пошукова система</item>
@@ -134,13 +109,11 @@
     <item>Найчастіше відвідувані</item>
   </string-array>
 
-  <string name="need_restart_message">Перезапустіть додаток, щоб застосувати зміни</string>
   <string name="yes">Так</string>
   <string name="no">Ні</string>
   <string name="site_asks_to_open_unknown_url">Сайт просить відкрити невідому URL-адресу</string>
   <string name="site_asks_to_open_unknown_url_message">Відкрити цю URL-адресу в зовнішньому додатку?</string>
   <string name="err_no_app_to_handle_url">Не вдалося знайти відповідний додаток для обробки цієї URL-адреси</string>
-  <string name="home_page_links">Посилання на домашній сторінці</string>
   <string name="http_auth_title">Потрібна автентифікація</string>
   <string name="play_pause">Відтворення/Пауза</string>
   <string name="media_stop">Зупинити медіа</string>
@@ -148,8 +121,5 @@
   <string name="media_fast_forward">Перемотка вперед</string>
   <string name="long_press">Довге натискання</string>
   <string name="local_network_access_denied">Доступ до локальної мережі заборонено</string>
-  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Алгоритмічне затемнення вебсторінок (темна тема, лише WebView, потрібен перезапуск)</string>
-  <string name="allow_autoplay_media">Дозволити автовідтворення медіа</string>
-  <string name="web_engine_debug">Налагодження вебрушія (потрібен перезапуск)</string>
   <string name="web_engine_debug_warning_message">Увімкнення налагодження вебрушія може розкрити вміст сторінок, cookie та чутливі дані сесії будь-кому, хто має доступ до налагодження пристрою. Вмикайте лише на довірених пристроях для усунення несправностей.</string>
 </resources>

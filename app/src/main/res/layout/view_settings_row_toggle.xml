@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A setting that is on or off: the row toggles it -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.TVBro.SettingsRow.Ds.Clickable">
+
+  <include layout="@layout/view_settings_row_text" />
+
+  <androidx.appcompat.widget.SwitchCompat
+      style="@style/Widget.TVBro.SettingsSwitch"
+      android:id="@+id/swValue"
+      android:layout_marginStart="@dimen/ds_settings_row_gap" />
+</LinearLayout>

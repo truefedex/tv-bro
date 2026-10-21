@@ -31,11 +31,9 @@
     <string name="delete">刪除</string>
     <string name="cancel">取消</string>
     <string name="msg_delete_history_all">要刪除所有歷史紀錄項目嗎？</string>
-    <string name="shortcuts">快捷鍵</string>
     <string name="favorites">我的最愛</string>
     <string name="history">歷史紀錄</string>
     <string name="settings">設定</string>
-    <string name="shortcut">快捷鍵</string>
     <string name="navigate_back">上一頁</string>
     <string name="navigate_home">返回首頁</string>
     <string name="refresh_page">重新整理頁面</string>
@@ -43,9 +41,6 @@
     <string name="not_set">未設定</string>
     <string name="action">操作：</string>
     <string name="current_key">目前按鍵：</string>
-    <string name="set_key_for_action">設定操作按鍵</string>
-    <string name="press_any_key">按下任意鍵...</string>
-    <string name="shortcut_key_reserved_for_navigation">此按鍵已保留供瀏覽器導覽使用</string>
     <string name="clear">清除</string>
     <string name="install">安裝</string>
     <string name="turn_on_unknown_sources">請在系統設定中啟用「未知來源」</string>
@@ -55,17 +50,8 @@
     <string name="later">稍後</string>
     <string name="downloads">下載</string>
     <string name="downloads_notifications_description">下載狀態通知</string>
-    <string name="main">一般</string>
-    <string name="version_and_updates">版本與更新</string>
-    <string name="version_s">版本：%s</string>
-    <string name="build_flavor_s">建構變體：%1$s · %2$s</string>
-    <string name="support_the_author">☕ 支持作者</string>
-    <string name="view_license">📃 授權條款</string>
-    <string name="privacy_policy">🔒 隱私權政策</string>
-    <string name="update_channel">更新頻道：</string>
     <string name="auto_check_for_updates">自動檢查更新</string>
     <string name="update">更新</string>
-    <string name="new_version_available_s">有可用的新版本：%s</string>
     <string name="web_browser_optimized_for_tvs">專為電視最佳化的網頁瀏覽器</string>
     <string name="warning">警告</string>
     <string name="err_webview_can_not_link">無法連結至 WebView 元件。請先嘗試安裝 Android System WebView。</string>
@@ -82,24 +68,14 @@
     <string name="close_application">關閉應用程式</string>
     <string name="close_tab">關閉分頁</string>
     <string name="navigate_forward">下一頁</string>
-    <string name="toggle_ads_blocking">開啟/關閉廣告封鎖</string>
-    <string name="never">永不</string>
-    <string name="last_update">最後更新於</string>
-    <string name="update_ad_blocker_list">更新廣告封鎖器列表</string>
     <string name="toggle_keep_screen_on">保持螢幕開啟</string>
-    <string name="navigate_with_joystick_axes">使用搖桿軸導覽</string>
-    <string name="cursor_max_speed">虛擬游標最大速度</string>
-    <string name="cursor_acceleration">虛擬游標加速度</string>
-    <string name="cursor_physics_percent">預設值的 %d%%</string>
     <string name="direct_navigation_mode_title">直接導覽模式</string>
     <string name="direct_navigation_mode_message">直接導覽會隱藏螢幕游標，並將遙控器或遊戲手把的按鍵直接傳給網頁，讓支援電視或鍵盤焦點的網站能突顯連結與控制項。\n\n若要離開此模式：在電視遙控器上按「返回」，或在遊戲手把上長按 B 鍵。\n\n此模式以 WebView 引擎效果最佳：WebView 支援用方向鍵在頁面內移動焦點。</string>
-    <string name="need_restart">需要重新啟動應用程式</string>
     <string name="theme">主題</string>
     <string name="incognito_mode">無痕模式</string>
     <string name="incognito_mode_hint">您現在可以私密瀏覽，其他使用此裝置的人無法看到您的活動。TV Bro 不會儲存您的歷史紀錄、Cookies、網站資料，以及輸入表單的資訊。\n\n然而，下載和書籤仍會被儲存。您的活動仍可能會被您造訪的網站、您的組織，或是網路服務供應商看到。</string>
     <string name="don_t_show_again">不再顯示</string>
     <string name="why_icon_changed">為什麼圖示變了？</string>
-    <string name="clear_web_cache">清除網路快取</string>
     <string name="block_popups">阻擋彈出式視窗</string>
     <string name="block_popups_s">阻擋彈出式視窗（%s）</string>
     <string name="popup_dialog_blocked">已阻擋彈出式對話框</string>
@@ -110,10 +86,7 @@
     <string name="open_in_external_application">在外部應用程式開啟</string>
     <string name="external_app_open_error">找不到合適的應用程式</string>
     <string name="home_page">首頁</string>
-    <string name="custom_home_page_url">自訂首頁網址</string>
-    <string name="home_page_links">首頁顯示連結</string>
 
-    <string name="need_restart_message">重新啟動應用程式以套用變更</string>
     <string name="yes">是</string>
     <string name="no">否</string>
     <string name="site_asks_to_open_unknown_url">網站要求開啟未知網址</string>
@@ -148,8 +121,5 @@
     <string name="media_fast_forward">快轉媒體</string>
     <string name="long_press">長按</string>
     <string name="local_network_access_denied">已拒絕本機網路存取</string>
-  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">網頁演算法變暗（深色主題，僅 WebView，需要重新啟動）</string>
-  <string name="allow_autoplay_media">允許媒體自動播放</string>
-  <string name="web_engine_debug">Web 引擎偵錯（需要重新啟動）</string>
   <string name="web_engine_debug_warning_message">啟用 Web 引擎偵錯可能會將頁面內容、Cookie 與敏感的工作階段資料暴露給任何具有裝置偵錯存取權的人。僅在受信任裝置上為疑難排解時啟用。</string>
 </resources>

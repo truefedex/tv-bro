@@ -102,6 +102,20 @@
     <attr name="tbColorDsDanger" format="color" />
     <!-- Behind sheets (32% black) -->
     <attr name="tbColorDsScrim" format="color" />
+    <!--
+    Sizes of the rows of the settings screens: the TV values are in Theme.TVBro, the phone ones in
+    ThemeOverlay.TVBro.Settings.Phone, which the phone page lays over its rows
+    -->
+    <attr name="tbSettingsRowMinHeight" format="dimension" />
+    <attr name="tbSettingsRowPadding" format="dimension" />
+    <!-- Around a row: TV rows are rounded inside the card, phone rows fill their card -->
+    <attr name="tbSettingsRowMargin" format="dimension" />
+    <attr name="tbSettingsTitleSize" format="dimension" />
+    <attr name="tbSettingsSummarySize" format="dimension" />
+    <attr name="tbSettingsGroupSize" format="dimension" />
+    <!-- The height of segments, buttons and fields in a row -->
+    <attr name="tbSettingsControlHeight" format="dimension" />
+    <attr name="tbSettingsRowBackground" format="reference" />
     <declare-styleable name="SiteSettingsView">
         <!-- panel: the TV site panel; sheet: the phone site sheet; menu: the site section of the phone menu sheet -->
         <attr name="siteSettingsVariant" format="enum">

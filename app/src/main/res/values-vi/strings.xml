@@ -29,11 +29,9 @@
   <string name="delete">Xóa</string>
   <string name="cancel">Hủy</string>
   <string name="msg_delete_history_all">Xóa toàn bộ lịch sử?</string>
-  <string name="shortcuts">Phím tắt</string>
   <string name="favorites">Yêu thích</string>
   <string name="history">Lịch sử</string>
   <string name="settings">Cài đặt</string>
-  <string name="shortcut">Phím tắt</string>
   <string name="navigate_back">Quay lại</string>
   <string name="navigate_home">Về trang chủ</string>
   <string name="refresh_page">Làm mới trang</string>
@@ -41,9 +39,6 @@
   <string name="not_set">Chưa thiết lập</string>
   <string name="action">Hành động:</string>
   <string name="current_key">Phím hiện tại:</string>
-  <string name="set_key_for_action">Đặt phím cho hành động</string>
-  <string name="press_any_key">Nhấn phím bất kỳ...</string>
-  <string name="shortcut_key_reserved_for_navigation">Phím này được dành riêng cho điều hướng trình duyệt</string>
   <string name="clear">Xóa</string>
   <string name="install">Cài đặt</string>
   <string name="turn_on_unknown_sources">Vui lòng bật cài đặt hệ thống \"Nguồn không xác định\"</string>
@@ -53,17 +48,8 @@
   <string name="later">Để sau</string>
   <string name="downloads">Tải xuống</string>
   <string name="downloads_notifications_description">Thông báo về trạng thái tải xuống</string>
-  <string name="main">Cài đặt chính</string>
-  <string name="version_and_updates">Phiên bản và cập nhật</string>
-  <string name="version_s">Phiên bản: %s</string>
-  <string name="build_flavor_s">Biến thể bản dựng: %1$s · %2$s</string>
-  <string name="support_the_author">☕ Hỗ trợ tác giả</string>
-  <string name="view_license">📃 Giấy phép</string>
-  <string name="privacy_policy">🔒 Chính sách quyền riêng tư</string>
-  <string name="update_channel">Kênh cập nhật:</string>
   <string name="auto_check_for_updates">Tự động kiểm tra các bản cập nhật</string>
   <string name="update">Cập nhật</string>
-  <string name="new_version_available_s">Có phiên bản mới: %s</string>
   <string name="web_browser_optimized_for_tvs">Trình duyệt web được tối ưu hóa cho TV</string>
   <string name="warning">Cảnh báo</string>
   <string name="err_webview_can_not_link">Không thể liên kết với thành phần WebView. Trước tiên, hãy thử cài đặt Android System WebView.</string>
@@ -80,11 +66,6 @@
   <string name="close_application">Đóng ứng dụng</string>
   <string name="close_tab">Đóng tab</string>
   <string name="navigate_forward">Tiến tới</string>
-  <string name="toggle_ads_blocking">Bật/tắt chặn quảng cáo</string>
-  <string name="never">không bao giờ</string>
-  <string name="last_update">Lần cập nhật cuối</string>
-  <string name="update_ad_blocker_list">Cập nhật danh sách chặn quảng cáo</string>
-  <string name="need_restart">Cần khởi động lại ứng dụng</string>
   <string name="theme">Giao diện</string>
   <array name="themes">
     <item>Mặc định hệ thống</item>
@@ -92,17 +73,12 @@
     <item>Tối</item>
   </array>
   <string name="toggle_keep_screen_on">Luôn bật màn hình</string>
-  <string name="navigate_with_joystick_axes">Điều hướng bằng trục joystick</string>
-  <string name="cursor_max_speed">Tốc độ tối đa của con trỏ ảo</string>
-  <string name="cursor_acceleration">Gia tốc con trỏ ảo</string>
-  <string name="cursor_physics_percent">%d%% so với mặc định</string>
   <string name="direct_navigation_mode_title">Chế độ điều hướng trực tiếp</string>
   <string name="direct_navigation_mode_message">Điều hướng trực tiếp ẩn con trỏ trên màn hình và gửi phím từ điều khiển từ xa hoặc tay cầm chơi game thẳng tới trang web, để các trang hỗ trợ tiêu điểm TV hoặc bàn phím có thể làm nổi bật liên kết và điều khiển.\n\nĐể thoát: nhấn Quay lại trên điều khiển TV hoặc giữ nút B trên tay cầm.\n\nChế độ này hoạt động tốt nhất với công cụ WebView: WebView hỗ trợ di chuyển tiêu điểm trong trang bằng D-pad.</string>
   <string name="incognito_mode">Chế độ ẩn danh</string>
   <string name="incognito_mode_hint">Giờ đây, bạn có thể duyệt web một cách riêng tư và những người khác sử dụng thiết bị này sẽ không thấy hoạt động của bạn. TV Bro sẽ không lưu lịch sử duyệt web, cookie, dữ liệu trang web và thông tin bạn đã nhập vào biểu mẫu.\n\nTuy nhiên, các tệp tải xuống và dấu trang vẫn sẽ được lưu. Hoạt động của bạn có thể vẫn hiển thị với các trang web bạn truy cập, tổ chức của bạn hoặc nhà cung cấp dịch vụ internet.</string>
   <string name="don_t_show_again">Không hiển thị lại</string>
   <string name="why_icon_changed">Tại sao biểu tượng thay đổi?</string>
-  <string name="clear_web_cache">Xóa bộ nhớ cache của web</string>
   <string name="no_bookmarks_yet">Chưa có dấu trang nào</string>
   <string name="done">Xong</string>
   <string name="block_popups">Chặn cửa sổ bật lên</string>
@@ -121,7 +97,6 @@
     <item>Chặn mọi cửa sổ mới (chặn tối đa)</item>
   </string-array>
   <string name="home_page">Trang chủ</string>
-  <string name="custom_home_page_url">URL trang chủ tùy chỉnh</string>
   <string-array name="home_page_modes">
     <item>Trang chủ TV Bro</item>
     <item>Công cụ tìm kiếm</item>
@@ -134,13 +109,11 @@
     <item>Truy cập nhiều nhất</item>
   </string-array>
 
-  <string name="need_restart_message">Khởi động lại ứng dụng để áp dụng các thay đổi</string>
   <string name="yes">Có</string>
   <string name="no">Không</string>
   <string name="site_asks_to_open_unknown_url">Trang web yêu cầu mở URL không xác định</string>
   <string name="site_asks_to_open_unknown_url_message">Bạn có muốn mở URL này trong ứng dụng bên ngoài không?</string>
   <string name="err_no_app_to_handle_url">Không thể tìm thấy ứng dụng phù hợp để xử lý URL này</string>
-  <string name="home_page_links">Liên kết trên trang chủ</string>
   <string name="http_auth_title">Yêu cầu xác thực</string>
   <string name="play_pause">Phát/Tạm dừng</string>
   <string name="media_stop">Dừng phương tiện</string>
@@ -148,8 +121,5 @@
   <string name="media_fast_forward">Tua nhanh phương tiện</string>
   <string name="long_press">Nhấn giữ</string>
   <string name="local_network_access_denied">Đã từ chối truy cập mạng cục bộ</string>
-  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Làm tối theo thuật toán cho trang web (giao diện tối, chỉ WebView, cần khởi động lại)</string>
-  <string name="allow_autoplay_media">Cho phép tự động phát phương tiện</string>
-  <string name="web_engine_debug">Gỡ lỗi công cụ web (cần khởi động lại)</string>
   <string name="web_engine_debug_warning_message">Việc bật gỡ lỗi công cụ web có thể làm lộ nội dung trang, cookie và dữ liệu phiên nhạy cảm cho bất kỳ ai có quyền truy cập gỡ lỗi thiết bị. Chỉ bật trên thiết bị đáng tin cậy để khắc phục sự cố.</string>
 </resources>

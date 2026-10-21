@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The thumb of a switch: the surface in a strong line when off, the icon color when on -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <inset android:inset="@dimen/ds_settings_switch_thumb_inset">
+            <shape android:shape="oval">
+                <size android:width="@dimen/ds_settings_switch_thumb" android:height="@dimen/ds_settings_switch_thumb" />
+                <solid android:color="?attr/tbColorDsIcon" />
+            </shape>
+        </inset>
+    </item>
+    <item>
+        <inset android:inset="@dimen/ds_settings_switch_thumb_inset">
+            <shape android:shape="oval">
+                <size android:width="@dimen/ds_settings_switch_thumb" android:height="@dimen/ds_settings_switch_thumb" />
+                <solid android:color="?attr/tbColorDsSurface" />
+                <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+            </shape>
+        </inset>
+    </item>
+</selector>

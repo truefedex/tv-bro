@@ -480,10 +480,138 @@
         <item name="android:background">@drawable/list_item_bg_selector</item>
     </style>
 
-    <!-- A settings row: a label and a switch -->
-    <style name="Widget.TVBro.SettingsRow" parent="">
-        <item name="android:layout_marginTop">@dimen/settings_section_spacing</item>
-        <item name="android:paddingTop">5dp</item>
+    <!--
+    The settings screens. Sizes come from the tbSettings theme attributes: the TV values, or the phone ones
+    under ThemeOverlay.TVBro.Settings.Phone.
+    -->
+    <style name="Widget.TVBro.SettingsRow.Ds" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">?attr/tbSettingsRowMargin</item>
+        <item name="android:layout_marginEnd">?attr/tbSettingsRowMargin</item>
+        <item name="android:minHeight">?attr/tbSettingsRowMinHeight</item>
         <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">?attr/tbSettingsRowPadding</item>
+        <item name="android:paddingEnd">?attr/tbSettingsRowPadding</item>
+        <item name="android:paddingTop">@dimen/ds_settings_row_vertical_padding</item>
+        <item name="android:paddingBottom">@dimen/ds_settings_row_vertical_padding</item>
+        <item name="android:background">?attr/tbSettingsRowBackground</item>
+    </style>
+
+    <!-- A row that acts as a whole (a switch, a menu, a link) -->
+    <style name="Widget.TVBro.SettingsRow.Ds.Clickable">
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <style name="Widget.TVBro.Text.SettingsTitle" parent="">
+        <item name="android:textSize">?attr/tbSettingsTitleSize</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+    </style>
+
+    <style name="Widget.TVBro.Text.SettingsSummary" parent="">
+        <item name="android:textSize">?attr/tbSettingsSummarySize</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+    </style>
+
+    <!-- The title of a group of rows -->
+    <style name="Widget.TVBro.Text.SettingsGroup" parent="">
+        <item name="android:textSize">?attr/tbSettingsGroupSize</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.06</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <!-- A small marker: After restart, Update -->
+    <style name="Widget.TVBro.Text.SettingsTag" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">@dimen/ds_settings_tag_height</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/ds_settings_tag_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_settings_tag_padding</item>
+        <item name="android:background">@drawable/ds_settings_tag_bg</item>
+        <item name="android:textSize">@dimen/ds_text_settings_tag</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <!-- The group of the segments of a choice; it clips them to its rounded border (set clipToOutline) -->
+    <style name="Widget.TVBro.SettingsSegments" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">?attr/tbSettingsControlHeight</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:background">@drawable/ds_control_group_bg</item>
+        <item name="android:padding">@dimen/ds_border_hairline</item>
+    </style>
+
+    <style name="Widget.TVBro.Text.SettingsSegment" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:minWidth">@dimen/ds_settings_segment_min_width</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">@dimen/ds_settings_segment_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_settings_segment_padding</item>
+        <item name="android:background">@drawable/ds_settings_segment_bg</item>
+        <item name="android:textSize">?attr/tbSettingsTitleSize</item>
+        <item name="android:textColor">?attr/tbColorDsInk</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+    </style>
+
+    <!-- A button in a row of the settings -->
+    <style name="Widget.TVBro.SettingsButton" parent="Widget.TVBro.TextButton.Ds">
+        <item name="android:layout_height">?attr/tbSettingsControlHeight</item>
+        <item name="android:textSize">?attr/tbSettingsTitleSize</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- A text field in a row of the settings -->
+    <style name="Widget.TVBro.SettingsField" parent="Widget.TVBro.Field.Ds">
+        <item name="android:layout_height">?attr/tbSettingsControlHeight</item>
+        <item name="android:textSize">?attr/tbSettingsTitleSize</item>
+        <item name="android:textColorHint">?attr/tbColorDsInkFaint</item>
+        <item name="android:inputType">textUri</item>
+        <item name="android:imeOptions">actionDone</item>
+        <item name="android:importantForAutofill">no</item>
+    </style>
+
+    <!-- The switch of a row: the row toggles it, so it takes no focus or clicks -->
+    <style name="Widget.TVBro.SettingsSwitch" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:thumb">@drawable/ds_switch_thumb</item>
+        <item name="track">@drawable/ds_switch_track</item>
+        <item name="thumbTint">@null</item>
+        <item name="trackTint">@null</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="switchMinWidth">@dimen/ds_settings_switch_width</item>
+        <item name="switchPadding">0dp</item>
+        <item name="showText">false</item>
+        <item name="android:background">@null</item>
+        <item name="android:focusable">false</item>
+        <item name="android:clickable">false</item>
+        <item name="android:importantForAccessibility">no</item>
+    </style>
+
+    <style name="Widget.TVBro.SettingsSlider" parent="">
+        <item name="android:layout_width">@dimen/ds_settings_slider_width</item>
+        <item name="android:layout_height">@dimen/ds_settings_slider_thumb_focus</item>
+        <item name="android:progressDrawable">@drawable/ds_slider_progress</item>
+        <item name="android:thumb">@drawable/ds_slider_thumb</item>
+        <item name="android:splitTrack">false</item>
+        <item name="android:minHeight">@dimen/ds_settings_slider_track</item>
+        <item name="android:maxHeight">@dimen/ds_settings_slider_track</item>
+        <item name="android:paddingStart">@dimen/ds_settings_slider_thumb_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_settings_slider_thumb_padding</item>
+        <item name="android:background">@null</item>
+        <item name="android:focusable">true</item>
     </style>
 </resources>

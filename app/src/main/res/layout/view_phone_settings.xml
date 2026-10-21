@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The settings page of the phone UI, over the whole window: the header (back, the title of the list or of a
+category), the cards of the categories or the rows of the shown category, the strip that offers a restart.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.RelativeLayout">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ds_phone_switcher_header_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_phone_bar_padding_horizontal"
+        android:paddingEnd="@dimen/ds_phone_bar_padding_horizontal">
+
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+          android:id="@+id/ibBack"
+          android:src="@drawable/ic_back"
+          android:contentDescription="@string/back" />
+
+      <TextView
+          android:id="@+id/tvTitle"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_phone_bar_padding_horizontal"
+          android:textSize="@dimen/ds_text_phone_switcher_title"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          android:accessibilityHeading="true"
+          android:text="@string/settings" />
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/svContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:fillViewport="true">
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          android:paddingBottom="@dimen/ds_phone_settings_cards_gap">
+
+        <LinearLayout
+            android:id="@+id/llCategories"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <com.phlox.tvwebbrowser.activity.main.view.SettingsRowsView
+            android:id="@+id/vRows"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/ThemeOverlay.TVBro.Settings.Phone"
+            android:visibility="gone" />
+      </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/llRestart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/ds_phone_settings_card_margin"
+        android:paddingEnd="@dimen/ds_phone_bar_padding_horizontal"
+        android:paddingTop="@dimen/ds_phone_bar_padding_vertical"
+        android:paddingBottom="@dimen/ds_phone_bar_padding_vertical"
+        android:background="@drawable/ds_settings_restart_bg"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+      <TextView
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:textSize="@dimen/ds_text_phone_caption"
+          android:textColor="?attr/tbColorDsInk"
+          android:accessibilityLiveRegion="polite"
+          android:text="@string/settings_restart_message" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.PhoneTextButton"
+          android:id="@+id/btnRestart"
+          android:fontFamily="sans-serif-medium"
+          android:text="@string/settings_restart_now" />
+    </LinearLayout>
+  </LinearLayout>
+</merge>

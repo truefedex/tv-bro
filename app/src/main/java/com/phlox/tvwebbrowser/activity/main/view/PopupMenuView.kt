@@ -12,13 +12,18 @@ import com.phlox.tvwebbrowser.databinding.ViewPopupMenuRowBinding
 
 /**
  * A menu of the given rows under the view that opened it (above it when there is no room under it),
- * the first row focused. Rows that can not act are only dimmed, so the number of presses to each row
- * never changes.
+ * the first row focused (or the given one). Rows that can not act are only dimmed, so the number of presses
+ * to each row never changes. A menu of options marks the chosen one ([Item.checked]).
  */
 class PopupMenuView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
 ) : AnchoredOverlayView(context, attrs) {
-    class Item(@DrawableRes val icon: Int, val label: String, val enabled: Boolean = true, val action: () -> Unit)
+    /**
+     * @param checked for an option: true for the chosen one (selected, its [icon] shown), false for the others
+     *   (no icon); null for an action
+     */
+    class Item(@DrawableRes val icon: Int, val label: String, val enabled: Boolean = true, val checked: Boolean? = null,
+               val action: () -> Unit)
 
     private val vb = ViewPopupMenuBinding.inflate(LayoutInflater.from(context), this)
     override val panel: View get() = vb.llMenu
@@ -36,18 +41,23 @@ class PopupMenuView @JvmOverloads constructor(
      * @param gap between the anchor and the menu
      * @param width the width of the menu, the one of the menus of the panels if not given
      * @param activateAnchor the anchor is selected (activated) while the menu is open
+     * @param focusIndex the row that gets the focus
      */
     fun show(anchor: View, items: List<Item>, alignEnd: Boolean, endAlignTo: View = anchor, gap: Int = 0,
-             @DimenRes width: Int? = null, activateAnchor: Boolean = false) {
+             @DimenRes width: Int? = null, activateAnchor: Boolean = false, focusIndex: Int = 0) {
         val inflater = LayoutInflater.from(context)
         vb.llMenu.removeAllViews()
-        var firstRow: View? = null
+        var focusRow: View? = null
         for ((i, item) in items.withIndex()) {
             if (i > 0) {
                 inflater.inflate(R.layout.view_popup_menu_separator, vb.llMenu, true)
             }
             val row = ViewPopupMenuRowBinding.inflate(inflater, vb.llMenu, true)
             row.ivIcon.setImageResource(item.icon)
+            if (item.checked != null) {
+                row.ivIcon.visibility = if (item.checked) VISIBLE else INVISIBLE
+                row.root.isActivated = item.checked
+            }
             row.tvLabel.text = item.label
             //disabled icons and labels are drawn at 40%
             row.root.alpha = if (item.enabled) 1f else DISABLED_ALPHA
@@ -57,7 +67,7 @@ class PopupMenuView @JvmOverloads constructor(
                 hide()
                 item.action()
             }
-            if (firstRow == null) firstRow = row.root
+            if (i == focusIndex || focusRow == null) focusRow = row.root
         }
         val margin = resources.getDimensionPixelSize(R.dimen.ds_bookmarks_panel_margin_bottom)
         vb.llMenu.layoutParams = vb.llMenu.layoutParams.apply {
@@ -67,7 +77,7 @@ class PopupMenuView @JvmOverloads constructor(
             anchor.isActivated = true
             activatedAnchor = anchor
         }
-        showUnder(anchor, gap, firstRow ?: return, if (alignEnd) endAlignTo else null, margin)
+        showUnder(anchor, gap, focusRow ?: return, if (alignEnd) endAlignTo else null, margin)
         //no room under the anchor: the menu goes above it
         val screenHeight = (parent as View).height
         val lp = vb.llMenu.layoutParams as LayoutParams

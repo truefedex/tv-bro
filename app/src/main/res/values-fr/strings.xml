@@ -31,11 +31,9 @@
     <string name="delete">Supprimer</string>
     <string name="cancel">Annuler</string>
     <string name="msg_delete_history_all">Supprimer tout l’historique ?</string>
-    <string name="shortcuts">Raccourcis</string>
     <string name="favorites">Favoris</string>
     <string name="history">Historique</string>
     <string name="settings">Paramètres</string>
-    <string name="shortcut">Raccourci</string>
     <string name="navigate_back">Page précédente</string>
     <string name="navigate_home">Aller à la page d’accueil</string>
     <string name="refresh_page">Actualiser la page</string>
@@ -43,9 +41,6 @@
     <string name="not_set">Non défini</string>
     <string name="action">Action :</string>
     <string name="current_key">Touche actuelle :</string>
-    <string name="set_key_for_action">Définir la touche de l’action</string>
-    <string name="press_any_key">Appuyez sur une touche...</string>
-    <string name="shortcut_key_reserved_for_navigation">Cette touche est réservée à la navigation du navigateur</string>
     <string name="clear">Effacer</string>
     <string name="install">Installer</string>
     <string name="turn_on_unknown_sources">Veuillez activer le paramètre système « Sources inconnues »</string>
@@ -55,17 +50,8 @@
     <string name="later">Plus tard</string>
     <string name="downloads">Téléchargements</string>
     <string name="downloads_notifications_description">Notifications sur l’état des téléchargements</string>
-    <string name="main">Général</string>
-    <string name="version_and_updates">Version et mises à jour</string>
-    <string name="version_s">Version : %s</string>
-    <string name="build_flavor_s">Variante de compilation : %1$s · %2$s</string>
-    <string name="support_the_author">☕ Soutenir l’auteur</string>
-    <string name="view_license">📃 Licence</string>
-    <string name="privacy_policy">🔒 Politique de confidentialité</string>
-    <string name="update_channel">Canal de mise à jour :</string>
     <string name="auto_check_for_updates">Rechercher automatiquement les mises à jour</string>
     <string name="update">Mettre à jour</string>
-    <string name="new_version_available_s">Nouvelle version disponible : %s</string>
     <string name="web_browser_optimized_for_tvs">Navigateur web optimisé pour les TV</string>
     <string name="warning">Avertissement</string>
     <string name="err_webview_can_not_link">Impossible de se connecter au composant WebView. Essayez d’abord d’installer Android System WebView.</string>
@@ -82,22 +68,10 @@
     <string name="close_application">Fermer l’application</string>
     <string name="close_tab">Fermer l’onglet</string>
     <string name="navigate_forward">Page suivante</string>
-    <string name="toggle_ads_blocking">Activer/désactiver le blocage des publicités</string>
-    <string name="never">jamais</string>
-    <string name="last_update">Dernière mise à jour</string>
-    <string name="update_ad_blocker_list">Mettre à jour la liste du bloqueur de publicités</string>
     <string name="toggle_keep_screen_on">Garder l’écran allumé</string>
-    <string name="navigate_with_joystick_axes">Naviguer avec les axes du joystick</string>
-    <string name="cursor_max_speed">Vitesse maximale du curseur virtuel</string>
-    <string name="cursor_acceleration">Accélération du curseur virtuel</string>
-    <string name="cursor_physics_percent">%d %% de la valeur par défaut</string>
     <string name="direct_navigation_mode_title">Mode de navigation directe</string>
     <string name="direct_navigation_mode_message">La navigation directe masque le curseur à l’écran et envoie les touches de votre télécommande ou de votre manette de jeu directement à la page web, afin que les sites compatibles avec le focus TV ou clavier puissent mettre en évidence les liens et les commandes.\n\nPour quitter ce mode : appuyez sur Retour sur la télécommande de votre TV, ou maintenez enfoncé le bouton B de la manette de jeu.\n\nCe mode fonctionne mieux avec le moteur WebView : WebView permet de déplacer le focus dans la page avec le pavé directionnel.</string>
-    <string name="need_restart">Redémarrage de l’application nécessaire</string>
     <string name="theme">Thème</string>
-    <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Assombrissement algorithmique des pages web (thème sombre, WebView uniquement, redémarrage nécessaire)</string>
-    <string name="allow_autoplay_media">Autoriser la lecture automatique des médias</string>
-    <string name="web_engine_debug">Débogage du moteur web (redémarrage nécessaire)</string>
     <string name="web_engine_debug_warning_message">L’activation du débogage du moteur web peut exposer le contenu des pages, les cookies et des données de session sensibles à toute personne ayant un accès de débogage à l’appareil. Ne l’activez que sur des appareils de confiance, pour le dépannage.</string>
     <array name="themes">
         <item>Système</item>
@@ -108,7 +82,6 @@
     <string name="incognito_mode_hint">Vous pouvez maintenant naviguer en privé : les autres personnes qui utilisent cet appareil ne verront pas votre activité. TV Bro n’enregistrera pas votre historique de navigation, les cookies et données de sites, ni les informations saisies dans les formulaires.\n\nToutefois, les téléchargements et les favoris seront enregistrés. Votre activité peut rester visible par les sites web que vous consultez, votre organisation ou votre fournisseur d’accès à Internet.</string>
     <string name="don_t_show_again">Ne plus afficher</string>
     <string name="why_icon_changed">Pourquoi l’icône a-t-elle changé ?</string>
-    <string name="clear_web_cache">Vider le cache web</string>
     <string name="block_popups">Blocage des fenêtres pop-up</string>
     <string name="block_popups_s">Blocage des fenêtres pop-up (%s)</string>
     <string name="popup_dialog_blocked">Boîte de dialogue pop-up bloquée</string>
@@ -125,8 +98,6 @@
     <string name="open_in_external_application">Ouvrir dans une application externe</string>
     <string name="external_app_open_error">Aucune application adaptée trouvée</string>
     <string name="home_page">Page d’accueil</string>
-    <string name="custom_home_page_url">URL de page d’accueil personnalisée</string>
-    <string name="home_page_links">Liens de la page d’accueil</string>
     <array name="home_page_modes">
         <item>Accueil TV Bro</item>
         <item>Moteur de recherche</item>
@@ -140,7 +111,6 @@
         <item>Les plus visités</item>
     </array>
 
-    <string name="need_restart_message">Redémarrez l’application pour appliquer les modifications</string>
     <string name="yes">Oui</string>
     <string name="no">Non</string>
     <string name="site_asks_to_open_unknown_url">Le site demande à ouvrir une URL inconnue</string>

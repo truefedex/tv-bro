@@ -92,6 +92,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vDownloads.setInsets(bars.left, bars.top, bars.right, bars.bottom)
             vb.vHistory.setInsets(bars.left, bars.top, bars.right, bars.bottom, keyboard.bottom)
             vb.vSync.setInsets(bars.left, bars.top, bars.right, bars.bottom)
+            vb.vSettings.setInsets(bars.left, bars.top, bars.right, bars.bottom, keyboard.bottom)
             vb.vActionsSheet.setInsets(bars.left, bars.right, bars.bottom)
             WindowInsetsCompat.CONSUMED
         }
@@ -159,7 +160,19 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
 
         override fun showSendToTv() = vb.vSync.show()
 
-        override fun showSettings() = host.showSettings()
+        override fun showSettings() = this@PhoneShell.showSettings(null)
+    }
+
+    override fun showSettings(category: SettingsNavigator.Category?) {
+        vb.vPhoneBar.stopEditing()
+        vb.vMenuSheet.hide()
+        vb.vSettings.show(category)
+    }
+
+    private val settingsCallback by lazy {
+        SettingsShellCallback(host) { icon, message ->
+            NotificationView.show(if (vb.vSettings.isOpen) vb.vSettings else vb.rlRoot, icon, message)
+        }
     }
 
     private fun showSiteSheet() {
@@ -406,6 +419,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vDownloads.attach(activity.lifecycleScope, vb.vActionsSheet, downloadsCallback)
         vb.vHistory.attach(activity.lifecycleScope, vb.vActionsSheet, historyCallback)
         vb.vSync.attach(syncNavigator)
+        vb.vSettings.attach(activity.lifecycleScope, vb.vActionsSheet, settingsCallback)
         activity.lifecycleScope.launch { downloadsModel.events.collect(::onDownloadEvent) }
         controller.tabsStates.subscribe(activity, observer = { vb.vPhoneBar.setTabCount(it.size) })
     }
@@ -430,6 +444,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         dispatcher.addCallback(activity, vb.vDownloads.backCallback)
         dispatcher.addCallback(activity, vb.vHistory.backCallback)
         dispatcher.addCallback(activity, vb.vSync.backCallback)
+        dispatcher.addCallback(activity, vb.vSettings.backCallback)
         dispatcher.addCallback(activity, vb.vActionsSheet.backCallback)
         dispatcher.addCallback(activity, fullscreen)
     }
@@ -447,6 +462,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             vb.vDownloads.hide()
             vb.vHistory.hide()
             vb.vSync.hide()
+            vb.vSettings.hide()
             vb.vSnackbar.hide()
             scrollAwayBar.show(animate = false)
         }
@@ -509,6 +525,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
 
     override fun showPage() {
         vb.vSync.hide()
+        vb.vSettings.hide()
         vb.vPhoneBar.stopEditing()
         vb.vMenuSheet.hide()
         vb.vSiteSheet.hide()

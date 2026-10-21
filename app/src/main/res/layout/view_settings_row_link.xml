@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A link: the row opens the page in a new tab -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.TVBro.SettingsRow.Ds.Clickable"
+    android:minHeight="@dimen/ds_settings_key_row_min_height">
+
+  <include layout="@layout/view_settings_row_text" />
+
+  <ImageView
+      android:layout_width="@dimen/ds_settings_value_icon"
+      android:layout_height="@dimen/ds_settings_value_icon"
+      android:layout_marginStart="@dimen/ds_settings_row_gap"
+      android:src="@drawable/ic_open_in_new"
+      app:tint="?attr/tbColorDsIcon"
+      android:importantForAccessibility="no" />
+</LinearLayout>

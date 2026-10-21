@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A hairline between the rows of a card of the phone settings -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <size android:height="@dimen/ds_border_hairline" />
+    <solid android:color="?attr/tbColorDsLine" />
+</shape>

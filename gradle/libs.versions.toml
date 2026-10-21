@@ -22,7 +22,6 @@ room = "2.8.5"
 robolectric = "4.17"
 geckoview = "157.0.20261005135250"
 ad-block = "0.0.4"
-segmented-button = "v1.0.0"
 qrcodegen = "1.8.0"
 
 [libraries]
@@ -48,7 +47,6 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
 # Third-party
-segmented-button = { group = "com.github.truefedex", name = "segmented-button", version.ref = "segmented-button" }
 ad-block = { group = "com.github.truefedex", name = "ad-block", version.ref = "ad-block" }
 # QR codes of the sync pairing (MIT)
 qrcodegen = { group = "io.nayuki", name = "qrcodegen", version.ref = "qrcodegen" }

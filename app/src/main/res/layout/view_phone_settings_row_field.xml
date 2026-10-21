@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A text to type on the phone: the title, the field under it and an optional button (Update of the filter list) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.TVBro.SettingsRow.Ds"
+    android:orientation="vertical"
+    android:gravity="start"
+    android:paddingTop="@dimen/ds_phone_settings_block_padding"
+    android:paddingBottom="@dimen/ds_phone_settings_block_padding">
+
+  <include
+      layout="@layout/view_settings_row_text"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content" />
+
+  <EditText
+      style="@style/Widget.TVBro.SettingsField"
+      android:id="@+id/etValue"
+      android:layout_width="match_parent"
+      android:layout_marginTop="@dimen/ds_settings_field_gap"
+      tools:text="https://easylist.to/easylist/easylist.txt" />
+
+  <FrameLayout
+      android:id="@+id/flAction"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="end"
+      android:layout_marginTop="@dimen/ds_settings_field_gap">
+
+    <TextView
+        style="@style/Widget.TVBro.SettingsButton"
+        android:id="@+id/btnAction"
+        tools:text="Update" />
+
+    <ProgressBar
+        android:id="@+id/pbBusy"
+        android:layout_width="@dimen/ds_settings_value_icon"
+        android:layout_height="@dimen/ds_settings_value_icon"
+        android:layout_gravity="center"
+        android:indeterminateTint="?attr/tbColorDsIcon"
+        android:visibility="gone" />
+  </FrameLayout>
+</LinearLayout>

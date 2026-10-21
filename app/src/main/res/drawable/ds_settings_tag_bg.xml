@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A small marker in a row of the settings (After restart) or a category (Update) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/ds_settings_tag_radius" />
+    <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+</shape>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The track of a switch: control when off, selected (its fill and stroke) when on -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <size android:width="@dimen/ds_settings_switch_width" android:height="@dimen/ds_settings_switch_height" />
+            <corners android:radius="@dimen/ds_settings_switch_height" />
+            <solid android:color="?attr/tbColorDsControlSelected" />
+            <stroke android:color="?attr/tbColorDsSelected" android:width="@dimen/ds_border_selected" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <size android:width="@dimen/ds_settings_switch_width" android:height="@dimen/ds_settings_switch_height" />
+            <corners android:radius="@dimen/ds_settings_switch_height" />
+            <solid android:color="?attr/tbColorDsControl" />
+            <stroke android:color="?attr/tbColorDsLineStrong" android:width="@dimen/ds_border_hairline" />
+        </shape>
+    </item>
+</selector>

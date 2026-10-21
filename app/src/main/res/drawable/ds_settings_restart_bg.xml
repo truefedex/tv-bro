@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The strip that offers the restart: the menu fill under a hairline -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsLine" />
+        </shape>
+    </item>
+    <item android:top="@dimen/ds_border_hairline">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsMenu" />
+        </shape>
+    </item>
+</layer-list>

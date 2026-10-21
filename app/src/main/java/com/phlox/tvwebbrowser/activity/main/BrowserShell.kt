@@ -76,6 +76,9 @@ interface BrowserShell {
     /** The [download] started: the shell tells about it */
     fun onDownloadStarted(download: Download)
 
+    /** Opens the settings at the [category] (the first one on TV, the list of the categories on the phone) */
+    fun showSettings(category: SettingsNavigator.Category? = null)
+
     /** Opens all downloads, the download [focusId] focused (else the first one) */
     fun showAllDownloads(focusId: Long? = null)
 
@@ -114,7 +117,6 @@ interface BrowserShell {
         /** Leaves the incognito mode if it is on and finishes the activity */
         fun closeWindow()
         fun toggleIncognitoMode()
-        fun showSettings()
         /** Turns ad blocking of the current site on or off; the page reloads */
         fun toggleSiteAdBlock()
         /** Lets the user choose the popup blocking level of the current site */

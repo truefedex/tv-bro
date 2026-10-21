@@ -29,11 +29,9 @@
   <string name="delete">删除</string>
   <string name="cancel">取消</string>
   <string name="msg_delete_history_all">删除所有历史记录？</string>
-  <string name="shortcuts">快捷键</string>
   <string name="favorites">收藏夹</string>
   <string name="history">历史记录</string>
   <string name="settings">设置</string>
-  <string name="shortcut">快捷键</string>
   <string name="navigate_back">后退</string>
   <string name="navigate_home">转到主页</string>
   <string name="refresh_page">刷新页面</string>
@@ -41,9 +39,6 @@
   <string name="not_set">未设置</string>
   <string name="action">操作：</string>
   <string name="current_key">当前按键：</string>
-  <string name="set_key_for_action">设置操作按键</string>
-  <string name="press_any_key">按任意键...</string>
-  <string name="shortcut_key_reserved_for_navigation">此按键已保留用于浏览器导航</string>
   <string name="clear">清除</string>
   <string name="install">安装</string>
   <string name="turn_on_unknown_sources">请打开“未知来源”系统设置</string>
@@ -53,17 +48,8 @@
   <string name="later">稍后提醒</string>
   <string name="downloads">下载</string>
   <string name="downloads_notifications_description">关于下载状态的通知</string>
-  <string name="main">常规</string>
-  <string name="version_and_updates">版本与更新</string>
-  <string name="version_s">版本：%s</string>
-  <string name="build_flavor_s">构建变体：%1$s · %2$s</string>
-  <string name="support_the_author">☕ 支持作者</string>
-  <string name="view_license">📃 许可协议</string>
-  <string name="privacy_policy">🔒 隐私政策</string>
-  <string name="update_channel">更新频道：</string>
   <string name="auto_check_for_updates">自动检查更新</string>
   <string name="update">更新</string>
-  <string name="new_version_available_s">新版本可用：%s</string>
   <string name="web_browser_optimized_for_tvs">专为电视优化的网页浏览器</string>
   <string name="warning">警告</string>
   <string name="err_webview_can_not_link">无法连接到 WebView 组件。请先尝试安装 Android System WebView。</string>
@@ -80,11 +66,6 @@
   <string name="close_application">关闭应用</string>
   <string name="close_tab">关闭标签页</string>
   <string name="navigate_forward">前进</string>
-  <string name="toggle_ads_blocking">开启/关闭广告拦截</string>
-  <string name="never">从不</string>
-  <string name="last_update">上次更新</string>
-  <string name="update_ad_blocker_list">更新广告拦截列表</string>
-  <string name="need_restart">需要重启应用</string>
   <string name="theme">主题</string>
   <array name="themes">
     <item>跟随系统</item>
@@ -92,17 +73,12 @@
     <item>深色</item>
   </array>
   <string name="toggle_keep_screen_on">保持屏幕开启</string>
-  <string name="navigate_with_joystick_axes">使用摇杆轴导航</string>
-  <string name="cursor_max_speed">虚拟光标最大速度</string>
-  <string name="cursor_acceleration">虚拟光标加速度</string>
-  <string name="cursor_physics_percent">默认值的 %d%%</string>
   <string name="direct_navigation_mode_title">直接导航模式</string>
   <string name="direct_navigation_mode_message">直接导航会隐藏屏幕光标，并将遥控器或游戏手柄的按键直接传给网页，从而支持电视或键盘焦点模式的网站高亮链接和控件。\n\n退出此模式：在电视遥控器上按“返回”，或在游戏手柄上长按 B 键。\n\n此模式在 WebView 引擎下效果最佳：WebView 支持用方向键在页面内移动焦点。</string>
   <string name="incognito_mode">隐身模式</string>
   <string name="incognito_mode_hint">现在您可以以私密方式浏览，其他使用此设备的人将看不到您的活动。TV Bro 不会保存您的浏览历史记录、Cookie、网站数据以及在表单中输入的信息。\n\n但是，下载内容和书签仍会被保存。您访问的网站、您所在的组织或互联网服务提供商可能仍然可以看到您的活动。</string>
   <string name="don_t_show_again">不再显示</string>
   <string name="why_icon_changed">为什么图标变了？</string>
-  <string name="clear_web_cache">清除网络缓存</string>
   <string name="no_bookmarks_yet">还没有书签</string>
   <string name="done">完成</string>
   <string name="block_popups">阻止弹出窗口</string>
@@ -121,7 +97,6 @@
   <string name="open_in_external_application">在外部应用程序中打开</string>
   <string name="external_app_open_error">找不到合适的应用</string>
   <string name="home_page">主页</string>
-  <string name="custom_home_page_url">自定义主页 URL</string>
   <string-array name="home_page_modes">
     <item>TV Bro 主页</item>
     <item>搜索引擎</item>
@@ -134,13 +109,11 @@
     <item>最常访问</item>
   </string-array>
 
-  <string name="need_restart_message">重新启动应用以应用此更改</string>
   <string name="yes">是</string>
   <string name="no">否</string>
   <string name="site_asks_to_open_unknown_url">此站点想要打开一个未知的 URL</string>
   <string name="site_asks_to_open_unknown_url_message">要在外部应用中打开此 URL 吗？</string>
   <string name="err_no_app_to_handle_url">找不到合适的应用来处理此 URL</string>
-  <string name="home_page_links">主页上的链接</string>
   <string name="http_auth_title">需要身份验证</string>
   <string name="play_pause">播放/暂停</string>
   <string name="media_stop">停止媒体</string>
@@ -148,8 +121,5 @@
   <string name="media_fast_forward">快进</string>
   <string name="long_press">长按</string>
   <string name="local_network_access_denied">已拒绝本地网络访问</string>
-  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">网页算法变暗（深色主题，仅 WebView，需要重启）</string>
-  <string name="allow_autoplay_media">允许媒体自动播放</string>
-  <string name="web_engine_debug">Web 引擎调试（需要重启）</string>
   <string name="web_engine_debug_warning_message">启用 Web 引擎调试可能会将页面内容、Cookie 和敏感会话数据暴露给任何具有设备调试访问权限的人。仅在受信任设备上用于故障排查时启用。</string>
 </resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A category of the TV settings: its icon, its name and a marker (Update); selected (activated) while shown -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/ds_settings_rail_row_height"
+    android:layout_marginBottom="@dimen/ds_settings_rail_gap"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="@dimen/ds_settings_rail_row_padding"
+    android:paddingEnd="@dimen/ds_settings_rail_row_padding"
+    android:background="@drawable/ds_settings_row_bg"
+    android:focusable="true"
+    android:clickable="true">
+
+  <ImageView
+      style="@style/Widget.TVBro.MenuIcon"
+      android:id="@+id/ivIcon"
+      tools:src="@drawable/ic_search" />
+
+  <TextView
+      android:id="@+id/tvTitle"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_weight="1"
+      android:layout_marginStart="@dimen/ds_settings_rail_row_padding"
+      android:textSize="@dimen/ds_text_menu_item"
+      android:textColor="?attr/tbColorDsInk"
+      android:singleLine="true"
+      android:ellipsize="end"
+      tools:text="Search and home page" />
+
+  <TextView
+      style="@style/Widget.TVBro.Text.SettingsTag"
+      android:id="@+id/tvBadge"
+      android:layout_marginStart="@dimen/ds_settings_tag_gap"
+      android:visibility="gone"
+      tools:text="Update"
+      tools:visibility="visible" />
+</LinearLayout>

@@ -1,0 +1,605 @@
+package com.phlox.tvwebbrowser.activity.main
+
+import android.content.Context
+import android.text.format.DateFormat
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import com.phlox.tvwebbrowser.Config
+import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
+import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import java.util.Date
+
+/**
+ * What the settings screens show and do, without their look: the TV screen over the window (the categories
+ * on the left, the settings of one on the right) and the page of the phone (the categories, then the page of
+ * one). A category is a list of sections of rows; a row that depends on another setting (the address of a
+ * custom search engine, the filter list of ad blocking) is there only while it applies. Settings that apply
+ * after a restart of the app are marked, and the screens offer the restart while one of them differs from the
+ * value the process started with. Changes go to [Host.render].
+ *
+ * @param tvUi the TV interface: it has the settings of the remote and the virtual cursor
+ */
+class SettingsNavigator(
+    private val context: Context,
+    private val store: Store,
+    private val scope: CoroutineScope,
+    private val host: Host,
+    private val tvUi: Boolean
+) {
+    enum class Category(@StringRes val title: Int, @DrawableRes val icon: Int) {
+        SEARCH(R.string.settings_search_and_home, R.drawable.ic_search),
+        SITES(R.string.settings_sites, R.drawable.ic_globe),
+        APPEARANCE(R.string.settings_appearance, R.drawable.ic_appearance),
+        REMOTE(R.string.settings_remote, R.drawable.ic_remote),
+        ADVANCED(R.string.settings_advanced, R.drawable.ic_code),
+        ABOUT(R.string.settings_about, R.drawable.ic_info)
+    }
+
+    /** The settings, and the rows that act */
+    enum class Key {
+        SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS,
+        SITE_VIEW, AUTOPLAY, AD_BLOCK, FILTER_LIST,
+        INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON,
+        CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
+        CLEAR_CACHE, ENGINE_DEBUG,
+        INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
+        LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY
+    }
+
+    /** The values that are read when the app starts: changing one needs a restart */
+    data class StartupValues(
+        val interfaceMode: Config.InterfaceMode,
+        val theme: Config.Theme,
+        val darkening: Boolean,
+        val webEngineDebug: Boolean
+    )
+
+    /** What the update check found; [newVersion] is null when the app is up to date */
+    data class Updates(val channels: List<String>, val newVersion: String?)
+
+    /**
+     * Where the settings are kept. Setters apply them (the window flag of Keep screen on, the site view of
+     * the tabs); checks of the engine and the build are made here, not in the navigator.
+     */
+    interface Store {
+        val startupValues: StartupValues
+
+        /** The address of the search engine, with [query] in place of the words */
+        var searchEngineUrl: String
+        val homePageMode: Config.HomePageMode
+        val homePageUrl: String
+        val homePageLinksMode: Config.HomePageLinksMode
+        fun setHomePage(mode: Config.HomePageMode, customUrl: String?, linksMode: Config.HomePageLinksMode)
+
+        /** null follows the interface */
+        var defaultDesktopView: Boolean?
+        var allowAutoplayMedia: Boolean
+        var adBlockEnabled: Boolean
+        /** Setting an empty address restores the default list */
+        var filterListUrl: String
+        /** 0 when the list was never loaded */
+        val filterListLastUpdate: Long
+        val filterListLoading: Flow<Boolean>
+        fun updateFilterList()
+
+        var interfaceMode: Config.InterfaceMode
+        var theme: Config.Theme
+        /** The engine can darken pages that have no dark look */
+        val supportsDarkening: Boolean
+        var darkening: Boolean
+        var keepScreenOn: Boolean
+
+        var joystickNavigation: Boolean
+        var cursorSpeed: Int
+        var cursorAcceleration: Int
+        fun bindingOf(shortcut: Shortcut): KeyBinding
+
+        suspend fun clearCache()
+        var webEngineDebug: Boolean
+
+        val versionName: String
+        /** The build (the app store flavor) */
+        val buildName: String
+        val engineVersion: String
+        /** The app updates itself (the generic build) */
+        val builtInUpdates: Boolean
+        var autoCheckUpdates: Boolean
+        var updateChannel: String
+        /** null when the check failed */
+        suspend fun checkUpdates(force: Boolean): Updates?
+    }
+
+    interface Host {
+        fun render(screen: Screen)
+        fun showMessage(@DrawableRes icon: Int, message: String)
+        /** Asks the [message] with the [positive] button; [onResult] gets false when the user cancels */
+        fun confirm(title: String?, message: String, positive: String, onResult: (Boolean) -> Unit)
+        /** Lets the user press the key of the [shortcut]; [onDone] is called when the dialog closes */
+        fun captureKey(shortcut: Shortcut, onDone: () -> Unit)
+        /** Opens the page in a new tab (the screen closes) */
+        fun open(url: String)
+        /** Closes the screen and offers to install the new version */
+        fun startUpdate()
+        /** Restarts the app to apply the settings marked [Row.restart] */
+        fun restart()
+    }
+
+    /** What the settings screens need from their shell */
+    interface ShellCallback {
+        val store: Store
+        fun showMessage(@DrawableRes icon: Int, message: String)
+        fun confirm(title: String?, message: String, positive: String, onResult: (Boolean) -> Unit)
+        fun captureKey(shortcut: Shortcut, onDone: () -> Unit)
+        fun open(url: String)
+        fun startUpdate()
+        fun restart()
+    }
+
+    sealed class Row {
+        abstract val key: Key
+        abstract val title: String
+        abstract val summary: String?
+        /** The setting applies after a restart */
+        open val restart: Boolean get() = false
+        /** Unique in a page; the screens keep the view of a row by it */
+        open val id: String get() = key.name
+
+        /**
+         * One of the [options]. [segmented] ones (2 or 3 short options) are shown side by side, the others
+         * in a menu opened from the row, which shows the selected one.
+         */
+        data class Choice(
+            override val key: Key, override val title: String, override val summary: String?,
+            val options: List<String>, val selected: Int, val segmented: Boolean,
+            override val restart: Boolean = false
+        ) : Row()
+
+        data class Toggle(
+            override val key: Key, override val title: String, override val summary: String?,
+            val checked: Boolean, override val restart: Boolean = false
+        ) : Row()
+
+        /** A value from [min] to [max], shown as [label] */
+        data class Slider(
+            override val key: Key, override val title: String, override val summary: String?,
+            val value: Int, val min: Int, val max: Int, val label: String
+        ) : Row()
+
+        /** A text to type; it is saved when the field loses the focus, on Done and when the screen closes */
+        data class Field(
+            override val key: Key, override val title: String, override val summary: String?,
+            val text: String, val hint: String, val action: String? = null, val busy: Boolean = false
+        ) : Row()
+
+        /** A button at the end of the row */
+        data class Action(
+            override val key: Key, override val title: String, override val summary: String?,
+            val button: String
+        ) : Row()
+
+        /** The key of a [shortcut]; the row opens the key capture */
+        data class ShortcutKey(
+            val shortcut: Shortcut, override val title: String, val binding: KeyBinding
+        ) : Row() {
+            override val key: Key get() = Key.SHORTCUT
+            override val summary: String? get() = null
+            override val id: String get() = "${Key.SHORTCUT}_${shortcut.name}"
+        }
+
+        data class Link(override val key: Key, override val title: String, val url: String) : Row() {
+            override val summary: String? get() = null
+        }
+
+        /** Lines of text (the version of the app) */
+        data class Info(override val key: Key, override val title: String, override val summary: String?) : Row()
+    }
+
+    data class Section(val title: String?, val rows: List<Row>)
+
+    data class CategoryItem(val category: Category, val title: String, val summary: String, val badge: String?)
+
+    /**
+     * @param page the category shown; null on the phone while it shows the list of categories
+     * @param restartPending a setting changed that needs a restart
+     */
+    data class Screen(
+        val categories: List<CategoryItem>,
+        val page: Category?,
+        val sections: List<Section>,
+        val restartPending: Boolean
+    )
+
+    companion object {
+        const val URL_SOURCE = "https://github.com/truefedex/tv-bro"
+        const val URL_SUPPORT_AUTHOR = "https://donatello.to/truefedex"
+        const val URL_WHY_ICON = "https://tv-bro-3546c.web.app/msg001.html"
+        const val URL_LICENSE = "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/LICENSE.md"
+        const val URL_PRIVACY_POLICY = "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/PRIVACY.md"
+
+        /** The index of the custom search engine in the options of Search engine */
+        val CUSTOM_SEARCH_ENGINE = Config.SearchEnginesURLs.size - 1
+
+        /** Positions of the default site views */
+        const val SITE_VIEW_AUTO = 0
+        const val SITE_VIEW_DESKTOP_OPTION = 1
+        const val SITE_VIEW_MOBILE_OPTION = 2
+
+        fun siteViewOption(desktop: Boolean?) = when (desktop) {
+            null -> SITE_VIEW_AUTO
+            true -> SITE_VIEW_DESKTOP_OPTION
+            false -> SITE_VIEW_MOBILE_OPTION
+        }
+
+        /** The search engine of the [url]: one of the list, or the custom one */
+        fun searchEngineOf(url: String): Int =
+            Config.SearchEnginesURLs.indexOf(url).takeIf { it in 0 until CUSTOM_SEARCH_ENGINE } ?: CUSTOM_SEARCH_ENGINE
+    }
+
+    var page: Category? = null
+        private set
+    private var shown = false
+    private var updates: Updates? = null
+    private var filterListLoading = false
+    /** Custom URL was chosen and no address is typed yet */
+    private var customSearchChosen = false
+    private var jobs = emptyList<Job>()
+
+    /** The categories of this interface */
+    val categories: List<Category> get() = Category.entries.filter { it != Category.REMOTE || tvUi }
+
+    /**
+     * Opens the settings at the [category]: on TV the first one if not given, on the phone the list of
+     * the categories
+     */
+    fun show(category: Category? = null) {
+        shown = true
+        page = category ?: if (tvUi) categories.first() else null
+        customSearchChosen = false
+        jobs.forEach { it.cancel() }
+        jobs = listOf(
+            scope.launch {
+                store.filterListLoading.collect {
+                    filterListLoading = it
+                    if (shown) render()
+                }
+            }
+        )
+        render()
+        if (store.builtInUpdates) checkUpdates(force = false)
+    }
+
+    /** The screen closed */
+    fun onHidden() {
+        shown = false
+        jobs.forEach { it.cancel() }
+        jobs = emptyList()
+    }
+
+    fun open(category: Category) {
+        if (page == category) return
+        page = category
+        customSearchChosen = false
+        render()
+    }
+
+    /** @return false when there is nothing to go back to (the screen closes) */
+    fun back(): Boolean {
+        if (tvUi || page == null) return false
+        page = null
+        customSearchChosen = false
+        render()
+        return true
+    }
+
+    fun choose(key: Key, index: Int) {
+        when (key) {
+            Key.SEARCH_ENGINE -> if (index == CUSTOM_SEARCH_ENGINE) {
+                customSearchChosen = searchEngineOf(store.searchEngineUrl) != CUSTOM_SEARCH_ENGINE
+            } else {
+                customSearchChosen = false
+                store.searchEngineUrl = Config.SearchEnginesURLs[index]
+            }
+            Key.HOME_PAGE -> {
+                val mode = Config.HomePageMode.entries[index]
+                if (mode == store.homePageMode) return
+                store.setHomePage(mode, customHomePageUrl().ifEmpty { null }?.takeIf { mode == Config.HomePageMode.CUSTOM },
+                    store.homePageLinksMode)
+            }
+            Key.HOME_PAGE_LINKS -> store.setHomePage(store.homePageMode, customHomePageUrl(),
+                Config.HomePageLinksMode.entries[index])
+            Key.SITE_VIEW -> store.defaultDesktopView = when (index) {
+                SITE_VIEW_DESKTOP_OPTION -> true
+                SITE_VIEW_MOBILE_OPTION -> false
+                else -> null
+            }
+            Key.INTERFACE -> store.interfaceMode = Config.InterfaceMode.entries[index]
+            Key.THEME -> store.theme = Config.Theme.entries[index]
+            Key.UPDATE_CHANNEL -> {
+                val channel = updates?.channels?.getOrNull(index) ?: return
+                if (channel == store.updateChannel) return
+                store.updateChannel = channel
+                checkUpdates(force = true)
+            }
+            else -> return
+        }
+        render()
+    }
+
+    fun toggle(key: Key) {
+        when (key) {
+            Key.AUTOPLAY -> store.allowAutoplayMedia = !store.allowAutoplayMedia
+            Key.AD_BLOCK -> store.adBlockEnabled = !store.adBlockEnabled
+            Key.DARKENING -> store.darkening = !store.darkening
+            Key.KEEP_SCREEN_ON -> store.keepScreenOn = !store.keepScreenOn
+            Key.JOYSTICK -> store.joystickNavigation = !store.joystickNavigation
+            Key.AUTO_UPDATE -> {
+                store.autoCheckUpdates = !store.autoCheckUpdates
+                if (store.autoCheckUpdates && updates == null) checkUpdates(force = false)
+            }
+            Key.ENGINE_DEBUG -> if (store.webEngineDebug) {
+                store.webEngineDebug = false
+            } else {
+                //it is shown as on until the user answers
+                host.confirm(context.getString(R.string.warning), context.getString(R.string.web_engine_debug_warning_message),
+                    context.getString(R.string.settings_turn_on)) { yes ->
+                    if (yes) store.webEngineDebug = true
+                    render()
+                }
+                return
+            }
+            else -> return
+        }
+        render()
+    }
+
+    fun setSlider(key: Key, value: Int) {
+        val clamped = value.coerceIn(Config.CURSOR_PHYSICS_PERCENT_MIN, Config.CURSOR_PHYSICS_PERCENT_MAX)
+        when (key) {
+            Key.CURSOR_SPEED -> if (store.cursorSpeed != clamped) store.cursorSpeed = clamped else return
+            Key.CURSOR_ACCELERATION -> if (store.cursorAcceleration != clamped) store.cursorAcceleration = clamped else return
+            else -> return
+        }
+        render()
+    }
+
+    /** Saves the text of a field (unchanged texts are ignored) */
+    fun setText(key: Key, text: String) {
+        val value = text.trim()
+        when (key) {
+            Key.SEARCH_URL -> {
+                if (value.isEmpty() || value == store.searchEngineUrl) return
+                store.searchEngineUrl = value
+                customSearchChosen = false
+            }
+            Key.HOME_PAGE_URL -> {
+                if (value == customHomePageUrl()) return
+                store.setHomePage(Config.HomePageMode.CUSTOM, value.ifEmpty { null }, store.homePageLinksMode)
+            }
+            Key.FILTER_LIST -> {
+                if (value == store.filterListUrl) return
+                store.filterListUrl = value
+            }
+            else -> return
+        }
+        render()
+    }
+
+    /** The button of an action row or a field, a link, or the key of a shortcut */
+    fun act(row: Row) {
+        when (row) {
+            is Row.ShortcutKey -> host.captureKey(row.shortcut) { render() }
+            is Row.Link -> host.open(row.url)
+            else -> when (row.key) {
+                Key.FILTER_LIST -> if (!filterListLoading) store.updateFilterList()
+                Key.CLEAR_CACHE -> scope.launch {
+                    store.clearCache()
+                    host.showMessage(R.drawable.ic_check, context.getString(R.string.settings_web_cache_cleared))
+                }
+                Key.UPDATE -> if (updates?.newVersion != null) host.startUpdate()
+                else -> {}
+            }
+        }
+    }
+
+    fun restart() = host.restart()
+
+    private fun checkUpdates(force: Boolean) {
+        scope.launch {
+            val found = store.checkUpdates(force) ?: return@launch
+            updates = found
+            if (shown) render()
+        }
+    }
+
+    private fun customHomePageUrl(): String =
+        store.homePageUrl.takeIf { store.homePageMode == Config.HomePageMode.CUSTOM && it != Config.HOME_URL_ALIAS } ?: ""
+
+    private val restartPending: Boolean get() {
+        val startup = store.startupValues
+        return store.interfaceMode != startup.interfaceMode || store.theme != startup.theme ||
+                (store.supportsDarkening && store.darkening != startup.darkening) ||
+                store.webEngineDebug != startup.webEngineDebug
+    }
+
+    private fun render() {
+        if (!shown) return
+        val page = page
+        host.render(Screen(
+            categories = categories.map { CategoryItem(it, context.getString(it.title), summaryOf(it), badgeOf(it)) },
+            page = page,
+            sections = if (page == null) emptyList() else sectionsOf(page).filter { it.rows.isNotEmpty() },
+            restartPending = restartPending
+        ))
+    }
+
+    private fun string(@StringRes id: Int) = context.getString(id)
+
+    private fun badgeOf(category: Category): String? =
+        if (category == Category.ABOUT && updates?.newVersion != null && store.autoCheckUpdates) string(R.string.update) else null
+
+    private fun summaryOf(category: Category): String = when (category) {
+        Category.SEARCH -> context.getString(R.string.settings_summary_two,
+            searchEngineTitles()[searchEngineOf(store.searchEngineUrl)],
+            context.resources.getStringArray(R.array.home_page_modes)[store.homePageMode.ordinal])
+        Category.SITES -> context.getString(R.string.settings_summary_two,
+            string(if (store.adBlockEnabled) R.string.settings_summary_ads_blocked else R.string.settings_summary_ads_shown),
+            context.getString(R.string.settings_summary_site_view, siteViewOptions()[siteViewOption(store.defaultDesktopView)]))
+        Category.APPEARANCE -> context.getString(R.string.settings_summary_two,
+            context.getString(R.string.settings_summary_interface, interfaceOptions()[store.interfaceMode.ordinal]),
+            context.getString(R.string.settings_summary_theme, themeOptions()[store.theme.ordinal]))
+        Category.REMOTE -> string(R.string.settings_summary_remote)
+        Category.ADVANCED -> string(R.string.settings_summary_advanced)
+        Category.ABOUT -> context.getString(R.string.settings_version_s, store.versionName)
+    }
+
+    private fun searchEngineTitles() =
+        Config.SearchEnginesTitles.dropLast(1) + string(R.string.settings_custom_url)
+
+    private fun siteViewOptions() = listOf(string(R.string.settings_auto), string(R.string.settings_desktop),
+        string(R.string.settings_mobile))
+
+    private fun interfaceOptions() = listOf(string(R.string.settings_auto), string(R.string.settings_interface_tv),
+        string(R.string.settings_interface_phone))
+
+    private fun themeOptions() = context.resources.getStringArray(R.array.themes).toList()
+
+    private fun sectionsOf(category: Category): List<Section> = when (category) {
+        Category.SEARCH -> searchSections()
+        Category.SITES -> sitesSections()
+        Category.APPEARANCE -> appearanceSections()
+        Category.REMOTE -> remoteSections()
+        Category.ADVANCED -> advancedSections()
+        Category.ABOUT -> aboutSections()
+    }
+
+    private fun searchSections(): List<Section> {
+        val engine = if (customSearchChosen) CUSTOM_SEARCH_ENGINE else searchEngineOf(store.searchEngineUrl)
+        val search = arrayListOf<Row>(Row.Choice(Key.SEARCH_ENGINE, string(R.string.settings_search_engine),
+            string(R.string.settings_search_engine_summary), searchEngineTitles(), engine, segmented = false))
+        if (engine == CUSTOM_SEARCH_ENGINE) {
+            search += Row.Field(Key.SEARCH_URL, string(R.string.settings_search_url), null,
+                if (customSearchChosen) "" else store.searchEngineUrl, string(R.string.settings_search_url_hint))
+        }
+        val mode = store.homePageMode
+        val home = arrayListOf<Row>(Row.Choice(Key.HOME_PAGE, string(R.string.home_page),
+            string(R.string.settings_home_page_summary),
+            context.resources.getStringArray(R.array.home_page_modes).toList(), mode.ordinal, segmented = false))
+        when (mode) {
+            Config.HomePageMode.HOME_PAGE -> home += Row.Choice(Key.HOME_PAGE_LINKS,
+                string(R.string.settings_home_page_links), string(R.string.settings_home_page_links_summary),
+                context.resources.getStringArray(R.array.home_page_links_modes).toList(),
+                store.homePageLinksMode.ordinal, segmented = false)
+            Config.HomePageMode.CUSTOM -> home += Row.Field(Key.HOME_PAGE_URL, string(R.string.settings_home_page_url),
+                null, customHomePageUrl(), string(R.string.settings_home_page_url_hint))
+            else -> {}
+        }
+        return listOf(Section(string(R.string.settings_group_search), search),
+            Section(string(R.string.settings_group_home_page), home))
+    }
+
+    private fun sitesSections(): List<Section> {
+        val siteView = listOf(
+            Row.Choice(Key.SITE_VIEW, string(R.string.default_site_view),
+                string(if (tvUi) R.string.settings_site_view_summary_tv else R.string.settings_site_view_summary_phone),
+                siteViewOptions(), siteViewOption(store.defaultDesktopView), segmented = true),
+            Row.Toggle(Key.AUTOPLAY, string(R.string.settings_autoplay), string(R.string.settings_autoplay_summary),
+                store.allowAutoplayMedia)
+        )
+        val adBlock = arrayListOf<Row>(Row.Toggle(Key.AD_BLOCK, string(R.string.settings_block_ads),
+            string(if (tvUi) R.string.settings_block_ads_summary_tv else R.string.settings_block_ads_summary_phone),
+            store.adBlockEnabled))
+        if (store.adBlockEnabled) {
+            val lastUpdate = store.filterListLastUpdate
+            val updated = when {
+                filterListLoading -> string(R.string.settings_filter_list_updating)
+                lastUpdate == 0L -> string(R.string.settings_filter_list_never_updated)
+                else -> context.getString(R.string.settings_filter_list_updated_s, formatTime(lastUpdate))
+            }
+            adBlock += Row.Field(Key.FILTER_LIST, string(R.string.settings_filter_list), updated, store.filterListUrl,
+                Config.DEFAULT_ADBLOCK_LIST_URL, action = string(R.string.update), busy = filterListLoading)
+        }
+        return listOf(Section(string(R.string.settings_group_site_view), siteView),
+            Section(string(R.string.settings_group_ad_blocking), adBlock))
+    }
+
+    private fun appearanceSections(): List<Section> {
+        val ui = arrayListOf<Row>(
+            Row.Choice(Key.INTERFACE, string(R.string.interface_mode), string(R.string.settings_interface_summary),
+                interfaceOptions(), store.interfaceMode.ordinal, segmented = true, restart = true),
+            Row.Choice(Key.THEME, string(R.string.theme), string(R.string.settings_theme_summary),
+                themeOptions(), store.theme.ordinal, segmented = true, restart = true)
+        )
+        if (store.supportsDarkening) {
+            ui += Row.Toggle(Key.DARKENING, string(R.string.settings_darken_pages),
+                string(R.string.settings_darken_pages_summary), store.darkening, restart = true)
+        }
+        val screen = listOf(Row.Toggle(Key.KEEP_SCREEN_ON, string(R.string.toggle_keep_screen_on),
+            string(if (tvUi) R.string.settings_keep_screen_on_summary_tv else R.string.settings_keep_screen_on_summary_phone),
+            store.keepScreenOn))
+        return listOf(Section(string(R.string.settings_group_interface), ui),
+            Section(string(R.string.settings_group_screen), screen))
+    }
+
+    private fun remoteSections(): List<Section> {
+        val min = Config.CURSOR_PHYSICS_PERCENT_MIN
+        val max = Config.CURSOR_PHYSICS_PERCENT_MAX
+        val cursor = listOf(
+            Row.Slider(Key.CURSOR_SPEED, string(R.string.settings_cursor_speed), string(R.string.settings_cursor_speed_summary),
+                store.cursorSpeed, min, max, context.getString(R.string.settings_percent, store.cursorSpeed)),
+            Row.Slider(Key.CURSOR_ACCELERATION, string(R.string.settings_cursor_acceleration),
+                string(R.string.settings_cursor_acceleration_summary), store.cursorAcceleration, min, max,
+                context.getString(R.string.settings_percent, store.cursorAcceleration)),
+            Row.Toggle(Key.JOYSTICK, string(R.string.settings_joystick), string(R.string.settings_joystick_summary),
+                store.joystickNavigation)
+        )
+        val keys = Shortcut.entries.map { Row.ShortcutKey(it, string(it.titleResId), store.bindingOf(it)) }
+        return listOf(Section(string(R.string.settings_group_cursor), cursor),
+            Section(string(R.string.settings_group_keys), keys))
+    }
+
+    private fun advancedSections(): List<Section> = listOf(Section(null, listOf(
+        Row.Action(Key.CLEAR_CACHE, string(R.string.settings_web_cache), string(R.string.settings_web_cache_summary),
+            string(R.string.clear)),
+        Row.Toggle(Key.ENGINE_DEBUG, string(R.string.settings_engine_debug), string(R.string.settings_engine_debug_summary),
+            store.webEngineDebug, restart = true)
+    )))
+
+    private fun aboutSections(): List<Section> {
+        val sections = arrayListOf(Section(null, listOf(Row.Info(Key.INFO, string(R.string.web_browser_optimized_for_tvs),
+            context.getString(R.string.settings_version_line, store.versionName, store.buildName, store.engineVersion)))))
+        if (store.builtInUpdates) {
+            val rows = ArrayList<Row>()
+            val updates = updates
+            if (store.autoCheckUpdates && updates?.newVersion != null) {
+                rows += Row.Action(Key.UPDATE, context.getString(R.string.settings_new_version_s, updates.newVersion),
+                    context.getString(R.string.settings_channel_s, store.updateChannel), string(R.string.update))
+            }
+            rows += Row.Toggle(Key.AUTO_UPDATE, string(R.string.auto_check_for_updates), null, store.autoCheckUpdates)
+            val channels = updates?.channels.orEmpty()
+            if (store.autoCheckUpdates && channels.isNotEmpty()) {
+                rows += Row.Choice(Key.UPDATE_CHANNEL, string(R.string.settings_update_channel),
+                    string(R.string.settings_update_channel_summary), channels,
+                    channels.indexOf(store.updateChannel).coerceAtLeast(0), segmented = channels.size <= 3)
+            }
+            sections += Section(string(R.string.settings_group_updates), rows)
+        }
+        sections += Section(string(R.string.settings_group_links), listOf(
+            Row.Link(Key.LINK_SOURCE, string(R.string.settings_source_code), URL_SOURCE),
+            Row.Link(Key.LINK_SUPPORT, string(R.string.settings_support_author), URL_SUPPORT_AUTHOR),
+            Row.Link(Key.LINK_ICON, string(R.string.why_icon_changed), URL_WHY_ICON),
+            Row.Link(Key.LINK_LICENSE, string(R.string.settings_license), URL_LICENSE),
+            Row.Link(Key.LINK_PRIVACY, string(R.string.settings_privacy_policy), URL_PRIVACY_POLICY)
+        ))
+        return sections
+    }
+
+    private fun formatTime(millis: Long): String {
+        val date = Date(millis)
+        return "${DateFormat.getTimeFormat(context).format(date)}, ${DateFormat.getMediumDateFormat(context).format(date)}"
+    }
+}

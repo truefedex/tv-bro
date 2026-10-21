@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A shortcut and its key: the row opens the key capture -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.TVBro.SettingsRow.Ds.Clickable"
+    android:minHeight="@dimen/ds_settings_key_row_min_height">
+
+  <include layout="@layout/view_settings_row_text" />
+
+  <TextView
+      android:id="@+id/tvKey"
+      android:layout_width="wrap_content"
+      android:layout_height="@dimen/ds_settings_key_height"
+      android:layout_marginStart="@dimen/ds_settings_row_gap"
+      android:gravity="center"
+      android:paddingStart="@dimen/ds_settings_key_padding"
+      android:paddingEnd="@dimen/ds_settings_key_padding"
+      android:textSize="@dimen/ds_text_settings_summary"
+      android:fontFamily="sans-serif-medium"
+      android:textColor="?attr/tbColorDsInk"
+      android:singleLine="true"
+      tools:background="@drawable/ds_settings_key_bg"
+      tools:text="Search" />
+</LinearLayout>

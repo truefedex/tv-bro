@@ -31,11 +31,9 @@
     <string name="delete">Excluir</string>
     <string name="cancel">Cancelar</string>
     <string name="msg_delete_history_all">Excluir todo o histórico?</string>
-    <string name="shortcuts">Atalhos</string>
     <string name="favorites">Favoritos</string>
     <string name="history">Histórico</string>
     <string name="settings">Configurações</string>
-    <string name="shortcut">Atalho</string>
     <string name="navigate_back">Voltar</string>
     <string name="navigate_home">Ir para a página inicial</string>
     <string name="refresh_page">Recarregar página</string>
@@ -43,9 +41,6 @@
     <string name="not_set">Não definido</string>
     <string name="action">Ação:</string>
     <string name="current_key">Tecla atual:</string>
-    <string name="set_key_for_action">Definir tecla para a ação</string>
-    <string name="press_any_key">Pressione qualquer tecla...</string>
-    <string name="shortcut_key_reserved_for_navigation">Esta tecla é reservada para a navegação do navegador</string>
     <string name="clear">Limpar</string>
     <string name="install">Instalar</string>
     <string name="turn_on_unknown_sources">Ative a configuração do sistema \"Fontes desconhecidas\"</string>
@@ -55,17 +50,8 @@
     <string name="later">Mais tarde</string>
     <string name="downloads">Downloads</string>
     <string name="downloads_notifications_description">Notificações sobre o status dos downloads</string>
-    <string name="main">Geral</string>
-    <string name="version_and_updates">Versão e atualizações</string>
-    <string name="version_s">Versão: %s</string>
-    <string name="build_flavor_s">Variante de compilação: %1$s · %2$s</string>
-    <string name="support_the_author">☕ Apoie o autor</string>
-    <string name="view_license">📃 Licença</string>
-    <string name="privacy_policy">🔒 Política de privacidade</string>
-    <string name="update_channel">Canal de atualização:</string>
     <string name="auto_check_for_updates">Verificar atualizações automaticamente</string>
     <string name="update">Atualizar</string>
-    <string name="new_version_available_s">Nova versão disponível: %s</string>
     <string name="web_browser_optimized_for_tvs">Navegador web otimizado para TVs</string>
     <string name="warning">Aviso</string>
     <string name="err_webview_can_not_link">Não é possível vincular ao componente WebView. Tente instalar primeiro o Android System WebView.</string>
@@ -82,22 +68,10 @@
     <string name="close_application">Fechar aplicativo</string>
     <string name="close_tab">Fechar aba</string>
     <string name="navigate_forward">Avançar</string>
-    <string name="toggle_ads_blocking">Ativar/desativar bloqueio de anúncios</string>
-    <string name="never">nunca</string>
-    <string name="last_update">Última atualização</string>
-    <string name="update_ad_blocker_list">Atualizar lista do bloqueador de anúncios</string>
     <string name="toggle_keep_screen_on">Manter a tela ligada</string>
-    <string name="navigate_with_joystick_axes">Navegar com os eixos do joystick</string>
-    <string name="cursor_max_speed">Velocidade máxima do cursor virtual</string>
-    <string name="cursor_acceleration">Aceleração do cursor virtual</string>
-    <string name="cursor_physics_percent">%d%% do padrão</string>
     <string name="direct_navigation_mode_title">Modo de navegação direta</string>
     <string name="direct_navigation_mode_message">A navegação direta oculta o cursor na tela e envia as teclas do controle remoto ou do controle de jogo diretamente para a página, para que sites compatíveis com foco por TV ou teclado possam destacar links e controles.\n\nPara sair deste modo: pressione Voltar no controle remoto da TV ou mantenha pressionado o botão B no controle de jogo.\n\nEste modo funciona melhor com o mecanismo WebView: o WebView permite mover o foco pela página com o direcional (D-pad).</string>
-    <string name="need_restart">É necessário reiniciar o aplicativo</string>
     <string name="theme">Tema</string>
-    <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Escurecimento algorítmico de páginas (tema escuro, somente WebView, requer reinício)</string>
-    <string name="allow_autoplay_media">Permitir reprodução automática de mídia</string>
-    <string name="web_engine_debug">Depuração do mecanismo web (requer reinício)</string>
     <string name="web_engine_debug_warning_message">Ativar a depuração do mecanismo web pode expor o conteúdo das páginas, cookies e dados de sessão confidenciais a qualquer pessoa com acesso de depuração ao dispositivo. Ative somente em dispositivos confiáveis para solução de problemas.</string>
     <array name="themes">
         <item>Sistema</item>
@@ -108,7 +82,6 @@
     <string name="incognito_mode_hint">Agora você pode navegar com privacidade, e outras pessoas que usam este dispositivo não verão sua atividade. O TV Bro não salvará seu histórico de navegação, cookies e dados de sites, nem informações inseridas em formulários.\n\nNo entanto, os downloads e favoritos serão salvos. Sua atividade ainda pode ficar visível para os sites que você visita, sua organização ou seu provedor de internet.</string>
     <string name="don_t_show_again">Não mostrar novamente</string>
     <string name="why_icon_changed">Por que o ícone mudou?</string>
-    <string name="clear_web_cache">Limpar cache web</string>
     <string name="block_popups">Bloqueio de pop-ups</string>
     <string name="block_popups_s">Bloqueio de pop-ups (%s)</string>
     <string name="popup_dialog_blocked">Caixa de diálogo pop-up bloqueada</string>
@@ -125,8 +98,6 @@
     <string name="open_in_external_application">Abrir em aplicativo externo</string>
     <string name="external_app_open_error">Nenhum aplicativo adequado encontrado</string>
     <string name="home_page">Página inicial</string>
-    <string name="custom_home_page_url">URL da página inicial personalizada</string>
-    <string name="home_page_links">Links na página inicial</string>
     <array name="home_page_modes">
         <item>Início do TV Bro</item>
         <item>Mecanismo de pesquisa</item>
@@ -140,7 +111,6 @@
         <item>Mais visitados</item>
     </array>
 
-    <string name="need_restart_message">Reinicie o aplicativo para aplicar as alterações</string>
     <string name="yes">Sim</string>
     <string name="no">Não</string>
     <string name="site_asks_to_open_unknown_url">O site quer abrir um URL desconhecido</string>

@@ -13,7 +13,8 @@ import com.phlox.tvwebbrowser.databinding.ViewPhoneActionsSheetBinding
 
 /**
  * A sheet of actions of the phone UI from the bottom over a scrim, with an optional header (what the
- * actions are for). Rows that can not act are only dimmed. A tap on the scrim or Back ([backCallback])
+ * actions are for). Rows that can not act are only dimmed. A sheet of options marks the chosen one
+ * ([PopupMenuView.Item.checked]). A tap on the scrim or Back ([backCallback])
  * closes it; a tap on a row closes it and then acts.
  */
 class PhoneActionsSheet @JvmOverloads constructor(
@@ -55,6 +56,8 @@ class PhoneActionsSheet @JvmOverloads constructor(
         for (item in items) {
             val row = ViewPhoneActionsRowBinding.inflate(inflater, vb.llItems, true)
             row.ivIcon.setImageResource(item.icon)
+            //an option: the icon marks the chosen one
+            if (item.checked != null) row.ivIcon.visibility = if (item.checked) VISIBLE else INVISIBLE
             row.tvLabel.text = item.label
             //disabled icons and labels are drawn at 40%
             row.root.alpha = if (item.enabled) 1f else DISABLED_ALPHA

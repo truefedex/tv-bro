@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+A choice of the settings: the value with a chevron (the row opens a menu of the options), or the options
+side by side as segments (llSegments, filled in code)
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.TVBro.SettingsRow.Ds">
+
+  <include layout="@layout/view_settings_row_text" />
+
+  <LinearLayout
+      android:id="@+id/llValue"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="@dimen/ds_settings_row_gap"
+      android:orientation="horizontal"
+      android:gravity="center_vertical">
+
+    <TextView
+        style="@style/Widget.TVBro.Text.SettingsTitle"
+        android:id="@+id/tvValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="Google" />
+
+    <ImageView
+        android:id="@+id/ivChevron"
+        android:layout_width="@dimen/ds_settings_value_icon"
+        android:layout_height="@dimen/ds_settings_value_icon"
+        android:layout_marginStart="@dimen/ds_settings_value_gap"
+        android:src="@drawable/ic_chevron_down"
+        app:tint="?attr/tbColorDsIcon"
+        android:importantForAccessibility="no" />
+  </LinearLayout>
+
+  <LinearLayout
+      style="@style/Widget.TVBro.SettingsSegments"
+      android:id="@+id/llSegments"
+      android:layout_marginStart="@dimen/ds_settings_row_gap"
+      android:visibility="gone" />
+</LinearLayout>

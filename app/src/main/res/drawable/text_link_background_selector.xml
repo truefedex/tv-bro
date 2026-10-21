@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- A theme attribute does not resolve in android:drawable of an item, only inside a drawable element -->
-    <item android:state_focused="true">
-        <color android:color="?attr/tbColorLinkSelected" />
-    </item>
-    <item android:drawable="@android:color/transparent" />
-</selector>

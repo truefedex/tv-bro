@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A segment of a choice of the settings (inside a ds_control_group_bg group): control, pressed, focused (with the focus outline), selected -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsControlFocused" />
+        </shape>
+    </item>
+    <item android:state_focused="true" android:state_activated="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsControlSelected" />
+            <stroke android:color="?attr/tbColorDsSelected" android:width="@dimen/ds_focus_outline" />
+        </shape>
+    </item>
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsControlFocused" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
+        </shape>
+    </item>
+    <item android:state_hovered="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsControlFocused" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
+        </shape>
+    </item>
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsControlSelected" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="?attr/tbColorDsControl" />
+        </shape>
+    </item>
+</selector>

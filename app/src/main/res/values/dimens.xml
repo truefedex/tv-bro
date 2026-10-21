@@ -12,9 +12,6 @@
     <dimen name="list_divider_height">1dp</dimen>
 
     <dimen name="settings_content_padding">22dp</dimen>
-    <dimen name="settings_section_spacing">20dp</dimen>
-    <dimen name="settings_dialog_width">500dp</dimen>
-    <dimen name="settings_dialog_height">350dp</dimen>
 
     <dimen name="voice_recognition_results_renderer_height">50dp</dimen>
 
@@ -257,4 +254,72 @@
     <dimen name="ds_phone_bookmarks_search_margin_end">8dp</dimen>
     <dimen name="ds_phone_bookmarks_status_padding">10dp</dimen>
     <dimen name="ds_text_phone_caption">13sp</dimen>
+
+    <!-- the settings screens: the TV screen (the sizes of rows are also theme attributes, see attrs.xml) -->
+    <dimen name="ds_settings_row_min_height">52dp</dimen>
+    <dimen name="ds_settings_row_padding">16dp</dimen>
+    <dimen name="ds_settings_row_margin">8dp</dimen>
+    <dimen name="ds_settings_row_gap">16dp</dimen>
+    <dimen name="ds_settings_row_vertical_padding">8dp</dimen>
+    <dimen name="ds_settings_key_row_min_height">44dp</dimen>
+    <dimen name="ds_settings_control_height">40dp</dimen>
+    <dimen name="ds_text_settings_title">14sp</dimen>
+    <dimen name="ds_text_settings_summary">12sp</dimen>
+    <dimen name="ds_text_settings_group">11sp</dimen>
+    <dimen name="ds_text_settings_card_title">18sp</dimen>
+    <dimen name="ds_text_settings_tag">11sp</dimen>
+    <dimen name="ds_settings_summary_gap">2dp</dimen>
+    <dimen name="ds_settings_group_padding_top">16dp</dimen>
+    <dimen name="ds_settings_group_padding_bottom">6dp</dimen>
+    <dimen name="ds_settings_group_padding_horizontal">24dp</dimen>
+    <dimen name="ds_settings_card_title_padding_top">20dp</dimen>
+    <dimen name="ds_settings_card_padding_bottom">8dp</dimen>
+    <dimen name="ds_settings_rail_width">212dp</dimen>
+    <dimen name="ds_settings_rail_row_height">44dp</dimen>
+    <dimen name="ds_settings_rail_row_padding">14dp</dimen>
+    <dimen name="ds_settings_rail_gap">2dp</dimen>
+    <dimen name="ds_settings_body_padding_bottom">16dp</dimen>
+    <dimen name="ds_settings_menu_width">220dp</dimen>
+    <dimen name="ds_settings_value_gap">6dp</dimen>
+    <dimen name="ds_settings_value_icon">16dp</dimen>
+    <dimen name="ds_settings_tag_height">18dp</dimen>
+    <dimen name="ds_settings_tag_padding">6dp</dimen>
+    <dimen name="ds_settings_tag_gap">8dp</dimen>
+    <dimen name="ds_settings_tag_radius">4dp</dimen>
+    <dimen name="ds_settings_segment_min_width">64dp</dimen>
+    <dimen name="ds_settings_segment_padding">14dp</dimen>
+    <dimen name="ds_settings_field_label_width">150dp</dimen>
+    <dimen name="ds_settings_field_width">260dp</dimen>
+    <dimen name="ds_settings_field_gap">10dp</dimen>
+    <dimen name="ds_settings_slider_width">200dp</dimen>
+    <dimen name="ds_settings_slider_value_width">48dp</dimen>
+    <dimen name="ds_settings_key_height">24dp</dimen>
+    <dimen name="ds_settings_key_padding">8dp</dimen>
+    <dimen name="ds_settings_switch_width">36dp</dimen>
+    <dimen name="ds_settings_switch_height">20dp</dimen>
+    <dimen name="ds_settings_switch_thumb">14dp</dimen>
+    <dimen name="ds_settings_switch_thumb_inset">3dp</dimen>
+    <dimen name="ds_settings_slider_thumb_focus">26dp</dimen>
+    <dimen name="ds_settings_slider_track">4dp</dimen>
+    <dimen name="ds_settings_slider_thumb_inset">4dp</dimen>
+    <dimen name="ds_settings_slider_thumb_ring">2dp</dimen>
+    <dimen name="ds_settings_slider_thumb_padding">13dp</dimen>
+    <dimen name="ds_settings_restart_padding_vertical">12dp</dimen>
+    <dimen name="ds_settings_restart_padding_start">24dp</dimen>
+    <dimen name="ds_settings_restart_padding_end">16dp</dimen>
+    <dimen name="ds_settings_badge_height">18dp</dimen>
+    <!-- the phone settings page -->
+    <dimen name="ds_phone_settings_row_min_height">64dp</dimen>
+    <dimen name="ds_phone_settings_row_padding">16dp</dimen>
+    <dimen name="ds_phone_settings_control_height">48dp</dimen>
+    <dimen name="ds_text_phone_settings_title">16sp</dimen>
+    <dimen name="ds_text_phone_settings_summary">13sp</dimen>
+    <dimen name="ds_text_phone_settings_group">12sp</dimen>
+    <dimen name="ds_phone_settings_card_margin">16dp</dimen>
+    <dimen name="ds_phone_settings_group_padding_top">20dp</dimen>
+    <dimen name="ds_phone_settings_group_padding_horizontal">32dp</dimen>
+    <dimen name="ds_phone_settings_cards_gap">16dp</dimen>
+    <dimen name="ds_phone_settings_badge">40dp</dimen>
+    <dimen name="ds_phone_settings_badge_icon_padding">9dp</dimen>
+    <dimen name="ds_phone_settings_block_padding">12dp</dimen>
 </resources>

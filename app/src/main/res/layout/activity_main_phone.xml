@@ -101,7 +101,14 @@ bookmarks and the downloads over the whole window.
         android:layout_height="match_parent"
         android:elevation="8dp" />
 
-    <!-- the actions of a bookmark, a download or a history item, above them -->
+    <!-- the settings -->
+    <com.phlox.tvwebbrowser.activity.main.view.PhoneSettingsView
+        android:id="@+id/vSettings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="8dp" />
+
+    <!-- the actions of a bookmark, a download or a history item, and the options of a setting, above them -->
     <com.phlox.tvwebbrowser.activity.main.view.PhoneActionsSheet
         android:id="@+id/vActionsSheet"
         android:layout_width="match_parent"

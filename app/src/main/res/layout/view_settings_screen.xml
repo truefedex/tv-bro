@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The settings on TV, over the whole window: the header (back, the title), then the categories on the left and
+the card of the focused one on the right (its title, its rows, the strip that offers a restart).
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_space_screen_x"
+      android:paddingEnd="@dimen/ds_space_screen_x"
+      android:paddingTop="@dimen/ds_space_screen_top"
+      android:paddingBottom="@dimen/ds_downloads_screen_header_padding_bottom">
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Standalone"
+        android:id="@+id/ibBack"
+        android:src="@drawable/ic_back"
+        android:contentDescription="@string/back_to_browser" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:textSize="@dimen/ds_text_downloads_title"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:accessibilityHeading="true"
+        android:text="@string/settings" />
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1"
+      android:orientation="horizontal"
+      android:paddingStart="@dimen/ds_space_screen_x"
+      android:paddingEnd="@dimen/ds_space_screen_x"
+      android:paddingBottom="@dimen/ds_settings_body_padding_bottom">
+
+    <ScrollView
+        android:layout_width="@dimen/ds_settings_rail_width"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:overScrollMode="never">
+
+      <LinearLayout
+          android:id="@+id/llCategories"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical" />
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/llCard"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:orientation="vertical"
+        android:background="@drawable/ds_settings_card_bg">
+
+      <TextView
+          android:id="@+id/tvCategoryTitle"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:paddingStart="@dimen/ds_settings_group_padding_horizontal"
+          android:paddingEnd="@dimen/ds_settings_group_padding_horizontal"
+          android:paddingTop="@dimen/ds_settings_card_title_padding_top"
+          android:textSize="@dimen/ds_text_settings_card_title"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          android:accessibilityHeading="true"
+          tools:text="Search and home page" />
+
+      <androidx.core.widget.NestedScrollView
+          android:id="@+id/svRows"
+          android:layout_width="match_parent"
+          android:layout_height="0dp"
+          android:layout_weight="1"
+          android:scrollbars="none"
+          android:overScrollMode="never">
+
+        <com.phlox.tvwebbrowser.activity.main.view.SettingsRowsView
+            android:id="@+id/vRows"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="@dimen/ds_settings_card_padding_bottom" />
+      </androidx.core.widget.NestedScrollView>
+
+      <LinearLayout
+          android:id="@+id/llRestart"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:gravity="center_vertical"
+          android:paddingStart="@dimen/ds_settings_restart_padding_start"
+          android:paddingEnd="@dimen/ds_settings_restart_padding_end"
+          android:paddingTop="@dimen/ds_settings_restart_padding_vertical"
+          android:paddingBottom="@dimen/ds_settings_restart_padding_vertical"
+          android:background="@drawable/ds_settings_restart_bg"
+          android:visibility="gone"
+          tools:visibility="visible">
+
+        <ImageView
+            style="@style/Widget.TVBro.MenuIcon"
+            android:src="@drawable/ic_refresh" />
+
+        <TextView
+            style="@style/Widget.TVBro.Text.SettingsTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/ds_space_icon_text"
+            android:accessibilityLiveRegion="polite"
+            android:text="@string/settings_restart_message" />
+
+        <TextView
+            style="@style/Widget.TVBro.SettingsButton"
+            android:id="@+id/btnRestart"
+            android:layout_marginStart="@dimen/ds_space_icon_text"
+            android:text="@string/settings_restart_now" />
+      </LinearLayout>
+    </LinearLayout>
+  </LinearLayout>
+</merge>

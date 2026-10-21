@@ -31,11 +31,9 @@
   <string name="delete">Usuń</string>
   <string name="cancel">Anuluj</string>
   <string name="msg_delete_history_all">Usunąć całą historię przeglądania?</string>
-  <string name="shortcuts">Skróty</string>
   <string name="favorites">Ulubione</string>
   <string name="history">Historia</string>
   <string name="settings">Ustawienia</string>
-  <string name="shortcut">Skrót</string>
   <string name="navigate_back">Wstecz</string>
   <string name="navigate_home">Przejdź do strony głównej</string>
   <string name="refresh_page">Odśwież</string>
@@ -43,9 +41,6 @@
   <string name="not_set">Nie ustawiono</string>
   <string name="action">Akcja:</string>
   <string name="current_key">Obecnie wybrany klawisz:</string>
-  <string name="set_key_for_action">Ustaw klawisz do akcji</string>
-  <string name="press_any_key">Naciśnij dowolny klawisz...</string>
-  <string name="shortcut_key_reserved_for_navigation">Ten klawisz jest zarezerwowany do nawigacji w przeglądarce</string>
   <string name="clear">Wyczyść</string>
   <string name="install">Zainstaluj</string>
   <string name="turn_on_unknown_sources">Włącz ustawienie systemowe „Nieznane źródła”</string>
@@ -55,17 +50,8 @@
   <string name="later">Później</string>
   <string name="downloads">Pobrane</string>
   <string name="downloads_notifications_description">Powiadomienia o statusie pobierania</string>
-  <string name="main">Ustawienia główne</string>
-  <string name="version_and_updates">Wersja i aktualizacje</string>
-  <string name="version_s">Wersja: %s</string>
-  <string name="build_flavor_s">Wariant kompilacji: %1$s · %2$s</string>
-  <string name="support_the_author">☕ Wesprzyj autora</string>
-  <string name="view_license">📃 Licencja</string>
-  <string name="privacy_policy">🔒 Polityka prywatności</string>
-  <string name="update_channel">Kanał aktualizacji:</string>
   <string name="auto_check_for_updates">Automatycznie sprawdzaj aktualizacje</string>
   <string name="update">Aktualizuj</string>
-  <string name="new_version_available_s">Dostępna nowa wersja: %s</string>
   <string name="web_browser_optimized_for_tvs">Przeglądarka internetowa zaoptymalizowana dla telewizorów</string>
   <string name="warning">Ostrzeżenie</string>
   <string name="err_webview_can_not_link">Nie udało się połączyć ze składnikiem WebView. Spróbuj najpierw zainstalować składnik Android System WebView.</string>
@@ -82,18 +68,9 @@
   <string name="close_application">Zamknij aplikację</string>
   <string name="close_tab">Zamknij kartę</string>
   <string name="navigate_forward">Dalej</string>
-  <string name="toggle_ads_blocking">Włącz/wyłącz blokowanie reklam</string>
-  <string name="never">nigdy</string>
-  <string name="last_update">Ostatnia aktualizacja</string>
-  <string name="update_ad_blocker_list">Zaktualizuj listę blokowania reklam</string>
   <string name="toggle_keep_screen_on">Nie wyłączaj ekranu</string>
-  <string name="navigate_with_joystick_axes">Nawigacja osiami joysticka</string>
-  <string name="cursor_max_speed">Maksymalna prędkość wirtualnego kursora</string>
-  <string name="cursor_acceleration">Przyspieszenie wirtualnego kursora</string>
-  <string name="cursor_physics_percent">%d%% wartości domyślnej</string>
   <string name="direct_navigation_mode_title">Tryb bezpośredniej nawigacji</string>
   <string name="direct_navigation_mode_message">Bezpośrednia nawigacja ukrywa kursor na ekranie i przekazuje naciśnięcia z pilota lub pada bezpośrednio do strony, dzięki czemu witryny obsługujące fokus TV lub klawiatury mogą podświetlać linki i elementy sterujące.\n\nAby wyjść z tego trybu: naciśnij Wstecz na pilocie telewizora lub przytrzymaj przycisk B na padzie.\n\nTryb ten najlepiej działa z silnikiem WebView: WebView obsługuje przesuwanie fokusu po stronie za pomocą krzyżaka.</string>
-  <string name="need_restart">Wymagane ponowne uruchomienie aplikacji</string>
   <string name="theme">Motyw</string>
   <array name="themes">
     <item>Systemowy</item>
@@ -104,7 +81,6 @@
   <string name="incognito_mode_hint">Teraz możesz przeglądać internet prywatnie, a inne osoby, które używają tego urządzenia, nie zobaczą Twojej aktywności. TV Bro nie będzie zapisywać historii przeglądania, plików cookie, danych witryn ani informacji wpisanych w formularzach.\n\nPobrane pliki i zakładki zostaną jednak zapisane. Twoja aktywność może być nadal widoczna dla odwiedzanych witryn, Twojej organizacji lub dostawcy internetu.</string>
   <string name="don_t_show_again">Nie pokazuj ponownie</string>
   <string name="why_icon_changed">Dlaczego zmieniła się ikona?</string>
-  <string name="clear_web_cache">Wyczyść pamięć podręczną</string>
   <string name="block_popups">Blokowanie wyskakujących okienek</string>
   <string name="block_popups_s">Blokowanie wyskakujących okienek (%s)</string>
   <string name="popup_dialog_blocked">Zablokowano wyskakujące okno dialogowe</string>
@@ -121,8 +97,6 @@
   <string name="open_in_external_application">Otwórz w aplikacji zewnętrznej</string>
   <string name="external_app_open_error">Nie można znaleźć odpowiedniej aplikacji</string>
   <string name="home_page">Strona główna</string>
-  <string name="custom_home_page_url">Niestandardowy adres URL strony głównej</string>
-  <string name="home_page_links">Linki na stronie głównej</string>
   <string-array name="home_page_modes">
     <item>Strona główna TV Bro</item>
     <item>Wyszukiwarka</item>
@@ -135,7 +109,6 @@
     <item>Najczęściej odwiedzane</item>
   </string-array>
 
-  <string name="need_restart_message">Uruchom ponownie aplikację, aby zastosować zmiany</string>
   <string name="yes">Tak</string>
   <string name="no">Nie</string>
   <string name="site_asks_to_open_unknown_url">Witryna prosi o otwarcie nieznanego adresu URL</string>
@@ -148,8 +121,5 @@
   <string name="media_fast_forward">Przewiń do przodu</string>
   <string name="long_press">Długie naciśnięcie</string>
   <string name="local_network_access_denied">Odmowa dostępu do sieci lokalnej</string>
-  <string name="webview_use_algorithmic_darkening_with_dark_ui_mode">Algorytmiczne przyciemnianie stron WWW (ciemny motyw, tylko WebView, wymagany restart)</string>
-  <string name="allow_autoplay_media">Zezwól na automatyczne odtwarzanie multimediów</string>
-  <string name="web_engine_debug">Debugowanie silnika webowego (wymagany restart)</string>
   <string name="web_engine_debug_warning_message">Włączenie debugowania silnika webowego może ujawnić zawartość stron, pliki cookie oraz wrażliwe dane sesji każdej osobie z dostępem do debugowania urządzenia. Włączaj tylko na zaufanych urządzeniach do diagnozowania problemów.</string>
 </resources>

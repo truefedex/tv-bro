@@ -370,7 +370,23 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         override val bookmarkFiles = DeviceBookmarkFiles(activity)
     }
 
-    private fun showSettings() = host.showSettings()
+    override fun showSettings(category: SettingsNavigator.Category?) {
+        vb.vPopupMenu.hide()
+        vb.vSettingsScreen.show(category)
+    }
+
+    private val settingsCallback by lazy {
+        SettingsShellCallback(host) { icon, message -> NotificationView.show(vb.rlRoot, icon, message) }
+    }
+
+    /** The settings closed: the focus goes back to the ⋮ button of the bar, or to the page if the bar is closed */
+    private fun onSettingsClosed() {
+        if (vb.rlActionBar.isVisible) {
+            vb.vActionBar.moreButton.requestFocus()
+        } else {
+            controller.currentTab.value?.webEngine?.getView()?.requestFocus()
+        }
+    }
 
     /** A page shows a fullscreen view (a video): tabs sent by a phone wait behind it */
     private var fullscreen = false
@@ -414,6 +430,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             val open = controller.tabsStates.firstOrNull { it.url == tab.url }
             if (i == 0 && !fullscreen) {
                 vb.vSyncScreen.hide()
+                vb.vSettingsScreen.hide()
                 vb.vDownloadsScreen.hide()
                 vb.vHistoryScreen.hide()
                 if (open != null) {
@@ -529,6 +546,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vDownloadsScreen.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback, ::onDownloadsScreenClosed)
         vb.vHistoryScreen.attach(lifecycleScope, vb.vPopupMenu, historyCallback, ::onHistoryScreenClosed)
         vb.vSyncScreen.attach(lifecycleScope, syncScreenCallback)
+        vb.vSettingsScreen.attach(lifecycleScope, vb.vPopupMenu, settingsCallback, ::onSettingsClosed)
         activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) = syncServer.start()
             override fun onStop(owner: LifecycleOwner) = syncServer.stop()
@@ -735,6 +753,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, vb.vDownloadsScreen.backCallback)
         dispatcher.addCallback(activity, vb.vHistoryScreen.backCallback)
         dispatcher.addCallback(activity, vb.vSyncScreen.backCallback)
+        dispatcher.addCallback(activity, vb.vSettingsScreen.backCallback)
         dispatcher.addCallback(activity, vb.vDownloadsPanel.backCallback)
         dispatcher.addCallback(activity, vb.vPopupMenu.backCallback)
         dispatcher.addCallback(activity, fullscreen)

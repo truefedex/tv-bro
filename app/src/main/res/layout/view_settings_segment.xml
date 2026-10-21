@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An option of a choice of the settings shown side by side with the others; selected (activated) when chosen -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.TVBro.Text.SettingsSegment" />

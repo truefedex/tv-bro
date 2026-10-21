@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The text of a row of the settings: the title (with After restart when it applies after a restart), the summary -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/llText"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:orientation="vertical">
+
+  <LinearLayout
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical">
+
+    <TextView
+        style="@style/Widget.TVBro.Text.SettingsTitle"
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:ellipsize="end"
+        tools:text="Theme" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.SettingsTag"
+        android:id="@+id/tvTag"
+        android:layout_marginStart="@dimen/ds_settings_tag_gap"
+        android:text="@string/settings_after_restart"
+        android:visibility="gone" />
+  </LinearLayout>
+
+  <TextView
+      style="@style/Widget.TVBro.Text.SettingsSummary"
+      android:id="@+id/tvSummary"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/ds_settings_summary_gap"
+      android:visibility="gone"
+      tools:text="System follows the night mode of the device"
+      tools:visibility="visible" />
+</LinearLayout>
