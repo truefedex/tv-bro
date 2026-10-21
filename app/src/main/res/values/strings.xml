@@ -268,6 +268,15 @@
     <string name="download_complete">Download complete</string>
     <string name="download_complete_named">Download complete: %s</string>
     <string name="download_failed_named">Download failed: %s</string>
+    <!-- the videos of the page other apps can play (the button of the TV bar and its panel) -->
+    <string name="videos_on_page">Videos on the page</string>
+    <string name="no_videos_on_page">No videos found on this page. Videos that the page plays only itself (protected or streamed through its own code) can not be opened in other apps.</string>
+    <string name="open_in_video_player">Open in video player</string>
+    <string name="err_no_video_player">No video player app is installed, for example VLC or MX Player</string>
+    <plurals name="videos_on_page_count">
+        <item quantity="one">Videos on the page, %d found</item>
+        <item quantity="other">Videos on the page, %d found</item>
+    </plurals>
     <plurals name="downloads_in_progress">
         <item quantity="one">Downloads, %d in progress</item>
         <item quantity="other">Downloads, %d in progress</item>

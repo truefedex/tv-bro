@@ -8,6 +8,9 @@ import androidx.webkit.JavaScriptReplyProxy
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.webengine.MediaState
+import com.phlox.tvwebbrowser.webengine.PageVideo
+import com.phlox.tvwebbrowser.webengine.PageVideoList
+import com.phlox.tvwebbrowser.webengine.PageVideoReports
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -22,8 +25,11 @@ enum class MediaCommand(val js: String) {
  * other frames. WebViews without these features get the script in the main frame only, after the page loads,
  * and report no state.
  */
-internal class WebViewMediaControls(private val webView: WebView, private val onStateChanged: (MediaState?) -> Unit) {
+internal class WebViewMediaControls(private val webView: WebView, private val onStateChanged: (MediaState?) -> Unit,
+                                    private val onVideosChanged: (List<PageVideo>) -> Unit) {
     private val frames = MediaFrames<JavaScriptReplyProxy>()
+    /** The videos other apps can play, also reported by the script of each frame (page_videos.js) */
+    private val videos = PageVideoList<JavaScriptReplyProxy>()
     private val allFrames = WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT) &&
             WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)
     private var state: MediaState? = null
@@ -43,6 +49,10 @@ internal class WebViewMediaControls(private val webView: WebView, private val on
             JSONObject(data ?: return)
         } catch (e: JSONException) {
             Log.w(TAG, "Bad media state: $data")
+            return
+        }
+        if (json.has("videos")) {
+            onVideosChanged(videos.onFrameVideos(frame, PageVideoReports.parse(json)))
             return
         }
         frames.onState(frame, parse(json, SystemClock.elapsedRealtime()))
@@ -75,6 +85,8 @@ internal class WebViewMediaControls(private val webView: WebView, private val on
     fun onPageStarted() {
         frames.clear()
         updateState()
+        videos.clear()
+        onVideosChanged(emptyList())
     }
 
     fun onPageFinished() {
@@ -87,8 +99,11 @@ internal class WebViewMediaControls(private val webView: WebView, private val on
         private const val CHANNEL = "tvBroMedia"
         private var script: String? = null
 
+        /** The videos of the frame first: media_controls.js starts them */
         private fun script(context: Context): String = script
-            ?: context.assets.open("media_controls.js").bufferedReader().use { it.readText() }.also { script = it }
+            ?: listOf("page_videos.js", "media_controls.js").joinToString("\n") { name ->
+                context.assets.open(name).bufferedReader().use { it.readText() }
+            }.also { script = it }
 
         /** A report of the script, received at [now] (elapsedRealtime); null: the frame has no media */
         internal fun parse(json: JSONObject, now: Long): MediaState? {

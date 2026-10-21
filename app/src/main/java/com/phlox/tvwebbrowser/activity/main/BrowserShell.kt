@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.view.KeyEvent
+import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
@@ -132,5 +133,9 @@ interface BrowserShell {
         fun chooseSiteView()
         /** Asks whether to clear the cookies, stored data and cache of the current site; the page reloads */
         fun clearSiteData()
+        /** Downloads a file (not from the engine: a link the shell offers, as a video of the page) */
+        fun download(request: DownloadRequest)
+        /** Copies the [url] to the clipboard and tells it */
+        fun copyToClipboard(url: String)
     }
 }

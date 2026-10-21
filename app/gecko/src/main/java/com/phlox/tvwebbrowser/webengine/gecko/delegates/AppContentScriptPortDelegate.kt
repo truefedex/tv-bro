@@ -1,20 +1,33 @@
 package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
 import android.util.Log
+import com.phlox.tvwebbrowser.webengine.PageVideoReports
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
+import org.json.JSONException
+import org.json.JSONObject
 import org.mozilla.geckoview.WebExtension
 
-// This is a leftover from the removal of the abandoned "text selection" feature.
-// I'll leave it here for now as a framework for future extension-based features.
+/**
+ * The port of the content script of one frame (each frame connects its own): it reports the videos
+ * of the frame (page_videos.js) as JSON strings.
+ */
 class AppContentScriptPortDelegate(val port: WebExtension.Port, val webEngine: GeckoWebEngine): WebExtension.PortDelegate {
 
     override fun onPortMessage(message: Any, port: WebExtension.Port) {
-        //Log.d(TAG, "onPortMessage: $message")
+        val json = try {
+            JSONObject(message as? String ?: return)
+        } catch (e: JSONException) {
+            Log.w(TAG, "Bad message: $message")
+            return
+        }
+        if (json.has("videos")) webEngine.onFrameVideos(port, PageVideoReports.parse(json))
     }
 
     override fun onDisconnect(port: WebExtension.Port) {
         Log.d(TAG, "onDisconnect")
-        webEngine.appContentScriptPortDelegate = null
+        //the frame is gone
+        webEngine.onFrameVideos(port, emptyList())
+        if (webEngine.appContentScriptPortDelegate == this) webEngine.appContentScriptPortDelegate = null
     }
 
     companion object {

@@ -59,6 +59,11 @@ import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
 import com.phlox.tvwebbrowser.webengine.mediaPlayback
+import com.phlox.tvwebbrowser.webengine.DownloadRequest
+import com.phlox.tvwebbrowser.webengine.pageVideosSupport
+import com.phlox.tvwebbrowser.webengine.PageVideo
+import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
+import com.phlox.tvwebbrowser.activity.main.view.VideosPanelView
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
@@ -236,6 +241,27 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             controller.stopLoading()
         } else {
             controller.reload()
+        }
+    }
+
+    /** The Videos button of the bar */
+    override fun showPageVideos() {
+        vb.vVideosPanel.show(vb.vActionBar.videosButton, vb.vActionBar.functionsGroup)
+    }
+
+    private val videosCallback = object : VideosPanelView.Callback {
+        override fun openInPlayer(video: PageVideo) {
+            val cookies = controller.currentTab.value?.webEngine?.getCookies(video.url)
+            if (!ExternalVideoPlayer.open(activity, video, cookies)) {
+                NotificationView.show(vb.rlRoot, R.drawable.ic_video, activity.getString(R.string.err_no_video_player))
+            }
+        }
+
+        override fun copyLink(video: PageVideo) = host.copyToClipboard(video.url)
+
+        override fun download(video: PageVideo) {
+            val cookies = controller.currentTab.value?.webEngine?.getCookies(video.url)
+            host.download(DownloadRequest.forLink(video.url, video.pageUrl ?: "", video.userAgent, cookies))
         }
     }
 
@@ -575,6 +601,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vTabMenu.callback = tabMenuCallback
         vb.vBookmarksPanel.attach(lifecycleScope, vb.vPopupMenu, bookmarksCallback)
         vb.vDownloadsPanel.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback) { showAllDownloads(it) }
+        vb.vVideosPanel.attach(vb.vPopupMenu, videosCallback)
         vb.vDownloadsScreen.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback, ::onDownloadsScreenClosed)
         vb.vHistoryScreen.attach(lifecycleScope, vb.vPopupMenu, historyCallback, ::onHistoryScreenClosed)
         vb.vSyncScreen.attach(lifecycleScope, syncScreenCallback)
@@ -677,6 +704,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     private var cursorModesJob: Job? = null
     private var mediaStateJob: Job? = null
+    private var pageVideosJob: Job? = null
     private var cursorModes = CursorModes()
 
     /**
@@ -689,6 +717,12 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         videoMode.setMedia(null)
         controller.currentTab.value?.webEngine?.mediaPlayback?.let { media ->
             mediaStateJob = lifecycleScope.launch { media.mediaState.collect { videoMode.setMedia(it) } }
+        }
+        pageVideosJob?.cancel()
+        pageVideosJob = null
+        onPageVideosChanged(emptyList())
+        controller.currentTab.value?.webEngine?.pageVideosSupport?.let { videos ->
+            pageVideosJob = lifecycleScope.launch { videos.pageVideos.collect { onPageVideosChanged(it) } }
         }
         cursorModesJob?.cancel()
         cursorModesJob = null
@@ -706,6 +740,12 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         cursorModesJob = lifecycleScope.launch {
             cursor.cursorModes.collect { onCursorModesChanged(it) }
         }
+    }
+
+    /** The videos of the shown page other apps can play: the badge of the bar and the panel */
+    private fun onPageVideosChanged(videos: List<PageVideo>) {
+        vb.vActionBar.setPageVideoCount(videos.size)
+        vb.vVideosPanel.render(videos)
     }
 
     private fun onCursorModesChanged(modes: CursorModes) {
@@ -797,6 +837,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, vb.vSyncScreen.backCallback)
         dispatcher.addCallback(activity, vb.vSettingsScreen.backCallback)
         dispatcher.addCallback(activity, vb.vDownloadsPanel.backCallback)
+        dispatcher.addCallback(activity, vb.vVideosPanel.backCallback)
         dispatcher.addCallback(activity, vb.vPopupMenu.backCallback)
         dispatcher.addCallback(activity, fullscreen)
         dispatcher.addCallback(activity, videoMode.backCallback)
@@ -866,6 +907,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vPopupMenu.hide()
         vb.vBookmarksPanel.hide()
         vb.vDownloadsPanel.hide()
+        vb.vVideosPanel.hide()
         tabOptionsHintAnchor = null
         vb.llTabOptionsHint.visibility = View.GONE
 

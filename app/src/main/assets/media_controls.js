@@ -125,6 +125,10 @@
     window.tvBroMedia.onmessage = function(e) {
         window.tvBroMediaCommand(e.data);
     };
+    // the videos other apps can play (page_videos.js, run before this script)
+    if (typeof tvBroWatchPageVideos == 'function') {
+        tvBroWatchPageVideos(function(message) { window.tvBroMedia.postMessage(message); });
+    }
     // media events do not bubble, but the window gets them while they are captured
     ['play', 'pause', 'ended', 'emptied', 'seeked', 'playing', 'waiting', 'ratechange', 'durationchange',
             'loadedmetadata', 'timeupdate'].forEach(function(type) {

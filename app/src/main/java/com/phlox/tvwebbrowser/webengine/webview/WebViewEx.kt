@@ -49,6 +49,7 @@ import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.webengine.MediaState
+import com.phlox.tvwebbrowser.webengine.PageVideo
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.webengine.ErrorPageTemplate
@@ -86,7 +87,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
     private val desktopView = DesktopView(this)
-    private val mediaControls = WebViewMediaControls(this) { callback.onMediaStateChanged(it) }
+    private val mediaControls = WebViewMediaControls(this, { callback.onMediaStateChanged(it) },
+        { callback.onPageVideosChanged(it) })
 
     interface Callback {
         fun getActivity(): Activity?
@@ -125,6 +127,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onContextMenu(baseUrl: String?, href: String?, x: Int, y: Int)
         /** The media the keys of the remote control changed (null: the page has none) */
         fun onMediaStateChanged(state: MediaState?)
+        /** The videos of the page that other apps can play changed */
+        fun onPageVideosChanged(videos: List<PageVideo>)
     }
 
     init {

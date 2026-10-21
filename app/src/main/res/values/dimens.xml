@@ -168,6 +168,7 @@
     <dimen name="ds_bookmark_menu_width">230dp</dimen>
     <!-- downloads: the panel of the TV bar, the TV screen of all downloads, the phone page -->
     <dimen name="ds_downloads_panel_width">380dp</dimen>
+    <dimen name="ds_videos_panel_width">440dp</dimen>
     <dimen name="ds_download_row_height">48dp</dimen>
     <dimen name="ds_download_icon">24dp</dimen>
     <dimen name="ds_download_icon_padding">5dp</dimen>

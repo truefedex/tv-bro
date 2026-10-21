@@ -49,6 +49,7 @@ import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.sameDay
+import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
@@ -278,6 +279,10 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
+
+    override fun download(request: DownloadRequest) = downloadLauncher.download(request)
+
+    override fun copyToClipboard(url: String) = TabUiHost.copyToClipboard(this, url)
 
     override val commands: BrowserCommands = object : BrowserCommands {
         override fun goBack() {

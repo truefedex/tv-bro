@@ -24,6 +24,9 @@ import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.utils.HardwareCodecs
 import com.phlox.tvwebbrowser.webengine.MediaPlaybackSupport
 import com.phlox.tvwebbrowser.webengine.MediaState
+import com.phlox.tvwebbrowser.webengine.PageVideo
+import com.phlox.tvwebbrowser.webengine.PageVideoList
+import com.phlox.tvwebbrowser.webengine.PageVideosSupport
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,7 +64,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, SiteViewSupport,
-    MediaPlaybackSupport, CursorDrawerDelegate.Callback {
+    MediaPlaybackSupport, PageVideosSupport, CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
         /** Changes with the files of the extension: it is installed again then */
@@ -220,6 +223,21 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     private val _mediaState = MutableStateFlow<MediaState?>(null)
     override val mediaState: StateFlow<MediaState?> = _mediaState.asStateFlow()
     val mediaSessionDelegate = MyMediaSessionDelegate { _mediaState.value = it }
+    /** The videos of the page, from the content scripts of its frames (one port each) */
+    private val videos = PageVideoList<WebExtension.Port>()
+    private val _pageVideos = MutableStateFlow<List<PageVideo>>(emptyList())
+    override val pageVideos: StateFlow<List<PageVideo>> = _pageVideos.asStateFlow()
+
+    /** The content script of a frame reported its videos (none: the frame is gone) */
+    fun onFrameVideos(port: WebExtension.Port, frameVideos: List<PageVideo>) {
+        _pageVideos.value = videos.onFrameVideos(port, frameVideos)
+    }
+
+    /** The page starts loading another document: the videos of the old one are gone */
+    fun onPageStartedForVideos() {
+        videos.clear()
+        _pageVideos.value = emptyList()
+    }
     val selectionActionDelegate = MySelectionActionDelegate()
     /** The last scroll position of the page in pixels, to report how far it scrolled; unknown when -1 */
     private var lastScrollY = -1

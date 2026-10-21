@@ -8,6 +8,7 @@ class MyProgressDelegate(private val geckoWebEngine: GeckoWebEngine): ProgressDe
     var sessionState: GeckoSession.SessionState? = null
 
     override fun onPageStart(session: GeckoSession, url: String) {
+        geckoWebEngine.onPageStartedForVideos()
         geckoWebEngine.callback?.onPageStarted(GeckoWebEngine.toAppUrl(url))
     }
 

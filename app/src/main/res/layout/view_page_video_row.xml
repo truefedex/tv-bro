@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+A row of the TV panel of the videos of the page (the list draws the dividers between rows): the title (of
+the frame, else the name of the file), a caption (the kind, the server, the size and the duration) and the
+button of its options. OK opens the video in a player app.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/ds_download_row_height"
+    android:orientation="horizontal"
+    android:gravity="center_vertical">
+
+  <!-- not match_parent: the row is as tall as its texts (a match_parent child adds no height to its row) -->
+  <LinearLayout
+      android:id="@+id/llMain"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:minHeight="@dimen/ds_download_row_height"
+      android:layout_weight="1"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_space_menu_inset"
+      android:paddingEnd="@dimen/ds_space_icon_text"
+      android:background="@drawable/ds_menu_row_bg"
+      android:focusable="true"
+      android:clickable="true"
+      android:longClickable="true">
+
+    <ImageView
+        style="@style/Widget.TVBro.DownloadIcon"
+        android:id="@+id/ivIcon"
+        android:src="@drawable/ic_video" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingTop="@dimen/ds_bookmark_row_text_padding"
+        android:paddingBottom="@dimen/ds_bookmark_row_text_padding"
+        android:layout_marginStart="@dimen/ds_space_icon_text"
+        android:orientation="vertical">
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:id="@+id/tvTitle"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          tools:text="Big Buck Bunny" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuCaption"
+          android:id="@+id/tvCaption"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          tools:text="HLS · cdn.example.com · 1920×1080 · 9:56" />
+    </LinearLayout>
+  </LinearLayout>
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Panel"
+      android:id="@+id/ibOptions"
+      android:layout_marginStart="@dimen/ds_bookmark_options_margin"
+      android:layout_marginEnd="@dimen/ds_bookmark_options_margin"
+      android:src="@drawable/ic_more_vert"
+      tools:contentDescription="Options of Big Buck Bunny" />
+</LinearLayout>
