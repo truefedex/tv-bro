@@ -21,6 +21,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.CursorModes
+import com.phlox.tvwebbrowser.utils.HardwareCodecs
 import com.phlox.tvwebbrowser.webengine.MediaPlaybackSupport
 import com.phlox.tvwebbrowser.webengine.MediaState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +48,7 @@ import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
 import kotlin.math.roundToInt
 import org.mozilla.geckoview.GeckoRuntimeSettings
+import org.mozilla.geckoview.GeckoPreferenceController
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoSession.SessionState
 import org.mozilla.geckoview.GeckoSessionSettings
@@ -94,6 +96,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                     .enhancedTrackingProtectionLevel(ContentBlocking.EtpLevel.STRICT)
                     .build())
                 runtime = GeckoRuntime.create(context, builder.build())
+                disableSoftwareAv1()
 
                 val webExtInstallResult = if (APP_WEB_EXTENSION_VERSION == AppContext.provideConfig().appWebExtensionVersion) {
                     Log.d(TAG, "appWebExtension already installed")
@@ -117,6 +120,22 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             val webView = GeckoViewWithVirtualCursor(context)
             webViewContainer.addView(webView)
             weakRefToSingleGeckoView = WeakReference(webView)
+        }
+
+        /**
+         * Without a hardware AV1 decoder GeckoView decodes AV1 in software (dav1d), which TV chips can not do
+         * smoothly, and sites still choose it (YouTube serves AV1 to Firefox): pages are told there is no AV1,
+         * so they choose VP9 or H.264, which the hardware decodes. It is the default value of the preference,
+         * not kept: each start checks the device again, and about:config can still turn AV1 on.
+         */
+        private fun disableSoftwareAv1() {
+            if (HardwareCodecs.hasHardwareDecoder(HardwareCodecs.AV1)) return
+            Log.i(TAG, "No hardware AV1 decoder: AV1 is off")
+            GeckoPreferenceController.setGeckoPref("media.av1.enabled", false,
+                GeckoPreferenceController.PREF_BRANCH_DEFAULT).exceptionally<Void> { e ->
+                Log.e(TAG, "Can not turn AV1 off", e)
+                null
+            }
         }
 
         /** Where GeckoView finds the home page; null until the extension is registered */
