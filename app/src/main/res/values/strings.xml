@@ -275,6 +275,8 @@
     <!-- the built-in player -->
     <string name="player_error">This video can not be played</string>
     <string name="player_back_to_page">Back to the page</string>
+    <!-- in the seek bar of a fullscreen video of the page whose stream is known -->
+    <string name="player_hint_open">↓ Play in TV Bro</string>
     <!-- the menu of the tracks: "Quality: 1080p" -->
     <string name="player_menu_row">%1$s: %2$s</string>
     <string name="player_quality">Quality</string>

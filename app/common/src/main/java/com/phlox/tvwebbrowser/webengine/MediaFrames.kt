@@ -67,4 +67,11 @@ object MediaReports {
 
     /** Whether the [json] message of a frame is a media report (the frame also reports its videos) */
     fun isReport(json: JSONObject): Boolean = json.has("media")
+
+    /** What the media of a report plays; null: the frame has no media */
+    fun source(json: JSONObject): MediaSource? {
+        if (!json.optBoolean("media")) return null
+        val src = if (json.isNull("src")) null else json.optString("src").takeIf { it.startsWith("http") }
+        return MediaSource(src, json.optBoolean("mse"))
+    }
 }

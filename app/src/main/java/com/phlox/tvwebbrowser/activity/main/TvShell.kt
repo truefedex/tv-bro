@@ -12,6 +12,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.KeyEvent
+import android.os.SystemClock
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.animation.Animation
@@ -59,6 +60,7 @@ import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
 import com.phlox.tvwebbrowser.webengine.mediaPlayback
+import com.phlox.tvwebbrowser.webengine.PageVideosSupport
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.activity.main.view.PlayerScreenView
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
@@ -483,10 +485,40 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         override fun renderOsd(osd: VideoModeController.Osd?) = vb.vVideoOsd.render(osd)
 
         override fun onActiveChanged(active: Boolean) = onCursorModesChanged(cursorModes)
+
+        /** Down takes the video of the page to the built-in player, where its stream is known */
+        override fun onUpDown(down: Boolean): Boolean {
+            if (!down) return false
+            return openMediaVideoInPlayer()
+        }
     })
 
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
-        vb.vPlayerScreen.dispatchPlayerKey(event) || videoMode.dispatchKeyEvent(event)
+    /** The video of the page the media keys control plays, when its stream is known ([PageVideosSupport.mediaVideo]) */
+    private var mediaVideo: PageVideo? = null
+
+    private fun onMediaVideoChanged(video: PageVideo?) {
+        mediaVideo = video
+        videoMode.hint = if (video != null) activity.getString(R.string.player_hint_open) else null
+    }
+
+    /** The video of the fullscreen view goes on in the built-in player, from where it is; false if its stream is not known */
+    private fun openMediaVideoInPlayer(): Boolean {
+        val video = mediaVideo ?: return false
+        val engine = controller.currentTab.value?.webEngine
+        val position = engine?.mediaPlayback?.mediaState?.value?.positionAt(SystemClock.elapsedRealtime()) ?: 0.0
+        openBuiltInPlayer(video, position)
+        return true
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (vb.vPlayerScreen.dispatchPlayerKey(event)) return true
+        //the Menu key (where it reaches the app) does what Down does in the video mode
+        if (event.keyCode == KeyEvent.KEYCODE_MENU && videoMode.isActive && mediaVideo != null) {
+            if (event.action == KeyEvent.ACTION_UP) openMediaVideoInPlayer()
+            return true
+        }
+        return videoMode.dispatchKeyEvent(event)
+    }
 
     /** The bookmarks of the TV that phones change, with the backup of before the last change */
     private val bookmarks = LocalBookmarks({ TVBro.container.data }, BookmarksBackup(activity.filesDir),
@@ -745,6 +777,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private var cursorModesJob: Job? = null
     private var mediaStateJob: Job? = null
     private var pageVideosJob: Job? = null
+    private var mediaVideoJob: Job? = null
     private var cursorModes = CursorModes()
 
     /**
@@ -760,9 +793,13 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
         pageVideosJob?.cancel()
         pageVideosJob = null
+        mediaVideoJob?.cancel()
+        mediaVideoJob = null
         onPageVideosChanged(emptyList())
+        onMediaVideoChanged(null)
         controller.currentTab.value?.webEngine?.pageVideosSupport?.let { videos ->
             pageVideosJob = lifecycleScope.launch { videos.pageVideos.collect { onPageVideosChanged(it) } }
+            mediaVideoJob = lifecycleScope.launch { videos.mediaVideo.collect { onMediaVideoChanged(it) } }
         }
         cursorModesJob?.cancel()
         cursorModesJob = null

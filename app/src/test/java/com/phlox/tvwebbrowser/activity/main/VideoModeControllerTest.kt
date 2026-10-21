@@ -146,9 +146,9 @@ class VideoModeControllerTest {
             override fun seekTo(position: Double) {}
             override fun seekBy(delta: Double) {}
             override fun renderOsd(osd: VideoModeController.Osd?) {}
-            override fun onUpDown(): Boolean {
-                upDowns++
-                return true
+            override fun onUpDown(down: Boolean): Boolean {
+                if (down) upDowns++
+                return down
             }
         })
         player.setFullscreen(true)
@@ -159,6 +159,20 @@ class VideoModeControllerTest {
         assertTrue(player.isActive)
         assertFalse(player.backCallback.isEnabled)
         assertFalse(calls.contains("showCursor"))
+        //Up the host does not take: the cursor comes back
+        assertTrue(press(player, KeyEvent.KEYCODE_DPAD_UP))
+        assertEquals(1, upDowns)
+        assertFalse(player.isActive)
+        assertTrue(calls.contains("showCursor"))
+    }
+
+    @Test
+    fun theHintShowsInTheBar() {
+        enter()
+        idle(3500)
+        assertNull(osd)
+        video.hint = "Down: player"
+        assertEquals("Down: player", osd?.hint)
     }
 
     private fun press(controller: VideoModeController, keyCode: Int): Boolean {

@@ -24,7 +24,8 @@ class AppContentScriptPortDelegate(val port: WebExtension.Port, val webEngine: G
         }
         when {
             json.has("videos") -> webEngine.onFrameVideos(port, PageVideoReports.parse(json))
-            MediaReports.isReport(json) -> webEngine.onFrameMedia(port, MediaReports.parse(json, SystemClock.elapsedRealtime()))
+            MediaReports.isReport(json) -> webEngine.onFrameMedia(port, MediaReports.parse(json, SystemClock.elapsedRealtime()),
+                MediaReports.source(json))
         }
     }
 
@@ -32,7 +33,7 @@ class AppContentScriptPortDelegate(val port: WebExtension.Port, val webEngine: G
         Log.d(TAG, "onDisconnect")
         //the frame is gone
         webEngine.onFrameVideos(port, emptyList())
-        webEngine.onFrameMedia(port, null)
+        webEngine.onFrameMedia(port, null, null)
         if (webEngine.appContentScriptPortDelegate == this) webEngine.appContentScriptPortDelegate = null
     }
 

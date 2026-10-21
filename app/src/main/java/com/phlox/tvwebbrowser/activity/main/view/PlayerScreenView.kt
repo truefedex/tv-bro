@@ -68,7 +68,7 @@ class PlayerScreenView @JvmOverloads constructor(
             vb.llTitle.isVisible = osd != null
         }
 
-        override fun onUpDown(): Boolean {
+        override fun onUpDown(down: Boolean): Boolean {
             showMenu()
             return true
         }

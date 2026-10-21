@@ -58,6 +58,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     override val mediaState: StateFlow<MediaState?> = _mediaState.asStateFlow()
     private val _pageVideos = MutableStateFlow<List<PageVideo>>(emptyList())
     override val pageVideos: StateFlow<List<PageVideo>> = _pageVideos.asStateFlow()
+    private val _mediaVideo = MutableStateFlow<PageVideo?>(null)
+    override val mediaVideo: StateFlow<PageVideo?> = _mediaVideo.asStateFlow()
     private val jsInterface = AndroidJSInterface(this)
 
     override fun getWebEngineName(): String = "WebView"
@@ -249,6 +251,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             cursorLayout = null
             _mediaState.value = null
             _pageVideos.value = emptyList()
+            _mediaVideo.value = null
         }
     }
 
@@ -259,6 +262,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             cursorLayout = null
             _mediaState.value = null
             _pageVideos.value = emptyList()
+            _mediaVideo.value = null
         }
     }
 
@@ -441,6 +445,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
         override fun onPageVideosChanged(videos: List<PageVideo>) {
             _pageVideos.value = videos
+        }
+
+        override fun onMediaVideoChanged(video: PageVideo?) {
+            _mediaVideo.value = video
         }
 
         override fun onContextMenu(baseUrl:String?, href: String?, x: Int, y: Int) {

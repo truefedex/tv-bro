@@ -63,6 +63,14 @@ class MediaFramesTest {
     }
 
     @Test
+    fun theSourceOfTheMedia() {
+        assertEquals(MediaSource("https://a.com/v.mp4", false), MediaReports.source(JSONObject(
+            """{"media":true,"playing":true,"src":"https://a.com/v.mp4","mse":false}""")))
+        assertEquals(MediaSource(null, true), MediaReports.source(JSONObject("""{"media":true,"src":null,"mse":true}""")))
+        assertNull(MediaReports.source(JSONObject("""{"media":false}""")))
+    }
+
+    @Test
     fun parsesTheReportsOfTheScript() {
         val state = MediaReports.parse(JSONObject(
             """{"media":true,"playing":true,"fullscreen":true,"position":12.5,"duration":600,"rate":1.5}"""), 42)

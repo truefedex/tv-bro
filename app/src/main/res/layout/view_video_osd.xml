@@ -52,4 +52,16 @@
         android:fontFeatureSettings="tnum"
         android:textColor="?attr/tbColorDsOnToast"
         tools:text="1:45:00" />
+
+    <!-- what another key does, as "↓ Play in TV Bro" -->
+    <TextView
+        style="@style/Widget.TVBro.Text.Toast"
+        android:id="@+id/tvHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:textColor="?attr/tbColorDsAccent"
+        android:visibility="gone"
+        tools:text="↓ Play in TV Bro"
+        tools:visibility="visible" />
 </merge>

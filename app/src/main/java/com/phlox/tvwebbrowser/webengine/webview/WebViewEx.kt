@@ -89,7 +89,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private val config = AppContext.provideConfig()
     private val desktopView = DesktopView(this)
     private val mediaControls = WebViewMediaControls(this, { callback.onMediaStateChanged(it) },
-        { callback.onPageVideosChanged(it) })
+        { callback.onPageVideosChanged(it) }, { callback.onMediaVideoChanged(it) })
 
     interface Callback {
         fun getActivity(): Activity?
@@ -130,6 +130,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onMediaStateChanged(state: MediaState?)
         /** The videos of the page that other apps can play changed */
         fun onPageVideosChanged(videos: List<PageVideo>)
+        /** The video of the page the media the keys control plays changed (null: none is known) */
+        fun onMediaVideoChanged(video: PageVideo?)
     }
 
     init {

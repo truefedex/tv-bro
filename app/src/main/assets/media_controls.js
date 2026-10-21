@@ -111,7 +111,10 @@ function tvBroWatchMedia(send) {
             position: m.currentTime,
             duration: isFinite(m.duration) ? m.duration : null,
             // the position stands still while the media waits for data
-            rate: isPlaying(m) && m.readyState > 2 ? m.playbackRate : 0
+            rate: isPlaying(m) && m.readyState > 2 ? m.playbackRate : 0,
+            // what it plays: its address, or a stream of the page (Media Source Extensions)
+            src: /^https?:/i.test(m.currentSrc) ? m.currentSrc : null,
+            mse: /^blob:/i.test(m.currentSrc)
         }));
     }
 

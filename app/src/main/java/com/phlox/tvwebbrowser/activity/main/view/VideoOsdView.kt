@@ -56,6 +56,8 @@ class VideoOsdView @JvmOverloads constructor(context: Context, attrs: AttributeS
         val osd = osd ?: return
         val media = osd.media
         val duration = media.duration
+        vb.tvHint.isVisible = osd.hint != null
+        vb.tvHint.text = osd.hint
         vb.ivState.setImageResource(if (media.playing) R.drawable.ic_play else R.drawable.ic_pause)
         val delta = osd.seekDelta
         vb.tvDelta.isVisible = delta != null && abs(delta) >= 0.5

@@ -9,6 +9,8 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.webengine.MediaFrames
 import com.phlox.tvwebbrowser.webengine.MediaReports
+import com.phlox.tvwebbrowser.webengine.PageVideoMatch
+import com.phlox.tvwebbrowser.webengine.MediaSource
 import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideo
 import com.phlox.tvwebbrowser.webengine.PageVideoList
@@ -25,8 +27,12 @@ import org.json.JSONObject
  * main frame only, after the page loads, and report no state.
  */
 internal class WebViewMediaControls(private val webView: WebView, private val onStateChanged: (MediaState?) -> Unit,
-                                    private val onVideosChanged: (List<PageVideo>) -> Unit) {
+                                    private val onVideosChanged: (List<PageVideo>) -> Unit,
+                                    private val onMediaVideoChanged: (PageVideo?) -> Unit) {
     private val frames = MediaFrames<JavaScriptReplyProxy>()
+    /** What the media of each frame plays, for [mediaVideo] */
+    private val sources = HashMap<JavaScriptReplyProxy, MediaSource>()
+    private var mediaVideo: PageVideo? = null
     /** The videos other apps can play, also reported by the script of each frame (page_videos.js) */
     private val videos = PageVideoList<JavaScriptReplyProxy>()
     private val allFrames = WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT) &&
@@ -52,10 +58,23 @@ internal class WebViewMediaControls(private val webView: WebView, private val on
         }
         if (json.has("videos")) {
             onVideosChanged(videos.onFrameVideos(frame, PageVideoReports.parse(json)))
+            updateMediaVideo()
             return
         }
         frames.onState(frame, MediaReports.parse(json, SystemClock.elapsedRealtime()))
+        val source = MediaReports.source(json)
+        if (source == null) sources.remove(frame) else sources[frame] = source
         updateState()
+        updateMediaVideo()
+    }
+
+    /** The video of the page the media the keys control plays ([PageVideoMatch]) */
+    private fun updateMediaVideo() {
+        val frame = frames.target()
+        val video = frame?.let { PageVideoMatch.of(sources[it], videos.videosOf(it)) }
+        if (video == mediaVideo) return
+        mediaVideo = video
+        onMediaVideoChanged(video)
     }
 
     private fun updateState() {
@@ -83,9 +102,11 @@ internal class WebViewMediaControls(private val webView: WebView, private val on
     /** The main frame starts another page */
     fun onPageStarted() {
         frames.clear()
+        sources.clear()
         updateState()
         videos.clear()
         onVideosChanged(emptyList())
+        updateMediaVideo()
     }
 
     fun onPageFinished() {

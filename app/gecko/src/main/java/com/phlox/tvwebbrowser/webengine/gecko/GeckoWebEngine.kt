@@ -26,6 +26,8 @@ import com.phlox.tvwebbrowser.webengine.MediaPlaybackSupport
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.MediaFrames
 import com.phlox.tvwebbrowser.webengine.MediaState
+import com.phlox.tvwebbrowser.webengine.PageVideoMatch
+import com.phlox.tvwebbrowser.webengine.MediaSource
 import com.phlox.tvwebbrowser.webengine.PageVideo
 import com.phlox.tvwebbrowser.webengine.PageVideoList
 import com.phlox.tvwebbrowser.webengine.PageVideosSupport
@@ -240,16 +242,29 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     private val videos = PageVideoList<WebExtension.Port>()
     private val _pageVideos = MutableStateFlow<List<PageVideo>>(emptyList())
     override val pageVideos: StateFlow<List<PageVideo>> = _pageVideos.asStateFlow()
+    private val _mediaVideo = MutableStateFlow<PageVideo?>(null)
+    override val mediaVideo: StateFlow<PageVideo?> = _mediaVideo.asStateFlow()
+    /** What the media of each frame plays, for [mediaVideo] */
+    private val mediaSources = HashMap<WebExtension.Port, MediaSource>()
 
     /** The content script of a frame reported its videos (none: the frame is gone) */
     fun onFrameVideos(port: WebExtension.Port, frameVideos: List<PageVideo>) {
         _pageVideos.value = videos.onFrameVideos(port, frameVideos)
+        updateMediaVideo()
     }
 
     /** The content script of a frame reported the media its commands go to (null: none, or the frame is gone) */
-    fun onFrameMedia(port: WebExtension.Port, media: MediaState?) {
+    fun onFrameMedia(port: WebExtension.Port, media: MediaState?, source: MediaSource?) {
         mediaFrames.onState(port, media)
+        if (source == null) mediaSources.remove(port) else mediaSources[port] = source
         updateMediaState()
+        updateMediaVideo()
+    }
+
+    /** The video of the page the media the keys control plays ([PageVideoMatch]) */
+    private fun updateMediaVideo() {
+        val port = mediaFrames.target()
+        _mediaVideo.value = port?.let { PageVideoMatch.of(mediaSources[it], videos.videosOf(it)) }
     }
 
     private fun updateMediaState() {
@@ -268,7 +283,9 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         videos.clear()
         _pageVideos.value = emptyList()
         mediaFrames.clear()
+        mediaSources.clear()
         updateMediaState()
+        updateMediaVideo()
     }
     val selectionActionDelegate = MySelectionActionDelegate()
     /** The last scroll position of the page in pixels, to report how far it scrolled; unknown when -1 */

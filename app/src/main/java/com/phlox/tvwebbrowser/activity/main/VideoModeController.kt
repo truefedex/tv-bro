@@ -29,15 +29,20 @@ class VideoModeController(private val host: Host) {
         fun renderOsd(osd: Osd?)
         /** [active] changed: the keys go to the video (true) or to the cursor */
         fun onActiveChanged(active: Boolean) {}
-        /** Up or Down: true if the host takes it (the built-in player opens its menu); else they give the cursor back */
-        fun onUpDown(): Boolean = false
+        /**
+         * Up or Down ([down]): true if the host takes it (the built-in player opens its menu, Down takes the video
+         * of the page there); else they give the cursor back
+         */
+        fun onUpDown(down: Boolean): Boolean = false
     }
 
     /**
      * What the seek bar shows: the media, and while a seek goes on, where it goes ([seekTarget],
      * [seekDelta] from where it started), in seconds.
      */
-    data class Osd(val media: MediaState, val seekTarget: Double? = null, val seekDelta: Double? = null)
+    data class Osd(val media: MediaState, val seekTarget: Double? = null, val seekDelta: Double? = null,
+                   /** What a key does besides the seek and the playback ("↓ Play in TV Bro") */
+                   val hint: String? = null)
 
     private val handler = Handler(Looper.getMainLooper())
     private var fullscreen = false
@@ -48,6 +53,14 @@ class VideoModeController(private val host: Host) {
     /** The keys go to the video */
     var isActive = false
         private set
+
+    /** Shown in the seek bar; a new one shows the bar */
+    var hint: String? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            if (value != null && isActive) showOsd() else renderOsd()
+        }
 
     /** Hides the cursor that Up or Down gave back, while there is a video in fullscreen */
     val backCallback = object : OnBackPressedCallback(false) {
@@ -125,7 +138,7 @@ class VideoModeController(private val host: Host) {
                 swallowedKeys.add(keyCode)
                 if (event.repeatCount == 0) {
                     endSeek(apply = true)
-                    if (!host.onUpDown()) {
+                    if (!host.onUpDown(keyCode == KeyEvent.KEYCODE_DPAD_DOWN)) {
                         cursorRequested = true
                         update()
                     }
@@ -238,7 +251,7 @@ class VideoModeController(private val host: Host) {
             host.renderOsd(null)
             return
         }
-        host.renderOsd(Osd(media, target, target?.let { it - seekStart }))
+        host.renderOsd(Osd(media, target, target?.let { it - seekStart }, hint))
         //the next change: the end of the seek shown or of the bar while it plays
         val next = listOf(seekShownUntil, osdUntil).filter { it > now }.minOrNull() ?: return
         handler.postDelayed(updateRunnable, next - now)

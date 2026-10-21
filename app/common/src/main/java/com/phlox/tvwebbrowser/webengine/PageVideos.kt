@@ -37,6 +37,33 @@ data class PageVideo(
 interface PageVideosSupport {
     /** The videos of the page in the order they were found; the same flow for the engine's whole life */
     val pageVideos: StateFlow<List<PageVideo>>
+    /**
+     * The video among them that the media the keys control plays ([PageVideoMatch]; the built-in player can
+     * go on with it), null if none is known; the same flow for the engine's whole life
+     */
+    val mediaVideo: StateFlow<PageVideo?>
+}
+
+/** What a media element plays, as media_controls.js reports it ([MediaReports.source]) */
+data class MediaSource(
+    /** Its http(s) address; null for media the page streams itself (MSE) and for unknown ones */
+    val src: String?,
+    /** The page streams it through Media Source Extensions (a `blob:` address) */
+    val mse: Boolean,
+)
+
+/** The video of the page a media element plays */
+object PageVideoMatch {
+    /**
+     * Among the videos of the frame of the media: the one at its address, else, for media the page streams
+     * itself (MSE), the only stream (HLS or DASH) of the frame; null when it is not known which
+     */
+    fun of(source: MediaSource?, frameVideos: List<PageVideo>): PageVideo? {
+        if (source == null) return null
+        source.src?.let { src -> frameVideos.firstOrNull { it.url == src }?.let { return it } }
+        if (!source.mse) return null
+        return frameVideos.filter { it.kind != PageVideo.Kind.FILE }.singleOrNull()
+    }
 }
 
 /** Null if the engine does not find the videos of pages */
@@ -132,13 +159,20 @@ class PageVideoList<F : Any>(private val limit: Int = 50) {
             val known = byUrl[video.url]
             byUrl[video.url] = if (known == null) video else merge(known, video)
         }
+        return withoutVariants(byUrl.values.sortedBy { order[it.url] ?: Int.MAX_VALUE }).take(limit)
+    }
+
+    /** The videos one frame reported, the variants of an HLS stream as one */
+    fun videosOf(frame: F): List<PageVideo> = withoutVariants(frames[frame] ?: emptyList())
+
+    private fun withoutVariants(videos: List<PageVideo>): List<PageVideo> {
         val masters = ArrayList<String>()
-        return byUrl.values.sortedBy { order[it.url] ?: Int.MAX_VALUE }.filter { video ->
+        return videos.filter { video ->
             if (video.kind != PageVideo.Kind.HLS) return@filter true
             if (masters.any { PageVideoUrls.isVariantOf(video.url, it) }) return@filter false
             masters += video.url
             true
-        }.take(limit)
+        }
     }
 
     /** What one frame does not tell about a video, another one may */
