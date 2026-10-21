@@ -68,6 +68,9 @@ function tvBroWatchMedia(send) {
                     m.pause();
                 }
                 break;
+            case 'pause':
+                m.pause();
+                break;
             case 'stop':
                 m.pause();
                 m.currentTime = 0;

@@ -13,6 +13,8 @@ interface MediaPlaybackSupport {
     fun seekTo(position: Double)
     /** Seeks by [delta] seconds (back when negative) */
     fun seekBy(delta: Double)
+    /** Pauses the media (the built-in player plays it instead) */
+    fun pausePlayback()
 }
 
 data class MediaState(

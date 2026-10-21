@@ -50,6 +50,7 @@ import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.sameDay
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
+import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
@@ -300,13 +301,21 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
         override fun startVoiceSearch() = initiateVoiceSearch()
 
-        override fun togglePlayback() = controller.togglePlayback()
+        override fun togglePlayback() {
+            if (!shell.onMediaCommand(MediaCommand.TOGGLE)) controller.togglePlayback()
+        }
 
-        override fun stopPlayback() = controller.stopPlayback()
+        override fun stopPlayback() {
+            if (!shell.onMediaCommand(MediaCommand.STOP)) controller.stopPlayback()
+        }
 
-        override fun rewind() = controller.rewind()
+        override fun rewind() {
+            if (!shell.onMediaCommand(MediaCommand.REWIND)) controller.rewind()
+        }
 
-        override fun fastForward() = controller.fastForward()
+        override fun fastForward() {
+            if (!shell.onMediaCommand(MediaCommand.FAST_FORWARD)) controller.fastForward()
+        }
     }
 
     override fun onDestroy() {

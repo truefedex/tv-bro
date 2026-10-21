@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.activity.main
 
 import android.view.KeyEvent
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
+import com.phlox.tvwebbrowser.webengine.MediaCommand
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
@@ -60,6 +61,9 @@ interface BrowserShell {
      * @return true if the shell took it
      */
     fun dispatchKeyEvent(event: KeyEvent): Boolean = false
+
+    /** A media key of the remote (play/pause, stop, rewind, fast forward) before the page gets it; @return true if taken */
+    fun onMediaCommand(command: MediaCommand): Boolean = false
 
     /** The page of the current tab scrolled vertically to [scrollY] by [dy] (in pixels, positive downwards) */
     fun onPageScrolled(scrollY: Int, dy: Int) {}

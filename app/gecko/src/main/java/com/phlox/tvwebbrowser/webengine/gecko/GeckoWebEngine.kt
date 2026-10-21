@@ -590,6 +590,11 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         }
     }
 
+    override fun pausePlayback() {
+        if (sendToFrame(MediaCommand.PAUSE.js)) return
+        mediaSessionDelegate.mediaSession?.pause()
+    }
+
     override fun stopPlayback() {
         if (sendToFrame(MediaCommand.STOP.js)) return
         mediaSessionDelegate.mediaSession?.stop()

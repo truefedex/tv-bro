@@ -29,6 +29,8 @@ class VideoModeController(private val host: Host) {
         fun renderOsd(osd: Osd?)
         /** [active] changed: the keys go to the video (true) or to the cursor */
         fun onActiveChanged(active: Boolean) {}
+        /** Up or Down: true if the host takes it (the built-in player opens its menu); else they give the cursor back */
+        fun onUpDown(): Boolean = false
     }
 
     /**
@@ -123,8 +125,10 @@ class VideoModeController(private val host: Host) {
                 swallowedKeys.add(keyCode)
                 if (event.repeatCount == 0) {
                     endSeek(apply = true)
-                    cursorRequested = true
-                    update()
+                    if (!host.onUpDown()) {
+                        cursorRequested = true
+                        update()
+                    }
                 }
             }
             else -> return false

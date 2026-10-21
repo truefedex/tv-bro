@@ -59,6 +59,8 @@ import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
 import com.phlox.tvwebbrowser.webengine.mediaPlayback
+import com.phlox.tvwebbrowser.webengine.MediaCommand
+import com.phlox.tvwebbrowser.activity.main.view.PlayerScreenView
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.pageVideosSupport
 import com.phlox.tvwebbrowser.webengine.PageVideo
@@ -250,11 +252,10 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     }
 
     private val videosCallback = object : VideosPanelView.Callback {
-        override fun openInPlayer(video: PageVideo) {
-            val cookies = controller.currentTab.value?.webEngine?.getCookies(video.url)
-            if (!ExternalVideoPlayer.open(activity, video, cookies)) {
-                NotificationView.show(vb.rlRoot, R.drawable.ic_video, activity.getString(R.string.err_no_video_player))
-            }
+        override fun play(video: PageVideo) = openBuiltInPlayer(video, 0.0)
+
+        override fun openInOtherApp(video: PageVideo) {
+            openInOtherApp(video)
         }
 
         override fun copyLink(video: PageVideo) = host.copyToClipboard(video.url)
@@ -264,6 +265,39 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             host.download(DownloadRequest.forLink(video.url, video.pageUrl ?: "", video.userAgent, cookies))
         }
     }
+
+    /** In a player app chosen in the dialog of Android; @return false if there is none (the user is told) */
+    private fun openInOtherApp(video: PageVideo): Boolean {
+        val cookies = controller.currentTab.value?.webEngine?.getCookies(video.url)
+        val opened = ExternalVideoPlayer.open(activity, video, cookies)
+        if (!opened) NotificationView.show(vb.rlRoot, R.drawable.ic_video, activity.getString(R.string.err_no_video_player))
+        return opened
+    }
+
+    /**
+     * Plays the [video] in the built-in player from [startPosition] seconds: the bar closes, the page leaves
+     * fullscreen and pauses its media (the player plays it instead)
+     */
+    private fun openBuiltInPlayer(video: PageVideo, startPosition: Double) {
+        vb.vVideosPanel.hide()
+        hideMenuOverlay()
+        val engine = controller.currentTab.value?.webEngine
+        engine?.mediaPlayback?.pausePlayback()
+        if (fullscreen) engine?.hideFullscreenView()
+        vb.vPlayerScreen.show(video, startPosition)
+    }
+
+    private val playerCallback = object : PlayerScreenView.Callback {
+        override fun cookies(url: String): String? = controller.currentTab.value?.webEngine?.getCookies(url)
+
+        override fun openInOtherApp(video: PageVideo): Boolean = this@TvShell.openInOtherApp(video)
+
+        override fun onClosed() {
+            controller.currentTab.value?.webEngine?.getView()?.requestFocus()
+        }
+    }
+
+    override fun onMediaCommand(command: MediaCommand): Boolean = vb.vPlayerScreen.mediaCommand(command)
 
     /** The Downloads button of the bar */
     override fun showDownloads() {
@@ -451,7 +485,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         override fun onActiveChanged(active: Boolean) = onCursorModesChanged(cursorModes)
     })
 
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean = videoMode.dispatchKeyEvent(event)
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
+        vb.vPlayerScreen.dispatchPlayerKey(event) || videoMode.dispatchKeyEvent(event)
 
     /** The bookmarks of the TV that phones change, with the backup of before the last change */
     private val bookmarks = LocalBookmarks({ TVBro.container.data }, BookmarksBackup(activity.filesDir),
@@ -602,14 +637,19 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vBookmarksPanel.attach(lifecycleScope, vb.vPopupMenu, bookmarksCallback)
         vb.vDownloadsPanel.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback) { showAllDownloads(it) }
         vb.vVideosPanel.attach(vb.vPopupMenu, videosCallback)
+        vb.vPlayerScreen.attach(lifecycleScope, playerCallback)
         vb.vDownloadsScreen.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback, ::onDownloadsScreenClosed)
         vb.vHistoryScreen.attach(lifecycleScope, vb.vPopupMenu, historyCallback, ::onHistoryScreenClosed)
         vb.vSyncScreen.attach(lifecycleScope, syncScreenCallback)
         vb.vSettingsScreen.attach(lifecycleScope, vb.vPopupMenu, settingsCallback, ::onSettingsClosed)
         activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) = syncServer.start()
+            override fun onPause(owner: LifecycleOwner) = vb.vPlayerScreen.onPause()
             override fun onStop(owner: LifecycleOwner) = syncServer.stop()
-            override fun onDestroy(owner: LifecycleOwner) = syncServer.destroy()
+            override fun onDestroy(owner: LifecycleOwner) {
+                syncServer.destroy()
+                vb.vPlayerScreen.close()
+            }
         })
         lifecycleScope.launch { downloadsModel.events.collect(::onDownloadEvent) }
         vb.rlRoot.viewTreeObserver.addOnGlobalFocusChangeListener(tabOptionsHintFocusListener)
@@ -843,6 +883,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, videoMode.backCallback)
         dispatcher.addCallback(activity, vb.vCursorMenu.backCallback)
         dispatcher.addCallback(activity, cursorModesBackCallback)
+        //the built-in player over everything: Back closes it, whatever the cursor of the page under it does
+        dispatcher.addCallback(activity, vb.vPlayerScreen.backCallback)
     }
 
     private fun showMenuOverlay() {

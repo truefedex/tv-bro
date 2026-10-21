@@ -331,4 +331,9 @@
     <dimen name="video_osd_icon_size">32dp</dimen>
     <dimen name="video_osd_line_height">4dp</dimen>
     <dimen name="video_osd_thumb_radius">7dp</dimen>
+
+    <!-- the built-in player -->
+    <dimen name="player_title_margin_top">48dp</dimen>
+    <dimen name="player_osd_margin_bottom">48dp</dimen>
+    <dimen name="player_error_width">560dp</dimen>
 </resources>

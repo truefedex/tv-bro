@@ -223,6 +223,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         webView?.seekMediaBy(delta)
     }
 
+    override fun pausePlayback() {
+        webView?.mediaCommand(MediaCommand.PAUSE)
+    }
+
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
         return webView?.renderThumbnail(bitmap)
     }

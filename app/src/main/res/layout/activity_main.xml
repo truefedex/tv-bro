@@ -194,6 +194,14 @@
         android:elevation="7dp"
         android:outlineProvider="none" />
 
+    <!-- the built-in player, over the whole window and the bar -->
+    <com.phlox.tvwebbrowser.activity.main.view.PlayerScreenView
+        android:id="@+id/vPlayerScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="7.5dp"
+        android:outlineProvider="none" />
+
     <!-- the menus of the bookmarks and downloads panels, above them -->
     <com.phlox.tvwebbrowser.activity.main.view.PopupMenuView
         android:id="@+id/vPopupMenu"

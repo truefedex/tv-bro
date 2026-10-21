@@ -41,7 +41,7 @@ class MediaFrames<F : Any> {
 
 /** The commands of media_controls.js (see tvBroWatchMedia) */
 enum class MediaCommand(val js: String) {
-    TOGGLE("toggle"), STOP("stop"), REWIND("rewind"), FAST_FORWARD("forward");
+    TOGGLE("toggle"), PAUSE("pause"), STOP("stop"), REWIND("rewind"), FAST_FORWARD("forward");
 
     companion object {
         fun seekTo(position: Double) = "seekTo:$position"

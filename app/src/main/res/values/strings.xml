@@ -271,7 +271,10 @@
     <!-- the videos of the page other apps can play (the button of the TV bar and its panel) -->
     <string name="videos_on_page">Videos on the page</string>
     <string name="no_videos_on_page">No videos found on this page. Videos that the page plays only itself (protected or streamed through its own code) can not be opened in other apps.</string>
-    <string name="open_in_video_player">Open in video player</string>
+    <string name="play_in_tv_bro">Play in TV Bro</string>
+    <!-- the built-in player -->
+    <string name="player_error">This video can not be played</string>
+    <string name="player_back_to_page">Back to the page</string>
     <string name="err_no_video_player">No video player app is installed, for example VLC or MX Player</string>
     <plurals name="videos_on_page_count">
         <item quantity="one">Videos on the page, %d found</item>

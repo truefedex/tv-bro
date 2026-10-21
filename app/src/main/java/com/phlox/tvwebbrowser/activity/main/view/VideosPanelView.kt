@@ -21,16 +21,18 @@ import com.phlox.tvwebbrowser.widgets.datedlist.ListDividerDecoration
 
 /**
  * The TV panel of the videos of the page that other apps can play, under the Videos button of the bar,
- * over the page; the page keeps playing them as before. OK on a row opens the video in a player app;
- * the options of a row (its button, the Menu key and a long OK) also copy its address and download a
- * file. The list follows the page while the panel is open. Back closes the panel; the button gets the
- * focus back.
+ * over the page; the page keeps playing them as before. OK on a row plays the video in the built-in player;
+ * the options of a row (its button, the Menu key and a long OK) also open it in another app, copy its address
+ * and download a file. The list follows the page while the panel is open. Back closes the panel; the button
+ * gets the focus back.
  */
 class VideosPanelView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
 ) : AnchoredOverlayView(context, attrs) {
     interface Callback {
-        fun openInPlayer(video: PageVideo)
+        /** In the built-in player */
+        fun play(video: PageVideo)
+        fun openInOtherApp(video: PageVideo)
         fun copyLink(video: PageVideo)
         /** Only files: streams are no files to download */
         fun download(video: PageVideo)
@@ -86,7 +88,8 @@ class VideosPanelView @JvmOverloads constructor(
 
     private fun showRowMenu(video: PageVideo, anchor: View) {
         val items = mutableListOf(
-            PopupMenuView.Item(R.drawable.ic_open_in_new, context.getString(R.string.open_in_video_player)) { callback.openInPlayer(video) },
+            PopupMenuView.Item(R.drawable.ic_play, context.getString(R.string.play_in_tv_bro)) { callback.play(video) },
+            PopupMenuView.Item(R.drawable.ic_open_in_new, context.getString(R.string.open_in_external_application)) { callback.openInOtherApp(video) },
             PopupMenuView.Item(R.drawable.ic_link, context.getString(R.string.copy_link)) { callback.copyLink(video) })
         if (video.kind == PageVideo.Kind.FILE) {
             items += PopupMenuView.Item(R.drawable.ic_downloads, context.getString(R.string.download)) { callback.download(video) }
@@ -105,7 +108,7 @@ class VideosPanelView @JvmOverloads constructor(
         private var video: PageVideo? = null
 
         init {
-            vb.llMain.setOnClickListener { video?.let { callback.openInPlayer(it) } }
+            vb.llMain.setOnClickListener { video?.let { callback.play(it) } }
             vb.llMain.setOnLongClickListener {
                 video?.let { showRowMenu(it, vb.ibOptions) }
                 true

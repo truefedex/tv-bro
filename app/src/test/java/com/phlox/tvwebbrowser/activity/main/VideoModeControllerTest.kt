@@ -137,6 +137,38 @@ class VideoModeControllerTest {
     }
 
     @Test
+    fun aHostCanTakeUpAndDown() {
+        var upDowns = 0
+        val player = VideoModeController(object : VideoModeController.Host {
+            override fun hideCursor() {}
+            override fun showCursor() { calls += "showCursor" }
+            override fun togglePlayback() {}
+            override fun seekTo(position: Double) {}
+            override fun seekBy(delta: Double) {}
+            override fun renderOsd(osd: VideoModeController.Osd?) {}
+            override fun onUpDown(): Boolean {
+                upDowns++
+                return true
+            }
+        })
+        player.setFullscreen(true)
+        player.setMedia(media())
+        assertTrue(press(player, KeyEvent.KEYCODE_DPAD_DOWN))
+        assertEquals(1, upDowns)
+        //the keys stay with the video, no cursor comes back
+        assertTrue(player.isActive)
+        assertFalse(player.backCallback.isEnabled)
+        assertFalse(calls.contains("showCursor"))
+    }
+
+    private fun press(controller: VideoModeController, keyCode: Int): Boolean {
+        val down = controller.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, keyCode))
+        val up = controller.dispatchKeyEvent(key(KeyEvent.ACTION_UP, keyCode))
+        assertEquals(down, up)
+        return down
+    }
+
+    @Test
     fun theUpOfAKeyThatLeftTheVideoModeDoesNotReachTheCursor() {
         enter()
         assertTrue(video.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN)))
