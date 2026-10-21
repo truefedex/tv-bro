@@ -38,6 +38,8 @@ class NativePlayer(private val context: Context) {
         /** The error that stopped the playback; null while it plays */
         val error: PlaybackException? = null,
         val tracks: Tracks = Tracks.EMPTY,
+        /** Frames per second of the video track playing; null while unknown */
+        val frameRate: Float? = null,
     )
 
     private var player: ExoPlayer? = null
@@ -49,8 +51,12 @@ class NativePlayer(private val context: Context) {
     /** The ExoPlayer of the open video, for the view that shows it; null while no video is open */
     val exoPlayer: Player? get() = player
 
-    /** Plays [video] from [startPosition] seconds; [cookies]: of the engine, for the address of the video */
-    fun open(video: PageVideo, cookies: String?, startPosition: Double = 0.0) {
+    /**
+     * Plays [video] from [startPosition] seconds; [cookies]: of the engine, for the address of the video.
+     * [ownFrameRate]: the app switches the mode of the display itself ([FrameRateSwitcher]), so the player does
+     * not ask the surface for the frame rate (Media3 does it where the switch is seamless)
+     */
+    fun open(video: PageVideo, cookies: String?, startPosition: Double = 0.0, ownFrameRate: Boolean = false) {
         release()
         this.video = video
         val headers = ExternalVideoPlayer.headers(video, cookies)
@@ -62,6 +68,7 @@ class NativePlayer(private val context: Context) {
             .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(context, http)))
             .build()
         this.player = player
+        if (ownFrameRate) player.videoChangeFrameRateStrategy = C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_OFF
         player.addListener(listener)
         val item = MediaItem.Builder().setUri(video.url).setMimeType(mimeType(video.kind)).build()
         player.setMediaItem(item, (startPosition * 1000).toLong().coerceAtLeast(0))
@@ -156,6 +163,7 @@ class NativePlayer(private val context: Context) {
             ended = ended,
             error = player.playerError,
             tracks = player.currentTracks,
+            frameRate = (player as? ExoPlayer)?.videoFormat?.frameRate?.takeIf { it > 0 },
         )
     }
 

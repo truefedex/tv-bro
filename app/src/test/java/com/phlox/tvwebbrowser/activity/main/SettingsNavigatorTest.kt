@@ -48,6 +48,7 @@ class SettingsNavigatorTest {
         override var supportsDarkening = true
         override var darkening = false
         override var keepScreenOn = false
+        override var matchFrameRate = false
         override var joystickNavigation = true
         override var cursorSpeed = 100
         override var cursorAcceleration = 100
@@ -197,6 +198,18 @@ class SettingsNavigatorTest {
         store.supportsDarkening = false
         navigator.show(Category.APPEARANCE)
         assertFalse(Key.DARKENING in keys())
+    }
+
+    @Test
+    fun theFrameRateOfVideosIsMatchedOnTvOnly() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.APPEARANCE)
+        assertFalse(row<Row.Toggle>(Key.MATCH_FRAME_RATE).checked)
+        navigator.toggle(Key.MATCH_FRAME_RATE)
+        assertTrue(store.matchFrameRate)
+        assertTrue(row<Row.Toggle>(Key.MATCH_FRAME_RATE).checked)
+        navigator(tvUi = false).show(Category.APPEARANCE)
+        assertFalse(Key.MATCH_FRAME_RATE in keys())
     }
 
     @Test

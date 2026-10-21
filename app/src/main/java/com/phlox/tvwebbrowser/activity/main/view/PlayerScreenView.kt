@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
+import android.app.Activity
 import android.content.Context
 import android.util.AttributeSet
 import android.view.KeyEvent
@@ -15,6 +16,8 @@ import com.phlox.tvwebbrowser.activity.main.PageVideoRowText
 import com.phlox.tvwebbrowser.activity.main.VideoModeController
 import com.phlox.tvwebbrowser.databinding.ViewPlayerScreenBinding
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.player.FrameRateSwitcher
 import com.phlox.tvwebbrowser.player.NativePlayer
 import com.phlox.tvwebbrowser.player.PlayerTracks
 import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
@@ -47,6 +50,9 @@ class PlayerScreenView @JvmOverloads constructor(
     private lateinit var scope: LifecycleCoroutineScope
     private val player = NativePlayer(context)
     private var stateJob: Job? = null
+    /** The display follows the frame rate of the video while the setting is on (read when a video opens) */
+    private val frameRates = FrameRateSwitcher(context as Activity)
+    private var matchFrameRate = false
 
     val isOpen: Boolean get() = isVisible
 
@@ -97,7 +103,8 @@ class PlayerScreenView @JvmOverloads constructor(
         backCallback.isEnabled = true
         vb.tvTitle.text = ExternalVideoPlayer.title(video)
         vb.tvCaption.text = PageVideoRowText.caption(video)
-        player.open(video, callback.cookies(video.url), startPosition)
+        matchFrameRate = AppContext.provideConfig().matchFrameRate
+        player.open(video, callback.cookies(video.url), startPosition, ownFrameRate = matchFrameRate)
         vb.vPlayer.player = player.exoPlayer
         keys.setFullscreen(true)
         stateJob?.cancel()
@@ -114,16 +121,23 @@ class PlayerScreenView @JvmOverloads constructor(
         keys.setMedia(null)
         vb.vPlayer.player = null
         player.release()
+        frameRates.restore()
         visibility = GONE
         backCallback.isEnabled = false
         callback.onClosed()
     }
 
-    /** The activity is paused: so is the video */
-    fun onPause() = player.pause()
+    /** The activity is paused: so is the video, and the display gets its mode back */
+    fun onPause() {
+        player.pause()
+        frameRates.pause()
+    }
+
+    fun onResume() = frameRates.resume()
 
     private fun render(state: NativePlayer.State?) {
         if (state == null) return
+        if (matchFrameRate) frameRates.request(state.frameRate)
         keys.setMedia(if (state.error == null) state.media else null)
         vb.pbBuffering.isVisible = state.buffering && state.error == null
         val error = state.error

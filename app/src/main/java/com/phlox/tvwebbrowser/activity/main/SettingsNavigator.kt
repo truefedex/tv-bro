@@ -44,7 +44,7 @@ class SettingsNavigator(
     enum class Key {
         SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS,
         SITE_VIEW, AUTOPLAY, AD_BLOCK, FILTER_LIST,
-        INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON,
+        INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_CACHE, ENGINE_DEBUG,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
@@ -93,6 +93,8 @@ class SettingsNavigator(
         val supportsDarkening: Boolean
         var darkening: Boolean
         var keepScreenOn: Boolean
+        /** The built-in player switches the display to the frame rate of the video (TV only) */
+        var matchFrameRate: Boolean
 
         var joystickNavigation: Boolean
         var cursorSpeed: Int
@@ -336,6 +338,7 @@ class SettingsNavigator(
             Key.AD_BLOCK -> store.adBlockEnabled = !store.adBlockEnabled
             Key.DARKENING -> store.darkening = !store.darkening
             Key.KEEP_SCREEN_ON -> store.keepScreenOn = !store.keepScreenOn
+            Key.MATCH_FRAME_RATE -> store.matchFrameRate = !store.matchFrameRate
             Key.JOYSTICK -> store.joystickNavigation = !store.joystickNavigation
             Key.AUTO_UPDATE -> {
                 store.autoCheckUpdates = !store.autoCheckUpdates
@@ -538,9 +541,14 @@ class SettingsNavigator(
             ui += Row.Toggle(Key.DARKENING, string(R.string.settings_darken_pages),
                 string(R.string.settings_darken_pages_summary), store.darkening, restart = true)
         }
-        val screen = listOf(Row.Toggle(Key.KEEP_SCREEN_ON, string(R.string.toggle_keep_screen_on),
+        val screen = arrayListOf<Row>(Row.Toggle(Key.KEEP_SCREEN_ON, string(R.string.toggle_keep_screen_on),
             string(if (tvUi) R.string.settings_keep_screen_on_summary_tv else R.string.settings_keep_screen_on_summary_phone),
             store.keepScreenOn))
+        //the built-in player is on TV only
+        if (tvUi) {
+            screen += Row.Toggle(Key.MATCH_FRAME_RATE, string(R.string.settings_match_frame_rate),
+                string(R.string.settings_match_frame_rate_summary), store.matchFrameRate)
+        }
         return listOf(Section(string(R.string.settings_group_interface), ui),
             Section(string(R.string.settings_group_screen), screen))
     }

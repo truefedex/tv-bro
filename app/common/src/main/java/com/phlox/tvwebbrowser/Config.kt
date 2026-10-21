@@ -18,6 +18,7 @@ class Config(val prefs: SharedPreferences) {
         const val UPDATE_CHANNEL_KEY = "update_channel"
         const val HOME_URL_ALIAS = "about:home"
         const val KEEP_SCREEN_ON_KEY = "keep_screen_on"
+        const val MATCH_FRAME_RATE_KEY = "match_frame_rate"
         /** When true, analog stick / hat axes from generic motion events are not translated to DPAD keys. */
         const val DISABLE_MOTION_AXES_DPAD_NAVIGATION_KEY = "disable_motion_axes_dpad_navigation"
         /** Percent of built-in default (100 = default). Range [CURSOR_PHYSICS_PERCENT_MIN], [CURSOR_PHYSICS_PERCENT_MAX]. */
@@ -91,6 +92,13 @@ class Config(val prefs: SharedPreferences) {
         get() = prefs.getBoolean(KEEP_SCREEN_ON_KEY, false)
         set(value) {
             prefs.edit().putBoolean(KEEP_SCREEN_ON_KEY, value).apply()
+        }
+
+    /** The built-in player switches the display to the frame rate of the video (the screen blanks for a moment) */
+    var matchFrameRate: Boolean
+        get() = prefs.getBoolean(MATCH_FRAME_RATE_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(MATCH_FRAME_RATE_KEY, value).apply()
         }
 
     var disableMotionAxesDpadNavigation: Boolean

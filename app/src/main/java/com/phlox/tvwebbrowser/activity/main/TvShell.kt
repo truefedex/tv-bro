@@ -677,6 +677,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) = syncServer.start()
             override fun onPause(owner: LifecycleOwner) = vb.vPlayerScreen.onPause()
+            override fun onResume(owner: LifecycleOwner) = vb.vPlayerScreen.onResume()
             override fun onStop(owner: LifecycleOwner) = syncServer.stop()
             override fun onDestroy(owner: LifecycleOwner) {
                 syncServer.destroy()
