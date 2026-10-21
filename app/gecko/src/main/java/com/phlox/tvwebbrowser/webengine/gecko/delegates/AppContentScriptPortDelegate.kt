@@ -1,6 +1,8 @@
 package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
+import android.os.SystemClock
 import android.util.Log
+import com.phlox.tvwebbrowser.webengine.MediaReports
 import com.phlox.tvwebbrowser.webengine.PageVideoReports
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import org.json.JSONException
@@ -8,8 +10,8 @@ import org.json.JSONObject
 import org.mozilla.geckoview.WebExtension
 
 /**
- * The port of the content script of one frame (each frame connects its own): it reports the videos
- * of the frame (page_videos.js) as JSON strings.
+ * The port of the content script of one frame (each frame connects its own): it reports the media of the
+ * frame (media_controls.js) and its videos (page_videos.js) as JSON strings, and gets the media commands.
  */
 class AppContentScriptPortDelegate(val port: WebExtension.Port, val webEngine: GeckoWebEngine): WebExtension.PortDelegate {
 
@@ -20,13 +22,17 @@ class AppContentScriptPortDelegate(val port: WebExtension.Port, val webEngine: G
             Log.w(TAG, "Bad message: $message")
             return
         }
-        if (json.has("videos")) webEngine.onFrameVideos(port, PageVideoReports.parse(json))
+        when {
+            json.has("videos") -> webEngine.onFrameVideos(port, PageVideoReports.parse(json))
+            MediaReports.isReport(json) -> webEngine.onFrameMedia(port, MediaReports.parse(json, SystemClock.elapsedRealtime()))
+        }
     }
 
     override fun onDisconnect(port: WebExtension.Port) {
         Log.d(TAG, "onDisconnect")
         //the frame is gone
         webEngine.onFrameVideos(port, emptyList())
+        webEngine.onFrameMedia(port, null)
         if (webEngine.appContentScriptPortDelegate == this) webEngine.appContentScriptPortDelegate = null
     }
 

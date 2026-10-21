@@ -1,6 +1,5 @@
-package com.phlox.tvwebbrowser.webengine.webview
+package com.phlox.tvwebbrowser.webengine
 
-import com.phlox.tvwebbrowser.webengine.MediaState
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -65,13 +64,13 @@ class MediaFramesTest {
 
     @Test
     fun parsesTheReportsOfTheScript() {
-        val state = WebViewMediaControls.parse(JSONObject(
+        val state = MediaReports.parse(JSONObject(
             """{"media":true,"playing":true,"fullscreen":true,"position":12.5,"duration":600,"rate":1.5}"""), 42)
         assertEquals(MediaState(playing = true, position = 12.5, duration = 600.0, fullscreen = true, rate = 1.5, at = 42),
             state)
         //JSON.stringify makes an endless duration null
-        assertNull(WebViewMediaControls.parse(JSONObject(
+        assertNull(MediaReports.parse(JSONObject(
             """{"media":true,"playing":false,"fullscreen":false,"position":3,"duration":null,"rate":0}"""), 0)?.duration)
-        assertNull(WebViewMediaControls.parse(JSONObject("""{"media":false}"""), 0))
+        assertNull(MediaReports.parse(JSONObject("""{"media":false}"""), 0))
     }
 }

@@ -7,8 +7,10 @@ plugins {
 /** The built-in home page of the app; GeckoView shows it as a page of the extension */
 val homePageDir: File = rootProject.file("app/src/main/assets/pages/home")
 val webExtensionDir: File = file("src/main/assets/extensions/generic")
-/** The script that finds the videos of a frame, shared with the WebView engine; the extension runs it too */
-val pageVideosScript: File = rootProject.file("app/src/main/assets/page_videos.js")
+/** The scripts of every frame shared with the WebView engine (the media of the frame, its videos) */
+val sharedScripts: List<File> = listOf("media_controls.js", "page_videos.js").map {
+    rootProject.file("app/src/main/assets/$it")
+}
 
 /**
  * A hash of the files of the extension (with the home page and the shared scripts): GeckoWebEngine installs
@@ -33,8 +35,8 @@ abstract class CopyHomePageToExtension : DefaultTask() {
     @get:InputDirectory
     abstract val homePage: DirectoryProperty
 
-    @get:InputFile
-    abstract val pageVideos: RegularFileProperty
+    @get:InputFiles
+    abstract val scripts: ConfigurableFileCollection
 
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
@@ -44,7 +46,7 @@ abstract class CopyHomePageToExtension : DefaultTask() {
         val root = outputDir.get().asFile
         root.deleteRecursively()
         homePage.get().asFile.copyRecursively(root.resolve("extensions/generic/home"))
-        pageVideos.get().asFile.copyTo(root.resolve("extensions/generic/page_videos.js"))
+        for (script in scripts) script.copyTo(root.resolve("extensions/generic/${script.name}"))
     }
 }
 
@@ -57,7 +59,7 @@ android {
 
     defaultConfig {
         minSdk = 26
-        buildConfigField("int", "WEB_EXTENSION_HASH", contentHash(webExtensionDir, homePageDir, pageVideosScript).toString())
+        buildConfigField("int", "WEB_EXTENSION_HASH", contentHash(webExtensionDir, homePageDir, *sharedScripts.toTypedArray()).toString())
     }
 }
 
@@ -66,7 +68,7 @@ androidComponents {
         val copyTask = tasks.register<CopyHomePageToExtension>(
             "copyHomePageToExtension${variant.name.replaceFirstChar { it.uppercase() }}") {
             homePage.set(homePageDir)
-            pageVideos.set(pageVideosScript)
+            scripts.from(sharedScripts)
         }
         variant.sources.assets?.addGeneratedSourceDirectory(copyTask, CopyHomePageToExtension::outputDir)
     }

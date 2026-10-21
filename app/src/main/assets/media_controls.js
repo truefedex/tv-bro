@@ -1,9 +1,10 @@
-// The media keys of the remote (see WebViewMediaControls). The script runs in every frame: it tells the app
-// the state of the frame's media through the tvBroMedia object of the app, and the app sends each command to
-// the frame that shows a video in fullscreen, else to the one that plays. Without that object (old WebViews)
-// it runs in the main frame only and the app calls tvBroMediaCommand itself.
-(function() {
-    if (window.tvBroMediaCommand) return;
+// The media keys of the remote and the video mode (MediaFrames.kt), for both engines: WebView runs it in every
+// frame (webview_media.js starts it), GeckoView in the content script of its extension (the build copies it
+// there). tvBroWatchMedia(send) reports the state of the media of the frame that the commands go to as a JSON
+// string to send ({media: false} when it has none) and returns the function that runs a command; the app sends
+// each command to the frame that shows a video in fullscreen, else to the one that plays. Without send (old
+// WebViews: the main frame only) it reports nothing and only runs commands.
+function tvBroWatchMedia(send) {
     var lastPlayed = null;
     var lastState = '';
 
@@ -53,7 +54,7 @@
     }
 
     // a command, or a command and its number of seconds: 'seekTo:42.5', 'seekBy:-10'
-    window.tvBroMediaCommand = function(command) {
+    function command(command) {
         var m = target();
         if (!m) return;
         var parts = String(command).split(':');
@@ -84,13 +85,12 @@
                 if (isFinite(seconds)) seek(m, m.currentTime + seconds);
                 break;
         }
-    };
+    }
 
     function post(state) {
-        var channel = window.tvBroMedia;
-        if (!channel || state == lastState) return;
+        if (state == lastState) return;
         lastState = state;
-        channel.postMessage(state);
+        send(state);
     }
 
     // the media the commands go to: whether it plays, where, how long it is (null: endless or unknown)
@@ -121,14 +121,7 @@
         report();
     }
 
-    if (!window.tvBroMedia) return;
-    window.tvBroMedia.onmessage = function(e) {
-        window.tvBroMediaCommand(e.data);
-    };
-    // the videos other apps can play (page_videos.js, run before this script)
-    if (typeof tvBroWatchPageVideos == 'function') {
-        tvBroWatchPageVideos(function(message) { window.tvBroMedia.postMessage(message); });
-    }
+    if (!send) return command;
     // media events do not bubble, but the window gets them while they are captured
     ['play', 'pause', 'ended', 'emptied', 'seeked', 'playing', 'waiting', 'ratechange', 'durationchange',
             'loadedmetadata', 'timeupdate'].forEach(function(type) {
@@ -149,4 +142,5 @@
     window.addEventListener('pageshow', function(e) {
         if (e.persisted) report();
     }, true);
-})();
+    return command;
+}

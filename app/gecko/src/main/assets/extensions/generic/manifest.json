@@ -15,6 +15,7 @@
       ],
       "js": [
         "page_videos.js",
+        "media_controls.js",
         "content.js"
       ],
       "run_at": "document_start",
