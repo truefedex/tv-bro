@@ -322,4 +322,12 @@
     <dimen name="ds_phone_settings_badge">40dp</dimen>
     <dimen name="ds_phone_settings_badge_icon_padding">9dp</dimen>
     <dimen name="ds_phone_settings_block_padding">12dp</dimen>
+
+    <!-- the seek bar of the video mode, over the fullscreen video -->
+    <dimen name="video_osd_margin_x">96dp</dimen>
+    <dimen name="video_osd_margin_bottom">88dp</dimen>
+    <dimen name="video_osd_padding">16dp</dimen>
+    <dimen name="video_osd_icon_size">32dp</dimen>
+    <dimen name="video_osd_line_height">4dp</dimen>
+    <dimen name="video_osd_thumb_radius">7dp</dimen>
 </resources>

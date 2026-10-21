@@ -612,6 +612,13 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
                 val keyCode = if (event.keyCode != 0) event.keyCode else event.scanCode
                 val keyCodeBackNavigation = keyCode == KeyEvent.KEYCODE_ESCAPE ||
                         keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_BACK
+                if (keyCodeBackNavigation && isFullscreen) {
+                    //the back callbacks decide (the video mode may take Back), not the fullscreen view of the engine
+                    return true
+                }
+                if (!keyCodeBackNavigation && shell.dispatchKeyEvent(event)) {
+                    return true
+                }
                 if (!keyCodeBackNavigation &&
                     ShortcutMgr.getInstance(this@MainActivity).handle(event, commands)) {
                     return true

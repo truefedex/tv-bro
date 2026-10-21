@@ -48,6 +48,7 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
+import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.webengine.ErrorPageTemplate
@@ -85,7 +86,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
     private val desktopView = DesktopView(this)
-    private val mediaControls = WebViewMediaControls(this)
+    private val mediaControls = WebViewMediaControls(this) { callback.onMediaStateChanged(it) }
 
     interface Callback {
         fun getActivity(): Activity?
@@ -122,6 +123,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onOpenInExternalAppRequested(url: String)
         fun onVisited(url: String)
         fun onContextMenu(baseUrl: String?, href: String?, x: Int, y: Int)
+        /** The media the keys of the remote control changed (null: the page has none) */
+        fun onMediaStateChanged(state: MediaState?)
     }
 
     init {
@@ -644,6 +647,10 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
     /** A media key of the remote for the media of the page */
     fun mediaCommand(command: MediaCommand) = mediaControls.command(command)
+
+    fun seekMediaTo(position: Double) = mediaControls.seekTo(position)
+
+    fun seekMediaBy(delta: Double) = mediaControls.seekBy(delta)
 
     fun hideCustomView() {
         webChromeClient_.onHideCustomView()

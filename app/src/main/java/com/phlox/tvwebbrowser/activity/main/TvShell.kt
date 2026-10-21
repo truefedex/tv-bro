@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.view.KeyEvent
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.animation.Animation
@@ -57,6 +58,7 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
+import com.phlox.tvwebbrowser.webengine.mediaPlayback
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
@@ -393,7 +395,37 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun onFullscreenChanged(fullscreen: Boolean) {
         this.fullscreen = fullscreen
+        videoMode.setFullscreen(fullscreen)
     }
+
+    /** The remote controls the video of the fullscreen view */
+    private val videoMode = VideoModeController(object : VideoModeController.Host {
+        private val engine get() = controller.currentTab.value?.webEngine
+
+        override fun hideCursor() {
+            engine?.virtualCursor?.getCursorDrawerDelegate()?.hideCursor()
+        }
+
+        override fun showCursor() {
+            engine?.virtualCursor?.getCursorDrawerDelegate()?.animateAppearing()
+        }
+
+        override fun togglePlayback() = controller.togglePlayback()
+
+        override fun seekTo(position: Double) {
+            engine?.mediaPlayback?.seekTo(position)
+        }
+
+        override fun seekBy(delta: Double) {
+            engine?.mediaPlayback?.seekBy(delta)
+        }
+
+        override fun renderOsd(osd: VideoModeController.Osd?) = vb.vVideoOsd.render(osd)
+
+        override fun onActiveChanged(active: Boolean) = onCursorModesChanged(cursorModes)
+    })
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean = videoMode.dispatchKeyEvent(event)
 
     /** The bookmarks of the TV that phones change, with the backup of before the last change */
     private val bookmarks = LocalBookmarks({ TVBro.container.data }, BookmarksBackup(activity.filesDir),
@@ -644,12 +676,20 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     }
 
     private var cursorModesJob: Job? = null
+    private var mediaStateJob: Job? = null
+    private var cursorModes = CursorModes()
 
     /**
      * Follows the cursor modes of the shown tab. The grab and direct navigation modes belong
      * to the page they were turned on for, so they end when another tab is shown.
      */
     private fun onRenderedTabChanged() {
+        mediaStateJob?.cancel()
+        mediaStateJob = null
+        videoMode.setMedia(null)
+        controller.currentTab.value?.webEngine?.mediaPlayback?.let { media ->
+            mediaStateJob = lifecycleScope.launch { media.mediaState.collect { videoMode.setMedia(it) } }
+        }
         cursorModesJob?.cancel()
         cursorModesJob = null
         val cursor = controller.currentTab.value?.webEngine?.virtualCursor
@@ -669,9 +709,11 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     }
 
     private fun onCursorModesChanged(modes: CursorModes) {
-        cursorModesBackCallback.isEnabled = modes.directNavigation || modes.grab
+        cursorModes = modes
+        //in the video mode Back leaves fullscreen, whatever the mode of the hidden cursor
+        cursorModesBackCallback.isEnabled = (modes.directNavigation || modes.grab) && !videoMode.isActive
         //in the direct navigation mode a short B press of a game controller goes to the page
-        host.backEvents.gameControllersLongPressBForBackNavigation = modes.directNavigation
+        host.backEvents.gameControllersLongPressBForBackNavigation = modes.directNavigation && !videoMode.isActive
     }
 
     override fun onUiEvent(event: BrowserUiEvent) {
@@ -757,6 +799,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, vb.vDownloadsPanel.backCallback)
         dispatcher.addCallback(activity, vb.vPopupMenu.backCallback)
         dispatcher.addCallback(activity, fullscreen)
+        dispatcher.addCallback(activity, videoMode.backCallback)
         dispatcher.addCallback(activity, vb.vCursorMenu.backCallback)
         dispatcher.addCallback(activity, cursorModesBackCallback)
     }

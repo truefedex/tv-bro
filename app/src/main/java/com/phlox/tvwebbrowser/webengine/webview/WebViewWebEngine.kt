@@ -31,6 +31,8 @@ import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.CursorModes
+import com.phlox.tvwebbrowser.webengine.MediaPlaybackSupport
+import com.phlox.tvwebbrowser.webengine.MediaState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,7 +43,7 @@ import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 
 
 class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, SiteViewSupport,
-    CursorDrawerDelegate.Callback {
+    MediaPlaybackSupport, CursorDrawerDelegate.Callback {
     private var webView: WebViewEx? = null
     internal var callback: WebEngineCallbacks? = null
     /** The cursor surface around [webView] and the fullscreen view, created and dropped together with [webView] */
@@ -49,6 +51,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     private val _cursorModes = MutableStateFlow(CursorModes())
     override val cursorModes: StateFlow<CursorModes> = _cursorModes.asStateFlow()
     private var fullScreenView: View? = null
+    private val _mediaState = MutableStateFlow<MediaState?>(null)
+    override val mediaState: StateFlow<MediaState?> = _mediaState.asStateFlow()
     private val jsInterface = AndroidJSInterface(this)
 
     override fun getWebEngineName(): String = "WebView"
@@ -206,6 +210,14 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         webView?.mediaCommand(MediaCommand.FAST_FORWARD)
     }
 
+    override fun seekTo(position: Double) {
+        webView?.seekMediaTo(position)
+    }
+
+    override fun seekBy(delta: Double) {
+        webView?.seekMediaBy(delta)
+    }
+
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
         return webView?.renderThumbnail(bitmap)
     }
@@ -226,6 +238,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         if (completely) {
             webView = null
             cursorLayout = null
+            _mediaState.value = null
         }
     }
 
@@ -234,6 +247,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         if (webView != null && !webView.isAttachedToWindow) {
             this.webView = null
             cursorLayout = null
+            _mediaState.value = null
         }
     }
 
@@ -408,6 +422,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
         override fun onVisited(url: String) {
             callback?.onVisited(url)
+        }
+
+        override fun onMediaStateChanged(state: MediaState?) {
+            _mediaState.value = state
         }
 
         override fun onContextMenu(baseUrl:String?, href: String?, x: Int, y: Int) {

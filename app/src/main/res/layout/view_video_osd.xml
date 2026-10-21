@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The seek bar of the video mode, over the fullscreen video (VideoOsdView) -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/ivState"
+        android:layout_width="@dimen/video_osd_icon_size"
+        android:layout_height="@dimen/video_osd_icon_size"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_pause"
+        app:tint="?attr/tbColorDsOnToast" />
+
+    <TextView
+        android:id="@+id/tvDelta"
+        style="@style/Widget.TVBro.Text.Toast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_space_icon_text"
+        android:textColor="?attr/tbColorDsAccent"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="+0:30"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/tvPosition"
+        style="@style/Widget.TVBro.Text.Toast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_space_icon_text"
+        android:fontFeatureSettings="tnum"
+        android:textColor="?attr/tbColorDsOnToast"
+        tools:text="12:34" />
+
+    <com.phlox.tvwebbrowser.activity.main.view.VideoProgressView
+        android:id="@+id/vProgress"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/video_osd_icon_size"
+        android:layout_marginStart="@dimen/ds_space_gutter"
+        android:layout_marginEnd="@dimen/ds_space_gutter"
+        android:layout_weight="1" />
+
+    <TextView
+        android:id="@+id/tvDuration"
+        style="@style/Widget.TVBro.Text.Toast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFeatureSettings="tnum"
+        android:textColor="?attr/tbColorDsOnToast"
+        tools:text="1:45:00" />
+</merge>

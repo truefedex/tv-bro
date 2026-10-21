@@ -203,6 +203,18 @@
         android:clipToPadding="false"
         />
 
+    <!-- the seek bar of the video mode, over the fullscreen video -->
+    <com.phlox.tvwebbrowser.activity.main.view.VideoOsdView
+        android:id="@+id/vVideoOsd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="@dimen/video_osd_margin_x"
+        android:layout_marginEnd="@dimen/video_osd_margin_x"
+        android:layout_marginBottom="@dimen/video_osd_margin_bottom"
+        android:elevation="16dp"
+        android:visibility="gone" />
+
     <ProgressBar
         android:id="@+id/progressBarGeneric"
         style="?android:attr/progressBarStyleLarge"

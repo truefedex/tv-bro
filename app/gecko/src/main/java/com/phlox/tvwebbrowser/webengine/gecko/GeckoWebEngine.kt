@@ -21,6 +21,8 @@ import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.CursorModes
+import com.phlox.tvwebbrowser.webengine.MediaPlaybackSupport
+import com.phlox.tvwebbrowser.webengine.MediaState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,7 +59,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, SiteViewSupport,
-    CursorDrawerDelegate.Callback {
+    MediaPlaybackSupport, CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
         /** Changes with the files of the extension: it is installed again then */
@@ -196,7 +198,9 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     val permissionDelegate = MyPermissionDelegate(this)
     val historyDelegate = MyHistoryDelegate(this)
     val contentBlockingDelegate = MyContentBlockingDelegate(this)
-    val mediaSessionDelegate = MyMediaSessionDelegate()
+    private val _mediaState = MutableStateFlow<MediaState?>(null)
+    override val mediaState: StateFlow<MediaState?> = _mediaState.asStateFlow()
+    val mediaSessionDelegate = MyMediaSessionDelegate { _mediaState.value = it }
     val selectionActionDelegate = MySelectionActionDelegate()
     /** The last scroll position of the page in pixels, to report how far it scrolled; unknown when -1 */
     private var lastScrollY = -1
@@ -526,6 +530,21 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
 
     override fun fastForward() {
         mediaSessionDelegate.mediaSession?.seekForward()
+    }
+
+    override fun seekTo(position: Double) {
+        mediaSessionDelegate.mediaSession?.seekTo(position.coerceAtLeast(0.0), false)
+    }
+
+    /** From the position of the media session; pages that give none get the seek actions of their own */
+    override fun seekBy(delta: Double) {
+        val session = mediaSessionDelegate.mediaSession ?: return
+        val position = mediaSessionDelegate.currentPosition
+        when {
+            position != null && _mediaState.value?.duration != null -> seekTo(position + delta)
+            delta < 0 -> session.seekBackward()
+            else -> session.seekForward()
+        }
     }
 
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {

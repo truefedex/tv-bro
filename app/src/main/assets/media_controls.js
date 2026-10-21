@@ -47,10 +47,18 @@
         return pick(mediaIn(document)) || (lastPlayed && lastPlayed.isConnected ? lastPlayed : null);
     }
 
+    function seek(m, position) {
+        var end = isFinite(m.duration) ? m.duration : Infinity;
+        m.currentTime = Math.max(0, Math.min(end, position));
+    }
+
+    // a command, or a command and its number of seconds: 'seekTo:42.5', 'seekBy:-10'
     window.tvBroMediaCommand = function(command) {
         var m = target();
         if (!m) return;
-        switch (command) {
+        var parts = String(command).split(':');
+        var seconds = parseFloat(parts[1]);
+        switch (parts[0]) {
             case 'toggle':
                 if (m.paused || m.ended) {
                     var p = m.play();
@@ -64,10 +72,16 @@
                 m.currentTime = 0;
                 break;
             case 'rewind':
-                m.currentTime = Math.max(0, m.currentTime - 10);
+                seek(m, m.currentTime - 10);
                 break;
             case 'forward':
-                m.currentTime = Math.min(m.duration || Infinity, m.currentTime + 10);
+                seek(m, m.currentTime + 10);
+                break;
+            case 'seekTo':
+                if (isFinite(seconds)) seek(m, seconds);
+                break;
+            case 'seekBy':
+                if (isFinite(seconds)) seek(m, m.currentTime + seconds);
                 break;
         }
     };
@@ -79,14 +93,32 @@
         channel.postMessage(state);
     }
 
+    // the media the commands go to: whether it plays, where, how long it is (null: endless or unknown)
     function report() {
-        var list = mediaIn(document);
+        var m = target();
+        if (!m) {
+            post(JSON.stringify({media: false}));
+            return;
+        }
         var fs = fullscreenElement();
         post(JSON.stringify({
-            media: list.length > 0 || !!(lastPlayed && lastPlayed.isConnected),
-            playing: list.some(isPlaying) || !!(lastPlayed && lastPlayed.isConnected && isPlaying(lastPlayed)),
-            fullscreen: !!(fs && mediaIn(fs).length)
+            media: true,
+            playing: isPlaying(m),
+            fullscreen: !!(fs && (fs == m || fs.contains(m))),
+            position: m.currentTime,
+            duration: isFinite(m.duration) ? m.duration : null,
+            // the position stands still while the media waits for data
+            rate: isPlaying(m) && m.readyState > 2 ? m.playbackRate : 0
         }));
+    }
+
+    // the app moves the position on by itself while the media plays: this corrects it now and then
+    var lastTimeReport = 0;
+    function reportTime() {
+        var now = Date.now();
+        if (now - lastTimeReport < 1000) return;
+        lastTimeReport = now;
+        report();
     }
 
     if (!window.tvBroMedia) return;
@@ -94,11 +126,12 @@
         window.tvBroMediaCommand(e.data);
     };
     // media events do not bubble, but the window gets them while they are captured
-    ['play', 'pause', 'ended', 'emptied'].forEach(function(type) {
+    ['play', 'pause', 'ended', 'emptied', 'seeked', 'playing', 'waiting', 'ratechange', 'durationchange',
+            'loadedmetadata', 'timeupdate'].forEach(function(type) {
         window.addEventListener(type, function(e) {
             if (!(e.target instanceof HTMLMediaElement)) return;
             if (type == 'play') lastPlayed = e.target;
-            report();
+            if (type == 'timeupdate') reportTime(); else report();
         }, true);
     });
     ['fullscreenchange', 'webkitfullscreenchange'].forEach(function(type) {

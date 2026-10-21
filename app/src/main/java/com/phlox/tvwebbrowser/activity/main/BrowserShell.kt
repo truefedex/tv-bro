@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
@@ -52,6 +53,12 @@ interface BrowserShell {
      * are already hidden or shown
      */
     fun onFullscreenChanged(fullscreen: Boolean) {}
+
+    /**
+     * A key event before the views and the shortcuts get it (Back goes to the back callbacks instead)
+     * @return true if the shell took it
+     */
+    fun dispatchKeyEvent(event: KeyEvent): Boolean = false
 
     /** The page of the current tab scrolled vertically to [scrollY] by [dy] (in pixels, positive downwards) */
     fun onPageScrolled(scrollY: Int, dy: Int) {}
