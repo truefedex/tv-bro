@@ -336,4 +336,5 @@
     <dimen name="player_title_margin_top">48dp</dimen>
     <dimen name="player_osd_margin_bottom">48dp</dimen>
     <dimen name="player_error_width">560dp</dimen>
+    <dimen name="player_menu_width">360dp</dimen>
 </resources>

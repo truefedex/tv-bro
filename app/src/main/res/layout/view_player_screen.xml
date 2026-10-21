@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 The built-in player over the whole window (PlayerScreenView): the video (a SurfaceView of the PlayerView, with the
-subtitles), the title and the seek bar while they show, the buffering and the error with its buttons.
+subtitles), the title and the seek bar while they show, the buffering, the error with its buttons and the menu of
+the tracks (under the anchor at the top end).
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -120,4 +121,18 @@ subtitles), the title and the seek bar while they show, the buffering and the er
           android:text="@string/player_back_to_page" />
     </LinearLayout>
   </LinearLayout>
+
+  <!-- the menu of the tracks opens under it, its end at the end of the anchor -->
+  <View
+      android:id="@+id/vMenuAnchor"
+      android:layout_width="1dp"
+      android:layout_height="0dp"
+      android:layout_gravity="top|end"
+      android:layout_marginTop="@dimen/player_title_margin_top"
+      android:layout_marginEnd="@dimen/video_osd_margin_x" />
+
+  <com.phlox.tvwebbrowser.activity.main.view.PopupMenuView
+      android:id="@+id/vMenu"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent" />
 </merge>

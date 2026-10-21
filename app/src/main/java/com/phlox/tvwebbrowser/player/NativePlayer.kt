@@ -7,6 +7,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -96,6 +98,30 @@ class NativePlayer(private val context: Context) {
     fun seekBy(delta: Double) {
         val player = player ?: return
         seekTo(player.currentPosition / 1000.0 + delta)
+    }
+
+    /** The selection of the tracks the user made (none: the choices of the player) */
+    val trackSelection: TrackSelectionParameters? get() = player?.trackSelectionParameters
+
+    val speed: Float get() = player?.playbackParameters?.speed ?: 1f
+
+    /** A choice of the menu ([PlayerTracks]) for the tracks of [type] (C.TRACK_TYPE_VIDEO, AUDIO or TEXT) */
+    fun choose(type: Int, choice: PlayerTracks.Choice) {
+        val player = player ?: return
+        val parameters = player.trackSelectionParameters.buildUpon()
+        when (choice) {
+            PlayerTracks.Choice.Auto -> parameters.clearOverridesOfType(type)
+            PlayerTracks.Choice.Off -> parameters.setTrackTypeDisabled(type, true)
+            is PlayerTracks.Choice.Track -> parameters.setTrackTypeDisabled(type, false)
+                .setOverrideForType(TrackSelectionOverride(choice.group, choice.index))
+            is PlayerTracks.Choice.Group -> parameters.setTrackTypeDisabled(type, false)
+                .setOverrideForType(TrackSelectionOverride(choice.group, (0 until choice.group.length).toList()))
+        }
+        player.trackSelectionParameters = parameters.build()
+    }
+
+    fun setSpeed(speed: Float) {
+        player?.setPlaybackSpeed(speed)
     }
 
     /** Stops the playback and frees the decoders; [state] becomes null */

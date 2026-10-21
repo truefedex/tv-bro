@@ -8,12 +8,15 @@ import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.datasource.HttpDataSource
 import com.phlox.tvwebbrowser.activity.main.PageVideoRowText
 import com.phlox.tvwebbrowser.activity.main.VideoModeController
 import com.phlox.tvwebbrowser.databinding.ViewPlayerScreenBinding
+import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.player.NativePlayer
+import com.phlox.tvwebbrowser.player.PlayerTracks
 import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.PageVideo
@@ -23,8 +26,10 @@ import kotlinx.coroutines.launch
 /**
  * The built-in player on TV, over the whole window ([NativePlayer]). The keys are those of the video mode
  * ([VideoModeController]: Left and Right seek, faster while held, OK plays and pauses, the seek bar shows on
- * seeks, on play and pause and while paused, with the title at the top). Back closes it; [onClosed] gives the
- * focus back to the page. When the playback fails, the error offers the video to another app and the way back.
+ * seeks, on play and pause and while paused, with the title at the top); Up, Down and the Menu key open the menu
+ * of the quality, the audio track, the subtitles and the speed ([PlayerTracks]), each with its options. Back closes
+ * the menu, then the player; [onClosed] gives the focus back to the page. When the playback fails, the error
+ * offers the video to another app and the way back.
  */
 class PlayerScreenView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -46,7 +51,9 @@ class PlayerScreenView @JvmOverloads constructor(
     val isOpen: Boolean get() = isVisible
 
     val backCallback = object : OnBackPressedCallback(false) {
-        override fun handleOnBackPressed() = close()
+        override fun handleOnBackPressed() {
+            if (vb.vMenu.isOpen) vb.vMenu.hide() else close()
+        }
     }
 
     private val keys = VideoModeController(object : VideoModeController.Host {
@@ -61,8 +68,10 @@ class PlayerScreenView @JvmOverloads constructor(
             vb.llTitle.isVisible = osd != null
         }
 
-        //the menu of the tracks comes here
-        override fun onUpDown(): Boolean = true
+        override fun onUpDown(): Boolean {
+            showMenu()
+            return true
+        }
     })
 
     init {
@@ -98,6 +107,7 @@ class PlayerScreenView @JvmOverloads constructor(
 
     fun close() {
         if (!isOpen) return
+        vb.vMenu.hide()
         stateJob?.cancel()
         stateJob = null
         keys.setFullscreen(false)
@@ -153,9 +163,52 @@ class PlayerScreenView @JvmOverloads constructor(
      */
     fun dispatchPlayerKey(event: KeyEvent): Boolean {
         if (!isOpen) return false
-        if (vb.llError.isVisible) return false
+        //the menu and the error take the navigation keys for their rows and buttons
+        if (vb.vMenu.isOpen || vb.llError.isVisible) return false
+        if (event.keyCode == KeyEvent.KEYCODE_MENU) {
+            if (event.action == KeyEvent.ACTION_UP) showMenu()
+            return true
+        }
         if (keys.dispatchKeyEvent(event)) return true
         return event.keyCode in SWALLOWED_KEYS
+    }
+
+    private val texts = PlayerTracks.Texts(context.getString(R.string.player_auto), context.getString(R.string.player_off)) {
+        context.getString(R.string.player_track, it)
+    }
+
+    /** The categories the video has a choice in; each opens the menu of its options */
+    private fun showMenu() {
+        val state = player.state.value ?: return
+        val parameters = player.trackSelection ?: return
+        val rows = ArrayList<PopupMenuView.Item>()
+        fun category(icon: Int, name: Int, type: Int, options: List<PlayerTracks.Option>) {
+            if (options.isEmpty()) return
+            val current = options.firstOrNull { it.selected }?.label ?: return
+            rows += PopupMenuView.Item(icon, context.getString(R.string.player_menu_row, context.getString(name), current)) {
+                showOptions(options.map { option ->
+                    PopupMenuView.Item(R.drawable.ic_check, option.label, checked = option.selected) { player.choose(type, option.choice) }
+                }, options.indexOfFirst { it.selected })
+            }
+        }
+        category(R.drawable.ic_quality, R.string.player_quality, C.TRACK_TYPE_VIDEO,
+            PlayerTracks.qualities(state.tracks, parameters, texts))
+        category(R.drawable.ic_audio_track, R.string.player_audio, C.TRACK_TYPE_AUDIO, PlayerTracks.audioTracks(state.tracks, texts))
+        category(R.drawable.ic_subtitles, R.string.player_subtitles, C.TRACK_TYPE_TEXT,
+            PlayerTracks.subtitles(state.tracks, parameters, texts))
+        val speed = player.speed
+        rows += PopupMenuView.Item(R.drawable.ic_speed,
+            context.getString(R.string.player_menu_row, context.getString(R.string.player_speed), PlayerTracks.speedLabel(speed))) {
+            showOptions(PlayerTracks.SPEEDS.map { option ->
+                PopupMenuView.Item(R.drawable.ic_check, PlayerTracks.speedLabel(option), checked = option == speed) { player.setSpeed(option) }
+            }, PlayerTracks.SPEEDS.indexOf(speed).coerceAtLeast(0))
+        }
+        showOptions(rows, 0)
+    }
+
+    private fun showOptions(items: List<PopupMenuView.Item>, focusIndex: Int) {
+        vb.vMenu.show(vb.vMenuAnchor, items, alignEnd = true, width = R.dimen.player_menu_width,
+            focusIndex = focusIndex.coerceAtLeast(0))
     }
 
     companion object {
