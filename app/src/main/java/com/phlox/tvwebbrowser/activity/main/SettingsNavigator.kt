@@ -43,7 +43,7 @@ class SettingsNavigator(
     /** The settings, and the rows that act */
     enum class Key {
         SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS,
-        SITE_VIEW, AUTOPLAY, AD_BLOCK, FILTER_LIST,
+        SITE_VIEW, AUTOPLAY, AD_BLOCK, FILTER_LIST, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_CACHE, ENGINE_DEBUG,
@@ -86,6 +86,8 @@ class SettingsNavigator(
         val filterListLastUpdate: Long
         val filterListLoading: Flow<Boolean>
         fun updateFilterList()
+        /** A hint about a found video that starts to play in the page (TV only) */
+        var pageVideoHint: Boolean
 
         var interfaceMode: Config.InterfaceMode
         var theme: Config.Theme
@@ -336,6 +338,7 @@ class SettingsNavigator(
         when (key) {
             Key.AUTOPLAY -> store.allowAutoplayMedia = !store.allowAutoplayMedia
             Key.AD_BLOCK -> store.adBlockEnabled = !store.adBlockEnabled
+            Key.VIDEO_HINT -> store.pageVideoHint = !store.pageVideoHint
             Key.DARKENING -> store.darkening = !store.darkening
             Key.KEEP_SCREEN_ON -> store.keepScreenOn = !store.keepScreenOn
             Key.MATCH_FRAME_RATE -> store.matchFrameRate = !store.matchFrameRate
@@ -526,8 +529,14 @@ class SettingsNavigator(
             adBlock += Row.Field(Key.FILTER_LIST, string(R.string.settings_filter_list), updated, store.filterListUrl,
                 Config.DEFAULT_ADBLOCK_LIST_URL, action = string(R.string.update), busy = filterListLoading)
         }
-        return listOf(Section(string(R.string.settings_group_site_view), siteView),
+        val sections = arrayListOf(Section(string(R.string.settings_group_site_view), siteView),
             Section(string(R.string.settings_group_ad_blocking), adBlock))
+        //the built-in player and its hint are on TV only
+        if (tvUi) {
+            sections += Section(string(R.string.settings_group_videos), listOf(Row.Toggle(Key.VIDEO_HINT,
+                string(R.string.settings_video_hint), string(R.string.settings_video_hint_summary), store.pageVideoHint)))
+        }
+        return sections
     }
 
     private fun appearanceSections(): List<Section> {

@@ -516,6 +516,9 @@
     <string name="settings_site_view_summary_phone">For sites without their own choice. Auto: mobile on a phone</string>
     <string name="settings_autoplay">Autoplay media</string>
     <string name="settings_autoplay_summary">Videos and sounds start without a click</string>
+    <string name="settings_group_videos">Videos</string>
+    <string name="settings_video_hint">Hint about videos found on the page</string>
+    <string name="settings_video_hint_summary">When such a video starts to play on the page, a short note tells that the built-in player can play it</string>
     <string name="settings_group_ad_blocking">Ad blocking</string>
     <string name="settings_block_ads">Block ads</string>
     <string name="settings_block_ads_summary_tv">Each site can turn it off in its site panel</string>

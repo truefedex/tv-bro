@@ -104,6 +104,7 @@ class AppSettingsStore(
         set(value) {
             config.matchFrameRate = value
         }
+    override var pageVideoHint: Boolean by config::pageVideoHint
 
     override var keepScreenOn: Boolean
         get() = settingsModel.keepScreenOn.value

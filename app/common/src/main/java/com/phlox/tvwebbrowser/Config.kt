@@ -19,6 +19,8 @@ class Config(val prefs: SharedPreferences) {
         const val HOME_URL_ALIAS = "about:home"
         const val KEEP_SCREEN_ON_KEY = "keep_screen_on"
         const val MATCH_FRAME_RATE_KEY = "match_frame_rate"
+        const val PAGE_VIDEO_HINT_KEY = "page_video_hint"
+        const val BUILT_IN_PLAYER_OPENS_KEY = "built_in_player_opens"
         /** When true, analog stick / hat axes from generic motion events are not translated to DPAD keys. */
         const val DISABLE_MOTION_AXES_DPAD_NAVIGATION_KEY = "disable_motion_axes_dpad_navigation"
         /** Percent of built-in default (100 = default). Range [CURSOR_PHYSICS_PERCENT_MIN], [CURSOR_PHYSICS_PERCENT_MAX]. */
@@ -99,6 +101,20 @@ class Config(val prefs: SharedPreferences) {
         get() = prefs.getBoolean(MATCH_FRAME_RATE_KEY, false)
         set(value) {
             prefs.edit().putBoolean(MATCH_FRAME_RATE_KEY, value).apply()
+        }
+
+    /** The TV tells about a found video of the page that starts to play in the page (the hint plate) */
+    var pageVideoHint: Boolean
+        get() = prefs.getBoolean(PAGE_VIDEO_HINT_KEY, true)
+        set(value) {
+            prefs.edit().putBoolean(PAGE_VIDEO_HINT_KEY, value).apply()
+        }
+
+    /** How many times the user opened a video in the built-in player (the hint plate stops after a few) */
+    var builtInPlayerOpens: Int
+        get() = prefs.getInt(BUILT_IN_PLAYER_OPENS_KEY, 0)
+        set(value) {
+            prefs.edit().putInt(BUILT_IN_PLAYER_OPENS_KEY, value).apply()
         }
 
     var disableMotionAxesDpadNavigation: Boolean
