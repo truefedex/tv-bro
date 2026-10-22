@@ -70,6 +70,27 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
         /** Open the downloads (the notification of the download service) */
         const val KEY_SHOW_DOWNLOADS = "show_downloads"
+
+        /**
+         * The intent that starts the browser activity of the other process (incognito or not) and makes it
+         * kill this one. [source] (an intent that came to the activity of the wrong process: a link to open,
+         * a sync link) goes there whole, so it is handled as if it had come there.
+         */
+        internal fun switchProcessIntent(context: Context, incognitoMode: Boolean, source: Intent?, pidToKill: Int): Intent {
+            val activityClass = if (incognitoMode) IncognitoModeMainActivity::class.java
+            else MainActivity::class.java
+            val intent = Intent(context, activityClass)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            if (source != null) {
+                intent.action = source.action
+                //setData and setType clear each other
+                intent.setDataAndType(source.data, source.type)
+                source.extras?.let { intent.putExtras(it) }
+            }
+            //after the extras: an intent restored from the history may hold the pid of a process gone
+            intent.putExtra(KEY_PROCESS_ID_TO_KILL, pidToKill)
+            return intent
+        }
     }
 
     private lateinit var uiMode: UiMode
@@ -100,7 +121,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         val incognitoMode = config.incognitoMode
         Log.d(TAG, "onCreate incognitoMode: $incognitoMode")
         if (incognitoMode xor (this is IncognitoModeMainActivity)) {
-            switchProcess(incognitoMode, intent?.extras)
+            switchProcess(incognitoMode, intent)
             finish()
             return
         }
@@ -565,17 +586,11 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         }
     }
 
-    private fun switchProcess(incognitoMode: Boolean, intentDataToCopy: Bundle? = null) {
+    /** [intentToForward]: the intent of this activity, when it came to the wrong process; null on a toggle */
+    private fun switchProcess(incognitoMode: Boolean, intentToForward: Intent? = null) {
         Log.d(TAG, "switchProcess incognitoMode: $incognitoMode")
-        val activityClass = if (incognitoMode) IncognitoModeMainActivity::class.java
-        else MainActivity::class.java
         val app = applicationContext
-        val intent = Intent(app, activityClass)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        intent.putExtra(KEY_PROCESS_ID_TO_KILL, Process.myPid())
-        intentDataToCopy?.let {
-            intent.putExtras(it)
-        }
+        val intent = switchProcessIntent(app, incognitoMode, intentToForward, Process.myPid())
         TVBro.container.appScope.launch {
             //tabs state saved on activity pause should not be lost
             TVBro.container.tabWrites.awaitPending()
