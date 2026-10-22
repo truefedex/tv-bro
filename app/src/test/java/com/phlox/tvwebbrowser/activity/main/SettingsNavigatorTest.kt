@@ -43,11 +43,13 @@ class SettingsNavigatorTest {
         override val filterListLoading = MutableStateFlow(false)
         var filterListUpdates = 0
         override fun updateFilterList() { filterListUpdates++ }
+        override var pageVideoHint = true
         override var interfaceMode = Config.InterfaceMode.AUTO
         override var theme = Config.Theme.SYSTEM
         override var supportsDarkening = true
         override var darkening = false
         override var keepScreenOn = false
+        override var matchFrameRate = false
         override var joystickNavigation = true
         override var cursorSpeed = 100
         override var cursorAcceleration = 100
@@ -197,6 +199,30 @@ class SettingsNavigatorTest {
         store.supportsDarkening = false
         navigator.show(Category.APPEARANCE)
         assertFalse(Key.DARKENING in keys())
+    }
+
+    @Test
+    fun theFrameRateOfVideosIsMatchedOnTvOnly() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.APPEARANCE)
+        assertFalse(row<Row.Toggle>(Key.MATCH_FRAME_RATE).checked)
+        navigator.toggle(Key.MATCH_FRAME_RATE)
+        assertTrue(store.matchFrameRate)
+        assertTrue(row<Row.Toggle>(Key.MATCH_FRAME_RATE).checked)
+        navigator(tvUi = false).show(Category.APPEARANCE)
+        assertFalse(Key.MATCH_FRAME_RATE in keys())
+    }
+
+    @Test
+    fun theHintAboutVideosIsOnTvOnlyAndOnByDefault() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.SITES)
+        assertTrue(row<Row.Toggle>(Key.VIDEO_HINT).checked)
+        navigator.toggle(Key.VIDEO_HINT)
+        assertFalse(store.pageVideoHint)
+        assertFalse(row<Row.Toggle>(Key.VIDEO_HINT).checked)
+        navigator(tvUi = false).show(Category.SITES)
+        assertFalse(Key.VIDEO_HINT in keys())
     }
 
     @Test

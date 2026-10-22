@@ -1,15 +1,13 @@
-// This is a leftover from the removal of the abandoned "text selection" feature.
-// I'll leave it here for now as a framework for future extension-based features.
-
-console.log("TV Bro generic content extension loaded");
-
-window.addEventListener('load', function () {
-    //document.body.style.userSelect = "none";
-    console.log("window.load executed");
-});
+// The content script of every frame. It reports to AppContentScriptPortDelegate the state of the media of
+// the frame (media_controls.js) and runs the commands of the app, and reports the videos of the frame that
+// other apps can play (page_videos.js); the build copies both here, they run before this script.
 
 const communicatePort = browser.runtime.connectNative("tvbro_content");
+const send = message => communicatePort.postMessage(message);
+const mediaCommand = tvBroWatchMedia(send);
 
 communicatePort.onMessage.addListener(message => {
-    console.log("Received message from native app:", message);
+    if (message && message.command) mediaCommand(message.command);
 });
+
+tvBroWatchPageVideos(send);

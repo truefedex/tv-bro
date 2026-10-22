@@ -11,6 +11,8 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.view.KeyEvent
+import android.os.SystemClock
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.animation.Animation
@@ -22,6 +24,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.AppContext
@@ -57,6 +60,16 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
+import com.phlox.tvwebbrowser.webengine.mediaPlayback
+import com.phlox.tvwebbrowser.webengine.MediaState
+import com.phlox.tvwebbrowser.webengine.PageVideosSupport
+import com.phlox.tvwebbrowser.webengine.MediaCommand
+import com.phlox.tvwebbrowser.activity.main.view.PlayerScreenView
+import com.phlox.tvwebbrowser.webengine.DownloadRequest
+import com.phlox.tvwebbrowser.webengine.pageVideosSupport
+import com.phlox.tvwebbrowser.webengine.PageVideo
+import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
+import com.phlox.tvwebbrowser.activity.main.view.VideosPanelView
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
@@ -237,6 +250,64 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
     }
 
+    /** The Videos button of the bar */
+    override fun showPageVideos() {
+        vb.vVideosPanel.show(vb.vActionBar.videosButton, vb.vActionBar.functionsGroup)
+    }
+
+    private val videosCallback = object : VideosPanelView.Callback {
+        //the video the page plays goes on from where it is
+        override fun play(video: PageVideo) {
+            if (video == mediaVideo) openMediaVideoInPlayer() else openBuiltInPlayer(video, 0.0)
+        }
+
+        override fun openInOtherApp(video: PageVideo) {
+            this@TvShell.openInOtherApp(video)
+        }
+
+        override fun copyLink(video: PageVideo) = host.copyToClipboard(video.url)
+
+        override fun download(video: PageVideo) {
+            val cookies = controller.currentTab.value?.webEngine?.getCookies(video.url)
+            host.download(DownloadRequest.forLink(video.url, video.pageUrl ?: "", video.userAgent, cookies))
+        }
+    }
+
+    /** In a player app chosen in the dialog of Android; @return false if there is none (the user is told) */
+    private fun openInOtherApp(video: PageVideo): Boolean {
+        val cookies = controller.currentTab.value?.webEngine?.getCookies(video.url)
+        val opened = ExternalVideoPlayer.open(activity, video, cookies)
+        if (!opened) NotificationView.show(vb.rlRoot, R.drawable.ic_video, activity.getString(R.string.err_no_video_player))
+        return opened
+    }
+
+    /**
+     * Plays the [video] in the built-in player from [startPosition] seconds: the bar closes, the page leaves
+     * fullscreen and pauses its media (the player plays it instead)
+     */
+    private fun openBuiltInPlayer(video: PageVideo, startPosition: Double) {
+        //the hint about found videos stops once the user knows the player
+        AppContext.provideConfig().builtInPlayerOpens++
+        vb.vVideosPanel.hide()
+        hideMenuOverlay()
+        val engine = controller.currentTab.value?.webEngine
+        engine?.mediaPlayback?.pausePlayback()
+        if (fullscreen) engine?.hideFullscreenView()
+        vb.vPlayerScreen.show(video, startPosition)
+    }
+
+    private val playerCallback = object : PlayerScreenView.Callback {
+        override fun cookies(url: String): String? = controller.currentTab.value?.webEngine?.getCookies(url)
+
+        override fun openInOtherApp(video: PageVideo): Boolean = this@TvShell.openInOtherApp(video)
+
+        override fun onClosed() {
+            controller.currentTab.value?.webEngine?.getView()?.requestFocus()
+        }
+    }
+
+    override fun onMediaCommand(command: MediaCommand): Boolean = vb.vPlayerScreen.mediaCommand(command)
+
     /** The Downloads button of the bar */
     override fun showDownloads() {
         vb.vDownloadsPanel.show(vb.vActionBar.downloadsButton, vb.vActionBar.functionsGroup)
@@ -393,6 +464,120 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun onFullscreenChanged(fullscreen: Boolean) {
         this.fullscreen = fullscreen
+        videoMode.setFullscreen(fullscreen)
+        updatePageCovered()
+    }
+
+    /** The remote controls the video of the fullscreen view */
+    private val videoMode = VideoModeController(object : VideoModeController.Host {
+        private val engine get() = controller.currentTab.value?.webEngine
+
+        override fun hideCursor() {
+            engine?.virtualCursor?.getCursorDrawerDelegate()?.hideCursor()
+        }
+
+        override fun showCursor() {
+            engine?.virtualCursor?.getCursorDrawerDelegate()?.animateAppearing()
+        }
+
+        override fun togglePlayback() = controller.togglePlayback()
+
+        override fun seekTo(position: Double) {
+            engine?.mediaPlayback?.seekTo(position)
+        }
+
+        override fun seekBy(delta: Double) {
+            engine?.mediaPlayback?.seekBy(delta)
+        }
+
+        override fun renderOsd(osd: VideoModeController.Osd?) = vb.vVideoOsd.render(osd)
+
+        override fun onActiveChanged(active: Boolean) = onCursorModesChanged(cursorModes)
+
+        /** Down takes the video of the page to the built-in player, where its stream is known */
+        override fun onUpDown(down: Boolean): Boolean {
+            if (!down) return false
+            return openMediaVideoInPlayer()
+        }
+    })
+
+    /** The video of the page the media keys control plays, when its stream is known ([PageVideosSupport.mediaVideo]) */
+    private var mediaVideo: PageVideo? = null
+
+    private fun onMediaVideoChanged(video: PageVideo?) {
+        mediaVideo = video
+        videoMode.hint = if (video != null) activity.getString(R.string.built_in_player) else null
+        pageVideoHint.setMediaVideo(video)
+        updatePlayingVideo()
+    }
+
+    /** The media of the shown page the keys control */
+    private var media: MediaState? = null
+
+    private fun onMediaStateChanged(media: MediaState?) {
+        this.media = media
+        videoMode.setMedia(media)
+        pageVideoHint.setMedia(media)
+        updatePlayingVideo()
+    }
+
+    /** The row of the Videos panel of the video that plays in the page says so */
+    private fun updatePlayingVideo() {
+        vb.vVideosPanel.setPlaying(mediaVideo?.takeIf { media?.playing == true }?.url)
+    }
+
+    /** The hint plate about a found video that plays in the page */
+    private val pageVideoHint = PageVideoHintController(object : PageVideoHintController.Host {
+        override val hintsAllowed: Boolean
+            get() {
+                val config = AppContext.provideConfig()
+                return config.pageVideoHint && config.builtInPlayerOpens < PageVideoHintController.MAX_PLAYER_OPENS
+            }
+
+        override fun showHint() = vb.vPageVideoHint.appear()
+
+        override fun hideHint(fade: Boolean) = vb.vPageVideoHint.disappear(fade)
+
+        /** Back on the plate: the bar opens with the Videos panel, the focus on the video (Back, OK plays it) */
+        override fun openVideos(video: PageVideo) {
+            showMenuOverlay {
+                vb.vVideosPanel.show(vb.vActionBar.videosButton, vb.vActionBar.functionsGroup, focusUrl = video.url)
+            }
+        }
+    })
+
+    /** Something covers the page (the hint waits): the bar, a panel, menu or screen, the player, fullscreen */
+    private fun isPageCovered(): Boolean = fullscreen || vb.rlActionBar.isVisible ||
+            !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) ||
+            listOf(vb.vSitePanel, vb.vTabMenu, vb.vPopupMenu, vb.vBookmarksPanel, vb.vDownloadsPanel, vb.vVideosPanel,
+                vb.vDownloadsScreen, vb.vHistoryScreen, vb.vSyncScreen, vb.vSettingsScreen, vb.vPlayerScreen,
+                vb.vCursorMenu, vb.progressBarGeneric).any { it.isVisible }
+
+    private fun updatePageCovered() = pageVideoHint.setBlocked(isPageCovered())
+
+    /** Overlays come and go with a redraw */
+    private val pageCoveredDrawListener = ViewTreeObserver.OnPreDrawListener {
+        updatePageCovered()
+        true
+    }
+
+    /** The video of the fullscreen view goes on in the built-in player, from where it is; false if its stream is not known */
+    private fun openMediaVideoInPlayer(): Boolean {
+        val video = mediaVideo ?: return false
+        val engine = controller.currentTab.value?.webEngine
+        val position = engine?.mediaPlayback?.mediaState?.value?.positionAt(SystemClock.elapsedRealtime()) ?: 0.0
+        openBuiltInPlayer(video, position)
+        return true
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (vb.vPlayerScreen.dispatchPlayerKey(event)) return true
+        //the Menu key (where it reaches the app) does what Down does in the video mode
+        if (event.keyCode == KeyEvent.KEYCODE_MENU && videoMode.isActive && mediaVideo != null) {
+            if (event.action == KeyEvent.ACTION_UP) openMediaVideoInPlayer()
+            return true
+        }
+        return videoMode.dispatchKeyEvent(event)
     }
 
     /** The bookmarks of the TV that phones change, with the backup of before the last change */
@@ -543,18 +728,32 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vTabMenu.callback = tabMenuCallback
         vb.vBookmarksPanel.attach(lifecycleScope, vb.vPopupMenu, bookmarksCallback)
         vb.vDownloadsPanel.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback) { showAllDownloads(it) }
+        vb.vVideosPanel.attach(vb.vPopupMenu, videosCallback)
+        vb.vPlayerScreen.attach(lifecycleScope, playerCallback)
         vb.vDownloadsScreen.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback, ::onDownloadsScreenClosed)
         vb.vHistoryScreen.attach(lifecycleScope, vb.vPopupMenu, historyCallback, ::onHistoryScreenClosed)
         vb.vSyncScreen.attach(lifecycleScope, syncScreenCallback)
         vb.vSettingsScreen.attach(lifecycleScope, vb.vPopupMenu, settingsCallback, ::onSettingsClosed)
         activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) = syncServer.start()
+            override fun onPause(owner: LifecycleOwner) {
+                vb.vPlayerScreen.onPause()
+                pageVideoHint.setBlocked(true)
+            }
+            override fun onResume(owner: LifecycleOwner) {
+                vb.vPlayerScreen.onResume()
+                updatePageCovered()
+            }
             override fun onStop(owner: LifecycleOwner) = syncServer.stop()
-            override fun onDestroy(owner: LifecycleOwner) = syncServer.destroy()
+            override fun onDestroy(owner: LifecycleOwner) {
+                syncServer.destroy()
+                vb.vPlayerScreen.close()
+            }
         })
         lifecycleScope.launch { downloadsModel.events.collect(::onDownloadEvent) }
         vb.rlRoot.viewTreeObserver.addOnGlobalFocusChangeListener(tabOptionsHintFocusListener)
         vb.rlRoot.viewTreeObserver.addOnPreDrawListener(tabOptionsHintDrawListener)
+        vb.rlRoot.viewTreeObserver.addOnPreDrawListener(pageCoveredDrawListener)
 
         //TV screens do not rotate, but large screens may ignore the requested orientation:
         //the thumbnail under the open menu has the height of the screen it was shown on
@@ -632,6 +831,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
         val tabChanged = state.tabIdentity != renderedTabIdentity
         renderedTabIdentity = state.tabIdentity
+        //once per page: the tab and its address without the fragment
+        pageVideoHint.setPage(if (state.hasTab && state.url.isNotEmpty())
+            "${state.tabIdentity}|${state.url.substringBefore('#')}" else null)
         if (tabChanged) {
             onRenderedTabChanged()
         }
@@ -644,12 +846,32 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     }
 
     private var cursorModesJob: Job? = null
+    private var mediaStateJob: Job? = null
+    private var pageVideosJob: Job? = null
+    private var mediaVideoJob: Job? = null
+    private var cursorModes = CursorModes()
 
     /**
      * Follows the cursor modes of the shown tab. The grab and direct navigation modes belong
      * to the page they were turned on for, so they end when another tab is shown.
      */
     private fun onRenderedTabChanged() {
+        mediaStateJob?.cancel()
+        mediaStateJob = null
+        onMediaStateChanged(null)
+        controller.currentTab.value?.webEngine?.mediaPlayback?.let { media ->
+            mediaStateJob = lifecycleScope.launch { media.mediaState.collect { onMediaStateChanged(it) } }
+        }
+        pageVideosJob?.cancel()
+        pageVideosJob = null
+        mediaVideoJob?.cancel()
+        mediaVideoJob = null
+        onPageVideosChanged(emptyList())
+        onMediaVideoChanged(null)
+        controller.currentTab.value?.webEngine?.pageVideosSupport?.let { videos ->
+            pageVideosJob = lifecycleScope.launch { videos.pageVideos.collect { onPageVideosChanged(it) } }
+            mediaVideoJob = lifecycleScope.launch { videos.mediaVideo.collect { onMediaVideoChanged(it) } }
+        }
         cursorModesJob?.cancel()
         cursorModesJob = null
         val cursor = controller.currentTab.value?.webEngine?.virtualCursor
@@ -668,10 +890,18 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
     }
 
+    /** The videos of the shown page other apps can play: the badge of the bar and the panel */
+    private fun onPageVideosChanged(videos: List<PageVideo>) {
+        vb.vActionBar.setPageVideoCount(videos.size)
+        vb.vVideosPanel.render(videos)
+    }
+
     private fun onCursorModesChanged(modes: CursorModes) {
-        cursorModesBackCallback.isEnabled = modes.directNavigation || modes.grab
+        cursorModes = modes
+        //in the video mode Back leaves fullscreen, whatever the mode of the hidden cursor
+        cursorModesBackCallback.isEnabled = (modes.directNavigation || modes.grab) && !videoMode.isActive
         //in the direct navigation mode a short B press of a game controller goes to the page
-        host.backEvents.gameControllersLongPressBForBackNavigation = modes.directNavigation
+        host.backEvents.gameControllersLongPressBForBackNavigation = modes.directNavigation && !videoMode.isActive
     }
 
     override fun onUiEvent(event: BrowserUiEvent) {
@@ -747,6 +977,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     override fun registerBackCallbacks(dispatcher: OnBackPressedDispatcher, fullscreen: OnBackPressedCallback) {
         //the enabled callback added last goes first
         dispatcher.addCallback(activity, menuBackCallback)
+        //Back on the hint plate opens the bar at the Videos panel; it shows only while nothing else is open
+        dispatcher.addCallback(activity, pageVideoHint.backCallback)
         dispatcher.addCallback(activity, vb.vSitePanel.backCallback)
         dispatcher.addCallback(activity, vb.vTabMenu.backCallback)
         dispatcher.addCallback(activity, vb.vBookmarksPanel.backCallback)
@@ -755,13 +987,21 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, vb.vSyncScreen.backCallback)
         dispatcher.addCallback(activity, vb.vSettingsScreen.backCallback)
         dispatcher.addCallback(activity, vb.vDownloadsPanel.backCallback)
+        dispatcher.addCallback(activity, vb.vVideosPanel.backCallback)
         dispatcher.addCallback(activity, vb.vPopupMenu.backCallback)
         dispatcher.addCallback(activity, fullscreen)
+        dispatcher.addCallback(activity, videoMode.backCallback)
         dispatcher.addCallback(activity, vb.vCursorMenu.backCallback)
         dispatcher.addCallback(activity, cursorModesBackCallback)
+        //the built-in player over everything: Back closes it, whatever the cursor of the page under it does
+        dispatcher.addCallback(activity, vb.vPlayerScreen.backCallback)
     }
 
-    private fun showMenuOverlay() {
+    /**
+     * Opens the bar; [onShown] is called when it is in place (a panel opened under its button measures it there),
+     * instead of giving the focus to the address
+     */
+    private fun showMenuOverlay(onShown: (() -> Unit)? = null) {
         vb.ivMiniatures.visibility = View.VISIBLE
         vb.flWebViewContainer.visibility = View.INVISIBLE
         val currentTab = controller.currentTab.value
@@ -783,7 +1023,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
                 .withEndAction {
-                    vb.vActionBar.catchFocus()
+                    if (onShown != null) onShown() else vb.vActionBar.catchFocus()
                 }
                 .start()
 
@@ -823,6 +1063,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vPopupMenu.hide()
         vb.vBookmarksPanel.hide()
         vb.vDownloadsPanel.hide()
+        vb.vVideosPanel.hide()
         tabOptionsHintAnchor = null
         vb.llTabOptionsHint.visibility = View.GONE
 

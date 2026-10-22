@@ -48,6 +48,13 @@ class TabUiHost(
     companion object {
         private val TAG = TabUiHost::class.java.simpleName
 
+        /** Copies the [url] and tells it */
+        fun copyToClipboard(context: Context, url: String) {
+            val clipBoard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipBoard.setPrimaryClip(ClipData.newPlainText("URL", url))
+            Toast.makeText(context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+        }
+
         /** Opens an "intent:" url in the app it names */
         fun openInExternalApp(activity: Activity, url: String) {
             val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
@@ -115,12 +122,7 @@ class TabUiHost(
         return true
     }
 
-    override fun onCopyTextToClipboardRequested(url: String) {
-        val clipBoard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clipData = ClipData.newPlainText("URL", url)
-        clipBoard.setPrimaryClip(clipData)
-        Toast.makeText(activity, activity.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
-    }
+    override fun onCopyTextToClipboardRequested(url: String) = copyToClipboard(activity, url)
 
     override fun onShareUrlRequested(url: String) {
         val share = Intent(Intent.ACTION_SEND)

@@ -168,6 +168,7 @@
     <dimen name="ds_bookmark_menu_width">230dp</dimen>
     <!-- downloads: the panel of the TV bar, the TV screen of all downloads, the phone page -->
     <dimen name="ds_downloads_panel_width">380dp</dimen>
+    <dimen name="ds_videos_panel_width">440dp</dimen>
     <dimen name="ds_download_row_height">48dp</dimen>
     <dimen name="ds_download_icon">24dp</dimen>
     <dimen name="ds_download_icon_padding">5dp</dimen>
@@ -322,4 +323,35 @@
     <dimen name="ds_phone_settings_badge">40dp</dimen>
     <dimen name="ds_phone_settings_badge_icon_padding">9dp</dimen>
     <dimen name="ds_phone_settings_block_padding">12dp</dimen>
+
+    <!-- the seek bar of the video mode, over the fullscreen video -->
+    <dimen name="video_osd_margin_x">96dp</dimen>
+    <dimen name="video_osd_margin_bottom">88dp</dimen>
+    <dimen name="video_osd_padding">16dp</dimen>
+    <dimen name="video_osd_icon_size">32dp</dimen>
+    <dimen name="video_osd_line_height">4dp</dimen>
+    <dimen name="video_osd_thumb_radius">7dp</dimen>
+    <!-- the second row: what Down does -->
+    <dimen name="video_osd_row_gap">10dp</dimen>
+    <dimen name="video_osd_hint_key_gap">8dp</dimen>
+    <dimen name="video_osd_hint_text">16sp</dimen>
+
+    <!-- a key of the remote on a toast (the hint about videos) -->
+    <dimen name="ds_key_cap_height">24dp</dimen>
+    <dimen name="ds_key_cap_padding">8dp</dimen>
+    <dimen name="ds_key_cap_radius">5dp</dimen>
+    <dimen name="ds_key_cap_stroke">1dp</dimen>
+    <dimen name="ds_text_key_cap">13sp</dimen>
+
+    <!-- the hint about a found video that plays in the page, at the top end where the Videos button is -->
+    <dimen name="page_video_hint_padding_start">12dp</dimen>
+    <dimen name="page_video_hint_padding_end">10dp</dimen>
+    <!-- "Playing on the page" on a row of the Videos panel: the title keeps most of the row -->
+    <dimen name="page_video_row_playing_max_width">140dp</dimen>
+
+    <!-- the built-in player -->
+    <dimen name="player_title_margin_top">48dp</dimen>
+    <dimen name="player_osd_margin_bottom">48dp</dimen>
+    <dimen name="player_error_width">560dp</dimen>
+    <dimen name="player_menu_width">360dp</dimen>
 </resources>

@@ -99,6 +99,13 @@ class AppSettingsStore(
         get() = WebEngineFactory.supportsSetting(EngineSpecificSetting.ALGORITHMIC_DARKENING)
     override var darkening: Boolean by config::webviewUseAlgorithmicDarkeningWithDarkUiMode
     /** Its observer sets the window flag */
+    override var matchFrameRate: Boolean
+        get() = config.matchFrameRate
+        set(value) {
+            config.matchFrameRate = value
+        }
+    override var pageVideoHint: Boolean by config::pageVideoHint
+
     override var keepScreenOn: Boolean
         get() = settingsModel.keepScreenOn.value
         set(value) {

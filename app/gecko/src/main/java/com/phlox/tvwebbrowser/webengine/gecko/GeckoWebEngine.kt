@@ -21,6 +21,16 @@ import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.CursorModes
+import com.phlox.tvwebbrowser.utils.HardwareCodecs
+import com.phlox.tvwebbrowser.webengine.MediaPlaybackSupport
+import com.phlox.tvwebbrowser.webengine.MediaCommand
+import com.phlox.tvwebbrowser.webengine.MediaFrames
+import com.phlox.tvwebbrowser.webengine.MediaState
+import com.phlox.tvwebbrowser.webengine.PageVideoMatch
+import com.phlox.tvwebbrowser.webengine.MediaSource
+import com.phlox.tvwebbrowser.webengine.PageVideo
+import com.phlox.tvwebbrowser.webengine.PageVideoList
+import com.phlox.tvwebbrowser.webengine.PageVideosSupport
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,7 +54,9 @@ import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
 import kotlin.math.roundToInt
+import org.json.JSONObject
 import org.mozilla.geckoview.GeckoRuntimeSettings
+import org.mozilla.geckoview.GeckoPreferenceController
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoSession.SessionState
 import org.mozilla.geckoview.GeckoSessionSettings
@@ -57,7 +69,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, SiteViewSupport,
-    CursorDrawerDelegate.Callback {
+    MediaPlaybackSupport, PageVideosSupport, CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
         /** Changes with the files of the extension: it is installed again then */
@@ -92,6 +104,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                     .enhancedTrackingProtectionLevel(ContentBlocking.EtpLevel.STRICT)
                     .build())
                 runtime = GeckoRuntime.create(context, builder.build())
+                disableSoftwareAv1()
 
                 val webExtInstallResult = if (APP_WEB_EXTENSION_VERSION == AppContext.provideConfig().appWebExtensionVersion) {
                     Log.d(TAG, "appWebExtension already installed")
@@ -115,6 +128,22 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             val webView = GeckoViewWithVirtualCursor(context)
             webViewContainer.addView(webView)
             weakRefToSingleGeckoView = WeakReference(webView)
+        }
+
+        /**
+         * Without a hardware AV1 decoder GeckoView decodes AV1 in software (dav1d), which TV chips can not do
+         * smoothly, and sites still choose it (YouTube serves AV1 to Firefox): pages are told there is no AV1,
+         * so they choose VP9 or H.264, which the hardware decodes. It is the default value of the preference,
+         * not kept: each start checks the device again, and about:config can still turn AV1 on.
+         */
+        private fun disableSoftwareAv1() {
+            if (HardwareCodecs.hasHardwareDecoder(HardwareCodecs.AV1)) return
+            Log.i(TAG, "No hardware AV1 decoder: AV1 is off")
+            GeckoPreferenceController.setGeckoPref("media.av1.enabled", false,
+                GeckoPreferenceController.PREF_BRANCH_DEFAULT).exceptionally<Void> { e ->
+                Log.e(TAG, "Can not turn AV1 off", e)
+                null
+            }
         }
 
         /** Where GeckoView finds the home page; null until the extension is registered */
@@ -196,7 +225,68 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     val permissionDelegate = MyPermissionDelegate(this)
     val historyDelegate = MyHistoryDelegate(this)
     val contentBlockingDelegate = MyContentBlockingDelegate(this)
-    val mediaSessionDelegate = MyMediaSessionDelegate()
+    private val _mediaState = MutableStateFlow<MediaState?>(null)
+    override val mediaState: StateFlow<MediaState?> = _mediaState.asStateFlow()
+    /**
+     * The media of the frames, from their content scripts (media_controls.js, one port each): the media keys
+     * and the video mode go to the frame [MediaFrames] chooses, as in WebView. The media session of GeckoView
+     * is used when no frame reports media; it has no muted media, and only the fullscreen of the element.
+     */
+    private val mediaFrames = MediaFrames<WebExtension.Port>()
+    private var sessionState: MediaState? = null
+    val mediaSessionDelegate = MyMediaSessionDelegate {
+        sessionState = it
+        updateMediaState()
+    }
+    /** The videos of the page, from the content scripts of its frames (one port each) */
+    private val videos = PageVideoList<WebExtension.Port>()
+    private val _pageVideos = MutableStateFlow<List<PageVideo>>(emptyList())
+    override val pageVideos: StateFlow<List<PageVideo>> = _pageVideos.asStateFlow()
+    private val _mediaVideo = MutableStateFlow<PageVideo?>(null)
+    override val mediaVideo: StateFlow<PageVideo?> = _mediaVideo.asStateFlow()
+    /** What the media of each frame plays, for [mediaVideo] */
+    private val mediaSources = HashMap<WebExtension.Port, MediaSource>()
+
+    /** The content script of a frame reported its videos (none: the frame is gone) */
+    fun onFrameVideos(port: WebExtension.Port, frameVideos: List<PageVideo>) {
+        _pageVideos.value = videos.onFrameVideos(port, frameVideos)
+        updateMediaVideo()
+    }
+
+    /** The content script of a frame reported the media its commands go to (null: none, or the frame is gone) */
+    fun onFrameMedia(port: WebExtension.Port, media: MediaState?, source: MediaSource?) {
+        mediaFrames.onState(port, media)
+        if (source == null) mediaSources.remove(port) else mediaSources[port] = source
+        updateMediaState()
+        updateMediaVideo()
+    }
+
+    /** The video of the page the media the keys control plays ([PageVideoMatch]) */
+    private fun updateMediaVideo() {
+        val port = mediaFrames.target()
+        _mediaVideo.value = port?.let { PageVideoMatch.of(mediaSources[it], videos.videosOf(it)) }
+    }
+
+    private fun updateMediaState() {
+        _mediaState.value = mediaFrames.targetMedia() ?: sessionState
+    }
+
+    /** Sends the command to the content script of the frame with the media; false if no frame has media */
+    private fun sendToFrame(command: String): Boolean {
+        val port = mediaFrames.target() ?: return false
+        port.postMessage(JSONObject().put("command", command))
+        return true
+    }
+
+    /** The page starts loading another document: the media and the videos of the old one are gone */
+    fun onPageStartedForFrames() {
+        videos.clear()
+        _pageVideos.value = emptyList()
+        mediaFrames.clear()
+        mediaSources.clear()
+        updateMediaState()
+        updateMediaVideo()
+    }
     val selectionActionDelegate = MySelectionActionDelegate()
     /** The last scroll position of the page in pixels, to report how far it scrolled; unknown when -1 */
     private var lastScrollY = -1
@@ -507,6 +597,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     }
 
     override fun togglePlayback() {
+        if (sendToFrame(MediaCommand.TOGGLE.js)) return
         mediaSessionDelegate.mediaSession?.let {
             if (mediaSessionDelegate.paused) {
                 it.play()
@@ -516,16 +607,41 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         }
     }
 
+    override fun pausePlayback() {
+        if (sendToFrame(MediaCommand.PAUSE.js)) return
+        mediaSessionDelegate.mediaSession?.pause()
+    }
+
     override fun stopPlayback() {
+        if (sendToFrame(MediaCommand.STOP.js)) return
         mediaSessionDelegate.mediaSession?.stop()
     }
 
     override fun rewind() {
+        if (sendToFrame(MediaCommand.REWIND.js)) return
         mediaSessionDelegate.mediaSession?.seekBackward()
     }
 
     override fun fastForward() {
+        if (sendToFrame(MediaCommand.FAST_FORWARD.js)) return
         mediaSessionDelegate.mediaSession?.seekForward()
+    }
+
+    override fun seekTo(position: Double) {
+        if (sendToFrame(MediaCommand.seekTo(position))) return
+        mediaSessionDelegate.mediaSession?.seekTo(position.coerceAtLeast(0.0), false)
+    }
+
+    /** In the media session, from its position; pages that give none get the seek actions of their own */
+    override fun seekBy(delta: Double) {
+        if (sendToFrame(MediaCommand.seekBy(delta))) return
+        val session = mediaSessionDelegate.mediaSession ?: return
+        val position = mediaSessionDelegate.currentPosition
+        when {
+            position != null && sessionState?.duration != null -> session.seekTo((position + delta).coerceAtLeast(0.0), false)
+            delta < 0 -> session.seekBackward()
+            else -> session.seekForward()
+        }
     }
 
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {

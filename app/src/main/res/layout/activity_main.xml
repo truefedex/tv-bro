@@ -125,6 +125,17 @@
             android:text="@string/tab_options" />
     </LinearLayout>
 
+    <!-- the hint about a found video that plays in the page: at the top end, where the Videos button of the bar is -->
+    <com.phlox.tvwebbrowser.activity.main.view.PageVideoHintView
+        android:id="@+id/vPageVideoHint"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/ds_size_toast_height"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="@dimen/ds_space_screen_top"
+        android:layout_marginEnd="@dimen/ds_space_screen_x"
+        android:elevation="6dp" />
+
     <!-- above the bar (their elevation is higher) -->
     <com.phlox.tvwebbrowser.activity.main.view.TabMenuView
         android:id="@+id/vTabMenu"
@@ -186,6 +197,22 @@
         android:elevation="7dp"
         android:outlineProvider="none" />
 
+    <!-- the videos of the page other apps can play, under the Videos button of the bar -->
+    <com.phlox.tvwebbrowser.activity.main.view.VideosPanelView
+        android:id="@+id/vVideosPanel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="7dp"
+        android:outlineProvider="none" />
+
+    <!-- the built-in player, over the whole window and the bar -->
+    <com.phlox.tvwebbrowser.activity.main.view.PlayerScreenView
+        android:id="@+id/vPlayerScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="7.5dp"
+        android:outlineProvider="none" />
+
     <!-- the menus of the bookmarks and downloads panels, above them -->
     <com.phlox.tvwebbrowser.activity.main.view.PopupMenuView
         android:id="@+id/vPopupMenu"
@@ -202,6 +229,18 @@
         android:clipChildren="false"
         android:clipToPadding="false"
         />
+
+    <!-- the seek bar of the video mode, over the fullscreen video -->
+    <com.phlox.tvwebbrowser.activity.main.view.VideoOsdView
+        android:id="@+id/vVideoOsd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="@dimen/video_osd_margin_x"
+        android:layout_marginEnd="@dimen/video_osd_margin_x"
+        android:layout_marginBottom="@dimen/video_osd_margin_bottom"
+        android:elevation="16dp"
+        android:visibility="gone" />
 
     <ProgressBar
         android:id="@+id/progressBarGeneric"

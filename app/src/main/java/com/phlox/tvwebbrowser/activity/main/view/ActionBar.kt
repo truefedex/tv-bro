@@ -44,6 +44,8 @@ class ActionBar @JvmOverloads constructor(
         /** Stops the page if it is loading, reloads it otherwise */
         fun reloadOrStop()
         fun showDownloads()
+        /** The panel of the videos of the page other apps can play */
+        fun showPageVideos()
         fun showFavorites()
         /** The menu of the less used functions (History, Phone sync, Settings) */
         fun showMoreMenu()
@@ -103,6 +105,8 @@ class ActionBar @JvmOverloads constructor(
         vb.ibForward.setOnClickListener { callback?.navigateForward() }
         vb.ibRefresh.setOnClickListener { callback?.reloadOrStop() }
         vb.ibDownloads.setOnClickListener { callback?.showDownloads() }
+        vb.ibVideos.setOnClickListener { callback?.showPageVideos() }
+        setPageVideoCount(0)
         vb.ibFavorites.setOnClickListener { callback?.showFavorites() }
         vb.ibIncognito.setOnClickListener { callback?.toggleIncognitoMode() }
         vb.ibMore.setOnClickListener { callback?.showMoreMenu() }
@@ -166,6 +170,24 @@ class ActionBar @JvmOverloads constructor(
         viewTreeObserver.removeOnGlobalFocusChangeListener(focusListener)
         super.onDetachedFromWindow()
     }
+
+    /**
+     * The number of videos of the page other apps can play: on the badge; without videos the button stays
+     * focusable (the number of presses to each button never changes) but is dimmed
+     */
+    fun setPageVideoCount(count: Int) {
+        vb.tvVideosBadge.visibility = if (count > 0) VISIBLE else GONE
+        vb.tvVideosBadge.text = count.toString()
+        vb.ibVideos.imageAlpha = if (count > 0) OPAQUE else DIMMED
+        vb.ibVideos.contentDescription = if (count > 0) {
+            resources.getQuantityString(R.plurals.videos_on_page_count, count, count)
+        } else {
+            context.getString(R.string.videos_on_page)
+        }
+    }
+
+    /** The panel of the videos opens under it, and gives the focus back to it */
+    val videosButton: View get() = vb.ibVideos
 
     /** The site panel opens under it, and gives the focus back to it */
     val siteButton: View get() = vb.ibSite

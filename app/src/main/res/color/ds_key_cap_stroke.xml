@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The outline of a key cap on a toast (the key that does something, as Back on the hint about videos) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="?attr/tbColorDsOnToast" android:alpha="0.7" />
+</selector>

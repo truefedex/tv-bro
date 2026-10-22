@@ -43,8 +43,8 @@ class SettingsNavigator(
     /** The settings, and the rows that act */
     enum class Key {
         SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS,
-        SITE_VIEW, AUTOPLAY, AD_BLOCK, FILTER_LIST,
-        INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON,
+        SITE_VIEW, AUTOPLAY, AD_BLOCK, FILTER_LIST, VIDEO_HINT,
+        INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_CACHE, ENGINE_DEBUG,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
@@ -86,6 +86,8 @@ class SettingsNavigator(
         val filterListLastUpdate: Long
         val filterListLoading: Flow<Boolean>
         fun updateFilterList()
+        /** A hint about a found video that starts to play in the page (TV only) */
+        var pageVideoHint: Boolean
 
         var interfaceMode: Config.InterfaceMode
         var theme: Config.Theme
@@ -93,6 +95,8 @@ class SettingsNavigator(
         val supportsDarkening: Boolean
         var darkening: Boolean
         var keepScreenOn: Boolean
+        /** The built-in player switches the display to the frame rate of the video (TV only) */
+        var matchFrameRate: Boolean
 
         var joystickNavigation: Boolean
         var cursorSpeed: Int
@@ -334,8 +338,10 @@ class SettingsNavigator(
         when (key) {
             Key.AUTOPLAY -> store.allowAutoplayMedia = !store.allowAutoplayMedia
             Key.AD_BLOCK -> store.adBlockEnabled = !store.adBlockEnabled
+            Key.VIDEO_HINT -> store.pageVideoHint = !store.pageVideoHint
             Key.DARKENING -> store.darkening = !store.darkening
             Key.KEEP_SCREEN_ON -> store.keepScreenOn = !store.keepScreenOn
+            Key.MATCH_FRAME_RATE -> store.matchFrameRate = !store.matchFrameRate
             Key.JOYSTICK -> store.joystickNavigation = !store.joystickNavigation
             Key.AUTO_UPDATE -> {
                 store.autoCheckUpdates = !store.autoCheckUpdates
@@ -523,8 +529,14 @@ class SettingsNavigator(
             adBlock += Row.Field(Key.FILTER_LIST, string(R.string.settings_filter_list), updated, store.filterListUrl,
                 Config.DEFAULT_ADBLOCK_LIST_URL, action = string(R.string.update), busy = filterListLoading)
         }
-        return listOf(Section(string(R.string.settings_group_site_view), siteView),
+        val sections = arrayListOf(Section(string(R.string.settings_group_site_view), siteView),
             Section(string(R.string.settings_group_ad_blocking), adBlock))
+        //the built-in player and its hint are on TV only
+        if (tvUi) {
+            sections += Section(string(R.string.settings_group_videos), listOf(Row.Toggle(Key.VIDEO_HINT,
+                string(R.string.settings_video_hint), string(R.string.settings_video_hint_summary), store.pageVideoHint)))
+        }
+        return sections
     }
 
     private fun appearanceSections(): List<Section> {
@@ -538,9 +550,14 @@ class SettingsNavigator(
             ui += Row.Toggle(Key.DARKENING, string(R.string.settings_darken_pages),
                 string(R.string.settings_darken_pages_summary), store.darkening, restart = true)
         }
-        val screen = listOf(Row.Toggle(Key.KEEP_SCREEN_ON, string(R.string.toggle_keep_screen_on),
+        val screen = arrayListOf<Row>(Row.Toggle(Key.KEEP_SCREEN_ON, string(R.string.toggle_keep_screen_on),
             string(if (tvUi) R.string.settings_keep_screen_on_summary_tv else R.string.settings_keep_screen_on_summary_phone),
             store.keepScreenOn))
+        //the built-in player is on TV only
+        if (tvUi) {
+            screen += Row.Toggle(Key.MATCH_FRAME_RATE, string(R.string.settings_match_frame_rate),
+                string(R.string.settings_match_frame_rate_summary), store.matchFrameRate)
+        }
         return listOf(Section(string(R.string.settings_group_interface), ui),
             Section(string(R.string.settings_group_screen), screen))
     }

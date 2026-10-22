@@ -118,6 +118,42 @@ to each button never changes.
       style="@style/Widget.TVBro.ToolbarGroup"
       android:id="@+id/llFunctions">
 
+    <FrameLayout
+        android:layout_width="@dimen/ds_size_toolbar_segment"
+        android:layout_height="match_parent">
+
+      <!-- the videos of the page other apps can play; dimmed while there are none, selected (activated)
+           while its panel is open -->
+      <ImageButton
+          style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+          android:id="@+id/ibVideos"
+          android:layout_width="match_parent"
+          android:src="@drawable/ic_video"
+          android:nextFocusDown="@+id/vTabs"
+          android:contentDescription="@string/videos_on_page" />
+
+      <TextView
+          style="@style/Widget.TVBro.Text.CountBadge"
+          android:id="@+id/tvVideosBadge"
+          android:layout_width="wrap_content"
+          android:layout_height="@dimen/ds_size_badge_height"
+          android:layout_gravity="top|end"
+          android:layout_marginTop="@dimen/ds_badge_margin_top"
+          android:layout_marginEnd="@dimen/ds_badge_margin_end"
+          android:minWidth="@dimen/ds_size_badge_min_width"
+          android:paddingStart="@dimen/ds_badge_padding_horizontal"
+          android:paddingEnd="@dimen/ds_badge_padding_horizontal"
+          android:gravity="center"
+          android:background="@drawable/ds_badge_bg"
+          android:textColor="?attr/tbColorDsOnBadge"
+          android:importantForAccessibility="no"
+          android:visibility="gone"
+          tools:text="3"
+          tools:visibility="visible" />
+    </FrameLayout>
+
+    <View style="@style/Widget.TVBro.ToolbarSeparator" />
+
     <ImageButton
         style="@style/Widget.TVBro.ImageButton.Ds.Segment"
         android:id="@+id/ibFavorites"

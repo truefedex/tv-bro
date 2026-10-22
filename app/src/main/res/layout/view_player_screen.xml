@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The built-in player over the whole window (PlayerScreenView): the video (a SurfaceView of the PlayerView, with the
+subtitles), the title and the seek bar while they show, the buffering, the error with its buttons and the menu of
+the tracks (under the anchor at the top end).
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+  <androidx.media3.ui.PlayerView
+      android:id="@+id/vPlayer"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      app:use_controller="false"
+      app:surface_type="surface_view"
+      app:shutter_background_color="@android:color/black"
+      app:show_buffering="never"
+      android:focusable="false" />
+
+  <!-- the video and its server, while the seek bar shows -->
+  <LinearLayout
+      android:id="@+id/llTitle"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="top|start"
+      android:layout_marginStart="@dimen/video_osd_margin_x"
+      android:layout_marginTop="@dimen/player_title_margin_top"
+      android:layout_marginEnd="@dimen/video_osd_margin_x"
+      android:orientation="vertical"
+      android:padding="@dimen/video_osd_padding"
+      android:background="@drawable/ds_toast_bg"
+      android:visibility="gone"
+      tools:visibility="visible">
+
+    <TextView
+        style="@style/Widget.TVBro.Text.Toast"
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsOnToast"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="Big Buck Bunny" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.Caption"
+        android:id="@+id/tvCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/tbColorDsOnToast"
+        android:singleLine="true"
+        android:ellipsize="end"
+        tools:text="HLS · test-streams.mux.dev" />
+  </LinearLayout>
+
+  <ProgressBar
+      android:id="@+id/pbBuffering"
+      style="?android:attr/progressBarStyleLarge"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center"
+      android:visibility="gone" />
+
+  <com.phlox.tvwebbrowser.activity.main.view.VideoOsdView
+      android:id="@+id/vOsd"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_gravity="bottom"
+      android:layout_marginStart="@dimen/video_osd_margin_x"
+      android:layout_marginEnd="@dimen/video_osd_margin_x"
+      android:layout_marginBottom="@dimen/player_osd_margin_bottom"
+      android:visibility="gone" />
+
+  <!-- the playback stopped: what happened, and the ways on -->
+  <LinearLayout
+      android:id="@+id/llError"
+      android:layout_width="@dimen/player_error_width"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center"
+      android:orientation="vertical"
+      android:padding="@dimen/video_osd_padding"
+      android:background="@drawable/ds_menu_bg"
+      android:visibility="gone"
+      tools:visibility="visible">
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:text="@string/player_error" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuCaption"
+        android:id="@+id/tvError"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/ds_space_icon_text"
+        android:textColor="?attr/tbColorDsInk"
+        tools:text="ERROR_CODE_IO_BAD_HTTP_STATUS" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/ds_space_gutter"
+        android:orientation="horizontal">
+
+      <TextView
+          style="@style/Widget.TVBro.TextButton.Ds"
+          android:id="@+id/btnOtherApp"
+          android:text="@string/open_in_external_application" />
+
+      <TextView
+          style="@style/Widget.TVBro.TextButton.Ds"
+          android:id="@+id/btnBack"
+          android:layout_marginStart="@dimen/ds_space_icon_text"
+          android:text="@string/player_back_to_page" />
+    </LinearLayout>
+  </LinearLayout>
+
+  <!-- the menu of the tracks opens under it, its end at the end of the anchor -->
+  <View
+      android:id="@+id/vMenuAnchor"
+      android:layout_width="1dp"
+      android:layout_height="0dp"
+      android:layout_gravity="top|end"
+      android:layout_marginTop="@dimen/player_title_margin_top"
+      android:layout_marginEnd="@dimen/video_osd_margin_x" />
+
+  <com.phlox.tvwebbrowser.activity.main.view.PopupMenuView
+      android:id="@+id/vMenu"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent" />
+</merge>

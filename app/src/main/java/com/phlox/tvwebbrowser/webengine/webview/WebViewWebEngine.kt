@@ -31,6 +31,11 @@ import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.CursorModes
+import com.phlox.tvwebbrowser.webengine.MediaPlaybackSupport
+import com.phlox.tvwebbrowser.webengine.MediaCommand
+import com.phlox.tvwebbrowser.webengine.MediaState
+import com.phlox.tvwebbrowser.webengine.PageVideo
+import com.phlox.tvwebbrowser.webengine.PageVideosSupport
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,7 +46,7 @@ import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 
 
 class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, SiteViewSupport,
-    CursorDrawerDelegate.Callback {
+    MediaPlaybackSupport, PageVideosSupport, CursorDrawerDelegate.Callback {
     private var webView: WebViewEx? = null
     internal var callback: WebEngineCallbacks? = null
     /** The cursor surface around [webView] and the fullscreen view, created and dropped together with [webView] */
@@ -49,6 +54,12 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     private val _cursorModes = MutableStateFlow(CursorModes())
     override val cursorModes: StateFlow<CursorModes> = _cursorModes.asStateFlow()
     private var fullScreenView: View? = null
+    private val _mediaState = MutableStateFlow<MediaState?>(null)
+    override val mediaState: StateFlow<MediaState?> = _mediaState.asStateFlow()
+    private val _pageVideos = MutableStateFlow<List<PageVideo>>(emptyList())
+    override val pageVideos: StateFlow<List<PageVideo>> = _pageVideos.asStateFlow()
+    private val _mediaVideo = MutableStateFlow<PageVideo?>(null)
+    override val mediaVideo: StateFlow<PageVideo?> = _mediaVideo.asStateFlow()
     private val jsInterface = AndroidJSInterface(this)
 
     override fun getWebEngineName(): String = "WebView"
@@ -191,19 +202,31 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     }
 
     override fun togglePlayback() {
-        webView?.evaluateJavascript("tvBroTogglePlayback()", null)
+        webView?.mediaCommand(MediaCommand.TOGGLE)
     }
 
     override fun stopPlayback() {
-        webView?.evaluateJavascript("tvBroStopPlayback()", null)
+        webView?.mediaCommand(MediaCommand.STOP)
     }
 
     override fun rewind() {
-        webView?.evaluateJavascript("tvBroRewind()", null)
+        webView?.mediaCommand(MediaCommand.REWIND)
     }
 
     override fun fastForward() {
-        webView?.evaluateJavascript("tvBroFastForward()", null)
+        webView?.mediaCommand(MediaCommand.FAST_FORWARD)
+    }
+
+    override fun seekTo(position: Double) {
+        webView?.seekMediaTo(position)
+    }
+
+    override fun seekBy(delta: Double) {
+        webView?.seekMediaBy(delta)
+    }
+
+    override fun pausePlayback() {
+        webView?.mediaCommand(MediaCommand.PAUSE)
     }
 
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
@@ -226,6 +249,9 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         if (completely) {
             webView = null
             cursorLayout = null
+            _mediaState.value = null
+            _pageVideos.value = emptyList()
+            _mediaVideo.value = null
         }
     }
 
@@ -234,6 +260,9 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         if (webView != null && !webView.isAttachedToWindow) {
             this.webView = null
             cursorLayout = null
+            _mediaState.value = null
+            _pageVideos.value = emptyList()
+            _mediaVideo.value = null
         }
     }
 
@@ -408,6 +437,18 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
         override fun onVisited(url: String) {
             callback?.onVisited(url)
+        }
+
+        override fun onMediaStateChanged(state: MediaState?) {
+            _mediaState.value = state
+        }
+
+        override fun onPageVideosChanged(videos: List<PageVideo>) {
+            _pageVideos.value = videos
+        }
+
+        override fun onMediaVideoChanged(video: PageVideo?) {
+            _mediaVideo.value = video
         }
 
         override fun onContextMenu(baseUrl:String?, href: String?, x: Int, y: Int) {

@@ -8,8 +8,8 @@ android {
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        versionCode = 74
-        versionName = "2.2.0"
+        versionCode = 75
+        versionName = "3.0.0"
     }
 
     signingConfigs {
@@ -127,6 +127,10 @@ dependencies {
 
     implementation(libs.ad.block)
     implementation(libs.qrcodegen)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.hls)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

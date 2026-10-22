@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A key of the remote drawn on a toast: an outlined cap with its name -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="@dimen/ds_key_cap_radius" />
+    <stroke android:width="@dimen/ds_key_cap_stroke" android:color="@color/ds_key_cap_stroke" />
+</shape>
