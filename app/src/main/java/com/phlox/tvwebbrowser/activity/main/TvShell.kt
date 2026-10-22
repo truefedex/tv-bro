@@ -257,7 +257,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         override fun play(video: PageVideo) = openBuiltInPlayer(video, 0.0)
 
         override fun openInOtherApp(video: PageVideo) {
-            openInOtherApp(video)
+            this@TvShell.openInOtherApp(video)
         }
 
         override fun copyLink(video: PageVideo) = host.copyToClipboard(video.url)
