@@ -26,6 +26,8 @@ data class MediaState(
     /** The media is in the fullscreen view of the page */
     val fullscreen: Boolean,
     val rate: Double = 1.0,
+    /** It plays without sound (muted, or at volume 0) */
+    val muted: Boolean = false,
     /** When [position] was reported, in [android.os.SystemClock.elapsedRealtime] milliseconds */
     val at: Long,
 ) {

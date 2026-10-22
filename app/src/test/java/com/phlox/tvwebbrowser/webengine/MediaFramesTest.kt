@@ -81,4 +81,13 @@ class MediaFramesTest {
             """{"media":true,"playing":false,"fullscreen":false,"position":3,"duration":null,"rate":0}"""), 0)?.duration)
         assertNull(MediaReports.parse(JSONObject("""{"media":false}"""), 0))
     }
+
+    @Test
+    fun theReportsTellMutedMedia() {
+        assertEquals(true, MediaReports.parse(JSONObject(
+            """{"media":true,"playing":true,"fullscreen":false,"position":0,"duration":30,"rate":1,"muted":true}"""), 0)?.muted)
+        //reports of older scripts have no "muted": the media is taken to have sound
+        assertEquals(false, MediaReports.parse(JSONObject(
+            """{"media":true,"playing":true,"fullscreen":false,"position":0,"duration":30,"rate":1}"""), 0)?.muted)
+    }
 }

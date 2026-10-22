@@ -112,6 +112,8 @@ function tvBroWatchMedia(send) {
             duration: isFinite(m.duration) ? m.duration : null,
             // the position stands still while the media waits for data
             rate: isPlaying(m) && m.readyState > 2 ? m.playbackRate : 0,
+            // no sound: previews and ads mostly play muted
+            muted: m.muted || m.volume === 0,
             // what it plays: its address, or a stream of the page (Media Source Extensions)
             src: /^https?:/i.test(m.currentSrc) ? m.currentSrc : null,
             mse: /^blob:/i.test(m.currentSrc)
@@ -130,7 +132,7 @@ function tvBroWatchMedia(send) {
     if (!send) return command;
     // media events do not bubble, but the window gets them while they are captured
     ['play', 'pause', 'ended', 'emptied', 'seeked', 'playing', 'waiting', 'ratechange', 'durationchange',
-            'loadedmetadata', 'timeupdate'].forEach(function(type) {
+            'loadedmetadata', 'volumechange', 'timeupdate'].forEach(function(type) {
         window.addEventListener(type, function(e) {
             if (!(e.target instanceof HTMLMediaElement)) return;
             if (type == 'play') lastPlayed = e.target;

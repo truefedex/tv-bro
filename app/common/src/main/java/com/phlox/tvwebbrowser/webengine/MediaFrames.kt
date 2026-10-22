@@ -61,6 +61,7 @@ object MediaReports {
             duration = duration.takeIf { it.isFinite() && it > 0 },
             fullscreen = json.optBoolean("fullscreen"),
             rate = json.optDouble("rate", 1.0).takeIf { it.isFinite() } ?: 1.0,
+            muted = json.optBoolean("muted"),
             at = now,
         )
     }
