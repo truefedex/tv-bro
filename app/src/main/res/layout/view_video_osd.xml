@@ -1,67 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The seek bar of the video mode, over the fullscreen video (VideoOsdView) -->
+<!--
+The seek bar of the video mode, over the fullscreen video (VideoOsdView): play or pause, the position, the
+progress and the duration; under them, at the end, what Down does (a key cap and its action), when it does
+something
+-->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.LinearLayout"
-    tools:orientation="horizontal">
+    tools:orientation="vertical">
 
-    <ImageView
-        android:id="@+id/ivState"
-        android:layout_width="@dimen/video_osd_icon_size"
-        android:layout_height="@dimen/video_osd_icon_size"
-        android:importantForAccessibility="no"
-        android:src="@drawable/ic_pause"
-        app:tint="?attr/tbColorDsOnToast" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/tvDelta"
-        style="@style/Widget.TVBro.Text.Toast"
+        <ImageView
+            android:id="@+id/ivState"
+            android:layout_width="@dimen/video_osd_icon_size"
+            android:layout_height="@dimen/video_osd_icon_size"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_pause"
+            app:tint="?attr/tbColorDsOnToast" />
+
+        <TextView
+            android:id="@+id/tvDelta"
+            style="@style/Widget.TVBro.Text.Toast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/ds_space_icon_text"
+            android:textColor="?attr/tbColorDsAccent"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="+0:30"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/tvPosition"
+            style="@style/Widget.TVBro.Text.Toast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/ds_space_icon_text"
+            android:fontFeatureSettings="tnum"
+            android:textColor="?attr/tbColorDsOnToast"
+            tools:text="12:34" />
+
+        <com.phlox.tvwebbrowser.activity.main.view.VideoProgressView
+            android:id="@+id/vProgress"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/video_osd_icon_size"
+            android:layout_marginStart="@dimen/ds_space_gutter"
+            android:layout_marginEnd="@dimen/ds_space_gutter"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tvDuration"
+            style="@style/Widget.TVBro.Text.Toast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFeatureSettings="tnum"
+            android:textColor="?attr/tbColorDsOnToast"
+            tools:text="1:45:00" />
+    </LinearLayout>
+
+    <!-- what Down does, as "↓ Built-in player" -->
+    <LinearLayout
+        android:id="@+id/llHint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/ds_space_icon_text"
-        android:textColor="?attr/tbColorDsAccent"
-        android:textStyle="bold"
+        android:layout_gravity="end"
+        android:layout_marginTop="@dimen/video_osd_row_gap"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:visibility="gone"
-        tools:text="+0:30"
-        tools:visibility="visible" />
+        tools:visibility="visible">
 
-    <TextView
-        android:id="@+id/tvPosition"
-        style="@style/Widget.TVBro.Text.Toast"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/ds_space_icon_text"
-        android:fontFeatureSettings="tnum"
-        android:textColor="?attr/tbColorDsOnToast"
-        tools:text="12:34" />
+        <TextView
+            style="@style/Widget.TVBro.KeyCap"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/ds_key_cap_height"
+            android:importantForAccessibility="no"
+            android:text="@string/key_down" />
 
-    <com.phlox.tvwebbrowser.activity.main.view.VideoProgressView
-        android:id="@+id/vProgress"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/video_osd_icon_size"
-        android:layout_marginStart="@dimen/ds_space_gutter"
-        android:layout_marginEnd="@dimen/ds_space_gutter"
-        android:layout_weight="1" />
-
-    <TextView
-        android:id="@+id/tvDuration"
-        style="@style/Widget.TVBro.Text.Toast"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFeatureSettings="tnum"
-        android:textColor="?attr/tbColorDsOnToast"
-        tools:text="1:45:00" />
-
-    <!-- what another key does, as "↓ Play in TV Bro" -->
-    <TextView
-        style="@style/Widget.TVBro.Text.Toast"
-        android:id="@+id/tvHint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/ds_space_gutter"
-        android:textColor="?attr/tbColorDsAccent"
-        android:visibility="gone"
-        tools:text="↓ Play in TV Bro"
-        tools:visibility="visible" />
+        <TextView
+            android:id="@+id/tvHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/video_osd_hint_key_gap"
+            android:textSize="@dimen/video_osd_hint_text"
+            android:textColor="?attr/tbColorDsOnToast"
+            android:singleLine="true"
+            tools:text="Built-in player" />
+    </LinearLayout>
 </merge>

@@ -173,6 +173,22 @@ class VideoModeControllerTest {
         assertNull(osd)
         video.hint = "Down: player"
         assertEquals("Down: player", osd?.hint)
+        idle(VideoModeController.HINT_SHOWN_MS - 100)
+        assertNotNull(osd)
+        idle(200)
+        assertNull(osd)
+    }
+
+    @Test
+    fun aVideoWithAHintShowsTheBarLongerWhenItGoesFullscreen() {
+        video.hint = "Down: player"
+        assertNull(osd)
+        enter()
+        assertEquals("Down: player", osd?.hint)
+        idle(VideoModeController.HINT_SHOWN_MS - 100)
+        assertNotNull(osd)
+        idle(200)
+        assertNull(osd)
     }
 
     private fun press(controller: VideoModeController, keyCode: Int): Boolean {

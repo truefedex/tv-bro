@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The hint about a found video that plays in the page (PageVideoHintView): a toast at the top end of the window,
+where the Videos button of the bar is, with the key that opens the videos. It takes no focus and no keys.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="horizontal">
+
+    <ImageView
+        android:layout_width="@dimen/ds_size_icon_toast"
+        android:layout_height="@dimen/ds_size_icon_toast"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_video"
+        app:tint="?attr/tbColorDsOnToast" />
+
+    <TextView
+        style="@style/Widget.TVBro.Text.Toast"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_space_icon_text"
+        android:singleLine="true"
+        android:textColor="?attr/tbColorDsOnToast"
+        android:text="@string/page_video_hint" />
+
+    <TextView
+        style="@style/Widget.TVBro.KeyCap"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/ds_key_cap_height"
+        android:layout_marginStart="@dimen/ds_space_icon_text"
+        android:text="@string/key_back" />
+</merge>

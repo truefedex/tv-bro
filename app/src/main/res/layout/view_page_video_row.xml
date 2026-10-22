@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 A row of the TV panel of the videos of the page (the list draws the dividers between rows): the title (of
-the frame, else the name of the file), a caption (the kind, the server, the size and the duration) and the
-button of its options. OK opens the video in a player app.
+the frame, else the name of the file), a caption (the kind, the server, the size and the duration), "Playing
+on the page" for the video the page plays, and the button of its options. OK plays the video in the built-in
+player.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -63,6 +64,22 @@ button of its options. OK opens the video in a player app.
           android:ellipsize="end"
           tools:text="HLS · cdn.example.com · 1920×1080 · 9:56" />
     </LinearLayout>
+
+    <!-- the video plays in the page now -->
+    <TextView
+        style="@style/Widget.TVBro.Text.MenuCaption"
+        android:id="@+id/tvPlaying"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ds_space_icon_text"
+        android:maxWidth="@dimen/page_video_row_playing_max_width"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:text="@string/playing_on_page"
+        android:visibility="gone"
+        tools:visibility="visible" />
   </LinearLayout>
 
   <ImageButton

@@ -271,14 +271,20 @@
     <!-- the videos of the page other apps can play (the button of the TV bar and its panel) -->
     <string name="videos_on_page">Videos on the page</string>
     <string name="no_videos_on_page">No videos found on this page. Videos that the page plays only itself (protected or streamed through its own code) can not be opened in other apps.</string>
-    <string name="play_in_tv_bro">Play in TV Bro</string>
+    <string name="play_in_built_in_player">Play in built-in player</string>
+    <!-- on the seek bar of a fullscreen video, after the key cap of Down -->
+    <string name="built_in_player">Built-in player</string>
     <!-- the built-in player -->
     <string name="player_error">This video can not be played</string>
     <string name="player_back_to_page">Back to the page</string>
-    <!-- in the seek bar of a fullscreen video of the page whose stream is known -->
-    <string name="player_hint_open">↓ Play in TV Bro</string>
+    <!-- the TV hint about a found video that plays in the page -->
+    <string name="page_video_hint">Watch in the built-in player</string>
+    <!-- the name of the Back key of the remote, drawn on a key cap -->
+    <string name="key_back">Back</string>
+    <string name="key_down" translatable="false">↓</string>
+    <string name="playing_on_page">Playing on the page</string>
     <string name="settings_match_frame_rate">Match the frame rate of videos</string>
-    <string name="settings_match_frame_rate_summary">The TV Bro player switches the TV to the frame rate of the video, so that it plays smoothly. The screen goes black for a moment when it switches.</string>
+    <string name="settings_match_frame_rate_summary">The built-in player switches the TV to the frame rate of the video, so that it plays smoothly. The screen goes black for a moment when it switches.</string>
     <!-- the menu of the tracks: "Quality: 1080p" -->
     <string name="player_menu_row">%1$s: %2$s</string>
     <string name="player_quality">Quality</string>

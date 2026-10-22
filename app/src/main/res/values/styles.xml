@@ -399,6 +399,19 @@
         <item name="android:textSize">@dimen/ds_text_toast</item>
     </style>
 
+    <!-- A key of the remote on a toast (ds_key_cap_bg): its name in an outlined cap -->
+    <style name="Widget.TVBro.KeyCap" parent="">
+        <item name="android:textSize">@dimen/ds_text_key_cap</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/tbColorDsOnToast</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minWidth">@dimen/ds_key_cap_height</item>
+        <item name="android:paddingStart">@dimen/ds_key_cap_padding</item>
+        <item name="android:paddingEnd">@dimen/ds_key_cap_padding</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:background">@drawable/ds_key_cap_bg</item>
+    </style>
+
     <!-- Rows of menus and panels -->
     <style name="Widget.TVBro.Text.MenuItem">
         <item name="android:textSize">@dimen/ds_text_menu_item</item>

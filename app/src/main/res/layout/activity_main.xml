@@ -125,6 +125,17 @@
             android:text="@string/tab_options" />
     </LinearLayout>
 
+    <!-- the hint about a found video that plays in the page: at the top end, where the Videos button of the bar is -->
+    <com.phlox.tvwebbrowser.activity.main.view.PageVideoHintView
+        android:id="@+id/vPageVideoHint"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/ds_size_toast_height"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="@dimen/ds_space_screen_top"
+        android:layout_marginEnd="@dimen/ds_space_screen_x"
+        android:elevation="6dp" />
+
     <!-- above the bar (their elevation is higher) -->
     <com.phlox.tvwebbrowser.activity.main.view.TabMenuView
         android:id="@+id/vTabMenu"
