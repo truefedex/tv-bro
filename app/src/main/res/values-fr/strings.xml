@@ -123,4 +123,5 @@
     <string name="media_fast_forward">Avance rapide</string>
     <string name="long_press">Appui long</string>
     <string name="local_network_access_denied">Accès au réseau local refusé</string>
+  <string name="speak_now">Parlez maintenant</string>
 </resources>

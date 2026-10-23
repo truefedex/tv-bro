@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
+import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
@@ -84,6 +85,9 @@ interface BrowserShell {
 
     /** Something the user started will show a page (a new tab, a voice search): hide what covers it */
     fun showPage()
+
+    /** Shows a toast at the bottom center of the window: an [icon] and one line */
+    fun showMessage(@DrawableRes icon: Int, message: String)
 
     /** The [download] started: the shell tells about it */
     fun onDownloadStarted(download: Download)

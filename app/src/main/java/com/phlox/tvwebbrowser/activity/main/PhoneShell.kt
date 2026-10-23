@@ -57,7 +57,7 @@ import kotlinx.coroutines.launch
 class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     private val activity = host.activity
     /** Recognizes speech for the bookmarks search (not for the search of the bar, which shows the page) */
-    private val bookmarksVoiceSearch = VoiceSearchHelper(activity)
+    private val bookmarksVoiceSearch = VoiceSearchHelper(activity, ::showMessage)
     private val controller = host.controller
     private val vb = ActivityMainPhoneBinding.inflate(activity.layoutInflater)
 
@@ -447,6 +447,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         dispatcher.addCallback(activity, vb.vSettings.backCallback)
         dispatcher.addCallback(activity, vb.vActionsSheet.backCallback)
         dispatcher.addCallback(activity, fullscreen)
+        //the voice input of the bookmarks search: Back cancels it
+        dispatcher.addCallback(activity, bookmarksVoiceSearch.backCallback)
     }
 
     /** Videos are mostly wide: fullscreen turns the screen to landscape (either way, whatever the rotation lock) */
@@ -521,6 +523,10 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     /** Phones have the system Back and Home: no history leaves the app without closing it */
     override fun onNoBackHistory() {
         activity.moveTaskToBack(true)
+    }
+
+    override fun showMessage(icon: Int, message: String) {
+        NotificationView.show(vb.rlRoot, icon, message)
     }
 
     override fun showPage() {

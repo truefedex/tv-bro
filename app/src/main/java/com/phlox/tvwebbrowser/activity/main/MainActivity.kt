@@ -106,7 +106,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
             fullscreenBackCallback.isEnabled = value
         }
     protected val config = AppContext.provideConfig()
-    private val voiceSearchHelper = VoiceSearchHelper(this)
+    private val voiceSearchHelper = VoiceSearchHelper(this) { icon, message -> shell.showMessage(icon, message) }
     private val downloadLauncher = DownloadLauncher(this) { shell.onDownloadStarted(it) }
     var openUrlInExternalAppDialog: AlertDialog? = null
     private var tabsLoaded = false
@@ -186,6 +186,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
         shell.registerBackCallbacks(screenBackDispatcher, fullscreenBackCallback)
+        //highest priority: Back cancels the voice input in progress
+        screenBackDispatcher.addCallback(this, voiceSearchHelper.backCallback)
 
         loadState()
     }
@@ -689,7 +691,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         voiceSearchHelper.initiateVoiceSearch(object : VoiceSearchHelper.Callback {
             override fun onResult(text: String?) {
                 if (text == null) {
-                    Utils.showToast(this@MainActivity, getString(R.string.can_not_recognize))
+                    voiceSearchHelper.showCanNotRecognize()
                     return
                 }
                 search(text)

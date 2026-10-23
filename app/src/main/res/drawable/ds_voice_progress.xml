@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A quarter of a circle around the mic of voice input; it turns while the speech is recognized -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/ds_voice_progress_size"
+    android:height="@dimen/ds_voice_progress_size"
+    android:viewportWidth="56"
+    android:viewportHeight="56">
+    <path
+        android:pathData="M28,1.5A26.5,26.5 0,0 1,54.5 28"
+        android:strokeColor="?attr/tbColorDsSelected"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+</vector>

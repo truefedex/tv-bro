@@ -1,35 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+The plate of voice input (VoiceSearchHelper.VoiceInputPlateView) at the bottom center of the window, where
+toasts show: the mic in its circle and what was recognized so far. The halo behind the mic follows the
+level of the voice, the ring shows while it waits for speech, the turning arc while the speech is recognized.
+-->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:parentTag="android.widget.FrameLayout"
-    android:background="?attr/tbColorSurfaceBar"
-    android:elevation="5dp"
-    android:clipToPadding="false"
-    >
+    android:layout_height="wrap_content"
+    tools:parentTag="android.widget.FrameLayout">
 
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="@dimen/voice_recognition_results_renderer_height"
-      android:gravity="center_vertical"
-      android:orientation="horizontal"
-      >
-    <ImageView
-        android:id="@+id/ivMic"
-        android:layout_marginStart="5dp"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
-        android:src="@drawable/ic_voice_search"
-        />
-    <TextView
-        style="@style/Widget.TVBro.Text.Title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:text="Test recognized text"
-        android:textColor="?attr/tbColorOnSurface"
-        android:layout_marginStart="10dp"
-        android:id="@+id/tvResults"
-        />
-  </LinearLayout>
+    <LinearLayout
+        android:id="@+id/llPlate"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/ds_voice_plate_height"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginStart="@dimen/ds_space_screen_x"
+        android:layout_marginEnd="@dimen/ds_space_screen_x"
+        android:layout_marginBottom="@dimen/ds_toast_margin_bottom"
+        android:minWidth="@dimen/ds_voice_plate_min_width"
+        android:background="@drawable/ds_voice_plate_bg"
+        android:elevation="@dimen/ds_voice_plate_elevation"
+        android:paddingEnd="@dimen/ds_voice_plate_padding_end"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/flMic"
+            android:layout_width="@dimen/ds_voice_mic_area"
+            android:layout_height="@dimen/ds_voice_mic_area"
+            android:layout_marginStart="@dimen/ds_voice_mic_area_margin"
+            android:importantForAccessibility="noHideDescendants">
+
+            <View
+                android:id="@+id/vHalo"
+                android:layout_width="@dimen/ds_voice_mic_size"
+                android:layout_height="@dimen/ds_voice_mic_size"
+                android:layout_gravity="center"
+                android:background="@drawable/ds_voice_halo" />
+
+            <View
+                android:id="@+id/vRing"
+                android:layout_width="@dimen/ds_voice_ring_size"
+                android:layout_height="@dimen/ds_voice_ring_size"
+                android:layout_gravity="center"
+                android:background="@drawable/ds_voice_ring" />
+
+            <ImageView
+                android:id="@+id/ivMic"
+                android:layout_width="@dimen/ds_voice_mic_size"
+                android:layout_height="@dimen/ds_voice_mic_size"
+                android:layout_gravity="center"
+                android:background="@drawable/ds_voice_mic_bg"
+                android:padding="@dimen/ds_voice_mic_icon_padding"
+                android:src="@drawable/ic_voice_search"
+                app:tint="?attr/tbColorDsIcon" />
+
+            <ImageView
+                android:id="@+id/ivProgress"
+                android:layout_width="@dimen/ds_voice_progress_size"
+                android:layout_height="@dimen/ds_voice_progress_size"
+                android:layout_gravity="center"
+                android:src="@drawable/ds_voice_progress"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- One line; a long phrase loses its start, so the words said last stay in view -->
+        <TextView
+            android:id="@+id/tvResults"
+            style="@style/Widget.TVBro.Text.Address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/ds_voice_text_margin"
+            android:accessibilityLiveRegion="polite"
+            android:ellipsize="start"
+            android:singleLine="true"
+            android:textColor="?attr/tbColorDsInk"
+            tools:text="купить зимние шины" />
+    </LinearLayout>
 </merge>

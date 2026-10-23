@@ -123,4 +123,5 @@
     <string name="media_fast_forward">Přetočit vpřed</string>
     <string name="long_press">Dlouhé stisknutí</string>
     <string name="local_network_access_denied">Přístup k místní síti byl zamítnut</string>
+  <string name="speak_now">Mluvte</string>
 </resources>

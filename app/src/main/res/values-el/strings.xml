@@ -123,4 +123,5 @@
     <string name="media_fast_forward">Γρήγορη προώθηση</string>
     <string name="long_press">Παρατεταμένο πάτημα</string>
     <string name="local_network_access_denied">Δεν επιτράπηκε η πρόσβαση στο τοπικό δίκτυο</string>
+  <string name="speak_now">Μιλήστε τώρα</string>
 </resources>

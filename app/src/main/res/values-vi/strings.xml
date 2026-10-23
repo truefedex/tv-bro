@@ -122,4 +122,5 @@
   <string name="long_press">Nhấn giữ</string>
   <string name="local_network_access_denied">Đã từ chối truy cập mạng cục bộ</string>
   <string name="web_engine_debug_warning_message">Việc bật gỡ lỗi công cụ web có thể làm lộ nội dung trang, cookie và dữ liệu phiên nhạy cảm cho bất kỳ ai có quyền truy cập gỡ lỗi thiết bị. Chỉ bật trên thiết bị đáng tin cậy để khắc phục sự cố.</string>
+  <string name="speak_now">Hãy nói</string>
 </resources>

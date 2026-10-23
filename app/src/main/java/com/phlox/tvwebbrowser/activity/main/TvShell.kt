@@ -87,7 +87,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     private val activity = host.activity
     /** Recognizes speech for the bookmarks search (not for the search of the bar, which shows the page) */
-    private val bookmarksVoiceSearch = VoiceSearchHelper(activity)
+    private val bookmarksVoiceSearch = VoiceSearchHelper(activity, ::showMessage)
     private val controller = host.controller
     private val settingsModel = host.settingsModel
     private val lifecycleScope = activity.lifecycleScope
@@ -802,6 +802,10 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
     }
 
+    override fun showMessage(icon: Int, message: String) {
+        NotificationView.show(vb.rlRoot, icon, message)
+    }
+
     override fun showPage() {
         if (vb.rlActionBar.visibility == View.VISIBLE) {
             hideMenuOverlay()
@@ -995,6 +999,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, cursorModesBackCallback)
         //the built-in player over everything: Back closes it, whatever the cursor of the page under it does
         dispatcher.addCallback(activity, vb.vPlayerScreen.backCallback)
+        //the voice input of the bookmarks search: Back cancels it
+        dispatcher.addCallback(activity, bookmarksVoiceSearch.backCallback)
     }
 
     /**

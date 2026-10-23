@@ -581,4 +581,5 @@
     <string name="settings_support_author">Support the author</string>
     <string name="settings_license">License</string>
     <string name="settings_privacy_policy">Privacy policy</string>
+    <string name="speak_now">Speak now</string>
 </resources>

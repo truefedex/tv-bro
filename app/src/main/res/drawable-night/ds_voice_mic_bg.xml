@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The circle under the mic of voice input: activated (control-selected) while it listens, a control while the
+speech is recognized. The dark theme has control-focused for it (drawable-night): its control-selected is grey.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true">
+        <shape android:shape="oval">
+            <solid android:color="?attr/tbColorDsControlFocused" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="?attr/tbColorDsControl" />
+        </shape>
+    </item>
+</selector>

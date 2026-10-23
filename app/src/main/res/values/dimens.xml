@@ -13,7 +13,23 @@
 
     <dimen name="settings_content_padding">22dp</dimen>
 
-    <dimen name="voice_recognition_results_renderer_height">50dp</dimen>
+    <!--
+    The plate of voice input at the bottom of the window. The mic area is the 48dp circle with room for
+    the halo of the voice level (up to 62dp), so its margins are the plate padding (8dp) and the gutter
+    (16dp) less the 7dp the halo takes.
+    -->
+    <dimen name="ds_voice_plate_height">64dp</dimen>
+    <dimen name="ds_voice_plate_min_width">560dp</dimen>
+    <dimen name="ds_voice_plate_max_width">720dp</dimen>
+    <dimen name="ds_voice_plate_padding_end">24dp</dimen>
+    <dimen name="ds_voice_plate_elevation">4dp</dimen>
+    <dimen name="ds_voice_mic_area">62dp</dimen>
+    <dimen name="ds_voice_mic_area_margin">1dp</dimen>
+    <dimen name="ds_voice_text_margin">9dp</dimen>
+    <dimen name="ds_voice_mic_size">48dp</dimen>
+    <dimen name="ds_voice_mic_icon_padding">12dp</dimen>
+    <dimen name="ds_voice_ring_size">60dp</dimen>
+    <dimen name="ds_voice_progress_size">56dp</dimen>
 
     <!--
     Sizes of the design system and the redesign boards. TV boards are 1920x1080, so a board pixel is
