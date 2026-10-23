@@ -9,7 +9,8 @@ import android.view.View
  * template (`{{name}}`) before the page is loaded, so the pages need no bridge to the app to show the error
  */
 object ErrorPageTemplate {
-    private val HOLE = Regex("""\{\{(\w+)}}""")
+    //both braces escaped: the regular expressions of Android (ICU) refuse an unescaped "}"
+    private val HOLE = Regex("""\{\{(\w+)\}\}""")
 
     /** Puts the values into the holes of [template], escaped for HTML; a hole without a value is left empty */
     fun fill(template: String, values: Map<String, String>): String =
