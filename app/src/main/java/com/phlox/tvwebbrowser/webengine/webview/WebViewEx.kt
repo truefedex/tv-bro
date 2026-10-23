@@ -33,6 +33,7 @@ import android.webkit.SslErrorHandler
 import android.webkit.ValueCallback
 import android.webkit.WebBackForwardList
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
@@ -54,6 +55,8 @@ import com.phlox.tvwebbrowser.webengine.PageVideo
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.webengine.ErrorPageTemplate
+import com.phlox.tvwebbrowser.webengine.LoadErrorKind
+import com.phlox.tvwebbrowser.webengine.LoadErrorPage
 import java.net.URLEncoder
 import java.util.UUID
 
@@ -85,6 +88,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     var lastSSLError: SslError? = null
     var trustSsl: Boolean = false
     var currentOriginalUrl: Uri? = null
+    /** The error page of the main frame load that failed: written over the error page of WebView when it loads */
+    private var pendingErrorPage: PendingErrorPage? = null
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
     private val desktopView = DesktopView(this)
@@ -442,6 +447,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 Log.d(TAG, "onPageStarted url: $url")
+                if (pendingErrorPage?.url != url) pendingErrorPage = null
                 currentOriginalUrl = url.toUri()
                 mediaControls.onPageStarted()
                 callback.onPageStarted(url)
@@ -450,9 +456,28 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             override fun onPageFinished(view: WebView, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "onPageFinished url: $url")
+                val errorPage = pendingErrorPage
+                if (errorPage != null) {
+                    pendingErrorPage = null
+                    if (errorPage.url == url) showErrorPage(errorPage)
+                }
                 callback.onPageFinished(url)
                 evaluateJavascript(getGenericJSInjects(), null)
                 mediaControls.onPageFinished()
+            }
+
+            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                super.onReceivedError(view, request, error)
+                if (!request.isForMainFrame) return
+                val url = request.url.toString()
+                Log.d(TAG, "onReceivedError url: $url code: ${error.errorCode} ${error.description}")
+                //the certificate warning is shown instead
+                if (lastSSLError?.url == url) return
+                val kind = WebViewLoadErrors.kind(error.errorCode)
+                //the site button and the site settings tell that the connection is not secure
+                if (kind == LoadErrorKind.INSECURE) callback.onPageCertificateError(url)
+                pendingErrorPage = PendingErrorPage(url,
+                    LoadErrorPage.create(context, kind, url, error.description?.toString() ?: ""))
             }
 
             override fun onLoadResource(view: WebView, url: String) {
@@ -611,6 +636,22 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             "continue" to context.getString(R.string.go_im_aware),
             "homeUrl" to Config.HOME_PAGE_URL
         ))
+    }
+
+    private class PendingErrorPage(val url: String, val page: String)
+
+    /**
+     * Shows the error page in place of the one of WebView, which is in the history already: writing it over
+     * that one adds no entry. If its scripts do not run there, it is loaded instead (Back then goes through
+     * the page of WebView too)
+     */
+    private fun showErrorPage(errorPage: PendingErrorPage) {
+        evaluateJavascript(WebViewLoadErrors.replaceDocumentScript(errorPage.page)) { result ->
+            if (result != "true") {
+                Log.w(TAG, "Failed to replace the error page of WebView: $result")
+                loadDataWithBaseURL(null, errorPage.page, "text/html", "UTF-8", errorPage.url)
+            }
+        }
     }
 
     private fun sslErrorDescription(error: SslError): String = when (error.primaryError) {

@@ -240,29 +240,34 @@ button:hover, button:focus {
     </div>
 </main>
 <script>
-const state = document.body.dataset.state;
-const retry = document.getElementById("retry");
-const back = document.getElementById("back");
+//in a function: WebView writes the page over its own error page, whose globals stay
+(function () {
+    const state = document.body.dataset.state;
+    const retry = document.getElementById("retry");
+    const back = document.getElementById("back");
 
-document.getElementById("hostname-row").hidden = document.getElementById("hostname").textContent === "";
-//going on to a site that is not safe is not offered: going back is the only way out
-retry.hidden = state === "insecure" || state === "dangerous" || retry.dataset.url === "";
-const primary = retry.hidden ? back : retry;
-primary.classList.add("primary");
+    document.getElementById("hostname-row").hidden = document.getElementById("hostname").textContent === "";
+    //going on to a site that is not safe is not offered: going back is the only way out
+    retry.hidden = state === "insecure" || state === "dangerous" || retry.dataset.url === "";
+    const primary = retry.hidden ? back : retry;
+    primary.classList.add("primary");
 
-retry.addEventListener("click", function () {
-    location.replace(retry.dataset.url);
-});
-back.addEventListener("click", function () {
-    if (history.length > 1) {
-        history.back();
-    } else {
-        location.href = back.dataset.home;
+    retry.addEventListener("click", function () {
+        location.replace(retry.dataset.url);
+    });
+    back.addEventListener("click", function () {
+        if (history.length > 1) {
+            history.back();
+        } else {
+            location.href = back.dataset.home;
+        }
+    });
+    if (!matchMedia("(max-width: 600px)").matches) {
+        primary.focus();
     }
-});
-if (!matchMedia("(max-width: 600px)").matches) {
-    primary.focus();
-}
+    //WebView checks that the page took the place of its own
+    window.TVBRO_errorPage = true;
+})();
 </script>
 </body>
 </html>
