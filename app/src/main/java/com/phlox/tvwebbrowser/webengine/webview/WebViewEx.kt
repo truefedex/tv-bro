@@ -29,6 +29,8 @@ import android.webkit.HttpAuthHandler
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
 import android.webkit.PermissionRequest
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.SafeBrowsingResponse
 import android.webkit.SslErrorHandler
 import android.webkit.ValueCallback
 import android.webkit.WebBackForwardList
@@ -41,6 +43,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.EditText
 import android.widget.LinearLayout
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
@@ -90,6 +93,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     var currentOriginalUrl: Uri? = null
     /** The error page of the main frame load that failed: written over the error page of WebView when it loads */
     private var pendingErrorPage: PendingErrorPage? = null
+    /** The url and the threat type of the last Safe Browsing hit of the main frame, for its error page */
+    private var safeBrowsingThreat: Pair<String, Int>? = null
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
     private val desktopView = DesktopView(this)
@@ -137,13 +142,13 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onPageVideosChanged(videos: List<PageVideo>)
         /** The video of the page the media the keys control plays changed (null: none is known) */
         fun onMediaVideoChanged(video: PageVideo?)
+        /** The renderer process of the view died ([didCrash], or the system killed it): the view can not be used */
+        fun onRenderProcessGone(didCrash: Boolean)
     }
 
     init {
         with(settings) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                safeBrowsingEnabled = callback.isAdBlockingEnabled()
-            }
+            //Safe Browsing is always on (the default of WebView), whether ads of the site are blocked or not
             javaScriptEnabled = true
             useWideViewPort = true
             loadWithOverviewMode = true
@@ -476,8 +481,36 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 val kind = WebViewLoadErrors.kind(error.errorCode)
                 //the site button and the site settings tell that the connection is not secure
                 if (kind == LoadErrorKind.INSECURE) callback.onPageCertificateError(url)
-                pendingErrorPage = PendingErrorPage(url,
-                    LoadErrorPage.create(context, kind, url, error.description?.toString() ?: ""))
+                val threat = safeBrowsingThreat?.takeIf { it.first == url }
+                safeBrowsingThreat = null
+                val errorCode = if (error.errorCode == ERROR_UNSAFE_RESOURCE && threat != null) {
+                    WebViewLoadErrors.safeBrowsingThreatName(threat.second)
+                } else {
+                    error.description?.toString() ?: ""
+                }
+                pendingErrorPage = PendingErrorPage(url, LoadErrorPage.create(context, kind, url, errorCode))
+            }
+
+            @RequiresApi(Build.VERSION_CODES.O)
+            override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                Log.e(TAG, "onRenderProcessGone crash: ${detail.didCrash()}")
+                //the engine drops this view; returning false would end the app
+                callback.onRenderProcessGone(detail.didCrash())
+                return true
+            }
+
+            @RequiresApi(Build.VERSION_CODES.O_MR1)
+            override fun onSafeBrowsingHit(view: WebView, request: WebResourceRequest, threatType: Int,
+                                           callback: SafeBrowsingResponse) {
+                Log.w(TAG, "onSafeBrowsingHit url: ${request.url} threat: $threatType main frame: ${request.isForMainFrame}")
+                if (request.isForMainFrame) {
+                    //instead of the warning of WebView: the load fails with ERROR_UNSAFE_RESOURCE, and
+                    //onReceivedError shows the page of a dangerous site
+                    safeBrowsingThreat = request.url.toString() to threatType
+                    callback.backToSafety(false)
+                } else {
+                    super.onSafeBrowsingHit(view, request, threatType, callback)
+                }
             }
 
             override fun onLoadResource(view: WebView, url: String) {
@@ -640,6 +673,11 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
     private class PendingErrorPage(val url: String, val page: String)
 
+    /** Shows the error page of [kind] for [url] as a page of its own (a new view, which has no page to replace) */
+    fun showLoadErrorPage(kind: LoadErrorKind, url: String, errorCode: String) {
+        loadDataWithBaseURL(null, LoadErrorPage.create(context, kind, url, errorCode), "text/html", "UTF-8", url)
+    }
+
     /**
      * Shows the error page in place of the one of WebView, which is in the history already: writing it over
      * that one adds no entry. If its scripts do not run there, it is loaded instead (Back then goes through
@@ -743,13 +781,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 this.grant(resources.toTypedArray())
             }
             webPermissionsRequest = null
-        }
-    }
-
-    fun onUpdateAdblockSetting(adblockEnabled: Boolean) {
-        //called on every page start: change the setting only when it differs
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && settings.safeBrowsingEnabled != adblockEnabled) {
-            settings.safeBrowsingEnabled = adblockEnabled
         }
     }
 

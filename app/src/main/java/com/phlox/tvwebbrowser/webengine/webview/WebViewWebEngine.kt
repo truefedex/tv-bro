@@ -23,6 +23,7 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
+import com.phlox.tvwebbrowser.webengine.LoadErrorKind
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
@@ -61,6 +62,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     private val _mediaVideo = MutableStateFlow<PageVideo?>(null)
     override val mediaVideo: StateFlow<PageVideo?> = _mediaVideo.asStateFlow()
     private val jsInterface = AndroidJSInterface(this)
+    /** The page whose renderer died while the tab was shown: the next view shows the page of the crash for it */
+    private var lostPage: LostPage? = null
+
+    private class LostPage(val url: String, val crashed: Boolean)
 
     override fun getWebEngineName(): String = "WebView"
 
@@ -165,6 +170,11 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             //a new cursor surface starts in the cursor mode
             _cursorModes.value = CursorModes()
             this.webView = webView
+            lostPage?.let {
+                lostPage = null
+                webView.showLoadErrorPage(LoadErrorKind.CRASHED, it.url,
+                    if (it.crashed) "RENDER_PROCESS_CRASHED" else "RENDER_PROCESS_KILLED")
+            }
         }
         return webView!!
     }
@@ -194,7 +204,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     }
 
     override fun onUpdateAdblockSetting(newState: Boolean) {
-        webView?.onUpdateAdblockSetting(newState)
+        //nothing to set: WebViewEx asks EnginePolicies.isAdBlockingEnabled for each request
     }
 
     override fun hideFullscreenView() {
@@ -247,23 +257,25 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         cursorLayout?.let { (it.parent as? ViewGroup)?.removeView(it) }
         callback = null
         if (completely) {
-            webView = null
-            cursorLayout = null
-            _mediaState.value = null
-            _pageVideos.value = emptyList()
-            _mediaVideo.value = null
+            dropView()
         }
     }
 
     override fun trimMemory() {
         val webView = webView
         if (webView != null && !webView.isAttachedToWindow) {
-            this.webView = null
-            cursorLayout = null
-            _mediaState.value = null
-            _pageVideos.value = emptyList()
-            _mediaVideo.value = null
+            dropView()
         }
+    }
+
+    /** Forgets the view and its cursor surface (taking them out of the window); a new one is created when needed */
+    private fun dropView() {
+        cursorLayout?.let { (it.parent as? ViewGroup)?.removeView(it) }
+        webView = null
+        cursorLayout = null
+        _mediaState.value = null
+        _pageVideos.value = emptyList()
+        _mediaVideo.value = null
     }
 
     override fun onLongPress(x: Int, y: Int) {
@@ -333,6 +345,23 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             }
             webView?.visibility = View.VISIBLE
             callback?.onExitFullscreen()
+        }
+
+        override fun onRenderProcessGone(didCrash: Boolean) {
+            val webView = webView ?: return
+            val url = webView.url ?: tab.url
+            if (fullScreenView != null) {
+                fullScreenView = null
+                callback?.onExitFullscreen()
+            }
+            dropView()
+            webView.destroy()
+            //a background tab gets a new view, restored from its saved state, when it is shown;
+            //the current one shows the page of the crash in a new view now
+            val callback = callback ?: return
+            this@WebViewWebEngine.callback = null
+            lostPage = LostPage(url, didCrash)
+            callback.onEngineViewLost()
         }
 
         override fun onProgressChanged(newProgress: Int) {

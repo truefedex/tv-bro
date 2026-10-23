@@ -30,6 +30,11 @@ interface TabEngineEvents {
     fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int)
     /** The built-in home page has loaded; its search bar is at [x], [y] (pixels of the engine view) */
     fun onHomePageSearchBarLocated(x: Int, y: Int)
+    /**
+     * The engine lost its view (the process that drew it died) and dropped it: the core attaches a new one,
+     * which [WebEngine.getOrCreateView] gives with what the engine shows after such a loss
+     */
+    fun onEngineViewLost()
 }
 
 /**

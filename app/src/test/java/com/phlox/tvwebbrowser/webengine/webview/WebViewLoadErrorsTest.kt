@@ -29,6 +29,15 @@ class WebViewLoadErrorsTest {
     }
 
     @Test
+    fun safeBrowsingThreatsAreNamed() {
+        assertEquals("SAFE_BROWSING_THREAT_PHISHING",
+            WebViewLoadErrors.safeBrowsingThreatName(WebViewClient.SAFE_BROWSING_THREAT_PHISHING))
+        assertEquals("SAFE_BROWSING_THREAT_MALWARE",
+            WebViewLoadErrors.safeBrowsingThreatName(WebViewClient.SAFE_BROWSING_THREAT_MALWARE))
+        assertEquals("SAFE_BROWSING_THREAT_UNKNOWN", WebViewLoadErrors.safeBrowsingThreatName(42))
+    }
+
+    @Test
     fun otherErrorsAreGeneric() {
         for (code in listOf(WebViewClient.ERROR_UNKNOWN, WebViewClient.ERROR_BAD_URL,
                 WebViewClient.ERROR_UNSUPPORTED_SCHEME, WebViewClient.ERROR_REDIRECT_LOOP)) {

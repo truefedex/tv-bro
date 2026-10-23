@@ -820,6 +820,19 @@ class BrowserController : ActiveModel() {
             publishState()
         }
 
+        override fun onEngineViewLost() {
+            //only the current tab gets the callbacks; the others get a new view when they are shown
+            val host = viewHost ?: return
+            if (currentTab.value != tab) return
+            tab.loading = false
+            if (host.createTabView(tab) == null) return
+            applySiteView(tab)
+            tab.webEngine.onAttachToWindow(engineCallback(tab, host), host.tabsContainer)
+            tab.webEngine.onUpdateAdblockSetting(isAdBlockEnabled(tab))
+            tab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(AppContext.get()))
+            publishState()
+        }
+
         override fun onBlockedAd(uri: String) {
             Log.i(TAG, "onBlockedAd: $uri")
             //the engine may still report requests blocked before the setting changed

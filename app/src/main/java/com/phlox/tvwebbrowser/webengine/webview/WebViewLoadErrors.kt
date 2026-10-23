@@ -17,6 +17,17 @@ object WebViewLoadErrors {
         else -> LoadErrorKind.GENERIC
     }
 
+    /**
+     * The error code the page shows for a Safe Browsing hit (WebView reports the load as `net::ERR_ABORTED`)
+     */
+    fun safeBrowsingThreatName(threatType: Int): String = when (threatType) {
+        WebViewClient.SAFE_BROWSING_THREAT_MALWARE -> "SAFE_BROWSING_THREAT_MALWARE"
+        WebViewClient.SAFE_BROWSING_THREAT_PHISHING -> "SAFE_BROWSING_THREAT_PHISHING"
+        WebViewClient.SAFE_BROWSING_THREAT_UNWANTED_SOFTWARE -> "SAFE_BROWSING_THREAT_UNWANTED_SOFTWARE"
+        WebViewClient.SAFE_BROWSING_THREAT_BILLING -> "SAFE_BROWSING_THREAT_BILLING"
+        else -> "SAFE_BROWSING_THREAT_UNKNOWN"
+    }
+
     /** A script that puts [page] in the place of the document; it gives `true` if the scripts of [page] ran */
     fun replaceDocumentScript(page: String): String =
         "(function(){document.open();document.write(${JSONObject.quote(page)});document.close();" +

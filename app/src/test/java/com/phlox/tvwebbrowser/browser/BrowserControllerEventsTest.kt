@@ -95,6 +95,14 @@ class BrowserControllerEventsTest {
         controller.openInNewTab(url, controller.tabsStates.size, navigateImmediately = true)!!
 
     private val BrowserTab.callback: WebEngineCallbacks get() = fakeEngine.callback!!
+
+    /** What an engine does when the process that draws its view dies: it drops the view */
+    private fun loseView(tab: BrowserTab, callback: WebEngineCallbacks) {
+        tab.fakeEngine.engineView = null
+        tab.fakeEngine.callback = null
+        tab.fakeEngine.log.clear()
+        callback.onEngineViewLost()
+    }
     private val state get() = controller.currentTabState.value
 
     @Test
@@ -127,6 +135,33 @@ class BrowserControllerEventsTest {
         assertEquals("https://a.com/page", state.url)
         assertEquals(0, state.blockedAds)
         assertEquals(0, state.blockedPopups)
+    }
+
+    @Test
+    fun currentTabGetsANewViewWhenItsViewIsLost() {
+        val tab = open("https://a.com/")
+        val loaded = tab.fakeEngine.loadedUrls.toList()
+        loseView(tab, tab.callback)
+        assertTrue(tab.fakeEngine.engineView != null)
+        assertEquals(listOf("attach"), tab.fakeEngine.log)
+        assertSame(host.tabsContainer, tab.fakeEngine.parent)
+        //the engine shows what it shows after such a loss: the core neither restores nor loads a page
+        assertEquals(loaded, tab.fakeEngine.loadedUrls)
+        assertTrue(state.hasTab)
+    }
+
+    @Test
+    fun backgroundTabGetsItsNewViewWhenShown() {
+        val a = open("https://a.com/")
+        val aCallback = a.callback
+        open("https://b.com/")
+        loseView(a, aCallback)
+        assertNull(a.fakeEngine.engineView)
+        assertTrue(a.fakeEngine.log.isEmpty())
+
+        controller.changeTab(a)
+        assertTrue(a.fakeEngine.engineView != null)
+        assertTrue(a.fakeEngine.log.contains("attach"))
     }
 
     @Test
