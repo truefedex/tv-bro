@@ -129,7 +129,9 @@ class SyncServer(
     }
 
     private fun closeSessions() {
-        for (socket in sessionSockets.toList()) {
+        //the iterator of a concurrent set is safe while sessions remove their sockets (a copy made with
+        //toList() is not: it reads the size first, then fails when a socket is gone before it is taken)
+        for (socket in sessionSockets) {
             sessionSockets -= socket
             try {
                 socket.close()
