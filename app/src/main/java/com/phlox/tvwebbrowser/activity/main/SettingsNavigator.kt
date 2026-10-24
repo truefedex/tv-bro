@@ -49,7 +49,7 @@ class SettingsNavigator(
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_CACHE, ENGINE_DEBUG,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
-        LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY
+        LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, LINK_PUBLIC_SUFFIX_LIST
     }
 
     /** The values that are read when the app starts: changing one needs a restart */
@@ -247,6 +247,8 @@ class SettingsNavigator(
         const val URL_WHY_ICON = "https://tv-bro-3546c.web.app/msg001.html"
         const val URL_LICENSE = "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/LICENSE.md"
         const val URL_PRIVACY_POLICY = "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/PRIVACY.md"
+        /** The data of the ad blocker (MPL-2.0, which asks to tell where its source is) */
+        const val URL_PUBLIC_SUFFIX_LIST = "https://publicsuffix.org/"
 
         /** The index of the custom search engine in the options of Search engine */
         val CUSTOM_SEARCH_ENGINE = Config.SearchEnginesURLs.size - 1
@@ -687,7 +689,8 @@ class SettingsNavigator(
             Row.Link(Key.LINK_SUPPORT, string(R.string.settings_support_author), URL_SUPPORT_AUTHOR),
             Row.Link(Key.LINK_ICON, string(R.string.why_icon_changed), URL_WHY_ICON),
             Row.Link(Key.LINK_LICENSE, string(R.string.settings_license), URL_LICENSE),
-            Row.Link(Key.LINK_PRIVACY, string(R.string.settings_privacy_policy), URL_PRIVACY_POLICY)
+            Row.Link(Key.LINK_PRIVACY, string(R.string.settings_privacy_policy), URL_PRIVACY_POLICY),
+            Row.Link(Key.LINK_PUBLIC_SUFFIX_LIST, string(R.string.settings_public_suffix_list), URL_PUBLIC_SUFFIX_LIST)
         ))
         return sections
     }

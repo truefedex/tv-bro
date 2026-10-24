@@ -40,12 +40,9 @@ class Config(val prefs: SharedPreferences) {
         const val INITIAL_BOOKMARKS_SUGGESTIONS_LOADED = "initial_bookmarks_suggestions_loaded"
         const val ADBLOCK_ENABLED_PREF_KEY = "adblock_enabled"
         const val TRACKING_PROTECTION_KEY = "tracking_protection"
-        const val ADBLOCK_LAST_UPDATE_LIST_KEY = "adblock_last_update"
-        const val ADBLOCK_LIST_URL_KEY = "adblock_list_url"
         const val APP_WEB_EXTENSION_VERSION_KEY = "app_web_extension_version"
         const val APP_VERSION_CODE_MARK_KEY = "app_version_code_mark"
 
-        const val DEFAULT_ADBLOCK_LIST_URL = "https://easylist.to/easylist/easylist.txt"
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Startpage", "Custom")
         val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "startpage", "custom")
         val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
@@ -243,13 +240,6 @@ class Config(val prefs: SharedPreferences) {
             prefs.edit().putBoolean(TRACKING_PROTECTION_KEY, value).apply()
         }
 
-    var adBlockListURL = ObservableStringPreference(DEFAULT_ADBLOCK_LIST_URL, ADBLOCK_LIST_URL_KEY)
-
-    var adBlockListLastUpdate: Long
-        get() = prefs.getLong(ADBLOCK_LAST_UPDATE_LIST_KEY, 0)
-        set(value) {
-            prefs.edit().putLong(ADBLOCK_LAST_UPDATE_LIST_KEY, value).apply()
-        }
 
     var appWebExtensionVersion: Int
         get() = prefs.getInt(APP_WEB_EXTENSION_VERSION_KEY, 0)

@@ -39,7 +39,7 @@ class AdblockBenchActivity : Activity() {
         }
         thread(name = "AdblockBench") {
             try {
-                AdblockBench(dir, File(filesDir, "adblock-bench"), log).run(listOf(NativeAdBlockBenchTarget(), KotlinAdBlockBenchTarget(assets)))
+                AdblockBench(dir, File(filesDir, "adblock-bench"), log).run(listOf(KotlinAdBlockBenchTarget(assets)))
                 log("done")
             } catch (e: Throwable) {
                 Log.e(TAG, "benchmark failed", e)
