@@ -1,53 +1,63 @@
+// The background script of the extension. It holds each request until the app tells whether it is an ad
+// (AppWebExtensionBackgroundPortDelegate) or the timeout passes.
 console.log("TV Bro background extension loaded");
 
-let requests = new Map();
-let tvBroPort = browser.runtime.connectNative("tvbro_bg");
+const RESOLVE_TIMEOUT_MS = 1500;
+// The requests waiting for the app, by id: { resolve, started, timer }
+const pending = new Map();
+const tvBroPort = browser.runtime.connectNative("tvbro_bg");
+
+// The answer times of the app, logged every STATS_EVERY answers (shown with the engine debugging on)
+const STATS_EVERY = 200;
+let answerTimes = [];
+let timeouts = 0;
+
+function recordAnswer(ms) {
+    answerTimes.push(ms);
+    if (answerTimes.length < STATS_EVERY) return;
+    const sorted = answerTimes.sort((a, b) => a - b);
+    const at = (p) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))].toFixed(1);
+    console.log(`TV Bro ad blocking: ${sorted.length} answers in ms p50 ${at(0.5)} p90 ${at(0.9)} ` +
+        `p99 ${at(0.99)} max ${sorted[sorted.length - 1].toFixed(1)}, timeouts so far ${timeouts}`);
+    answerTimes = [];
+}
 
 tvBroPort.onMessage.addListener(response => {
-    //console.log("Received: " + JSON.stringify(response));
-    if (response.action === "onResolveRequest") {
-        let id = response.data.requestId;
-        let block = response.data.block;
-        //console.log("Requests contents: " + JSON.stringify(Array.from(requests.keys())));
-        if (requests.has(id.toString())) {
-            let request = requests.get(id.toString());
-            //console.log("Request resolved id: " + id);
-            requests.delete(id.toString());
-            //console.log("Requests size: " + requests.size);
-            request.resolverRef({ cancel: block });
-        }
-    }
+    if (response.action !== "onResolveRequest") return;
+    const id = String(response.data.requestId);
+    const request = pending.get(id);
+    //answered after the timeout
+    if (!request) return;
+    pending.delete(id);
+    clearTimeout(request.timer);
+    recordAnswer(performance.now() - request.started);
+    request.resolve({ cancel: response.data.block });
 });
-//tvBroPort.postMessage("Hello from WebExtension!");
 
 browser.webRequest.onBeforeRequest.addListener(
     function (details) {
-        let id = details.requestId;
-        let resolverRef = null;
-        let promise = new Promise((resolve, reject) => {
-            resolverRef = resolve;
-            setTimeout(() => {
-                if (requests.has(id)) {
-                    let request = requests.get(id);
-                    let time = new Date() - request.time;
-                    //console.log("Request block timeout id: " + id);
-                    requests.delete(id);
-                    resolve({ cancel: false });
-                } else {
-                    //console.log("Request processed by blocking rules id: " + id);
+        //pages are not blocked, only what they load
+        if (details.type === "main_frame") return;
+        const id = String(details.requestId);
+        return new Promise(resolve => {
+            const timer = setTimeout(() => {
+                if (!pending.delete(id)) return;
+                timeouts++;
+                console.log("TV Bro ad blocking: no answer in time for " + details.url);
+                resolve({ cancel: false });
+            }, RESOLVE_TIMEOUT_MS);
+            pending.set(id, { resolve: resolve, started: performance.now(), timer: timer });
+            tvBroPort.postMessage({
+                action: "onBeforeRequest",
+                details: {
+                    requestId: details.requestId,
+                    url: details.url,
+                    type: details.type,
+                    originUrl: details.originUrl,
+                    documentUrl: details.documentUrl
                 }
-            }, 1500);
+            });
         });
-        requests.set(id, {
-            details: details,
-            time: new Date(),
-            promise: promise,
-            resolverRef: resolverRef
-        });
-
-        //console.log('onBeforeRequest url: ' + details.url);
-        tvBroPort.postMessage({ action: "onBeforeRequest", details: details });
-        return promise;
     },
     { urls: ["<all_urls>"] },
     ["blocking"]

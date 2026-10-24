@@ -410,7 +410,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             }
 
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                Log.d(TAG, "shouldInterceptRequest url: ${request.url}")
                 val currentPageUrl = currentOriginalUrl
 
                 if (currentPageUrl != null && currentPageUrl.toString().startsWith(Config.HOME_PAGE_URL,
@@ -441,7 +440,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
                 val ad = currentPageUrl?.let { callback.isAd(request, it)} ?: false
                 return if (ad) {
-                    Log.d(TAG, "Blocked ads request: ${request.url}")
                     uiHandler.post { callback.onBlockedAd(request.url) }
                     val response = WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
                     response.setStatusCodeAndReasonPhrase(403, "Blocked")
