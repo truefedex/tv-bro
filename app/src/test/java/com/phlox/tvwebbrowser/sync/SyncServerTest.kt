@@ -251,6 +251,29 @@ class SyncServerTest {
     }
 
     @Test
+    fun destroyingTheServerEndsItsSessions() = runBlocking {
+        val tv = pair()
+        val (failure, millis) = client.session(tv) { session ->
+            session.openTabs(listOf(SyncTab("https://a.com/", "A")))
+            server.destroy()
+            val start = System.currentTimeMillis()
+            val failure = try {
+                session.openTabs(listOf(SyncTab("https://b.com/", "B")))
+                null
+            } catch (e: java.io.IOException) {
+                e
+            }
+            failure to System.currentTimeMillis() - start
+        }
+        //the TV closed the connection: no answer (an error of a request is a SyncException), and no wait
+        //for the read timeout of the phone
+        assertNotNull(failure)
+        assertFalse(failure is SyncException)
+        assertTrue("took $millis ms", millis < 5000)
+        assertEquals(listOf("https://a.com/"), opened.map { it.url })
+    }
+
+    @Test
     fun aTvThatIsNotThereIsUnreachable() = runBlocking {
         val tv = pair()
         server.stop()

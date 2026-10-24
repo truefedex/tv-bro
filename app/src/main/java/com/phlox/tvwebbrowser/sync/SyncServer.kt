@@ -26,6 +26,8 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketTimeoutException
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The server of a TV: paired phones connect to it to open tabs and to send bookmarks, a new phone pairs
@@ -67,6 +69,10 @@ class SyncServer(
     private val scope = CoroutineScope(SupervisorJob() + mainDispatcher)
     private var serverSocket: ServerSocket? = null
     private var acceptJob: Job? = null
+    /** The connections of the sessions: cancelling a coroutine does not end a blocked read, closing its socket does */
+    private val sessionSockets: MutableSet<Socket> = Collections.newSetFromMap(ConcurrentHashMap())
+    @Volatile
+    private var destroyed = false
 
     @Volatile
     private var pairingSecret: ByteArray? = null
@@ -93,6 +99,9 @@ class SyncServer(
                     } catch (e: IOException) {
                         break
                     }
+                    sessionSockets += client
+                    //destroy() may have closed the sessions before this one was added
+                    if (destroyed) closeSessions()
                     scope.launch(Dispatchers.IO) { handle(client) }
                 }
             }
@@ -113,8 +122,20 @@ class SyncServer(
 
     /** Ends the sessions too */
     fun destroy() {
+        destroyed = true
         stop()
         scope.cancel()
+        closeSessions()
+    }
+
+    private fun closeSessions() {
+        for (socket in sessionSockets.toList()) {
+            sessionSockets -= socket
+            try {
+                socket.close()
+            } catch (e: IOException) {
+            }
+        }
     }
 
     /** A new secret: a phone that has the QR code can pair until [stopPairing] */
@@ -166,10 +187,13 @@ class SyncServer(
         } catch (e: SocketTimeoutException) {
             Log.d(TAG, "session of $address timed out")
         } catch (e: IOException) {
-            Log.w(TAG, "session of $address", e)
+            //after destroy() it is the closed socket
+            if (!destroyed) Log.w(TAG, "session of $address", e)
         } catch (e: Exception) {
             //any device of the network can open a session: nothing it sends may stop the app
             Log.e(TAG, "session of $address", e)
+        } finally {
+            sessionSockets -= socket
         }
     }
 
