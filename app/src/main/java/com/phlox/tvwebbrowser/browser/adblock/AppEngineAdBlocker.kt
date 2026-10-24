@@ -26,9 +26,20 @@ class AppEngineAdBlocker(
         val urlString = url.toString()
         val types = if (type != null) ResourceType.fromWebExtension(type) else
             ResourceType.guessFromAccept(acceptHeader, urlString, isMainFrame)
-        //a page is first-party to itself
-        val page = if (isMainFrame) url else documentUrl
+        val page = when {
+            //a page is first-party to itself
+            isMainFrame -> url
+            //a frame of about:blank, about:srcdoc, data: or blob: is of the page that made it (the ads of
+            //such frames would else be of no site, and no third-party filter would apply)
+            documentUrl != null && isWebUrl(documentUrl) -> documentUrl
+            else -> topUrl ?: documentUrl
+        }
         return engine.match(urlString, host, page?.toString(), page?.host, types) == MatchResult.BLOCK
+    }
+
+    private fun isWebUrl(uri: Uri): Boolean {
+        val scheme = uri.scheme
+        return (scheme == "http" || scheme == "https") && !uri.host.isNullOrEmpty()
     }
 
     override val blocksPages: Boolean get() = service.engine?.blocksPages ?: false

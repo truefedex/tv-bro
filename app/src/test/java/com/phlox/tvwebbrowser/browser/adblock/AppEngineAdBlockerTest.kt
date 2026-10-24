@@ -85,6 +85,15 @@ class AppEngineAdBlockerTest {
     }
 
     @Test
+    fun framesWithoutAnAddressAreOfTheTabsPage() {
+        //an ad frame (about:blank) of site.com loads a third-party script
+        assertTrue(gecko("https://ping.example.org/collect", "ping", document = "about:blank", top = "https://site.com/"))
+        assertTrue(gecko("https://ping.example.org/collect", "ping", document = "about:srcdoc", top = "https://site.com/"))
+        //the same site is not third-party
+        assertFalse(gecko("https://cdn.site.com/collect", "ping", document = "about:blank", top = "https://site.com/"))
+    }
+
+    @Test
     fun theGlobalSetting() {
         config.adBlockEnabled = false
         assertFalse(webView("https://ads.example.net/a.js"))
