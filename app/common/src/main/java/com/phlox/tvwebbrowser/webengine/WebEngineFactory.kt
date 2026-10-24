@@ -62,6 +62,10 @@ object WebEngineFactory {
     private var registeredProvider: WebEngineProvider? = null
     private lateinit var initializedProvider: WebEngineProvider
 
+    /** Set by the app in the browser processes; null blocks nothing */
+    @Volatile
+    var adBlocker: EngineAdBlocker? = null
+
     fun registerProvider(provider: WebEngineProvider) {
         val registered = registeredProvider
         check(registered == null || registered.name == provider.name) {

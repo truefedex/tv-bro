@@ -53,6 +53,7 @@ import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.webengine.MediaCommand
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideo
 import com.phlox.tvwebbrowser.R
@@ -91,6 +92,13 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     var lastSSLError: SslError? = null
     var trustSsl: Boolean = false
     var currentOriginalUrl: Uri? = null
+    /**
+     * The page the requests come from, for ad blocking: the page that started, or the main frame request of the
+     * navigation in progress (requests of the new page can come before [WebViewClient.onPageStarted] reaches
+     * the main thread). Written on the threads of WebView too.
+     */
+    @Volatile
+    private var requestPageUrl: Uri? = null
     /** The error page of the main frame load that failed: written over the error page of WebView when it loads */
     private var pendingErrorPage: PendingErrorPage? = null
     /** The url and the threat type of the last Safe Browsing hit of the main frame, for its error page */
@@ -123,9 +131,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onScrolled(scrollY: Int, dy: Int)
         fun onPageFinished(url: String?)
         fun onPageCertificateError(url: String?)
-        fun isAdBlockingEnabled(): Boolean
         fun isDialogsBlockingEnabled(): Boolean
-        fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean
         fun onBlockedAd(url: Uri)
         fun onBlockedDialog(newTab: Boolean)
         fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
@@ -434,11 +440,12 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                     }
                 }
 
-                if (!callback.isAdBlockingEnabled()) {
-                    return super.shouldInterceptRequest(view, request)
-                }
-
-                val ad = currentPageUrl?.let { callback.isAd(request, it)} ?: false
+                //every tab asks, also one in the background (its callbacks are not set then)
+                val blocker = WebEngineFactory.adBlocker ?: return super.shouldInterceptRequest(view, request)
+                val isMainFrame = request.isForMainFrame
+                if (isMainFrame) requestPageUrl = request.url
+                val page = if (isMainFrame) request.url else requestPageUrl ?: currentPageUrl
+                val ad = blocker.shouldBlock(request.url, null, request.requestHeaders["Accept"], isMainFrame, page, page)
                 return if (ad) {
                     uiHandler.post { callback.onBlockedAd(request.url) }
                     val response = WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
@@ -452,6 +459,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 Log.d(TAG, "onPageStarted url: $url")
                 if (pendingErrorPage?.url != url) pendingErrorPage = null
                 currentOriginalUrl = url.toUri()
+                requestPageUrl = currentOriginalUrl
                 mediaControls.onPageStarted()
                 callback.onPageStarted(url)
             }
@@ -576,6 +584,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
         setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
             Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
+            //the navigation became a download: the page stays
+            requestPageUrl = currentOriginalUrl
             if (url.startsWith("blob:")) {
                 //nop. we handle this by injected js on onPageFinished
             } else {
@@ -589,6 +599,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     override fun restoreState(inState: Bundle): WebBackForwardList? {
         val result = super.restoreState(inState)
         currentOriginalUrl = url?.toUri()
+        requestPageUrl = currentOriginalUrl
         return result
     }
 

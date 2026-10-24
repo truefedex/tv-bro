@@ -16,9 +16,9 @@ import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /**
@@ -44,7 +44,7 @@ class AppSettingsStore(
     }
 
     private val config = AppContext.provideConfig()
-    private val adblock = ActiveModelsRepository.get(AdblockModel::class, activity)
+    private val adblock = TVBro.container.adBlock
     private val autoUpdate = ActiveModelsRepository.get(AutoUpdateModel::class, activity)
     private val shortcuts = ShortcutMgr.getInstance(activity)
 
@@ -73,19 +73,15 @@ class AppSettingsStore(
     override var allowAutoplayMedia: Boolean by config::allowAutoplayMedia
     override var adBlockEnabled: Boolean by config::adBlockEnabled
     override var filterListUrl: String
-        get() = config.adBlockListURL.value
+        get() = adblock.status.value.customUrl
         set(value) {
-            config.adBlockListURL.value = value.trim().ifEmpty { Config.DEFAULT_ADBLOCK_LIST_URL }
+            adblock.setCustomUrl(value)
         }
-    override val filterListLastUpdate: Long get() = config.adBlockListLastUpdate
-    override val filterListLoading: Flow<Boolean> = callbackFlow {
-        val observer: (Boolean) -> Unit = { trySend(it) }
-        adblock.clientLoading.subscribe(observer)
-        awaitClose { adblock.clientLoading.unsubscribe(observer) }
-    }
+    override val filterListLastUpdate: Long get() = adblock.status.value.lastUpdate
+    override val filterListLoading: Flow<Boolean> = adblock.status.map { it.updating }.distinctUntilChanged()
 
     override fun updateFilterList() {
-        adblock.loadAdBlockList(true)
+        TVBro.container.appScope.launch { adblock.update(force = true) }
     }
 
     override var interfaceMode: Config.InterfaceMode by config::interfaceMode

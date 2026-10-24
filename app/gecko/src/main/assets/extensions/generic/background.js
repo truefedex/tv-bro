@@ -6,6 +6,8 @@ const RESOLVE_TIMEOUT_MS = 1500;
 // The requests waiting for the app, by id: { resolve, started, timer }
 const pending = new Map();
 const tvBroPort = browser.runtime.connectNative("tvbro_bg");
+// Main frames are sent to the app only when its filters may block pages ("config" message)
+let checkPages = false;
 
 // The answer times of the app, logged every STATS_EVERY answers (shown with the engine debugging on)
 const STATS_EVERY = 200;
@@ -23,6 +25,10 @@ function recordAnswer(ms) {
 }
 
 tvBroPort.onMessage.addListener(response => {
+    if (response.action === "config") {
+        checkPages = !!response.checkPages;
+        return;
+    }
     if (response.action !== "onResolveRequest") return;
     const id = String(response.data.requestId);
     const request = pending.get(id);
@@ -34,10 +40,16 @@ tvBroPort.onMessage.addListener(response => {
     request.resolve({ cancel: response.data.block });
 });
 
+function topUrlOf(details) {
+    if (details.type === "main_frame") return details.url;
+    const ancestors = details.frameAncestors;
+    if (ancestors && ancestors.length > 0) return ancestors[ancestors.length - 1].url;
+    return details.documentUrl || details.originUrl;
+}
+
 browser.webRequest.onBeforeRequest.addListener(
     function (details) {
-        //pages are not blocked, only what they load
-        if (details.type === "main_frame") return;
+        if (details.type === "main_frame" && !checkPages) return;
         const id = String(details.requestId);
         return new Promise(resolve => {
             const timer = setTimeout(() => {
@@ -54,7 +66,9 @@ browser.webRequest.onBeforeRequest.addListener(
                     url: details.url,
                     type: details.type,
                     originUrl: details.originUrl,
-                    documentUrl: details.documentUrl
+                    documentUrl: details.documentUrl,
+                    // the page of the tab, whose site settings apply (the last ancestor of a frame)
+                    topUrl: topUrlOf(details)
                 }
             });
         });

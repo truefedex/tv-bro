@@ -48,6 +48,8 @@ class FilterEngine internal constructor(
     private val regexLiterals: IntArray,
     private val tables: Array<IndexTable>,
     private val psl: PublicSuffixList,
+    /** Blocking filters for pages themselves (`$document`) */
+    private val pageBlockingFilters: Int,
     /** Of the lists it was compiled from, given by the app (see [FilterCompiler.build]) */
     val fingerprint: Long,
     val createdAt: Long,
@@ -59,6 +61,9 @@ class FilterEngine internal constructor(
     }
 
     val filterCount: Int get() = flags.size
+
+    /** Whether some filters block pages themselves: engines that can skip the check of main frames must not */
+    val blocksPages: Boolean get() = pageBlockingFilters > 0
     val regexCount: Int get() = regexIds.size
 
     /** The size of the arrays of the engine, in bytes */
@@ -306,6 +311,7 @@ class FilterEngine internal constructor(
         sections[EngineFile.DOMAIN_HASHES] = domainHashes
         sections[EngineFile.REGEX_IDS] = regexIds
         sections[EngineFile.REGEX_LITERALS] = regexLiterals
+        sections[EngineFile.INFO] = intArrayOf(pageBlockingFilters)
         for (t in tables.indices) {
             tables[t].arrays().forEachIndexed { i, array -> sections[EngineFile.tableSection(t, i)] = array }
         }
@@ -344,7 +350,8 @@ class FilterEngine internal constructor(
                     domainHashes = s.getValue(EngineFile.DOMAIN_HASHES) as LongArray,
                     regexIds = s.getValue(EngineFile.REGEX_IDS) as IntArray,
                     regexLiterals = s.getValue(EngineFile.REGEX_LITERALS) as IntArray,
-                    tables = tables, psl = psl, fingerprint = content.fingerprint, createdAt = content.createdAt,
+                    tables = tables, psl = psl, pageBlockingFilters = (s.getValue(EngineFile.INFO) as IntArray)[0],
+                    fingerprint = content.fingerprint, createdAt = content.createdAt,
                     texts = null,
                 )
                 engine.validate()

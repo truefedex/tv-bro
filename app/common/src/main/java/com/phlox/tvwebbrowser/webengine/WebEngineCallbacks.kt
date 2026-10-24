@@ -38,10 +38,11 @@ interface TabEngineEvents {
 }
 
 /**
- * Content blocking and site view decisions the engine asks for.
+ * Content blocking and site view decisions the engine asks for. Ads are asked of
+ * [WebEngineFactory.adBlocker], for every tab.
  */
 interface EnginePolicies {
-    fun isAd(url: Uri, acceptHeader: String?, baseUri: Uri): Boolean?
+    /** Whether ads are blocked on the page of the tab */
     fun isAdBlockingEnabled(): Boolean
     fun isDialogsBlockingEnabled(): Boolean
     fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean

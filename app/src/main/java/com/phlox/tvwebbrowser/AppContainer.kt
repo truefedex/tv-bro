@@ -1,7 +1,9 @@
 package com.phlox.tvwebbrowser
 
 import android.content.Context
+import com.phlox.tvwebbrowser.adblock.psl.PublicSuffixList
 import com.phlox.tvwebbrowser.browser.TabFilesStore
+import com.phlox.tvwebbrowser.browser.adblock.AdBlockService
 import com.phlox.tvwebbrowser.data.DataRepositories
 import com.phlox.tvwebbrowser.service.downloads.DownloadServiceClient
 import com.phlox.tvwebbrowser.singleton.AppDatabase
@@ -9,6 +11,7 @@ import com.phlox.tvwebbrowser.utils.SerialWriteQueue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import java.io.File
 
 /**
  * Application-wide objects that live as long as the process.
@@ -27,6 +30,13 @@ class AppContainer(context: Context) {
 
     /** Engine states and thumbnails of tabs */
     val tabFiles = TabFilesStore(context.filesDir, context.cacheDir)
+
+    /** The ad blocker of the browser processes (started by TVBro; never in the process of downloads) */
+    val adBlock by lazy {
+        AdBlockService(File(appContext.filesDir, "adblock"), appScope, AppContext.provideConfig(), {
+            PublicSuffixList.load(appContext.assets.open("adblock/psl.txt").use { it.readBytes() })
+        })
+    }
 
     private val createdDatabase by lazy { AppDatabase.create(appContext) }
 

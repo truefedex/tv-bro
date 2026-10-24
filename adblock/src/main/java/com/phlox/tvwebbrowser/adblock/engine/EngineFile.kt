@@ -34,6 +34,8 @@ internal object EngineFile {
     const val DOMAIN_HASHES = 7
     const val REGEX_IDS = 8
     const val REGEX_LITERALS = 9
+    /** Small numbers: the count of page blocking filters */
+    const val INFO = 10
     /** The arrays of an [IndexTable] ([IndexTable.arrays]) */
     const val TABLE_ARRAYS = 7
 

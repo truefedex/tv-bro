@@ -24,6 +24,7 @@ import com.phlox.tvwebbrowser.adblock.psl.PublicSuffixList
  * @param keepTexts keep the lines of the filters in the engine ([FilterEngine.filterText]), for tests and debugging
  */
 class FilterCompiler(private val keepTexts: Boolean = false) {
+
     private val flags = IntList()
     private val patternOffsets = IntList()
     private val patternLengths = IntList()
@@ -174,6 +175,10 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
             flags = flagArray, patternOffsets = offsets, patternLengths = lengths, domainRefs = domainRefs.toArray(),
             pool = poolBytes, domainLists = domainLists.toArray(), domainHashes = domainHashes.toArray(),
             regexIds = regexIds.toArray(), regexLiterals = regexLiteralRefs.toArray(), tables = tables, psl = psl,
+            pageBlockingFilters = (0 until n).count {
+                val f = flagArray[it]
+                f and FilterFlags.EXCEPTION == 0 && f and ResourceType.DOCUMENT != 0
+            },
             fingerprint = fingerprint,
             createdAt = System.currentTimeMillis(), texts = texts?.toTypedArray(),
         )
@@ -205,21 +210,27 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
         return tables
     }
 
-    private companion object {
-        const val KEY_NONE = 0
-        const val KEY_HOST = 1
-        const val KEY_TOKEN = 2
-        const val MAX_TOKENS_PER_FILTER = 8
-        const val MIN_TOKEN_LENGTH = 2
-        const val COMMON_TOKEN_PENALTY = 1_000_000
+    companion object {
+        /**
+         * Raise it whenever the compiler gives other arrays for the same lists (the parser too): apps mix it
+         * into the fingerprint of their lists, so an engine file of an older compiler is built again.
+         */
+        const val VERSION = 1
+
+        private const val KEY_NONE = 0
+        private const val KEY_HOST = 1
+        private const val KEY_TOKEN = 2
+        private const val MAX_TOKENS_PER_FILTER = 8
+        private const val MIN_TOKEN_LENGTH = 2
+        private const val COMMON_TOKEN_PENALTY = 1_000_000
 
         /** Tokens of nearly every url: a filter found by one of them would be checked for most requests */
-        val COMMON_URL_TOKENS = listOf("http", "https", "www", "com", "net", "org", "js", "css", "html", "htm", "php",
+        private val COMMON_URL_TOKENS = listOf("http", "https", "www", "com", "net", "org", "js", "css", "html", "htm", "php",
             "jpg", "jpeg", "png", "gif", "webp", "svg", "json", "min", "static", "cdn", "img", "images", "api", "v1", "v2")
             .map { Hashing.token(it, 0, it.length) }.toSet()
 
         /** Non-ASCII characters as urls have them: percent-encoded UTF-8 (lowercase hex unless [upperHex]) */
-        fun encodeNonAscii(pattern: String, upperHex: Boolean): String {
+        private fun encodeNonAscii(pattern: String, upperHex: Boolean): String {
             if (pattern.all { it.code < 0x80 }) return pattern
             val sb = StringBuilder()
             val digits = if (upperHex) "0123456789ABCDEF" else "0123456789abcdef"

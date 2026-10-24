@@ -110,8 +110,7 @@ ksp {
 
 dependencies {
     implementation(project(":app:common"))
-    // the new ad blocker, for now only in the debug benchmark (AdblockBenchActivity)
-    debugImplementation(project(":adblock"))
+    implementation(project(":adblock"))
     "geckoIncludedImplementation"(project(":app:gecko"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))

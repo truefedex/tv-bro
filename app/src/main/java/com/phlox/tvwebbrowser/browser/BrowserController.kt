@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -50,6 +49,8 @@ import kotlinx.coroutines.withContext
 class BrowserController : ActiveModel() {
     companion object {
         var TAG: String = BrowserController::class.java.simpleName
+        /** The engine file loads in tens of milliseconds; a slow storage must not keep the tabs waiting */
+        private const val AD_BLOCK_LOAD_TIMEOUT_MS = 1000L
     }
 
     /**
@@ -73,9 +74,6 @@ class BrowserController : ActiveModel() {
      */
     @Volatile
     var interfaceDesktopView = true
-    var adBlocker: AdBlocker = object : AdBlocker {
-        override fun isAd(url: Uri, type: String?, baseUri: Uri) = false
-    }
 
     private val _currentTabState = MutableStateFlow(CurrentTabState())
     val currentTabState: StateFlow<CurrentTabState> = _currentTabState.asStateFlow()
@@ -137,6 +135,8 @@ class BrowserController : ActiveModel() {
         }
         //engines ask for them synchronously as soon as pages start loading
         hostConfigs.loadSiteSettings()
+        //the ad blocking engine of its file (a build from the lists goes on in the background)
+        TVBro.container.adBlock.awaitLoaded(AD_BLOCK_LOAD_TIMEOUT_MS)
         //tabs of the previous activity instance may be still saving
         writes.awaitPending()
         tabsStates.replaceAll(data.tabs.load(config.incognitoMode).map(BrowserTab::fromEntity))
@@ -633,7 +633,7 @@ class BrowserController : ActiveModel() {
     }
 
     private fun engineCallback(tab: BrowserTab, host: TabViewHost): WebEngineCallbacks {
-        val policies = TabPolicies(tab, this, adBlocker)
+        val policies = TabPolicies(tab, this)
         return WebEngineCallbacks(TabEvents(tab, policies), policies, host.uiHost(tab))
     }
 

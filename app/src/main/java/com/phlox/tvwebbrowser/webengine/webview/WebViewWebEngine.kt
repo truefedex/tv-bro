@@ -419,14 +419,6 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             callback?.onPageCertificateError(url)
         }
 
-        override fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean {
-            return callback?.isAd(request.url, request.requestHeaders["Accept"], baseUri) ?: false
-        }
-
-        override fun isAdBlockingEnabled(): Boolean {
-            return callback?.isAdBlockingEnabled() ?: false
-        }
-
         override fun isDialogsBlockingEnabled(): Boolean {
             return callback?.isDialogsBlockingEnabled() ?: false
         }

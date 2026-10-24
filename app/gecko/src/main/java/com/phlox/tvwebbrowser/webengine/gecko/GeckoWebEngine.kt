@@ -119,6 +119,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
 
                 webExtInstallResult.accept({ extension ->
                     Log.d(TAG, "extension accepted: ${extension?.metaData?.description}")
+                    extension?.let(::connectBackgroundScript)
                     appWebExtension.value = extension
                     AppContext.provideConfig().appWebExtensionVersion = APP_WEB_EXTENSION_VERSION
                 }
@@ -128,6 +129,22 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             val webView = GeckoViewWithVirtualCursor(context)
             webViewContainer.addView(webView)
             weakRefToSingleGeckoView = WeakReference(webView)
+        }
+
+        /**
+         * The port of the background script, which asks about the requests of all tabs: one delegate for the
+         * extension, not for an engine (the script, not persistent, may connect again at any time)
+         */
+        private fun connectBackgroundScript(extension: WebExtension) {
+            extension.setMessageDelegate(object : MessageDelegate {
+                override fun onMessage(nativeApp: String, message: Any,
+                                       sender: WebExtension.MessageSender): GeckoResult<Any>? = null
+
+                override fun onConnect(port: WebExtension.Port) {
+                    Log.d(TAG, "background script connected")
+                    port.setDelegate(AppWebExtensionBackgroundPortDelegate(port))
+                }
+            }, "tvbro_bg")
         }
 
         /**
@@ -303,7 +320,6 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     }
     var appHomePagePortDelegate: AppHomePagePortDelegate? = null
     var appContentScriptPortDelegate: AppContentScriptPortDelegate? = null
-    var appWebExtensionBackgroundPortDelegate: AppWebExtensionBackgroundPortDelegate? = null
     private lateinit var webExtObserver: (WebExtension?) -> Unit
 
     override val url: String?
@@ -398,21 +414,6 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                     }
                 }
             }, "tvbro")
-
-        extension.setMessageDelegate(object : MessageDelegate {
-            override fun onMessage(nativeApp: String, message: Any,
-                                   sender: WebExtension.MessageSender): GeckoResult<Any>? {
-                Log.d(TAG, "onMessage: $nativeApp, $message, $sender")
-                return null
-            }
-
-            override fun onConnect(port: WebExtension.Port) {
-                Log.d(TAG, "onConnect: $port")
-                appWebExtensionBackgroundPortDelegate = AppWebExtensionBackgroundPortDelegate(port, this@GeckoWebEngine).also {
-                    port.setDelegate(it)
-                }
-            }
-        }, "tvbro_bg")
     }
 
     override fun getWebEngineName(): String = ENGINE_NAME
