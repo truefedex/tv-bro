@@ -33,6 +33,8 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
     /** The candidate tokens of filter i are `tokens[tokenStarts[i] until tokenStarts[i + 1]]` */
     private val tokenStarts = IntList()
     private val tokens = IntList()
+    /** Where each candidate token starts in its pattern ([FilterFlags.TOKEN_OFFSET_UNKNOWN] after a `*`) */
+    private val tokenOffsets = IntList()
     /** In how many filters each token is a candidate */
     private val tokenCounts = HashMap<Int, Int>()
     private val domainHashes = LongList()
@@ -67,9 +69,12 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
         if (filter.elemHide) f = f or FilterFlags.ELEMHIDE
         if (filter.genericHide) f = f or FilterFlags.GENERICHIDE
         if (filter.isHostOnly) f = f or FilterFlags.HOST_ONLY
+        val pattern = if (filter.isRegex) filter.pattern else encodeNonAscii(filter.pattern, filter.matchCase)
+        if (!filter.isRegex && pattern.contains('*')) f = f or FilterFlags.WILDCARD
+        //a filter indexed by a token gets its offset in build()
+        f = f or (FilterFlags.TOKEN_OFFSET_UNKNOWN shl FilterFlags.TOKEN_OFFSET_SHIFT)
         flags.add(f)
 
-        val pattern = if (filter.isRegex) filter.pattern else encodeNonAscii(filter.pattern, filter.matchCase)
         val bytes = pattern.toByteArray(Charsets.UTF_8)
         patternOffsets.add(pool.size)
         for (b in bytes) pool.add(b)
@@ -98,8 +103,10 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
     private fun addTokens(pattern: String, anchoredStart: Boolean, anchoredEnd: Boolean) {
         var i = 0
         var added = 0
+        var afterStar = false
         while (i < pattern.length && added < MAX_TOKENS_PER_FILTER) {
             if (!Hashing.isTokenChar(pattern[i])) {
+                if (pattern[i] == '*') afterStar = true
                 i++
                 continue
             }
@@ -110,6 +117,7 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
             if (before && after && j - i >= MIN_TOKEN_LENGTH) {
                 val hash = Hashing.token(pattern, i, j)
                 tokens.add(hash)
+                tokenOffsets.add(if (afterStar || i >= FilterFlags.TOKEN_OFFSET_UNKNOWN) FilterFlags.TOKEN_OFFSET_UNKNOWN else i)
                 tokenCounts[hash] = (tokenCounts[hash] ?: 0) + 1
                 added++
             }
@@ -150,12 +158,14 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
             var token = 0
             val kind = if (f and FilterFlags.HOST_ONLY != 0) {
                 val host = String(poolBytes, offsets[id], lengths[id], Charsets.US_ASCII)
-                hostHash = Hashing.token(host, 0, host.length)
+                hostHash = Hashing.host(host, 0, host.length)
                 KEY_HOST
             } else {
                 val best = bestToken(id)
-                if (best == null) KEY_NONE else {
-                    token = best
+                if (best < 0) KEY_NONE else {
+                    token = tokens[best]
+                    flagArray[id] = flagArray[id] and (FilterFlags.TOKEN_OFFSET_UNKNOWN shl FilterFlags.TOKEN_OFFSET_SHIFT).inv() or
+                            (tokenOffsets[best] shl FilterFlags.TOKEN_OFFSET_SHIFT)
                     KEY_TOKEN
                 }
             }
@@ -185,15 +195,16 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
     }
 
     /** The candidate token of the filter in the fewest filters (avoiding tokens of nearly every url) */
-    private fun bestToken(id: Int): Int? {
-        var best: Int? = null
+    /** The index in [tokens] of the candidate of the filter that is in the fewest filters; -1 if none */
+    private fun bestToken(id: Int): Int {
+        var best = -1
         var bestScore = Int.MAX_VALUE
         for (i in tokenStarts[id] until tokenStarts[id + 1]) {
             val hash = tokens[i]
             val score = (tokenCounts[hash] ?: 0) + (if (hash in COMMON_URL_TOKENS) COMMON_TOKEN_PENALTY else 0)
             if (score < bestScore) {
                 bestScore = score
-                best = hash
+                best = i
             }
         }
         return best
@@ -201,7 +212,7 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
 
     private fun tablesOf(flags: Int): List<Int> {
         if (flags and FilterFlags.EXCEPTION == 0) {
-            return listOf(if (flags and FilterFlags.IMPORTANT != 0) Tables.IMPORTANT else Tables.BLOCK)
+            return if (flags and FilterFlags.IMPORTANT != 0) listOf(Tables.BLOCK, Tables.IMPORTANT) else listOf(Tables.BLOCK)
         }
         val tables = ArrayList<Int>(2)
         val pageFlags = ResourceType.DOCUMENT or FilterFlags.ELEMHIDE or FilterFlags.GENERICHIDE
@@ -215,7 +226,7 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
          * Raise it whenever the compiler gives other arrays for the same lists (the parser too): apps mix it
          * into the fingerprint of their lists, so an engine file of an older compiler is built again.
          */
-        const val VERSION = 1
+        const val VERSION = 4
 
         private const val KEY_NONE = 0
         private const val KEY_HOST = 1

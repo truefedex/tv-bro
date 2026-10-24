@@ -15,12 +15,12 @@ internal object PatternMatcher {
      */
     fun matches(
         url: String, pool: ByteArray, off: Int, len: Int,
-        anchorStart: Boolean, anchorHost: Boolean, anchorEnd: Boolean,
+        anchorStart: Boolean, anchorHost: Boolean, anchorEnd: Boolean, wildcard: Boolean,
         hostStart: Int, hostEnd: Int,
     ): Boolean {
         if (len == 0) return true
         val end = off + len
-        val firstEnd = indexOfStar(pool, off, end)
+        val firstEnd = if (wildcard) indexOfStar(pool, off, end) else end
         when {
             anchorStart -> return tryAt(url, 0, pool, off, firstEnd, end, anchorEnd)
             anchorHost -> {
@@ -47,6 +47,25 @@ internal object PatternMatcher {
                 return false
             }
         }
+    }
+
+    /**
+     * Whether the pattern matches when it starts at [start] of the url (where the url has the token the filter
+     * is indexed by, less the offset of that token in the pattern)
+     */
+    fun matchesAt(
+        url: String, start: Int, pool: ByteArray, off: Int, len: Int,
+        anchorStart: Boolean, anchorHost: Boolean, anchorEnd: Boolean, wildcard: Boolean,
+        hostStart: Int, hostEnd: Int,
+    ): Boolean {
+        if (start < 0) return false
+        if (anchorStart && start != 0) return false
+        if (anchorHost && (start < hostStart || start >= hostEnd || (start != hostStart && url[start - 1] != '.'))) {
+            return false
+        }
+        val end = off + len
+        val firstEnd = if (wildcard) indexOfStar(pool, off, end) else end
+        return tryAt(url, start, pool, off, firstEnd, end, anchorEnd)
     }
 
     /** Whether the pattern matches with its first segment ([off] until [firstEnd]) at [p] */

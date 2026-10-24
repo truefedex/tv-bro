@@ -18,14 +18,26 @@ internal object FilterFlags {
     const val GENERICHIDE = 1 shl 22
     /** `||host^`: the pattern is the host, found through the host index */
     const val HOST_ONLY = 1 shl 23
+    /** The pattern has a `*`: without one the matcher need not look for its segments */
+    const val WILDCARD = 1 shl 24
+    /**
+     * Bits 25 to 31: where the token the filter is indexed by starts in its pattern, so that the engine
+     * checks the pattern only where the url has that token; [TOKEN_OFFSET_UNKNOWN] when a `*` comes before
+     * it, it is further than 126, or the filter is not indexed by a token
+     */
+    const val TOKEN_OFFSET_SHIFT = 25
+    const val TOKEN_OFFSET_UNKNOWN = 0x7F
+
+    fun tokenOffset(flags: Int) = (flags ushr TOKEN_OFFSET_SHIFT) and TOKEN_OFFSET_UNKNOWN
 }
 
-/** The tables of filters in the order the engine checks them */
+/** The tables of filters */
 internal object Tables {
     /** Exceptions for pages: `$document`, `$elemhide`, `$generichide` */
     const val PAGE = 0
-    /** Blocking filters with `$important` */
+    /** Blocking filters with `$important`, asked only when an exception matched (they are in [BLOCK] too) */
     const val IMPORTANT = 1
+    /** All blocking filters */
     const val BLOCK = 2
     /** Exceptions for requests */
     const val ALLOW = 3

@@ -106,17 +106,20 @@ class FilterEngine internal constructor(
      */
     fun matchFilter(url: String, host: String, pageUrl: String?, pageHost: String?, types: Int): Int {
         val s = scratch.get()!!
-        if (pageUrl != null && pageHost != null && tables[Tables.PAGE].filterCount > 0 &&
-            pageExceptions(s, pageUrl, pageHost) and ResourceType.DOCUMENT != 0) {
-            return PAGE_EXCEPTION
-        }
         s.prepare(url, host, pageHost)
-        val important = find(s, tables[Tables.IMPORTANT], types)
-        if (important >= 0) return important
+        //most requests match nothing: the page and the exceptions are asked only for a block
         val block = find(s, tables[Tables.BLOCK], types)
         if (block < 0) return NO_FILTER
+        if (pageUrl != null && pageHost != null && tables[Tables.PAGE].filterCount > 0 &&
+            pageExceptions(s.page, pageUrl, pageHost) and ResourceType.DOCUMENT != 0) {
+            return PAGE_EXCEPTION
+        }
+        if (flags[block] and FilterFlags.IMPORTANT != 0) return block
         val allow = find(s, tables[Tables.ALLOW], types)
-        return if (allow >= 0) allow else block
+        if (allow < 0) return block
+        //an important filter overrides the exception
+        val important = find(s, tables[Tables.IMPORTANT], types)
+        return if (important >= 0) important else allow
     }
 
     /** The line of a filter, when the compiler kept them ([FilterCompiler] keepTexts) */
@@ -131,7 +134,7 @@ class FilterEngine internal constructor(
      * hiding), [GENERICHIDE] (no generic element hiding), as bits
      */
     fun pageExceptions(pageUrl: String, pageHost: String): Int = try {
-        pageExceptions(scratch.get()!!, pageUrl, pageHost)
+        pageExceptions(scratch.get()!!.page, pageUrl, pageHost)
     } catch (e: RuntimeException) {
         errorCount.incrementAndGet()
         0
@@ -141,9 +144,9 @@ class FilterEngine internal constructor(
         if (pageUrl == s.lastPageUrl && pageHost == s.lastPageHost) return s.lastPageExceptions
         s.prepare(pageUrl, pageHost, pageHost)
         var result = 0
-        forEachCandidate(s, tables[Tables.PAGE]) { id ->
+        forEachCandidate(s, tables[Tables.PAGE]) { id, position ->
             val f = flags[id]
-            if (checkOptions(s, id, f) && matchesPattern(s, id, f)) {
+            if (checkOptions(s, id, f) && matchesPattern(s, id, f, position)) {
                 if (f and ResourceType.DOCUMENT != 0) result = result or ResourceType.DOCUMENT
                 if (f and FilterFlags.ELEMHIDE != 0) result = result or ELEMHIDE
                 if (f and FilterFlags.GENERICHIDE != 0) result = result or GENERICHIDE
@@ -166,9 +169,9 @@ class FilterEngine internal constructor(
     private fun find(s: Scratch, table: IndexTable, types: Int): Int {
         if (table.filterCount == 0) return -1
         var found = -1
-        forEachCandidate(s, table) { id ->
+        forEachCandidate(s, table) { id, position ->
             val f = flags[id]
-            if (f and types and FilterFlags.TYPES != 0 && checkOptions(s, id, f) && matchesPattern(s, id, f)) {
+            if (f and types and FilterFlags.TYPES != 0 && checkOptions(s, id, f) && matchesPattern(s, id, f, position)) {
                 found = id
                 true
             } else {
@@ -178,8 +181,11 @@ class FilterEngine internal constructor(
         return found
     }
 
-    /** Gives [check] the filters of the [table] the prepared request may match until it returns true */
-    private inline fun forEachCandidate(s: Scratch, table: IndexTable, check: (Int) -> Boolean) {
+    /**
+     * Gives [check] the filters of the [table] the prepared request may match, with where the url has the token
+     * they were found by (-1 for filters found otherwise), until it returns true
+     */
+    private inline fun forEachCandidate(s: Scratch, table: IndexTable, check: (Int, Int) -> Boolean) {
         val starts = table.bucketStarts
         val filters = table.bucketFilters
         for (i in 0 until s.hostSuffixCount) {
@@ -189,25 +195,27 @@ class FilterEngine internal constructor(
             val from = s.hostSuffixStarts[i]
             if (slot < 0) {
                 val id = -slot - 1
-                if (hostEquals(id, s.host, from) && check(id)) return
+                if (hostEquals(id, s.host, from) && check(id, -1)) return
             } else {
                 for (k in starts[slot - 1] until starts[slot]) {
                     val id = filters[k]
-                    if (hostEquals(id, s.host, from) && check(id)) return
+                    if (hostEquals(id, s.host, from) && check(id, -1)) return
                 }
             }
         }
         for (i in 0 until s.tokenCount) {
             val slot = table.tokenSlot(s.tokens[i])
+            if (slot == 0) continue
+            val position = s.tokenPositions[i]
             if (slot < 0) {
-                if (check(-slot - 1)) return
-            } else if (slot > 0) {
-                for (k in starts[slot - 1] until starts[slot]) if (check(filters[k])) return
+                if (check(-slot - 1, position)) return
+            } else {
+                for (k in starts[slot - 1] until starts[slot]) if (check(filters[k], position)) return
             }
         }
         val noToken = table.noTokenBucket
         if (noToken >= 0) {
-            for (k in starts[noToken] until starts[noToken + 1]) if (check(filters[k])) return
+            for (k in starts[noToken] until starts[noToken + 1]) if (check(filters[k], -1)) return
         }
     }
 
@@ -252,12 +260,20 @@ class FilterEngine internal constructor(
     private fun contains(start: Int, count: Int, hash: Long): Boolean =
         java.util.Arrays.binarySearch(domainHashes, start, start + count, hash) >= 0
 
-    private fun matchesPattern(s: Scratch, id: Int, f: Int): Boolean {
+    /** [position]: where the url has the token the filter was found by, -1 if not found by a token */
+    private fun matchesPattern(s: Scratch, id: Int, f: Int, position: Int): Boolean {
         if (f and FilterFlags.REGEX != 0) return matchesRegex(s, id, f)
         val url = if (f and FilterFlags.MATCH_CASE != 0 && s.originalUrl.length == s.url.length) s.originalUrl else s.url
+        val offset = FilterFlags.tokenOffset(f)
+        if (position >= 0 && offset != FilterFlags.TOKEN_OFFSET_UNKNOWN) {
+            //the pattern can only start that far before the token
+            return PatternMatcher.matchesAt(url, position - offset, pool, patternOffsets[id], patternLengths[id],
+                f and FilterFlags.ANCHOR_START != 0, f and FilterFlags.ANCHOR_HOST != 0, f and FilterFlags.ANCHOR_END != 0,
+                f and FilterFlags.WILDCARD != 0, s.hostStart, s.hostEnd)
+        }
         return PatternMatcher.matches(url, pool, patternOffsets[id], patternLengths[id],
             f and FilterFlags.ANCHOR_START != 0, f and FilterFlags.ANCHOR_HOST != 0, f and FilterFlags.ANCHOR_END != 0,
-            s.hostStart, s.hostEnd)
+            f and FilterFlags.WILDCARD != 0, s.hostStart, s.hostEnd)
     }
 
     private fun matchesRegex(s: Scratch, id: Int, f: Int): Boolean {
@@ -394,6 +410,7 @@ class FilterEngine internal constructor(
         var hostStart = -1
         var hostEnd = -1
         var tokens = IntArray(64)
+        var tokenPositions = IntArray(64)
         var tokenCount = 0
         val hostSuffixStarts = IntArray(MAX_LABELS)
         val hostSuffixHashes = IntArray(MAX_LABELS)
@@ -406,12 +423,21 @@ class FilterEngine internal constructor(
         var lastPageHost: String? = null
         var lastPageExceptions = 0
 
+        /** For the page exceptions: they are checked between the checks of the request */
+        val page: Scratch by lazy(LazyThreadSafetyMode.NONE) { Scratch() }
+
+        /** The page host of [pageSuffixHashes] and of [pageSiteStart]: requests of one page share them */
+        private var pageSuffixesHost: String? = null
+        private var pageSiteHost: String? = null
+        private var pageSiteStart = 0
+
         fun prepare(requestUrl: String, requestHost: String, page: String?) {
             originalUrl = requestUrl
-            url = requestUrl.lowercase()
-            host = requestHost.lowercase()
-            pageHost = page?.lowercase()
-            pageSuffixes = -1
+            //patterns are lowercase ASCII (other characters percent-encoded), as urls are
+            url = Hashing.asciiLowercase(requestUrl)
+            host = Hashing.asciiLowercase(requestHost)
+            pageHost = page?.let(Hashing::asciiLowercase)
+            if (pageHost != pageSuffixesHost) pageSuffixes = -1
             thirdParty = UNKNOWN
             findHost()
             tokenize()
@@ -425,44 +451,87 @@ class FilterEngine internal constructor(
             hostEnd = if (hostStart < 0) -1 else hostStart + host.length
         }
 
+        /** The hashes of the tokens of the url (as [Hashing.token], in the same pass) */
         private fun tokenize() {
             tokenCount = 0
             val u = url
+            //as uBlock Origin: the tokens of a longer url (its query) find no more filters worth their time
+            val length = minOf(u.length, MAX_TOKENIZED_LENGTH)
             var i = 0
-            while (i < u.length) {
-                if (!Hashing.isTokenChar(u[i])) {
+            while (i < length) {
+                var c = u[i]
+                if (!Hashing.isTokenChar(c)) {
                     i++
                     continue
                 }
-                var j = i + 1
-                while (j < u.length && Hashing.isTokenChar(u[j])) j++
+                var h = Hashing.TOKEN_START
+                var n = 0
+                var j = i
+                while (true) {
+                    if (n < Hashing.TOKEN_HASH_CHARS) {
+                        h = Hashing.tokenStep(h, c)
+                        n++
+                    }
+                    j++
+                    if (j == length) break
+                    c = u[j]
+                    if (!Hashing.isTokenChar(c)) break
+                }
                 if (j - i >= 2) {
-                    if (tokenCount == tokens.size) tokens = tokens.copyOf(tokens.size * 2)
-                    tokens[tokenCount++] = Hashing.token(u, i, j)
+                    if (tokenCount == tokens.size) {
+                        tokens = tokens.copyOf(tokens.size * 2)
+                        tokenPositions = tokenPositions.copyOf(tokens.size)
+                    }
+                    tokenPositions[tokenCount] = i
+                    tokens[tokenCount++] = Hashing.finishToken(h)
                 }
                 i = j
             }
         }
 
-        /** The host and its suffixes with a dot, for host filters */
+        /**
+         * The host and its suffixes with a dot, for host filters, longest first: one pass from the end of the
+         * host ([Hashing.host] hashes from the last character)
+         */
         private fun hostSuffixes() {
             hostSuffixCount = 0
-            var start = 0
             val h = host
-            while (hostSuffixCount < MAX_LABELS) {
-                val dot = h.indexOf('.', start)
-                if (dot < 0) break
-                hostSuffixStarts[hostSuffixCount] = start
-                hostSuffixHashes[hostSuffixCount] = Hashing.token(h, start, h.length)
-                hostSuffixCount++
-                start = dot + 1
+            var hash = Hashing.TOKEN_START
+            var dots = 0
+            //the suffixes, shortest first, then turned around
+            var count = 0
+            for (i in h.length - 1 downTo 0) {
+                val c = h[i]
+                if (c == '.') {
+                    dots++
+                } else if (i == 0 || h[i - 1] == '.') {
+                    //a suffix starts here; the top-level domain alone is no host filter
+                    hash = Hashing.tokenStep(hash, c)
+                    if (dots > 0 && count < MAX_LABELS) {
+                        hostSuffixStarts[count] = i
+                        hostSuffixHashes[count] = Hashing.finishToken(hash)
+                        count++
+                    }
+                    continue
+                }
+                hash = Hashing.tokenStep(hash, c)
             }
+            for (k in 0 until count / 2) {
+                val start = hostSuffixStarts[k]
+                hostSuffixStarts[k] = hostSuffixStarts[count - 1 - k]
+                hostSuffixStarts[count - 1 - k] = start
+                val hashK = hostSuffixHashes[k]
+                hostSuffixHashes[k] = hostSuffixHashes[count - 1 - k]
+                hostSuffixHashes[count - 1 - k] = hashK
+            }
+            hostSuffixCount = count
         }
 
         /** The page host and all its suffixes, longest first, for domain options; 0 without a page */
         fun pageSuffixCount(): Int {
             if (pageSuffixes >= 0) return pageSuffixes
             val p = pageHost
+            pageSuffixesHost = p
             var count = 0
             if (p != null && p.isNotEmpty()) {
                 var start = 0
@@ -481,12 +550,24 @@ class FilterEngine internal constructor(
         fun thirdParty(psl: PublicSuffixList): Boolean? {
             if (thirdParty == UNKNOWN) {
                 val p = pageHost
-                thirdParty = if (p == null || p.isEmpty()) NO_PAGE else if (psl.isSameSite(host, p)) 0 else 1
+                thirdParty = if (p == null || p.isEmpty()) NO_PAGE else if (sameSite(psl, host, p)) 0 else 1
             }
             return if (thirdParty == NO_PAGE) null else thirdParty == 1
         }
 
+        /** [PublicSuffixList.isSameSite], with the site of the page kept for its next requests */
+        private fun sameSite(psl: PublicSuffixList, requestHost: String, page: String): Boolean {
+            if (page != pageSiteHost) {
+                pageSiteStart = psl.registrableDomainStart(page)
+                pageSiteHost = page
+            }
+            val start = psl.registrableDomainStart(requestHost)
+            val length = requestHost.length - start
+            return length == page.length - pageSiteStart && requestHost.regionMatches(start, page, pageSiteStart, length)
+        }
+
         private companion object {
+            const val MAX_TOKENIZED_LENGTH = 2048
             const val MAX_LABELS = 16
             const val UNKNOWN = -1
             const val NO_PAGE = -2
