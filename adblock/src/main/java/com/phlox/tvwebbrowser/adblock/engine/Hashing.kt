@@ -63,6 +63,13 @@ internal object Hashing {
         return h xor (h ushr 29)
     }
 
+    /** The key of a class (`prefix` '.') or an id ('#') of element hiding: [name] from [from] until [to] */
+    fun nameKey(prefix: Char, name: String, from: Int = 0, to: Int = name.length): Long {
+        var h = (FNV64_OFFSET xor prefix.code.toLong()) * FNV64_PRIME
+        for (i in from until to) h = (h xor name[i].code.toLong()) * FNV64_PRIME
+        return h xor (h ushr 29)
+    }
+
     /** Tokens are the longest runs of these characters (in lowercase urls) */
     fun isTokenChar(c: Char) = c in 'a'..'z' || c in '0'..'9' || c == '%'
 

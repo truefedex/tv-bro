@@ -18,7 +18,7 @@ import java.util.zip.CRC32
  */
 internal object EngineFile {
     /** Raise it whenever what is written changes: older files are compiled again from the lists */
-    const val FORMAT_VERSION = 1
+    const val FORMAT_VERSION = 2
     private const val MAGIC = 0x41425654 // "TVBA" in little-endian bytes
     private const val HEADER_SIZE = 32
     private const val KIND_BYTES = 1
@@ -38,6 +38,9 @@ internal object EngineFile {
     const val INFO = 10
     /** The arrays of an [IndexTable] ([IndexTable.arrays]) */
     const val TABLE_ARRAYS = 7
+
+    /** The arrays of the [CosmeticIndex] ([CosmeticIndex.arrays]) */
+    fun cosmeticSection(array: Int) = 200 + array
 
     fun tableSection(table: Int, array: Int) = 100 + table * 10 + array
 

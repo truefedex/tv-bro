@@ -8,6 +8,8 @@ import com.phlox.tvwebbrowser.adblock.engine.IntList
 import com.phlox.tvwebbrowser.adblock.engine.LongList
 import com.phlox.tvwebbrowser.adblock.engine.RegexLiterals
 import com.phlox.tvwebbrowser.adblock.engine.Tables
+import com.phlox.tvwebbrowser.adblock.engine.CosmeticCompiler
+import com.phlox.tvwebbrowser.adblock.parser.CosmeticFilter
 import com.phlox.tvwebbrowser.adblock.parser.DomainList
 import com.phlox.tvwebbrowser.adblock.parser.FilterParser
 import com.phlox.tvwebbrowser.adblock.parser.NetworkFilter
@@ -19,7 +21,7 @@ import com.phlox.tvwebbrowser.adblock.psl.PublicSuffixList
  * per filter), each with the tokens it could be found by; [build] gives each filter its rarest token and
  * builds the indexes.
  *
- * Element hiding filters are not compiled yet (they are counted in the [ParseStats]).
+ * Element hiding filters go into a [CosmeticIndex][com.phlox.tvwebbrowser.adblock.engine.CosmeticIndex].
  *
  * @param keepTexts keep the lines of the filters in the engine ([FilterEngine.filterText]), for tests and debugging
  */
@@ -43,13 +45,19 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
     /** For each regex filter (in the order of ids): the offset and length of its required literal in the pool */
     private val regexLiteralRefs = IntList(64)
     private val texts = if (keepTexts) ArrayList<String>() else null
+    private val cosmetics = CosmeticCompiler(::domainList)
 
     val filterCount: Int get() = flags.size
 
     /** Parses and adds the filters of a list, line by line */
     fun addList(lines: Sequence<String>): ParseStats {
         val parser = FilterParser()
-        return parser.parseList(lines) { if (it is NetworkFilter) add(it) }
+        return parser.parseList(lines) {
+            when (it) {
+                is NetworkFilter -> add(it)
+                is CosmeticFilter -> cosmetics.add(it)
+            }
+        }
     }
 
     fun add(filter: NetworkFilter) {
@@ -189,12 +197,11 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
                 val f = flagArray[it]
                 f and FilterFlags.EXCEPTION == 0 && f and ResourceType.DOCUMENT != 0
             },
-            fingerprint = fingerprint,
+            cosmetics = cosmetics.build(), fingerprint = fingerprint,
             createdAt = System.currentTimeMillis(), texts = texts?.toTypedArray(),
         )
     }
 
-    /** The candidate token of the filter in the fewest filters (avoiding tokens of nearly every url) */
     /** The index in [tokens] of the candidate of the filter that is in the fewest filters; -1 if none */
     private fun bestToken(id: Int): Int {
         var best = -1
@@ -226,7 +233,7 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
          * Raise it whenever the compiler gives other arrays for the same lists (the parser too): apps mix it
          * into the fingerprint of their lists, so an engine file of an older compiler is built again.
          */
-        const val VERSION = 4
+        const val VERSION = 5
 
         private const val KEY_NONE = 0
         private const val KEY_HOST = 1

@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.adblock
 
+import com.phlox.tvwebbrowser.adblock.engine.CosmeticIndex
 import com.phlox.tvwebbrowser.adblock.engine.EngineFile
 import com.phlox.tvwebbrowser.adblock.engine.FilterFlags
 import com.phlox.tvwebbrowser.adblock.engine.Hashing
@@ -50,6 +51,7 @@ class FilterEngine internal constructor(
     private val psl: PublicSuffixList,
     /** Blocking filters for pages themselves (`$document`) */
     private val pageBlockingFilters: Int,
+    private val cosmetics: CosmeticIndex,
     /** Of the lists it was compiled from, given by the app (see [FilterCompiler.build]) */
     val fingerprint: Long,
     val createdAt: Long,
@@ -72,8 +74,135 @@ class FilterEngine internal constructor(
             var bytes = (flags.size + patternOffsets.size + patternLengths.size + domainRefs.size + domainLists.size +
                     regexIds.size + regexLiterals.size) * 4L + pool.size + domainHashes.size * 8L
             for (t in tables) for (array in t.arrays()) bytes += array.size * 4L
-            return bytes
+            return bytes + cosmetics.memoryBytes
         }
+
+    /** The selectors of the element hiding filters */
+    val hidingSelectorCount: Int get() = cosmetics.selectorCount
+
+    /** The CSS of the generic element hiding selectors hidden on every page (no exclusions), made once */
+    @Volatile
+    private var highCss: String? = null
+
+    /**
+     * The element hiding of a page or frame of [pageHost]: the CSS of its specific selectors and of the generic
+     * ones every page gets, and whether the selectors of its classes and ids ([genericHidingStyles]) apply.
+     * Nothing for a page excepted with `$document` or `$elemhide`; no generic selectors with `$generichide`.
+     */
+    fun hidingStyles(pageUrl: String, pageHost: String): HidingStyles = try {
+        hiding(pageUrl, pageHost)
+    } catch (e: RuntimeException) {
+        errorCount.incrementAndGet()
+        HidingStyles.NONE
+    }
+
+    /** The CSS of the generic selectors that need these [classes] or [ids] on the page (see [hidingStyles]) */
+    fun genericHidingStyles(pageUrl: String, pageHost: String, classes: Collection<String>, ids: Collection<String>): String =
+        try {
+            genericHiding(pageUrl, pageHost, classes, ids)
+        } catch (e: RuntimeException) {
+            errorCount.incrementAndGet()
+            ""
+        }
+
+    private fun hiding(pageUrl: String, pageHost: String): HidingStyles {
+        val s = scratch.get()!!.page
+        val exceptions = pageExceptions(s, pageUrl, pageHost)
+        if (exceptions and (ResourceType.DOCUMENT or ELEMHIDE) != 0) return HidingStyles.NONE
+        val generic = exceptions and GENERICHIDE == 0
+        val c = cosmetics
+        val suffixes = s.pageSuffixCount()
+        val excepted = exceptedSelectors(s, suffixes)
+        val selectors = LinkedHashSet<Int>()
+        for (i in 0 until suffixes) {
+            val key = s.pageSuffixHashes[i]
+            var k = c.firstIndex(c.specificKeys, key)
+            while (k < c.specificKeys.size && c.specificKeys[k] == key) {
+                val selector = c.specificSelectors[k]
+                val exclusions = c.specificExclusions[k]
+                if ((exclusions < 0 || domainsMatch(s, exclusions)) && (excepted == null || selector !in excepted)) {
+                    selectors += selector
+                }
+                k++
+            }
+        }
+        if (!generic) return HidingStyles(css(selectors), false)
+        if (excepted == null) {
+            //the selectors without exclusions are the same on every page
+            for (k in c.highSelectors.indices) {
+                if (c.highExclusions[k] >= 0 && domainsMatch(s, c.highExclusions[k])) selectors += c.highSelectors[k]
+            }
+            val common = highCss ?: css(c.highSelectors.filterIndexed { k, _ -> c.highExclusions[k] < 0 }).also { highCss = it }
+            return HidingStyles(common + css(selectors), c.hasGeneric)
+        }
+        for (k in c.highSelectors.indices) {
+            val selector = c.highSelectors[k]
+            val exclusions = c.highExclusions[k]
+            if ((exclusions < 0 || domainsMatch(s, exclusions)) && selector !in excepted) selectors += selector
+        }
+        return HidingStyles(css(selectors), c.hasGeneric)
+    }
+
+    private fun genericHiding(pageUrl: String, pageHost: String, classes: Collection<String>, ids: Collection<String>): String {
+        val s = scratch.get()!!.page
+        val exceptions = pageExceptions(s, pageUrl, pageHost)
+        if (exceptions and (ResourceType.DOCUMENT or ELEMHIDE or GENERICHIDE) != 0) return ""
+        val c = cosmetics
+        if (!c.hasGeneric) return ""
+        val excepted = exceptedSelectors(s, s.pageSuffixCount())
+        val selectors = LinkedHashSet<Int>()
+        fun addFor(key: Long) {
+            var k = c.firstIndex(c.genericKeys, key)
+            while (k < c.genericKeys.size && c.genericKeys[k] == key) {
+                val selector = c.genericSelectors[k]
+                val exclusions = c.genericExclusions[k]
+                if ((exclusions < 0 || domainsMatch(s, exclusions)) && (excepted == null || selector !in excepted)) {
+                    selectors += selector
+                }
+                k++
+            }
+        }
+        for (name in classes) addFor(Hashing.nameKey('.', name))
+        for (name in ids) addFor(Hashing.nameKey('#', name))
+        return css(selectors)
+    }
+
+    /** The selectors not hidden on the page (`domain#@#selector`); null if none */
+    private fun exceptedSelectors(s: Scratch, suffixes: Int): Set<Int>? {
+        val c = cosmetics
+        if (c.exceptionKeys.isEmpty()) return null
+        var excepted: HashSet<Int>? = null
+        for (i in 0 until suffixes) {
+            val key = s.pageSuffixHashes[i]
+            var k = c.firstIndex(c.exceptionKeys, key)
+            while (k < c.exceptionKeys.size && c.exceptionKeys[k] == key) {
+                if (excepted == null) excepted = HashSet()
+                excepted += c.exceptionSelectors[k]
+                k++
+            }
+        }
+        return excepted
+    }
+
+    /**
+     * Rules hiding the [selectors], a few selectors each: a selector an old engine does not understand makes it
+     * drop its whole rule
+     */
+    private fun css(selectors: Collection<Int>): String {
+        if (selectors.isEmpty()) return ""
+        val sb = StringBuilder()
+        var inRule = 0
+        for (selector in selectors) {
+            if (inRule > 0) sb.append(',')
+            sb.append(cosmetics.selector(selector))
+            if (++inRule == SELECTORS_PER_RULE) {
+                sb.append(HIDE_DECLARATION)
+                inRule = 0
+            }
+        }
+        if (inRule > 0) sb.append(HIDE_DECLARATION)
+        return sb.toString()
+    }
 
     /** The sizes of the bucket of filters without a token in each table (the filters every request checks) */
     val unkeyedFilterCounts: IntArray get() = IntArray(Tables.COUNT) { tables[it].noTokenSize }
@@ -328,6 +457,7 @@ class FilterEngine internal constructor(
         sections[EngineFile.REGEX_IDS] = regexIds
         sections[EngineFile.REGEX_LITERALS] = regexLiterals
         sections[EngineFile.INFO] = intArrayOf(pageBlockingFilters)
+        cosmetics.arrays().forEachIndexed { i, array -> sections[EngineFile.cosmeticSection(i)] = array }
         for (t in tables.indices) {
             tables[t].arrays().forEachIndexed { i, array -> sections[EngineFile.tableSection(t, i)] = array }
         }
@@ -341,6 +471,8 @@ class FilterEngine internal constructor(
         const val ELEMHIDE = 1 shl 12
         const val GENERICHIDE = 1 shl 13
         private const val MAX_REGEX_URL_LENGTH = 4096
+        private const val SELECTORS_PER_RULE = 50
+        private const val HIDE_DECLARATION = "{display:none!important}\n"
         private val NEVER: Pattern = Pattern.compile("a^")
 
         /**
@@ -367,6 +499,7 @@ class FilterEngine internal constructor(
                     regexIds = s.getValue(EngineFile.REGEX_IDS) as IntArray,
                     regexLiterals = s.getValue(EngineFile.REGEX_LITERALS) as IntArray,
                     tables = tables, psl = psl, pageBlockingFilters = (s.getValue(EngineFile.INFO) as IntArray)[0],
+                    cosmetics = CosmeticIndex.of((0 until CosmeticIndex.ARRAYS).map { s.getValue(EngineFile.cosmeticSection(it)) }),
                     fingerprint = content.fingerprint, createdAt = content.createdAt,
                     texts = null,
                 )
@@ -572,6 +705,16 @@ class FilterEngine internal constructor(
             const val UNKNOWN = -1
             const val NO_PAGE = -2
         }
+    }
+}
+
+/**
+ * The element hiding of a page: the [css] to put into it at once, and whether the page should also ask for the
+ * generic selectors of its classes and ids ([FilterEngine.genericHidingStyles]) as they appear
+ */
+class HidingStyles(val css: String, val generic: Boolean) {
+    companion object {
+        val NONE = HidingStyles("", false)
     }
 }
 
