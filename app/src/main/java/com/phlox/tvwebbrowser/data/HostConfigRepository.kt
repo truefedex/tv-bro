@@ -4,7 +4,6 @@ import android.util.LruCache
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.dao.HostsDao
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Settings of hosts: the popup blocking level, the ads blocking, the site view and the favicon file. The looked up
@@ -25,7 +24,6 @@ class HostConfigRepository(private val dao: HostsDao) {
     private val desktopViewSettings = ConcurrentHashMap<String, Boolean>()
     @Volatile
     private var siteSettingsLoaded = false
-    private val adBlockListeners = CopyOnWriteArrayList<Runnable>()
 
     /**
      * The config if it was looked up already; null if it was not or the host has none.
@@ -54,15 +52,6 @@ class HostConfigRepository(private val dao: HostsDao) {
         dao.adBlockSettings().forEach { adBlockSettings.putIfAbsent(it.hostName, it.adblock) }
         dao.desktopViewSettings().forEach { desktopViewSettings.putIfAbsent(it.hostName, it.desktopView) }
         siteSettingsLoaded = true
-        adBlockListeners.forEach { it.run() }
-    }
-
-    /** The ads blocking settings of all hosts that have one; null until [loadSiteSettings] is done */
-    fun adBlockSettings(): Map<String, Boolean>? = if (siteSettingsLoaded) HashMap(adBlockSettings) else null
-
-    /** [listener] is called (on the thread of the change) when [adBlockSettings] change or are loaded */
-    fun addAdBlockSettingsListener(listener: Runnable) {
-        adBlockListeners += listener
     }
 
     /**
@@ -77,8 +66,6 @@ class HostConfigRepository(private val dao: HostsDao) {
      */
     suspend fun setAdBlock(host: String, adblock: Boolean?) {
         if (adblock == null) adBlockSettings.remove(host) else adBlockSettings[host] = adblock
-        //before the write: the page reloads right after the call, and engines that decide in a script must know
-        adBlockListeners.forEach { it.run() }
         dao.setAdBlock(host, adblock)
         reload(host)
     }

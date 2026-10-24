@@ -26,10 +26,9 @@
   ],
   "background": {
     "scripts": [
-      "adblock_engine.js",
       "background.js"
     ],
-    "persistent": true
+    "persistent": false
   },
   "permissions": [
     "nativeMessaging",

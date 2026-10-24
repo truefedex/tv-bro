@@ -7,10 +7,6 @@ import com.phlox.tvwebbrowser.adblock.ResourceType
 import com.phlox.tvwebbrowser.data.HostConfigRepository
 import com.phlox.tvwebbrowser.webengine.EngineAdBlocker
 import com.phlox.tvwebbrowser.webengine.PageHidingStyles
-import com.phlox.tvwebbrowser.webengine.ScriptEngineFile
-import com.phlox.tvwebbrowser.webengine.SiteAdBlockSettings
-import android.content.SharedPreferences
-import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * What the engines ask ([com.phlox.tvwebbrowser.webengine.WebEngineFactory.adBlocker]): the engine of the
@@ -65,35 +61,6 @@ class AppEngineAdBlocker(
     }
 
     override val blocksPages: Boolean get() = service.engine?.blocksPages ?: false
-
-    override val scriptEngineFingerprint: Long? get() = service.engine?.fingerprint
-
-    override fun scriptEngineFile(): ScriptEngineFile? =
-        service.engine?.let { ScriptEngineFile(it.fingerprint, it.requestFiltersFile()) }
-
-    override val siteSettings: SiteAdBlockSettings?
-        get() = hostConfigs.adBlockSettings()?.let { SiteAdBlockSettings(config.adBlockEnabled, it, Config.HOME_PAGE_URL) }
-
-    private val listeners = CopyOnWriteArrayList<Runnable>()
-    private val notifyListeners = Runnable { listeners.forEach { it.run() } }
-    //kept here: preferences hold their listeners weakly
-    private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == Config.ADBLOCK_ENABLED_PREF_KEY) notifyListeners.run()
-    }
-
-    init {
-        service.addEngineListener(notifyListeners)
-        hostConfigs.addAdBlockSettingsListener(notifyListeners)
-        config.prefs.registerOnSharedPreferenceChangeListener(prefsListener)
-    }
-
-    override fun addChangeListener(listener: Runnable) {
-        listeners += listener
-    }
-
-    override fun removeChangeListener(listener: Runnable) {
-        listeners -= listener
-    }
 
     /** Whether ads are blocked on the [page]: the setting of its host, else the global one; never on the home page */
     fun isEnabledOn(page: Uri?): Boolean {

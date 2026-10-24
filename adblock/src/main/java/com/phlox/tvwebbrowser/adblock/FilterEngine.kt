@@ -445,13 +445,6 @@ class FilterEngine internal constructor(
         EngineFile.write(file, fingerprint, createdAt, sections())
     }
 
-    /**
-     * The request filters alone in the format of [writeTo], without element hiding: what `adblock_engine.js`
-     * (the matcher of GeckoView's extension) reads
-     */
-    fun requestFiltersFile(): ByteArray =
-        EngineFile.toBytes(fingerprint, createdAt, sections().filterKeys { !EngineFile.isCosmeticSection(it) })
-
     private fun sections(): Map<Int, Any> {
         val sections = HashMap<Int, Any>()
         sections[EngineFile.FLAGS] = flags

@@ -7,14 +7,10 @@ plugins {
 /** The built-in home page of the app; GeckoView shows it as a page of the extension */
 val homePageDir: File = rootProject.file("app/src/main/assets/pages/home")
 val webExtensionDir: File = file("src/main/assets/extensions/generic")
-/**
- * The files of the app in the extension: the scripts of every frame shared with the WebView engine (the media
- * of the frame, its videos, element hiding) and the request filters matcher of the ad blocker with its Public
- * Suffix List
- */
+/** The scripts of every frame shared with the WebView engine (the media of the frame, its videos, element hiding) */
 val sharedScripts: List<File> = listOf("media_controls.js", "page_videos.js", "element_hiding.js").map {
     rootProject.file("app/src/main/assets/$it")
-} + rootProject.file("adblock/src/main/js/adblock_engine.js") + rootProject.file("adblock/src/main/assets/adblock/psl.txt")
+}
 
 /**
  * A hash of the files of the extension (with the home page and the shared scripts): GeckoWebEngine installs
