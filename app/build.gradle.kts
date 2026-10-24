@@ -26,7 +26,8 @@ android {
 
     buildTypes {
         getByName("debug") {
-            isDebuggable = true
+            // -PdebugNotDebuggable: a debug build ART runs at full speed, for the benchmarks of AdblockBenchActivity
+            isDebuggable = !project.hasProperty("debugNotDebuggable")
             // -PdebugApplicationIdSuffix=.dev installs a debug build next to a release one
             (project.findProperty("debugApplicationIdSuffix") as String?)?.let { applicationIdSuffix = it }
         }
@@ -109,6 +110,8 @@ ksp {
 
 dependencies {
     implementation(project(":app:common"))
+    // the new ad blocker, for now only in the debug benchmark (AdblockBenchActivity)
+    debugImplementation(project(":adblock"))
     "geckoIncludedImplementation"(project(":app:gecko"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))

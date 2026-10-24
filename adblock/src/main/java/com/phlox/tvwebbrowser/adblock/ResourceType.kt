@@ -24,6 +24,22 @@ object ResourceType {
     const val DEFAULT = (1 shl 11) - 1
     const val ALL = (1 shl 12) - 1
 
+    /** The type of a request of the WebExtensions API (`webRequest.ResourceType`, as GeckoView gives it) */
+    fun fromWebExtension(type: String?): Int = when (type) {
+        "main_frame" -> DOCUMENT
+        "sub_frame" -> SUBDOCUMENT
+        "stylesheet" -> STYLESHEET
+        "script" -> SCRIPT
+        "image", "imageset" -> IMAGE
+        "font" -> FONT
+        "object", "object_subrequest" -> OBJECT
+        "xmlhttprequest" -> XHR
+        "ping", "beacon", "csp_report" -> PING
+        "media" -> MEDIA
+        "websocket" -> WEBSOCKET
+        else -> OTHER
+    }
+
     /** The type options of filters (and the aliases of uBlock Origin) */
     val byOption: Map<String, Int> = mapOf(
         "other" to OTHER,
