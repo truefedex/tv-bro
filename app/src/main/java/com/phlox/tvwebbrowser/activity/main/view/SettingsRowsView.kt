@@ -36,7 +36,7 @@ class SettingsRowsView @JvmOverloads constructor(
         /** A choice that is not segmented was clicked: show its options at the [anchor] */
         fun openChoice(row: Row.Choice, anchor: View)
         fun choose(key: Key, index: Int)
-        fun toggle(key: Key)
+        fun toggle(row: Row.Toggle)
         fun setSlider(key: Key, value: Int)
         fun setText(key: Key, text: String)
         fun act(row: Row)
@@ -228,7 +228,7 @@ class SettingsRowsView @JvmOverloads constructor(
         private val swValue: SwitchCompat = view.findViewById(R.id.swValue)
 
         init {
-            view.setOnClickListener { callback.toggle(row.key) }
+            view.setOnClickListener { callback.toggle(row as Row.Toggle) }
         }
 
         override fun accepts(row: Row) = row is Row.Toggle

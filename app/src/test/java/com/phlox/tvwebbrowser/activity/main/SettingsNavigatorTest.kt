@@ -5,6 +5,7 @@ import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Category
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Key
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Row
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Screen
+import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import kotlinx.coroutines.CoroutineScope
@@ -38,11 +39,37 @@ class SettingsNavigatorTest {
         override var defaultDesktopView: Boolean? = null
         override var allowAutoplayMedia = false
         override var adBlockEnabled = true
-        override var filterListUrl = Config.DEFAULT_ADBLOCK_LIST_URL
-        override var filterListLastUpdate = 0L
-        override val filterListLoading = MutableStateFlow(false)
+        val enabledLists = mutableSetOf(FilterListCatalog.EASYLIST, FilterListCatalog.EASYPRIVACY)
+        var customUrl = ""
+        var updating = false
+        val lists = MutableStateFlow(lists())
         var filterListUpdates = 0
-        override fun updateFilterList() { filterListUpdates++ }
+        override val filterLists get() = lists.value
+        override val filterListsChanges get() = lists
+        private fun lists() = SettingsNavigator.FilterLists(
+            FilterListCatalog.lists.map {
+                SettingsNavigator.FilterList(it.id, it.title, it.id in enabledLists, it.isRegional, 10, 1, false)
+            }, customUrl, null, updating, 1, 3)
+        fun publish() {
+            lists.value = lists()
+        }
+        override fun setFilterListEnabled(id: String, enabled: Boolean) {
+            if (enabled) enabledLists += id else enabledLists -= id
+            publish()
+        }
+        override fun setRegionalFilterList(id: String?) {
+            enabledLists.removeAll(FilterListCatalog.regional.map { it.id }.toSet())
+            if (id != null) enabledLists += id
+            publish()
+        }
+        override fun setCustomFilterList(url: String) {
+            customUrl = url
+            publish()
+        }
+        override suspend fun updateFilterLists(): Boolean {
+            filterListUpdates++
+            return true
+        }
         override var pageVideoHint = true
         override var interfaceMode = Config.InterfaceMode.AUTO
         override var theme = Config.Theme.SYSTEM
@@ -175,20 +202,42 @@ class SettingsNavigatorTest {
     }
 
     @Test
-    fun filterListOnlyWhileAdsAreBlocked() {
+    fun filterListsOnlyWhileAdsAreBlocked() {
         val navigator = navigator(tvUi = true)
         navigator.show(Category.SITES)
-        assertTrue(Key.FILTER_LIST in keys())
-        navigator.act(row<Row.Field>(Key.FILTER_LIST))
+        val easyList = rows().filterIsInstance<Row.Toggle>().first { it.item == FilterListCatalog.EASYLIST }
+        assertTrue(easyList.checked)
+        assertEquals("FILTER_LIST_easylist", easyList.id)
+        navigator.toggle(easyList)
+        assertFalse(FilterListCatalog.EASYLIST in store.enabledLists)
+        //the rows follow the store
+        assertFalse(rows().filterIsInstance<Row.Toggle>().first { it.item == FilterListCatalog.EASYLIST }.checked)
+
+        val regional = FilterListCatalog.regional
+        assertEquals(0, row<Row.Choice>(Key.REGIONAL_LIST).selected)
+        navigator.choose(Key.REGIONAL_LIST, 2)
+        assertTrue(regional[1].id in store.enabledLists)
+        assertEquals(2, row<Row.Choice>(Key.REGIONAL_LIST).selected)
+        navigator.choose(Key.REGIONAL_LIST, 0)
+        assertTrue(regional.none { it.id in store.enabledLists })
+
+        navigator.setText(Key.CUSTOM_LIST, " https://my.example/list.txt ")
+        assertEquals("https://my.example/list.txt", store.customUrl)
+        assertEquals("https://my.example/list.txt", row<Row.Field>(Key.CUSTOM_LIST).text)
+
+        navigator.act(row<Row.Action>(Key.UPDATE_LISTS))
         assertEquals(1, store.filterListUpdates)
-        store.filterListLoading.value = true
-        assertTrue(row<Row.Field>(Key.FILTER_LIST).busy)
-        //no second load while one runs
-        navigator.act(row<Row.Field>(Key.FILTER_LIST))
+        assertTrue(row<Row.Action>(Key.UPDATE_LISTS).summary!!.contains("3"))
+        store.updating = true
+        store.publish()
+        //no second update while one runs
+        navigator.act(row<Row.Action>(Key.UPDATE_LISTS))
         assertEquals(1, store.filterListUpdates)
+
         navigator.toggle(Key.AD_BLOCK)
         assertFalse(store.adBlockEnabled)
         assertFalse(Key.FILTER_LIST in keys())
+        assertFalse(Key.UPDATE_LISTS in keys())
     }
 
     @Test

@@ -10,6 +10,8 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutKeyDialog
 import com.phlox.tvwebbrowser.browser.BrowserController
+import com.phlox.tvwebbrowser.browser.adblock.AdBlockService
+import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
@@ -72,16 +74,33 @@ class AppSettingsStore(
         }
     override var allowAutoplayMedia: Boolean by config::allowAutoplayMedia
     override var adBlockEnabled: Boolean by config::adBlockEnabled
-    override var filterListUrl: String
-        get() = adblock.status.value.customUrl
-        set(value) {
-            adblock.setCustomUrl(value)
-        }
-    override val filterListLastUpdate: Long get() = adblock.status.value.lastUpdate
-    override val filterListLoading: Flow<Boolean> = adblock.status.map { it.updating }.distinctUntilChanged()
+    override val filterLists: SettingsNavigator.FilterLists get() = filterListsOf(adblock.status.value)
+    override val filterListsChanges: Flow<SettingsNavigator.FilterLists> =
+        adblock.status.map(::filterListsOf).distinctUntilChanged()
 
-    override fun updateFilterList() {
-        TVBro.container.appScope.launch { adblock.update(force = true) }
+    override fun setFilterListEnabled(id: String, enabled: Boolean) {
+        adblock.setListEnabled(id, enabled)
+    }
+
+    override fun setRegionalFilterList(id: String?) {
+        adblock.setRegionalList(id)
+    }
+
+    override fun setCustomFilterList(url: String) {
+        adblock.setCustomUrl(url)
+    }
+
+    override suspend fun updateFilterLists(): Boolean = adblock.update(force = true)
+
+    private fun filterListsOf(status: AdBlockService.Status): SettingsNavigator.FilterLists {
+        fun of(list: AdBlockService.ListState) = SettingsNavigator.FilterList(list.id, list.title, list.enabled,
+            FilterListCatalog.find(list.id)?.isRegional ?: false, list.filters, list.lastUpdate, list.failed)
+        return SettingsNavigator.FilterLists(
+            lists = status.lists.filter { it.id != FilterListCatalog.CUSTOM }.map(::of),
+            customUrl = status.customUrl,
+            custom = status.lists.firstOrNull { it.id == FilterListCatalog.CUSTOM }?.let(::of),
+            updating = status.updating, lastUpdate = status.lastUpdate, skipped = status.skipped,
+        )
     }
 
     override var interfaceMode: Config.InterfaceMode by config::interfaceMode
