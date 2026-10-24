@@ -1,6 +1,5 @@
 package com.phlox.tvwebbrowser.browser
 
-import android.net.Uri
 import androidx.room.Room
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
@@ -11,7 +10,6 @@ import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -25,13 +23,6 @@ class TabPoliciesTest {
     private lateinit var db: AppDatabase
     private lateinit var controller: BrowserController
     private val config get() = AppContext.provideConfig()
-    private val adRequests = ArrayList<String>()
-    private val adBlocker = object : AdBlocker {
-        override fun isAd(url: Uri, type: String?, baseUri: Uri): Boolean {
-            adRequests += "$url $type $baseUri"
-            return url.host == "ads.com"
-        }
-    }
 
     @Before
     fun setUp() {
@@ -50,19 +41,11 @@ class TabPoliciesTest {
         db.close()
     }
 
-    private fun policies(tab: BrowserTab) = TabPolicies(tab, controller, adBlocker)
+    private fun policies(tab: BrowserTab) = TabPolicies(tab, controller)
 
     /** Also loads the config, as the controller does when a page of the host starts loading */
     private fun setPopupBlockLevel(host: String, level: Int) = runBlocking {
         TVBro.container.data.hostConfigs.setPopupBlockLevel(host, level)
-    }
-
-    @Test
-    fun adsAreCheckedByTheAdBlocker() {
-        val policies = policies(BrowserTab(url = "https://site.com/"))
-        assertEquals(true, policies.isAd(Uri.parse("https://ads.com/a.js"), "script", Uri.parse("https://site.com/")))
-        assertEquals(false, policies.isAd(Uri.parse("https://cdn.com/a.js"), null, Uri.parse("https://site.com/")))
-        assertEquals("https://ads.com/a.js script https://site.com/", adRequests[0])
     }
 
     private fun setAdBlock(host: String, adblock: Boolean?) = runBlocking {

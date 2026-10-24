@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        versionCode = 75
+        versionCode = 76
         versionName = "3.0.0"
     }
 
@@ -26,7 +26,8 @@ android {
 
     buildTypes {
         getByName("debug") {
-            isDebuggable = true
+            // -PdebugNotDebuggable: a debug build ART runs at full speed, for the benchmarks of AdblockBenchActivity
+            isDebuggable = !project.hasProperty("debugNotDebuggable")
             // -PdebugApplicationIdSuffix=.dev installs a debug build next to a release one
             (project.findProperty("debugApplicationIdSuffix") as String?)?.let { applicationIdSuffix = it }
         }
@@ -109,6 +110,7 @@ ksp {
 
 dependencies {
     implementation(project(":app:common"))
+    implementation(project(":adblock"))
     "geckoIncludedImplementation"(project(":app:gecko"))
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
@@ -125,7 +127,6 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
-    implementation(libs.ad.block)
     implementation(libs.qrcodegen)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.hls)

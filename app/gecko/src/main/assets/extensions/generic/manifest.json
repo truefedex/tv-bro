@@ -16,10 +16,12 @@
       "js": [
         "page_videos.js",
         "media_controls.js",
+        "element_hiding.js",
         "content.js"
       ],
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": true,
+      "match_about_blank": true
     }
   ],
   "background": {

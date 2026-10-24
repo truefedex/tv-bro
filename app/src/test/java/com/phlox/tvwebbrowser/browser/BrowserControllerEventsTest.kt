@@ -537,15 +537,14 @@ class BrowserControllerEventsTest {
     }
 
     @Test
-    fun pageOfAnotherHostGetsItsSettingOnStart() {
+    fun pageOfAnotherHostShowsItsSettingOnStart() {
         config.adBlockEnabled = true
         val tab = open("https://a.com/")
         awaitWrite(controller.setSiteAdBlock(tab, false))
-        assertEquals(false, tab.fakeEngine.adblockSetting)
+        assertFalse(state.adBlockEnabled)
 
         tab.fakeEngine.loadedUrls += "https://b.com/"
         tab.callback.onPageStarted("https://b.com/")
-        assertEquals(true, tab.fakeEngine.adblockSetting)
         assertTrue(state.adBlockEnabled)
     }
 

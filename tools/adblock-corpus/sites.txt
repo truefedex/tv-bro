@@ -1,0 +1,91 @@
+# The sites collect.mjs opens: popular sites with ads, also of the regions of the regional filter lists.
+# International
+www.cnn.com
+www.bbc.com
+www.theguardian.com
+www.nytimes.com
+www.foxnews.com
+www.dailymail.co.uk
+www.reuters.com
+www.forbes.com
+www.businessinsider.com
+www.weather.com
+www.accuweather.com
+www.imdb.com
+www.ign.com
+www.gamespot.com
+www.cnet.com
+www.theverge.com
+www.techradar.com
+www.speedtest.net
+www.wikihow.com
+www.allrecipes.com
+www.espn.com
+www.goal.com
+www.dailymotion.com
+www.twitch.tv
+vimeo.com
+www.reddit.com
+www.fandom.com
+www.msn.com
+www.yahoo.com
+www.aol.com
+www.huffpost.com
+www.usatoday.com
+www.cbsnews.com
+www.nbcnews.com
+www.ndtv.com
+timesofindia.indiatimes.com
+www.hindustantimes.com
+# Russian, Ukrainian
+www.rbc.ru
+lenta.ru
+ria.ru
+www.kp.ru
+www.sports.ru
+www.championat.com
+www.gazeta.ru
+www.drive2.ru
+pikabu.ru
+www.ivi.ru
+rutube.ru
+www.unian.ua
+www.pravda.com.ua
+tsn.ua
+# German
+www.spiegel.de
+www.bild.de
+www.focus.de
+www.welt.de
+www.chip.de
+www.t-online.de
+www.kicker.de
+# French
+www.lemonde.fr
+www.lefigaro.fr
+www.20minutes.fr
+www.jeuxvideo.com
+www.marmiton.org
+www.leboncoin.fr
+# Spanish, Portuguese, Italian
+www.marca.com
+www.as.com
+elpais.com
+www.uol.com.br
+g1.globo.com
+www.repubblica.it
+www.corriere.it
+# Polish, Turkish, Czech, Dutch
+www.onet.pl
+www.wp.pl
+www.hurriyet.com.tr
+www.sozcu.com.tr
+www.novinky.cz
+www.nu.nl
+# Asian
+www.sohu.com
+www.sina.com.cn
+www.yahoo.co.jp
+www.naver.com
+vnexpress.net
+www.kompas.com

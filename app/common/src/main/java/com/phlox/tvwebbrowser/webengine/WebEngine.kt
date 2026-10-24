@@ -46,7 +46,6 @@ interface WebEngine {
     fun stopLoading()
     fun onResume()
     fun onPause()
-    fun onUpdateAdblockSetting(newState: Boolean)
     fun hideFullscreenView()
     fun togglePlayback()
     suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap?

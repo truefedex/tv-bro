@@ -164,7 +164,7 @@ class SettingsScreenView @JvmOverloads constructor(
         }
 
         override fun choose(key: Key, index: Int) = navigator.choose(key, index)
-        override fun toggle(key: Key) = navigator.toggle(key)
+        override fun toggle(row: Row.Toggle) = navigator.toggle(row)
         override fun setSlider(key: Key, value: Int) = navigator.setSlider(key, value)
         override fun setText(key: Key, text: String) = navigator.setText(key, text)
         override fun act(row: Row) = navigator.act(row)

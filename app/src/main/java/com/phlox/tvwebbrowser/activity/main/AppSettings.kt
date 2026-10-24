@@ -10,15 +10,17 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutKeyDialog
 import com.phlox.tvwebbrowser.browser.BrowserController
+import com.phlox.tvwebbrowser.browser.adblock.AdBlockService
+import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /**
@@ -44,7 +46,7 @@ class AppSettingsStore(
     }
 
     private val config = AppContext.provideConfig()
-    private val adblock = ActiveModelsRepository.get(AdblockModel::class, activity)
+    private val adblock = TVBro.container.adBlock
     private val autoUpdate = ActiveModelsRepository.get(AutoUpdateModel::class, activity)
     private val shortcuts = ShortcutMgr.getInstance(activity)
 
@@ -72,20 +74,37 @@ class AppSettingsStore(
         }
     override var allowAutoplayMedia: Boolean by config::allowAutoplayMedia
     override var adBlockEnabled: Boolean by config::adBlockEnabled
-    override var filterListUrl: String
-        get() = config.adBlockListURL.value
-        set(value) {
-            config.adBlockListURL.value = value.trim().ifEmpty { Config.DEFAULT_ADBLOCK_LIST_URL }
-        }
-    override val filterListLastUpdate: Long get() = config.adBlockListLastUpdate
-    override val filterListLoading: Flow<Boolean> = callbackFlow {
-        val observer: (Boolean) -> Unit = { trySend(it) }
-        adblock.clientLoading.subscribe(observer)
-        awaitClose { adblock.clientLoading.unsubscribe(observer) }
+    override val supportsTrackingProtection: Boolean
+        get() = WebEngineFactory.supportsSetting(EngineSpecificSetting.TRACKING_PROTECTION)
+    /** It applies to the pages loaded after the change */
+    override var trackingProtection: Boolean by config::trackingProtection
+    override val filterLists: SettingsNavigator.FilterLists get() = filterListsOf(adblock.status.value)
+    override val filterListsChanges: Flow<SettingsNavigator.FilterLists> =
+        adblock.status.map(::filterListsOf).distinctUntilChanged()
+
+    override fun setFilterListEnabled(id: String, enabled: Boolean) {
+        adblock.setListEnabled(id, enabled)
     }
 
-    override fun updateFilterList() {
-        adblock.loadAdBlockList(true)
+    override fun setRegionalFilterList(id: String?) {
+        adblock.setRegionalList(id)
+    }
+
+    override fun setCustomFilterList(url: String) {
+        adblock.setCustomUrl(url)
+    }
+
+    override suspend fun updateFilterLists(): Boolean = adblock.update(force = true)
+
+    private fun filterListsOf(status: AdBlockService.Status): SettingsNavigator.FilterLists {
+        fun of(list: AdBlockService.ListState) = SettingsNavigator.FilterList(list.id, list.title, list.enabled,
+            FilterListCatalog.find(list.id)?.isRegional ?: false, list.filters, list.lastUpdate, list.failed)
+        return SettingsNavigator.FilterLists(
+            lists = status.lists.filter { it.id != FilterListCatalog.CUSTOM }.map(::of),
+            customUrl = status.customUrl,
+            custom = status.lists.firstOrNull { it.id == FilterListCatalog.CUSTOM }?.let(::of),
+            updating = status.updating, lastUpdate = status.lastUpdate, skipped = status.skipped,
+        )
     }
 
     override var interfaceMode: Config.InterfaceMode by config::interfaceMode

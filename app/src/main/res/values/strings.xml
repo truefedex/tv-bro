@@ -529,11 +529,34 @@
     <string name="settings_block_ads">Block ads</string>
     <string name="settings_block_ads_summary_tv">Each site can turn it off in its site panel</string>
     <string name="settings_block_ads_summary_phone">Each site can turn it off in its site sheet</string>
-    <string name="settings_filter_list">Filter list</string>
     <!-- %s: the time and the date -->
     <string name="settings_filter_list_updated_s">Updated %s</string>
     <string name="settings_filter_list_never_updated">Never updated</string>
     <string name="settings_filter_list_updating">Updating…</string>
+    <string name="settings_public_suffix_list">Public Suffix List (Mozilla Public License 2.0), used by ad blocking</string>
+    <string name="settings_tracking_protection">Tracking protection</string>
+    <string name="settings_tracking_protection_summary">The protection of Firefox from trackers, on all sites</string>
+    <string name="settings_group_filter_lists">Filter lists</string>
+    <string name="settings_filter_list_ads">Ads</string>
+    <string name="settings_filter_list_trackers">Trackers and analytics</string>
+    <!-- %1$s: what the list blocks, %2$s: its state (its number of filters, or that it failed) -->
+    <string name="settings_filter_list_summary">%1$s · %2$s</string>
+    <plurals name="settings_filter_count">
+        <item quantity="one">%d filter</item>
+        <item quantity="other">%d filters</item>
+    </plurals>
+    <string name="settings_filter_list_not_loaded">Not loaded yet</string>
+    <string name="settings_filter_list_failed">Could not update</string>
+    <string name="settings_regional_filter_list">Regional list</string>
+    <string name="settings_regional_filter_list_summary">Ads of the sites of one language</string>
+    <string name="settings_no_filter_list">None</string>
+    <string name="settings_custom_filter_list">Your own list</string>
+    <string name="settings_custom_filter_list_hint">Address of a filter list</string>
+    <string name="settings_update_filter_lists">Update filter lists</string>
+    <!-- %1$s: when the lists were updated, %2$d: the number of filters of the lists the browser does not support -->
+    <string name="settings_filter_lists_skipped">%1$s · unsupported filters skipped: %2$d</string>
+    <string name="filter_lists_updated">Filter lists updated</string>
+    <string name="filter_lists_update_failed">Could not update the filter lists</string>
     <!-- Appearance -->
     <string name="settings_group_interface">Interface</string>
     <string name="settings_interface_tv">TV</string>

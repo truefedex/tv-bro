@@ -21,7 +21,6 @@ room = "2.8.5"
 # Third-party
 robolectric = "4.17"
 geckoview = "157.0.20261005135250"
-ad-block = "0.0.4"
 qrcodegen = "1.8.0"
 # the built-in video player
 media3 = "1.11.1"
@@ -49,7 +48,6 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
 # Third-party
-ad-block = { group = "com.github.truefedex", name = "ad-block", version.ref = "ad-block" }
 # QR codes of the sync pairing (MIT)
 qrcodegen = { group = "io.nayuki", name = "qrcodegen", version.ref = "qrcodegen" }
 

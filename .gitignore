@@ -8,3 +8,5 @@
 *.keystore
 *.hprof
 /buildSrc/build
+/docs/adblock-plan.md
+/tools/adblock-corpus/*.tsv

@@ -4,6 +4,7 @@ import android.util.Log
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.data.DataRepositories
 import com.phlox.tvwebbrowser.model.PairedDevice
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,6 +26,8 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketTimeoutException
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The server of a TV: paired phones connect to it to open tabs and to send bookmarks, a new phone pairs
@@ -44,7 +47,9 @@ class SyncServer(
     /** All interfaces; tests listen on the loopback only */
     private val bindAddress: InetAddress? = null,
     /** Advertises the server in the network (none in tests) */
-    private val discovery: SyncDiscovery? = null
+    private val discovery: SyncDiscovery? = null,
+    /** The thread of [Host]: the main one; tests use their own, so they do not set Dispatchers.Main */
+    private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main.immediate
 ) {
     companion object {
         private const val TAG = "SyncServer"
@@ -61,9 +66,13 @@ class SyncServer(
         fun onForgotten(device: PairedDevice)
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val scope = CoroutineScope(SupervisorJob() + mainDispatcher)
     private var serverSocket: ServerSocket? = null
     private var acceptJob: Job? = null
+    /** The connections of the sessions: cancelling a coroutine does not end a blocked read, closing its socket does */
+    private val sessionSockets: MutableSet<Socket> = Collections.newSetFromMap(ConcurrentHashMap())
+    @Volatile
+    private var destroyed = false
 
     @Volatile
     private var pairingSecret: ByteArray? = null
@@ -90,6 +99,9 @@ class SyncServer(
                     } catch (e: IOException) {
                         break
                     }
+                    sessionSockets += client
+                    //destroy() may have closed the sessions before this one was added
+                    if (destroyed) closeSessions()
                     scope.launch(Dispatchers.IO) { handle(client) }
                 }
             }
@@ -110,8 +122,22 @@ class SyncServer(
 
     /** Ends the sessions too */
     fun destroy() {
+        destroyed = true
         stop()
         scope.cancel()
+        closeSessions()
+    }
+
+    private fun closeSessions() {
+        //the iterator of a concurrent set is safe while sessions remove their sockets (a copy made with
+        //toList() is not: it reads the size first, then fails when a socket is gone before it is taken)
+        for (socket in sessionSockets) {
+            sessionSockets -= socket
+            try {
+                socket.close()
+            } catch (e: IOException) {
+            }
+        }
     }
 
     /** A new secret: a phone that has the QR code can pair until [stopPairing] */
@@ -163,10 +189,13 @@ class SyncServer(
         } catch (e: SocketTimeoutException) {
             Log.d(TAG, "session of $address timed out")
         } catch (e: IOException) {
-            Log.w(TAG, "session of $address", e)
+            //after destroy() it is the closed socket
+            if (!destroyed) Log.w(TAG, "session of $address", e)
         } catch (e: Exception) {
             //any device of the network can open a session: nothing it sends may stop the app
             Log.e(TAG, "session of $address", e)
+        } finally {
+            sessionSockets -= socket
         }
     }
 
@@ -195,7 +224,7 @@ class SyncServer(
         }
         channel.send(reply.toJson())
         if (reply.pairing != null) {
-            withContext(Dispatchers.Main) {
+            withContext(mainDispatcher) {
                 //the code is used: a new one for the next phone
                 if (pairingSecret === secret) startPairing()
                 host.onPaired(device)
@@ -224,7 +253,7 @@ class SyncServer(
         SyncRequests.OPEN_TABS -> {
             val tabs = SyncRequests.tabsOf(request)
             if (tabs.isEmpty()) throw SyncException(SyncRequests.NOTHING_TO_OPEN)
-            withContext(Dispatchers.Main) { host.openTabs(device, tabs) }
+            withContext(mainDispatcher) { host.openTabs(device, tabs) }
             SyncRequests.result().put("opened", tabs.size)
         }
         SyncRequests.GET_BOOKMARKS -> SyncRequests.result().put("tree", SyncBookmark.toJson(bookmarks.tree()))
@@ -239,12 +268,12 @@ class SyncServer(
                 BookmarksReplacer.Changes(it.optInt("added"), it.optInt("updated"), it.optInt("removed"), emptyList())
             }
             val changes = bookmarks.replace(tree, expected)
-            withContext(Dispatchers.Main) { host.onBookmarksReplaced(device, changes) }
+            withContext(mainDispatcher) { host.onBookmarksReplaced(device, changes) }
             changesJson(changes)
         }
         SyncRequests.FORGET -> {
             data().pairedDevices.delete(device)
-            withContext(Dispatchers.Main) { host.onForgotten(device) }
+            withContext(mainDispatcher) { host.onForgotten(device) }
             SyncRequests.result()
         }
         else -> SyncRequests.error(SyncRequests.UNSUPPORTED)

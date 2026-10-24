@@ -9,6 +9,8 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
+import com.phlox.tvwebbrowser.browser.adblock.AppEngineAdBlocker
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.utils.UpdateChecker
@@ -87,6 +89,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
                 TimeUnit.SECONDS, ArrayBlockingQueue(maxThreadsInOfflineJobsPool))
 
         initWebEngineStuff()
+        initAdBlocking()
 
         clearUpdateFilesAfterAppUpdate()
 
@@ -123,6 +126,13 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         container.appScope.launch(Dispatchers.IO) {
             UpdateChecker.clearTempFilesIfAny(this@TVBro)
         }
+    }
+
+    /** The engines of all tabs ask the ad blocker; the lists are not updated in unit tests (Robolectric) */
+    private fun initAdBlocking() {
+        val config = AppContext.provideConfig()
+        container.adBlock.start(scheduleUpdates = Build.FINGERPRINT != "robolectric")
+        WebEngineFactory.adBlocker = AppEngineAdBlocker(container.adBlock, container.data.hostConfigs, config)
     }
 
     private fun initWebEngineStuff() {

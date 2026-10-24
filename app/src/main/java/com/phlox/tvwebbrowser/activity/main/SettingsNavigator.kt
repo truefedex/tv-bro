@@ -5,6 +5,7 @@ import android.text.format.DateFormat
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.phlox.tvwebbrowser.Config
+import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
@@ -43,12 +44,12 @@ class SettingsNavigator(
     /** The settings, and the rows that act */
     enum class Key {
         SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS,
-        SITE_VIEW, AUTOPLAY, AD_BLOCK, FILTER_LIST, VIDEO_HINT,
+        SITE_VIEW, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_CACHE, ENGINE_DEBUG,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
-        LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY
+        LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, LINK_PUBLIC_SUFFIX_LIST
     }
 
     /** The values that are read when the app starts: changing one needs a restart */
@@ -57,6 +58,18 @@ class SettingsNavigator(
         val theme: Config.Theme,
         val darkening: Boolean,
         val webEngineDebug: Boolean
+    )
+
+    /** A filter list as the settings show it; [filters] of the engine, [lastUpdate] 0 when never downloaded */
+    data class FilterList(
+        val id: String, val title: String, val enabled: Boolean, val regional: Boolean,
+        val filters: Int, val lastUpdate: Long, val failed: Boolean
+    )
+
+    /** The lists of the catalog, the user's own list (when it has an address) and their updates */
+    data class FilterLists(
+        val lists: List<FilterList>, val customUrl: String, val custom: FilterList?, val updating: Boolean,
+        val lastUpdate: Long, val skipped: Int
     )
 
     /** What the update check found; [newVersion] is null when the app is up to date */
@@ -80,12 +93,19 @@ class SettingsNavigator(
         var defaultDesktopView: Boolean?
         var allowAutoplayMedia: Boolean
         var adBlockEnabled: Boolean
-        /** Setting an empty address restores the default list */
-        var filterListUrl: String
-        /** 0 when the list was never loaded */
-        val filterListLastUpdate: Long
-        val filterListLoading: Flow<Boolean>
-        fun updateFilterList()
+        /** The engine blocks trackers itself (GeckoView), apart from ad blocking */
+        val supportsTrackingProtection: Boolean
+        var trackingProtection: Boolean
+        val filterLists: FilterLists
+        /** Gives [filterLists] when they change (an update, a list turned on) */
+        val filterListsChanges: Flow<FilterLists>
+        fun setFilterListEnabled(id: String, enabled: Boolean)
+        /** null: no regional list */
+        fun setRegionalFilterList(id: String?)
+        /** "" for none */
+        fun setCustomFilterList(url: String)
+        /** Downloads all enabled lists; false when one could not be downloaded */
+        suspend fun updateFilterLists(): Boolean
         /** A hint about a found video that starts to play in the page (TV only) */
         var pageVideoHint: Boolean
 
@@ -163,10 +183,13 @@ class SettingsNavigator(
             override val restart: Boolean = false
         ) : Row()
 
+        /** [item] tells apart the toggles of one [key] (the filter lists) */
         data class Toggle(
             override val key: Key, override val title: String, override val summary: String?,
-            val checked: Boolean, override val restart: Boolean = false
-        ) : Row()
+            val checked: Boolean, override val restart: Boolean = false, val item: String? = null
+        ) : Row() {
+            override val id: String get() = if (item == null) key.name else key.name + "_" + item
+        }
 
         /** A value from [min] to [max], shown as [label] */
         data class Slider(
@@ -224,6 +247,8 @@ class SettingsNavigator(
         const val URL_WHY_ICON = "https://tv-bro-3546c.web.app/msg001.html"
         const val URL_LICENSE = "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/LICENSE.md"
         const val URL_PRIVACY_POLICY = "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/PRIVACY.md"
+        /** The data of the ad blocker (MPL-2.0, which asks to tell where its source is) */
+        const val URL_PUBLIC_SUFFIX_LIST = "https://publicsuffix.org/"
 
         /** The index of the custom search engine in the options of Search engine */
         val CUSTOM_SEARCH_ENGINE = Config.SearchEnginesURLs.size - 1
@@ -248,7 +273,7 @@ class SettingsNavigator(
         private set
     private var shown = false
     private var updates: Updates? = null
-    private var filterListLoading = false
+    private var filterListsUpdating = false
     /** Custom URL was chosen and no address is typed yet */
     private var customSearchChosen = false
     private var jobs = emptyList<Job>()
@@ -267,8 +292,7 @@ class SettingsNavigator(
         jobs.forEach { it.cancel() }
         jobs = listOf(
             scope.launch {
-                store.filterListLoading.collect {
-                    filterListLoading = it
+                store.filterListsChanges.collect {
                     if (shown) render()
                 }
             }
@@ -323,6 +347,7 @@ class SettingsNavigator(
             }
             Key.INTERFACE -> store.interfaceMode = Config.InterfaceMode.entries[index]
             Key.THEME -> store.theme = Config.Theme.entries[index]
+            Key.REGIONAL_LIST -> store.setRegionalFilterList(regionalLists().getOrNull(index - 1)?.id)
             Key.UPDATE_CHANNEL -> {
                 val channel = updates?.channels?.getOrNull(index) ?: return
                 if (channel == store.updateChannel) return
@@ -334,10 +359,20 @@ class SettingsNavigator(
         render()
     }
 
+    /** A toggle row was clicked */
+    fun toggle(row: Row.Toggle) {
+        if (row.key == Key.FILTER_LIST && row.item != null) {
+            store.setFilterListEnabled(row.item, !row.checked)
+            return
+        }
+        toggle(row.key)
+    }
+
     fun toggle(key: Key) {
         when (key) {
             Key.AUTOPLAY -> store.allowAutoplayMedia = !store.allowAutoplayMedia
             Key.AD_BLOCK -> store.adBlockEnabled = !store.adBlockEnabled
+            Key.TRACKING_PROTECTION -> store.trackingProtection = !store.trackingProtection
             Key.VIDEO_HINT -> store.pageVideoHint = !store.pageVideoHint
             Key.DARKENING -> store.darkening = !store.darkening
             Key.KEEP_SCREEN_ON -> store.keepScreenOn = !store.keepScreenOn
@@ -386,9 +421,9 @@ class SettingsNavigator(
                 if (value == customHomePageUrl()) return
                 store.setHomePage(Config.HomePageMode.CUSTOM, value.ifEmpty { null }, store.homePageLinksMode)
             }
-            Key.FILTER_LIST -> {
-                if (value == store.filterListUrl) return
-                store.filterListUrl = value
+            Key.CUSTOM_LIST -> {
+                if (value == store.filterLists.customUrl) return
+                store.setCustomFilterList(value)
             }
             else -> return
         }
@@ -401,7 +436,17 @@ class SettingsNavigator(
             is Row.ShortcutKey -> host.captureKey(row.shortcut) { render() }
             is Row.Link -> host.open(row.url)
             else -> when (row.key) {
-                Key.FILTER_LIST -> if (!filterListLoading) store.updateFilterList()
+                Key.UPDATE_LISTS -> if (!filterListsUpdating && !store.filterLists.updating) {
+                    filterListsUpdating = true
+                    render()
+                    scope.launch {
+                        val ok = store.updateFilterLists()
+                        filterListsUpdating = false
+                        host.showMessage(if (ok) R.drawable.ic_check else R.drawable.ic_warning,
+                            string(if (ok) R.string.filter_lists_updated else R.string.filter_lists_update_failed))
+                        render()
+                    }
+                }
                 Key.CLEAR_CACHE -> scope.launch {
                     store.clearCache()
                     host.showMessage(R.drawable.ic_check, context.getString(R.string.settings_web_cache_cleared))
@@ -519,24 +564,58 @@ class SettingsNavigator(
         val adBlock = arrayListOf<Row>(Row.Toggle(Key.AD_BLOCK, string(R.string.settings_block_ads),
             string(if (tvUi) R.string.settings_block_ads_summary_tv else R.string.settings_block_ads_summary_phone),
             store.adBlockEnabled))
-        if (store.adBlockEnabled) {
-            val lastUpdate = store.filterListLastUpdate
-            val updated = when {
-                filterListLoading -> string(R.string.settings_filter_list_updating)
-                lastUpdate == 0L -> string(R.string.settings_filter_list_never_updated)
-                else -> context.getString(R.string.settings_filter_list_updated_s, formatTime(lastUpdate))
-            }
-            adBlock += Row.Field(Key.FILTER_LIST, string(R.string.settings_filter_list), updated, store.filterListUrl,
-                Config.DEFAULT_ADBLOCK_LIST_URL, action = string(R.string.update), busy = filterListLoading)
+        if (store.supportsTrackingProtection) {
+            adBlock += Row.Toggle(Key.TRACKING_PROTECTION, string(R.string.settings_tracking_protection),
+                string(R.string.settings_tracking_protection_summary), store.trackingProtection)
         }
         val sections = arrayListOf(Section(string(R.string.settings_group_site_view), siteView),
             Section(string(R.string.settings_group_ad_blocking), adBlock))
+        if (store.adBlockEnabled) sections += Section(string(R.string.settings_group_filter_lists), filterListRows())
         //the built-in player and its hint are on TV only
         if (tvUi) {
             sections += Section(string(R.string.settings_group_videos), listOf(Row.Toggle(Key.VIDEO_HINT,
                 string(R.string.settings_video_hint), string(R.string.settings_video_hint_summary), store.pageVideoHint)))
         }
         return sections
+    }
+
+    private fun regionalLists() = store.filterLists.lists.filter { it.regional }
+
+    private fun filterListRows(): List<Row> {
+        val state = store.filterLists
+        val rows = ArrayList<Row>()
+        for ((id, what) in listOf(FilterListCatalog.EASYLIST to R.string.settings_filter_list_ads,
+                FilterListCatalog.EASYPRIVACY to R.string.settings_filter_list_trackers)) {
+            val list = state.lists.firstOrNull { it.id == id } ?: continue
+            rows += Row.Toggle(Key.FILTER_LIST, list.title, listSummary(string(what), list), list.enabled, item = id)
+        }
+        val regional = regionalLists()
+        val selected = regional.indexOfFirst { it.enabled }
+        rows += Row.Choice(Key.REGIONAL_LIST, string(R.string.settings_regional_filter_list),
+            regional.getOrNull(selected)?.let { listSummary(string(R.string.settings_regional_filter_list_summary), it) }
+                ?: string(R.string.settings_regional_filter_list_summary),
+            listOf(string(R.string.settings_no_filter_list)) + regional.map { it.title }, selected + 1, segmented = false)
+        rows += Row.Field(Key.CUSTOM_LIST, string(R.string.settings_custom_filter_list),
+            state.custom?.let { listState(it) }, state.customUrl, string(R.string.settings_custom_filter_list_hint))
+        val updated = when {
+            state.updating || filterListsUpdating -> string(R.string.settings_filter_list_updating)
+            state.lastUpdate == 0L -> string(R.string.settings_filter_list_never_updated)
+            else -> context.getString(R.string.settings_filter_list_updated_s, formatTime(state.lastUpdate))
+        }
+        rows += Row.Action(Key.UPDATE_LISTS, string(R.string.settings_update_filter_lists),
+            if (state.skipped > 0) context.getString(R.string.settings_filter_lists_skipped, updated, state.skipped) else updated,
+            string(R.string.update))
+        return rows
+    }
+
+    private fun listSummary(what: String, list: FilterList): String =
+        if (list.enabled) context.getString(R.string.settings_filter_list_summary, what, listState(list)) else what
+
+    /** The filters of the list, or why there are none */
+    private fun listState(list: FilterList): String = when {
+        list.failed -> string(R.string.settings_filter_list_failed)
+        list.lastUpdate == 0L -> string(R.string.settings_filter_list_not_loaded)
+        else -> context.resources.getQuantityString(R.plurals.settings_filter_count, list.filters, list.filters)
     }
 
     private fun appearanceSections(): List<Section> {
@@ -610,7 +689,8 @@ class SettingsNavigator(
             Row.Link(Key.LINK_SUPPORT, string(R.string.settings_support_author), URL_SUPPORT_AUTHOR),
             Row.Link(Key.LINK_ICON, string(R.string.why_icon_changed), URL_WHY_ICON),
             Row.Link(Key.LINK_LICENSE, string(R.string.settings_license), URL_LICENSE),
-            Row.Link(Key.LINK_PRIVACY, string(R.string.settings_privacy_policy), URL_PRIVACY_POLICY)
+            Row.Link(Key.LINK_PRIVACY, string(R.string.settings_privacy_policy), URL_PRIVACY_POLICY),
+            Row.Link(Key.LINK_PUBLIC_SUFFIX_LIST, string(R.string.settings_public_suffix_list), URL_PUBLIC_SUFFIX_LIST)
         ))
         return sections
     }

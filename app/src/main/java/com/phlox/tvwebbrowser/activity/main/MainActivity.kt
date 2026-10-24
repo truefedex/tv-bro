@@ -97,7 +97,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     private lateinit var shell: BrowserShell
     override lateinit var controller: BrowserController
     override lateinit var settingsModel: SettingsModel
-    private lateinit var adblockModel: AdblockModel
     private lateinit var autoUpdateModel: AutoUpdateModel
     private lateinit var uiHandler: Handler
     private var isFullscreen: Boolean = false
@@ -135,7 +134,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         }
         AppSettingsStore.rememberStartupValues(config)
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
-        adblockModel = ActiveModelsRepository.get(AdblockModel::class, this)
         controller = ActiveModelsRepository.get(BrowserController::class, this)
         autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, this)
         uiHandler = Handler(Looper.getMainLooper())
@@ -147,7 +145,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         requestedOrientation = shell.screenOrientation
         setContentView(shell.root)
         controller.viewHost = tabViewHost
-        controller.adBlocker = adblockModel
         controller.interfaceDesktopView = uiMode == UiMode.TV
 
         config.theme.subscribe(this.lifecycle, false) {

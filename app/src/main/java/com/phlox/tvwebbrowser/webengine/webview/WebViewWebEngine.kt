@@ -203,10 +203,6 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         webView?.onPause()
     }
 
-    override fun onUpdateAdblockSetting(newState: Boolean) {
-        //nothing to set: WebViewEx asks EnginePolicies.isAdBlockingEnabled for each request
-    }
-
     override fun hideFullscreenView() {
         webView?.hideCustomView()
     }
@@ -419,14 +415,6 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             callback?.onPageCertificateError(url)
         }
 
-        override fun isAd(request: WebResourceRequest, baseUri: Uri): Boolean {
-            return callback?.isAd(request.url, request.requestHeaders["Accept"], baseUri) ?: false
-        }
-
-        override fun isAdBlockingEnabled(): Boolean {
-            return callback?.isAdBlockingEnabled() ?: false
-        }
-
         override fun isDialogsBlockingEnabled(): Boolean {
             return callback?.isDialogsBlockingEnabled() ?: false
         }
@@ -548,6 +536,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     } else {
                         WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)
                     }
+                    //WebView has no blocking of trackers of its own
+                    EngineSpecificSetting.TRACKING_PROTECTION -> false
                 }
             }))
         }

@@ -17,6 +17,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
+import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
@@ -38,7 +39,6 @@ import kotlinx.coroutines.flow.update
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppContentScriptPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppHomePagePortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppWebExtensionBackgroundPortDelegate
-import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentBlockingDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyHistoryDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyMediaSessionDelegate
@@ -119,6 +119,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
 
                 webExtInstallResult.accept({ extension ->
                     Log.d(TAG, "extension accepted: ${extension?.metaData?.description}")
+                    extension?.let(::connectBackgroundScript)
                     appWebExtension.value = extension
                     AppContext.provideConfig().appWebExtensionVersion = APP_WEB_EXTENSION_VERSION
                 }
@@ -128,6 +129,22 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             val webView = GeckoViewWithVirtualCursor(context)
             webViewContainer.addView(webView)
             weakRefToSingleGeckoView = WeakReference(webView)
+        }
+
+        /**
+         * The port of the background script, which asks about the requests of all tabs: one delegate for the
+         * extension, not for an engine (the script, not persistent, may connect again at any time)
+         */
+        private fun connectBackgroundScript(extension: WebExtension) {
+            extension.setMessageDelegate(object : MessageDelegate {
+                override fun onMessage(nativeApp: String, message: Any,
+                                       sender: WebExtension.MessageSender): GeckoResult<Any>? = null
+
+                override fun onConnect(port: WebExtension.Port) {
+                    Log.d(TAG, "background script connected")
+                    port.setDelegate(AppWebExtensionBackgroundPortDelegate(port))
+                }
+            }, "tvbro_bg")
         }
 
         /**
@@ -168,6 +185,9 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                 override fun createWebEngine(tab: BrowserTab): WebEngine {
                     return GeckoWebEngine(tab)
                 }
+
+                override fun supportsSetting(setting: EngineSpecificSetting): Boolean =
+                    setting == EngineSpecificSetting.TRACKING_PROTECTION
 
                 override suspend fun clearCache(ctx: Context) {
                     suspendCoroutine { cont ->
@@ -224,7 +244,6 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     val contentDelegate = MyContentDelegate(this)
     val permissionDelegate = MyPermissionDelegate(this)
     val historyDelegate = MyHistoryDelegate(this)
-    val contentBlockingDelegate = MyContentBlockingDelegate(this)
     private val _mediaState = MutableStateFlow<MediaState?>(null)
     override val mediaState: StateFlow<MediaState?> = _mediaState.asStateFlow()
     /**
@@ -303,7 +322,6 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     }
     var appHomePagePortDelegate: AppHomePagePortDelegate? = null
     var appContentScriptPortDelegate: AppContentScriptPortDelegate? = null
-    var appWebExtensionBackgroundPortDelegate: AppWebExtensionBackgroundPortDelegate? = null
     private lateinit var webExtObserver: (WebExtension?) -> Unit
 
     override val url: String?
@@ -338,8 +356,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             //the browser core gives the view of the page's host before it loads
             .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE)
             .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
-            //the setting of the page's host comes with onUpdateAdblockSetting when the tab is attached
-            .useTrackingProtection(AppContext.provideConfig().adBlockEnabled)
+            .useTrackingProtection(AppContext.provideConfig().trackingProtection)
             .build()
         )
         session.navigationDelegate = navigationDelegate
@@ -348,7 +365,6 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         session.promptDelegate = promptDelegate
         session.permissionDelegate = permissionDelegate
         session.historyDelegate = historyDelegate
-        session.contentBlockingDelegate = contentBlockingDelegate
         session.mediaSessionDelegate = mediaSessionDelegate
         session.selectionActionDelegate = selectionActionDelegate
         session.scrollDelegate = scrollDelegate
@@ -398,21 +414,6 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                     }
                 }
             }, "tvbro")
-
-        extension.setMessageDelegate(object : MessageDelegate {
-            override fun onMessage(nativeApp: String, message: Any,
-                                   sender: WebExtension.MessageSender): GeckoResult<Any>? {
-                Log.d(TAG, "onMessage: $nativeApp, $message, $sender")
-                return null
-            }
-
-            override fun onConnect(port: WebExtension.Port) {
-                Log.d(TAG, "onConnect: $port")
-                appWebExtensionBackgroundPortDelegate = AppWebExtensionBackgroundPortDelegate(port, this@GeckoWebEngine).also {
-                    port.setDelegate(it)
-                }
-            }
-        }, "tvbro_bg")
     }
 
     override fun getWebEngineName(): String = ENGINE_NAME
@@ -445,6 +446,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
 
     override fun loadUrl(url: String) {
         Log.d(TAG, "loadUrl($url)")
+        applyTrackingProtection()
         if (!session.isOpen) {
             session.open(runtime)
         }
@@ -563,7 +565,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     }
 
     override fun reload() {
-        callback?.let { onUpdateAdblockSetting(it.isAdBlockingEnabled()) }
+        applyTrackingProtection()
         session.reload()
     }
 
@@ -586,10 +588,10 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         }
     }
 
-    override fun onUpdateAdblockSetting(newState: Boolean) {
-        if (session.settings.useTrackingProtection != newState) {
-            session.settings.useTrackingProtection = newState
-        }
+    /** The setting may have changed since the session was made; it applies from the next load */
+    private fun applyTrackingProtection() {
+        val enabled = AppContext.provideConfig().trackingProtection
+        if (session.settings.useTrackingProtection != enabled) session.settings.useTrackingProtection = enabled
     }
 
     override fun hideFullscreenView() {
@@ -654,6 +656,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     ) {
         Log.d(TAG, "onAttachToWindow()")
         this.callback = callback
+        applyTrackingProtection()
         //the shared view showed another tab's page
         lastScrollY = -1
         val webView = this.webView ?: throw IllegalStateException("WebView is null")

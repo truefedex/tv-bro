@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -50,6 +49,8 @@ import kotlinx.coroutines.withContext
 class BrowserController : ActiveModel() {
     companion object {
         var TAG: String = BrowserController::class.java.simpleName
+        /** The engine file loads in tens of milliseconds; a slow storage must not keep the tabs waiting */
+        private const val AD_BLOCK_LOAD_TIMEOUT_MS = 1000L
     }
 
     /**
@@ -73,9 +74,6 @@ class BrowserController : ActiveModel() {
      */
     @Volatile
     var interfaceDesktopView = true
-    var adBlocker: AdBlocker = object : AdBlocker {
-        override fun isAd(url: Uri, type: String?, baseUri: Uri) = false
-    }
 
     private val _currentTabState = MutableStateFlow(CurrentTabState())
     val currentTabState: StateFlow<CurrentTabState> = _currentTabState.asStateFlow()
@@ -137,6 +135,8 @@ class BrowserController : ActiveModel() {
         }
         //engines ask for them synchronously as soon as pages start loading
         hostConfigs.loadSiteSettings()
+        //the ad blocking engine of its file (a build from the lists goes on in the background)
+        TVBro.container.adBlock.awaitLoaded(AD_BLOCK_LOAD_TIMEOUT_MS)
         //tabs of the previous activity instance may be still saving
         writes.awaitPending()
         tabsStates.replaceAll(data.tabs.load(config.incognitoMode).map(BrowserTab::fromEntity))
@@ -476,11 +476,8 @@ class BrowserController : ActiveModel() {
         //the in-memory setting changes right away (the scope dispatches immediately on the main thread),
         //the write is not cancelled with the model
         val write = TVBro.container.appScope.launch { hostConfigs.setAdBlock(host, setting) }
-        if (tab.isWebEngineCreated) {
-            tab.webEngine.onUpdateAdblockSetting(enabled)
-            if (tab == currentTab.value) {
-                tab.webEngine.reload()
-            }
+        if (tab.isWebEngineCreated && tab == currentTab.value) {
+            tab.webEngine.reload()
         }
         publishState()
         return write
@@ -584,7 +581,6 @@ class BrowserController : ActiveModel() {
             needReloadUrl = !tabFiles.restoreEngineState(newTab)
         }
         newTab.webEngine.onAttachToWindow(engineCallback(newTab, host), host.tabsContainer)
-        newTab.webEngine.onUpdateAdblockSetting(isAdBlockEnabled(newTab))
         if (needReloadUrl) {
             newTab.webEngine.loadUrl(HomePageUrl.resolve(newTab.url, config))
         } else if (siteViewChanged && !needsRestore) {
@@ -633,7 +629,7 @@ class BrowserController : ActiveModel() {
     }
 
     private fun engineCallback(tab: BrowserTab, host: TabViewHost): WebEngineCallbacks {
-        val policies = TabPolicies(tab, this, adBlocker)
+        val policies = TabPolicies(tab, this)
         return WebEngineCallbacks(TabEvents(tab, policies), policies, host.uiHost(tab))
     }
 
@@ -777,8 +773,6 @@ class BrowserController : ActiveModel() {
             tab.blockedAds = 0
             tab.blockedPopups = 0
             tab.loading = true
-            //engines that keep the setting per session (not per request) get the one of the new host
-            tab.webEngine.onUpdateAdblockSetting(isAdBlockEnabled(tab))
             //a page that came in the view of another host (going back, a redirect) loads again in its own,
             //once: hosts redirecting to each other by the view must not reload forever
             if (!siteViewCorrected && applySiteView(tab)) {
@@ -828,13 +822,11 @@ class BrowserController : ActiveModel() {
             if (host.createTabView(tab) == null) return
             applySiteView(tab)
             tab.webEngine.onAttachToWindow(engineCallback(tab, host), host.tabsContainer)
-            tab.webEngine.onUpdateAdblockSetting(isAdBlockEnabled(tab))
             tab.webEngine.setNetworkAvailable(Utils.isNetworkConnected(AppContext.get()))
             publishState()
         }
 
         override fun onBlockedAd(uri: String) {
-            Log.i(TAG, "onBlockedAd: $uri")
             //the engine may still report requests blocked before the setting changed
             if (!policies.isAdBlockingEnabled()) return
             tab.blockedAds++

@@ -13,7 +13,9 @@ import com.phlox.tvwebbrowser.model.BrowserTab
  */
 enum class EngineSpecificSetting {
     /** Darkening of pages that have no dark theme while the dark UI mode is on */
-    ALGORITHMIC_DARKENING
+    ALGORITHMIC_DARKENING,
+    /** The engine's own blocking of trackers ([Config.trackingProtection]) */
+    TRACKING_PROTECTION
 }
 
 interface WebEngineProviderCallback {
@@ -61,6 +63,10 @@ object WebEngineFactory {
     const val TAG = "WebEngineFactory"
     private var registeredProvider: WebEngineProvider? = null
     private lateinit var initializedProvider: WebEngineProvider
+
+    /** Set by the app in the browser processes; null blocks nothing */
+    @Volatile
+    var adBlocker: EngineAdBlocker? = null
 
     fun registerProvider(provider: WebEngineProvider) {
         val registered = registeredProvider
