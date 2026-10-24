@@ -9,12 +9,9 @@ import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.PairedDevice
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -34,7 +31,6 @@ import java.util.Collections
 /**
  * A TV and a phone in one process: each has its own database and settings, they talk over the loopback.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class SyncServerTest {
     private val context = RuntimeEnvironment.getApplication()
@@ -59,8 +55,6 @@ class SyncServerTest {
 
     @Before
     fun setUp() {
-        //the server calls its host on the main thread: here on the thread of the session
-        Dispatchers.setMain(Dispatchers.Unconfined)
         SyncKeyStore.setInstanceForTests(PlainSyncKeyStore())
         server = SyncServer(tvSettings, { tvData }, tvBookmarks, object : SyncServer.Host {
             override fun openTabs(from: PairedDevice, tabs: List<SyncTab>) {
@@ -78,7 +72,10 @@ class SyncServerTest {
             override fun onForgotten(device: PairedDevice) {
                 forgotten += device
             }
-        }, appVersion = 1, bindAddress = InetAddress.getLoopbackAddress())
+        }, appVersion = 1, bindAddress = InetAddress.getLoopbackAddress(),
+            //the host is called on the thread of the session. Not Dispatchers.setMain: the threads of a server
+            //still read Dispatchers.Main while the test resets it, which throws in resetMain
+            mainDispatcher = Dispatchers.Unconfined)
         server.start()
     }
 
@@ -88,7 +85,6 @@ class SyncServerTest {
         backup.delete()
         phoneBackup.delete()
         SyncKeyStore.setInstanceForTests(null)
-        Dispatchers.resetMain()
         tvDb.close()
         phoneDb.close()
     }

@@ -4,6 +4,7 @@ import android.util.Log
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.data.DataRepositories
 import com.phlox.tvwebbrowser.model.PairedDevice
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -44,7 +45,9 @@ class SyncServer(
     /** All interfaces; tests listen on the loopback only */
     private val bindAddress: InetAddress? = null,
     /** Advertises the server in the network (none in tests) */
-    private val discovery: SyncDiscovery? = null
+    private val discovery: SyncDiscovery? = null,
+    /** The thread of [Host]: the main one; tests use their own, so they do not set Dispatchers.Main */
+    private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main.immediate
 ) {
     companion object {
         private const val TAG = "SyncServer"
@@ -61,7 +64,7 @@ class SyncServer(
         fun onForgotten(device: PairedDevice)
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val scope = CoroutineScope(SupervisorJob() + mainDispatcher)
     private var serverSocket: ServerSocket? = null
     private var acceptJob: Job? = null
 
@@ -195,7 +198,7 @@ class SyncServer(
         }
         channel.send(reply.toJson())
         if (reply.pairing != null) {
-            withContext(Dispatchers.Main) {
+            withContext(mainDispatcher) {
                 //the code is used: a new one for the next phone
                 if (pairingSecret === secret) startPairing()
                 host.onPaired(device)
@@ -224,7 +227,7 @@ class SyncServer(
         SyncRequests.OPEN_TABS -> {
             val tabs = SyncRequests.tabsOf(request)
             if (tabs.isEmpty()) throw SyncException(SyncRequests.NOTHING_TO_OPEN)
-            withContext(Dispatchers.Main) { host.openTabs(device, tabs) }
+            withContext(mainDispatcher) { host.openTabs(device, tabs) }
             SyncRequests.result().put("opened", tabs.size)
         }
         SyncRequests.GET_BOOKMARKS -> SyncRequests.result().put("tree", SyncBookmark.toJson(bookmarks.tree()))
@@ -239,12 +242,12 @@ class SyncServer(
                 BookmarksReplacer.Changes(it.optInt("added"), it.optInt("updated"), it.optInt("removed"), emptyList())
             }
             val changes = bookmarks.replace(tree, expected)
-            withContext(Dispatchers.Main) { host.onBookmarksReplaced(device, changes) }
+            withContext(mainDispatcher) { host.onBookmarksReplaced(device, changes) }
             changesJson(changes)
         }
         SyncRequests.FORGET -> {
             data().pairedDevices.delete(device)
-            withContext(Dispatchers.Main) { host.onForgotten(device) }
+            withContext(mainDispatcher) { host.onForgotten(device) }
             SyncRequests.result()
         }
         else -> SyncRequests.error(SyncRequests.UNSUPPORTED)
