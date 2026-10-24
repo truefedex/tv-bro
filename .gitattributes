@@ -1,0 +1,2 @@
+# Compiled Public Suffix List: read byte by byte, its line ends must stay LF
+adblock/src/main/assets/adblock/psl.txt -text

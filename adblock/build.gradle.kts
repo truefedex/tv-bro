@@ -9,9 +9,12 @@ android {
 
     testOptions {
         unitTests.all { test ->
+            test.systemProperty("adblock.moduleDir", projectDir.absolutePath)
             // -PadblockLists=<dir>: real filter lists for the tests that need them (not in the repository)
             (project.findProperty("adblockLists") as String?)?.let { test.systemProperty("adblock.lists", it) }
             test.testLogging.showStandardStreams = project.hasProperty("adblockLists")
+            // -PupdatePsl: compile psl/public_suffix_list.dat into the asset adblock/psl.txt (PublicSuffixListTest)
+            if (project.hasProperty("updatePsl")) test.systemProperty("adblock.updatePsl", "true")
         }
     }
 }
