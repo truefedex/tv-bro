@@ -388,7 +388,6 @@ class BrowserControllerTabsTest {
         assertFalse(controller.isAdBlockEnabled(a))
         assertFalse(controller.isAdBlockEnabled(sameHost))
         assertTrue(controller.isAdBlockEnabled(otherHost))
-        assertEquals(false, a.fakeEngine.adblockSetting)
         assertEquals("reload", a.fakeEngine.log.last())
         assertEquals(false, storedAdBlock("a.com"))
     }

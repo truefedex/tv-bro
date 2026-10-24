@@ -39,6 +39,7 @@ class Config(val prefs: SharedPreferences) {
         const val WEB_ENGINE_DEBUG_KEY = "web_engine_debug"
         const val INITIAL_BOOKMARKS_SUGGESTIONS_LOADED = "initial_bookmarks_suggestions_loaded"
         const val ADBLOCK_ENABLED_PREF_KEY = "adblock_enabled"
+        const val TRACKING_PROTECTION_KEY = "tracking_protection"
         const val ADBLOCK_LAST_UPDATE_LIST_KEY = "adblock_last_update"
         const val ADBLOCK_LIST_URL_KEY = "adblock_list_url"
         const val APP_WEB_EXTENSION_VERSION_KEY = "app_web_extension_version"
@@ -233,6 +234,13 @@ class Config(val prefs: SharedPreferences) {
         get() = prefs.getBoolean(ADBLOCK_ENABLED_PREF_KEY, true)
         set(value) {
             prefs.edit().putBoolean(ADBLOCK_ENABLED_PREF_KEY, value).apply()
+        }
+
+    /** The engine's own blocking of trackers (GeckoView), on all sites, apart from ad blocking */
+    var trackingProtection: Boolean
+        get() = prefs.getBoolean(TRACKING_PROTECTION_KEY, true)
+        set(value) {
+            prefs.edit().putBoolean(TRACKING_PROTECTION_KEY, value).apply()
         }
 
     var adBlockListURL = ObservableStringPreference(DEFAULT_ADBLOCK_LIST_URL, ADBLOCK_LIST_URL_KEY)

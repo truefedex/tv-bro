@@ -13,7 +13,9 @@ import com.phlox.tvwebbrowser.model.BrowserTab
  */
 enum class EngineSpecificSetting {
     /** Darkening of pages that have no dark theme while the dark UI mode is on */
-    ALGORITHMIC_DARKENING
+    ALGORITHMIC_DARKENING,
+    /** The engine's own blocking of trackers ([Config.trackingProtection]) */
+    TRACKING_PROTECTION
 }
 
 interface WebEngineProviderCallback {

@@ -11,3 +11,8 @@ communicatePort.onMessage.addListener(message => {
 });
 
 tvBroWatchPageVideos(send);
+
+// The background script tells the top frame of the tab what it blocked, for the count of the site panel
+browser.runtime.onMessage.addListener(message => {
+    if (message && message.blockedUrl) send(JSON.stringify({ blockedUrl: message.blockedUrl }));
+});

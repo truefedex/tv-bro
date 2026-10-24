@@ -14,7 +14,7 @@ class TabPolicies(
 ) : EnginePolicies {
 
     /** The setting of the host of this tab's page; asked on the engine's threads */
-    override fun isAdBlockingEnabled(): Boolean = controller.isAdBlockEnabled(tab)
+    fun isAdBlockingEnabled(): Boolean = controller.isAdBlockEnabled(tab)
 
     override fun isDialogsBlockingEnabled(): Boolean {
         if (tab.url == Config.HOME_PAGE_URL) return false

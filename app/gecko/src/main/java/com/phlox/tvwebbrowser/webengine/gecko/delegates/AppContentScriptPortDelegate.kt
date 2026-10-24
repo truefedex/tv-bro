@@ -23,6 +23,8 @@ class AppContentScriptPortDelegate(val port: WebExtension.Port, val webEngine: G
             return
         }
         when {
+            //the background script blocked a request of this tab
+            json.has("blockedUrl") -> webEngine.callback?.onBlockedAd(json.getString("blockedUrl"))
             json.has("videos") -> webEngine.onFrameVideos(port, PageVideoReports.parse(json))
             MediaReports.isReport(json) -> webEngine.onFrameMedia(port, MediaReports.parse(json, SystemClock.elapsedRealtime()),
                 MediaReports.source(json))

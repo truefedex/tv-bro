@@ -36,7 +36,6 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport {
     var parent: ViewGroup? = null
     var engineView: View? = null
     var canGoBackValue = false
-    var adblockSetting: Boolean? = null
     override var desktopView = false
 
     override val url: String? get() = loadedUrls.lastOrNull()
@@ -65,7 +64,6 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport {
     override fun stopLoading() { log += "stopLoading" }
     override fun onResume() { log += "resume" }
     override fun onPause() { log += "pause" }
-    override fun onUpdateAdblockSetting(newState: Boolean) { adblockSetting = newState }
     override fun hideFullscreenView() {}
     override fun togglePlayback() {}
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? = null

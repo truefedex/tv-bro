@@ -17,6 +17,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
+import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
@@ -38,7 +39,6 @@ import kotlinx.coroutines.flow.update
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppContentScriptPortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppHomePagePortDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.AppWebExtensionBackgroundPortDelegate
-import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentBlockingDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyContentDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyHistoryDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyMediaSessionDelegate
@@ -186,6 +186,9 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                     return GeckoWebEngine(tab)
                 }
 
+                override fun supportsSetting(setting: EngineSpecificSetting): Boolean =
+                    setting == EngineSpecificSetting.TRACKING_PROTECTION
+
                 override suspend fun clearCache(ctx: Context) {
                     suspendCoroutine { cont ->
                         runtime.storageController.clearData(StorageController.ClearFlags.ALL_CACHES).then({
@@ -241,7 +244,6 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     val contentDelegate = MyContentDelegate(this)
     val permissionDelegate = MyPermissionDelegate(this)
     val historyDelegate = MyHistoryDelegate(this)
-    val contentBlockingDelegate = MyContentBlockingDelegate(this)
     private val _mediaState = MutableStateFlow<MediaState?>(null)
     override val mediaState: StateFlow<MediaState?> = _mediaState.asStateFlow()
     /**
@@ -354,8 +356,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             //the browser core gives the view of the page's host before it loads
             .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE)
             .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
-            //the setting of the page's host comes with onUpdateAdblockSetting when the tab is attached
-            .useTrackingProtection(AppContext.provideConfig().adBlockEnabled)
+            .useTrackingProtection(AppContext.provideConfig().trackingProtection)
             .build()
         )
         session.navigationDelegate = navigationDelegate
@@ -364,7 +365,6 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         session.promptDelegate = promptDelegate
         session.permissionDelegate = permissionDelegate
         session.historyDelegate = historyDelegate
-        session.contentBlockingDelegate = contentBlockingDelegate
         session.mediaSessionDelegate = mediaSessionDelegate
         session.selectionActionDelegate = selectionActionDelegate
         session.scrollDelegate = scrollDelegate
@@ -446,6 +446,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
 
     override fun loadUrl(url: String) {
         Log.d(TAG, "loadUrl($url)")
+        applyTrackingProtection()
         if (!session.isOpen) {
             session.open(runtime)
         }
@@ -564,7 +565,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     }
 
     override fun reload() {
-        callback?.let { onUpdateAdblockSetting(it.isAdBlockingEnabled()) }
+        applyTrackingProtection()
         session.reload()
     }
 
@@ -587,10 +588,10 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         }
     }
 
-    override fun onUpdateAdblockSetting(newState: Boolean) {
-        if (session.settings.useTrackingProtection != newState) {
-            session.settings.useTrackingProtection = newState
-        }
+    /** The setting may have changed since the session was made; it applies from the next load */
+    private fun applyTrackingProtection() {
+        val enabled = AppContext.provideConfig().trackingProtection
+        if (session.settings.useTrackingProtection != enabled) session.settings.useTrackingProtection = enabled
     }
 
     override fun hideFullscreenView() {
@@ -655,6 +656,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     ) {
         Log.d(TAG, "onAttachToWindow()")
         this.callback = callback
+        applyTrackingProtection()
         //the shared view showed another tab's page
         lastScrollY = -1
         val webView = this.webView ?: throw IllegalStateException("WebView is null")

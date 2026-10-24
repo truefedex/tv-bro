@@ -42,8 +42,6 @@ interface TabEngineEvents {
  * [WebEngineFactory.adBlocker], for every tab.
  */
 interface EnginePolicies {
-    /** Whether ads are blocked on the page of the tab */
-    fun isAdBlockingEnabled(): Boolean
     fun isDialogsBlockingEnabled(): Boolean
     fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean
     /** The pages of the [url]'s host load in the desktop view (see [SiteViewSupport]) */

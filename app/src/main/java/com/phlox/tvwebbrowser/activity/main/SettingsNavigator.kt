@@ -44,7 +44,7 @@ class SettingsNavigator(
     /** The settings, and the rows that act */
     enum class Key {
         SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS,
-        SITE_VIEW, AUTOPLAY, AD_BLOCK, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
+        SITE_VIEW, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_CACHE, ENGINE_DEBUG,
@@ -93,6 +93,9 @@ class SettingsNavigator(
         var defaultDesktopView: Boolean?
         var allowAutoplayMedia: Boolean
         var adBlockEnabled: Boolean
+        /** The engine blocks trackers itself (GeckoView), apart from ad blocking */
+        val supportsTrackingProtection: Boolean
+        var trackingProtection: Boolean
         val filterLists: FilterLists
         /** Gives [filterLists] when they change (an update, a list turned on) */
         val filterListsChanges: Flow<FilterLists>
@@ -367,6 +370,7 @@ class SettingsNavigator(
         when (key) {
             Key.AUTOPLAY -> store.allowAutoplayMedia = !store.allowAutoplayMedia
             Key.AD_BLOCK -> store.adBlockEnabled = !store.adBlockEnabled
+            Key.TRACKING_PROTECTION -> store.trackingProtection = !store.trackingProtection
             Key.VIDEO_HINT -> store.pageVideoHint = !store.pageVideoHint
             Key.DARKENING -> store.darkening = !store.darkening
             Key.KEEP_SCREEN_ON -> store.keepScreenOn = !store.keepScreenOn
@@ -558,6 +562,10 @@ class SettingsNavigator(
         val adBlock = arrayListOf<Row>(Row.Toggle(Key.AD_BLOCK, string(R.string.settings_block_ads),
             string(if (tvUi) R.string.settings_block_ads_summary_tv else R.string.settings_block_ads_summary_phone),
             store.adBlockEnabled))
+        if (store.supportsTrackingProtection) {
+            adBlock += Row.Toggle(Key.TRACKING_PROTECTION, string(R.string.settings_tracking_protection),
+                string(R.string.settings_tracking_protection_summary), store.trackingProtection)
+        }
         val sections = arrayListOf(Section(string(R.string.settings_group_site_view), siteView),
             Section(string(R.string.settings_group_ad_blocking), adBlock))
         if (store.adBlockEnabled) sections += Section(string(R.string.settings_group_filter_lists), filterListRows())

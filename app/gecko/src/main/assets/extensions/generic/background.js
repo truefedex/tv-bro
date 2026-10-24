@@ -38,6 +38,10 @@ tvBroPort.onMessage.addListener(response => {
     clearTimeout(request.timer);
     recordAnswer(performance.now() - request.started);
     request.resolve({ cancel: response.data.block });
+    if (response.data.block && request.tabId >= 0) {
+        //the content script of the top frame of the tab counts it (none on some pages: nothing to count)
+        browser.tabs.sendMessage(request.tabId, { blockedUrl: request.url }, { frameId: 0 }).catch(() => {});
+    }
 });
 
 function topUrlOf(details) {
@@ -58,7 +62,8 @@ browser.webRequest.onBeforeRequest.addListener(
                 console.log("TV Bro ad blocking: no answer in time for " + details.url);
                 resolve({ cancel: false });
             }, RESOLVE_TIMEOUT_MS);
-            pending.set(id, { resolve: resolve, started: performance.now(), timer: timer });
+            pending.set(id, { resolve: resolve, started: performance.now(), timer: timer, tabId: details.tabId,
+                url: details.url });
             tvBroPort.postMessage({
                 action: "onBeforeRequest",
                 details: {

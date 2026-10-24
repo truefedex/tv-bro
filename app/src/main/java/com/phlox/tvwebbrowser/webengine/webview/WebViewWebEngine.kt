@@ -203,10 +203,6 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         webView?.onPause()
     }
 
-    override fun onUpdateAdblockSetting(newState: Boolean) {
-        //nothing to set: WebViewEx asks EnginePolicies.isAdBlockingEnabled for each request
-    }
-
     override fun hideFullscreenView() {
         webView?.hideCustomView()
     }
@@ -540,6 +536,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     } else {
                         WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)
                     }
+                    //WebView has no blocking of trackers of its own
+                    EngineSpecificSetting.TRACKING_PROTECTION -> false
                 }
             }))
         }

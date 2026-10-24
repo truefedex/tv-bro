@@ -74,6 +74,10 @@ class AppSettingsStore(
         }
     override var allowAutoplayMedia: Boolean by config::allowAutoplayMedia
     override var adBlockEnabled: Boolean by config::adBlockEnabled
+    override val supportsTrackingProtection: Boolean
+        get() = WebEngineFactory.supportsSetting(EngineSpecificSetting.TRACKING_PROTECTION)
+    /** It applies to the pages loaded after the change */
+    override var trackingProtection: Boolean by config::trackingProtection
     override val filterLists: SettingsNavigator.FilterLists get() = filterListsOf(adblock.status.value)
     override val filterListsChanges: Flow<SettingsNavigator.FilterLists> =
         adblock.status.map(::filterListsOf).distinctUntilChanged()

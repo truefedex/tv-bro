@@ -39,6 +39,8 @@ class SettingsNavigatorTest {
         override var defaultDesktopView: Boolean? = null
         override var allowAutoplayMedia = false
         override var adBlockEnabled = true
+        override var supportsTrackingProtection = false
+        override var trackingProtection = true
         val enabledLists = mutableSetOf(FilterListCatalog.EASYLIST, FilterListCatalog.EASYPRIVACY)
         var customUrl = ""
         var updating = false
@@ -238,6 +240,21 @@ class SettingsNavigatorTest {
         assertFalse(store.adBlockEnabled)
         assertFalse(Key.FILTER_LIST in keys())
         assertFalse(Key.UPDATE_LISTS in keys())
+    }
+
+    @Test
+    fun trackingProtectionOnlyWhenTheEngineHasIt() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.SITES)
+        assertFalse(Key.TRACKING_PROTECTION in keys())
+        store.supportsTrackingProtection = true
+        navigator.show(Category.SITES)
+        assertTrue(row<Row.Toggle>(Key.TRACKING_PROTECTION).checked)
+        navigator.toggle(Key.TRACKING_PROTECTION)
+        assertFalse(store.trackingProtection)
+        //it is not part of ad blocking
+        navigator.toggle(Key.AD_BLOCK)
+        assertTrue(Key.TRACKING_PROTECTION in keys())
     }
 
     @Test
