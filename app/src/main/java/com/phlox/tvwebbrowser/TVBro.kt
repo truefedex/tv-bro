@@ -19,8 +19,6 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.IOException
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.util.concurrent.ArrayBlockingQueue
@@ -50,8 +48,6 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         const val CHANNEL_ID_DOWNLOADS: String = "downloads"
-        /** The process of DownloadService (see the manifest) */
-        private const val DOWNLOADS_PROCESS_SUFFIX = ":downloads"
         const val MAIN_PREFS_NAME = "main.xml"
         val TAG = TVBro::class.simpleName
     }
@@ -75,12 +71,19 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         instance = this
+        val process = AppProcesses.currentKind(this)
+        if (process == AppProcesses.Kind.OTHER) {
+            //a process of GeckoView: nothing of the app runs there (an isolated one may not even read prefs),
+            //and each of them would load its own ad blocker and update its lists
+            Log.i(TAG, "onCreate: not a process of the app, nothing to initialize")
+            return
+        }
         container = AppContainer(this)
 
         AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_MULTI_PROCESS),
             getSharedPreferences(Config.CREDENTIALS_PREFS_NAME, MODE_MULTI_PROCESS)))
 
-        val downloadsProcess = isDownloadsProcess()
+        val downloadsProcess = process == AppProcesses.Kind.DOWNLOADS
         ProxySetup.start(AppContext.provideConfig(), browserProcess = !downloadsProcess)
 
         if (downloadsProcess) {
@@ -109,18 +112,6 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         registerActivityLifecycleCallbacks(this)
-    }
-
-    private fun isDownloadsProcess(): Boolean {
-        val processName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            getProcessName()
-        } else try {
-            File("/proc/self/cmdline").readText().trimEnd(Char(0))
-        } catch (e: IOException) {
-            Log.e(TAG, "Can not read the process name", e)
-            ""
-        }
-        return processName.endsWith(DOWNLOADS_PROCESS_SUFFIX)
     }
 
     private fun clearUpdateFilesAfterAppUpdate() {
