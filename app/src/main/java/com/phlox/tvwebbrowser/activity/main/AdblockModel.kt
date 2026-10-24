@@ -18,13 +18,6 @@ import java.net.URL
 import java.util.*
 
 class AdblockModel : ActiveModel(), AdBlocker {
-    companion object {
-        val TAG: String = AdblockModel::class.java.simpleName
-
-        const val SERIALIZED_LIST_FILE = "adblock_ser.dat"
-        const val AUTO_UPDATE_INTERVAL_MINUTES = 60 * 24 * 30 //30 days
-    }
-
     private var client: AdBlockClient? = null
     val clientLoading = ObservableValue(false)
     val config = AppContext.provideConfig()
@@ -69,61 +62,73 @@ class AdblockModel : ActiveModel(), AdBlocker {
 
     override fun isAd(url: Uri, type: String?, baseUri: Uri): Boolean {
         val client = client ?: return false
-        val baseHost = baseUri.host
-        val filterOption = try {
-            mapRequestToFilterOption(url, type)
-        } catch (e: Exception) {
-            return false
-        }
-        val result = try {
-            baseHost != null && client.matches(url.toString(), filterOption, baseHost)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-        return result
+        return isAd(client, url, type, baseUri)
     }
 
-    private fun mapRequestToFilterOption(url: Uri?, type: String?): FilterOption? {
-        if (type != null) {
-            if (type == "image" || type.contains("image/")) {
-                return FilterOption.IMAGE
+    companion object {
+        val TAG: String = AdblockModel::class.java.simpleName
+
+        const val SERIALIZED_LIST_FILE = "adblock_ser.dat"
+        const val AUTO_UPDATE_INTERVAL_MINUTES = 60 * 24 * 30 //30 days
+
+        /** Checks the request with the client as [AdBlocker.isAd] does (also used by the debug benchmark) */
+        fun isAd(client: AdBlockClient, url: Uri, type: String?, baseUri: Uri): Boolean {
+            val baseHost = baseUri.host
+            val filterOption = try {
+                mapRequestToFilterOption(url, type)
+            } catch (e: Exception) {
+                return false
             }
-            if (type == "style" || type.contains("/css")) {
-                return FilterOption.CSS
+            val result = try {
+                baseHost != null && client.matches(url.toString(), filterOption, baseHost)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
             }
-            if (type == "script" || type.contains("javascript")) {
-                return FilterOption.SCRIPT
-            }
-            if (type.contains("video/")) {
-                return FilterOption.OBJECT
-            }
+            return result
         }
-        if (url != null) {
-            if (Utils.uriHasExtension(url, "css")) {
-                return FilterOption.CSS
+
+        private fun mapRequestToFilterOption(url: Uri?, type: String?): FilterOption? {
+            if (type != null) {
+                if (type == "image" || type.contains("image/")) {
+                    return FilterOption.IMAGE
+                }
+                if (type == "style" || type.contains("/css")) {
+                    return FilterOption.CSS
+                }
+                if (type == "script" || type.contains("javascript")) {
+                    return FilterOption.SCRIPT
+                }
+                if (type.contains("video/")) {
+                    return FilterOption.OBJECT
+                }
             }
-            if (Utils.uriHasExtension(url, "js")) {
-                return FilterOption.SCRIPT
+            if (url != null) {
+                if (Utils.uriHasExtension(url, "css")) {
+                    return FilterOption.CSS
+                }
+                if (Utils.uriHasExtension(url, "js")) {
+                    return FilterOption.SCRIPT
+                }
+                if (Utils.uriHasExtension(
+                        url,
+                        "png",
+                        "jpg",
+                        "jpeg",
+                        "webp",
+                        "svg",
+                        "gif",
+                        "bmp",
+                        "tiff"
+                    )
+                ) {
+                    return FilterOption.IMAGE
+                }
+                if (Utils.uriHasExtension(url, "mp4", "mov", "avi")) {
+                    return FilterOption.OBJECT
+                }
             }
-            if (Utils.uriHasExtension(
-                    url,
-                    "png",
-                    "jpg",
-                    "jpeg",
-                    "webp",
-                    "svg",
-                    "gif",
-                    "bmp",
-                    "tiff"
-                )
-            ) {
-                return FilterOption.IMAGE
-            }
-            if (Utils.uriHasExtension(url, "mp4", "mov", "avi")) {
-                return FilterOption.OBJECT
-            }
+            return FilterOption.UNKNOWN
         }
-        return FilterOption.UNKNOWN
     }
 }
