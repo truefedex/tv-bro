@@ -128,6 +128,9 @@ class DownloadsModel : ActiveModel() {
     private val _activeCount = MutableStateFlow(0)
     /** How many downloads are in progress or paused */
     val activeCount: StateFlow<Int> = _activeCount.asStateFlow()
+    private val _inProgress = MutableStateFlow(false)
+    /** Whether a download is in progress (not paused); a row a dead process left in progress too */
+    val inProgress: StateFlow<Boolean> = _inProgress.asStateFlow()
     private val _events = MutableSharedFlow<DownloadEvent>(extraBufferCapacity = 16)
     val events: SharedFlow<DownloadEvent> = _events.asSharedFlow()
 
@@ -137,6 +140,7 @@ class DownloadsModel : ActiveModel() {
                 val (items, events) = tracker.track(rows, System.currentTimeMillis())
                 _downloads.value = items
                 _activeCount.value = items.count { it.isActive }
+                _inProgress.value = items.any { it.status == Download.Status.IN_PROGRESS }
                 events.forEach { _events.tryEmit(it) }
             }
         }

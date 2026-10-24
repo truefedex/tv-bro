@@ -94,6 +94,8 @@ class DownloadsNavigator(
         fun downloadAgain(item: DownloadItem)
         /** Removes the downloads from the list, their files stay */
         suspend fun remove(ids: List<Long>)
+        /** The downloads were shown ([start]) or closed ([stop]): the commands of the screen are about to come */
+        fun onScreenShown(shown: Boolean) {}
     }
 
     /** What the device does with the files of downloads */
@@ -151,6 +153,7 @@ class DownloadsNavigator(
 
     /** Shows the downloads, with the download [focusId] focused (else the first one) */
     fun start(focusId: Long? = null) {
+        if (job == null) commands.onScreenShown(true)
         job?.cancel()
         filter = null
         pendingFocus = Focus(focusId?.let { keyOf(it) })
@@ -164,8 +167,10 @@ class DownloadsNavigator(
 
     /** The screen closed */
     fun stop() {
-        job?.cancel()
-        job = null
+        val job = job ?: return
+        job.cancel()
+        this.job = null
+        commands.onScreenShown(false)
     }
 
     fun setFilter(kind: Kind?) {

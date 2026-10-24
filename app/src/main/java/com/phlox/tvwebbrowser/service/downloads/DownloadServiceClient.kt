@@ -17,8 +17,9 @@ import androidx.core.os.BundleCompat
 
 /**
  * The connection of a browser process to [DownloadService], which runs in its own process.
- * Screens keep it bound while they are started ([acquire]/[release]): the service then checks the
- * downloads left by a process that died. Commands sent while it is not bound wait, and the service is
+ * The browser activity keeps it bound ([acquire]/[release]) while it is started and a download is in progress
+ * or a downloads screen is shown ([DownloadServiceNeed]); a row a dead process left in progress counts, so
+ * the service starts and marks it interrupted. Commands sent while it is not bound wait, and the service is
  * bound until they are delivered, whatever the screens do meanwhile.
  */
 @MainThread

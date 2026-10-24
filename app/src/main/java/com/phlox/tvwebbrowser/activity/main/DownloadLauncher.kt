@@ -17,6 +17,7 @@ import com.phlox.tvwebbrowser.browser.decodeBase64Data
 import com.phlox.tvwebbrowser.browser.toDownload
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.service.downloads.DownloadCommands
+import com.phlox.tvwebbrowser.service.downloads.DownloadServiceNeed
 import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +29,8 @@ import java.io.InputStream
 /**
  * Starts and controls downloads in [DownloadService] (its own process) on behalf of the
  * [activity]: asks for the needed permissions, inserts the database row of a new download and
- * sends the commands. The service is bound while the activity is started.
+ * sends the commands. The service is bound while the activity is started and needs it ([DownloadServiceNeed]);
+ * commands sent meanwhile bind it until they are delivered.
  */
 class DownloadLauncher(
     private val activity: ComponentActivity,
@@ -40,13 +42,25 @@ class DownloadLauncher(
 
     private val service get() = TVBro.container.downloadService
 
-    /** Keeps the service bound while the activity is started */
-    fun bindService() {
-        service.acquire()
+    /** The service is bound while it is needed, not all the time the activity is started */
+    private val need = DownloadServiceNeed { needed -> if (needed) service.acquire() else service.release() }
+
+    fun onActivityStarted() {
+        need.started = true
     }
 
-    fun unbindService() {
-        service.release()
+    fun onActivityStopped() {
+        need.started = false
+    }
+
+    /** Whether a download of the database is in progress */
+    fun onDownloadsInProgress(inProgress: Boolean) {
+        need.inProgress = inProgress
+    }
+
+    /** A downloads screen or panel was shown, or closed: its commands go to the service at once */
+    fun onScreenShown(shown: Boolean) {
+        need.onScreenShown(shown)
     }
 
     fun download(request: DownloadRequest) {

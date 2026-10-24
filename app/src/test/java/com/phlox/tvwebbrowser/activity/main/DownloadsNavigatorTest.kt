@@ -30,6 +30,7 @@ class DownloadsNavigatorTest {
     private var clearAllAnswer: Boolean? = null
     private var clearAllRequest: DownloadsNavigator.ClearAllRequest? = null
     private val commandsLog = ArrayList<String>()
+    private val screenLog = ArrayList<String>()
     private val deletedFiles = ArrayList<Long>()
     private var hasFolderApp = true
     private var hasShareApp = true
@@ -42,6 +43,7 @@ class DownloadsNavigatorTest {
         override suspend fun remove(ids: List<Long>) {
             downloads.value = downloads.value.filter { it.id !in ids }
         }
+        override fun onScreenShown(shown: Boolean) { screenLog += if (shown) "shown" else "closed" }
     }
 
     private val device = object : DownloadsNavigator.Device {
@@ -77,6 +79,17 @@ class DownloadsNavigatorTest {
             resumable = resumable)
 
     private fun shownIds() = screen.items.map { it.id }
+
+    /** The browser keeps the download service bound while a screen is shown */
+    @Test
+    fun theScreenTellsWhenItIsShownAndClosedOnce() {
+        val navigator = navigator(Look.SCREEN)
+        navigator.start()
+        navigator.start(focusId = 1)
+        navigator.stop()
+        navigator.stop()
+        assertEquals(listOf("shown", "closed"), screenLog)
+    }
 
     @Test
     fun panelShowsActiveDownloadsFirstThenTheLatestFive() {

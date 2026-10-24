@@ -38,6 +38,7 @@ import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.DownloadItem
+import com.phlox.tvwebbrowser.browser.DownloadsModel
 import com.phlox.tvwebbrowser.browser.UrlInputResolver
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.BrowserTab
@@ -178,6 +179,10 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
             controller.currentTabState.collect { shell.render(it) }
         }
         lifecycleScope.launch {
+            ActiveModelsRepository.get(DownloadsModel::class, this@MainActivity).inProgress
+                .collect { downloadLauncher.onDownloadsInProgress(it) }
+        }
+        lifecycleScope.launch {
             controller.uiEvents.collect { onBrowserUiEvent(it) }
         }
 
@@ -239,6 +244,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         }
 
         override suspend fun remove(ids: List<Long>) = TVBro.container.data.downloads.delete(ids)
+
+        override fun onScreenShown(shown: Boolean) = downloadLauncher.onScreenShown(shown)
     }
 
     /** Opens the settings of the shell at the [category] (the update dialog opens About) */
@@ -519,12 +526,12 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
     override fun onStart() {
         super.onStart()
-        downloadLauncher.bindService()
+        downloadLauncher.onActivityStarted()
     }
 
     override fun onStop() {
         super.onStop()
-        downloadLauncher.unbindService()
+        downloadLauncher.onActivityStopped()
     }
 
     override fun onResume() {
