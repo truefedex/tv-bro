@@ -120,6 +120,26 @@ class AppEngineAdBlockerTest {
     }
 
     @Test
+    fun whatTheScriptOfGeckoViewGets() {
+        val file = blocker.scriptEngineFile()!!
+        assertEquals(blocker.scriptEngineFingerprint, file.fingerprint)
+        //the request filters alone, in the format of the engine file
+        assertTrue(file.bytes.size > 32 && String(file.bytes, 0, 4, Charsets.US_ASCII) == "TVBA")
+        runBlocking { TVBro.container.data.hostConfigs.loadSiteSettings() }
+        var changes = 0
+        blocker.addChangeListener { changes++ }
+        runBlocking { TVBro.container.data.hostConfigs.setAdBlock("off.com", false) }
+        assertEquals(1, changes)
+        val settings = blocker.siteSettings!!
+        assertEquals(mapOf("off.com" to false), settings.hosts)
+        assertTrue(settings.enabled)
+        assertEquals(Config.HOME_PAGE_URL, settings.homePageUrl)
+        config.adBlockEnabled = false
+        assertEquals(2, changes)
+        assertFalse(blocker.siteSettings!!.enabled)
+    }
+
+    @Test
     fun theGlobalSetting() {
         config.adBlockEnabled = false
         assertFalse(webView("https://ads.example.net/a.js"))

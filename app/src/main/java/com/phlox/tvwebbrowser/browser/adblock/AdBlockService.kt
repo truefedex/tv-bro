@@ -23,6 +23,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.io.IOException
 import java.util.Locale
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.zip.CRC32
 
 /**
@@ -70,7 +71,16 @@ class AdBlockService(
 
     @Volatile
     var engine: FilterEngine? = null
-        private set
+        private set(value) {
+            field = value
+            engineListeners.forEach { it.run() }
+        }
+    private val engineListeners = CopyOnWriteArrayList<Runnable>()
+
+    /** [listener] is called on the thread of the change when [engine] is replaced */
+    fun addEngineListener(listener: Runnable) {
+        engineListeners += listener
+    }
 
     private val statusFlow = MutableStateFlow(Status())
     val status: StateFlow<Status> = statusFlow.asStateFlow()

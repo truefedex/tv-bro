@@ -42,11 +42,30 @@ internal object EngineFile {
     /** The arrays of the [CosmeticIndex] ([CosmeticIndex.arrays]) */
     fun cosmeticSection(array: Int) = 200 + array
 
+    fun isCosmeticSection(id: Int) = id >= 200
+
     fun tableSection(table: Int, array: Int) = 100 + table * 10 + array
 
     class Content(val fingerprint: Long, val createdAt: Long, val sections: Map<Int, Any>)
 
     fun write(file: File, fingerprint: Long, createdAt: Long, sections: Map<Int, Any>) {
+        val bytes = toBytes(fingerprint, createdAt, sections)
+        //a process killed while writing leaves the previous file as it was
+        val dir = file.absoluteFile.parentFile
+        dir?.mkdirs()
+        val temp = File(dir, file.name + ".tmp")
+        FileOutputStream(temp).use { out ->
+            out.write(bytes)
+            out.fd.sync()
+        }
+        if (!temp.renameTo(file)) {
+            //renameTo does not replace on some platforms (Windows); Android's rename does
+            file.delete()
+            if (!temp.renameTo(file)) throw IOException("can not rename $temp to $file")
+        }
+    }
+
+    fun toBytes(fingerprint: Long, createdAt: Long, sections: Map<Int, Any>): ByteArray {
         var bodySize = 0L
         for (array in sections.values) bodySize += 16 + padded(byteSize(array))
         require(bodySize < Int.MAX_VALUE) { "engine too large" }
@@ -79,20 +98,7 @@ internal object EngineFile {
         buffer.position(0)
         buffer.putInt(MAGIC).putInt(FORMAT_VERSION).putLong(fingerprint).putLong(createdAt)
             .putInt(bytes.size - HEADER_SIZE).putInt(crc.value.toInt())
-
-        //a process killed while writing leaves the previous file as it was
-        val dir = file.absoluteFile.parentFile
-        dir?.mkdirs()
-        val temp = File(dir, file.name + ".tmp")
-        FileOutputStream(temp).use { out ->
-            out.write(bytes)
-            out.fd.sync()
-        }
-        if (!temp.renameTo(file)) {
-            //renameTo does not replace on some platforms (Windows); Android's rename does
-            file.delete()
-            if (!temp.renameTo(file)) throw IOException("can not rename $temp to $file")
-        }
+        return bytes
     }
 
     fun read(bytes: ByteArray): Content {

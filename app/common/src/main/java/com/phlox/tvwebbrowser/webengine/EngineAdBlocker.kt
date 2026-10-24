@@ -32,7 +32,35 @@ interface EngineAdBlocker {
 
     /** The CSS hiding the elements of these [classes] and [ids] (as they appear) on a page of [hidingStyles] */
     fun genericHidingStyles(documentUrl: Uri, topUrl: Uri?, classes: List<String>, ids: List<String>): String
+
+    /*
+     * For engines that decide in a script of their own (`adblock_engine.js` in GeckoView's extension, which
+     * decides as [shouldBlock] does): the request filters and the site settings, sent to it when they change.
+     */
+
+    /** The fingerprint of the request filters ([scriptEngineFile]); null while there are none */
+    val scriptEngineFingerprint: Long?
+
+    /** The request filters in the file format `adblock_engine.js` reads; made on each call (megabytes), null if none */
+    fun scriptEngineFile(): ScriptEngineFile?
+
+    /** The settings [shouldBlock] applies; null until they are loaded */
+    val siteSettings: SiteAdBlockSettings?
+
+    /** [listener] is called on any thread when [scriptEngineFingerprint] or [siteSettings] may have changed */
+    fun addChangeListener(listener: Runnable)
+
+    fun removeChangeListener(listener: Runnable)
 }
+
+/** See [EngineAdBlocker.scriptEngineFile] */
+class ScriptEngineFile(val fingerprint: Long, val bytes: ByteArray)
+
+/**
+ * The site settings of ad blocking: [enabled] the global one, [hosts] those of the hosts that have their own,
+ * [homePageUrl] the built-in home page, where nothing is blocked
+ */
+data class SiteAdBlockSettings(val enabled: Boolean, val hosts: Map<String, Boolean>, val homePageUrl: String)
 
 /** See [EngineAdBlocker.hidingStyles] */
 data class PageHidingStyles(val css: String, val generic: Boolean) {

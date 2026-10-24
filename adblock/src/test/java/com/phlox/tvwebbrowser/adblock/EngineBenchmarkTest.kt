@@ -42,6 +42,7 @@ class EngineBenchmarkTest {
         println(String.format(Locale.US, "compile %.0f ms, file %d KB, load %.1f ms, arrays %d KB, filters %d, regex %d, unkeyed %s",
             compileMs, file.length() / 1024, loadMs, loaded.memoryBytes / 1024, loaded.filterCount, loaded.regexCount,
             loaded.unkeyedFilterCounts.toList()))
+        println("request filters file (GeckoView's extension) ${loaded.requestFiltersFile().size / 1024} KB")
 
         val requestsFile = File(dir, "requests.tsv")
         assumeTrue("no requests.tsv", requestsFile.exists())
