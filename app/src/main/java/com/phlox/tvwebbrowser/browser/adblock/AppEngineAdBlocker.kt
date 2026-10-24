@@ -6,6 +6,7 @@ import com.phlox.tvwebbrowser.adblock.MatchResult
 import com.phlox.tvwebbrowser.adblock.ResourceType
 import com.phlox.tvwebbrowser.data.HostConfigRepository
 import com.phlox.tvwebbrowser.webengine.EngineAdBlocker
+import com.phlox.tvwebbrowser.webengine.PageHidingStyles
 
 /**
  * What the engines ask ([com.phlox.tvwebbrowser.webengine.WebEngineFactory.adBlocker]): the engine of the
@@ -26,15 +27,32 @@ class AppEngineAdBlocker(
         val urlString = url.toString()
         val types = if (type != null) ResourceType.fromWebExtension(type) else
             ResourceType.guessFromAccept(acceptHeader, urlString, isMainFrame)
-        val page = when {
-            //a page is first-party to itself
-            isMainFrame -> url
-            //a frame of about:blank, about:srcdoc, data: or blob: is of the page that made it (the ads of
-            //such frames would else be of no site, and no third-party filter would apply)
-            documentUrl != null && isWebUrl(documentUrl) -> documentUrl
-            else -> topUrl ?: documentUrl
-        }
+        //a page is first-party to itself
+        val page = if (isMainFrame) url else pageOf(documentUrl, topUrl)
         return engine.match(urlString, host, page?.toString(), page?.host, types) == MatchResult.BLOCK
+    }
+
+    /**
+     * The page whose filters apply in a document: the document, or for a frame of about:blank, about:srcdoc,
+     * data: or blob: the page of the tab that made it (its ads would else be of no site, and no third-party or
+     * site filter would apply)
+     */
+    private fun pageOf(documentUrl: Uri?, topUrl: Uri?): Uri? =
+        if (documentUrl != null && isWebUrl(documentUrl)) documentUrl else topUrl ?: documentUrl
+
+    override fun hidingStyles(documentUrl: Uri, topUrl: Uri?): PageHidingStyles {
+        val engine = service.engine ?: return PageHidingStyles.NONE
+        if (!isEnabledOn(topUrl ?: documentUrl)) return PageHidingStyles.NONE
+        val page = pageOf(documentUrl, topUrl)?.takeIf(::isWebUrl) ?: return PageHidingStyles.NONE
+        val styles = engine.hidingStyles(page.toString(), page.host!!)
+        return PageHidingStyles(styles.css, styles.generic)
+    }
+
+    override fun genericHidingStyles(documentUrl: Uri, topUrl: Uri?, classes: List<String>, ids: List<String>): String {
+        val engine = service.engine ?: return ""
+        if (!isEnabledOn(topUrl ?: documentUrl)) return ""
+        val page = pageOf(documentUrl, topUrl)?.takeIf(::isWebUrl) ?: return ""
+        return engine.genericHidingStyles(page.toString(), page.host!!, classes, ids)
     }
 
     private fun isWebUrl(uri: Uri): Boolean {

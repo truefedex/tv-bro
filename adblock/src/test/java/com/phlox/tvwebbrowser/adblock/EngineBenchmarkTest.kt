@@ -70,6 +70,22 @@ class EngineBenchmarkTest {
             us(0.5), us(0.9), us(0.99), times.last() / 1000.0, times.average() / 1000.0, requests.size,
             results.count { it == MatchResult.BLOCK }, results.count { it == MatchResult.ALLOW }))
 
+        //element hiding of the pages of the corpus: the CSS of a page, and its generic selectors for some classes
+        val pages = requests.mapNotNull { r -> if (r.page?.startsWith("http") == true && r.pageHost != null) r.page to r.pageHost else null }.distinct()
+        val classes = listOf("ad", "ads", "banner", "ad-container", "sidebar", "content", "header", "footer", "promo",
+            "advert", "sponsored", "article", "nav", "menu", "adsbygoogle", "google-ad", "ad-slot", "teaser")
+        repeat(2) { for ((url, host) in pages) loaded.hidingStyles(url, host) }
+        var cssChars = 0L
+        var start2 = System.nanoTime()
+        for ((url, host) in pages) cssChars += loaded.hidingStyles(url, host).css.length
+        val pageUs = (System.nanoTime() - start2) / 1000.0 / pages.size
+        start2 = System.nanoTime()
+        for ((url, host) in pages) loaded.genericHidingStyles(url, host, classes, listOf("ad", "top-ad"))
+        val genericUs = (System.nanoTime() - start2) / 1000.0 / pages.size
+        println(String.format(Locale.US, "hiding: %d selectors; %d pages: styles %.1f µs (css %d chars on average), " +
+                "generic of %d names %.1f µs", loaded.hidingSelectorCount, pages.size, pageUs, cssChars / pages.size,
+            classes.size + 2, genericUs))
+
         //the filters that block the most, to see that nothing blocks everything
         val byFilter = HashMap<String, Int>()
         for (r in requests) {

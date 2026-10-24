@@ -108,6 +108,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private val desktopView = DesktopView(this)
     private val mediaControls = WebViewMediaControls(this, { callback.onMediaStateChanged(it) },
         { callback.onPageVideosChanged(it) }, { callback.onMediaVideoChanged(it) })
+    private val elementHiding = WebViewElementHiding(this) { requestPageUrl ?: currentOriginalUrl }
 
     interface Callback {
         fun getActivity(): Activity?
@@ -461,6 +462,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 currentOriginalUrl = url.toUri()
                 requestPageUrl = currentOriginalUrl
                 mediaControls.onPageStarted()
+                elementHiding.onPageStarted()
                 callback.onPageStarted(url)
             }
 
@@ -475,6 +477,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 callback.onPageFinished(url)
                 evaluateJavascript(getGenericJSInjects(), null)
                 mediaControls.onPageFinished()
+                elementHiding.onPageFinished()
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {

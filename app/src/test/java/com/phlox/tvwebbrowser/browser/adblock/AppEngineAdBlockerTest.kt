@@ -13,6 +13,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -43,6 +44,7 @@ class AppEngineAdBlockerTest {
         val fetcher = AdBlockServiceTest.FakeFetcher()
         fetcher.lists[FilterListCatalog.find(FilterListCatalog.EASYLIST)!!.url] = listOf(
             "||ads.example.net^", "||img.example.net^\$image", "*\$ping,third-party", "||bad.example^\$document",
+            "site.com##.site-ad", "##.ad-box", "##[data-ad]",
         ).joinToString("\n")
         fetcher.lists[FilterListCatalog.find(FilterListCatalog.EASYPRIVACY)!!.url] = "! none\n"
         val psl = PublicSuffixList.load(RuntimeEnvironment.getApplication().assets.open("adblock/psl.txt").use { it.readBytes() })
@@ -91,6 +93,30 @@ class AppEngineAdBlockerTest {
         assertTrue(gecko("https://ping.example.org/collect", "ping", document = "about:srcdoc", top = "https://site.com/"))
         //the same site is not third-party
         assertFalse(gecko("https://cdn.site.com/collect", "ping", document = "about:blank", top = "https://site.com/"))
+    }
+
+    @Test
+    fun hidingOfThePageAndItsFrames() {
+        val page = blocker.hidingStyles(Uri.parse("https://site.com/news"), Uri.parse("https://site.com/news"))
+        assertTrue(page.css.contains(".site-ad") && page.css.contains("[data-ad]"))
+        assertTrue(page.generic)
+        assertTrue(blocker.genericHidingStyles(Uri.parse("https://site.com/"), null, listOf("ad-box"), emptyList())
+            .contains(".ad-box"))
+        //a frame of another site gets the selectors of its own site
+        assertFalse(blocker.hidingStyles(Uri.parse("https://frame.org/"), Uri.parse("https://site.com/")).css.contains(".site-ad"))
+        //a frame of about:blank those of the tab's page
+        assertTrue(blocker.hidingStyles(Uri.parse("about:blank"), Uri.parse("https://site.com/")).css.contains(".site-ad"))
+    }
+
+    @Test
+    fun noHidingWhereAdsAreShown() {
+        runBlocking { TVBro.container.data.hostConfigs.setAdBlock("site.com", false) }
+        assertEquals("", blocker.hidingStyles(Uri.parse("https://site.com/"), Uri.parse("https://site.com/")).css)
+        assertEquals("", blocker.genericHidingStyles(Uri.parse("https://site.com/"), Uri.parse("https://site.com/"),
+            listOf("ad-box"), emptyList()))
+        //a frame on such a page too
+        assertEquals("", blocker.hidingStyles(Uri.parse("https://frame.org/"), Uri.parse("https://site.com/")).css)
+        assertEquals("", blocker.hidingStyles(Uri.parse(Config.HOME_PAGE_URL), Uri.parse(Config.HOME_PAGE_URL)).css)
     }
 
     @Test
