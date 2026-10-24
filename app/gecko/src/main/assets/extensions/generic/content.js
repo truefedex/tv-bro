@@ -13,6 +13,8 @@ let hidingRequests = 0;
 
 function askHiding(message, callback) {
     const id = ++hidingRequests;
+    // the top frame is the page of the tab: the url of the engine may still be the previous page
+    message.top = window === window.top;
     hidingCallbacks.set(id, callback);
     message.hidingRequest = id;
     send(JSON.stringify(message));

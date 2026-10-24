@@ -59,7 +59,8 @@ function tvBroHideElements(api, doc) {
 
         function note(element) {
             if (element.tagName === 'IFRAME' || element.tagName === 'FRAME') watchFrame(element);
-            if (!generic) return;
+            // past the limit only frames are still watched (WebView), names are not collected
+            if (!generic || names > MAX_NAMES) return;
             const id = element.id;
             if (id && typeof id === 'string' && !seen.has('#' + id)) {
                 seen.add('#' + id);

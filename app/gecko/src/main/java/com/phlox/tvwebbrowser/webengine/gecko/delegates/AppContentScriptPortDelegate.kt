@@ -45,15 +45,18 @@ class AppContentScriptPortDelegate(val port: WebExtension.Port, val webEngine: G
     private fun answerHiding(json: JSONObject, port: WebExtension.Port) {
         val blocker = WebEngineFactory.adBlocker ?: return
         val request = json.optInt("hidingRequest")
-        val top = webEngine.url?.let(Uri::parse)
+        //the top frame is the page itself (the url of the engine may still be the previous page)
+        val engineTop = if (json.optBoolean("top")) null else webEngine.url?.let(Uri::parse)
         hidingExecutor.execute {
             val reply = JSONObject().put("hidingReply", request)
             try {
                 if (json.has("hidingStyles")) {
-                    val styles = blocker.hidingStyles(Uri.parse(json.getString("hidingStyles")), top)
+                    val document = Uri.parse(json.getString("hidingStyles"))
+                    val styles = blocker.hidingStyles(document, engineTop ?: document)
                     reply.put("css", styles.css).put("generic", styles.generic)
                 } else {
-                    reply.put("css", blocker.genericHidingStyles(Uri.parse(json.getString("genericHiding")), top,
+                    val document = Uri.parse(json.getString("genericHiding"))
+                    reply.put("css", blocker.genericHidingStyles(document, engineTop ?: document,
                         names(json.optJSONArray("classes")), names(json.optJSONArray("ids"))))
                 }
             } catch (e: Exception) {
