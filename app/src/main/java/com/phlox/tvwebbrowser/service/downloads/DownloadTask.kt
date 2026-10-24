@@ -10,6 +10,7 @@ import android.util.Log
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.DownloadFileActions
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -165,17 +166,18 @@ abstract class DownloadTask(val download: Download, private val listener: Listen
 }
 
 /**
- * Downloads [Download.url] itself; [resume] continues from the bytes the file has (the whole file is
- * downloaded again if the server can not give the rest, or the file is gone)
+ * Downloads [Download.url] itself, through [proxy]; [resume] continues from the bytes the file has (the
+ * whole file is downloaded again if the server can not give the rest, or the file is gone)
  */
-class HttpDownloadTask(download: Download, listener: Listener, private val resume: Boolean = false) :
+class HttpDownloadTask(download: Download, listener: Listener, private val resume: Boolean = false,
+                       private val proxy: ProxySettings? = null) :
     DownloadTask(download, listener) {
     private var connection: HttpURLConnection? = null
 
     override fun openInput(): InputStream {
         val offset = if (resume && download.bytesReceived > 0 && fileExists(download)) download.bytesReceived else 0L
         if (offset == 0L && resume && !fileExists(download)) download.filepath = ""
-        val response = HttpDownloads.open(download, offset)
+        val response = HttpDownloads.open(download, offset, proxy = proxy)
         connection = response.connection
         startOffset = response.start
         return response.input

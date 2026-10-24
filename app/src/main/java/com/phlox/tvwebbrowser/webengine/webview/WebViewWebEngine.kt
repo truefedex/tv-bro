@@ -20,6 +20,8 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.net.AppProxy
+import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
@@ -487,7 +489,12 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         init {
             WebEngineFactory.registerProvider(WebEngineProvider("WebView", object : WebEngineProviderCallback {
                 override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
+                    //before any WebView of the tabs loads a page
+                    AppProxy.settings?.let { WebViewProxy.apply(it) }
+                }
 
+                override suspend fun applyProxy(proxy: ProxySettings?) {
+                    WebViewProxy.apply(proxy)
                 }
 
                 override fun createWebEngine(tab: BrowserTab): WebEngine {
@@ -538,6 +545,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     }
                     //WebView has no blocking of trackers of its own
                     EngineSpecificSetting.TRACKING_PROTECTION -> false
+                    EngineSpecificSetting.PROXY -> WebViewProxy.isSupported()
                 }
             }))
         }

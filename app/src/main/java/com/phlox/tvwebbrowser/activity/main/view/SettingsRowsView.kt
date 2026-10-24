@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
 import android.content.Context
+import android.text.InputType
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -310,6 +311,13 @@ class SettingsRowsView @JvmOverloads constructor(
                 if (etValue.text.toString() != row.text) etValue.setText(row.text)
             }
             boundText = row.text
+            val inputType = inputTypeOf(row.input)
+            if (etValue.inputType != inputType) {
+                //a password type would change the font too
+                val typeface = etValue.typeface
+                etValue.inputType = inputType
+                etValue.typeface = typeface
+            }
             etValue.hint = row.hint
             etValue.contentDescription = row.title
             flAction.isVisible = row.action != null
@@ -318,9 +326,20 @@ class SettingsRowsView @JvmOverloads constructor(
             pbBusy.isVisible = row.busy
         }
 
+        private fun inputTypeOf(input: Row.Field.Input): Int = when (input) {
+            //as the style of the field
+            Row.Field.Input.TEXT -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+            Row.Field.Input.NUMBER -> InputType.TYPE_CLASS_NUMBER
+            Row.Field.Input.PASSWORD -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+
         fun commit() {
             val text = etValue.text.toString()
-            if (text != boundText) callback.setText(row.key, text)
+            if (text != boundText) {
+                //the field shows what the setting keeps of it (a trimmed text, an address without its port)
+                boundText = text
+                callback.setText(row.key, text)
+            }
         }
 
         override fun focusTarget(): View = etValue

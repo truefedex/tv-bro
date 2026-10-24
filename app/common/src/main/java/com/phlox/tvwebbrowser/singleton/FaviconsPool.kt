@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.singleton
 
+import com.phlox.tvwebbrowser.net.AppProxy
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
@@ -164,7 +165,7 @@ object FaviconsPool {
 
     private suspend fun downloadIcon(iconInfo: FaviconExtractor.IconInfo): Bitmap? = withContext(Dispatchers.IO) {
         val url = URL(iconInfo.src)
-        val connection = url.openConnection()
+        val connection = AppProxy.open(url)
         connection.connect()
         val input = connection.getInputStream()
         val options = BitmapFactory.Options()
@@ -176,7 +177,7 @@ object FaviconsPool {
         val scale = Math.max(width / 512, height / 512)
         options.inJustDecodeBounds = false
         options.inSampleSize = scale
-        val input2 = url.openConnection().getInputStream()
+        val input2 = AppProxy.open(url).getInputStream()
         val bitmap = BitmapFactory.decodeStream(input2, null, options)
         input2.close()
         return@withContext bitmap

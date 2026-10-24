@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.utils
 
+import com.phlox.tvwebbrowser.net.AppProxy
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -40,7 +41,7 @@ class UpdateChecker(val currentVersionCode: Int, val variant: String) {
     }
 
     fun check(urlOfVersionFile: String, channelsToCheck: Array<String>) {
-        val urlConnection = URL(urlOfVersionFile).openConnection() as HttpURLConnection
+        val urlConnection = AppProxy.open(URL(urlOfVersionFile)) as HttpURLConnection
         try {
             val content = urlConnection.inputStream.bufferedReader().use { it.readText() }
             versionCheckResult = parseVersionFile(content, channelsToCheck, Build.SUPPORTED_ABIS[0], Build.VERSION.SDK_INT)
@@ -141,7 +142,7 @@ class UpdateChecker(val currentVersionCode: Int, val variant: String) {
             var connection: HttpURLConnection? = null
             try {
                 val url = URL(update.url)
-                connection = url.openConnection() as HttpURLConnection
+                connection = AppProxy.open(url) as HttpURLConnection
                 connection.connect()
 
                 if (connection.responseCode != HttpURLConnection.HTTP_OK) {

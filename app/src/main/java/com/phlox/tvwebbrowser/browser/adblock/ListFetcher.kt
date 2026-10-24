@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.browser.adblock
 
+import com.phlox.tvwebbrowser.net.AppProxy
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -20,7 +21,7 @@ interface ListFetcher {
 class HttpListFetcher : ListFetcher {
     override fun fetch(url: String, etag: String?, lastModified: String?, destination: File): ListFetcher.Result {
         val connection = try {
-            URL(url).openConnection() as? HttpURLConnection ?: throw IOException("not an http address: $url")
+            AppProxy.open(URL(url)) as? HttpURLConnection ?: throw IOException("not an http address: $url")
         } catch (e: IllegalArgumentException) {
             throw IOException(e)
         }

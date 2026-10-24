@@ -12,6 +12,8 @@ import androidx.annotation.UiThread
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.net.AppProxy
+import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -180,6 +182,12 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             WebEngineFactory.registerProvider(WebEngineProvider(ENGINE_NAME, object : WebEngineProviderCallback {
                 override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
                     GeckoWebEngine.initialize(context, webViewContainer)
+                    //before the sessions of the tabs load a page
+                    AppProxy.settings?.let { GeckoProxyPrefs.apply(it) }
+                }
+
+                override suspend fun applyProxy(proxy: ProxySettings?) {
+                    GeckoProxyPrefs.apply(proxy)
                 }
 
                 override fun createWebEngine(tab: BrowserTab): WebEngine {
@@ -187,7 +195,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                 }
 
                 override fun supportsSetting(setting: EngineSpecificSetting): Boolean =
-                    setting == EngineSpecificSetting.TRACKING_PROTECTION
+                    setting == EngineSpecificSetting.TRACKING_PROTECTION || setting == EngineSpecificSetting.PROXY
 
                 override suspend fun clearCache(ctx: Context) {
                     suspendCoroutine { cont ->

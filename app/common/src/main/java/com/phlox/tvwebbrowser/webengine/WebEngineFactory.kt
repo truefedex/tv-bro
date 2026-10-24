@@ -7,6 +7,8 @@ import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.net.AppProxy
+import com.phlox.tvwebbrowser.net.ProxySettings
 
 /**
  * Settings that only some engines support: the settings screen shows them only when the engine does.
@@ -15,11 +17,17 @@ enum class EngineSpecificSetting {
     /** Darkening of pages that have no dark theme while the dark UI mode is on */
     ALGORITHMIC_DARKENING,
     /** The engine's own blocking of trackers ([Config.trackingProtection]) */
-    TRACKING_PROTECTION
+    TRACKING_PROTECTION,
+    /** Going through a proxy ([WebEngineProviderCallback.applyProxy]) */
+    PROXY
 }
 
 interface WebEngineProviderCallback {
-    /** [webViewContainer] is where engines put their views (see [WebEngine.onAttachToWindow]) */
+    /**
+     * [webViewContainer] is where engines put their views (see [WebEngine.onAttachToWindow]). An engine that
+     * supports [EngineSpecificSetting.PROXY] goes through the proxy of [AppProxy.settings] before it returns,
+     * so that nothing loads before.
+     */
     suspend fun initialize(context: Context, webViewContainer: ViewGroup)
     fun createWebEngine(tab: BrowserTab): WebEngine
     suspend fun clearCache(ctx: Context)
@@ -48,6 +56,13 @@ interface WebEngineProviderCallback {
      * and the cache of the site of [host]. The browser keeps the settings and the history of the site.
      */
     suspend fun clearSiteData(context: Context, host: String) {}
+
+    /**
+     * Makes all pages of the engine go through [proxy] (directly when null), except the local addresses of
+     * [ProxySettings.BYPASS_DOMAINS] and [ProxySettings.BYPASS_NETWORKS]; returns once it is applied.
+     * Pages never fall back to a direct connection when the proxy fails.
+     */
+    suspend fun applyProxy(proxy: ProxySettings?) {}
 }
 
 data class WebEngineProvider(
@@ -127,6 +142,12 @@ object WebEngineFactory {
 
     suspend fun clearSiteData(context: Context, host: String) {
         initializedProvider.callback.clearSiteData(context, host)
+    }
+
+    /** See [WebEngineProviderCallback.applyProxy]; does nothing before [initialize] (it applies the proxy itself) */
+    suspend fun applyProxy(proxy: ProxySettings?) {
+        if (!this::initializedProvider.isInitialized) return
+        initializedProvider.callback.applyProxy(proxy)
     }
 
     fun onThemeSettingUpdated(value: Config.Theme) {

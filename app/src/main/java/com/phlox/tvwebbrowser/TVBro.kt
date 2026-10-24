@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
+import com.phlox.tvwebbrowser.browser.ProxySetup
 import com.phlox.tvwebbrowser.browser.adblock.AppEngineAdBlocker
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.activity.main.MainActivity
@@ -76,9 +77,13 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         instance = this
         container = AppContainer(this)
 
-        AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_MULTI_PROCESS)))
+        AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_MULTI_PROCESS),
+            getSharedPreferences(Config.CREDENTIALS_PREFS_NAME, MODE_MULTI_PROCESS)))
 
-        if (isDownloadsProcess()) {
+        val downloadsProcess = isDownloadsProcess()
+        ProxySetup.start(AppContext.provideConfig(), browserProcess = !downloadsProcess)
+
+        if (downloadsProcess) {
             //the process of DownloadService needs the database and the notification channel only
             initNotificationChannels()
             return

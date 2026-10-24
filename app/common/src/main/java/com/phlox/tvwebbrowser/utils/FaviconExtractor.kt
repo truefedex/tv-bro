@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.utils
 
+import com.phlox.tvwebbrowser.net.AppProxy
 import android.util.JsonReader
 import android.webkit.MimeTypeMap
 import java.io.BufferedReader
@@ -74,7 +75,7 @@ class FaviconExtractor {
      * @throws java.io.IOException
      */
     fun extractFavIconsFromURL(url: URL): ArrayList<IconInfo> {
-        val connection = url.openConnection()
+        val connection = AppProxy.open(url)
         val contentType = connection.contentType
         val (result, manifestHref) = if (contentType != null && !contentType.contains("html", true)) {
             //not a web page (file download, media stream, etc.), nothing to parse here
@@ -86,7 +87,7 @@ class FaviconExtractor {
         if (manifestHref != null) {
             val manifestURL = URL(url, manifestHref)
             try {
-                val manifestIcons = manifestURL.openConnection().inputStream.bufferedReader()
+                val manifestIcons = AppProxy.open(manifestURL).inputStream.bufferedReader()
                     .use { extractFavIconsFromWebManifest(manifestURL, it) }
                 result.addAll(manifestIcons)
             } catch (e: Exception) {

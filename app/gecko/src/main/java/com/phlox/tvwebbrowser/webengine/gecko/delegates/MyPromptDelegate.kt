@@ -18,6 +18,7 @@ import android.view.ViewGroup
 import android.widget.*
 import android.widget.AdapterView.OnItemClickListener
 import androidx.appcompat.app.AlertDialog
+import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import com.phlox.tvwebbrowser.webengine.gecko.R
 import org.mozilla.geckoview.AllowOrDeny
@@ -176,12 +177,18 @@ class MyPromptDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Prom
         session: GeckoSession,
         prompt: GeckoSession.PromptDelegate.AuthPrompt
     ): GeckoResult<GeckoSession.PromptDelegate.PromptResponse>? {
+        val flags = prompt.authOptions.flags
+        //the proxy asks for its login: the saved one, unless it was refused already
+        val proxyCredentials = AppProxy.settings?.credentials
+        if (flags and AuthPrompt.AuthOptions.Flags.PROXY != 0 && proxyCredentials != null &&
+            flags and AuthPrompt.AuthOptions.Flags.PREVIOUS_FAILED == 0) {
+            return GeckoResult.fromValue(prompt.confirm(proxyCredentials.first, proxyCredentials.second))
+        }
         val activity: Activity = webEngine.callback?.getActivity()
             ?: return GeckoResult.fromValue<PromptResponse>(prompt.dismiss())
         val builder = AlertDialog.Builder(activity)
         val container = addStandardLayout(builder, prompt.title, prompt.message)
 
-        val flags = prompt.authOptions.flags
         val level = prompt.authOptions.level
         val username: EditText?
         if (flags and AuthPrompt.AuthOptions.Flags.ONLY_PASSWORD == 0) {

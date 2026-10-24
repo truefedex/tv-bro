@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Backups and device transfers (Android 12 and newer) carry everything but the secrets of Config -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="credentials.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="credentials.xml" />
+    </device-transfer>
+</data-extraction-rules>

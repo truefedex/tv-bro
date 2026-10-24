@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -24,6 +25,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.DownloadFileActions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -110,17 +112,22 @@ class DownloadService : Service() {
             DownloadCommands.START -> {
                 val stream = BundleCompat.getParcelable(data, DownloadCommands.KEY_STREAM, ParcelFileDescriptor::class.java)
                 start(id, data.getString(DownloadCommands.KEY_COOKIES), data.getString(DownloadCommands.KEY_REFERER),
-                    data.getBoolean(DownloadCommands.KEY_INSTALL), stream)
+                    data.getBoolean(DownloadCommands.KEY_INSTALL), stream, proxyOf(data))
             }
             DownloadCommands.CANCEL -> cancel(id)
             DownloadCommands.PAUSE -> tasks[id]?.stop(DownloadTask.Stop.PAUSE)
             DownloadCommands.RESUME -> resume(id, data.getString(DownloadCommands.KEY_COOKIES),
-                data.getString(DownloadCommands.KEY_REFERER))
+                data.getString(DownloadCommands.KEY_REFERER), proxyOf(data))
             else -> Log.w(TAG, "Unknown command ${message.what}")
         }
     }
 
-    private fun start(id: Long, cookies: String?, referer: String?, install: Boolean, stream: ParcelFileDescriptor?) {
+    /** The proxy of the browser when it sent the command; null connects directly */
+    private fun proxyOf(data: Bundle): ProxySettings? =
+        ProxySettings.fromBundle(data.getBundle(DownloadCommands.KEY_PROXY))
+
+    private fun start(id: Long, cookies: String?, referer: String?, install: Boolean, stream: ParcelFileDescriptor?,
+                      proxy: ProxySettings?) {
         //the service is started too, so that it keeps running when the browser unbinds
         startService(Intent(this, DownloadService::class.java))
         startForeground()
@@ -138,7 +145,7 @@ class DownloadService : Service() {
             if (install) download.operationAfterDownload = Download.OperationAfterDownload.INSTALL
             Log.d(TAG, "Start to download ${download.url}")
             val task = if (stream != null) StreamDownloadTask(download, stream, taskListener)
-                else HttpDownloadTask(download, taskListener)
+                else HttpDownloadTask(download, taskListener, proxy = proxy)
             tasks[id] = task
             if (cancelledBeforeStart.remove(id)) task.stop(DownloadTask.Stop.CANCEL)
             executor.execute(task)
@@ -147,7 +154,7 @@ class DownloadService : Service() {
     }
 
     /** Continues a paused download from the bytes its file has */
-    private fun resume(id: Long, cookies: String?, referer: String?) {
+    private fun resume(id: Long, cookies: String?, referer: String?, proxy: ProxySettings?) {
         startService(Intent(this, DownloadService::class.java))
         startForeground()
         scope.launch {
@@ -164,7 +171,7 @@ class DownloadService : Service() {
             download.cookies = cookies
             download.refererHeader = referer
             Log.d(TAG, "Resume to download ${download.url} from ${download.bytesReceived}")
-            val task = HttpDownloadTask(download, taskListener, resume = true)
+            val task = HttpDownloadTask(download, taskListener, resume = true, proxy = proxy)
             tasks[id] = task
             if (cancelledBeforeStart.remove(id)) task.stop(DownloadTask.Stop.CANCEL)
             executor.execute(task)

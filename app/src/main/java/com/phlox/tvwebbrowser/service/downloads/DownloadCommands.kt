@@ -18,6 +18,11 @@ object DownloadCommands {
     const val KEY_ID = "id"
     const val KEY_COOKIES = "cookies"
     const val KEY_REFERER = "referer"
+    /**
+     * The proxy of the browser ([com.phlox.tvwebbrowser.net.ProxySettings.toBundle]), for [START] and
+     * [RESUME]: the downloads process does not see the settings the browser changes later
+     */
+    const val KEY_PROXY = "proxy"
     /** Open the installer when the download completes */
     const val KEY_INSTALL = "install"
     /**

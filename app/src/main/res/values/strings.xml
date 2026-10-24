@@ -491,7 +491,9 @@
     <!-- %s: System, Light or Dark -->
     <string name="settings_summary_theme">Theme: %s</string>
     <string name="settings_summary_remote">Cursor, keys of the remote</string>
-    <string name="settings_summary_advanced">Web cache, engine debugging</string>
+    <string name="settings_summary_advanced">Web cache, engine debugging, proxy</string>
+    <!-- "Proxy HTTP host:8080" -->
+    <string name="settings_summary_proxy_s">Proxy %s</string>
     <!-- marks a setting that applies after a restart of the app -->
     <string name="settings_after_restart">After restart</string>
     <string name="settings_restart_message">Restart TV Bro to apply the changes</string>
@@ -588,6 +590,25 @@
     <string name="settings_web_cache_cleared">Web cache cleared</string>
     <string name="settings_engine_debug">Web engine debugging</string>
     <string name="settings_engine_debug_summary">A computer connected for debugging can see pages and cookies</string>
+    <string name="settings_group_proxy">Proxy</string>
+    <string name="settings_proxy">Use a proxy</string>
+    <string name="settings_proxy_summary">Pages, downloads and videos go through a proxy server; addresses of the local network open directly</string>
+    <string name="settings_proxy_incomplete">Not in use: enter the address and the port of the proxy</string>
+    <!-- "All pages go through HTTP host:8080" -->
+    <string name="settings_proxy_in_use_s">All pages go through %s</string>
+    <string name="settings_proxy_type">Type</string>
+    <string name="settings_proxy_http" translatable="false">HTTP</string>
+    <string name="settings_proxy_socks5" translatable="false">SOCKS5</string>
+    <string name="settings_proxy_type_http_summary">Secure sites go through it too</string>
+    <string name="settings_proxy_type_socks5_summary">The browser can not log in to a SOCKS proxy</string>
+    <string name="settings_proxy_host">Address</string>
+    <string name="settings_proxy_host_hint" translatable="false">proxy.example.com</string>
+    <string name="settings_proxy_bad_host">Not an address: a name or an IP address, without a path</string>
+    <string name="settings_proxy_port">Port</string>
+    <string name="settings_proxy_bad_port">A port is a number from %1$d to %2$d</string>
+    <string name="settings_proxy_username">User name</string>
+    <string name="settings_proxy_login_summary">Leave it empty when the proxy asks for no login</string>
+    <string name="settings_proxy_password">Password</string>
     <!-- About; %s: the version name -->
     <string name="settings_version_s">Version %s</string>
     <!-- %1$s: the version name, %2$s: the build (generic, google, foss), %3$s: the web engine and its version -->

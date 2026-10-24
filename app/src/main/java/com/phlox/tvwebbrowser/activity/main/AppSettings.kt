@@ -10,14 +10,17 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutKeyDialog
 import com.phlox.tvwebbrowser.browser.BrowserController
+import com.phlox.tvwebbrowser.browser.ProxySetup
 import com.phlox.tvwebbrowser.browser.adblock.AdBlockService
 import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
+import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -142,6 +145,54 @@ class AppSettingsStore(
 
     override suspend fun clearCache() = WebEngineFactory.clearCache(AppContext.get())
     override var webEngineDebug: Boolean by config::webEngineDebug
+
+    override val supportsProxy: Boolean
+        get() = WebEngineFactory.supportsSetting(EngineSpecificSetting.PROXY)
+    override var proxyEnabled: Boolean
+        get() = config.proxyEnabled
+        set(value) {
+            config.proxyEnabled = value
+            applyProxy()
+        }
+    override var proxyType: ProxySettings.Type
+        get() = config.proxyType
+        set(value) {
+            config.proxyType = value
+            applyProxy()
+        }
+    override var proxyHost: String
+        get() = config.proxyHost
+        set(value) {
+            config.proxyHost = value
+            applyProxy()
+        }
+    override var proxyPort: Int
+        get() = config.proxyPort
+        set(value) {
+            config.proxyPort = value
+            applyProxy()
+        }
+    override var proxyUsername: String
+        get() = config.proxyUsername
+        set(value) {
+            config.proxyUsername = value
+            applyProxy()
+        }
+    override var proxyPassword: String
+        get() = config.proxyPassword
+        set(value) {
+            config.proxyPassword = value
+            applyProxy()
+        }
+    override val proxy: ProxySettings? get() = config.proxy
+
+    /**
+     * The app, the engine and the current page go through the proxy at once; after the other settings changed
+     * with it (an address with a port), so that it is applied once
+     */
+    private fun applyProxy() {
+        TVBro.container.appScope.launch(Dispatchers.Main) { ProxySetup.apply(config, controller) }
+    }
 
     override val versionName: String get() = BuildConfig.VERSION_NAME
     override val buildName: String get() = BuildConfig.FLAVOR_appstore

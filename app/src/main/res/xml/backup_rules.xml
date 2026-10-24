@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Backups (Android 11 and older) carry everything but the secrets of Config (the login of the proxy) -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="credentials.xml" />
+</full-backup-content>

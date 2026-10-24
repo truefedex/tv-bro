@@ -51,6 +51,7 @@ import androidx.core.net.toUri
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -555,6 +556,12 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 host: String?,
                 realm: String?
             ) {
+                //the proxy asks for its login (it is the host): the saved one, unless it was refused already
+                val proxyCredentials = AppProxy.settings?.takeIf { it.isProxyAddress(host, it.port) }?.credentials
+                if (proxyCredentials != null && handler?.useHttpAuthUsernamePassword() == true) {
+                    handler.proceed(proxyCredentials.first, proxyCredentials.second)
+                    return
+                }
                 val userNameEdit = EditText(context).also {
                     it.hint = context.getString(com.phlox.tvwebbrowser.common.R.string.username)
                     it.isSingleLine = true

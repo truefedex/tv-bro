@@ -7,6 +7,7 @@ import androidx.annotation.StringRes
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +48,7 @@ class SettingsNavigator(
         SITE_VIEW, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
-        CLEAR_CACHE, ENGINE_DEBUG,
+        CLEAR_CACHE, ENGINE_DEBUG, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
         LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, LINK_PUBLIC_SUFFIX_LIST
     }
@@ -125,6 +126,18 @@ class SettingsNavigator(
 
         suspend fun clearCache()
         var webEngineDebug: Boolean
+        /** The engine can go through a proxy */
+        val supportsProxy: Boolean
+        /** The setters apply the proxy once its address is complete */
+        var proxyEnabled: Boolean
+        var proxyType: ProxySettings.Type
+        var proxyHost: String
+        /** 0 while not given */
+        var proxyPort: Int
+        var proxyUsername: String
+        var proxyPassword: String
+        /** The proxy the browser goes through: null while it is off or its address is not complete */
+        val proxy: ProxySettings?
 
         val versionName: String
         /** The build (the app store flavor) */
@@ -200,8 +213,12 @@ class SettingsNavigator(
         /** A text to type; it is saved when the field loses the focus, on Done and when the screen closes */
         data class Field(
             override val key: Key, override val title: String, override val summary: String?,
-            val text: String, val hint: String, val action: String? = null, val busy: Boolean = false
-        ) : Row()
+            val text: String, val hint: String, val action: String? = null, val busy: Boolean = false,
+            val input: Input = Input.TEXT
+        ) : Row() {
+            /** The keyboard of the field; a [PASSWORD] is shown hidden */
+            enum class Input { TEXT, NUMBER, PASSWORD }
+        }
 
         /** A button at the end of the row */
         data class Action(
@@ -347,6 +364,11 @@ class SettingsNavigator(
             }
             Key.INTERFACE -> store.interfaceMode = Config.InterfaceMode.entries[index]
             Key.THEME -> store.theme = Config.Theme.entries[index]
+            Key.PROXY_TYPE -> {
+                val type = ProxySettings.Type.entries.getOrNull(index) ?: return
+                if (type == store.proxyType) return
+                store.proxyType = type
+            }
             Key.REGIONAL_LIST -> store.setRegionalFilterList(regionalLists().getOrNull(index - 1)?.id)
             Key.UPDATE_CHANNEL -> {
                 val channel = updates?.channels?.getOrNull(index) ?: return
@@ -378,6 +400,7 @@ class SettingsNavigator(
             Key.KEEP_SCREEN_ON -> store.keepScreenOn = !store.keepScreenOn
             Key.MATCH_FRAME_RATE -> store.matchFrameRate = !store.matchFrameRate
             Key.JOYSTICK -> store.joystickNavigation = !store.joystickNavigation
+            Key.PROXY -> store.proxyEnabled = !store.proxyEnabled
             Key.AUTO_UPDATE -> {
                 store.autoCheckUpdates = !store.autoCheckUpdates
                 if (store.autoCheckUpdates && updates == null) checkUpdates(force = false)
@@ -410,7 +433,8 @@ class SettingsNavigator(
 
     /** Saves the text of a field (unchanged texts are ignored) */
     fun setText(key: Key, text: String) {
-        val value = text.trim()
+        //a password is kept as it is typed
+        val value = if (key == Key.PROXY_PASSWORD) text else text.trim()
         when (key) {
             Key.SEARCH_URL -> {
                 if (value.isEmpty() || value == store.searchEngineUrl) return
@@ -425,9 +449,63 @@ class SettingsNavigator(
                 if (value == store.filterLists.customUrl) return
                 store.setCustomFilterList(value)
             }
+            Key.PROXY_HOST -> if (!setProxyAddress(value)) return
+            Key.PROXY_PORT -> {
+                val port = if (value.isEmpty()) 0 else value.toIntOrNull()?.coerceIn(0, 99999) ?: 0
+                if (port == store.proxyPort) {
+                    //a text that is not a port is replaced with the port
+                    render()
+                    return
+                }
+                store.proxyPort = port
+            }
+            Key.PROXY_USERNAME -> if (value != store.proxyUsername) store.proxyUsername = value else return
+            Key.PROXY_PASSWORD -> if (value != store.proxyPassword) store.proxyPassword = value else return
             else -> return
         }
         render()
+    }
+
+    /**
+     * Saves the address of the proxy; an address with a port (`host:8080`), a scheme (`socks5://host`) or a
+     * path gives the port and the type too. @return false when nothing changed
+     */
+    private fun setProxyAddress(text: String): Boolean {
+        var address = text
+        val scheme = address.substringBefore("://", "").lowercase()
+        if (address.contains("://")) address = address.substringAfter("://")
+        address = address.substringBefore('/').substringAfterLast('@')
+        var port: Int? = null
+        val portStart = when {
+            address.startsWith('[') -> address.indexOf("]:").takeIf { it >= 0 }?.plus(1)
+            address.count { it == ':' } == 1 -> address.indexOf(':')
+            else -> null
+        }
+        if (portStart != null) {
+            port = address.substring(portStart + 1).toIntOrNull()
+            address = address.substring(0, portStart)
+        }
+        val type = when (scheme) {
+            "http", "https" -> ProxySettings.Type.HTTP
+            "socks", "socks5", "socks5h" -> ProxySettings.Type.SOCKS5
+            else -> null
+        }
+        var changed = false
+        if (type != null && type != store.proxyType) {
+            store.proxyType = type
+            changed = true
+        }
+        if (port != null && port != store.proxyPort) {
+            store.proxyPort = port
+            changed = true
+        }
+        if (address != store.proxyHost) {
+            store.proxyHost = address
+            changed = true
+        }
+        //the field shows the address without the rest
+        if (!changed && address != text) render()
+        return changed
     }
 
     /** The button of an action row or a field, a link, or the key of a shortcut */
@@ -504,7 +582,9 @@ class SettingsNavigator(
             context.getString(R.string.settings_summary_interface, interfaceOptions()[store.interfaceMode.ordinal]),
             context.getString(R.string.settings_summary_theme, themeOptions()[store.theme.ordinal]))
         Category.REMOTE -> string(R.string.settings_summary_remote)
-        Category.ADVANCED -> string(R.string.settings_summary_advanced)
+        Category.ADVANCED -> store.proxy?.takeIf { store.supportsProxy }
+            ?.let { context.getString(R.string.settings_summary_proxy_s, proxyAddress(it)) }
+            ?: string(R.string.settings_summary_advanced)
         Category.ABOUT -> context.getString(R.string.settings_version_s, store.versionName)
     }
 
@@ -658,12 +738,57 @@ class SettingsNavigator(
             Section(string(R.string.settings_group_keys), keys))
     }
 
-    private fun advancedSections(): List<Section> = listOf(Section(null, listOf(
-        Row.Action(Key.CLEAR_CACHE, string(R.string.settings_web_cache), string(R.string.settings_web_cache_summary),
-            string(R.string.clear)),
-        Row.Toggle(Key.ENGINE_DEBUG, string(R.string.settings_engine_debug), string(R.string.settings_engine_debug_summary),
-            store.webEngineDebug, restart = true)
-    )))
+    private fun advancedSections(): List<Section> {
+        val sections = arrayListOf(Section(null, listOf(
+            Row.Action(Key.CLEAR_CACHE, string(R.string.settings_web_cache), string(R.string.settings_web_cache_summary),
+                string(R.string.clear)),
+            Row.Toggle(Key.ENGINE_DEBUG, string(R.string.settings_engine_debug), string(R.string.settings_engine_debug_summary),
+                store.webEngineDebug, restart = true)
+        )))
+        if (store.supportsProxy) sections += Section(string(R.string.settings_group_proxy), proxyRows())
+        return sections
+    }
+
+    private fun proxyTypeOptions() = listOf(string(R.string.settings_proxy_http), string(R.string.settings_proxy_socks5))
+
+    /** "HTTP host:8080" */
+    private fun proxyAddress(proxy: ProxySettings): String =
+        "${proxyTypeOptions()[proxy.type.ordinal]} ${proxy.host}:${proxy.port}"
+
+    private fun proxyRows(): List<Row> {
+        val enabled = store.proxyEnabled
+        val proxy = store.proxy
+        val summary = when {
+            !enabled -> string(R.string.settings_proxy_summary)
+            proxy == null -> string(R.string.settings_proxy_incomplete)
+            else -> context.getString(R.string.settings_proxy_in_use_s, proxyAddress(proxy))
+        }
+        val rows = arrayListOf<Row>(Row.Toggle(Key.PROXY, string(R.string.settings_proxy), summary, enabled))
+        if (!enabled) return rows
+        val type = store.proxyType
+        rows += Row.Choice(Key.PROXY_TYPE, string(R.string.settings_proxy_type),
+            string(if (type == ProxySettings.Type.HTTP) R.string.settings_proxy_type_http_summary
+                else R.string.settings_proxy_type_socks5_summary),
+            proxyTypeOptions(), type.ordinal, segmented = true)
+        val host = store.proxyHost
+        rows += Row.Field(Key.PROXY_HOST, string(R.string.settings_proxy_host),
+            string(R.string.settings_proxy_bad_host).takeIf { host.isNotEmpty() && !ProxySettings.isValidHost(host) },
+            host, string(R.string.settings_proxy_host_hint))
+        val port = store.proxyPort
+        rows += Row.Field(Key.PROXY_PORT, string(R.string.settings_proxy_port),
+            context.getString(R.string.settings_proxy_bad_port, ProxySettings.MIN_PORT, ProxySettings.MAX_PORT)
+                .takeIf { port != 0 && !ProxySettings.isValidPort(port) },
+            if (port == 0) "" else port.toString(),
+            if (type == ProxySettings.Type.HTTP) "8080" else "1080", input = Row.Field.Input.NUMBER)
+        //WebView can not log in to a SOCKS proxy
+        if (type == ProxySettings.Type.HTTP) {
+            rows += Row.Field(Key.PROXY_USERNAME, string(R.string.settings_proxy_username),
+                string(R.string.settings_proxy_login_summary), store.proxyUsername, "")
+            rows += Row.Field(Key.PROXY_PASSWORD, string(R.string.settings_proxy_password), null, store.proxyPassword, "",
+                input = Row.Field.Input.PASSWORD)
+        }
+        return rows
+    }
 
     private fun aboutSections(): List<Section> {
         val sections = arrayListOf(Section(null, listOf(Row.Info(Key.INFO, string(R.string.web_browser_optimized_for_tvs),

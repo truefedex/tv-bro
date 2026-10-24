@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import com.phlox.tvwebbrowser.net.AppProxy
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -83,6 +84,7 @@ class DownloadLauncher(
         service.send(command(DownloadCommands.RESUME, item.id).apply {
             data.putString(DownloadCommands.KEY_COOKIES, cookies)
             data.putString(DownloadCommands.KEY_REFERER, item.referer)
+            AppProxy.settings?.let { data.putBundle(DownloadCommands.KEY_PROXY, it.toBundle()) }
         })
     }
 
@@ -110,6 +112,7 @@ class DownloadLauncher(
                     val message = command(DownloadCommands.START, download.id).apply {
                         data.putString(DownloadCommands.KEY_COOKIES, download.cookies)
                         data.putString(DownloadCommands.KEY_REFERER, referer)
+                        AppProxy.settings?.let { data.putBundle(DownloadCommands.KEY_PROXY, it.toBundle()) }
                         data.putBoolean(DownloadCommands.KEY_INSTALL,
                             download.operationAfterDownload == Download.OperationAfterDownload.INSTALL)
                         engineInput(download)?.let { data.putParcelable(DownloadCommands.KEY_STREAM, pipe(it)) }

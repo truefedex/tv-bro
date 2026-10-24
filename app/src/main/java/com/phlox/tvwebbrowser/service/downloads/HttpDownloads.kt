@@ -1,6 +1,8 @@
 package com.phlox.tvwebbrowser.service.downloads
 
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.net.AppProxy
+import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.DownloadUtils
 import java.io.ByteArrayInputStream
 import java.io.InputStream
@@ -54,11 +56,12 @@ object HttpDownloads {
     /**
      * Opens the url of the [download] for its bytes from [offset] (0 for the whole file), and fills
      * what the response tells about the file: its size, the validators of its version, whether the
-     * server gives ranges of it, and (for the whole file) its name and type.
+     * server gives ranges of it, and (for the whole file) its name and type. All its requests (redirects
+     * and retries too) go through [proxy], the proxy of the browser when the download started.
      */
-    fun open(download: Download, offset: Long, retryDelay: Long = RETRY_DELAY): HttpResponse {
+    fun open(download: Download, offset: Long, retryDelay: Long = RETRY_DELAY, proxy: ProxySettings? = null): HttpResponse {
         if (offset > 0) {
-            val connection = connect(download, offset, retryDelay)
+            val connection = connect(download, offset, retryDelay, proxy)
             val code = connection.responseCode
             when (decideRange(code, offset, contentRangeStart(connection.getHeaderField("Content-Range")), download.size)) {
                 RangeDecision.APPEND -> {
@@ -81,7 +84,7 @@ object HttpDownloads {
                 }
             }
         }
-        val connection = connect(download, 0, retryDelay)
+        val connection = connect(download, 0, retryDelay, proxy)
         val code = connection.responseCode
         if (code != HttpURLConnection.HTTP_OK) {
             connection.disconnect()
@@ -91,13 +94,13 @@ object HttpDownloads {
         return HttpResponse(connection, connection.inputStream, 0)
     }
 
-    private fun connect(download: Download, offset: Long, retryDelay: Long): HttpURLConnection {
+    private fun connect(download: Download, offset: Long, retryDelay: Long, proxy: ProxySettings?): HttpURLConnection {
         var url = URL(download.url)
         val siteHost = url.host
         var redirects = 0
         var retries = 0
         while (true) {
-            val connection = (url.openConnection() as HttpURLConnection).apply {
+            val connection = (AppProxy.open(url, proxy) as HttpURLConnection).apply {
                 instanceFollowRedirects = false
                 readTimeout = 10000
                 connectTimeout = 20000

@@ -2,10 +2,15 @@ package com.phlox.tvwebbrowser
 
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
+import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 
-class Config(val prefs: SharedPreferences) {
+/**
+ * The settings of the app. [credentialsPrefs] keeps the secrets (the login of the proxy): its file is left out
+ * of backups.
+ */
+class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedPreferences = prefs) {
     companion object {
         const val SEARCH_ENGINE_URL_PREF_KEY = "search_engine_url"
         const val SEARCH_ENGINE_AS_HOME_PAGE_KEY = "search_engine_as_home_page"
@@ -42,6 +47,14 @@ class Config(val prefs: SharedPreferences) {
         const val TRACKING_PROTECTION_KEY = "tracking_protection"
         const val APP_WEB_EXTENSION_VERSION_KEY = "app_web_extension_version"
         const val APP_VERSION_CODE_MARK_KEY = "app_version_code_mark"
+        const val PROXY_ENABLED_KEY = "proxy_enabled"
+        const val PROXY_TYPE_KEY = "proxy_type"
+        const val PROXY_HOST_KEY = "proxy_host"
+        const val PROXY_PORT_KEY = "proxy_port"
+        const val PROXY_USERNAME_KEY = "proxy_username"
+        const val PROXY_PASSWORD_KEY = "proxy_password"
+        /** The prefs of [credentialsPrefs] (the file `credentials.xml`), left out of backups (`backup_rules.xml`) */
+        const val CREDENTIALS_PREFS_NAME = "credentials"
 
         val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Startpage", "Custom")
         val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "startpage", "custom")
@@ -240,6 +253,50 @@ class Config(val prefs: SharedPreferences) {
             prefs.edit().putBoolean(TRACKING_PROTECTION_KEY, value).apply()
         }
 
+    var proxyEnabled: Boolean
+        get() = prefs.getBoolean(PROXY_ENABLED_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(PROXY_ENABLED_KEY, value).apply()
+        }
+
+    var proxyType: ProxySettings.Type
+        get() = prefs.getString(PROXY_TYPE_KEY, null)
+            ?.let { name -> ProxySettings.Type.entries.find { it.name == name } } ?: ProxySettings.Type.HTTP
+        set(value) {
+            prefs.edit().putString(PROXY_TYPE_KEY, value.name).apply()
+        }
+
+    var proxyHost: String
+        get() = prefs.getString(PROXY_HOST_KEY, "")!!
+        set(value) {
+            prefs.edit().putString(PROXY_HOST_KEY, value).apply()
+        }
+
+    /** 0 while the user has not given one */
+    var proxyPort: Int
+        get() = prefs.getInt(PROXY_PORT_KEY, 0)
+        set(value) {
+            prefs.edit().putInt(PROXY_PORT_KEY, value).apply()
+        }
+
+    var proxyUsername: String
+        get() = credentialsPrefs.getString(PROXY_USERNAME_KEY, "")!!
+        set(value) {
+            credentialsPrefs.edit().putString(PROXY_USERNAME_KEY, value).apply()
+        }
+
+    var proxyPassword: String
+        get() = credentialsPrefs.getString(PROXY_PASSWORD_KEY, "")!!
+        set(value) {
+            credentialsPrefs.edit().putString(PROXY_PASSWORD_KEY, value).apply()
+        }
+
+    /**
+     * The proxy to go through: null while it is off or its address is not complete. Only an HTTP proxy has
+     * a login.
+     */
+    val proxy: ProxySettings?
+        get() = ProxySettings.of(proxyEnabled, proxyType, proxyHost, proxyPort, proxyUsername, proxyPassword)
 
     var appWebExtensionVersion: Int
         get() = prefs.getInt(APP_WEB_EXTENSION_VERSION_KEY, 0)

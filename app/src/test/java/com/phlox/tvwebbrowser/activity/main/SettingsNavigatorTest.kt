@@ -6,6 +6,7 @@ import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Key
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Row
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Screen
 import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
+import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import kotlinx.coroutines.CoroutineScope
@@ -86,6 +87,15 @@ class SettingsNavigatorTest {
         var cacheCleared = false
         override suspend fun clearCache() { cacheCleared = true }
         override var webEngineDebug = false
+        override var supportsProxy = true
+        override var proxyEnabled = false
+        override var proxyType = ProxySettings.Type.HTTP
+        override var proxyHost = ""
+        override var proxyPort = 0
+        override var proxyUsername = ""
+        override var proxyPassword = ""
+        override val proxy get() =
+            ProxySettings.of(proxyEnabled, proxyType, proxyHost, proxyPort, proxyUsername, proxyPassword)
         override val versionName = "2.2.0"
         override val buildName = "generic"
         override val engineVersion = "WebView 1.0"
@@ -332,6 +342,74 @@ class SettingsNavigatorTest {
         navigator.toggle(Key.ENGINE_DEBUG)
         assertFalse(store.webEngineDebug)
         assertTrue(log.isEmpty())
+    }
+
+    @Test
+    fun proxyRowsShowWhileItIsOn() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ADVANCED)
+        assertTrue(Key.PROXY in keys())
+        assertFalse(Key.PROXY_HOST in keys())
+        navigator.toggle(Key.PROXY)
+        assertTrue(store.proxyEnabled)
+        assertEquals(listOf(Key.PROXY, Key.PROXY_TYPE, Key.PROXY_HOST, Key.PROXY_PORT, Key.PROXY_USERNAME,
+            Key.PROXY_PASSWORD), keys().dropWhile { it != Key.PROXY })
+        assertEquals(Row.Field.Input.NUMBER, row<Row.Field>(Key.PROXY_PORT).input)
+        assertEquals(Row.Field.Input.PASSWORD, row<Row.Field>(Key.PROXY_PASSWORD).input)
+        //not in use until the address is complete
+        assertEquals(context.getString(com.phlox.tvwebbrowser.R.string.settings_proxy_incomplete),
+            row<Row.Toggle>(Key.PROXY).summary)
+        //WebView can not log in to a SOCKS proxy
+        navigator.choose(Key.PROXY_TYPE, ProxySettings.Type.SOCKS5.ordinal)
+        assertEquals(ProxySettings.Type.SOCKS5, store.proxyType)
+        assertFalse(Key.PROXY_USERNAME in keys())
+        assertFalse(Key.PROXY_PASSWORD in keys())
+    }
+
+    @Test
+    fun proxyIsHiddenWhereTheEngineHasNone() {
+        store.supportsProxy = false
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ADVANCED)
+        assertFalse(Key.PROXY in keys())
+    }
+
+    @Test
+    fun proxyAddressGivesItsPortAndType() {
+        store.proxyEnabled = true
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ADVANCED)
+        navigator.setText(Key.PROXY_HOST, " socks5://user@proxy.example.com:1080/ ")
+        assertEquals("proxy.example.com", store.proxyHost)
+        assertEquals(1080, store.proxyPort)
+        assertEquals(ProxySettings.Type.SOCKS5, store.proxyType)
+        assertEquals("1080", row<Row.Field>(Key.PROXY_PORT).text)
+        assertEquals(ProxySettings(ProxySettings.Type.SOCKS5, "proxy.example.com", 1080), store.proxy)
+        navigator.setText(Key.PROXY_HOST, "[2001:db8::1]:3128")
+        assertEquals("[2001:db8::1]", store.proxyHost)
+        assertEquals(3128, store.proxyPort)
+        navigator.setText(Key.PROXY_HOST, "2001:db8::2")
+        assertEquals("2001:db8::2", store.proxyHost)
+        assertEquals(3128, store.proxyPort)
+    }
+
+    @Test
+    fun badProxyPortIsTold() {
+        store.proxyEnabled = true
+        store.proxyHost = "proxy.example.com"
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ADVANCED)
+        navigator.setText(Key.PROXY_PORT, "70000")
+        assertEquals(70000, store.proxyPort)
+        assertTrue(row<Row.Field>(Key.PROXY_PORT).summary != null)
+        assertNull(store.proxy)
+        navigator.setText(Key.PROXY_PORT, "8080")
+        assertNull(row<Row.Field>(Key.PROXY_PORT).summary)
+        assertEquals(8080, store.proxy?.port)
+        //the password keeps its spaces, the user name does not
+        navigator.setText(Key.PROXY_USERNAME, " user ")
+        navigator.setText(Key.PROXY_PASSWORD, " pass ")
+        assertEquals("user" to " pass ", store.proxy?.credentials)
     }
 
     @Test
