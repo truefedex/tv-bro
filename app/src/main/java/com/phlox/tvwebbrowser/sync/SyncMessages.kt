@@ -73,16 +73,29 @@ object SyncRequests {
     const val PREVIEW_BOOKMARKS = "bookmarks.preview"
     const val REPLACE_BOOKMARKS = "bookmarks.replace"
     const val FORGET = "device.forget"
+    /**
+     * A file for the downloads of the TV: `{"type":"files.send","name":…,"mime":…,"size":…}` (the size is -1
+     * when the phone does not know it). The TV answers a result when it is ready (or an error), then the phone
+     * sends the bytes in frames of bytes ([SyncChannel.sendBytes], at most [FILE_CHUNK] each) and an empty
+     * frame at the end; the TV answers again when the file is saved, with its `name` (the TV may rename it).
+     * If the TV can not go on meanwhile, it sends an error and closes the connection.
+     */
+    const val SEND_FILE = "files.send"
     const val RESULT = "result"
     const val ERROR = "error"
 
     /** What a TV of this version handles */
-    val TV_CAPABILITIES = setOf(OPEN_TABS, GET_BOOKMARKS, PREVIEW_BOOKMARKS, REPLACE_BOOKMARKS, FORGET)
+    val TV_CAPABILITIES = setOf(OPEN_TABS, GET_BOOKMARKS, PREVIEW_BOOKMARKS, REPLACE_BOOKMARKS, FORGET, SEND_FILE)
 
     const val MAX_URL_LENGTH = 8192
     const val MAX_TITLE_LENGTH = 1024
     const val MAX_NAME_LENGTH = 100
     const val MAX_TABS = 500
+    /** In bytes of UTF-8: file systems take 255 */
+    const val MAX_FILE_NAME_BYTES = 200
+    const val FILE_CHUNK = 128 * 1024
+    /** The scheme of the url of a download that came from a phone (it is not downloaded again) */
+    private const val PHONE_FILE_SCHEME = "tvbro-phone:"
 
     /** Error codes of requests (besides those of [SyncChannel]) */
     const val UNSUPPORTED = "unsupported"
@@ -90,6 +103,12 @@ object SyncRequests {
     const val FAILED = "failed"
     /** The bookmarks of the TV changed after the preview */
     const val CHANGED = "changed"
+    /** The TV can not save files until the user allows it there (it asked) */
+    const val NEED_PERMISSION = "need_permission"
+    /** The TV could not write the file */
+    const val STORAGE = "storage"
+    /** The user cancelled the file on the TV */
+    const val CANCELLED = "cancelled"
 
     /** Pages other than http and https (javascript:, file:, intent:…) are never sent or opened */
     fun isAllowedUrl(url: String): Boolean {
@@ -109,6 +128,65 @@ object SyncRequests {
             val tab = array.optJSONObject(i) ?: return@mapNotNull null
             val url = tab.optString("url")
             if (!isAllowedUrl(url)) null else SyncTab(url, tab.optString("title").take(MAX_TITLE_LENGTH))
+        }
+    }
+
+    fun sendFile(name: String, mimeType: String?, size: Long): JSONObject = JSONObject()
+        .put("type", SEND_FILE)
+        .put("name", name)
+        .put("mime", mimeType ?: "")
+        .put("size", size)
+
+    /**
+     * The name of a file a phone sent, safe to be a file name of the TV: no folders (`../`), no control
+     * characters and characters FAT drives do not take, not hidden, not too long (its extension kept)
+     */
+    fun safeFileName(name: String): String {
+        val base = name.substringAfterLast('/').substringAfterLast('\\')
+        val clean = base.filter { it >= ' ' && it != '\u007f' &&it !in "<>:\"|?*" }.trim().trimStart('.').trim()
+        if (clean.toByteArray(Charsets.UTF_8).size <= MAX_FILE_NAME_BYTES) return clean.ifEmpty { "file" }
+        val ext = clean.substringAfterLast('.', "").takeIf { it.isNotEmpty() && it.length <= 16 }
+        val suffix = if (ext != null) ".$ext" else ""
+        val stem = if (ext != null) clean.substring(0, clean.length - suffix.length) else clean
+        return (takeUtf8Bytes(stem, MAX_FILE_NAME_BYTES - suffix.toByteArray(Charsets.UTF_8).size).trim() + suffix)
+            .ifEmpty { "file" }
+    }
+
+    /** The beginning of the [text] that has at most [max] bytes of UTF-8, whole code points only */
+    private fun takeUtf8Bytes(text: String, max: Int): String {
+        var bytes = 0
+        var end = 0
+        while (end < text.length) {
+            val codePoint = text.codePointAt(end)
+            val size = when {
+                codePoint < 0x80 -> 1
+                codePoint < 0x800 -> 2
+                codePoint < 0x10000 -> 3
+                else -> 4
+            }
+            if (bytes + size > max) break
+            bytes += size
+            end += Character.charCount(codePoint)
+        }
+        return text.substring(0, end)
+    }
+
+    /** A type as `image/jpeg`, else null */
+    fun safeMimeType(mimeType: String?): String? =
+        mimeType?.trim()?.lowercase()?.takeIf { it.length <= 127 && MIME_TYPE.matches(it) }
+
+    private val MIME_TYPE = Regex("[a-z0-9][a-z0-9.+_-]*/[a-z0-9][a-z0-9.+_-]*")
+
+    /** The url of a download a phone of that [phoneName] sent */
+    fun phoneFileUrl(phoneName: String): String = PHONE_FILE_SCHEME + URLEncoder.encode(phoneName, "UTF-8")
+
+    /** The name of the phone that sent the download of the [url], null if it was not a phone */
+    fun phoneOfFileUrl(url: String): String? {
+        if (!url.startsWith(PHONE_FILE_SCHEME)) return null
+        return try {
+            URLDecoder.decode(url.substring(PHONE_FILE_SCHEME.length), "UTF-8").takeIf { it.isNotBlank() }
+        } catch (e: IllegalArgumentException) {
+            null
         }
     }
 

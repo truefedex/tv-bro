@@ -49,8 +49,8 @@ object SyncCrypto {
      * AES-GCM with the [counter] as the IV: each key encrypts its messages in order, the counter
      * of a message is never used twice with the same key
      */
-    fun seal(key: ByteArray, counter: Long, plain: ByteArray): ByteArray =
-        cipher(Cipher.ENCRYPT_MODE, key, counter).doFinal(plain)
+    fun seal(key: ByteArray, counter: Long, plain: ByteArray, offset: Int = 0, length: Int = plain.size - offset): ByteArray =
+        cipher(Cipher.ENCRYPT_MODE, key, counter).doFinal(plain, offset, length)
 
     /** @throws javax.crypto.AEADBadTagException if the data was not sealed with this key and counter */
     fun open(key: ByteArray, counter: Long, sealed: ByteArray): ByteArray =

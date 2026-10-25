@@ -17,10 +17,12 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.EOFException
 import java.io.IOException
+import java.io.OutputStream
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -30,7 +32,7 @@ import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * The server of a TV: paired phones connect to it to open tabs and to send bookmarks, a new phone pairs
+ * The server of a TV: paired phones connect to it to open tabs and to send bookmarks and files, a new phone pairs
  * with the secret of the QR code while it is shown ([startPairing]). It listens while the browser is on the
  * screen ([start], [stop]), on the same port each time if it is free.
  *
@@ -56,6 +58,12 @@ class SyncServer(
         private const val HANDSHAKE_TIMEOUT = 15_000
         /** A phone keeps its session while its sync page is open */
         private const val IDLE_TIMEOUT = 120_000
+        /** How long the download of a file that came whole may take to be saved */
+        private const val SAVE_TIMEOUT = 30_000L
+        /** How long a file that could not be written takes to tell why (cancelled by the user, or not) */
+        private const val FAILURE_TIMEOUT = 5_000L
+        /** How long the bytes a phone still sends after an error are read, so it gets the error before the connection is reset */
+        private const val DRAIN_TIMEOUT = 3_000
     }
 
     interface Host {
@@ -64,6 +72,26 @@ class SyncServer(
         fun onPaired(device: PairedDevice)
         /** The phone asked to be forgotten (its pairing is deleted) */
         fun onForgotten(device: PairedDevice)
+        /**
+         * Starts saving a file the phone sends (its [name] is safe already, see [SyncRequests.safeFileName])
+         * @param size -1 if not known
+         * @throws SyncException with the code to answer when the TV can not take it now
+         */
+        suspend fun receiveFile(from: PairedDevice, name: String, mimeType: String?, size: Long): IncomingFile
+    }
+
+    /** Where a file a phone sends goes */
+    interface IncomingFile {
+        /** The bytes of the file; closed by the server when all came */
+        val output: OutputStream
+        /** The file did not come whole: what was written is dropped (the output is closed too) */
+        fun fail(reason: String)
+        /**
+         * Waits until the file is saved, after [output] was closed or the file failed
+         * @return the name the file was saved with
+         * @throws SyncException [SyncRequests.CANCELLED], [SyncRequests.STORAGE] or [SyncRequests.FAILED]
+         */
+        suspend fun awaitSaved(): String
     }
 
     private val scope = CoroutineScope(SupervisorJob() + mainDispatcher)
@@ -236,6 +264,10 @@ class SyncServer(
             val request = channel.receive()
             val id = request.optLong("id")
             val type = request.optString("type")
+            if (type == SyncRequests.SEND_FILE) {
+                receiveFile(socket, channel, device, id, request)
+                continue
+            }
             val response = try {
                 handleRequest(device, type, request)
             } catch (e: SyncException) {
@@ -277,6 +309,85 @@ class SyncServer(
             SyncRequests.result()
         }
         else -> SyncRequests.error(SyncRequests.UNSUPPORTED)
+    }
+
+    /**
+     * A file of the phone (see [SyncRequests.SEND_FILE]). A file that can not be received whole ends the
+     * session: the phone may still be sending its bytes.
+     */
+    private suspend fun receiveFile(socket: Socket, channel: SyncChannel, device: PairedDevice, id: Long, request: JSONObject) {
+        val name = SyncRequests.safeFileName(request.optString("name"))
+        val size = request.optLong("size", -1L).coerceAtLeast(-1L)
+        val mimeType = SyncRequests.safeMimeType(request.optString("mime"))
+        val file = try {
+            withContext(mainDispatcher) { host.receiveFile(device, name, mimeType, size) }
+        } catch (e: SyncException) {
+            channel.send(SyncRequests.error(e.code).put("re", id))
+            return
+        } catch (e: Exception) {
+            Log.e(TAG, "can not receive $name", e)
+            channel.send(SyncRequests.error(SyncRequests.FAILED).put("re", id))
+            return
+        }
+        channel.send(SyncRequests.result().put("re", id))
+        try {
+            while (true) {
+                val chunk = channel.receiveBytes()
+                if (chunk.isEmpty()) break
+                try {
+                    file.output.write(chunk)
+                } catch (e: IOException) {
+                    throw WriteFailure(e)
+                }
+            }
+            try {
+                file.output.close()
+            } catch (e: IOException) {
+                throw WriteFailure(e)
+            }
+        } catch (e: WriteFailure) {
+            //the download was cancelled on the TV, or its file can not be written: the phone is told why
+            file.fail(e.toString())
+            val code = try {
+                withTimeoutOrNull(FAILURE_TIMEOUT) { file.awaitSaved() }
+                SyncRequests.FAILED
+            } catch (failure: SyncException) {
+                failure.code
+            }
+            channel.send(SyncRequests.error(code).put("re", id))
+            drain(socket, channel)
+            throw SyncException(code)
+        } catch (e: Throwable) {
+            //the phone is gone, or sent something else
+            file.fail(e.toString())
+            throw e
+        }
+        val response = try {
+            val saved = withTimeoutOrNull(SAVE_TIMEOUT) { file.awaitSaved() }
+            if (saved == null) SyncRequests.error(SyncRequests.FAILED) else SyncRequests.result().put("name", saved)
+        } catch (e: SyncException) {
+            SyncRequests.error(e.code)
+        }
+        channel.send(response.put("re", id))
+    }
+
+    private class WriteFailure(cause: IOException) : IOException(cause)
+
+    /**
+     * Reads what the phone still sends of a file that failed, for a while: closing a connection that has
+     * unread bytes resets it, and the phone would lose the error before it reads it. The phone stops when it
+     * sees the error, or sends the end of the file.
+     */
+    private fun drain(socket: Socket, channel: SyncChannel) {
+        try {
+            socket.soTimeout = DRAIN_TIMEOUT
+            val end = System.currentTimeMillis() + DRAIN_TIMEOUT
+            while (System.currentTimeMillis() < end) {
+                if (channel.receiveBytes().isEmpty()) break
+            }
+        } catch (e: IOException) {
+            //the phone closed the connection
+        }
     }
 
     private fun changesJson(changes: BookmarksReplacer.Changes): JSONObject = SyncRequests.result()

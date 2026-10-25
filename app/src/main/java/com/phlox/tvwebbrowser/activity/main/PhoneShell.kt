@@ -1,9 +1,12 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.phlox.tvwebbrowser.AppContext
@@ -291,7 +294,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     private var localNetworkCallbacks: MutableList<() -> Unit>? = null
 
     private val syncHost = object : PhoneSyncNavigator.Host {
-        override fun render(screen: PhoneSyncNavigator.Screen, busy: String?) = vb.vSync.render(screen, busy)
+        override fun render(screen: PhoneSyncNavigator.Screen, busy: PhoneSyncNavigator.Busy?) = vb.vSync.render(screen, busy)
 
         override fun showMessage(message: String) {
             NotificationView.show(if (vb.vSync.isOpen) vb.vSync else vb.rlRoot, R.drawable.ic_tv, message)
@@ -350,6 +353,25 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         override fun tabs(): Pair<List<SyncTab>, Int> {
             val tabs = controller.tabsStates.filter { SyncRequests.isAllowedUrl(it.url) }
             return tabs.map { SyncTab(it.url, it.title) } to tabs.indexOf(controller.currentTab.value)
+        }
+
+        override fun pickFiles(onPicked: (List<Uri>) -> Unit) {
+            try {
+                activity.launchForResult(ActivityResultContracts.OpenMultipleDocuments(), arrayOf("*/*")) { uris ->
+                    if (uris.isNotEmpty()) onPicked(uris)
+                }
+            } catch (e: ActivityNotFoundException) {
+                showMessage(activity.getString(R.string.sync_no_file_picker))
+            }
+        }
+
+        override fun keepScreenOn(on: Boolean) {
+            //the setting keeps it on anyway
+            if (on) {
+                activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            } else if (!host.settingsModel.keepScreenOn.value) {
+                activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
         }
 
         override fun close() = vb.vSync.hide()

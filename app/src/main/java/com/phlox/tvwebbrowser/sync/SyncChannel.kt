@@ -25,6 +25,9 @@ class SyncException(val code: String, message: String? = null) : IOException(mes
  * HKDF over both nonces, so the keys of a session are new even when the shared key is not. Every later
  * frame is sealed with AES-GCM and the number of the frame: a frame of another key, another session or
  * out of its place fails, which also tells a side that the other one does not have the key.
+ *
+ * Besides messages, a side can send frames of bytes ([sendBytes]: the chunks of a file), sealed in the
+ * same order; the requests tell when they come.
  */
 class SyncChannel private constructor(
     private val input: DataInputStream,
@@ -42,14 +45,26 @@ class SyncChannel private constructor(
 
     /** @throws SyncException [BAD_KEY] if the frame was not sealed with the key of the other side */
     fun receive(): JSONObject {
+        return parse(receiveBytes())
+    }
+
+    /** A frame of bytes (a chunk of a file), sealed as a message is */
+    fun sendBytes(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size - offset) {
+        writeFrame(output, SyncCrypto.seal(sendKey, sent++, bytes, offset, length))
+    }
+
+    /** @throws SyncException [BAD_KEY] if the frame was not sealed with the key of the other side */
+    fun receiveBytes(): ByteArray {
         val sealed = readFrame(input)
-        val plain = try {
+        return try {
             SyncCrypto.open(receiveKey, received++, sealed)
         } catch (e: GeneralSecurityException) {
             throw SyncException(BAD_KEY)
         }
-        return parse(plain)
     }
+
+    /** Whether the other side has sent something that was not read yet (an error while this side sends a file) */
+    fun hasIncoming(): Boolean = input.available() > 0
 
     /** What the server got from a client that has a key */
     class Accepted(val channel: SyncChannel, val pairingId: String?)

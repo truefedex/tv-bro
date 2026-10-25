@@ -22,6 +22,7 @@ import com.phlox.tvwebbrowser.service.downloads.DownloadServiceNeed
 import com.phlox.tvwebbrowser.utils.DownloadFolder
 import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
@@ -69,6 +70,50 @@ class DownloadLauncher(
 
     fun download(request: DownloadRequest) {
         val download = request.toDownload()
+        val folder = folder()
+        val neededPermission = missingPermission(folder)
+        if (neededPermission == null) {
+            start(download, folder)
+            return
+        }
+        activity.launchForResult(ActivityResultContracts.RequestPermission(), neededPermission) { granted ->
+            if (granted) {
+                start(download, folder)
+            }
+        }
+    }
+
+    /** A download whose bytes the caller writes into [output] (a file a phone sends) */
+    class Incoming(val download: Download, val output: ParcelFileDescriptor)
+
+    /**
+     * Starts a download of the bytes the caller writes (a file a phone sends): it is not fetched, not
+     * resumable and not told by [onDownloadStarted].
+     * The notifications are asked for, but not waited for: the file goes on without them.
+     * @return the download and the write end of its pipe once the service has the command (close it when all is
+     *   written, `closeWithError` if not), or null if the storage permission is missing: it is asked for, and
+     *   nothing waits for it
+     */
+    suspend fun receive(request: DownloadRequest): Incoming? {
+        val download = request.toDownload()
+        download.resumable = false
+        val folder = folder()
+        val missing = missingPermission(folder)
+        if (missing != null) activity.launchForResult(ActivityResultContracts.RequestPermission(), missing) {}
+        if (missing == Manifest.permission.WRITE_EXTERNAL_STORAGE) return null
+        val (readEnd, writeEnd) = ParcelFileDescriptor.createReliablePipe()
+        val sent = CompletableDeferred<Boolean>()
+        start(download, folder, readEnd, notify = false) { sent.complete(it) }
+        if (!sent.await()) {
+            readEnd.close()
+            writeEnd.close()
+            throw IOException("The download can not be started")
+        }
+        return Incoming(download, writeEnd)
+    }
+
+    /** The folder the user chose while the app may write there, else null (Downloads) */
+    private fun folder(): Uri? {
         val config = AppContext.provideConfig()
         val chosen = DownloadFolder.chosen(config)
         val folder = chosen?.let { tree ->
@@ -84,7 +129,12 @@ class DownloadLauncher(
             }
         }
         if (chosen != null && folder == null) onFolderUnavailable()
-        val neededPermission = when {
+        return folder
+    }
+
+    /** A permission a download into the [folder] needs and the app does not have */
+    private fun missingPermission(folder: Uri?): String? {
+        return when {
             //the folder of the Storage Access Framework needs no permission, the Downloads directory does
             folder == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
                 activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ->
@@ -93,15 +143,6 @@ class DownloadLauncher(
                 activity.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED ->
                 Manifest.permission.POST_NOTIFICATIONS
             else -> null
-        }
-        if (neededPermission == null) {
-            start(download, folder)
-            return
-        }
-        activity.launchForResult(ActivityResultContracts.RequestPermission(), neededPermission) { granted ->
-            if (granted) {
-                start(download, folder)
-            }
         }
     }
 
@@ -131,7 +172,12 @@ class DownloadLauncher(
             cookies = cookies, fileName = item.filename, mimeType = item.mimeType))
     }
 
-    private fun start(download: Download, folder: Uri?) {
+    /**
+     * @param stream the read end of a pipe the caller fills, else the bytes the engine has ([engineInput]) or none
+     * @param onSent whether the command went to the service
+     */
+    private fun start(download: Download, folder: Uri?, stream: ParcelFileDescriptor? = null, notify: Boolean = true,
+                      onSent: (Boolean) -> Unit = {}) {
         //a page, not about:blank or the like
         val referer = download.referer?.takeIf { it.startsWith("http://") || it.startsWith("https://") }
         //incognito downloads do not keep the page they came from
@@ -142,6 +188,7 @@ class DownloadLauncher(
         service.acquire()
         service.whenConnected {
             TVBro.container.appScope.launch {
+                var sent = false
                 try {
                     //later than the start of the service: its check of the rows left does not take it
                     download.time = System.currentTimeMillis()
@@ -153,12 +200,15 @@ class DownloadLauncher(
                         folder?.let { data.putString(DownloadCommands.KEY_FOLDER, it.toString()) }
                         data.putBoolean(DownloadCommands.KEY_INSTALL,
                             download.operationAfterDownload == Download.OperationAfterDownload.INSTALL)
-                        engineInput(download)?.let { data.putParcelable(DownloadCommands.KEY_STREAM, pipe(it)) }
+                        (stream ?: engineInput(download)?.let { pipe(it) })
+                            ?.let { data.putParcelable(DownloadCommands.KEY_STREAM, it) }
                     }
                     service.send(message)
-                    onDownloadStarted(download)
+                    sent = true
+                    if (notify) onDownloadStarted(download)
                 } finally {
                     service.release()
+                    onSent(sent)
                 }
             }
         }

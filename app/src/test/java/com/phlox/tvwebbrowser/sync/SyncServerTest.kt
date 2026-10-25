@@ -49,6 +49,44 @@ class SyncServerTest {
     private val paired = Collections.synchronizedList(ArrayList<PairedDevice>())
     private val replaced = Collections.synchronizedList(ArrayList<BookmarksReplacer.Changes>())
     private val forgotten = Collections.synchronizedList(ArrayList<PairedDevice>())
+    /** The files the TV got: their names and where they went */
+    private val files = Collections.synchronizedList(ArrayList<Pair<String, FakeFile>>())
+    /** The code the TV refuses files with, null to take them */
+    @Volatile private var refuseFiles: String? = null
+    /** What the next file of the TV does */
+    @Volatile private var nextFile: () -> FakeFile = { FakeFile() }
+
+    private class FakeFile(
+        private val failWrites: Boolean = false,
+        /** What [awaitSaved] throws, null to give the name */
+        private val endCode: String? = null
+    ) : SyncServer.IncomingFile {
+        val bytes = java.io.ByteArrayOutputStream()
+        @Volatile var closed = false
+        @Volatile var failed: String? = null
+
+        override val output = object : java.io.OutputStream() {
+            override fun write(b: Int) = write(byteArrayOf(b.toByte()), 0, 1)
+
+            override fun write(b: ByteArray, off: Int, len: Int) {
+                if (failWrites) throw java.io.IOException("cancelled on the TV")
+                bytes.write(b, off, len)
+            }
+
+            override fun close() {
+                closed = true
+            }
+        }
+
+        override fun fail(reason: String) {
+            failed = reason
+        }
+
+        override suspend fun awaitSaved(): String {
+            endCode?.let { throw SyncException(it) }
+            return "saved.bin"
+        }
+    }
 
     private lateinit var server: SyncServer
     private val client = SyncClient(phoneSettings, { phoneData.pairedDevices })
@@ -71,6 +109,11 @@ class SyncServerTest {
 
             override fun onForgotten(device: PairedDevice) {
                 forgotten += device
+            }
+
+            override suspend fun receiveFile(from: PairedDevice, name: String, mimeType: String?, size: Long): SyncServer.IncomingFile {
+                refuseFiles?.let { throw SyncException(it) }
+                return nextFile().also { files += name to it }
             }
         }, appVersion = 1, bindAddress = InetAddress.getLoopbackAddress(),
             //the host is called on the thread of the session. Not Dispatchers.setMain: the threads of a server
@@ -239,6 +282,96 @@ class SyncServerTest {
 
         assertNotNull(phoneBookmarks.restore())
         assertEquals(before, phoneFavorites.exportTree("Home page"))
+    }
+
+    @Test
+    fun aFileIsSavedWholeWithASafeName() = runBlocking {
+        val tv = pair()
+        //more than a chunk, not a multiple of it
+        val data = java.util.Random(1).let { random -> ByteArray(SyncRequests.FILE_CHUNK * 2 + 12345).also { random.nextBytes(it) } }
+        val progress = ArrayList<Long>()
+        val name = client.session(tv) { session ->
+            assertTrue(session.supports(SyncRequests.SEND_FILE))
+            val name = session.sendFile("../../evil/photo.jpg", "image/jpeg", data.size.toLong(),
+                java.io.ByteArrayInputStream(data)) { progress += it }
+            //the session goes on after a file
+            session.openTabs(listOf(SyncTab("https://a.com/", "A")))
+            name
+        }
+        assertEquals("saved.bin", name)
+        assertEquals(1, files.size)
+        val (savedAs, file) = files[0]
+        assertEquals("photo.jpg", savedAs)
+        assertTrue(data.contentEquals(file.bytes.toByteArray()))
+        assertTrue(file.closed)
+        assertNull(file.failed)
+        assertEquals(data.size.toLong(), progress.last())
+        assertEquals(1, opened.size)
+    }
+
+    @Test
+    fun aFileOfUnknownSizeIsSaved() = runBlocking {
+        val tv = pair()
+        val name = client.session(tv) { it.sendFile("empty.txt", null, -1, java.io.ByteArrayInputStream(ByteArray(0))) {} }
+        assertEquals("saved.bin", name)
+        assertTrue(files[0].second.closed)
+    }
+
+    @Test
+    fun aTvThatCanNotSaveFilesNowTellsWhy() = runBlocking {
+        val tv = pair()
+        refuseFiles = SyncRequests.NEED_PERMISSION
+        val code = client.session(tv) { session ->
+            val code = try {
+                session.sendFile("a.jpg", null, 3, java.io.ByteArrayInputStream(byteArrayOf(1, 2, 3))) {}
+                null
+            } catch (e: SyncException) {
+                e.code
+            }
+            //nothing was sent: the session goes on
+            session.openTabs(listOf(SyncTab("https://a.com/", "A")))
+            code
+        }
+        assertEquals(SyncRequests.NEED_PERMISSION, code)
+        assertTrue(files.isEmpty())
+        assertEquals(1, opened.size)
+    }
+
+    @Test
+    fun aFileCancelledOnTheTvStopsThePhone() {
+        val tv = pair()
+        nextFile = { FakeFile(failWrites = true, endCode = SyncRequests.CANCELLED) }
+        val data = ByteArray(SyncRequests.FILE_CHUNK * 20)
+        val result = code { client.session(tv) { it.sendFile("big.mp4", "video/mp4", data.size.toLong(), java.io.ByteArrayInputStream(data)) {} } }
+        assertEquals(SyncRequests.CANCELLED, result)
+        assertNotNull(files[0].second.failed)
+    }
+
+    @Test
+    fun aFileCutByThePhoneIsDropped() = runBlocking {
+        val tv = pair()
+        val data = ByteArray(SyncRequests.FILE_CHUNK * 3)
+        val failing = object : java.io.InputStream() {
+            var read = 0
+            override fun read(): Int = throw UnsupportedOperationException()
+
+            override fun read(b: ByteArray, off: Int, len: Int): Int {
+                if (read >= data.size / 2) throw java.io.IOException("the file is gone")
+                val count = minOf(len, data.size - read)
+                read += count
+                return count
+            }
+        }
+        val failed = try {
+            client.session(tv) { it.sendFile("a.bin", null, data.size.toLong(), failing) {} }
+            false
+        } catch (e: java.io.IOException) {
+            true
+        }
+        assertTrue(failed)
+        waitFor { files.isNotEmpty() && files[0].second.failed != null }
+        assertNotNull(files[0].second.failed)
+        assertFalse(files[0].second.closed)
     }
 
     @Test

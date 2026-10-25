@@ -25,7 +25,8 @@ import com.phlox.tvwebbrowser.widgets.datedlist.ListDividerDecoration
 /**
  * The page of the phone UI that sends to TVs, over the whole window like the bookmarks: it draws the
  * screens of a [PhoneSyncNavigator] (the TVs, a TV, the tabs or the bookmarks to send). Back
- * ([backCallback]) goes to the previous screen and closes the page from the first one.
+ * ([backCallback]) goes to the previous screen and closes the page from the first one; while files are sent
+ * it cancels them, as the Cancel button of the waiting plate does.
  */
 class PhoneSyncView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -62,6 +63,7 @@ class PhoneSyncView @JvmOverloads constructor(
                 else -> {}
             }
         }
+        vb.btnBusyCancel.setOnClickListener { navigator.cancel() }
         vb.btnAction.setOnClickListener {
             when (screen) {
                 is Screen.Tabs -> navigator.sendTabs()
@@ -101,11 +103,12 @@ class PhoneSyncView @JvmOverloads constructor(
             .withEndAction { visibility = GONE }.start()
     }
 
-    fun render(screen: Screen, busy: String?) {
+    fun render(screen: Screen, busy: PhoneSyncNavigator.Busy?) {
         val screenChanged = this.screen?.javaClass != screen.javaClass
         this.screen = screen
         vb.llBusy.isVisible = busy != null
-        vb.tvBusy.text = busy
+        vb.tvBusy.text = busy?.text
+        vb.btnBusyCancel.isVisible = busy?.cancellable == true
         vb.ibMenu.isVisible = screen is Screen.Tv
         vb.ibSelectAll.isVisible = screen is Screen.Tabs || screen is Screen.Bookmarks
         vb.llBottom.isVisible = screen is Screen.Tabs || screen is Screen.Bookmarks
@@ -117,7 +120,8 @@ class PhoneSyncView @JvmOverloads constructor(
             }
             is Screen.Tv -> {
                 vb.tvTitle.text = screen.tv.name
-                listOf(Row.Action(ACTION_TABS), Row.Action(ACTION_BOOKMARKS), Row.Action(ACTION_GET_BOOKMARKS)) +
+                listOf(Row.Action(ACTION_TABS), Row.Action(ACTION_FILES), Row.Action(ACTION_BOOKMARKS),
+                    Row.Action(ACTION_GET_BOOKMARKS)) +
                     if (screen.canUndo) listOf(Row.Action(ACTION_UNDO_BOOKMARKS)) else emptyList()
             }
             is Screen.Tabs -> {
@@ -195,6 +199,7 @@ class PhoneSyncView @JvmOverloads constructor(
                 is Row.Tv -> navigator.openTv(row.item.tv)
                 is Row.Action -> if (screen is Screen.Tv) when (row.action) {
                     ACTION_TABS -> navigator.chooseTabs(screen.tv)
+                    ACTION_FILES -> navigator.chooseFiles(screen.tv)
                     ACTION_BOOKMARKS -> navigator.chooseBookmarks(screen.tv, fromTv = false)
                     ACTION_GET_BOOKMARKS -> navigator.chooseBookmarks(screen.tv, fromTv = true)
                     ACTION_UNDO_BOOKMARKS -> navigator.undoBookmarks()
@@ -232,6 +237,7 @@ class PhoneSyncView @JvmOverloads constructor(
                 is Row.Action -> {
                     val (icon, title, caption) = when (row.action) {
                         ACTION_TABS -> Triple(R.drawable.ic_new_tab, R.string.sync_send_tabs, R.string.sync_send_tabs_summary)
+                        ACTION_FILES -> Triple(R.drawable.ic_file, R.string.sync_send_files, R.string.sync_send_files_summary)
                         ACTION_BOOKMARKS -> Triple(R.drawable.ic_favorites, R.string.sync_send_bookmarks,
                             R.string.sync_send_bookmarks_summary)
                         ACTION_GET_BOOKMARKS -> Triple(R.drawable.ic_downloads, R.string.sync_get_bookmarks,
@@ -241,8 +247,8 @@ class PhoneSyncView @JvmOverloads constructor(
                     vb.ivIcon.setImageResource(icon)
                     vb.tvTitle.setText(title)
                     vb.tvCaption.setText(caption)
-                    //undo acts at once, the others open a screen
-                    vb.ivEnd.isVisible = row.action != ACTION_UNDO_BOOKMARKS
+                    //undo acts at once, the files are chosen in the picker, the others open a screen
+                    vb.ivEnd.isVisible = row.action != ACTION_UNDO_BOOKMARKS && row.action != ACTION_FILES
                     vb.ivEnd.setImageResource(R.drawable.ic_chevron_right)
                 }
                 is Row.Tab -> {
@@ -294,5 +300,6 @@ class PhoneSyncView @JvmOverloads constructor(
         private const val ACTION_BOOKMARKS = 1
         private const val ACTION_GET_BOOKMARKS = 2
         private const val ACTION_UNDO_BOOKMARKS = 3
+        private const val ACTION_FILES = 4
     }
 }

@@ -393,7 +393,7 @@
     <!-- the row of the ⋮ menu of the TV bar that opens the pairing of phones -->
     <string name="sync_phone_sync">Phone sync</string>
     <string name="sync_scan_title">Scan with your phone</string>
-    <string name="sync_scan_steps">Point the camera of your phone at the code and open the link in TV Bro. You can then send tabs and bookmarks from the phone to this TV.</string>
+    <string name="sync_scan_steps">Point the camera of your phone at the code and open the link in TV Bro. You can then send tabs, bookmarks and files from the phone to this TV.</string>
     <!-- %s: the addresses of the TV -->
     <string name="sync_same_network">The phone must be on the same network as the TV (%s).</string>
     <string name="sync_no_network">The TV is not connected to a network.</string>
@@ -473,6 +473,29 @@
     <!-- %d: the number of chosen tabs -->
     <string name="sync_send_count">Send (%d)</string>
     <string name="sync_local_network_needed">Allow access to the local network</string>
+    <!-- files sent from a phone to the downloads of a TV -->
+    <string name="sync_send_files">Send files</string>
+    <string name="sync_send_files_summary">Photos, videos, apps and other files go to the downloads of the TV</string>
+    <string name="sync_no_file_picker">No app to choose files</string>
+    <!-- %1$s: the file, %2$s: 45% or 12 MB -->
+    <string name="sync_file_sending">Sending %1$s · %2$s</string>
+    <!-- %1$s: the file, %2$d of %3$d files, %4$s: 45% or 12 MB -->
+    <string name="sync_files_sending">Sending %1$s (%2$d of %3$d) · %4$s</string>
+    <plurals name="sync_files_sent">
+        <item quantity="one">%1$d file sent to %2$s</item>
+        <item quantity="other">%1$d files sent to %2$s</item>
+    </plurals>
+    <string name="sync_files_cancelled">Sending cancelled</string>
+    <string name="sync_file_unreadable">Cannot read %s</string>
+    <!-- %1$s: the file, %2$s: the TV -->
+    <string name="sync_file_interrupted">%2$s stopped receiving %1$s</string>
+    <string name="sync_file_need_permission">Allow TV Bro on %s to save files, then send again</string>
+    <string name="sync_file_storage">%s cannot save the file</string>
+    <string name="sync_file_cancelled_on_tv">The file was cancelled on %s</string>
+    <!-- on the TV; %1$s: the file, %2$s: the phone -->
+    <string name="sync_file_receiving">Receiving %1$s from %2$s</string>
+    <string name="sync_file_received">%1$s received from %2$s</string>
+    <string name="sync_file_not_saved">Cannot save %s</string>
     <!-- the settings screens: the categories -->
     <string name="settings_search_and_home">Search and home page</string>
     <string name="settings_sites">Sites</string>

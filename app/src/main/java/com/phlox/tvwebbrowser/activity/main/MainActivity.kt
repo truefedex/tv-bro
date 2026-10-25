@@ -312,6 +312,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
     override fun download(request: DownloadRequest) = downloadLauncher.download(request)
 
+    override suspend fun receiveDownload(request: DownloadRequest) = downloadLauncher.receive(request)
+
     override fun copyToClipboard(url: String) = TabUiHost.copyToClipboard(this, url)
 
     override val commands: BrowserCommands = object : BrowserCommands {

@@ -602,7 +602,15 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             override fun onForgotten(device: PairedDevice) {
                 NotificationView.show(vb.rlRoot, R.drawable.ic_phone, activity.getString(R.string.sync_phone_forgotten, device.name))
             }
+
+            override suspend fun receiveFile(from: PairedDevice, name: String, mimeType: String?, size: Long) =
+                phoneFiles.receive(from, name, mimeType, size)
         }, discovery = SyncDiscovery(activity))
+
+    /** The files phones send go to the downloads */
+    private val phoneFiles = PhoneFileReceiver(activity, host, { TVBro.container.data.downloads }) { message ->
+        NotificationView.show(vb.rlRoot, R.drawable.ic_phone, message)
+    }
 
     /**
      * The first tab is shown (the screen of the pairing and the bar close), the others wait at the end of

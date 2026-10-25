@@ -74,6 +74,95 @@ class SyncChannelTest {
     }
 
     @Test
+    fun bytesGoBetweenMessages() {
+        val chunk = SyncCrypto.randomBytes(100_000)
+        val served = serve { socket ->
+            val channel = SyncChannel.accept(socket.getInputStream(), socket.getOutputStream()) { key }.channel
+            val header = channel.receive().getString("name")
+            val first = channel.receiveBytes()
+            val end = channel.receiveBytes()
+            channel.send(JSONObject().put("size", first.size).put("end", end.size))
+            channel.sendBytes(first, 10, 20)
+            Triple(header, first, end)
+        }
+        client().use { socket ->
+            val channel = SyncChannel.connect(socket.getInputStream(), socket.getOutputStream(), key, "pairing")
+            channel.send(JSONObject().put("name", "a.bin"))
+            channel.sendBytes(chunk)
+            channel.sendBytes(ByteArray(0))
+            val answer = channel.receive()
+            assertEquals(chunk.size, answer.getInt("size"))
+            assertEquals(0, answer.getInt("end"))
+            assertTrue(chunk.copyOfRange(10, 30).contentEquals(channel.receiveBytes()))
+        }
+        val (header, first, end) = served.result()
+        assertEquals("a.bin", header)
+        assertTrue(chunk.contentEquals(first))
+        assertEquals(0, end.size)
+    }
+
+    @Test
+    fun bytesOutOfTheirPlaceAreNotAccepted() {
+        //a frame sent twice has the number of an earlier one
+        val served = serve { socket ->
+            val channel = SyncChannel.accept(socket.getInputStream(), socket.getOutputStream()) { key }.channel
+            channel.receiveBytes()
+            codeOf { channel.receiveBytes() }
+        }
+        val captured = java.io.ByteArrayOutputStream()
+        client().use { socket ->
+            val output = object : java.io.OutputStream() {
+                override fun write(b: Int) {
+                    captured.write(b)
+                    socket.getOutputStream().write(b)
+                }
+
+                override fun flush() = socket.getOutputStream().flush()
+            }
+            val channel = SyncChannel.connect(socket.getInputStream(), output, key, "pairing")
+            captured.reset()
+            channel.sendBytes(byteArrayOf(1, 2, 3))
+            socket.getOutputStream().write(captured.toByteArray())
+            assertEquals(SyncChannel.BAD_KEY, served.result())
+        }
+    }
+
+    @Test
+    fun namesOfFilesAreMadeSafe() {
+        assertEquals("photo.jpg", SyncRequests.safeFileName("photo.jpg"))
+        assertEquals("passwd", SyncRequests.safeFileName("../../etc/passwd"))
+        assertEquals("evil.apk", SyncRequests.safeFileName("..\\..\\evil.apk"))
+        assertEquals("file", SyncRequests.safeFileName(".."))
+        assertEquals("file", SyncRequests.safeFileName(""))
+        assertEquals("file", SyncRequests.safeFileName("dir/"))
+        assertEquals("hidden", SyncRequests.safeFileName(".hidden"))
+        assertEquals("ab.txt", SyncRequests.safeFileName("a\u0000\nb.txt"))
+        assertEquals("what.txt", SyncRequests.safeFileName("what?.txt"))
+        assertEquals("Фото 1.jpg", SyncRequests.safeFileName("Фото 1.jpg"))
+        //long names keep their extension and fit in 255 bytes of the file systems
+        val long = SyncRequests.safeFileName("я".repeat(300) + ".mp4")
+        assertTrue(long.endsWith("я.mp4"))
+        assertTrue(long.toByteArray(Charsets.UTF_8).size <= SyncRequests.MAX_FILE_NAME_BYTES)
+        val emoji = SyncRequests.safeFileName("😀".repeat(100))
+        assertEquals(0, emoji.length % 2)
+        assertTrue(emoji.toByteArray(Charsets.UTF_8).size <= SyncRequests.MAX_FILE_NAME_BYTES)
+    }
+
+    @Test
+    fun typesAndUrlsOfFiles() {
+        assertEquals("image/jpeg", SyncRequests.safeMimeType("Image/JPEG"))
+        assertEquals("application/vnd.android.package-archive",
+            SyncRequests.safeMimeType("application/vnd.android.package-archive"))
+        assertNull(SyncRequests.safeMimeType(""))
+        assertNull(SyncRequests.safeMimeType("text/html; charset=utf-8"))
+        assertNull(SyncRequests.safeMimeType(null))
+        val url = SyncRequests.phoneFileUrl("Pixel 8 & Co")
+        assertFalse(url.startsWith("http"))
+        assertEquals("Pixel 8 & Co", SyncRequests.phoneOfFileUrl(url))
+        assertNull(SyncRequests.phoneOfFileUrl("https://example.com/a.jpg"))
+    }
+
+    @Test
     fun aClientWithAnotherKeyIsNotUnderstood() {
         val served = serve { socket ->
             val accepted = SyncChannel.accept(socket.getInputStream(), socket.getOutputStream()) { key }

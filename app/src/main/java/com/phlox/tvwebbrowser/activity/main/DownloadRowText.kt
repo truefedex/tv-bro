@@ -8,6 +8,7 @@ import android.text.format.Formatter
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.browser.DownloadItem
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.sync.SyncRequests
 import com.phlox.tvwebbrowser.widgets.datedlist.startOfDay
 import java.util.Date
 
@@ -88,8 +89,12 @@ class DownloadRowText(private val context: Context) {
     }
 
     companion object {
-        /** The host of the page the download came from, else of its url (none for blob and data urls) */
-        fun hostOf(item: DownloadItem): String? = item.referer?.let { hostOf(it) } ?: hostOf(item.url)
+        /**
+         * The host of the page the download came from, else of its url (none for blob and data urls); the name
+         * of the phone for a file a phone sent
+         */
+        fun hostOf(item: DownloadItem): String? = SyncRequests.phoneOfFileUrl(item.url)
+            ?: item.referer?.let { hostOf(it) } ?: hostOf(item.url)
 
         /** The host without www, null for urls without one (about:blank, blob:, data:) */
         private fun hostOf(url: String): String? = try {

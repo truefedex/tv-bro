@@ -9,6 +9,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.IOException
+import java.io.InputStream
 import java.net.InetSocketAddress
 import java.net.Socket
 
@@ -47,6 +48,10 @@ class SyncClient(
         fun request(request: JSONObject): JSONObject {
             val id = ++lastId
             channel.send(request.put("id", id))
+            return answer(id)
+        }
+
+        private fun answer(id: Long): JSONObject {
             while (true) {
                 val response = channel.receive()
                 if (response.optLong("re") != id) continue
@@ -85,6 +90,41 @@ class SyncClient(
             }
             return changesOf(request(request))
         }
+
+        /**
+         * Sends a file to the downloads of the TV, reading the [input] to its end.
+         * @param size -1 if not known
+         * @param onProgress the bytes sent so far, after each chunk
+         * @return the name the TV saved the file with
+         * @throws SyncException [SyncRequests.UNSUPPORTED] from a TV of an older version, or the code of the TV
+         *   (an IOException that is not one when the TV closed the connection, or the session was [cancel]led)
+         */
+        fun sendFile(name: String, mimeType: String?, size: Long, input: InputStream, onProgress: (Long) -> Unit): String {
+            if (!supports(SyncRequests.SEND_FILE)) throw SyncException(SyncRequests.UNSUPPORTED)
+            val id = ++lastId
+            channel.send(SyncRequests.sendFile(name, mimeType, size).put("id", id))
+            answer(id)
+            val buffer = ByteArray(SyncRequests.FILE_CHUNK)
+            var sent = 0L
+            while (true) {
+                val count = input.read(buffer)
+                if (count == -1) break
+                if (count == 0) continue
+                channel.sendBytes(buffer, 0, count)
+                sent += count
+                onProgress(sent)
+                //the TV tells why it stopped receiving before it closes the connection
+                if (channel.hasIncoming()) {
+                    answer(id)
+                    throw SyncException(SyncChannel.BAD_MESSAGE)
+                }
+            }
+            channel.sendBytes(ByteArray(0))
+            return answer(id).optString("name").ifEmpty { name }
+        }
+
+        /** Ends the session from another thread: a request in progress fails with an IOException */
+        fun cancel() = close()
 
         /** The TV forgets this phone */
         fun forget() {

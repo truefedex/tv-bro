@@ -143,6 +143,8 @@ interface BrowserShell {
         fun clearSiteData()
         /** Downloads a file (not from the engine: a link the shell offers, as a video of the page) */
         fun download(request: DownloadRequest)
+        /** Starts a download whose bytes the shell writes (a file a phone sends), see [DownloadLauncher.receive] */
+        suspend fun receiveDownload(request: DownloadRequest): DownloadLauncher.Incoming?
         /** Copies the [url] to the clipboard and tells it */
         fun copyToClipboard(url: String)
     }
