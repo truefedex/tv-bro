@@ -105,14 +105,14 @@ class DownloadsNavigator(
         fun open(item: DownloadItem): Boolean
         /** @return false if the file is gone or there is no installer */
         fun install(item: DownloadItem): Boolean
-        /** Opens the Downloads directory in a file manager, @return false if there is none */
+        /** Opens the folder of downloads in a file manager, @return false if there is none */
         fun openFolder(): Boolean
         /** @return false if the file is gone */
         fun share(item: DownloadItem): Boolean
         suspend fun deleteFile(item: DownloadItem)
         fun copyLink(url: String)
-        /** The free space where the downloads go, in bytes */
-        fun freeSpace(): Long
+        /** The free space where the downloads go, in bytes; null when it is not known */
+        fun freeSpace(): Long?
     }
 
     enum class Look { PANEL, SCREEN, PHONE }
@@ -129,9 +129,9 @@ class DownloadsNavigator(
     /**
      * @param items the downloads to show: in progress and paused ones first, then the latest first
      * @param filters the kinds there are files of (the filters to show), [filter] the chosen one (null for all)
-     * @param freeSpace in bytes, for all downloads (0 in the panel)
+     * @param freeSpace in bytes, for all downloads (0 in the panel), null when it is not known
      */
-    class Screen(val items: List<DownloadItem>, val filters: List<Kind>, val filter: Kind?, val freeSpace: Long)
+    class Screen(val items: List<DownloadItem>, val filters: List<Kind>, val filter: Kind?, val freeSpace: Long?)
 
     /** Focus the row (or button) of the [key], else the row at [index] */
     class Focus(val key: String?, val index: Int = 0)
@@ -189,7 +189,7 @@ class DownloadsNavigator(
             else -> ordered.filter { filter == null || kindOf(it) == filter }
         }
         val filters = if (look == Look.PANEL) emptyList() else Kind.entries.filter { it in kinds }
-        val freeSpace = if (look == Look.PANEL) 0 else device.freeSpace()
+        val freeSpace = if (look == Look.PANEL) 0L else device.freeSpace()
         val focus = pendingFocus
         pendingFocus = null
         host.render(Screen(shown, filters, filter, freeSpace), focus)

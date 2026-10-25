@@ -54,7 +54,7 @@ class DownloadsNavigatorTest {
         override fun share(item: DownloadItem) = fileExists(item) && hasShareApp
         override suspend fun deleteFile(item: DownloadItem) { deletedFiles += item.id }
         override fun copyLink(url: String) { commandsLog += "copy $url" }
-        override fun freeSpace() = 12_000L
+        override fun freeSpace(): Long? = 12_000L
     }
 
     private fun navigator(look: Look) = DownloadsNavigator(context, downloads, commands, device,

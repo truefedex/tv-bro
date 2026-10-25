@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import com.phlox.tvwebbrowser.Config
+import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Category
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Key
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Row
@@ -87,6 +88,9 @@ class SettingsNavigatorTest {
         var cacheCleared = false
         override suspend fun clearCache() { cacheCleared = true }
         override var webEngineDebug = false
+        override var downloadFolderPickerAvailable = true
+        override var downloadFolderName: String? = null
+        override fun resetDownloadFolder() { downloadFolderName = null }
         override var supportsProxy = true
         override var proxyEnabled = false
         override var proxyType = ProxySettings.Type.HTTP
@@ -114,6 +118,8 @@ class SettingsNavigatorTest {
     private lateinit var screen: Screen
     private val log = ArrayList<String>()
     private var confirmAnswer = true
+    /** What the picker of folders gives, null when the user cancels */
+    private var pickedFolder: String? = null
 
     private val host = object : SettingsNavigator.Host {
         override fun render(screen: Screen) { this@SettingsNavigatorTest.screen = screen }
@@ -124,6 +130,11 @@ class SettingsNavigatorTest {
         }
         override fun captureKey(shortcut: Shortcut, onDone: () -> Unit) {
             log += "capture $shortcut"
+            onDone()
+        }
+        override fun pickDownloadFolder(onDone: () -> Unit) {
+            log += "pick folder"
+            store.downloadFolderName = pickedFolder
             onDone()
         }
         override fun open(url: String) { log += "open $url" }
@@ -470,6 +481,52 @@ class SettingsNavigatorTest {
         navigator.show(Category.ABOUT)
         navigator.act(row<Row.Link>(Key.LINK_LICENSE))
         assertEquals("open ${SettingsNavigator.URL_LICENSE}", log.last())
+    }
+
+    @Test
+    fun downloadFolderIsChosenInThePickerAndReset() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ADVANCED)
+        val default = context.getString(R.string.settings_download_folder_default)
+        val choose = context.getString(R.string.settings_download_folder_choose)
+        var row = row<Row.Choice>(Key.DOWNLOAD_FOLDER)
+        assertEquals(listOf(default, choose), row.options)
+        assertEquals(0, row.selected)
+        assertFalse(row.segmented)
+        //cancelled: nothing changes
+        navigator.choose(Key.DOWNLOAD_FOLDER, 1)
+        assertEquals("pick folder", log.last())
+        assertEquals(0, row<Row.Choice>(Key.DOWNLOAD_FOLDER).selected)
+        pickedFolder = "USB/Movies"
+        navigator.choose(Key.DOWNLOAD_FOLDER, 1)
+        row = row(Key.DOWNLOAD_FOLDER)
+        assertEquals(listOf(default, "USB/Movies", choose), row.options)
+        assertEquals(1, row.selected)
+        //the chosen folder again: no picker
+        log.clear()
+        navigator.choose(Key.DOWNLOAD_FOLDER, 1)
+        assertTrue(log.isEmpty())
+        assertEquals("USB/Movies", store.downloadFolderName)
+        navigator.choose(Key.DOWNLOAD_FOLDER, 0)
+        assertNull(store.downloadFolderName)
+        assertEquals(listOf(default, choose), row<Row.Choice>(Key.DOWNLOAD_FOLDER).options)
+    }
+
+    @Test
+    fun downloadFolderNeedsAPicker() {
+        store.downloadFolderPickerAvailable = false
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ADVANCED)
+        assertFalse(Key.DOWNLOAD_FOLDER in keys())
+        //a folder chosen before can still be reset, and its option opens nothing
+        store.downloadFolderName = "Movies"
+        navigator.show(Category.ADVANCED)
+        assertEquals(listOf(context.getString(R.string.settings_download_folder_default), "Movies"),
+            row<Row.Choice>(Key.DOWNLOAD_FOLDER).options)
+        navigator.choose(Key.DOWNLOAD_FOLDER, 1)
+        assertFalse("pick folder" in log)
+        navigator.choose(Key.DOWNLOAD_FOLDER, 0)
+        assertFalse(Key.DOWNLOAD_FOLDER in keys())
     }
 
     @Test

@@ -177,6 +177,8 @@ class SettingsScreenView @JvmOverloads constructor(
             callback.confirm(title, message, positive, onResult)
         override fun captureKey(shortcut: Shortcut, onDone: () -> Unit) = callback.captureKey(shortcut, onDone)
 
+        override fun pickDownloadFolder(onDone: () -> Unit) = callback.pickDownloadFolder(onDone)
+
         override fun open(url: String) {
             hide()
             callback.open(url)

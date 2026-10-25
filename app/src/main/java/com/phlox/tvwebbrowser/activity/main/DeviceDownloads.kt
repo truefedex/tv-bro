@@ -6,18 +6,18 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import android.provider.DocumentsContract
 import android.util.Log
+import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.browser.DownloadItem
 import com.phlox.tvwebbrowser.utils.DownloadFileActions
+import com.phlox.tvwebbrowser.utils.DownloadFiles
+import com.phlox.tvwebbrowser.utils.DownloadFolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 
 /** The files of downloads on the device, for [DownloadsNavigator] */
 class DeviceDownloads(private val activity: Activity) : DownloadsNavigator.Device {
@@ -29,22 +29,19 @@ class DeviceDownloads(private val activity: Activity) : DownloadsNavigator.Devic
     @Suppress("DEPRECATION")
     private val downloadsDirectory get() = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
-    override fun fileExists(item: DownloadItem): Boolean {
-        if (item.filepath.isEmpty()) return false
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return File(item.filepath).exists()
-        return try {
-            activity.contentResolver.query(Uri.parse(item.filepath), arrayOf(), null, null, null)?.use { it.count > 0 } ?: false
-        } catch (e: Exception) {
-            false
-        }
-    }
+    /** The folder the user chose, while it can be written */
+    private val folder get() = DownloadFolder.usable(activity, AppContext.provideConfig())
+
+    override fun fileExists(item: DownloadItem): Boolean = DownloadFiles.exists(activity, item.filepath)
 
     override fun open(item: DownloadItem): Boolean = fileExists(item) && DownloadFileActions.open(activity, item.toDownload())
 
     override fun install(item: DownloadItem): Boolean = fileExists(item) && DownloadFileActions.install(activity, item.toDownload())
 
     override fun openFolder(): Boolean {
-        val intents = listOf(
+        val intents = listOfNotNull(
+            //the chosen folder in the file manager of the system, if it can show a folder
+            folder?.let { DownloadFolder.viewIntent(it) },
             Intent(DownloadManager.ACTION_VIEW_DOWNLOADS),
             //the Downloads root of the system files app
             Intent(Intent.ACTION_VIEW).setDataAndType(DocumentsContract.buildRootUri(DOWNLOADS_DOCUMENTS, "downloads"),
@@ -81,10 +78,14 @@ class DeviceDownloads(private val activity: Activity) : DownloadsNavigator.Devic
         clipboard.setPrimaryClip(ClipData.newPlainText(url, url))
     }
 
-    override fun freeSpace(): Long = try {
-        val directory = downloadsDirectory.takeIf { it.exists() } ?: Environment.getExternalStorageDirectory()
-        StatFs(directory.path).availableBytes
-    } catch (e: Exception) {
-        0
+    override fun freeSpace(): Long? {
+        folder?.let { return DownloadFolder.freeSpace(activity, it) }
+        return try {
+            @Suppress("DEPRECATION")
+            val directory = downloadsDirectory.takeIf { it.exists() } ?: Environment.getExternalStorageDirectory()
+            StatFs(directory.path).availableBytes
+        } catch (e: Exception) {
+            null
+        }
     }
 }

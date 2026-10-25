@@ -12,6 +12,8 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.DownloadFileActions
+import com.phlox.tvwebbrowser.utils.DownloadFiles
+import com.phlox.tvwebbrowser.utils.DownloadFolder
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileInputStream
@@ -28,8 +30,10 @@ import java.net.HttpURLConnection
 /**
  * A download running in [DownloadService], on a thread of its own: copies the input to the file
  * of the [download], writes the progress to the database and ends with the final state there.
+ * A new file goes to the [folder] the user chose ([DownloadFolder]), or to the public Downloads directory when
+ * there is none or it can not be written.
  */
-abstract class DownloadTask(val download: Download, private val listener: Listener) : Runnable {
+abstract class DownloadTask(val download: Download, private val listener: Listener, private val folder: Uri?) : Runnable {
     companion object {
         val TAG: String = DownloadTask::class.java.simpleName
         private const val BUFFER_SIZE = 64 * 1024
@@ -82,7 +86,7 @@ abstract class DownloadTask(val download: Download, private val listener: Listen
         try {
             openInput().use { input ->
                 output = try {
-                    if (download.filepath.isEmpty()) openOutput(download) else reopenOutput(download, startOffset)
+                    if (download.filepath.isEmpty()) openOutput(download, folder) else reopenOutput(download, startOffset)
                 } catch (e: Exception) {
                     throw StorageException(e)
                 }
@@ -154,7 +158,7 @@ abstract class DownloadTask(val download: Download, private val listener: Listen
         when (status) {
             Download.Status.DONE -> {
                 download.size = download.bytesReceived
-                publish(download)
+                DownloadFiles.publish(AppContext.get(), download.filepath)
             }
             //the file is kept to resume the download
             Download.Status.PAUSED -> {}
@@ -167,11 +171,12 @@ abstract class DownloadTask(val download: Download, private val listener: Listen
 
 /**
  * Downloads [Download.url] itself, through [proxy]; [resume] continues from the bytes the file has (the
- * whole file is downloaded again if the server can not give the rest, or the file is gone)
+ * whole file is downloaded again if the server can not give the rest, or the file is gone: then a new file
+ * goes to the folder)
  */
-class HttpDownloadTask(download: Download, listener: Listener, private val resume: Boolean = false,
+class HttpDownloadTask(download: Download, listener: Listener, folder: Uri?, private val resume: Boolean = false,
                        private val proxy: ProxySettings? = null) :
-    DownloadTask(download, listener) {
+    DownloadTask(download, listener, folder) {
     private var connection: HttpURLConnection? = null
 
     override fun openInput(): InputStream {
@@ -192,8 +197,8 @@ class HttpDownloadTask(download: Download, listener: Listener, private val resum
  * Copies the file from a pipe the browser process fills: the response a web engine fetched itself
  * (GeckoView) or the data of a blob
  */
-class StreamDownloadTask(download: Download, private val pipe: ParcelFileDescriptor, listener: Listener) :
-    DownloadTask(download, listener) {
+class StreamDownloadTask(download: Download, private val pipe: ParcelFileDescriptor, listener: Listener, folder: Uri?) :
+    DownloadTask(download, listener, folder) {
 
     override fun openInput(): InputStream = FileInputStream(pipe.fileDescriptor)
 
@@ -212,12 +217,24 @@ class StreamDownloadTask(download: Download, private val pipe: ParcelFileDescrip
 
 private class StorageException(cause: Throwable) : IOException(cause)
 
+
 /**
- * Creates the file of the download: a pending item of MediaStore Downloads on Android 11+ (other
- * apps see it when it is complete), a file with a free name in the public Downloads directory before.
+ * Creates the file of the download: a document in the [folder] the user chose, else a pending item of
+ * MediaStore Downloads on Android 11+ (other apps see it when it is complete), a file with a free name in the
+ * public Downloads directory before.
  */
-private fun openOutput(download: Download): OutputStream {
+private fun openOutput(download: Download, folder: Uri?): OutputStream {
     val context = AppContext.get()
+    if (folder != null) {
+        try {
+            return openDocumentOutput(download, folder)
+        } catch (e: Exception) {
+            //the folder is gone or its grant was revoked: the file goes to Downloads
+            Log.w(DownloadTask.TAG, "Can not create ${download.filename} in $folder", e)
+            DownloadFiles.delete(context, download.filepath)
+            download.filepath = ""
+        }
+    }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         val resolver = context.contentResolver
         val values = ContentValues().apply {
@@ -250,35 +267,48 @@ private fun openOutput(download: Download): OutputStream {
 }
 
 /**
+ * Creates the file in the folder of the Storage Access Framework. A provider that can not open it to read and
+ * write, or gives no seekable file (a pipe), can not continue the file later: the download is then not resumable.
+ */
+private fun openDocumentOutput(download: Download, folder: Uri): OutputStream {
+    val context = AppContext.get()
+    val uri = DownloadFolder.createFile(context, folder, download.filename, download.mimeType)
+    download.filepath = uri.toString()
+    //the provider renames the file if the name is taken
+    DownloadFolder.displayName(context, uri)?.let { download.filename = it }
+    val readWrite = try {
+        context.contentResolver.openFileDescriptor(uri, "rw")
+    } catch (e: Exception) {
+        null
+    }
+    //some providers only write files from their start
+    val fd = readWrite ?: context.contentResolver.openFileDescriptor(uri, "w") ?: throw IOException("Can not open the file")
+    val output = ParcelFileDescriptor.AutoCloseOutputStream(fd)
+    if (readWrite == null) {
+        download.resumable = false
+    } else {
+        try {
+            output.channel.position()
+        } catch (e: IOException) {
+            download.resumable = false
+        }
+    }
+    return output
+}
+
+/**
  * Opens the file of a download that had started, its bytes from [offset] on dropped (the rest is written
- * again); on Android 11+ it stays pending a while longer.
+ * again); a MediaStore item stays pending a while longer.
  */
 private fun reopenOutput(download: Download, offset: Long): OutputStream {
-    val fd = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        val resolver = AppContext.get().contentResolver
-        val uri = Uri.parse(download.filepath)
-        resolver.update(uri, ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 1) }, null, null)
-        resolver.openFileDescriptor(uri, "rw") ?: throw IOException("Can not open the file")
-    } else {
-        ParcelFileDescriptor.open(File(download.filepath),
-            ParcelFileDescriptor.MODE_READ_WRITE or ParcelFileDescriptor.MODE_CREATE)
-    }
+    val fd = DownloadFiles.openForWriting(AppContext.get(), download.filepath)
     val output = ParcelFileDescriptor.AutoCloseOutputStream(fd)
     output.channel.truncate(offset)
     output.channel.position(offset)
     return output
 }
 
-private fun fileExists(download: Download): Boolean {
-    if (download.filepath.isEmpty()) return false
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return File(download.filepath).exists()
-    return try {
-        AppContext.get().contentResolver.query(Uri.parse(download.filepath), arrayOf(MediaStore.Downloads._ID),
-            null, null, null)?.use { it.count > 0 } ?: false
-    } catch (e: Exception) {
-        false
-    }
-}
+private fun fileExists(download: Download): Boolean = DownloadFiles.exists(AppContext.get(), download.filepath)
 
 /** `name.ext`, else `name_(1).ext` and so on */
 private fun freeFile(directory: File, fileName: String): File {
@@ -292,16 +322,4 @@ private fun freeFile(directory: File, fileName: String): File {
         file = File(directory, "${prefix}_($i)$ext")
     }
     return file
-}
-
-/** Makes the complete file visible to other apps */
-private fun publish(download: Download) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && download.filepath.isNotEmpty()) {
-        val values = ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }
-        try {
-            AppContext.get().contentResolver.update(Uri.parse(download.filepath), values, null, null)
-        } catch (e: Exception) {
-            Log.e(DownloadTask.TAG, "Can not publish ${download.filepath}", e)
-        }
-    }
 }

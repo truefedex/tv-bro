@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.activity.main
 import com.phlox.tvwebbrowser.net.AppProxy
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Message
@@ -18,6 +19,7 @@ import com.phlox.tvwebbrowser.browser.toDownload
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.service.downloads.DownloadCommands
 import com.phlox.tvwebbrowser.service.downloads.DownloadServiceNeed
+import com.phlox.tvwebbrowser.utils.DownloadFolder
 import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import kotlinx.coroutines.Dispatchers
@@ -30,10 +32,12 @@ import java.io.InputStream
  * Starts and controls downloads in [DownloadService] (its own process) on behalf of the
  * [activity]: asks for the needed permissions, inserts the database row of a new download and
  * sends the commands. The service is bound while the activity is started and needs it ([DownloadServiceNeed]);
- * commands sent meanwhile bind it until they are delivered.
+ * commands sent meanwhile bind it until they are delivered. New files go to the folder the user chose
+ * ([DownloadFolder]) while the app may write there, else to the Downloads directory ([onFolderUnavailable] tells it).
  */
 class DownloadLauncher(
     private val activity: ComponentActivity,
+    private val onFolderUnavailable: () -> Unit,
     private val onDownloadStarted: (Download) -> Unit
 ) {
     companion object {
@@ -65,8 +69,24 @@ class DownloadLauncher(
 
     fun download(request: DownloadRequest) {
         val download = request.toDownload()
+        val config = AppContext.provideConfig()
+        val chosen = DownloadFolder.chosen(config)
+        val folder = chosen?.let { tree ->
+            when {
+                //the grant does not come back (revoked, a backup of another device): the setting goes
+                !DownloadFolder.granted(activity, tree) -> {
+                    DownloadFolder.reset(activity, config)
+                    null
+                }
+                //deleted, or its drive is not there now
+                !DownloadFolder.present(activity, tree) -> null
+                else -> tree
+            }
+        }
+        if (chosen != null && folder == null) onFolderUnavailable()
         val neededPermission = when {
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
+            //the folder of the Storage Access Framework needs no permission, the Downloads directory does
+            folder == null && Build.VERSION.SDK_INT < Build.VERSION_CODES.R &&
                 activity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ->
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -75,12 +95,12 @@ class DownloadLauncher(
             else -> null
         }
         if (neededPermission == null) {
-            start(download)
+            start(download, folder)
             return
         }
         activity.launchForResult(ActivityResultContracts.RequestPermission(), neededPermission) { granted ->
             if (granted) {
-                start(download)
+                start(download, folder)
             }
         }
     }
@@ -99,6 +119,9 @@ class DownloadLauncher(
             data.putString(DownloadCommands.KEY_COOKIES, cookies)
             data.putString(DownloadCommands.KEY_REFERER, item.referer)
             AppProxy.settings?.let { data.putBundle(DownloadCommands.KEY_PROXY, it.toBundle()) }
+            //a new file, if the old one is gone
+            DownloadFolder.usable(activity, AppContext.provideConfig())
+                ?.let { data.putString(DownloadCommands.KEY_FOLDER, it.toString()) }
         })
     }
 
@@ -108,7 +131,7 @@ class DownloadLauncher(
             cookies = cookies, fileName = item.filename, mimeType = item.mimeType))
     }
 
-    private fun start(download: Download) {
+    private fun start(download: Download, folder: Uri?) {
         //a page, not about:blank or the like
         val referer = download.referer?.takeIf { it.startsWith("http://") || it.startsWith("https://") }
         //incognito downloads do not keep the page they came from
@@ -127,6 +150,7 @@ class DownloadLauncher(
                         data.putString(DownloadCommands.KEY_COOKIES, download.cookies)
                         data.putString(DownloadCommands.KEY_REFERER, referer)
                         AppProxy.settings?.let { data.putBundle(DownloadCommands.KEY_PROXY, it.toBundle()) }
+                        folder?.let { data.putString(DownloadCommands.KEY_FOLDER, it.toString()) }
                         data.putBoolean(DownloadCommands.KEY_INSTALL,
                             download.operationAfterDownload == Download.OperationAfterDownload.INSTALL)
                         engineInput(download)?.let { data.putParcelable(DownloadCommands.KEY_STREAM, pipe(it)) }

@@ -590,6 +590,14 @@
     <string name="settings_web_cache_cleared">Web cache cleared</string>
     <string name="settings_engine_debug">Web engine debugging</string>
     <string name="settings_engine_debug_summary">A computer connected for debugging can see pages and cookies</string>
+    <string name="settings_group_downloads">Downloads</string>
+    <string name="settings_download_folder">Download folder</string>
+    <string name="settings_download_folder_summary">Where new downloads are saved</string>
+    <!-- the public Downloads folder of the device, the default -->
+    <string name="settings_download_folder_default">Downloads (default)</string>
+    <string name="settings_download_folder_choose">Choose a folder…</string>
+    <string name="settings_download_folder_failed">Cannot save downloads to this folder</string>
+    <string name="download_folder_unavailable">The download folder is not available: the file goes to Downloads</string>
     <string name="settings_group_proxy">Proxy</string>
     <string name="settings_proxy">Use a proxy</string>
     <string name="settings_proxy_summary">Pages, downloads and videos go through a proxy server; addresses of the local network open directly</string>

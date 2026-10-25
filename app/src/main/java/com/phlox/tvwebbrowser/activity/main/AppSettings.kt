@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +18,8 @@ import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
+import com.phlox.tvwebbrowser.utils.DownloadFolder
+import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -145,6 +148,10 @@ class AppSettingsStore(
 
     override suspend fun clearCache() = WebEngineFactory.clearCache(AppContext.get())
     override var webEngineDebug: Boolean by config::webEngineDebug
+    override val downloadFolderPickerAvailable: Boolean by lazy { DownloadFolder.pickerAvailable(AppContext.get()) }
+    override val downloadFolderName: String?
+        get() = config.downloadFolderUri?.let { config.downloadFolderName ?: it }
+    override fun resetDownloadFolder() = DownloadFolder.reset(AppContext.get(), config)
 
     override val supportsProxy: Boolean
         get() = WebEngineFactory.supportsSetting(EngineSpecificSetting.PROXY)
@@ -249,6 +256,18 @@ class SettingsShellCallback(
         ShortcutKeyDialog(activity, shortcut).apply {
             setOnDismissListener { onDone() }
             show()
+        }
+    }
+
+    override fun pickDownloadFolder(onDone: () -> Unit) {
+        val config = AppContext.provideConfig()
+        //the picker starts at the chosen folder: it takes a document uri
+        val initial = DownloadFolder.chosen(config)?.let { runCatching { DownloadFolder.folderDocument(it) }.getOrNull() }
+        activity.launchForResult(ActivityResultContracts.OpenDocumentTree(), initial) { tree ->
+            if (tree != null && !DownloadFolder.set(activity, config, tree)) {
+                showMessage(R.drawable.ic_warning, activity.getString(R.string.settings_download_folder_failed))
+            }
+            onDone()
         }
     }
 

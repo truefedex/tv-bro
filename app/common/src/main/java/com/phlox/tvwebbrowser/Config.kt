@@ -53,6 +53,8 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         const val PROXY_PORT_KEY = "proxy_port"
         const val PROXY_USERNAME_KEY = "proxy_username"
         const val PROXY_PASSWORD_KEY = "proxy_password"
+        const val DOWNLOAD_FOLDER_URI_KEY = "download_folder_uri"
+        const val DOWNLOAD_FOLDER_NAME_KEY = "download_folder_name"
         /** The prefs of [credentialsPrefs] (the file `credentials.xml`), left out of backups (`backup_rules.xml`) */
         const val CREDENTIALS_PREFS_NAME = "credentials"
 
@@ -297,6 +299,25 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
      */
     val proxy: ProxySettings?
         get() = ProxySettings.of(proxyEnabled, proxyType, proxyHost, proxyPort, proxyUsername, proxyPassword)
+
+    /**
+     * The folder the user chose for downloads (a tree uri of the Storage Access Framework), null for the public
+     * Downloads directory
+     */
+    val downloadFolderUri: String?
+        get() = prefs.getString(DOWNLOAD_FOLDER_URI_KEY, null)
+
+    /** How the settings show [downloadFolderUri], taken when it was chosen */
+    val downloadFolderName: String?
+        get() = prefs.getString(DOWNLOAD_FOLDER_NAME_KEY, null)
+
+    /** null [uri] goes back to the public Downloads directory */
+    fun setDownloadFolder(uri: String?, name: String?) {
+        prefs.edit().apply {
+            if (uri == null) remove(DOWNLOAD_FOLDER_URI_KEY).remove(DOWNLOAD_FOLDER_NAME_KEY)
+            else putString(DOWNLOAD_FOLDER_URI_KEY, uri).putString(DOWNLOAD_FOLDER_NAME_KEY, name)
+        }.apply()
+    }
 
     var appWebExtensionVersion: Int
         get() = prefs.getInt(APP_WEB_EXTENSION_VERSION_KEY, 0)

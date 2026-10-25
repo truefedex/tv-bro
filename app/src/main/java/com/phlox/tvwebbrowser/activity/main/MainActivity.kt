@@ -107,7 +107,9 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         }
     protected val config = AppContext.provideConfig()
     private val voiceSearchHelper = VoiceSearchHelper(this) { icon, message -> shell.showMessage(icon, message) }
-    private val downloadLauncher = DownloadLauncher(this) { shell.onDownloadStarted(it) }
+    private val downloadLauncher = DownloadLauncher(this,
+        onFolderUnavailable = { shell.showMessage(R.drawable.ic_warning, getString(R.string.download_folder_unavailable)) }
+    ) { shell.onDownloadStarted(it) }
     var openUrlInExternalAppDialog: AlertDialog? = null
     private var tabsLoaded = false
     /** Url to open that arrived before the tabs were loaded */

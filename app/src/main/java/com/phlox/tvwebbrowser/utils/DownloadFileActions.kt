@@ -5,16 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.util.Log
-import androidx.core.content.FileProvider
 import com.phlox.tvwebbrowser.model.Download
-import java.io.File
 
-/**
- * The files of downloads: their path is a content uri of MediaStore on Android 11+ and a path in
- * the public Downloads directory before.
- */
+/** What other apps do with the files of downloads (see [DownloadFiles] for what their path holds) */
 object DownloadFileActions {
     private const val TAG = "DownloadFileActions"
     const val APK_MIME_TYPE = "application/vnd.android.package-archive"
@@ -22,15 +16,7 @@ object DownloadFileActions {
     private const val TV_STUBS_PACKAGE = "com.android.tv.frameworkpackagestubs"
 
     /** A uri other apps can read, null when the file is gone */
-    fun uriOf(context: Context, download: Download): Uri? {
-        if (download.filepath.isEmpty()) return null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return Uri.parse(download.filepath)
-        }
-        val file = File(download.filepath)
-        if (!file.exists()) return null
-        return FileProvider.getUriForFile(context, context.packageName + ".provider", file)
-    }
+    fun uriOf(context: Context, download: Download): Uri? = DownloadFiles.uriOf(context, download.filepath)
 
     fun isApk(download: Download): Boolean =
         download.filename.endsWith(".apk", ignoreCase = true) || download.mimeType == APK_MIME_TYPE
@@ -56,18 +42,7 @@ object DownloadFileActions {
     }
 
     /** Deletes the file of the download, if it is still there. Blocking */
-    fun deleteFile(context: Context, download: Download) {
-        if (download.filepath.isEmpty()) return
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                context.contentResolver.delete(Uri.parse(download.filepath), null)
-            } else {
-                File(download.filepath).delete()
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Can not delete ${download.filepath}", e)
-        }
-    }
+    fun deleteFile(context: Context, download: Download) = DownloadFiles.delete(context, download.filepath)
 
     /** Some app other than the stubs of Android TV takes the [intent] */
     fun hasApp(context: Context, intent: Intent): Boolean =

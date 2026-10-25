@@ -106,7 +106,9 @@ class DownloadsScreenView @JvmOverloads constructor(
 
     private fun render(screen: Screen, focus: DownloadsNavigator.Focus?) {
         renderFilters(screen)
-        vb.tvFreeSpace.text = context.getString(R.string.free_space, text.size(screen.freeSpace))
+        val freeSpace = screen.freeSpace
+        vb.tvFreeSpace.isVisible = freeSpace != null
+        if (freeSpace != null) vb.tvFreeSpace.text = context.getString(R.string.free_space, text.size(freeSpace))
         vb.tvEmpty.isVisible = screen.items.isEmpty()
         adapter.submitItems(screen.items) {
             if (focus == null || !isOpen) return@submitItems

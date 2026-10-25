@@ -7,6 +7,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -112,12 +113,12 @@ class DownloadService : Service() {
             DownloadCommands.START -> {
                 val stream = BundleCompat.getParcelable(data, DownloadCommands.KEY_STREAM, ParcelFileDescriptor::class.java)
                 start(id, data.getString(DownloadCommands.KEY_COOKIES), data.getString(DownloadCommands.KEY_REFERER),
-                    data.getBoolean(DownloadCommands.KEY_INSTALL), stream, proxyOf(data))
+                    data.getBoolean(DownloadCommands.KEY_INSTALL), stream, proxyOf(data), folderOf(data))
             }
             DownloadCommands.CANCEL -> cancel(id)
             DownloadCommands.PAUSE -> tasks[id]?.stop(DownloadTask.Stop.PAUSE)
             DownloadCommands.RESUME -> resume(id, data.getString(DownloadCommands.KEY_COOKIES),
-                data.getString(DownloadCommands.KEY_REFERER), proxyOf(data))
+                data.getString(DownloadCommands.KEY_REFERER), proxyOf(data), folderOf(data))
             else -> Log.w(TAG, "Unknown command ${message.what}")
         }
     }
@@ -126,8 +127,11 @@ class DownloadService : Service() {
     private fun proxyOf(data: Bundle): ProxySettings? =
         ProxySettings.fromBundle(data.getBundle(DownloadCommands.KEY_PROXY))
 
+    /** The folder the browser chose for new files; null for the Downloads directory */
+    private fun folderOf(data: Bundle): Uri? = data.getString(DownloadCommands.KEY_FOLDER)?.let(Uri::parse)
+
     private fun start(id: Long, cookies: String?, referer: String?, install: Boolean, stream: ParcelFileDescriptor?,
-                      proxy: ProxySettings?) {
+                      proxy: ProxySettings?, folder: Uri?) {
         //the service is started too, so that it keeps running when the browser unbinds
         startService(Intent(this, DownloadService::class.java))
         startForeground()
@@ -144,8 +148,8 @@ class DownloadService : Service() {
             download.refererHeader = referer
             if (install) download.operationAfterDownload = Download.OperationAfterDownload.INSTALL
             Log.d(TAG, "Start to download ${download.url}")
-            val task = if (stream != null) StreamDownloadTask(download, stream, taskListener)
-                else HttpDownloadTask(download, taskListener, proxy = proxy)
+            val task = if (stream != null) StreamDownloadTask(download, stream, taskListener, folder)
+                else HttpDownloadTask(download, taskListener, folder, proxy = proxy)
             tasks[id] = task
             if (cancelledBeforeStart.remove(id)) task.stop(DownloadTask.Stop.CANCEL)
             executor.execute(task)
@@ -154,7 +158,7 @@ class DownloadService : Service() {
     }
 
     /** Continues a paused download from the bytes its file has */
-    private fun resume(id: Long, cookies: String?, referer: String?, proxy: ProxySettings?) {
+    private fun resume(id: Long, cookies: String?, referer: String?, proxy: ProxySettings?, folder: Uri?) {
         startService(Intent(this, DownloadService::class.java))
         startForeground()
         scope.launch {
@@ -171,7 +175,7 @@ class DownloadService : Service() {
             download.cookies = cookies
             download.refererHeader = referer
             Log.d(TAG, "Resume to download ${download.url} from ${download.bytesReceived}")
-            val task = HttpDownloadTask(download, taskListener, resume = true, proxy = proxy)
+            val task = HttpDownloadTask(download, taskListener, folder, resume = true, proxy = proxy)
             tasks[id] = task
             if (cancelledBeforeStart.remove(id)) task.stop(DownloadTask.Stop.CANCEL)
             executor.execute(task)

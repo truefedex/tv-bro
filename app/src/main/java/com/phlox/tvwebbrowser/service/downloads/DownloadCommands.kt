@@ -23,6 +23,12 @@ object DownloadCommands {
      * [RESUME]: the downloads process does not see the settings the browser changes later
      */
     const val KEY_PROXY = "proxy"
+    /**
+     * The folder the user chose for downloads (a tree uri, see [com.phlox.tvwebbrowser.utils.DownloadFolder]),
+     * for [START] and [RESUME] (a resumed download whose file is gone gets a new one); absent for the Downloads
+     * directory. It goes with the command as [KEY_PROXY] does.
+     */
+    const val KEY_FOLDER = "folder"
     /** Open the installer when the download completes */
     const val KEY_INSTALL = "install"
     /**

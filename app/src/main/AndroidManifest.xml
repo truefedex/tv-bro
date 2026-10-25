@@ -51,6 +51,10 @@
         <intent>
             <action android:name="android.intent.action.VIEW_DOWNLOADS" />
         </intent>
+        <!-- the picker of a folder for downloads (see DownloadFolder) -->
+        <intent>
+            <action android:name="android.intent.action.OPEN_DOCUMENT_TREE" />
+        </intent>
         <intent>
             <action android:name="android.intent.action.INSTALL_PACKAGE" />
             <data android:mimeType="application/vnd.android.package-archive" />

@@ -48,7 +48,7 @@ class SettingsNavigator(
         SITE_VIEW, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
-        CLEAR_CACHE, ENGINE_DEBUG, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD,
+        CLEAR_CACHE, ENGINE_DEBUG, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
         LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, LINK_PUBLIC_SUFFIX_LIST
     }
@@ -126,6 +126,12 @@ class SettingsNavigator(
 
         suspend fun clearCache()
         var webEngineDebug: Boolean
+        /** The device has a picker of folders (the Storage Access Framework); many TVs have none */
+        val downloadFolderPickerAvailable: Boolean
+        /** The folder the user chose for downloads as it is shown, null for the Downloads directory */
+        val downloadFolderName: String?
+        /** Downloads go to the Downloads directory again */
+        fun resetDownloadFolder()
         /** The engine can go through a proxy */
         val supportsProxy: Boolean
         /** The setters apply the proxy once its address is complete */
@@ -158,6 +164,8 @@ class SettingsNavigator(
         fun confirm(title: String?, message: String, positive: String, onResult: (Boolean) -> Unit)
         /** Lets the user press the key of the [shortcut]; [onDone] is called when the dialog closes */
         fun captureKey(shortcut: Shortcut, onDone: () -> Unit)
+        /** Lets the user choose the folder of downloads in the picker of the system; [onDone] when it closes */
+        fun pickDownloadFolder(onDone: () -> Unit)
         /** Opens the page in a new tab (the screen closes) */
         fun open(url: String)
         /** Closes the screen and offers to install the new version */
@@ -172,6 +180,7 @@ class SettingsNavigator(
         fun showMessage(@DrawableRes icon: Int, message: String)
         fun confirm(title: String?, message: String, positive: String, onResult: (Boolean) -> Unit)
         fun captureKey(shortcut: Shortcut, onDone: () -> Unit)
+        fun pickDownloadFolder(onDone: () -> Unit)
         fun open(url: String)
         fun startUpdate()
         fun restart()
@@ -269,6 +278,9 @@ class SettingsNavigator(
 
         /** The index of the custom search engine in the options of Search engine */
         val CUSTOM_SEARCH_ENGINE = Config.SearchEnginesURLs.size - 1
+
+        /** The position of the Downloads directory in the options of the folder of downloads */
+        const val DOWNLOAD_FOLDER_DEFAULT = 0
 
         /** Positions of the default site views */
         const val SITE_VIEW_AUTO = 0
@@ -370,6 +382,16 @@ class SettingsNavigator(
                 store.proxyType = type
             }
             Key.REGIONAL_LIST -> store.setRegionalFilterList(regionalLists().getOrNull(index - 1)?.id)
+            Key.DOWNLOAD_FOLDER -> when {
+                index == DOWNLOAD_FOLDER_DEFAULT ->
+                    if (store.downloadFolderName != null) store.resetDownloadFolder() else return
+                //Choose a folder… is the last option when there is a picker
+                store.downloadFolderPickerAvailable && index == downloadFolderOptions().lastIndex -> {
+                    host.pickDownloadFolder { render() }
+                    return
+                }
+                else -> return
+            }
             Key.UPDATE_CHANNEL -> {
                 val channel = updates?.channels?.getOrNull(index) ?: return
                 if (channel == store.updateChannel) return
@@ -745,8 +767,24 @@ class SettingsNavigator(
             Row.Toggle(Key.ENGINE_DEBUG, string(R.string.settings_engine_debug), string(R.string.settings_engine_debug_summary),
                 store.webEngineDebug, restart = true)
         )))
+        //the row stays while a folder is chosen, so that it can be reset
+        if (store.downloadFolderPickerAvailable || store.downloadFolderName != null) {
+            val options = downloadFolderOptions()
+            sections += Section(string(R.string.settings_group_downloads), listOf(Row.Choice(Key.DOWNLOAD_FOLDER,
+                string(R.string.settings_download_folder), string(R.string.settings_download_folder_summary), options,
+                if (store.downloadFolderName != null) DOWNLOAD_FOLDER_DEFAULT + 1 else DOWNLOAD_FOLDER_DEFAULT,
+                segmented = false)))
+        }
         if (store.supportsProxy) sections += Section(string(R.string.settings_group_proxy), proxyRows())
         return sections
+    }
+
+    /** The Downloads directory, the chosen folder (if there is one) and the choice of another one */
+    private fun downloadFolderOptions(): List<String> {
+        val options = arrayListOf(string(R.string.settings_download_folder_default))
+        store.downloadFolderName?.let { options += it }
+        if (store.downloadFolderPickerAvailable) options += string(R.string.settings_download_folder_choose)
+        return options
     }
 
     private fun proxyTypeOptions() = listOf(string(R.string.settings_proxy_http), string(R.string.settings_proxy_socks5))
