@@ -41,11 +41,18 @@ import java.util.concurrent.Executors
  * switches between its normal and incognito processes, and both of them can start downloads.
  * The browser processes bind to it and send [DownloadCommands] through a [Messenger]; the state of
  * the downloads is written to the database, which the screens observe.
+ *
+ * While a browser process is bound the service is started too, and it stops itself only when nothing is bound
+ * and nothing runs: a browser sends a command and may unbind right away, before the command is handled; a
+ * service that was only bound would then be destroyed with the command, and the next one would take its
+ * download for one a dead process left.
  */
 class DownloadService : Service() {
     companion object {
         val TAG: String = DownloadService::class.java.simpleName
         const val DOWNLOAD_NOTIFICATION_ID = 101101
+        /** How long the service waits after the last browser unbound before it stops when idle */
+        private const val IDLE_STOP_DELAY = 1000L
     }
 
     private val repository get() = TVBro.container.data.downloads
@@ -56,6 +63,12 @@ class DownloadService : Service() {
     private val tasks = LinkedHashMap<Long, DownloadTask>()
     /** Downloads cancelled while their start was waiting for the database */
     private val cancelledBeforeStart = HashSet<Long>()
+    /** Starts and resumes waiting for the database, changed on the main thread */
+    private var pendingStarts = 0
+    /** A browser process is bound */
+    private var bound = false
+    private val stopWhenIdle = Runnable { stopIfIdle() }
+    private var destroyed = false
     private val messenger = Messenger(Handler(Looper.getMainLooper()) { onCommand(it); true })
     private lateinit var recovery: Job
     private lateinit var notificationManager: NotificationManager
@@ -89,13 +102,41 @@ class DownloadService : Service() {
     }
 
     override fun onDestroy() {
+        destroyed = true
+        handler.removeCallbacks(stopWhenIdle)
         for (task in tasks.values) task.stop(DownloadTask.Stop.PAUSE)
         scope.cancel()
         executor.shutdown()
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent): IBinder = messenger.binder
+    override fun onBind(intent: Intent): IBinder {
+        onBound()
+        return messenger.binder
+    }
+
+    override fun onRebind(intent: Intent?) = onBound()
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        bound = false
+        //the commands the browser sent before it unbound are handled first
+        handler.removeCallbacks(stopWhenIdle)
+        handler.postDelayed(stopWhenIdle, IDLE_STOP_DELAY)
+        //onRebind for the next browser
+        return true
+    }
+
+    /** Started, so the commands of a browser that unbinds right after it sent them are not lost with the service */
+    private fun onBound() {
+        bound = true
+        handler.removeCallbacks(stopWhenIdle)
+        try {
+            startService(Intent(this, DownloadService::class.java))
+        } catch (e: IllegalStateException) {
+            //the app is in the background: the service lives while it is bound
+            Log.w(TAG, "The service can not be started", e)
+        }
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_NOT_STICKY
 
@@ -135,25 +176,32 @@ class DownloadService : Service() {
         //the service is started too, so that it keeps running when the browser unbinds
         startService(Intent(this, DownloadService::class.java))
         startForeground()
+        pendingStarts++
         scope.launch {
-            recovery.join()
-            val download = repository.get(id)
-            if (download == null || download.status != Download.Status.IN_PROGRESS || tasks.containsKey(id)) {
-                Log.w(TAG, "Download $id can not be started")
-                stream?.close()
-                stopIfIdle()
-                return@launch
+            var task: DownloadTask? = null
+            try {
+                recovery.join()
+                val download = repository.get(id)
+                if (download == null || download.status != Download.Status.IN_PROGRESS || tasks.containsKey(id)) {
+                    Log.w(TAG, "Download $id can not be started")
+                    return@launch
+                }
+                download.cookies = cookies
+                download.refererHeader = referer
+                if (install) download.operationAfterDownload = Download.OperationAfterDownload.INSTALL
+                Log.d(TAG, "Start to download ${download.url}")
+                task = if (stream != null) StreamDownloadTask(download, stream, taskListener, folder)
+                    else HttpDownloadTask(download, taskListener, folder, proxy = proxy)
+                tasks[id] = task
+                if (cancelledBeforeStart.remove(id)) task.stop(DownloadTask.Stop.CANCEL)
+                executor.execute(task)
+                updateNotification(force = true)
+            } finally {
+                //the browser gets an error at its end of the pipe
+                if (task == null) stream?.close()
+                pendingStarts--
+                if (task == null) stopIfIdle()
             }
-            download.cookies = cookies
-            download.refererHeader = referer
-            if (install) download.operationAfterDownload = Download.OperationAfterDownload.INSTALL
-            Log.d(TAG, "Start to download ${download.url}")
-            val task = if (stream != null) StreamDownloadTask(download, stream, taskListener, folder)
-                else HttpDownloadTask(download, taskListener, folder, proxy = proxy)
-            tasks[id] = task
-            if (cancelledBeforeStart.remove(id)) task.stop(DownloadTask.Stop.CANCEL)
-            executor.execute(task)
-            updateNotification(force = true)
         }
     }
 
@@ -161,25 +209,32 @@ class DownloadService : Service() {
     private fun resume(id: Long, cookies: String?, referer: String?, proxy: ProxySettings?, folder: Uri?) {
         startService(Intent(this, DownloadService::class.java))
         startForeground()
+        pendingStarts++
         scope.launch {
-            recovery.join()
-            val download = repository.get(id)
-            if (download == null || download.status != Download.Status.PAUSED || tasks.containsKey(id)) {
-                Log.w(TAG, "Download $id can not be resumed")
-                stopIfIdle()
-                return@launch
+            var started = false
+            try {
+                recovery.join()
+                val download = repository.get(id)
+                if (download == null || download.status != Download.Status.PAUSED || tasks.containsKey(id)) {
+                    Log.w(TAG, "Download $id can not be resumed")
+                    return@launch
+                }
+                download.status = Download.Status.IN_PROGRESS
+                download.error = null
+                repository.setStatus(id, Download.Status.IN_PROGRESS)
+                download.cookies = cookies
+                download.refererHeader = referer
+                Log.d(TAG, "Resume to download ${download.url} from ${download.bytesReceived}")
+                val task = HttpDownloadTask(download, taskListener, folder, resume = true, proxy = proxy)
+                tasks[id] = task
+                started = true
+                if (cancelledBeforeStart.remove(id)) task.stop(DownloadTask.Stop.CANCEL)
+                executor.execute(task)
+                updateNotification(force = true)
+            } finally {
+                pendingStarts--
+                if (!started) stopIfIdle()
             }
-            download.status = Download.Status.IN_PROGRESS
-            download.error = null
-            repository.setStatus(id, Download.Status.IN_PROGRESS)
-            download.cookies = cookies
-            download.refererHeader = referer
-            Log.d(TAG, "Resume to download ${download.url} from ${download.bytesReceived}")
-            val task = HttpDownloadTask(download, taskListener, folder, resume = true, proxy = proxy)
-            tasks[id] = task
-            if (cancelledBeforeStart.remove(id)) task.stop(DownloadTask.Stop.CANCEL)
-            executor.execute(task)
-            updateNotification(force = true)
         }
     }
 
@@ -212,11 +267,12 @@ class DownloadService : Service() {
         stopIfIdle()
     }
 
+    /** Out of the foreground when nothing runs; stopped when nothing is bound or waiting either */
     private fun stopIfIdle() {
-        if (tasks.isEmpty()) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            stopSelf()
-        }
+        //the starts cancelled by onDestroy end later; a new instance may run by then
+        if (destroyed || tasks.isNotEmpty()) return
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        if (!bound && pendingStarts == 0) stopSelf()
     }
 
     private fun canInstallPackages(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

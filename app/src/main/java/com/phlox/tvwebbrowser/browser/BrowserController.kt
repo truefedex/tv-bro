@@ -24,6 +24,7 @@ import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.TabEngineEvents
 import com.phlox.tvwebbrowser.webengine.WebEngine
@@ -51,6 +52,8 @@ class BrowserController : ActiveModel() {
         var TAG: String = BrowserController::class.java.simpleName
         /** The engine file loads in tens of milliseconds; a slow storage must not keep the tabs waiting */
         private const val AD_BLOCK_LOAD_TIMEOUT_MS = 1000L
+        /** The url of a tab that shows no page */
+        const val BLANK_URL = "about:blank"
     }
 
     /**
@@ -579,6 +582,7 @@ class BrowserController : ActiveModel() {
         val siteViewChanged = applySiteView(newTab)
         if (needsRestore) {
             needReloadUrl = !tabFiles.restoreEngineState(newTab)
+            if (!needReloadUrl) newTab.pageUrl = newTab.url
         }
         newTab.webEngine.onAttachToWindow(engineCallback(newTab, host), host.tabsContainer)
         if (needReloadUrl) {
@@ -630,7 +634,26 @@ class BrowserController : ActiveModel() {
 
     private fun engineCallback(tab: BrowserTab, host: TabViewHost): WebEngineCallbacks {
         val policies = TabPolicies(tab, this)
-        return WebEngineCallbacks(TabEvents(tab, policies), policies, host.uiHost(tab))
+        val uiHost = host.uiHost(tab)
+        val tabUiHost = object : EngineUiHost by uiHost {
+            override fun onDownloadRequested(request: DownloadRequest) {
+                onDownloadOfTab(tab)
+                uiHost.onDownloadRequested(request)
+            }
+        }
+        return WebEngineCallbacks(TabEvents(tab, policies), policies, tabUiHost)
+    }
+
+    /**
+     * A navigation that became a download leaves the page as it was: the tab gets back the url of the page it
+     * shows, or about:blank if it showed none yet (a tab opened for a download link). Else it would keep the
+     * link and download it again whenever it is restored or reloaded.
+     */
+    private fun onDownloadOfTab(tab: BrowserTab) {
+        if (tab.url == tab.pageUrl) return
+        tab.url = tab.pageUrl ?: BLANK_URL
+        if (tab == currentTab.value) publishState()
+        saveTab(tab, withFiles = false)
     }
 
     private fun sendUiEvent(event: BrowserUiEvent) {
@@ -763,6 +786,7 @@ class BrowserController : ActiveModel() {
             } else if (url != null) {
                 tab.url = url
             }
+            tab.pageUrl = tab.url
         }
 
         override fun onPageStarted(url: String?) {

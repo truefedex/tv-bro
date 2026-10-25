@@ -32,6 +32,12 @@ class BrowserTab(var id: Long = 0,
     /** [thumbnail] was updated and is not saved yet */
     private var thumbnailChanged = false
     var savedState: Any? = null
+    /**
+     * The url of the page the tab shows: [url] once its page started (or was restored), null before its first
+     * page. [url] is already the next one while a navigation starts, and a navigation that becomes a download
+     * gives it back (not kept: a restored tab shows its [url])
+     */
+    var pageUrl: String? = null
     private val webEngineHolder = lazy { WebEngineFactory.createWebEngine(this) }
     /** Created on the first access (usually when the tab is shown for the first time) */
     val webEngine: WebEngine get() = webEngineHolder.value

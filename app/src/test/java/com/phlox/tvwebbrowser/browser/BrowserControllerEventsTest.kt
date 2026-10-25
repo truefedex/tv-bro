@@ -137,6 +137,41 @@ class BrowserControllerEventsTest {
         assertEquals(0, state.blockedPopups)
     }
 
+    private fun download(tab: BrowserTab, url: String) =
+        tab.callback.onDownloadRequested(com.phlox.tvwebbrowser.webengine.DownloadRequest(url, referer = "", userAgent = null))
+
+    @Test
+    fun aTabOpenedForADownloadDoesNotKeepItsLink() {
+        //the link redirects to the file: the download has another url
+        val tab = open("https://a.com/archive.zip")
+        assertEquals("https://a.com/archive.zip", tab.url)
+        download(tab, "https://files.a.com/archive.zip")
+        assertEquals(BrowserController.BLANK_URL, tab.url)
+        assertEquals(BrowserController.BLANK_URL, state.url)
+        //the UI still gets the download
+        assertTrue("onDownloadRequested" in host.uiHostCalls)
+    }
+
+    @Test
+    fun aDownloadTypedOnAPageKeepsThePage() {
+        val tab = open("https://a.com/")
+        tab.callback.onPageStarted("https://a.com/")
+        controller.navigate("https://b.com/file.zip")
+        assertEquals("https://b.com/file.zip", tab.url)
+        download(tab, "https://b.com/file.zip")
+        assertEquals("https://a.com/", tab.url)
+        assertEquals("https://a.com/", state.url)
+    }
+
+    @Test
+    fun aDownloadOfALinkOfThePageChangesNothing() {
+        val tab = open("https://a.com/")
+        tab.fakeEngine.loadedUrls += "https://a.com/page"
+        tab.callback.onPageStarted("https://a.com/page")
+        download(tab, "https://a.com/file.zip")
+        assertEquals("https://a.com/page", tab.url)
+    }
+
     @Test
     fun currentTabGetsANewViewWhenItsViewIsLost() {
         val tab = open("https://a.com/")
