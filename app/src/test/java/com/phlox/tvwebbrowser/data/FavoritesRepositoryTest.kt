@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.data
 
 import androidx.room.Room
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.HOME_PAGE
 import com.phlox.tvwebbrowser.data.FavoritesRepository.Companion.ROOT
 import com.phlox.tvwebbrowser.model.FavoriteItem
@@ -263,5 +264,49 @@ class FavoritesRepositoryTest {
         assertEquals(listOf("Sub", "News", "y", "z"), titles(ROOT))
         assertEquals(listOf("New x", "n2", "n1"), titles(news.id))
         assertEquals(1, favorites.folders().count { it.title == "News" })
+    }
+
+    private suspend fun channel(source: Config.ChannelBookmarksSource, folder: Long = ROOT) =
+        favorites.channelBookmarks(source, folder).map { it.title }
+
+    /** top: a, b, folder f (c, folder g (d), and a again); home page: h1, h2 */
+    private suspend fun channelTree(): Pair<FavoriteItem, FavoriteItem> {
+        favorites.add(bookmark("h1"), HOME_PAGE)
+        favorites.add(bookmark("h2"), HOME_PAGE)
+        val f = folder("f").also { favorites.add(it, ROOT) }
+        val g = folder("g").also { favorites.add(it, f.id) }
+        favorites.add(bookmark("d"), g.id)
+        favorites.add(FavoriteItem().apply { title = "a again"; url = "https://a.com/" }, f.id)
+        favorites.add(bookmark("c"), f.id)
+        favorites.add(bookmark("a"), ROOT)
+        favorites.add(bookmark("b"), ROOT)
+        return f to g
+    }
+
+    @Test
+    fun channelOfTheHomePageHasItsBookmarksInTheirOrder() = runBlocking {
+        channelTree()
+        assertEquals(listOf("h1", "h2"), channel(Config.ChannelBookmarksSource.HOME_PAGE))
+    }
+
+    @Test
+    fun channelOfAFolderLeavesOutItsFolders() = runBlocking {
+        val (f, _) = channelTree()
+        assertEquals(listOf("c", "a again"), channel(Config.ChannelBookmarksSource.FOLDER, f.id))
+        assertEquals(listOf("b", "a"), channel(Config.ChannelBookmarksSource.FOLDER, ROOT))
+    }
+
+    @Test
+    fun channelOfAGoneFolderShowsTheHomePage() = runBlocking {
+        val (_, g) = channelTree()
+        favorites.delete(g)
+        assertEquals(listOf("h1", "h2"), channel(Config.ChannelBookmarksSource.FOLDER, g.id))
+    }
+
+    @Test
+    fun channelOfAllWalksTheTreeAndKeepsEachAddressOnce() = runBlocking {
+        channelTree()
+        //each folder's bookmarks before its folders, then the home page; "a again" has the url of "a"
+        assertEquals(listOf("b", "a", "c", "d", "h1", "h2"), channel(Config.ChannelBookmarksSource.ALL))
     }
 }

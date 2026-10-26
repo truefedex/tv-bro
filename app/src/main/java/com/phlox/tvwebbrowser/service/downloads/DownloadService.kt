@@ -25,6 +25,8 @@ import androidx.core.os.BundleCompat
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
+import com.phlox.tvwebbrowser.channels.ChannelKind
+import com.phlox.tvwebbrowser.channels.HomeChannels
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.DownloadFileActions
@@ -65,6 +67,8 @@ class DownloadService : Service() {
     private val cancelledBeforeStart = HashSet<Long>()
     /** Starts and resumes waiting for the database, changed on the main thread */
     private var pendingStarts = 0
+    /** Refreshes of the downloads channel of the home screen in progress: the service waits for them */
+    private var channelSyncs = 0
     /** A browser process is bound */
     private var bound = false
     private val stopWhenIdle = Runnable { stopIfIdle() }
@@ -263,8 +267,25 @@ class DownloadService : Service() {
             download.operationAfterDownload == Download.OperationAfterDownload.INSTALL && canInstallPackages()) {
             DownloadFileActions.install(this, download)
         }
+        if (download.status == Download.Status.DONE) refreshHomeChannel()
         updateNotification(force = true)
         stopIfIdle()
+    }
+
+    /**
+     * The downloads channel of the TV home screen shows the new file also when the browser is not running.
+     * Only a channel that is there is refreshed: the prefs of this process may be older than the settings.
+     */
+    private fun refreshHomeChannel() {
+        channelSyncs++
+        scope.launch {
+            try {
+                HomeChannels.sync(this@DownloadService, listOf(ChannelKind.DOWNLOADS), HomeChannels.Mode.UPDATE_EXISTING)
+            } finally {
+                channelSyncs--
+                stopIfIdle()
+            }
+        }
     }
 
     /** Out of the foreground when nothing runs; stopped when nothing is bound or waiting either */
@@ -272,7 +293,7 @@ class DownloadService : Service() {
         //the starts cancelled by onDestroy end later; a new instance may run by then
         if (destroyed || tasks.isNotEmpty()) return
         stopForeground(STOP_FOREGROUND_REMOVE)
-        if (!bound && pendingStarts == 0) stopSelf()
+        if (!bound && pendingStarts == 0 && channelSyncs == 0) stopSelf()
     }
 
     private fun canInstallPackages(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

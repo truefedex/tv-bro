@@ -16,6 +16,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
+    <!-- the home screen channels of Android TV (see HomeChannels) -->
+    <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
 
     <uses-feature
         android:name="android.hardware.touchscreen"
@@ -172,5 +174,23 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths"/>
         </provider>
+
+        <!-- the posters of the home screen channels, read by the launcher (see ChannelPostersProvider);
+             in the small process of the downloads, so a launcher loading posters does not start the browser -->
+        <provider
+            android:name=".channels.ChannelPostersProvider"
+            android:authorities="${applicationId}.channelposters"
+            android:process=":downloads"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
+        <!-- a tile of the downloads channel of the home screen opens its file (see ChannelLaunchActivity) -->
+        <activity
+            android:name=".channels.ChannelLaunchActivity"
+            android:process=":downloads"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
     </application>
 </manifest>

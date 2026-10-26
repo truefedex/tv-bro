@@ -6,6 +6,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
+import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
@@ -45,6 +46,7 @@ class SettingsNavigator(
     /** The settings, and the rows that act */
     enum class Key {
         SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS,
+        CHANNEL_BOOKMARKS, CHANNEL_BOOKMARKS_SOURCE, CHANNEL_TABS, CHANNEL_DOWNLOADS,
         SITE_VIEW, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
@@ -89,6 +91,19 @@ class SettingsNavigator(
         val homePageUrl: String
         val homePageLinksMode: Config.HomePageLinksMode
         fun setHomePage(mode: Config.HomePageMode, customUrl: String?, linksMode: Config.HomePageLinksMode)
+
+        /** The home screen of the TV shows channels of apps (Android 8+ with the TvProvider of Android TV) */
+        val supportsHomeChannels: Boolean
+        /** The setters of the channels create or delete them at once */
+        var channelBookmarks: Boolean
+        val channelBookmarksSource: Config.ChannelBookmarksSource
+        /** The folder of [Config.ChannelBookmarksSource.FOLDER], [FavoritesRepository.ROOT] for the top level */
+        val channelBookmarksFolder: Long
+        fun setChannelBookmarks(source: Config.ChannelBookmarksSource, folder: Long)
+        /** The folders of bookmarks in the order of their tree (the top level is not one) */
+        suspend fun bookmarkFolders(): List<BookmarkFolder>
+        var channelTabs: Boolean
+        var channelDownloads: Boolean
 
         /** null follows the interface */
         var defaultDesktopView: Boolean?
@@ -166,6 +181,11 @@ class SettingsNavigator(
         fun captureKey(shortcut: Shortcut, onDone: () -> Unit)
         /** Lets the user choose the folder of downloads in the picker of the system; [onDone] when it closes */
         fun pickDownloadFolder(onDone: () -> Unit)
+        /**
+         * Lets the user choose one of the [options] in a list that scrolls (there may be many); [checked] is the
+         * chosen one, -1 for none. [onChosen] is not called when the user cancels.
+         */
+        fun pickFromList(title: String, options: List<String>, checked: Int, onChosen: (Int) -> Unit)
         /** Opens the page in a new tab (the screen closes) */
         fun open(url: String)
         /** Closes the screen and offers to install the new version */
@@ -181,10 +201,14 @@ class SettingsNavigator(
         fun confirm(title: String?, message: String, positive: String, onResult: (Boolean) -> Unit)
         fun captureKey(shortcut: Shortcut, onDone: () -> Unit)
         fun pickDownloadFolder(onDone: () -> Unit)
+        fun pickFromList(title: String, options: List<String>, checked: Int, onChosen: (Int) -> Unit)
         fun open(url: String)
         fun startUpdate()
         fun restart()
     }
+
+    /** A folder of bookmarks the channel of the home screen can show; [path] is "A / B" */
+    data class BookmarkFolder(val id: Long, val path: String)
 
     sealed class Row {
         abstract val key: Key
@@ -282,6 +306,11 @@ class SettingsNavigator(
         /** The position of the Downloads directory in the options of the folder of downloads */
         const val DOWNLOAD_FOLDER_DEFAULT = 0
 
+        /** Positions in the options of the bookmarks channel (the chosen folder is there only when one is) */
+        const val CHANNEL_SOURCE_HOME_PAGE = 0
+        const val CHANNEL_SOURCE_ALL = 1
+        const val CHANNEL_SOURCE_FOLDER = 2
+
         /** Positions of the default site views */
         const val SITE_VIEW_AUTO = 0
         const val SITE_VIEW_DESKTOP_OPTION = 1
@@ -306,6 +335,8 @@ class SettingsNavigator(
     /** Custom URL was chosen and no address is typed yet */
     private var customSearchChosen = false
     private var jobs = emptyList<Job>()
+    /** The folders of bookmarks, loaded when the screen shows (for the name of the one the channel shows) */
+    private var bookmarkFolders: List<BookmarkFolder>? = null
 
     /** The categories of this interface */
     val categories: List<Category> get() = Category.entries.filter { it != Category.REMOTE || tvUi }
@@ -326,6 +357,13 @@ class SettingsNavigator(
                 }
             }
         )
+        if (tvUi && store.supportsHomeChannels) {
+            //the name of the folder the bookmarks channel shows
+            jobs += scope.launch {
+                bookmarkFolders = store.bookmarkFolders()
+                if (shown) render()
+            }
+        }
         render()
         if (store.builtInUpdates) checkUpdates(force = false)
     }
@@ -392,6 +430,16 @@ class SettingsNavigator(
                 }
                 else -> return
             }
+            Key.CHANNEL_BOOKMARKS_SOURCE -> when (index) {
+                CHANNEL_SOURCE_HOME_PAGE -> store.setChannelBookmarks(Config.ChannelBookmarksSource.HOME_PAGE, store.channelBookmarksFolder)
+                CHANNEL_SOURCE_ALL -> store.setChannelBookmarks(Config.ChannelBookmarksSource.ALL, store.channelBookmarksFolder)
+                //Choose a folder… is the last option, the chosen folder (if any) the one before it
+                channelSourceOptions().lastIndex -> {
+                    pickChannelFolder()
+                    return
+                }
+                else -> return
+            }
             Key.UPDATE_CHANNEL -> {
                 val channel = updates?.channels?.getOrNull(index) ?: return
                 if (channel == store.updateChannel) return
@@ -415,6 +463,9 @@ class SettingsNavigator(
     fun toggle(key: Key) {
         when (key) {
             Key.AUTOPLAY -> store.allowAutoplayMedia = !store.allowAutoplayMedia
+            Key.CHANNEL_BOOKMARKS -> store.channelBookmarks = !store.channelBookmarks
+            Key.CHANNEL_TABS -> store.channelTabs = !store.channelTabs
+            Key.CHANNEL_DOWNLOADS -> store.channelDownloads = !store.channelDownloads
             Key.AD_BLOCK -> store.adBlockEnabled = !store.adBlockEnabled
             Key.TRACKING_PROTECTION -> store.trackingProtection = !store.trackingProtection
             Key.VIDEO_HINT -> store.pageVideoHint = !store.pageVideoHint
@@ -651,8 +702,66 @@ class SettingsNavigator(
                 null, customHomePageUrl(), string(R.string.settings_home_page_url_hint))
             else -> {}
         }
-        return listOf(Section(string(R.string.settings_group_search), search),
+        val sections = arrayListOf(Section(string(R.string.settings_group_search), search),
             Section(string(R.string.settings_group_home_page), home))
+        if (tvUi && store.supportsHomeChannels) {
+            sections += Section(string(R.string.settings_group_home_screen), channelRows())
+        }
+        return sections
+    }
+
+    /** The channels of the Android TV home screen */
+    private fun channelRows(): List<Row> {
+        val rows = arrayListOf<Row>(Row.Toggle(Key.CHANNEL_BOOKMARKS, string(R.string.settings_channel_bookmarks),
+            string(R.string.settings_channel_bookmarks_summary), store.channelBookmarks))
+        if (store.channelBookmarks) {
+            val selected = when {
+                chosenChannelFolderName() != null -> CHANNEL_SOURCE_FOLDER
+                store.channelBookmarksSource == Config.ChannelBookmarksSource.ALL -> CHANNEL_SOURCE_ALL
+                else -> CHANNEL_SOURCE_HOME_PAGE
+            }
+            rows += Row.Choice(Key.CHANNEL_BOOKMARKS_SOURCE, string(R.string.settings_channel_bookmarks_source),
+                if (selected == CHANNEL_SOURCE_FOLDER) string(R.string.settings_channel_folder_summary) else null,
+                channelSourceOptions(), selected, segmented = false)
+        }
+        rows += Row.Toggle(Key.CHANNEL_TABS, string(R.string.settings_channel_tabs),
+            string(R.string.settings_channel_tabs_summary), store.channelTabs)
+        rows += Row.Toggle(Key.CHANNEL_DOWNLOADS, string(R.string.settings_channel_downloads),
+            string(R.string.settings_channel_downloads_summary), store.channelDownloads)
+        return rows
+    }
+
+    /** Home page bookmarks, all bookmarks, the chosen folder (if one is) and the choice of a folder */
+    private fun channelSourceOptions(): List<String> {
+        val options = arrayListOf(string(R.string.settings_channel_source_home_page), string(R.string.settings_channel_source_all))
+        chosenChannelFolderName()?.let { options += it }
+        options += string(R.string.settings_channel_source_choose_folder)
+        return options
+    }
+
+    /**
+     * The name of the folder the bookmarks channel shows; null when it shows no folder, or the folder is gone
+     * (the channel shows the home page bookmarks then)
+     */
+    private fun chosenChannelFolderName(): String? {
+        if (store.channelBookmarksSource != Config.ChannelBookmarksSource.FOLDER) return null
+        val folder = store.channelBookmarksFolder
+        if (folder == FavoritesRepository.ROOT) return string(R.string.settings_channel_folder_top_level)
+        val folders = bookmarkFolders ?: return "…"
+        return folders.find { it.id == folder }?.path
+    }
+
+    private fun pickChannelFolder() {
+        scope.launch {
+            val folders = store.bookmarkFolders().also { bookmarkFolders = it }
+            val choices = listOf(BookmarkFolder(FavoritesRepository.ROOT, string(R.string.settings_channel_folder_top_level))) + folders
+            val checked = if (store.channelBookmarksSource == Config.ChannelBookmarksSource.FOLDER)
+                choices.indexOfFirst { it.id == store.channelBookmarksFolder } else -1
+            host.pickFromList(string(R.string.settings_channel_bookmarks_source), choices.map { it.path }, checked) { index ->
+                store.setChannelBookmarks(Config.ChannelBookmarksSource.FOLDER, choices[index].id)
+                render()
+            }
+        }
     }
 
     private fun sitesSections(): List<Section> {

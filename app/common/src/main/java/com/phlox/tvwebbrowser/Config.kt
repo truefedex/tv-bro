@@ -55,6 +55,11 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         const val PROXY_PASSWORD_KEY = "proxy_password"
         const val DOWNLOAD_FOLDER_URI_KEY = "download_folder_uri"
         const val DOWNLOAD_FOLDER_NAME_KEY = "download_folder_name"
+        const val CHANNEL_BOOKMARKS_KEY = "channel_bookmarks"
+        const val CHANNEL_BOOKMARKS_SOURCE_KEY = "channel_bookmarks_source"
+        const val CHANNEL_BOOKMARKS_FOLDER_KEY = "channel_bookmarks_folder"
+        const val CHANNEL_TABS_KEY = "channel_tabs"
+        const val CHANNEL_DOWNLOADS_KEY = "channel_downloads"
         /** The prefs of [credentialsPrefs] (the file `credentials.xml`), left out of backups (`backup_rules.xml`) */
         const val CREDENTIALS_PREFS_NAME = "credentials"
 
@@ -82,6 +87,16 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
 
     enum class HomePageLinksMode {
         BOOKMARKS, LATEST_HISTORY, MOST_VISITED
+    }
+
+    /** The bookmarks the channel of the TV home screen shows */
+    enum class ChannelBookmarksSource {
+        /** The bookmarks of the built-in home page */
+        HOME_PAGE,
+        /** The bookmarks of [channelBookmarksFolder], without its folders */
+        FOLDER,
+        /** All bookmarks of all folders and of the home page */
+        ALL
     }
 
     var incognitoMode: Boolean
@@ -318,6 +333,41 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
             else putString(DOWNLOAD_FOLDER_URI_KEY, uri).putString(DOWNLOAD_FOLDER_NAME_KEY, name)
         }.apply()
     }
+
+    /** The bookmarks are a channel of the Android TV home screen */
+    var channelBookmarks: Boolean
+        get() = prefs.getBoolean(CHANNEL_BOOKMARKS_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(CHANNEL_BOOKMARKS_KEY, value).apply()
+        }
+
+    var channelBookmarksSource: ChannelBookmarksSource
+        get() = prefs.getString(CHANNEL_BOOKMARKS_SOURCE_KEY, null)
+            ?.let { name -> ChannelBookmarksSource.entries.find { it.name == name } } ?: ChannelBookmarksSource.HOME_PAGE
+        set(value) {
+            prefs.edit().putString(CHANNEL_BOOKMARKS_SOURCE_KEY, value.name).apply()
+        }
+
+    /** The folder of [ChannelBookmarksSource.FOLDER]; 0 is the top level */
+    var channelBookmarksFolder: Long
+        get() = prefs.getLong(CHANNEL_BOOKMARKS_FOLDER_KEY, 0L)
+        set(value) {
+            prefs.edit().putLong(CHANNEL_BOOKMARKS_FOLDER_KEY, value).apply()
+        }
+
+    /** The open tabs are a channel of the Android TV home screen */
+    var channelTabs: Boolean
+        get() = prefs.getBoolean(CHANNEL_TABS_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(CHANNEL_TABS_KEY, value).apply()
+        }
+
+    /** The finished downloads are a channel of the Android TV home screen */
+    var channelDownloads: Boolean
+        get() = prefs.getBoolean(CHANNEL_DOWNLOADS_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(CHANNEL_DOWNLOADS_KEY, value).apply()
+        }
 
     var appWebExtensionVersion: Int
         get() = prefs.getInt(APP_WEB_EXTENSION_VERSION_KEY, 0)

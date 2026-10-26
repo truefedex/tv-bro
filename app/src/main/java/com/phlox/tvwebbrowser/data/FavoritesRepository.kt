@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.data
 
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.dao.FavoritesDao
 import java.util.Collections
@@ -60,6 +61,37 @@ class FavoritesRepository(private val dao: FavoritesDao) {
 
     /** All folders but [HOME_PAGE] */
     suspend fun folders(): List<FavoriteItem> = dao.getFolders()
+
+    /**
+     * The bookmarks of the channel of the TV home screen, in the order the bookmarks screens show them, each
+     * address once:
+     * - [Config.ChannelBookmarksSource.HOME_PAGE]: those of the home page;
+     * - [Config.ChannelBookmarksSource.FOLDER]: those right in the [folder] (not in its folders; [ROOT] is the
+     *   top level), or those of the home page when the folder is gone;
+     * - [Config.ChannelBookmarksSource.ALL]: those of each folder before its folders, from the top level down,
+     *   then those of the home page.
+     */
+    suspend fun channelBookmarks(source: Config.ChannelBookmarksSource, folder: Long): List<FavoriteItem> {
+        val items = when (source) {
+            Config.ChannelBookmarksSource.HOME_PAGE -> homePageBookmarks()
+            Config.ChannelBookmarksSource.FOLDER ->
+                if (folder == ROOT || dao.getById(folder)?.isFolder == true) children(folder).filter { !it.isFolder }
+                else homePageBookmarks()
+            Config.ChannelBookmarksSource.ALL -> {
+                val result = ArrayList<FavoriteItem>()
+                val visited = HashSet<Long>()
+                suspend fun walk(id: Long) {
+                    if (!visited.add(id)) return
+                    val children = children(id)
+                    children.filterTo(result) { !it.isFolder }
+                    for (child in children) if (child.isFolder) walk(child.id)
+                }
+                walk(ROOT)
+                result + homePageBookmarks()
+            }
+        }
+        return items.filter { !it.url.isNullOrBlank() }.distinctBy { it.url }
+    }
 
     /** The number of bookmarks right in the [folder] */
     suspend fun countBookmarks(folder: Long): Int =

@@ -1,5 +1,8 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import android.content.Intent
+import android.media.tv.TvContract
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AlertDialog
@@ -12,6 +15,9 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutKeyDialog
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.ProxySetup
+import com.phlox.tvwebbrowser.channels.ChannelKind
+import com.phlox.tvwebbrowser.channels.HomeChannels
+import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.browser.adblock.AdBlockService
 import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
 import com.phlox.tvwebbrowser.net.ProxySettings
@@ -24,6 +30,7 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -34,11 +41,13 @@ import kotlinx.coroutines.launch
  * blocking and updates. The checks of the engine and the build are made here.
  */
 class AppSettingsStore(
-    activity: AppCompatActivity,
+    private val activity: AppCompatActivity,
     private val settingsModel: SettingsModel,
     private val controller: BrowserController
 ) : SettingsNavigator.Store {
     companion object {
+        private const val TAG = "AppSettingsStore"
+        private const val BROWSABLE_CHECK_DELAY = 1000L
         private var startup: SettingsNavigator.StartupValues? = null
 
         /** Remembers the values the process starts with, before anything changes them (MainActivity.onCreate) */
@@ -70,6 +79,75 @@ class AppSettingsStore(
         settingsModel.setHomePageProperties(mode, customUrl, linksMode)
         //the home page shows the links of the new mode
         TVBro.container.appScope.launch { controller.homePageLinks.load() }
+    }
+
+    override val supportsHomeChannels: Boolean get() = HomeChannels.isSupported(activity)
+    override var channelBookmarks: Boolean
+        get() = config.channelBookmarks
+        set(value) {
+            config.channelBookmarks = value
+            applyChannel(ChannelKind.BOOKMARKS, value)
+        }
+    override val channelBookmarksSource: Config.ChannelBookmarksSource get() = config.channelBookmarksSource
+    override val channelBookmarksFolder: Long get() = config.channelBookmarksFolder
+
+    override fun setChannelBookmarks(source: Config.ChannelBookmarksSource, folder: Long) {
+        config.channelBookmarksSource = source
+        config.channelBookmarksFolder = folder
+        applyChannel(ChannelKind.BOOKMARKS, config.channelBookmarks)
+    }
+
+    override suspend fun bookmarkFolders(): List<SettingsNavigator.BookmarkFolder> {
+        val favorites = TVBro.container.data.favorites
+        val result = ArrayList<SettingsNavigator.BookmarkFolder>()
+        val visited = HashSet<Long>()
+        suspend fun walk(folder: Long, path: String?) {
+            if (!visited.add(folder)) return
+            for (child in favorites.children(folder)) {
+                if (!child.isFolder) continue
+                val childPath = listOfNotNull(path, child.title ?: "").joinToString(" / ")
+                result += SettingsNavigator.BookmarkFolder(child.id, childPath)
+                walk(child.id, childPath)
+            }
+        }
+        walk(FavoritesRepository.ROOT, null)
+        return result
+    }
+
+    override var channelTabs: Boolean
+        get() = config.channelTabs
+        set(value) {
+            config.channelTabs = value
+            applyChannel(ChannelKind.TABS, value)
+        }
+    override var channelDownloads: Boolean
+        get() = config.channelDownloads
+        set(value) {
+            config.channelDownloads = value
+            applyChannel(ChannelKind.DOWNLOADS, value)
+        }
+
+    /**
+     * Creates, fills or deletes the channel at once. A new channel shows on the home screen only once the user
+     * lets it (the first one of an app is let by the system itself): the system asks in its own dialog.
+     */
+    private fun applyChannel(kind: ChannelKind, enabled: Boolean) {
+        val context = activity.applicationContext
+        TVBro.container.appScope.launch {
+            TVBro.container.tabWrites.awaitPending()
+            val channelId = HomeChannels.sync(context, listOf(kind))[kind] ?: return@launch
+            if (!enabled) return@launch
+            //the system lets the first channel of an app by itself, a moment after it is created
+            delay(BROWSABLE_CHECK_DELAY)
+            if (HomeChannels.isBrowsable(context, kind) != false) return@launch
+            if (activity.isFinishing || activity.isDestroyed) return@launch
+            val intent = Intent(TvContract.ACTION_REQUEST_CHANNEL_BROWSABLE).putExtra(TvContract.EXTRA_CHANNEL_ID, channelId)
+            try {
+                activity.launchForResult(ActivityResultContracts.StartActivityForResult(), intent) {}
+            } catch (e: Exception) {
+                Log.w(TAG, "No dialog to show the channel of ${kind.id}", e)
+            }
+        }
     }
 
     override var defaultDesktopView: Boolean?
@@ -257,6 +335,17 @@ class SettingsShellCallback(
             setOnDismissListener { onDone() }
             show()
         }
+    }
+
+    override fun pickFromList(title: String, options: List<String>, checked: Int, onChosen: (Int) -> Unit) {
+        AlertDialog.Builder(activity)
+            .setTitle(title)
+            .setSingleChoiceItems(options.toTypedArray(), checked) { dialog, which ->
+                dialog.dismiss()
+                onChosen(which)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     override fun pickDownloadFolder(onDone: () -> Unit) {

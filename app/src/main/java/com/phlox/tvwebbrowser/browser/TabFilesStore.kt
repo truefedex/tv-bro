@@ -38,6 +38,9 @@ class TabFilesStore(filesDir: File, cacheDir: File) {
     /** Thumbnails saved before had only a hash for a name and were PNG */
     private fun thumbnailFile(name: String) = File(thumbnailsDir, if (name.contains('.')) name else "$name.png")
 
+    /** The file of a saved thumbnail ([BrowserTab.thumbnailHash]); null if it is not there (the cache was cleared) */
+    fun existingThumbnailFile(name: String): File? = thumbnailFile(name).takeIf { it.isFile }
+
     /**
      * Restores the state of the tab's engine: the one kept in memory or the saved one.
      * @return false if there is nothing to restore (or it was saved by another engine)

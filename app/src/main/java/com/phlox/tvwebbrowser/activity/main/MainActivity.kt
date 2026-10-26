@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -33,6 +34,7 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.channels.HomeChannels
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
@@ -71,6 +73,26 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
         /** Open the downloads (the notification of the download service) */
         const val KEY_SHOW_DOWNLOADS = "show_downloads"
+        /** With [KEY_SHOW_DOWNLOADS]: the download to focus */
+        const val KEY_DOWNLOAD_ID = "download_id"
+        /** A tile of the tabs channel of the TV home screen: the tab to show (its url is the data) */
+        private const val EXTRA_TAB_ID = "channel_tab_id"
+        /**
+         * A tile of the bookmarks channel: a tab that shows the url already (engines may add a slash at its end)
+         * is shown instead of a new one
+         */
+        private const val EXTRA_REUSE_TAB = "channel_reuse_tab"
+
+        fun showDownloadsIntent(context: Context, focusId: Long? = null): Intent =
+            Intent(context, MainActivity::class.java).putExtra(KEY_SHOW_DOWNLOADS, true).apply {
+                if (focusId != null) putExtra(KEY_DOWNLOAD_ID, focusId)
+            }
+
+        fun channelBookmarkIntent(context: Context, url: String): Intent =
+            Intent(Intent.ACTION_VIEW, Uri.parse(url), context, MainActivity::class.java).putExtra(EXTRA_REUSE_TAB, true)
+
+        fun channelTabIntent(context: Context, tabId: Long, url: String): Intent =
+            Intent(Intent.ACTION_VIEW, Uri.parse(url), context, MainActivity::class.java).putExtra(EXTRA_TAB_ID, tabId)
 
         /**
          * The intent that starts the browser activity of the other process (incognito or not) and makes it
@@ -363,7 +385,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false)) {
-            shell.showAllDownloads()
+            shell.showAllDownloads(intent.getLongExtra(KEY_DOWNLOAD_ID, 0L).takeIf { it > 0L })
         }
         if (intent.data != null) {
             if (tabsLoaded) {
@@ -401,7 +423,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
         shell.onTabsLoaded()
         if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false)) {
-            shell.showAllDownloads()
+            shell.showAllDownloads(intent.getLongExtra(KEY_DOWNLOAD_ID, 0L).takeIf { it > 0L })
         }
         if (autoUpdateModel.needAutoCheckUpdates &&
             autoUpdateModel.updateChecker.versionCheckResult == null &&
@@ -419,6 +441,16 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         val url = intent.data.toString()
         if (SyncLink.isSyncUrl(url) && shell.handleSyncLink(SyncLink.parse(url))) {
             if (controller.currentTab.value == null) controller.selectStartTab()
+            return
+        }
+        //a tile of a home screen channel: the tab that is there already
+        val tabId = intent.getLongExtra(EXTRA_TAB_ID, 0L)
+        val reuseUrl = if (intent.getBooleanExtra(EXTRA_REUSE_TAB, false)) url else null
+        controller.tabsStates.firstOrNull {
+            (tabId != 0L && it.id == tabId) || (reuseUrl != null && it.url.trimEnd('/') == reuseUrl.trimEnd('/'))
+        }?.let {
+            controller.changeTab(it)
+            shell.showPage()
             return
         }
         if (intent.getBooleanExtra("com.phlox.tvwebbrowser.EXTRA_OPEN_IN_SAME_TAB", false) &&
@@ -536,6 +568,12 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     override fun onStop() {
         super.onStop()
         downloadLauncher.onActivityStopped()
+        //the home screen shows now: its channels get what changed (the tabs once their files are written)
+        val container = TVBro.container
+        container.appScope.launch {
+            container.tabWrites.awaitPending()
+            HomeChannels.sync(applicationContext)
+        }
     }
 
     override fun onResume() {

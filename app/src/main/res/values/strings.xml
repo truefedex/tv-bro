@@ -538,6 +538,20 @@
     <string name="settings_home_page_url_hint">https://…</string>
     <string name="settings_home_page_links">Links on the home page</string>
     <string name="settings_home_page_links_summary">Tiles under the search bar</string>
+    <!-- Channels of the Android TV home screen -->
+    <string name="settings_group_home_screen">Android TV home screen</string>
+    <string name="settings_channel_bookmarks">Bookmarks row</string>
+    <string name="settings_channel_bookmarks_summary">Your bookmarks as a row on the home screen</string>
+    <string name="settings_channel_bookmarks_source">Bookmarks in the row</string>
+    <string name="settings_channel_source_home_page">Home page bookmarks</string>
+    <string name="settings_channel_source_all">All bookmarks</string>
+    <string name="settings_channel_source_choose_folder">Choose a folder…</string>
+    <string name="settings_channel_folder_top_level">Bookmarks (top level)</string>
+    <string name="settings_channel_folder_summary">Bookmarks of this folder, without its folders</string>
+    <string name="settings_channel_tabs">Open tabs row</string>
+    <string name="settings_channel_tabs_summary">Your tabs with their pictures; OK shows the tab</string>
+    <string name="settings_channel_downloads">Downloads row</string>
+    <string name="settings_channel_downloads_summary">Finished downloads; OK opens the file</string>
     <!-- Sites -->
     <string name="settings_group_site_view">Site view</string>
     <string name="settings_auto">Auto</string>

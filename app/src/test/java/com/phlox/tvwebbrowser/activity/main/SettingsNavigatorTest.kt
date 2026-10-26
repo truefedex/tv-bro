@@ -38,6 +38,18 @@ class SettingsNavigatorTest {
             homePageLinksMode = linksMode
             homePageUrl = if (mode == Config.HomePageMode.CUSTOM) customUrl ?: Config.HOME_URL_ALIAS else Config.HOME_URL_ALIAS
         }
+        override var supportsHomeChannels = true
+        override var channelBookmarks = false
+        override var channelBookmarksSource = Config.ChannelBookmarksSource.HOME_PAGE
+        override var channelBookmarksFolder = 0L
+        override fun setChannelBookmarks(source: Config.ChannelBookmarksSource, folder: Long) {
+            channelBookmarksSource = source
+            channelBookmarksFolder = folder
+        }
+        var folders = listOf(SettingsNavigator.BookmarkFolder(5, "News"), SettingsNavigator.BookmarkFolder(6, "News / Local"))
+        override suspend fun bookmarkFolders() = folders
+        override var channelTabs = false
+        override var channelDownloads = false
         override var defaultDesktopView: Boolean? = null
         override var allowAutoplayMedia = false
         override var adBlockEnabled = true
@@ -120,6 +132,10 @@ class SettingsNavigatorTest {
     private var confirmAnswer = true
     /** What the picker of folders gives, null when the user cancels */
     private var pickedFolder: String? = null
+    /** The option the list dialog gives, null when the user cancels */
+    private var pickedOption: Int? = null
+    private var listOptions: List<String> = emptyList()
+    private var listChecked = -2
 
     private val host = object : SettingsNavigator.Host {
         override fun render(screen: Screen) { this@SettingsNavigatorTest.screen = screen }
@@ -136,6 +152,12 @@ class SettingsNavigatorTest {
             log += "pick folder"
             store.downloadFolderName = pickedFolder
             onDone()
+        }
+        override fun pickFromList(title: String, options: List<String>, checked: Int, onChosen: (Int) -> Unit) {
+            log += "pick from list"
+            listOptions = options
+            listChecked = checked
+            pickedOption?.let(onChosen)
         }
         override fun open(url: String) { log += "open $url" }
         override fun startUpdate() { log += "update" }
@@ -537,5 +559,82 @@ class SettingsNavigatorTest {
         assertEquals("10000", KeyBinding.nameOfConstant("10000"))
         assertEquals("Play/Pause", KeyBinding.keyName(android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
         assertEquals("Fast forward", KeyBinding.keyName(android.view.KeyEvent.KEYCODE_MEDIA_FAST_FORWARD))
+    }
+
+    @Test
+    fun homeScreenChannelsAreOnlyOnTvsThatHaveThem() {
+        navigator(tvUi = true).show(Category.SEARCH)
+        assertTrue(Key.CHANNEL_BOOKMARKS in keys())
+        assertTrue(Key.CHANNEL_TABS in keys())
+        assertTrue(Key.CHANNEL_DOWNLOADS in keys())
+
+        navigator(tvUi = false).show(Category.SEARCH)
+        assertFalse(Key.CHANNEL_BOOKMARKS in keys())
+
+        store.supportsHomeChannels = false
+        navigator(tvUi = true).show(Category.SEARCH)
+        assertFalse(Key.CHANNEL_BOOKMARKS in keys())
+        assertFalse(Key.CHANNEL_TABS in keys())
+    }
+
+    @Test
+    fun channelTogglesGoToTheStore() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.SEARCH)
+        assertFalse(Key.CHANNEL_BOOKMARKS_SOURCE in keys())
+        navigator.toggle(row<Row.Toggle>(Key.CHANNEL_BOOKMARKS))
+        navigator.toggle(row<Row.Toggle>(Key.CHANNEL_TABS))
+        navigator.toggle(row<Row.Toggle>(Key.CHANNEL_DOWNLOADS))
+        assertTrue(store.channelBookmarks && store.channelTabs && store.channelDownloads)
+        assertTrue(row<Row.Toggle>(Key.CHANNEL_TABS).checked)
+        //the source shows only while the bookmarks channel is on
+        assertEquals(SettingsNavigator.CHANNEL_SOURCE_HOME_PAGE, row<Row.Choice>(Key.CHANNEL_BOOKMARKS_SOURCE).selected)
+    }
+
+    @Test
+    fun theBookmarksOfTheChannelComeFromAChosenFolder() {
+        store.channelBookmarks = true
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.SEARCH)
+        val source = row<Row.Choice>(Key.CHANNEL_BOOKMARKS_SOURCE)
+        assertEquals(listOf("Home page bookmarks", "All bookmarks", "Choose a folder…"), source.options)
+
+        navigator.choose(Key.CHANNEL_BOOKMARKS_SOURCE, SettingsNavigator.CHANNEL_SOURCE_ALL)
+        assertEquals(Config.ChannelBookmarksSource.ALL, store.channelBookmarksSource)
+        assertEquals(SettingsNavigator.CHANNEL_SOURCE_ALL, row<Row.Choice>(Key.CHANNEL_BOOKMARKS_SOURCE).selected)
+
+        //the list has the top level first, then the folders as paths; nothing is chosen in it yet
+        pickedOption = 2
+        navigator.choose(Key.CHANNEL_BOOKMARKS_SOURCE, 2)
+        assertEquals(listOf("Bookmarks (top level)", "News", "News / Local"), listOptions)
+        assertEquals(-1, listChecked)
+        assertEquals(Config.ChannelBookmarksSource.FOLDER, store.channelBookmarksSource)
+        assertEquals(6L, store.channelBookmarksFolder)
+        val chosen = row<Row.Choice>(Key.CHANNEL_BOOKMARKS_SOURCE)
+        assertEquals("News / Local", chosen.options[SettingsNavigator.CHANNEL_SOURCE_FOLDER])
+        assertEquals(SettingsNavigator.CHANNEL_SOURCE_FOLDER, chosen.selected)
+        assertEquals("Choose a folder…", chosen.options.last())
+
+        //the chosen folder is checked in the list; cancelling changes nothing
+        pickedOption = null
+        navigator.choose(Key.CHANNEL_BOOKMARKS_SOURCE, chosen.options.lastIndex)
+        assertEquals(2, listChecked)
+        assertEquals(6L, store.channelBookmarksFolder)
+
+        //the top level is a folder too
+        pickedOption = 0
+        navigator.choose(Key.CHANNEL_BOOKMARKS_SOURCE, chosen.options.lastIndex)
+        assertEquals(0L, store.channelBookmarksFolder)
+        assertEquals("Bookmarks (top level)", row<Row.Choice>(Key.CHANNEL_BOOKMARKS_SOURCE).options[SettingsNavigator.CHANNEL_SOURCE_FOLDER])
+    }
+
+    @Test
+    fun aGoneFolderShowsAsTheHomePage() {
+        store.channelBookmarks = true
+        store.setChannelBookmarks(Config.ChannelBookmarksSource.FOLDER, 99)
+        navigator(tvUi = true).show(Category.SEARCH)
+        val source = row<Row.Choice>(Key.CHANNEL_BOOKMARKS_SOURCE)
+        assertEquals(SettingsNavigator.CHANNEL_SOURCE_HOME_PAGE, source.selected)
+        assertEquals(3, source.options.size)
     }
 }
