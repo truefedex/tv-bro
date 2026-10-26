@@ -286,8 +286,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
      * fullscreen and pauses its media (the player plays it instead)
      */
     private fun openBuiltInPlayer(video: PageVideo, startPosition: Double) {
-        //the hint about found videos stops once the user knows the player
-        AppContext.provideConfig().builtInPlayerOpens++
         vb.vVideosPanel.hide()
         hideMenuOverlay()
         val engine = controller.currentTab.value?.webEngine
@@ -529,10 +527,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     /** The hint plate about a found video that plays in the page */
     private val pageVideoHint = PageVideoHintController(object : PageVideoHintController.Host {
         override val hintsAllowed: Boolean
-            get() {
-                val config = AppContext.provideConfig()
-                return config.pageVideoHint && config.builtInPlayerOpens < PageVideoHintController.MAX_PLAYER_OPENS
-            }
+            get() = AppContext.provideConfig().pageVideoHint
 
         override fun showHint() = vb.vPageVideoHint.appear()
 

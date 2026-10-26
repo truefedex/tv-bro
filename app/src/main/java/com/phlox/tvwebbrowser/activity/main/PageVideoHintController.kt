@@ -11,14 +11,14 @@ import com.phlox.tvwebbrowser.webengine.PageVideo
  * after a found video of the page ([setMediaVideo], [com.phlox.tvwebbrowser.webengine.PageVideosSupport.mediaVideo])
  * has played with sound for [STEADY_MS] in the page's own player, while nothing covers the page ([setBlocked]):
  * not in fullscreen (the seek bar of the video mode has its own hint), not for muted or short videos (previews,
- * ads), at most once per page ([setPage]) and per video (pages that rewrite their address while it plays), and only while the [Host] allows hints (the setting, the user has not
- * used the built-in player a few times yet). It hides after [SHOWN_MS], or at once when the page or the tab
+ * ads), at most once per page ([setPage]) and per video (pages that rewrite their address while it plays), and only
+ * while the [Host] allows hints (the setting). It hides after [SHOWN_MS], or at once when the page or the tab
  * changes, something covers the page, the page goes fullscreen or the video is no longer known. Back while it
  * shows ([backCallback], also while it fades out after its time) opens the Videos panel at the video.
  */
 class PageVideoHintController(private val host: Host) {
     interface Host {
-        /** Hints are on and the user has not learned the built-in player yet */
+        /** Hints are on (the setting) */
         val hintsAllowed: Boolean
         fun showHint()
         /** The plate fades out (in [FADE_MS]) after its time, else it goes at once */
@@ -144,7 +144,5 @@ class PageVideoHintController(private val host: Host) {
         const val FADE_MS = 400L
         /** Seconds: shorter videos are previews and ads */
         const val MIN_DURATION = 60.0
-        /** After the user opened videos in the built-in player this many times, there are no hints */
-        const val MAX_PLAYER_OPENS = 3
     }
 }
