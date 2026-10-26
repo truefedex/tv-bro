@@ -743,7 +743,8 @@ class BrowserController : ActiveModel() {
         override fun onReceivedIcon(icon: Bitmap) {
             val url = tab.url
             modelScope.launch {
-                FaviconsPool.putIfAbsent(url, icon, persist = !config.incognitoMode)
+                //shown at once, then again if the page has a bigger one
+                FaviconsPool.onEngineIcon(url, icon) { sendUiEvent(BrowserUiEvent.TabUpdated(tab)) }
                 sendUiEvent(BrowserUiEvent.TabUpdated(tab))
             }
         }
