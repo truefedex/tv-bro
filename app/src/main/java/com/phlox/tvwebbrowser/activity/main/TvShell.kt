@@ -759,6 +759,11 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             }
         })
         lifecycleScope.launch { downloadsModel.events.collect(::onDownloadEvent) }
+        lifecycleScope.launch(Dispatchers.IO) {
+            TVBro.container.data.favorites.observeChannelBookmarks().collect {
+                HomeScreenChannel.sync(activity, AppContext.provideConfig(), it)
+            }
+        }
         vb.rlRoot.viewTreeObserver.addOnGlobalFocusChangeListener(tabOptionsHintFocusListener)
         vb.rlRoot.viewTreeObserver.addOnPreDrawListener(tabOptionsHintDrawListener)
         vb.rlRoot.viewTreeObserver.addOnPreDrawListener(pageCoveredDrawListener)

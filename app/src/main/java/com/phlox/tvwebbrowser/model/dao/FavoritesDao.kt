@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.model.dao
 
 import androidx.room.*
 import com.phlox.tvwebbrowser.model.FavoriteItem
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FavoritesDao {
@@ -18,6 +19,9 @@ interface FavoritesDao {
     /** The bookmarks of every folder, Home page included */
     @Query("SELECT * FROM favorites WHERE url IS NOT NULL")
     suspend fun getBookmarks(): List<FavoriteItem>
+
+    @Query("SELECT * FROM favorites WHERE url IS NOT NULL")
+    fun observeBookmarks(): Flow<List<FavoriteItem>>
 
     @Query("SELECT * FROM favorites WHERE url IS NULL AND home_page_bookmark=0")
     suspend fun getFolders(): List<FavoriteItem>

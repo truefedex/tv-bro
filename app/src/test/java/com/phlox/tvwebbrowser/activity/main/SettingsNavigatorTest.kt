@@ -33,6 +33,7 @@ class SettingsNavigatorTest {
         override var homePageMode = Config.HomePageMode.HOME_PAGE
         override var homePageUrl = Config.HOME_URL_ALIAS
         override var homePageLinksMode = Config.HomePageLinksMode.BOOKMARKS
+        override var homeScreenChannel = false
         override fun setHomePage(mode: Config.HomePageMode, customUrl: String?, linksMode: Config.HomePageLinksMode) {
             homePageMode = mode
             homePageLinksMode = linksMode
@@ -310,6 +311,18 @@ class SettingsNavigatorTest {
         assertFalse(row<Row.Toggle>(Key.VIDEO_HINT).checked)
         navigator(tvUi = false).show(Category.SITES)
         assertFalse(Key.VIDEO_HINT in keys())
+    }
+
+    @Test
+    fun theHomeScreenChannelIsOnTvOnlyAndOffByDefault() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.SEARCH)
+        assertFalse(row<Row.Toggle>(Key.HOME_SCREEN_CHANNEL).checked)
+        navigator.toggle(Key.HOME_SCREEN_CHANNEL)
+        assertTrue(store.homeScreenChannel)
+        assertTrue(row<Row.Toggle>(Key.HOME_SCREEN_CHANNEL).checked)
+        navigator(tvUi = false).show(Category.SEARCH)
+        assertFalse(Key.HOME_SCREEN_CHANNEL in keys())
     }
 
     @Test

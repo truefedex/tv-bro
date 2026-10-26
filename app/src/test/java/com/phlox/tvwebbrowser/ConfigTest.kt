@@ -59,4 +59,14 @@ class ConfigTest {
         assertNull(ProxySettings.fromBundle(null))
         assertNull(ProxySettings.fromBundle(android.os.Bundle()))
     }
+
+    @Test
+    fun homeScreenChannelIsOffByDefaultAndFollowsThePrefs() {
+        assertFalse(config.homeScreenChannel)
+        assertEquals(-1L, config.homeScreenChannelId)
+        config.homeScreenChannel = true
+        config.homeScreenChannelId = 42L
+        assertTrue(config.prefs.getBoolean(Config.HOME_SCREEN_CHANNEL_KEY, false))
+        assertEquals(42L, config.prefs.getLong(Config.HOME_SCREEN_CHANNEL_ID_KEY, -1L))
+    }
 }

@@ -538,6 +538,8 @@
     <string name="settings_home_page_url_hint">https://…</string>
     <string name="settings_home_page_links">Links on the home page</string>
     <string name="settings_home_page_links_summary">Tiles under the search bar</string>
+    <string name="settings_home_screen_channel">Bookmarks on the TV home screen</string>
+    <string name="settings_home_screen_channel_summary">A channel row on the Android TV home screen opens your bookmarks in TV Bro</string>
     <!-- Sites -->
     <string name="settings_group_site_view">Site view</string>
     <string name="settings_auto">Auto</string>

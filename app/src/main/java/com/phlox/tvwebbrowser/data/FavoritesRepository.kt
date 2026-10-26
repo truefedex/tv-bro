@@ -2,6 +2,8 @@ package com.phlox.tvwebbrowser.data
 
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.dao.FavoritesDao
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.util.Collections
 import java.util.IdentityHashMap
 
@@ -48,6 +50,16 @@ class FavoritesRepository(private val dao: FavoritesDao) {
     suspend fun all(): List<FavoriteItem> = dao.getAll()
 
     suspend fun homePageBookmarks(): List<FavoriteItem> = dao.getHomePageBookmarks()
+
+    /** Bookmarks for the TV home screen channel: user bookmarks first, then Home page ones, without duplicate urls */
+    suspend fun channelBookmarks(): List<FavoriteItem> = orderForChannel(dao.getBookmarks())
+
+    fun observeChannelBookmarks(): Flow<List<FavoriteItem>> = dao.observeBookmarks().map(::orderForChannel)
+
+    private fun orderForChannel(items: List<FavoriteItem>): List<FavoriteItem> = items
+        .filter { !it.url.isNullOrBlank() }
+        .sortedWith(compareBy<FavoriteItem>({ it.homePageBookmark }, { it.parent ?: 0L }, { it.order }, { if (it.homePageBookmark) it.id else -it.id }))
+        .distinctBy { it.url }
 
     suspend fun get(id: Long): FavoriteItem? = dao.getById(id)
 

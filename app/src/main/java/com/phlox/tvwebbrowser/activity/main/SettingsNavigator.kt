@@ -44,7 +44,7 @@ class SettingsNavigator(
 
     /** The settings, and the rows that act */
     enum class Key {
-        SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS,
+        SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS, HOME_SCREEN_CHANNEL,
         SITE_VIEW, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
@@ -88,6 +88,8 @@ class SettingsNavigator(
         val homePageMode: Config.HomePageMode
         val homePageUrl: String
         val homePageLinksMode: Config.HomePageLinksMode
+        /** Publishes the bookmarks as a preview channel on the Android TV home screen (TV only) */
+        var homeScreenChannel: Boolean
         fun setHomePage(mode: Config.HomePageMode, customUrl: String?, linksMode: Config.HomePageLinksMode)
 
         /** null follows the interface */
@@ -414,6 +416,7 @@ class SettingsNavigator(
 
     fun toggle(key: Key) {
         when (key) {
+            Key.HOME_SCREEN_CHANNEL -> store.homeScreenChannel = !store.homeScreenChannel
             Key.AUTOPLAY -> store.allowAutoplayMedia = !store.allowAutoplayMedia
             Key.AD_BLOCK -> store.adBlockEnabled = !store.adBlockEnabled
             Key.TRACKING_PROTECTION -> store.trackingProtection = !store.trackingProtection
@@ -650,6 +653,10 @@ class SettingsNavigator(
             Config.HomePageMode.CUSTOM -> home += Row.Field(Key.HOME_PAGE_URL, string(R.string.settings_home_page_url),
                 null, customHomePageUrl(), string(R.string.settings_home_page_url_hint))
             else -> {}
+        }
+        if (tvUi) {
+            home += Row.Toggle(Key.HOME_SCREEN_CHANNEL, string(R.string.settings_home_screen_channel),
+                string(R.string.settings_home_screen_channel_summary), store.homeScreenChannel)
         }
         return listOf(Section(string(R.string.settings_group_search), search),
             Section(string(R.string.settings_group_home_page), home))

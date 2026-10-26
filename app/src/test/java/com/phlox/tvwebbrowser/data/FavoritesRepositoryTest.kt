@@ -264,4 +264,24 @@ class FavoritesRepositoryTest {
         assertEquals(listOf("New x", "n2", "n1"), titles(news.id))
         assertEquals(1, favorites.folders().count { it.title == "News" })
     }
+
+    @Test
+    fun channelBookmarksHaveUserOnesBeforeHomePageInOrderWithoutDuplicates() = runBlocking {
+        val f = folder("f")
+        favorites.add(f, ROOT)
+        val a = bookmark("a")
+        favorites.add(a, ROOT)
+        val b = bookmark("b")
+        favorites.add(b, ROOT)
+        favorites.add(bookmark("sub"), f.id)
+        favorites.add(bookmark("a").apply { title = "home a" }, HOME_PAGE)
+        val h1 = bookmark("h1")
+        favorites.add(h1, HOME_PAGE)
+        favorites.add(bookmark("h2"), HOME_PAGE)
+        assertEquals(listOf("b", "a", "sub", "h1", "h2"), favorites.channelBookmarks().map { it.title })
+
+        favorites.move(b, 1)
+        favorites.move(h1, 1)
+        assertEquals(listOf("a", "b", "sub", "h2", "h1"), favorites.channelBookmarks().map { it.title })
+    }
 }

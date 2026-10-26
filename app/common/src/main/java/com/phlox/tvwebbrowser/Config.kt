@@ -38,6 +38,8 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         const val DIRECT_NAVIGATION_MODE_HINT_SUPPRESS_KEY = "direct_navigation_mode_hint_suppress"
         const val HOME_PAGE_MODE = "home_page_mode"
         const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
+        const val HOME_SCREEN_CHANNEL_KEY = "home_screen_channel"
+        const val HOME_SCREEN_CHANNEL_ID_KEY = "home_screen_channel_id"
         const val ALLOW_AUTOPLAY_MEDIA = "allow_autoplay_media"
         const val WEBVIEW_USE_ALGORITHMIC_DARKENING_WITH_DARK_UI_MODE_KEY =
             "webview_use_algorithmic_darkening_with_dark_ui_mode"
@@ -114,6 +116,20 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         get() = prefs.getBoolean(MATCH_FRAME_RATE_KEY, false)
         set(value) {
             prefs.edit().putBoolean(MATCH_FRAME_RATE_KEY, value).apply()
+        }
+
+    /** Publishes the bookmarks as a preview channel on the Android TV home screen */
+    var homeScreenChannel: Boolean
+        get() = prefs.getBoolean(HOME_SCREEN_CHANNEL_KEY, false)
+        set(value) {
+            prefs.edit().putBoolean(HOME_SCREEN_CHANNEL_KEY, value).apply()
+        }
+
+    /** The id of the preview channel in TvProvider, or -1 when there is none */
+    var homeScreenChannelId: Long
+        get() = prefs.getLong(HOME_SCREEN_CHANNEL_ID_KEY, -1L)
+        set(value) {
+            prefs.edit().putLong(HOME_SCREEN_CHANNEL_ID_KEY, value).apply()
         }
 
     /** The TV tells about a found video of the page that starts to play in the page (the hint plate) */

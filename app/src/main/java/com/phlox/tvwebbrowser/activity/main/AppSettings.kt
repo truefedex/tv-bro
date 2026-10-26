@@ -65,6 +65,14 @@ class AppSettingsStore(
     override val homePageMode: Config.HomePageMode get() = settingsModel.homePageMode
     override val homePageUrl: String get() = settingsModel.homePage
     override val homePageLinksMode: Config.HomePageLinksMode get() = settingsModel.homePageLinksMode
+    override var homeScreenChannel: Boolean
+        get() = config.homeScreenChannel
+        set(value) {
+            config.homeScreenChannel = value
+            TVBro.container.appScope.launch(Dispatchers.IO) {
+                HomeScreenChannel.sync(AppContext.get(), config, TVBro.container.data.favorites.channelBookmarks())
+            }
+        }
 
     override fun setHomePage(mode: Config.HomePageMode, customUrl: String?, linksMode: Config.HomePageLinksMode) {
         settingsModel.setHomePageProperties(mode, customUrl, linksMode)
