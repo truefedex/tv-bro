@@ -27,20 +27,23 @@ jobs:
           distribution: 'temurin'
 
       - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+        run: echo "${{ secrets.KEYSTORE_GI_BASE64 }}" | base64 -d > keystore_gi.jks
 
       - name: Build GeckoIncluded
         run: ./gradlew assembleGenericGeckoIncludedRelease -PenableAbiSplits
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/keystore.jks
+          KEYSTORE_PATH: ${{ github.workspace }}/keystore_gi.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      - name: Decode keystore2
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore_ge.jks
+
       - name: Build GeckoExcluded
         run: ./gradlew assembleGenericGeckoExcludedRelease
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/keystore.jks
+          KEYSTORE_PATH: ${{ github.workspace }}/keystore_ge.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
