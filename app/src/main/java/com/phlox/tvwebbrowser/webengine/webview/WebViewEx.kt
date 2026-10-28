@@ -86,8 +86,6 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private var fullscreenViewCallback: WebChromeClient.CustomViewCallback? = null
     private var pickFileCallback: ValueCallback<Array<Uri>>? = null
     private var permRequestDialog: AlertDialog? = null
-    private var webPermissionsRequest: PermissionRequest? = null
-    private var requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions: ArrayList<String>? = null
     private var geoPermissionOrigin: String? = null
     private var geoPermissionsCallback: GeolocationPermissions.Callback? = null
     var lastSSLError: SslError? = null
@@ -110,6 +108,26 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private val mediaControls = WebViewMediaControls(this, { callback.onMediaStateChanged(it) },
         { callback.onPageVideosChanged(it) }, { callback.onMediaVideoChanged(it) })
     private val elementHiding = WebViewElementHiding(this) { requestPageUrl ?: currentOriginalUrl }
+    private val pagePermissions = WebViewPagePermissions(object : WebViewPagePermissions.Host {
+        override fun hasAndroidPermission(permission: String): Boolean =
+            ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+
+        override fun requestAndroidPermissions(permissions: Array<String>) {
+            callback.requestPermissions(permissions, false)
+        }
+
+        override fun showDialog(resources: Array<String>, onAnswer: (Boolean) -> Unit): (() -> Unit)? {
+            val activity = callback.getActivity() ?: return null
+            val dialog = AlertDialog.Builder(activity)
+                .setMessage(activity.getString(R.string.web_perm_request_confirmation, TextUtils.join("\n", resources)))
+                .setCancelable(false)
+                .setNegativeButton(R.string.deny) { _, _ -> onAnswer(false) }
+                .setPositiveButton(R.string.allow) { _, _ -> onAnswer(true) }
+                .create()
+            dialog.show()
+            return dialog::dismiss
+        }
+    })
 
     interface Callback {
         fun getActivity(): Activity?
@@ -270,64 +288,11 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                     return
                 }
 
-                val activity = callback.getActivity() ?: return
-                webPermissionsRequest = request
-                permRequestDialog = AlertDialog.Builder(activity)
-                        .setMessage(activity.getString(R.string.web_perm_request_confirmation, TextUtils.join("\n", request.resources)))
-                        .setCancelable(false)
-                        .setNegativeButton(R.string.deny) { _, _ ->
-                            webPermissionsRequest?.deny()
-                            permRequestDialog = null
-                            webPermissionsRequest = null
-                        }
-                        .setPositiveButton(R.string.allow) { dialog, which ->
-                            val webPermissionsRequest = this@WebViewEx.webPermissionsRequest
-                            this@WebViewEx.webPermissionsRequest = null
-                            if (webPermissionsRequest == null) {
-                                return@setPositiveButton
-                            }
-
-                            val neededPermissions = ArrayList<String>()
-                            val resourcesThatDoNotNeedToGrantPerms = ArrayList<String>()
-                            for (resource in webPermissionsRequest.resources) {
-                                if (PermissionRequest.RESOURCE_AUDIO_CAPTURE == resource) {
-                                    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                                        neededPermissions.add(Manifest.permission.RECORD_AUDIO)
-                                    } else {
-                                        resourcesThatDoNotNeedToGrantPerms.add(resource)
-                                    }
-                                } else if (PermissionRequest.RESOURCE_VIDEO_CAPTURE == resource) {
-                                    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                                        neededPermissions.add(Manifest.permission.CAMERA)
-                                    } else {
-                                        resourcesThatDoNotNeedToGrantPerms.add(resource)
-                                    }
-                                } else {
-                                    resourcesThatDoNotNeedToGrantPerms.add(resource)
-                                }
-                            }
-
-                            if (neededPermissions.isNotEmpty()) {
-                                requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions = resourcesThatDoNotNeedToGrantPerms
-                                //the request is answered when the Android permissions result comes
-                                this@WebViewEx.webPermissionsRequest = webPermissionsRequest
-                                callback.requestPermissions(neededPermissions.toTypedArray(), false)
-                            } else {
-                                webPermissionsRequest.grant(webPermissionsRequest.resources)
-                            }
-
-                            permRequestDialog = null
-                        }
-                        .create()
-                permRequestDialog!!.show()
+                pagePermissions.onRequest(request)
             }
 
             override fun onPermissionRequestCanceled(request: PermissionRequest) {
-                permRequestDialog?.apply {
-                    dismiss()
-                    permRequestDialog = null
-                }
-                webPermissionsRequest = null
+                pagePermissions.onRequestCanceled(request)
             }
 
             override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
@@ -778,28 +743,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             geoPermissionOrigin = null
 
 
-        } else webPermissionsRequest?.apply {
-            // If request is cancelled, the result arrays are empty.
-            val resources = ArrayList<String>()
-            for (i in permissions.indices) {
-                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                    if (Manifest.permission.CAMERA == permissions[i]) {
-                        resources.add(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
-                    } else if (Manifest.permission.RECORD_AUDIO == permissions[i]) {
-                        resources.add(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
-                    }
-                }
-            }
-            requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions?.apply {
-                resources.addAll(this)
-                requestedWebResourcesThatDoNotNeedToGrantAndroidPermissions = null
-            }
-            if (resources.isEmpty()) {
-                this.deny()
-            } else {
-                this.grant(resources.toTypedArray())
-            }
-            webPermissionsRequest = null
+        } else {
+            pagePermissions.onAndroidPermissionsResult(permissions, grantResults)
         }
     }
 

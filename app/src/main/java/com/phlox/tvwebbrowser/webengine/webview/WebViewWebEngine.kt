@@ -372,7 +372,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
         override fun requestPermissions(array: Array<String>, geo: Boolean) {
             callback?.requestPermissions(array) { results ->
-                if (results.isEmpty()) return@requestPermissions
+                // no results (the request was cancelled) deny: the page waits for an answer
                 val grantResults = IntArray(array.size) {
                     if (results[array[it]] == true) PackageManager.PERMISSION_GRANTED else PackageManager.PERMISSION_DENIED
                 }
