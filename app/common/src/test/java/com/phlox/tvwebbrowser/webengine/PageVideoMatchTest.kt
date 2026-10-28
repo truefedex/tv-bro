@@ -34,4 +34,15 @@ class PageVideoMatchTest {
         assertEquals(emptyList<PageVideo>(), list.videosOf("c"))
         assertEquals(hls, PageVideoMatch.of(MediaSource(null, true), list.videosOf("a")))
     }
+
+    @Test
+    fun mediaThePageStreamsPlaysTheMasterAfterAnAd() {
+        //ashdi.vip: an ad file plays first, then hls.js loads the master and one of its qualities
+        val master = PageVideo("https://ashdi.vip/v/hls/BqiXj3SRl+1Ckw0=/index.m3u8", Kind.HLS)
+        val ad = PageVideo("https://v.ads.example/media/v7.mp4", Kind.FILE)
+        val list = PageVideoList<String>()
+        list.onFrameVideos("a", listOf(master, ad, PageVideo("https://ashdi.vip/v/hls/480/BqiXj3SRl+1Ckw0=/index.m3u8", Kind.HLS)))
+        assertEquals(ad, PageVideoMatch.of(MediaSource(ad.url, false), list.videosOf("a")))
+        assertEquals(master, PageVideoMatch.of(MediaSource(null, true), list.videosOf("a")))
+    }
 }

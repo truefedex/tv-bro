@@ -87,6 +87,26 @@ class PageVideosTest {
     }
 
     @Test
+    fun aVariantMayHaveAFolderPutIntoThePathOfItsMaster() {
+        //ashdi.vip: the qualities are hls/1080/<token>/, hls/720/<token>/, hls/480/<token>/
+        val base = "https://ashdi.vip/video28/1/serials/futurama_s1/s01e01_space_pilot_3000_amznwebdl1080p_67622/hls"
+        val master = "$base/BqiXj3SRl+1Ckw0=/index.m3u8"
+        assertTrue(PageVideoUrls.isVariantOf("$base/480/BqiXj3SRl+1Ckw0=/index.m3u8", master))
+        assertTrue(PageVideoUrls.isVariantOf("$base/1080/BqiXj3SRl+1Ckw0=/index.m3u8", master))
+        val list = PageVideoList<String>()
+        list.onFrameVideos("a", listOf(PageVideo(master, Kind.HLS), PageVideo("$base/480/BqiXj3SRl+1Ckw0=/index.m3u8", Kind.HLS)))
+        assertEquals(listOf(master), list.videos().map { it.url })
+        //another episode on the same server, or a folder put in on another server
+        assertFalse(PageVideoUrls.isVariantOf(
+            "https://ashdi.vip/video28/1/serials/futurama_s1/s01e02_series_67623/hls/Xyz=/index.m3u8", master))
+        assertFalse(PageVideoUrls.isVariantOf(
+            "https://cdn.ashdi.vip/video28/1/serials/futurama_s1/s01e01_space_pilot_3000_amznwebdl1080p_67622/hls/480/BqiXj3SRl+1Ckw0=/index.m3u8",
+            master))
+        //a folder of the master replaced, not one put in
+        assertFalse(PageVideoUrls.isVariantOf("https://cdn.com/hls/720/index.m3u8", "https://cdn.com/hls/master/index.m3u8"))
+    }
+
+    @Test
     fun theListHasALimit() {
         val list = PageVideoList<String>(limit = 2)
         list.onFrameVideos("a", (1..5).map { PageVideo("https://a.com/$it/index.m3u8", Kind.HLS) })

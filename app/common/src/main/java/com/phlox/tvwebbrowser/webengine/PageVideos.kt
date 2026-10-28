@@ -97,19 +97,26 @@ object PageVideoUrls {
 
     /**
      * Whether the HLS playlist at [url] is a variant (a quality, the audio) of the one at [master]: players
-     * load the master playlist first, then the playlists it lists, which lie in its folder or below it on
-     * the same server. A second stream in the same folder is taken for a variant too.
+     * load the master playlist first, then the playlists it lists, which lie on the same server in its folder
+     * or below it, or in its folder with one more folder put in its path (`hls/<token>/` and
+     * `hls/480/<token>/`). A second stream in the same folder is taken for a variant too.
      */
     fun isVariantOf(url: String, master: String): Boolean {
-        val folder = folderOf(master) ?: return false
-        return url != master && folderOf(url)?.startsWith(folder) == true
+        if (url == master) return false
+        val (masterHost, masterDirs) = folderOf(master) ?: return false
+        val (host, dirs) = folderOf(url) ?: return false
+        if (host != masterHost) return false
+        if (dirs.startsWith(masterDirs)) return true
+        return dirs.indices.any { skipped -> dirs.filterIndexed { i, _ -> i != skipped }.startsWith(masterDirs) }
     }
 
-    /** The server and the folder of the path, as "host/dir/" */
-    private fun folderOf(url: String): String? {
+    private fun List<String>.startsWith(prefix: List<String>) = size >= prefix.size && subList(0, prefix.size) == prefix
+
+    /** The server and the folders of the path */
+    private fun folderOf(url: String): Pair<String, List<String>>? {
         val path = pathOf(url) ?: return null
         val host = url.substringAfter("://").substringBefore('/').substringBefore('?').substringBefore('#').lowercase()
-        return host + path.substringBeforeLast('/', "") + "/"
+        return host to path.substringBeforeLast('/', "").split('/').filter { it.isNotEmpty() }
     }
 
     /** The path of an http(s) address with a host, null for other addresses */
