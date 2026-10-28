@@ -7,6 +7,7 @@ import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import java.net.URI
 
 /**
  * The desktop view of WebView: a desktop User-Agent (and client hints) built from the system one, so the
@@ -37,6 +38,7 @@ internal class DesktopView(private val webView: WebView) {
 
     private fun desktopMetadata(system: UserAgentMetadata): UserAgentMetadata {
         val builder = UserAgentMetadata.Builder(system)
+            .setBrandVersionList(DesktopUserAgent.brands(system.brandVersionList))
             .setPlatform("Linux")
             .setPlatformVersion("")
             .setModel("")
@@ -81,11 +83,40 @@ internal class DesktopView(private val webView: WebView) {
 }
 
 /**
+ * Pages that always get the mobile view. Google refuses sign-in to WebView with a desktop User-Agent ("This
+ * browser or app may not be secure"), even with fitting client hints: WebView sends the package of the app in
+ * X-Requested-With, which no desktop browser does and current WebView versions do not let an app turn off.
+ * The system User-Agent says it is WebView, and Google lets it sign in.
+ */
+internal object MobileViewPages {
+    private val HOSTS = setOf("accounts.google.com")
+
+    fun matches(url: String?): Boolean {
+        if (url == null) return false
+        val host = runCatching { URI(url).host }.getOrNull() ?: return false
+        return host.lowercase() in HOSTS
+    }
+}
+
+/**
  * A desktop User-Agent built from the one of the system WebView: what Chrome on Android sends for its
  * desktop view, with the major version of the system Chrome.
  */
 internal object DesktopUserAgent {
     private val CHROME_VERSION = Regex("""Chrome/(\d+)""")
+    private const val WEBVIEW_BRAND = "Android WebView"
+    private const val CHROME_BRAND = "Google Chrome"
+
+    /**
+     * The brands of the client hints (`Sec-CH-UA`, `navigator.userAgentData`) for the desktop view: those of
+     * the system with Chrome in place of WebView, so they fit the desktop Chrome User-Agent. The order is kept: Chromium orders the
+     * brands by its major version, as Chrome does.
+     */
+    fun brands(system: List<UserAgentMetadata.BrandVersion>): List<UserAgentMetadata.BrandVersion> =
+        system.map {
+            if (it.brand == WEBVIEW_BRAND) UserAgentMetadata.BrandVersion.Builder(it).setBrand(CHROME_BRAND).build()
+            else it
+        }
 
     fun from(systemUserAgent: String): String {
         val major = CHROME_VERSION.find(systemUserAgent)?.groupValues?.get(1)

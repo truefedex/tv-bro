@@ -83,16 +83,36 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     override val userAgentString: String?
         get() = webView?.settings?.userAgentString
 
-    override var desktopView = false
+    /** The view of the host, as the core sets it */
+    private var hostDesktopView = false
+    /** The view the WebView has: the one of the host, except on pages that need the mobile view */
+    private var appliedDesktopView = false
+    /** The view was corrected when a page started, so the page loaded again */
+    private var siteViewCorrected = false
+
+    override var desktopView: Boolean
+        get() = hostDesktopView
         set(value) {
-            field = value
-            webView?.setDesktopView(value)
-            applyPointerMode()
+            hostDesktopView = value
+            applySiteView(webView?.url)
         }
+
+    /**
+     * Gives the WebView the view for [url].
+     * @return true if the view changed
+     */
+    private fun applySiteView(url: String?): Boolean {
+        val desktop = hostDesktopView && !MobileViewPages.matches(url)
+        if (desktop == appliedDesktopView) return false
+        appliedDesktopView = desktop
+        webView?.setDesktopView(desktop)
+        applyPointerMode()
+        return true
+    }
 
     /** The cursor is a mouse for pages in the desktop view, a finger for the others */
     private fun applyPointerMode() {
-        cursorLayout?.cursorDrawerDelegate?.pointerMode = if (desktopView) PointerMode.MOUSE else PointerMode.TOUCH
+        cursorLayout?.cursorDrawerDelegate?.pointerMode = if (appliedDesktopView) PointerMode.MOUSE else PointerMode.TOUCH
     }
 
     override fun saveState(): Any {
@@ -116,6 +136,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         if (callback?.shouldOverrideUrlLoading(url) == true) {
             return
         }
+        applySiteView(url)
         webView?.loadUrl(url)
     }
 
@@ -163,7 +184,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     override fun getOrCreateView(activityContext: Context): View {
         if (webView == null) {
             val webView = WebViewEx(activityContext, webViewCallback, jsInterface)
-            if (desktopView) webView.setDesktopView(true)
+            if (appliedDesktopView) webView.setDesktopView(true)
             cursorLayout = CursorLayout(activityContext).apply {
                 addView(webView)
                 cursorDrawerDelegate.callback = this@WebViewWebEngine
@@ -395,13 +416,19 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         }
 
         override fun switchSiteView(url: String): Boolean {
-            val desktop = callback?.isDesktopView(url) ?: return false
-            if (desktop == desktopView) return false
-            desktopView = desktop
-            return true
+            hostDesktopView = callback?.isDesktopView(url) ?: return false
+            return applySiteView(url)
         }
 
         override fun onPageStarted(url: String?) {
+            //a page that came in the wrong view (a redirect to or from a page that needs the mobile view, going
+            //back) loads again in its own, once
+            if (!siteViewCorrected && applySiteView(url)) {
+                siteViewCorrected = true
+                webView?.reload()
+            } else {
+                siteViewCorrected = false
+            }
             callback?.onPageStarted(url)
         }
 

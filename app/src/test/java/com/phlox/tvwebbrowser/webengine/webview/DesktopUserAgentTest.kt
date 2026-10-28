@@ -1,6 +1,9 @@
 package com.phlox.tvwebbrowser.webengine.webview
 
+import androidx.webkit.UserAgentMetadata
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DesktopUserAgentTest {
@@ -18,6 +21,33 @@ class DesktopUserAgentTest {
             "(KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.179 Safari/537.36"
         assertEquals("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) " +
             "Chrome/124.0.0.0 Safari/537.36", DesktopUserAgent.from(tv))
+    }
+
+    @Test
+    fun brandsNameChromeInPlaceOfWebViewInTheSameOrder() {
+        fun brand(name: String, major: String, full: String) =
+            UserAgentMetadata.BrandVersion.Builder().setBrand(name).setMajorVersion(major).setFullVersion(full).build()
+        val system = listOf(
+            brand("Not:A-Brand", "8", "8.0.0.0"),
+            brand("Chromium", "156", "156.0.8078.47"),
+            brand("Android WebView", "156", "156.0.8078.47"),
+        )
+        assertEquals(listOf(
+            brand("Not:A-Brand", "8", "8.0.0.0"),
+            brand("Chromium", "156", "156.0.8078.47"),
+            brand("Google Chrome", "156", "156.0.8078.47"),
+        ), DesktopUserAgent.brands(system))
+    }
+
+    @Test
+    fun googleSignInPagesGetTheMobileView() {
+        assertTrue(MobileViewPages.matches("https://accounts.google.com/v3/signin/identifier?continue=x"))
+        assertTrue(MobileViewPages.matches("https://Accounts.Google.com/"))
+        assertFalse(MobileViewPages.matches("https://www.google.com/search?q=accounts.google.com"))
+        assertFalse(MobileViewPages.matches("https://myaccounts.google.com.example/"))
+        assertFalse(MobileViewPages.matches("about:blank"))
+        assertFalse(MobileViewPages.matches("not a url"))
+        assertFalse(MobileViewPages.matches(null))
     }
 
     @Test
