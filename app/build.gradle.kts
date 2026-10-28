@@ -28,8 +28,7 @@ android {
         getByName("debug") {
             // -PdebugNotDebuggable: a debug build ART runs at full speed, for the benchmarks of AdblockBenchActivity
             isDebuggable = !project.hasProperty("debugNotDebuggable")
-            // -PdebugApplicationIdSuffix=.dev installs a debug build next to a release one
-            (project.findProperty("debugApplicationIdSuffix") as String?)?.let { applicationIdSuffix = it }
+            applicationIdSuffix = ".dev"
         }
         getByName("release") {
             isDebuggable = false
@@ -54,6 +53,7 @@ android {
     productFlavors {
         create("generic") {
             dimension = "appstore"
+            isDefault = true
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
         }
         create("google") {
@@ -78,6 +78,7 @@ android {
         }
         create("geckoExcluded") {
             dimension = "webengine"
+            isDefault = true
             buildConfigField("String", "WEB_ENGINE_CLASS",
                 "\"com.phlox.tvwebbrowser.webengine.webview.WebViewWebEngine\"")
         }
