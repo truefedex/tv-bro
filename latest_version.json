@@ -13,17 +13,17 @@
     },
     {
       "name": "beta",
-      "latestVersionName": "v3.0.0",
-      "latestVersionCode": 78,
+      "latestVersionName": "v3.0.1",
+      "latestVersionCode": 79,
       "minAPI": 24,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.0/tvbro-3.0.0-generic-geckoExcluded.apk"
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.1/tvbro-3.0.1-generic-geckoExcluded.apk"
     }
   ],
 
   "changelog": [
     {
-      "versionCode": 78,
-      "versionName": "v3.0.0",
+      "versionCode": 79,
+      "versionName": "v3.0.1",
       "changes": "* Major redesign\n* GeckoView based version extracted to separate app variant\n* Phone companion app and phone browser version\n* Cursor behavior improvements\n* Mobile/Desktop view for pages\n* New ad blocker optimized for TV\n* Resumable downloads possibilities, custom downloads folder\n* Export and import bookmarks, bookmark folders\n* Embedded optimized video player\n* Support for HTTP proxy\n* New languages support\n* Updated dependencies\n* Target latest Android versions\n* Bugfixes and optimizations"
     },
     {
