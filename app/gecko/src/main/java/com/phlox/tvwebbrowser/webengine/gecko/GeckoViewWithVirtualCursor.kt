@@ -38,7 +38,7 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         onEmulatedKeyEvent = { keyEvent ->
             cursorDrawerDelegate.dispatchKeyEvent(keyEvent)
         },
-        motionAxesTranslationEnabled = { !AppContext.provideConfig().disableMotionAxesDpadNavigation },
+        analogStickNavigationEnabled = { !AppContext.provideConfig().disableMotionAxesDpadNavigation },
         isSoftwareKeyboardVisible = {
             ViewCompat.getRootWindowInsets(rootView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
         },

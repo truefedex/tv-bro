@@ -7,131 +7,59 @@ import android.view.MotionEvent
 import kotlin.math.abs
 
 /**
- * Handles input that may arrive as [KeyEvent]s, as [MotionEvent]s, or through both channels.
+ * Gives the virtual cursor **one** stream of navigation [KeyEvent]s ([onEmulatedKeyEvent]),
+ * whichever way the hardware reports D-pad input. It deals with navigation keys only: mouse
+ * buttons and pointer input belong to the page, and mapping ENTER / BUTTON_A onto "select" is the
+ * job of `CursorDrawerDelegate`.
  *
- * - [dispatchKeyEvent] forwards allowed framework [KeyEvent]s to [onEmulatedKeyEvent].
- * - [dispatchGenericMotionEvent] translates selected motion axes/buttons into emulated key events
- *   and forwards them to [onEmulatedKeyEvent]. Events whose source is not a joystick, gamepad, or
- *   hardware DPAD (e.g. mouse, touchpad) are ignored so pointer motion is not mistaken for sticks.
+ * - **Remote or keyboard.** Directions come only as [KeyEvent]s, forwarded as they are.
+ * - **Game controller.** The hat (the D-pad of most pads) and the left stick come as joystick
+ *   [MotionEvent] axes, which this class turns into `KEYCODE_DPAD_*`.
  *
- * To avoid duplicate handling when the same physical action is delivered through both channels,
- * the adapter keeps a small history of recently forwarded events and suppresses consecutive
- * duplicates with the same (eventTime, action, keyCode) signature.
+ * Joystick motion that no view handles is turned into D-pad keys by the platform itself (in
+ * `ViewRootImpl`), so [dispatchGenericMotionEvent] reports every joystick event as handled, not
+ * only those that changed a direction: else the platform would add its own presses to ours. Some
+ * pads still send real D-pad keys next to their hat axes; the first directional key of a device
+ * proves that, and its hat is not translated from then on ([devicesWithKeyDpad]).
  *
- * Hardware often reports DPAD as both [KeyEvent]s and joystick [MotionEvent]s (hat / DPAD
- * button bits). Those streams use different timestamps, so signature dedupe alone is not enough:
- * we track the navigation key currently held according to the key channel and suppress
- * motion-emulated DOWN/UP for that key while the framework reports it held, and we clear
- * motion axis/button state when a matching framework UP arrives so a later axis "release"
- * does not emit a second UP.
- *
- * Motion-to-key translation still uses dead-zone and discretization to avoid axis spam.
- * Axis translation can be turned off via the `motionAxesTranslationEnabled` callback (e.g. user setting).
- *
- * When [isSoftwareKeyboardVisible] returns true, DPAD navigation input is ignored (not forwarded).
+ * Axis translation uses a dead zone with hysteresis to avoid direction spam. The **stick** can be
+ * left out ([analogStickNavigationEnabled], the "Navigate with joystick sticks" setting, for pads
+ * whose sticks jitter); that never touches the hat, which is a plain D-pad. While
+ * [isSoftwareKeyboardVisible] returns true, navigation input is not taken, so the IME keeps its keys.
  */
 class DPADNavigationEventsAdapter(
-    /**
-     * Callback invoked for every forwarded framework [KeyEvent] and every emitted emulated
-     * [KeyEvent] generated from motion input.
-     */
+    /** Gets every forwarded [KeyEvent] and every one made from motion input. */
     private val onEmulatedKeyEvent: (KeyEvent) -> Boolean,
 
     /**
-     * Axis absolute value threshold beyond which we consider a stick/hat deflection "intentional".
+     * When false, only the analog stick is left out of the translation, the hat keeps working.
+     * A live lambda, so the setting applies without recreating the adapter.
      */
-    private val deadZone: Float = DEFAULT_DEAD_ZONE,
+    private val analogStickNavigationEnabled: () -> Boolean = { true },
 
-    /**
-     * Smaller threshold used to decide when to release a direction after it was previously active.
-     * Helps avoid jitter toggling around [deadZone].
-     */
-    private val releaseDeadZone: Float = DEFAULT_RELEASE_DEAD_ZONE,
-
-    /**
-     * Preferred axis pair ordering:
-     * - hat axes ([MotionEvent.AXIS_HAT_X]/[MotionEvent.AXIS_HAT_Y]) if they look active
-     * - otherwise analog stick axes ([MotionEvent.AXIS_X]/[MotionEvent.AXIS_Y])
-     */
-    private val preferHatAxes: Boolean = true,
-
-    /**
-     * When false, [handleAxes] is skipped (no stick/hat → DPAD translation from the motion channel).
-     * Buttons and directional DPAD button bits are unaffected. Use a live lambda so preferences
-     * apply without recreating the adapter.
-     */
-    private val motionAxesTranslationEnabled: () -> Boolean = { true },
-
-    /**
-     * When true, DPAD navigation keys and motion-emulated navigation are not forwarded; use while
-     * the IME is shown so typing / keyboard navigation is not overridden by cursor logic.
-     */
+    /** When true, navigation input is not taken, so typing is not overridden by the cursor. */
     private val isSoftwareKeyboardVisible: () -> Boolean = { false },
 ) {
-    init {
-        require(deadZone >= 0f) { "deadZone must be >= 0" }
-        require(releaseDeadZone >= 0f) { "releaseDeadZone must be >= 0" }
-    }
-
     private var lastDirX: Int = 0 // -1 left, 0 neutral, +1 right
     private var lastDirY: Int = 0 // -1 up, 0 neutral, +1 down
-    private var lastDpadKeyCode: Int = 0
-    private var lastDpadFromButtons: Boolean = false
 
-    private var lastPrimaryDown: Boolean = false
+    /** Direction held because *we* made it from axes, or 0. */
+    private var heldAxisKeyCode: Int = 0
 
-    /**
-     * [KeyEvent.KEYCODE_DPAD_*] currently held according to the framework key channel
-     * ([dispatchKeyEvent]), or 0. Used to avoid emitting the same DOWN/UP again from motion.
-     */
-    private var frameworkHeldNavigationKeyCode: Int = 0
+    /** Device [heldAxisKeyCode] came from, so a press is only ever closed for its own device. */
+    private var heldAxisDeviceId: Int = -1
 
-    // Some controllers report DPAD directions as "button bits" instead of (or in addition to)
-    // hat/axis values. Android does not guarantee consistent constants across devices/levels,
-    // so we detect them via reflection and only use them when present.
-    private val dpadButtonBits = DpadButtonBits.fromMotionEvent()
-
-    // Keys DPADNavigationEventsAdapter is responsible for.
-    private val allowedKeyCodes: Set<Int> = NavigationReservedShortcutKeyCodes.dpadNavigationKeys
-
-    private fun isKeyAllowed(keyCode: Int): Boolean = allowedKeyCodes.contains(keyCode)
+    /** Devices that sent a real directional key, so translating their hat would double presses. */
+    private val devicesWithKeyDpad = mutableSetOf<Int>()
 
     fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (!isKeyAllowed(event.keyCode)) return false
+        if (event.keyCode !in NavigationReservedShortcutKeyCodes.dpadNavigationKeys) return false
+        if (isSoftwareKeyboardVisible()) return false
 
-        if (isSoftwareKeyboardVisible()) {
-            return false
-        }
-
-        if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
-            frameworkHeldNavigationKeyCode = event.keyCode
-        }
-
-        // If motion already synthesized DOWN for this key, the framework key DOWN is redundant.
-        if (event.action == KeyEvent.ACTION_DOWN &&
-            event.repeatCount == 0 &&
-            lastDpadKeyCode == event.keyCode
-        ) {
-            val sig = KeyDispatchSignature(event.eventTime, event.action, event.keyCode)
-            recordSentSignature(sig)
-            return true
-        }
-
-        if (event.action == KeyEvent.ACTION_UP) {
-            // So a later motion "release" does not emit a second UP for the same press.
-            if (lastDpadKeyCode == event.keyCode) {
-                lastDpadKeyCode = 0
-                lastDirX = 0
-                lastDirY = 0
-                lastDpadFromButtons = false
-            }
-        }
-
-        val sig = KeyDispatchSignature(event.eventTime, event.action, event.keyCode)
-        if (sentEmulatedHistory.lastOrNull() == sig) {
-            // Avoid feeding duplicates that may arrive from both dispatch channels.
-            // Even if suppressed, report "handled" so callers can consistently consume it.
-            return true
+        if (event.keyCode in DIRECTION_KEY_CODES && devicesWithKeyDpad.add(event.deviceId)) {
+            // If we were in a press made from this device's hat, close it: its ACTION_UP would
+            // never come now that the hat is ignored.
+            releaseHeldAxisDirection(event.deviceId, event.downTime, event.eventTime, event.source)
         }
 
         return try {
@@ -139,411 +67,139 @@ class DPADNavigationEventsAdapter(
         } catch (t: Throwable) {
             Log.e(TAG, "dispatchKeyEvent: callback failed keyCode=${event.keyCode} action=${event.action}", t)
             false
-        } finally {
-            recordSentSignature(sig)
-            if (event.action == KeyEvent.ACTION_UP && event.keyCode == frameworkHeldNavigationKeyCode) {
-                frameworkHeldNavigationKeyCode = 0
-            }
-        }
-    }
-
-    private data class KeyDispatchSignature(val eventTime: Long, val action: Int, val keyCode: Int)
-
-    // Keeps a short history of the signatures that were actually forwarded to `onEmulatedKeyEvent`.
-    // This is used for duplicate filtering and also makes it easy to inspect behavior in a debugger.
-    private val sentEmulatedHistory = ArrayDeque<KeyDispatchSignature>()
-    private val sentEmulatedHistoryMaxSize = 16
-
-    private fun recordSentSignature(sig: KeyDispatchSignature) {
-        sentEmulatedHistory.addLast(sig)
-        while (sentEmulatedHistory.size > sentEmulatedHistoryMaxSize) {
-            sentEmulatedHistory.removeFirst()
         }
     }
 
     /**
-     * Process a MotionEvent (from View/Activity dispatch) and emit emulated KeyEvents as needed.
+     * Turns joystick axes into navigation keys.
      *
-     * @return true if the event matched the supported joystick/gamepad/DPAD motion sources and we
-     * emitted at least one KeyEvent (or axis translation was off and we released a prior axis-held
-     * direction). Callers should typically return this value from their
-     * dispatchGenericMotionEvent to prevent the WebView from consuming joystick axis motions.
+     * @return true for every event of a joystick, gamepad or D-pad source (see the class comment),
+     * false for other sources (mice, touchpads: their axes are pointer positions) and while the
+     * soft keyboard is shown.
      */
     fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        if (!isNavigationGenericMotionSource(event.source)) return false
         if (isSoftwareKeyboardVisible()) {
+            // the cursor must not be left holding a direction whose ACTION_UP can no longer come
+            releaseHeldAxisDirection(event.deviceId, event.downTime, event.eventTime, event.source)
             return false
         }
-
-        if (!isNavigationGenericMotionSource(event.source)) {
-            // Mice/touchpads reuse generic motion, axes, and BUTTON_PRIMARY; never treat them as DPAD.
-            if (!motionAxesTranslationEnabled()) {
-                return releaseAxisHeldDirectionIfNeeded(event)
-            }
-            return false
-        }
-
-        var emittedAnyKey = false
-
-        if (!motionAxesTranslationEnabled()) {
-            emittedAnyKey = releaseAxisHeldDirectionIfNeeded(event) || emittedAnyKey
-        }
-
-        // Prefer directional D-pad *buttons* over axes if they are actively pressed, otherwise
-        // the axis "center jitter" could release a direction while the button is still held.
-        val buttonState = event.buttonState
-        val dpadButtonsPressedNow =
-            dpadButtonBits.supported &&
-                (
-                    (buttonState and dpadButtonBits.upBit) != 0 ||
-                        (buttonState and dpadButtonBits.downBit) != 0 ||
-                        (buttonState and dpadButtonBits.leftBit) != 0 ||
-                        (buttonState and dpadButtonBits.rightBit) != 0
-                    )
-
-        emittedAnyKey = handleDirectionalDpadButtons(event) || emittedAnyKey
-        emittedAnyKey = handleButtons(event) || emittedAnyKey
-
-        if (!dpadButtonsPressedNow && motionAxesTranslationEnabled()) {
-            emittedAnyKey = handleAxes(event) || emittedAnyKey
-        }
-
-        return emittedAnyKey
+        handleAxes(event)
+        return true
     }
 
-    /**
-     * If axis translation is off but we still hold a direction that came from axes, emit KEY_UP
-     * once so navigation does not stay stuck.
-     */
-    private fun releaseAxisHeldDirectionIfNeeded(event: MotionEvent): Boolean {
-        if (lastDpadFromButtons || lastDpadKeyCode == 0) return false
-        if (!isKeyAllowed(lastDpadKeyCode)) {
-            lastDpadKeyCode = 0
-            lastDirX = 0
-            lastDirY = 0
-            return false
-        }
-        val emitted = emitKeyEvent(event, action = KeyEvent.ACTION_UP, keyCode = lastDpadKeyCode)
-        lastDpadKeyCode = 0
-        lastDirX = 0
-        lastDirY = 0
-        return emitted
-    }
-
-    /**
-     * Clears internal state (useful if caller wants to drop axis/button tracking).
-     * This intentionally does not emit any KEY_UP events.
-     */
+    /** Drops what was learned about the devices and the held direction. Emits no ACTION_UP. */
     fun resetState() {
-        lastDirX = 0
-        lastDirY = 0
-        lastDpadKeyCode = 0
-        lastDpadFromButtons = false
-        lastPrimaryDown = false
-        frameworkHeldNavigationKeyCode = 0
-        sentEmulatedHistory.clear()
+        clearAxisState()
+        devicesWithKeyDpad.clear()
     }
 
-    private fun handleAxes(event: MotionEvent): Boolean {
-        val dead = deadZone
-        val releaseDead = minOf(releaseDeadZone, dead) // ensure hysteresis is sane
+    private fun handleAxes(event: MotionEvent) {
+        // The hat while it looks active, else the stick. The hat of a device with real D-pad keys
+        // reads as neutral.
+        val hatIgnored = event.deviceId in devicesWithKeyDpad
+        val hatX = if (hatIgnored) 0f else event.getAxisValue(MotionEvent.AXIS_HAT_X)
+        val hatY = if (hatIgnored) 0f else event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+        val hatActive = abs(hatX) >= DEAD_ZONE || abs(hatY) >= DEAD_ZONE
 
-        val (xAxis, yAxis) = if (preferHatAxes) {
-            val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
-            val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
-            val hatLooksActive = abs(hatX) >= dead || abs(hatY) >= dead
-            if (hatLooksActive) {
-                hatX to hatY
-            } else {
+        // a stick left out by the setting reads as centered; the hat above does not depend on it
+        val (axisX, axisY) = when {
+            hatActive -> hatX to hatY
+            analogStickNavigationEnabled() ->
                 event.getAxisValue(MotionEvent.AXIS_X) to event.getAxisValue(MotionEvent.AXIS_Y)
-            }
-        } else {
-            event.getAxisValue(MotionEvent.AXIS_X) to event.getAxisValue(MotionEvent.AXIS_Y)
+            else -> 0f to 0f
         }
 
-        fun axisToDir(axisValue: Float, lastDir: Int): Int {
-            return when {
-                axisValue >= dead -> 1
-                axisValue <= -dead -> -1
-                abs(axisValue) <= releaseDead -> 0
-                else -> {
-                    // Hysteresis band: keep direction only if axis is still on the same side
-                    // (prevents "stickiness" when crossing through center with jitter).
-                    val sameSign = (axisValue > 0f && lastDir == 1) || (axisValue < 0f && lastDir == -1)
-                    if (sameSign) lastDir else 0
-                }
-            }
-        }
+        val newDirX = axisToDir(axisX, lastDirX)
+        val newDirY = axisToDir(axisY, lastDirY)
+        val newKeyCode = dpadKeyCodeFromDirs(newDirX, newDirY)
+        if (newKeyCode == heldAxisKeyCode) return
 
-        val newDirX = axisToDir(xAxis, lastDirX)
-        val newDirY = axisToDir(yAxis, lastDirY)
-
-        val newDpadKeyCode = dpadKeyCodeFromDirs(newDirX, newDirY)
-        if (newDpadKeyCode == lastDpadKeyCode) {
-            return false
-        }
-
-        // Key up old direction (if any) and key down new direction (if any).
-        var emittedAny = false
-        if (lastDpadKeyCode != 0) {
-            if (isKeyAllowed(lastDpadKeyCode)) {
-                emittedAny = emitKeyEvent(event, action = KeyEvent.ACTION_UP, keyCode = lastDpadKeyCode) || emittedAny
-            }
-        }
+        releaseHeldAxisDirection(event.deviceId, event.downTime, event.eventTime, event.source)
         lastDirX = newDirX
         lastDirY = newDirY
-        var newHeld = 0
-        if (newDpadKeyCode != 0 && isKeyAllowed(newDpadKeyCode)) {
-            if (emitKeyEvent(event, action = KeyEvent.ACTION_DOWN, keyCode = newDpadKeyCode)) {
-                newHeld = newDpadKeyCode
-            }
-        }
-        lastDpadKeyCode = newHeld
-        lastDpadFromButtons = false
-
-        return emittedAny
-    }
-
-    private fun handleDirectionalDpadButtons(event: MotionEvent): Boolean {
-        if (!dpadButtonBits.supported) return false
-
-        val buttonState = event.buttonState
-        val upPressed = (buttonState and dpadButtonBits.upBit) != 0
-        val downPressed = (buttonState and dpadButtonBits.downBit) != 0
-        val leftPressed = (buttonState and dpadButtonBits.leftBit) != 0
-        val rightPressed = (buttonState and dpadButtonBits.rightBit) != 0
-
-        val isAnyPressed = upPressed || downPressed || leftPressed || rightPressed
-        if (!isAnyPressed) {
-            // Release old direction only if we previously emitted it from button DPAD.
-            if (lastDpadFromButtons && lastDpadKeyCode != 0) {
-                val emitted = if (isKeyAllowed(lastDpadKeyCode)) {
-                    emitKeyEvent(event, action = KeyEvent.ACTION_UP, keyCode = lastDpadKeyCode)
-                } else {
-                    false
-                }
-                lastDpadKeyCode = 0
-                lastDirX = 0
-                lastDirY = 0
-                lastDpadFromButtons = false
-                return emitted
-            }
-            return false
-        }
-
-        val (dirX, dirY, newKeyCode) = dpadKeyCodeFromButtons(upPressed, downPressed, leftPressed, rightPressed)
-        if (newKeyCode == 0) {
-            // Contradictory button combination: treat as neutral and release if needed.
-            if (lastDpadFromButtons && lastDpadKeyCode != 0) {
-                val emitted = if (isKeyAllowed(lastDpadKeyCode)) {
-                    emitKeyEvent(event, action = KeyEvent.ACTION_UP, keyCode = lastDpadKeyCode)
-                } else {
-                    false
-                }
-                lastDpadKeyCode = 0
-                lastDirX = 0
-                lastDirY = 0
-                lastDpadFromButtons = false
-                return emitted
-            }
-            return false
-        }
-
-        if (newKeyCode == lastDpadKeyCode) {
-            lastDpadFromButtons = true
-            return false
-        }
-
-        // Key up old direction (if any) and key down new direction.
-        var emittedAny = false
-        if (lastDpadKeyCode != 0) {
-            if (isKeyAllowed(lastDpadKeyCode)) {
-                emittedAny = emitKeyEvent(event, action = KeyEvent.ACTION_UP, keyCode = lastDpadKeyCode) || emittedAny
-            }
-        }
-        lastDirX = dirX
-        lastDirY = dirY
-        var newHeld = 0
-        if (newKeyCode != 0 && isKeyAllowed(newKeyCode)) {
-            if (emitKeyEvent(event, action = KeyEvent.ACTION_DOWN, keyCode = newKeyCode)) {
-                newHeld = newKeyCode
-            }
-        }
-        lastDpadKeyCode = newHeld
-        lastDpadFromButtons = newHeld != 0
-        return emittedAny
-    }
-
-    private fun dpadKeyCodeFromButtons(
-        upPressed: Boolean,
-        downPressed: Boolean,
-        leftPressed: Boolean,
-        rightPressed: Boolean
-    ): Triple<Int, Int, Int> {
-        val dirX = when {
-            leftPressed && !rightPressed -> -1
-            rightPressed && !leftPressed -> 1
-            else -> 0
-        }
-        val dirY = when {
-            upPressed && !downPressed -> -1
-            downPressed && !upPressed -> 1
-            else -> 0
-        }
-        val keyCode = when {
-            dirX == 0 && dirY == -1 -> KeyEvent.KEYCODE_DPAD_UP
-            dirX == 0 && dirY == 1 -> KeyEvent.KEYCODE_DPAD_DOWN
-            dirX == -1 && dirY == 0 -> KeyEvent.KEYCODE_DPAD_LEFT
-            dirX == 1 && dirY == 0 -> KeyEvent.KEYCODE_DPAD_RIGHT
-            dirX == -1 && dirY == -1 -> KeyEvent.KEYCODE_DPAD_UP_LEFT
-            dirX == 1 && dirY == -1 -> KeyEvent.KEYCODE_DPAD_UP_RIGHT
-            dirX == -1 && dirY == 1 -> KeyEvent.KEYCODE_DPAD_DOWN_LEFT
-            dirX == 1 && dirY == 1 -> KeyEvent.KEYCODE_DPAD_DOWN_RIGHT
-            else -> 0
-        }
-        return Triple(dirX, dirY, keyCode)
-    }
-
-    private fun handleButtons(event: MotionEvent): Boolean {
-        val buttonState = event.buttonState
-
-        var emittedAny = false
-
-        fun emitSelection(action: Int): Boolean {
-            // Emit multiple "selection" key codes; filtering decides what actually goes through.
-            var any = false
-            any = emitKeyEvent(event, action = action, keyCode = KeyEvent.KEYCODE_DPAD_CENTER) || any
-            any = emitKeyEvent(event, action = action, keyCode = KeyEvent.KEYCODE_ENTER) || any
-            any = emitKeyEvent(event, action = action, keyCode = KeyEvent.KEYCODE_NUMPAD_ENTER) || any
-            any = emitKeyEvent(event, action = action, keyCode = KeyEvent.KEYCODE_BUTTON_A) || any
-            return any
-        }
-
-        val primaryPressed = (buttonState and MotionEvent.BUTTON_PRIMARY) != 0
-        if (primaryPressed && !lastPrimaryDown) {
-            emittedAny = emitSelection(KeyEvent.ACTION_DOWN) || emittedAny
-        } else if (!primaryPressed && lastPrimaryDown) {
-            emittedAny = emitSelection(KeyEvent.ACTION_UP) || emittedAny
-        }
-        lastPrimaryDown = primaryPressed
-
-        return emittedAny
-    }
-
-    private fun dpadKeyCodeFromDirs(dirX: Int, dirY: Int): Int {
-        return when {
-            dirX == 0 && dirY == 0 -> 0
-            dirX == -1 && dirY == -1 -> KeyEvent.KEYCODE_DPAD_UP_LEFT
-            dirX == 1 && dirY == -1 -> KeyEvent.KEYCODE_DPAD_UP_RIGHT
-            dirX == -1 && dirY == 1 -> KeyEvent.KEYCODE_DPAD_DOWN_LEFT
-            dirX == 1 && dirY == 1 -> KeyEvent.KEYCODE_DPAD_DOWN_RIGHT
-            dirX == -1 && dirY == 0 -> KeyEvent.KEYCODE_DPAD_LEFT
-            dirX == 1 && dirY == 0 -> KeyEvent.KEYCODE_DPAD_RIGHT
-            dirX == 0 && dirY == -1 -> KeyEvent.KEYCODE_DPAD_UP
-            dirX == 0 && dirY == 1 -> KeyEvent.KEYCODE_DPAD_DOWN
-            else -> 0
-        }
-    }
-
-    private fun emitKeyEvent(
-        event: MotionEvent,
-        action: Int,
-        keyCode: Int,
-        repeat: Int = 0,
-        flags: Int = 0,
-        downTime: Long = event.downTime,
-    ): Boolean {
-        if (keyCode == 0) return false
-        if (!isKeyAllowed(keyCode)) return false
-
-        if (frameworkHeldNavigationKeyCode == keyCode &&
-            (action == KeyEvent.ACTION_DOWN || action == KeyEvent.ACTION_UP)
+        if (newKeyCode != 0 &&
+            emitKeyEvent(KeyEvent.ACTION_DOWN, newKeyCode, event.downTime, event.eventTime, event.deviceId, event.source)
         ) {
-            // Framework key channel already (or will) deliver this; motion uses different
-            // eventTime so signature dedupe alone does not catch it.
-            return true
+            heldAxisKeyCode = newKeyCode
+            heldAxisDeviceId = event.deviceId
         }
+    }
 
-        val sig = KeyDispatchSignature(event.eventTime, action, keyCode)
-        if (sentEmulatedHistory.lastOrNull() == sig) {
-            // If the same event arrives from both dispatch channels at the same time,
-            // drop the duplicate to avoid double-handling.
-            // Even if suppressed, report "handled" so callers can consistently consume it.
-            return true
-        }
+    /** Emits ACTION_UP for the direction held from the axes of [deviceId], if any, and clears it. */
+    private fun releaseHeldAxisDirection(deviceId: Int, downTime: Long, eventTime: Long, source: Int) {
+        val held = heldAxisKeyCode
+        if (held == 0 || heldAxisDeviceId != deviceId) return
+        clearAxisState()
+        emitKeyEvent(KeyEvent.ACTION_UP, held, downTime, eventTime, deviceId, source)
+    }
 
-        // Preserve the originating [MotionEvent] source (e.g. joystick / gamepad).
-        val emulated = KeyEvent(
-            downTime,
-            event.eventTime,
-            action,
-            keyCode,
-            repeat,
-            /* metaState */ 0,
-            /* deviceId */ event.deviceId,
-            /* scanCode */ 0,
-            flags,
-            /* source */ event.source
-        )
-        try {
+    private fun clearAxisState() {
+        lastDirX = 0
+        lastDirY = 0
+        heldAxisKeyCode = 0
+        heldAxisDeviceId = -1
+    }
+
+    private fun axisToDir(axisValue: Float, lastDir: Int): Int = when {
+        axisValue >= DEAD_ZONE -> 1
+        axisValue <= -DEAD_ZONE -> -1
+        abs(axisValue) <= RELEASE_DEAD_ZONE -> 0
+        // between the two thresholds the direction stays only while the axis is on its side
+        axisValue > 0f && lastDir == 1 -> 1
+        axisValue < 0f && lastDir == -1 -> -1
+        else -> 0
+    }
+
+    private fun dpadKeyCodeFromDirs(dirX: Int, dirY: Int): Int = when {
+        dirX == -1 && dirY == -1 -> KeyEvent.KEYCODE_DPAD_UP_LEFT
+        dirX == 1 && dirY == -1 -> KeyEvent.KEYCODE_DPAD_UP_RIGHT
+        dirX == -1 && dirY == 1 -> KeyEvent.KEYCODE_DPAD_DOWN_LEFT
+        dirX == 1 && dirY == 1 -> KeyEvent.KEYCODE_DPAD_DOWN_RIGHT
+        dirX == -1 -> KeyEvent.KEYCODE_DPAD_LEFT
+        dirX == 1 -> KeyEvent.KEYCODE_DPAD_RIGHT
+        dirY == -1 -> KeyEvent.KEYCODE_DPAD_UP
+        dirY == 1 -> KeyEvent.KEYCODE_DPAD_DOWN
+        else -> 0
+    }
+
+    private fun emitKeyEvent(action: Int, keyCode: Int, downTime: Long, eventTime: Long, deviceId: Int, source: Int): Boolean {
+        // keeps the device and the source (joystick, gamepad) of the motion
+        val emulated = KeyEvent(downTime, eventTime, action, keyCode, 0, 0, deviceId, 0, 0, source)
+        return try {
             onEmulatedKeyEvent(emulated)
-            return true
+            true
         } catch (t: Throwable) {
-            // Input dispatch is timing-sensitive; never let an internal translation error kill the app.
             Log.e(TAG, "Failed to dispatch emulated key=$keyCode action=$action", t)
-            return false
-        } finally {
-            recordSentSignature(sig)
+            false
         }
     }
 
     companion object {
         private const val TAG = "DPADNavigationEventsAdapter"
-        private const val DEFAULT_DEAD_ZONE: Float = 0.4f
-        private const val DEFAULT_RELEASE_DEAD_ZONE: Float = 0.28f
 
-        private fun readMotionEventStaticInt(fieldName: String): Int? {
-            return try {
-                val field = MotionEvent::class.java.getField(fieldName)
-                field.getInt(null)
-            } catch (_: Throwable) {
-                null
-            }
-        }
+        /** Axis deflection from which a hat or stick direction counts. */
+        private const val DEAD_ZONE = 0.4f
 
-        /**
-         * True for sources that legitimately deliver joystick/DPAD-style generic motion.
-         * Pointer-class devices (mouse, touchpad, etc.) are excluded.
-         */
-        fun isNavigationGenericMotionSource(source: Int): Boolean {
-            return (source and InputDevice.SOURCE_JOYSTICK) != 0 ||
-                    (source and InputDevice.SOURCE_GAMEPAD) != 0 ||
-                    (source and InputDevice.SOURCE_DPAD) != 0
-        }
-    }
+        /** Smaller threshold for releasing a direction, so jitter around [DEAD_ZONE] does not toggle it. */
+        private const val RELEASE_DEAD_ZONE = 0.28f
 
-    private data class DpadButtonBits(
-        val supported: Boolean,
-        val upBit: Int,
-        val downBit: Int,
-        val leftBit: Int,
-        val rightBit: Int
-    ) {
-        companion object {
-            fun fromMotionEvent(): DpadButtonBits {
-                // Field names are not guaranteed. We only need them when the platform provides them.
-                val up = readMotionEventStaticInt("BUTTON_DPAD_UP")
-                val down = readMotionEventStaticInt("BUTTON_DPAD_DOWN")
-                val left = readMotionEventStaticInt("BUTTON_DPAD_LEFT")
-                val right = readMotionEventStaticInt("BUTTON_DPAD_RIGHT")
-                val supported = up != null || down != null || left != null || right != null
-                return DpadButtonBits(
-                    supported = supported,
-                    upBit = up ?: 0,
-                    downBit = down ?: 0,
-                    leftBit = left ?: 0,
-                    rightBit = right ?: 0
-                )
-            }
-        }
+        /** The directions; a real one from a device shows that its D-pad sends keys. */
+        private val DIRECTION_KEY_CODES: Set<Int> = hashSetOf(
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_DPAD_RIGHT,
+            KeyEvent.KEYCODE_DPAD_UP,
+            KeyEvent.KEYCODE_DPAD_DOWN,
+            KeyEvent.KEYCODE_DPAD_UP_LEFT,
+            KeyEvent.KEYCODE_DPAD_UP_RIGHT,
+            KeyEvent.KEYCODE_DPAD_DOWN_LEFT,
+            KeyEvent.KEYCODE_DPAD_DOWN_RIGHT,
+        )
+
+        /** True for sources of joystick-style motion; pointer devices (mouse, touchpad) are not. */
+        fun isNavigationGenericMotionSource(source: Int): Boolean =
+            (source and InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK ||
+                (source and InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD ||
+                (source and InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
     }
 }
