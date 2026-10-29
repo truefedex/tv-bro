@@ -373,6 +373,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
+        //a long press of B held while the activity closes must not go back in it later
+        backNavigationEventsAdapter.consumeCurrentPress()
         //here properties can be uninitialized in case of wrong activity for incognito mode
         //detection and force activity restart in onCreate()
         if (::controller.isInitialized) {
