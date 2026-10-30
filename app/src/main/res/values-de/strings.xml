@@ -549,8 +549,8 @@
   <string name="settings_cursor_acceleration">Cursorbeschleunigung</string>
   <string name="settings_cursor_acceleration_summary">Wie schnell er die Höchstgeschwindigkeit erreicht</string>
   <string name="settings_percent">%d %%</string>
-  <string name="settings_joystick">Mit Joystick-Sticks navigieren</string>
-  <string name="settings_joystick_summary">Die Sticks von Gamecontrollern bewegen den Fokus wie das Steuerkreuz</string>
+  <string name="settings_joystick">Cursor mit den Sticks bewegen</string>
+  <string name="settings_joystick_summary">Der linke Stick eines Gamecontrollers bewegt den Cursor stufenlos. Ausschalten, wenn der Cursor von selbst wandert</string>
   <string name="settings_group_keys">Tasten der Fernbedienung</string>
   <string name="settings_press_key">Drücken Sie eine Taste auf der Fernbedienung. Halten Sie sie gedrückt, um langes Drücken festzulegen</string>
   <string name="settings_key_now_s">Aktuell: %s</string>

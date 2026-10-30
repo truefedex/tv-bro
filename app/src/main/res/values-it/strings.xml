@@ -567,8 +567,8 @@
   <string name="settings_cursor_acceleration">Accelerazione del cursore</string>
   <string name="settings_cursor_acceleration_summary">Quanto velocemente raggiunge la velocità massima</string>
   <string name="settings_percent">%d%%</string>
-  <string name="settings_joystick">Naviga con le levette</string>
-  <string name="settings_joystick_summary">Le levette dei controller di gioco spostano il focus come il D-pad</string>
+  <string name="settings_joystick">Muovi il cursore con le levette</string>
+  <string name="settings_joystick_summary">La levetta sinistra del controller di gioco muove il cursore in modo fluido. Disattiva se il cursore si sposta da solo</string>
   <string name="settings_group_keys">Tasti del telecomando</string>
   <string name="settings_press_key">Premi un tasto del telecomando. Tienilo premuto per impostare una pressione prolungata</string>
   <string name="settings_key_now_s">Ora: %s</string>

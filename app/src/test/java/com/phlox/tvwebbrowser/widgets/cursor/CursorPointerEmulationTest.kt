@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.widgets.cursor
 
 import android.app.Activity
 import android.os.Looper
+import android.os.SystemClock
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -225,13 +226,9 @@ class CursorPointerEmulationTest {
         target.sent.clear()
 
         delegate.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER))
-        delegate.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT))
-        val looper = shadowOf(Looper.getMainLooper())
-        repeat(20) {
-            Thread.sleep(5)
-            looper.runOneTask()
-        }
-        delegate.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_RIGHT))
+        delegate.setDirection(1f, 0f)
+        runFrames(20)
+        delegate.setDirection(0f, 0f)
         delegate.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_CENTER))
 
         val actions = target.actions()
@@ -270,6 +267,73 @@ class CursorPointerEmulationTest {
 
         delegate.pointerMode = PointerMode.MOUSE
         assertEquals(listOf(MotionEvent.ACTION_CANCEL), target.actions())
+    }
+
+    @Test
+    fun aNewDirectionSteersWithoutStopping() {
+        val delegate = attachedDelegate()
+        delegate.moveTo(100f, 200f)
+        delegate.setDirection(1f, 0f)
+        var lastStep = 0f
+        repeat(5) {
+            val (dx, dy) = runUntilMoved(delegate)
+            assertEquals(0f, dy, 0f)
+            assertTrue(dx >= lastStep)
+            lastStep = dx
+        }
+
+        delegate.setDirection(0f, -1f)
+        val (dx, dy) = runUntilMoved(delegate)
+        // up at the speed reached, not from rest, and no drift to the right
+        assertEquals(0f, dx, 0f)
+        assertTrue("step $dy after $lastStep", -dy >= lastStep)
+    }
+
+    @Test
+    fun aStickDirectionMovesAlongIt() {
+        val delegate = attachedDelegate()
+        delegate.moveTo(100f, 100f)
+        delegate.setDirection(0.3f, 0.6f)
+        repeat(5) { runUntilMoved(delegate) }
+        val dx = delegate.cursorPosition.x - 100f
+        val dy = delegate.cursorPosition.y - 100f
+        assertTrue(dx > 0f)
+        assertEquals(2f, dy / dx, 0.001f)
+    }
+
+    @Test
+    fun aZeroDirectionStops() {
+        val delegate = attachedDelegate()
+        delegate.moveTo(200f, 200f)
+        delegate.setDirection(-1f, 0f)
+        repeat(3) { runUntilMoved(delegate) }
+        delegate.setDirection(0f, 0f)
+        val stopX = delegate.cursorPosition.x
+        runFrames(10)
+        assertEquals(stopX, delegate.cursorPosition.x, 0f)
+    }
+
+    /** Runs the tasks of the main looper until the cursor moves; gives the step */
+    private fun runUntilMoved(delegate: CursorDrawerDelegate): Pair<Float, Float> {
+        val x = delegate.cursorPosition.x
+        val y = delegate.cursorPosition.y
+        repeat(10) {
+            runFrames(1)
+            if (delegate.cursorPosition.x != x || delegate.cursorPosition.y != y) {
+                return delegate.cursorPosition.x - x to delegate.cursorPosition.y - y
+            }
+        }
+        throw AssertionError("the cursor did not move")
+    }
+
+    /** Runs tasks of the main looper (the movement loop among them) 16 ms apart, so the cursor accelerates */
+    private fun runFrames(count: Int) {
+        val looper = shadowOf(Looper.getMainLooper())
+        repeat(count) {
+            // the fake clock of Robolectric, which System.currentTimeMillis follows too
+            SystemClock.sleep(16)
+            looper.runOneTask()
+        }
     }
 
     private fun click(delegate: CursorDrawerDelegate) {

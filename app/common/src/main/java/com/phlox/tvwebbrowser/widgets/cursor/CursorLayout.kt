@@ -30,10 +30,9 @@ class CursorLayout @JvmOverloads constructor(context: Context, attrs: AttributeS
         }
     lateinit var cursorDrawerDelegate: CursorDrawerDelegate
     private val inputEventsAdapter = DPADNavigationEventsAdapter(
-        onEmulatedKeyEvent = { keyEvent ->
-            cursorDrawerDelegate.dispatchKeyEvent(keyEvent)
-        },
-        motionAxesTranslationEnabled = { !AppContext.provideConfig().disableMotionAxesDpadNavigation },
+        onDirection = { x, y -> cursorDrawerDelegate.setDirection(x, y) },
+        onKeyEvent = { keyEvent -> cursorDrawerDelegate.dispatchKeyEvent(keyEvent) },
+        analogStickNavigationEnabled = { !AppContext.provideConfig().disableMotionAxesDpadNavigation },
         isSoftwareKeyboardVisible = {
             ViewCompat.getRootWindowInsets(rootView)?.isVisible(WindowInsetsCompat.Type.ime()) == true
         },

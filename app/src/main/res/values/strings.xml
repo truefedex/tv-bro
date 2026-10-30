@@ -615,8 +615,8 @@
     <string name="settings_cursor_acceleration_summary">How fast it gets to the top speed</string>
     <!-- %d: a percent of the default -->
     <string name="settings_percent">%d%%</string>
-    <string name="settings_joystick">Navigate with joystick sticks</string>
-    <string name="settings_joystick_summary">Sticks of game controllers move the focus like the D-pad</string>
+    <string name="settings_joystick">Move the cursor with sticks</string>
+    <string name="settings_joystick_summary">The left stick of a game controller moves the cursor smoothly. Turn off if the cursor drifts on its own</string>
     <string name="settings_group_keys">Keys of the remote</string>
     <string name="settings_press_key">Press a key on the remote. Hold it to set a long press</string>
     <!-- %s: the key of the shortcut now -->

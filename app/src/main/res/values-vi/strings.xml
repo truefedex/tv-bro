@@ -533,8 +533,8 @@
   <string name="settings_cursor_acceleration">Gia tốc con trỏ</string>
   <string name="settings_cursor_acceleration_summary">Mức độ nhanh để đạt tốc độ tối đa</string>
   <string name="settings_percent">%d%%</string>
-  <string name="settings_joystick">Điều hướng bằng cần điều khiển</string>
-  <string name="settings_joystick_summary">Cần điều khiển của tay cầm chơi game di chuyển tiêu điểm như D-pad</string>
+  <string name="settings_joystick">Di chuyển con trỏ bằng cần điều khiển</string>
+  <string name="settings_joystick_summary">Cần trái của tay cầm chơi game di chuyển con trỏ mượt mà. Tắt đi nếu con trỏ tự trôi</string>
   <string name="settings_group_keys">Phím điều khiển</string>
   <string name="settings_press_key">Nhấn một phím trên điều khiển. Giữ phím để đặt thao tác nhấn giữ</string>
   <string name="settings_key_now_s">Hiện tại: %s</string>

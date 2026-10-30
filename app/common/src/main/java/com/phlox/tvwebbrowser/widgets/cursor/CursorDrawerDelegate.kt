@@ -7,6 +7,7 @@ import android.graphics.Point
 import android.graphics.PointF
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -15,7 +16,9 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 
 /**
- * The virtual cursor: D-pad key handling, movement, visibility timing, press and grab state.
+ * The virtual cursor: movement, the selection keys, visibility timing, press and grab state.
+ * Movement comes as a direction vector ([setDirection]), not as keys: a `DPADNavigationEventsAdapter`
+ * makes it of the D-pad keys, the hat and the sticks of game controllers.
  * The concrete work goes to collaborators: [CursorRenderer] (drawing), a [PointerEmulator] (the
  * synthetic click/drag stream: a finger or a mouse, see [pointerMode]), [CursorScroller] (scrolling
  * at the edges, including the scroll hack) and [PinchZoomGesture].
@@ -50,10 +53,12 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
     /** Pixels/sec cap baseline from display width (see [init]); scaled by [Config.cursorMaxSpeedPercent]. */
     private var maxSpeedBaselinePx: Float = 0f
     private var scrollStartPadding = 100
-    private val cursorDirection = Point(0, 0)
+    /** Where the cursor moves, each component in -1..1; (0, 0) while it stands */
+    private val cursorDirection = PointF(0f, 0f)
     val cursorPosition = PointF(0f, 0f)
-    private val cursorSpeed = PointF(0f, 0f)
-    private var lastCursorUpdate = System.currentTimeMillis() - CURSOR_DISAPPEAR_TIMEOUT
+    /** Pixels per frame along [cursorDirection]: grows with the acceleration up to the cap */
+    private var cursorSpeed = 0f
+    private var lastCursorUpdate = SystemClock.uptimeMillis() - CURSOR_DISAPPEAR_TIMEOUT
     private var dpadCenterPressed = false
     /**
      * The click key is held but the mouse press is not sent yet (only in [PointerMode.MOUSE]). A mouse
@@ -135,7 +140,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
 
     private val isCursorDisappear: Boolean
         get() {
-            val newTime = System.currentTimeMillis()
+            val newTime = SystemClock.uptimeMillis()
             return newTime - lastCursorUpdate > CURSOR_DISAPPEAR_TIMEOUT
         }
 
@@ -190,8 +195,8 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
         endPress(cancel = true)
         scroller.cancelScrollHack()
         pointer.detach()
-        cursorDirection.set(0, 0)
-        cursorSpeed.set(0f, 0f)
+        cursorDirection.set(0f, 0f)
+        cursorSpeed = 0f
         // null while the view is not attached to a window
         surface.keyDispatcherState?.reset(this)
         surface.postInvalidate()
@@ -207,80 +212,41 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
         }
     }
 
+    /**
+     * Sets where the cursor moves: [x] and [y] in -1..1 (left and up are negative). Keys and the hat
+     * give whole steps (a diagonal is (1, 1)), a stick its deflection. The speed grows with the
+     * acceleration of the settings up to their cap and is scaled by the vector, so a new vector
+     * steers the moving cursor without stopping it; (0, 0) stops it at once. A cursor that is hidden
+     * shows again when it starts moving.
+     */
+    fun setDirection(x: Float, y: Float) {
+        val newX = bound(x, 1f)
+        val newY = bound(y, 1f)
+        val wasMoving = cursorDirection.x != 0f || cursorDirection.y != 0f
+        cursorDirection.set(newX, newY)
+        if (newX == 0f && newY == 0f) {
+            if (wasMoving) {
+                // the next frame ends the loop and schedules the hiding
+                cursorSpeed = 0f
+                scroller.cancelScrollHack()
+            }
+            return
+        }
+        if (!wasMoving) {
+            // Only a start stamps the time: sticks report many times a frame, and the
+            // acceleration of a frame comes from the time since the previous one
+            lastCursorUpdate = SystemClock.uptimeMillis()
+            surface.removeCallbacks(cursorUpdateRunnable)
+            surface.post(cursorUpdateRunnable)
+        }
+    }
+
+    /** The selection keys (a press of the cursor); directions come through [setDirection] */
     fun dispatchKeyEvent(event: KeyEvent): Boolean {
         when (event.keyCode) {
-            KeyEvent.KEYCODE_DPAD_LEFT -> {
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    handleDirectionKeyEvent(event, -1, UNCHANGED, true)
-                } else if (event.action == KeyEvent.ACTION_UP) {
-                    handleDirectionKeyEvent(event, 0, UNCHANGED, false)
-                }
-                return true
-            }
-            KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    handleDirectionKeyEvent(event, 1, UNCHANGED, true)
-                } else if (event.action == KeyEvent.ACTION_UP) {
-                    handleDirectionKeyEvent(event, 0, UNCHANGED, false)
-                }
-                return true
-            }
-            KeyEvent.KEYCODE_DPAD_UP -> {
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    handleDirectionKeyEvent(event, UNCHANGED, -1, true)
-                } else if (event.action == KeyEvent.ACTION_UP) {
-                    handleDirectionKeyEvent(event, UNCHANGED, 0, false)
-                }
-                return true
-            }
-            KeyEvent.KEYCODE_DPAD_DOWN -> {
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    handleDirectionKeyEvent(event, UNCHANGED, 1, true)
-                } else if (event.action == KeyEvent.ACTION_UP) {
-                    handleDirectionKeyEvent(event, UNCHANGED, 0, false)
-                }
-                return true
-            }
-
-            KeyEvent.KEYCODE_DPAD_UP_LEFT -> {
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    handleDirectionKeyEvent(event, -1, -1, true)
-                } else if (event.action == KeyEvent.ACTION_UP) {
-                    handleDirectionKeyEvent(event, 0, 0, false)
-                }
-                return true
-            }
-
-            KeyEvent.KEYCODE_DPAD_UP_RIGHT -> {
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    handleDirectionKeyEvent(event, 1, -1, true)
-                } else if (event.action == KeyEvent.ACTION_UP) {
-                    handleDirectionKeyEvent(event, 0, 0, false)
-                }
-                return true
-            }
-
-            KeyEvent.KEYCODE_DPAD_DOWN_LEFT -> {
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    handleDirectionKeyEvent(event, -1, 1, true)
-                } else if (event.action == KeyEvent.ACTION_UP) {
-                    handleDirectionKeyEvent(event, 0, 0, false)
-                }
-                return true
-            }
-
-            KeyEvent.KEYCODE_DPAD_DOWN_RIGHT -> {
-                if (event.action == KeyEvent.ACTION_DOWN) {
-                    handleDirectionKeyEvent(event, 1, 1, true)
-                } else if (event.action == KeyEvent.ACTION_UP) {
-                    handleDirectionKeyEvent(event, 0, 0, false)
-                }
-                return true
-            }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER, KeyEvent.KEYCODE_BUTTON_A -> {
-                // [DPADNavigationEventsAdapter] may emit several selection key codes for one physical
-                // click; each is a distinct KeyEvent so keyDispatcherState.isTracking is per-key.
-                // Map them to a single pointer press/release stream.
+                // All selection keys are one press of the cursor; keyDispatcherState tracks each key
+                // code apart, so a second one held during a press does not start another.
                 if (event.action == KeyEvent.ACTION_DOWN &&
                     event.repeatCount == 0 &&
                     !surface.keyDispatcherState.isTracking(event)
@@ -302,7 +268,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
                     if (grabMode) {
                         //nop
                     } else if (isCursorDisappear) {
-                        lastCursorUpdate = System.currentTimeMillis()
+                        lastCursorUpdate = SystemClock.uptimeMillis()
                         surface.postInvalidate()
                         scheduleCursorHide()
                     } else {
@@ -315,24 +281,6 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
             }
         }
         return false
-    }
-
-    private fun handleDirectionKeyEvent(event: KeyEvent, x: Int, y: Int, keyDown: Boolean) {
-        lastCursorUpdate = System.currentTimeMillis()
-        if (keyDown) {
-            if (surface.keyDispatcherState.isTracking(event)) {
-                return
-            }
-            surface.removeCallbacks(cursorUpdateRunnable)
-            surface.post(cursorUpdateRunnable)
-            surface.keyDispatcherState.startTracking(event, this)
-        } else {
-            surface.keyDispatcherState.handleUpEvent(event)
-            cursorSpeed.set(0f, 0f)
-            scroller.cancelScrollHack()
-        }
-
-        cursorDirection.set(if (x == UNCHANGED) cursorDirection.x else x, if (y == UNCHANGED) cursorDirection.y else y)
     }
 
     private fun bound(value: Float, max: Float): Float {
@@ -378,24 +326,25 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
         override fun run() {
             mainHandler.removeCallbacks(cursorHideRunnable)
 
-            val newTime = System.currentTimeMillis()
+            val newTime = SystemClock.uptimeMillis()
             val dTime = newTime - lastCursorUpdate
             lastCursorUpdate = newTime
 
-            val cfg = AppContext.provideConfig()
-            val speedCap = maxSpeedBaselinePx * (cfg.cursorMaxSpeedPercent / 100f)
-            val accelerationFactor = 0.05f * (cfg.cursorAccelerationPercent / 100f) * dTime
-            cursorSpeed.set(bound(cursorSpeed.x + bound(cursorDirection.x.toFloat(), 1f) * accelerationFactor, speedCap),
-                bound(cursorSpeed.y + bound(cursorDirection.y.toFloat(), 1f) * accelerationFactor, speedCap))
-            if (Math.abs(cursorSpeed.x) < 0.1f) cursorSpeed.x = 0f
-            if (Math.abs(cursorSpeed.y) < 0.1f) cursorSpeed.y = 0f
-            if (cursorDirection.x == 0 && cursorDirection.y == 0 && cursorSpeed.x == 0f && cursorSpeed.y == 0f) {
+            if (cursorDirection.x == 0f && cursorDirection.y == 0f) {
+                cursorSpeed = 0f
                 scroller.cancelScrollHack()
                 scheduleCursorHide()
                 return
             }
+            val cfg = AppContext.provideConfig()
+            val speedCap = maxSpeedBaselinePx * (cfg.cursorMaxSpeedPercent / 100f)
+            val acceleration = 0.05f * (cfg.cursorAccelerationPercent / 100f) * dTime
+            cursorSpeed = (cursorSpeed + acceleration).coerceAtMost(speedCap)
+            // each axis reaches the cap together with the speed, as when the axes were apart
+            val speedX = cursorDirection.x * cursorSpeed
+            val speedY = cursorDirection.y * cursorSpeed
             tmpPointF.set(cursorPosition)
-            cursorPosition.offset(cursorSpeed.x, cursorSpeed.y)
+            cursorPosition.offset(speedX, speedY)
             surface.removeCallbacks(longPressRunnable)
             if (cursorPosition.x < 0) {
                 cursorPosition.x = 0f
@@ -410,21 +359,21 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
             var dx = 0
             var dy = 0
             if (cursorPosition.y > surface.height - scrollStartPadding) {
-                if (cursorSpeed.y > 0) {
-                    dy = cursorSpeed.y.toInt()
+                if (speedY > 0) {
+                    dy = speedY.toInt()
                 }
             } else if (cursorPosition.y < scrollStartPadding) {
-                if (cursorSpeed.y < 0) {
-                    dy = cursorSpeed.y.toInt()
+                if (speedY < 0) {
+                    dy = speedY.toInt()
                 }
             }
             if (cursorPosition.x > surface.width - scrollStartPadding) {
-                if (cursorSpeed.x > 0) {
-                    dx = cursorSpeed.x.toInt()
+                if (speedX > 0) {
+                    dx = speedX.toInt()
                 }
             } else if (cursorPosition.x < scrollStartPadding) {
-                if (cursorSpeed.x < 0) {
-                    dx = cursorSpeed.x.toInt()
+                if (speedX < 0) {
+                    dx = speedX.toInt()
                 }
             }
             if (dx != 0 || dy != 0) {
@@ -454,7 +403,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
     }
 
     fun animateAppearing() {
-        lastCursorUpdate = System.currentTimeMillis()
+        lastCursorUpdate = SystemClock.uptimeMillis()
         scheduleCursorHide()
         cursorRadiusAnimationMultiplier = 2f
         val animator = ValueAnimator.ofFloat(2f, 1f)
@@ -470,12 +419,11 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
         // a press already in the page is released as before, a mouse press that waited is dropped
         endPress(cancel = mousePressPending)
         grabMode = false
-        lastCursorUpdate = System.currentTimeMillis() - CURSOR_DISAPPEAR_TIMEOUT
+        lastCursorUpdate = SystemClock.uptimeMillis() - CURSOR_DISAPPEAR_TIMEOUT
         surface.postInvalidate()
     }
 
     companion object {
-        private const val UNCHANGED = Integer.MIN_VALUE
         private const val CURSOR_DISAPPEAR_TIMEOUT = 5000
         //100ms more to let underlying view handle long press first
         //idea to let geckoview handle long press first (and receive ContentDelegate.onContextMenu callback)

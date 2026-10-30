@@ -1,290 +1,103 @@
 package com.phlox.tvwebbrowser.utils
 
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
-import kotlin.math.max
+import android.view.ViewConfiguration
 
 /**
- * Detects "back navigation" intent from multiple input channels:
- * - [dispatchSystemBackNavigationEvent] (system back callback)
- * - [dispatchKeyEvent] (framework key events)
- * - [dispatchGenericMotionEvent] (controller button state as motion)
+ * Turns every Back of the user into one call of [onEmulatedBackEvent]. A Back comes through three
+ * channels:
+ * - [dispatchKeyEvent]: the BACK, ESCAPE and B (game controllers) keys, back on release;
+ * - [dispatchSystemBackNavigationEvent]: the system back callback (gestures, and also key presses
+ *   the activity did not take: since Android 13 the release of the key then comes canceled);
+ * - [dispatchGenericMotionEvent]: the right and back buttons of a mouse, back on release.
  *
- * This adapter does **not** emit/forward [KeyEvent]s. Instead it invokes [onEmulatedBackEvent]
- * when it decides a "back navigation" should happen.
+ * One press often comes through more than one channel (a key the views did not handle reaches the
+ * system callback too, the back button of a mouse also comes as a BACK key), so an event of another
+ * channel within [SAME_PRESS_WINDOW_MS] of the last one taken is part of the same press and ignored.
  *
- * Duplicate delivery is handled via a small cross-channel suppression window: if one channel
- * recently generated BACK, other channels are ignored for a short time.
+ * With [gameControllersLongPressBForBackNavigation] (the direct navigation mode, where a short B
+ * goes to the page), keys of game controllers go back on a long press only; remotes and keyboards
+ * still go back on a short one.
  */
 class BackNavigationEventsAdapter(
-    /**
-     * Callback invoked when a back navigation intent is detected.
-     *
-     * By default, the callback is invoked only after a BACK key press and key release are
-     * both detected.
-     *
-     * If [gameControllersLongPressBForBackNavigation] is true, then controller sources
-     * ([android.view.InputDevice.SOURCE_JOYSTICK] or [android.view.InputDevice.SOURCE_GAMEPAD])
-     * invoke the callback only when a long-press back is detected, not on release.
-     */
     private val onEmulatedBackEvent: () -> Unit,
-
-    /**
-     * Milliseconds after which a held BACK/B button emits a long-press BACK [KeyEvent].
-     */
-    private val longPressTimeoutMs: Int = DEFAULT_LONG_PRESS_TIMEOUT_MS,
-
-    /**
-     * When true, controller "B/back" short press does not trigger back navigation; long-press does.
-     */
-    var gameControllersLongPressBForBackNavigation: Boolean = false,
 ) {
-    init {
-        require(longPressTimeoutMs > 0) { "longPressTimeoutMs must be > 0" }
-    }
+    var gameControllersLongPressBForBackNavigation: Boolean = false
 
-    private val debugLogs: Boolean = false
-    private fun d(msg: String) {
-        if (debugLogs) {
-            Log.d(TAG, msg)
-        }
-    }
+    private enum class Channel { SYSTEM, KEY, MOUSE }
 
-    private val allowedKeyCodes: Set<Int> = NavigationReservedShortcutKeyCodes.backNavigationKeys
+    private var lastChannel: Channel? = null
+    private var lastChannelTime = 0L
 
-    private fun isKeyAllowed(keyCode: Int): Boolean = allowedKeyCodes.contains(keyCode)
+    private val handler = Handler(Looper.getMainLooper())
+    private val longPressRunnable = Runnable { fireBack() }
 
-    private var lastBackDown: Boolean = false
+    /** Between the DOWN that started a key press and its UP. */
+    private var keyPressActive = false
 
-    /** [KeyEvent.downTime] of the first emulated BACK [KeyEvent.ACTION_DOWN] while held. */
-    private var backKeyDownTime: Long = 0L
+    /** Whether the UP of the key press is a Back: not for a long-press-only press or a consumed one. */
+    private var keyPressBackOnRelease = false
 
-    /** True after we emitted the synthetic long-press [KeyEvent]. */
-    private var backLongPressEmitted: Boolean = false
+    private var mouseButtonDown = false
 
-    private enum class BackChannel { SYSTEM, KEY, MOTION }
-
-    private fun isControllerSource(source: Int): Boolean {
-        return (source and android.view.InputDevice.SOURCE_JOYSTICK) != 0 ||
-            (source and android.view.InputDevice.SOURCE_GAMEPAD) != 0
-    }
-
-    /**
-     * For non-controller sources, callback is fired only after ACTION_DOWN followed by
-     * ACTION_UP.
-     */
-    private var pendingBackDown: Boolean = false
-
-    /**
-     * When controller-long-press mode triggers, we should not fire again on release.
-     */
-    private var controllerLongPressTriggeredSinceDown: Boolean = false
-
-    /**
-     * For KeyEvent channel: latch controllerLongPressOnly for the whole press sequence.
-     * Some devices change flags/source across repeats; we must stay consistent until ACTION_UP.
-     */
-    private var keyPressActive: Boolean = false
-    private var keyPressControllerLongPressOnly: Boolean = false
-
-    // Timestamp of last BACK ACTION_DOWN emulated/forwarded by each channel (ms, based on uptime).
-    private val lastBackDownEventTimeByChannel = LongArray(BackChannel.entries.size) { -1L }
-
-    /**
-     * If one channel emits BACK recently, we suppress BACK from other channels within this window.
-     * This replaces eventTime+action+keyCode dedupe because those can differ between channels.
-     */
-    private val suppressOtherChannelsTimeoutMs: Long = 1000L
-
-    private fun shouldSuppress(from: BackChannel, eventTime: Long): Boolean {
-        fun recent(other: BackChannel): Boolean {
-            val t = lastBackDownEventTimeByChannel[other.ordinal]
-            if (t < 0L) return false
-            val dt = eventTime - t
-            return dt in 0L..suppressOtherChannelsTimeoutMs
-        }
-
-        return when (from) {
-            BackChannel.SYSTEM -> recent(BackChannel.KEY) || recent(BackChannel.MOTION)
-            BackChannel.KEY -> recent(BackChannel.SYSTEM) || recent(BackChannel.MOTION)
-            BackChannel.MOTION -> recent(BackChannel.SYSTEM) || recent(BackChannel.KEY)
-        }
-    }
-
-    private fun markBackDownGenerated(from: BackChannel, eventTime: Long) {
-        lastBackDownEventTimeByChannel[from.ordinal] = eventTime
-        d("markBackDownGenerated from=$from eventTime=$eventTime")
-    }
+    /** Whether the release of the mouse button is a Back (false after [consumeCurrentPress]). */
+    private var mouseBackOnRelease = false
 
     fun dispatchSystemBackNavigationEvent(): Boolean {
-        val now = SystemClock.uptimeMillis()
-        val suppressed = shouldSuppress(BackChannel.SYSTEM, now)
-        d("dispatchSystemBackNavigationEvent now=$now suppressed=$suppressed")
-        if (!suppressed) {
-            // Treat this as: BACK down then BACK up.
-            pendingBackDown = true
-            markBackDownGenerated(BackChannel.SYSTEM, now)
-
-            // Callback only after both press+release have been detected.
-            if (pendingBackDown) {
-                pendingBackDown = false
-                try {
-                    d("dispatchSystemBackNavigationEvent firing onEmulatedBackEvent()")
-                    onEmulatedBackEvent()
-                } catch (t: Throwable) {
-                    Log.e(TAG, "dispatchSystemBackNavigationEvent: onEmulatedBackEvent failed", t)
-                }
-            }
-            return true
-        }
-        return false
+        if (!takeChannel(Channel.SYSTEM, SystemClock.uptimeMillis())) return false
+        fireBack()
+        return true
     }
 
     fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (!isKeyAllowed(event.keyCode)) return false
-        val suppressed = shouldSuppress(BackChannel.KEY, event.eventTime)
-        d("dispatchKeyEvent keyCode=${event.keyCode} action=${event.action} source=${event.source} " +
-            "eventTime=${event.eventTime} downTime=${event.downTime} repeatCount=${event.repeatCount} " +
-            "isLongPress=${event.isLongPress} flags=${event.flags} suppressed=$suppressed")
-        if (suppressed) return false
+        if (event.keyCode !in NavigationReservedShortcutKeyCodes.backNavigationKeys) return false
+        if (!takeChannel(Channel.KEY, event.eventTime)) return false
 
-        return try {
-            when (event.action) {
-                KeyEvent.ACTION_DOWN -> {
-                    // Latch mode on the first DOWN of a press.
-                    if (!keyPressActive && event.repeatCount == 0) {
-                        keyPressActive = true
-                        keyPressControllerLongPressOnly =
-                            gameControllersLongPressBForBackNavigation && isControllerSource(event.source)
-                        controllerLongPressTriggeredSinceDown = false
-                        pendingBackDown = false
-                        d("dispatchKeyEvent latch press: controllerLongPressOnly=$keyPressControllerLongPressOnly")
-                    }
-
-                    markBackDownGenerated(BackChannel.KEY, event.eventTime)
-                    if (keyPressControllerLongPressOnly) {
-                        val isLongPressNow =
-                            event.isLongPress || event.repeatCount > 0 || (event.flags and KeyEvent.FLAG_LONG_PRESS) != 0
-                        if (isLongPressNow && !controllerLongPressTriggeredSinceDown) {
-                            controllerLongPressTriggeredSinceDown = true
-                            d("dispatchKeyEvent ACTION_DOWN controllerLongPressOnly: long-press detected -> callback")
-                            onEmulatedBackEvent()
-                        }
-                        // Consume the event even when it's not long-press.
-                    } else if (event.repeatCount == 0) {
-                        // Non-controller: only treat the first DOWN as "press start".
-                        d("dispatchKeyEvent ACTION_DOWN non-controller: pendingBackDown=true")
-                        pendingBackDown = true
-                    }
-                }
-                KeyEvent.ACTION_UP -> {
-                    if (keyPressControllerLongPressOnly) {
-                        // Don't call callback on release; end long-press tracking.
-                        d("dispatchKeyEvent ACTION_UP controllerLongPressOnly: release -> no callback")
-                        controllerLongPressTriggeredSinceDown = false
-                    } else {
-                        if (pendingBackDown) {
-                            d("dispatchKeyEvent ACTION_UP non-controller: pendingBackDown -> callback")
-                            pendingBackDown = false
-                            onEmulatedBackEvent()
-                        } else {
-                            pendingBackDown = false
-                        }
-                    }
-
-                    keyPressActive = false
-                    keyPressControllerLongPressOnly = false
+        when (event.action) {
+            KeyEvent.ACTION_DOWN -> if (event.repeatCount == 0 && !keyPressActive) {
+                // a DOWN within an active press is the fallback BACK of an unhandled B or ESCAPE
+                keyPressActive = true
+                val longPressOnly = gameControllersLongPressBForBackNavigation && isControllerKey(event)
+                keyPressBackOnRelease = !longPressOnly
+                handler.removeCallbacks(longPressRunnable)
+                if (longPressOnly) {
+                    val held = event.eventTime - event.downTime
+                    handler.postDelayed(longPressRunnable, (LONG_PRESS_TIMEOUT_MS - held).coerceAtLeast(0L))
                 }
             }
-            true
-        } catch (t: Throwable) {
-            Log.e(TAG, "dispatchKeyEvent failed keyCode=${event.keyCode} action=${event.action}", t)
-            false
+            KeyEvent.ACTION_UP -> {
+                // a canceled release is still a Back (see the class comment)
+                handler.removeCallbacks(longPressRunnable)
+                if (keyPressActive && keyPressBackOnRelease) fireBack()
+                keyPressActive = false
+            }
         }
+        return true
     }
 
+    /**
+     * Game controllers do not set the mouse buttons in the button state, so this channel needs no
+     * long press. The cursor's own mouse events go to the page views directly, not through here.
+     */
     fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        val buttonState = event.buttonState
-        val backPressedNow =
-            (buttonState and MotionEvent.BUTTON_SECONDARY) != 0 ||
-                (buttonState and MotionEvent.BUTTON_BACK) != 0
+        val down = (event.buttonState and (MotionEvent.BUTTON_SECONDARY or MotionEvent.BUTTON_BACK)) != 0
+        if (down == mouseButtonDown) return false
+        mouseButtonDown = down
+        if (!takeChannel(Channel.MOUSE, event.eventTime)) return false
 
-        var emittedAny = false
-        val suppressed = shouldSuppress(BackChannel.MOTION, event.eventTime)
-
-        val controllerLongPressOnly =
-            gameControllersLongPressBForBackNavigation && isControllerSource(event.source)
-
-        d("dispatchGenericMotionEvent buttonState=$buttonState source=${event.source} " +
-            "eventTime=${event.eventTime} downTime=${event.downTime} backPressedNow=$backPressedNow " +
-            "lastBackDown=$lastBackDown suppressed=$suppressed controllerLongPressOnly=$controllerLongPressOnly")
-
-        if (backPressedNow && !lastBackDown) {
-            // Track the hold regardless of suppression so long-press can still be emitted later.
-            backKeyDownTime = event.downTime
-            backLongPressEmitted = false
-            if (!suppressed) {
-                markBackDownGenerated(BackChannel.MOTION, event.eventTime)
-                if (controllerLongPressOnly) {
-                    controllerLongPressTriggeredSinceDown = false
-                    // Don't fire callback yet; only on long-press.
-                } else {
-                    pendingBackDown = true
-                }
-                emittedAny = true
-            }
-        } else if (!backPressedNow && lastBackDown) {
-            if (!suppressed) {
-                if (controllerLongPressOnly) {
-                    // Don't call callback on release in controller-long-press mode.
-                    d("dispatchGenericMotionEvent controllerLongPressOnly: release -> no callback")
-                    controllerLongPressTriggeredSinceDown = false
-                } else {
-                    if (pendingBackDown) {
-                        d("dispatchGenericMotionEvent non-controller: release with pending -> callback")
-                        pendingBackDown = false
-                        try {
-                            onEmulatedBackEvent()
-                        } catch (t: Throwable) {
-                            Log.e(TAG, "dispatchGenericMotionEvent: onEmulatedBackEvent failed", t)
-                        }
-                    } else {
-                        pendingBackDown = false
-                    }
-                }
-                emittedAny = true
-            }
-            backLongPressEmitted = false
-        } else if (
-            backPressedNow && lastBackDown &&
-                isKeyAllowed(KeyEvent.KEYCODE_BACK) &&
-                !backLongPressEmitted
-        ) {
-            val elapsed = max(0L, event.eventTime - backKeyDownTime)
-            if (elapsed >= longPressTimeoutMs) {
-                if (!suppressed) {
-                    markBackDownGenerated(BackChannel.MOTION, event.eventTime)
-                    if (controllerLongPressOnly) {
-                        if (!controllerLongPressTriggeredSinceDown) {
-                            controllerLongPressTriggeredSinceDown = true
-                            d("dispatchGenericMotionEvent controllerLongPressOnly: long-press elapsed=$elapsed -> callback")
-                            try {
-                                onEmulatedBackEvent()
-                            } catch (t: Throwable) {
-                                Log.e(TAG, "dispatchGenericMotionEvent: onEmulatedBackEvent failed", t)
-                            }
-                        }
-                    }
-                    emittedAny = true
-                }
-                backLongPressEmitted = true
-            }
+        if (down) {
+            mouseBackOnRelease = true
+        } else if (mouseBackOnRelease) {
+            mouseBackOnRelease = false
+            fireBack()
         }
-
-        lastBackDown = backPressedNow
-        return emittedAny
+        return true
     }
 
     /**
@@ -294,27 +107,42 @@ class BackNavigationEventsAdapter(
      * callback handles Back (seen on Android 16), the release of every BACK key comes canceled.
      */
     fun consumeCurrentPress() {
-        d("consumeCurrentPress pendingBackDown=$pendingBackDown")
-        pendingBackDown = false
+        handler.removeCallbacks(longPressRunnable)
+        keyPressBackOnRelease = false
+        mouseBackOnRelease = false
     }
 
-    fun resetState() {
-        d("resetState()")
-        lastBackDown = false
-        backKeyDownTime = 0L
-        backLongPressEmitted = false
-        pendingBackDown = false
-        controllerLongPressTriggeredSinceDown = false
-        keyPressActive = false
-        keyPressControllerLongPressOnly = false
-        for (i in lastBackDownEventTimeByChannel.indices) {
-            lastBackDownEventTimeByChannel[i] = -1L
+    /** False when another channel took the same press; else the press belongs to [channel] now. */
+    private fun takeChannel(channel: Channel, eventTime: Long): Boolean {
+        val last = lastChannel
+        if (last != null && last != channel && eventTime - lastChannelTime in 0L..SAME_PRESS_WINDOW_MS) {
+            return false
+        }
+        lastChannel = channel
+        lastChannelTime = eventTime
+        return true
+    }
+
+    private fun fireBack() {
+        try {
+            onEmulatedBackEvent()
+        } catch (t: Throwable) {
+            Log.e(TAG, "onEmulatedBackEvent failed", t)
         }
     }
 
+    /**
+     * B is a controller key whatever its source (some pads send it from a keyboard source); whole
+     * sources are matched, since remotes are keyboards and the keyboard source shares a bit with gamepads.
+     */
+    private fun isControllerKey(event: KeyEvent): Boolean =
+        event.keyCode == KeyEvent.KEYCODE_BUTTON_B ||
+            event.isFromSource(InputDevice.SOURCE_JOYSTICK) ||
+            event.isFromSource(InputDevice.SOURCE_GAMEPAD)
+
     companion object {
         private const val TAG = "BackNavigationEventsAdapter"
-        private const val DEFAULT_LONG_PRESS_TIMEOUT_MS: Int = 500
+        private const val SAME_PRESS_WINDOW_MS = 1000L
+        private val LONG_PRESS_TIMEOUT_MS = ViewConfiguration.getLongPressTimeout().toLong()
     }
 }
-

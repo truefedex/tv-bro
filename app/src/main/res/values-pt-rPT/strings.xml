@@ -568,8 +568,8 @@
     <string name="settings_cursor_acceleration">Aceleração do cursor</string>
     <string name="settings_cursor_acceleration_summary">A rapidez com que chega à velocidade máxima</string>
     <string name="settings_percent">%d%%</string>
-    <string name="settings_joystick">Navegar com os manípulos</string>
-    <string name="settings_joystick_summary">Os manípulos dos comandos de jogos movem o foco como as teclas direcionais</string>
+    <string name="settings_joystick">Mover o cursor com os manípulos</string>
+    <string name="settings_joystick_summary">O manípulo esquerdo do comando de jogos move o cursor de forma suave. Desative se o cursor se mover sozinho</string>
     <string name="settings_group_keys">Teclas do comando</string>
     <string name="settings_press_key">Prima uma tecla do comando. Mantenha-a premida para definir uma pressão longa</string>
     <string name="settings_key_now_s">Atual: %s</string>

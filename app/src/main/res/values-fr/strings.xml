@@ -568,8 +568,8 @@
     <string name="settings_cursor_acceleration">Accélération du curseur</string>
     <string name="settings_cursor_acceleration_summary">La rapidité avec laquelle il atteint la vitesse maximale</string>
     <string name="settings_percent">%d %%</string>
-    <string name="settings_joystick">Naviguer avec les joysticks</string>
-    <string name="settings_joystick_summary">Les joysticks des manettes de jeu déplacent le focus comme le pavé directionnel</string>
+    <string name="settings_joystick">Déplacer le curseur avec les joysticks</string>
+    <string name="settings_joystick_summary">Le joystick gauche de la manette de jeu déplace le curseur en douceur. Désactivez si le curseur dérive tout seul</string>
     <string name="settings_group_keys">Touches de la télécommande</string>
     <string name="settings_press_key">Appuyez sur une touche de la télécommande. Maintenez-la pour définir un appui long</string>
     <string name="settings_key_now_s">Actuellement : %s</string>
