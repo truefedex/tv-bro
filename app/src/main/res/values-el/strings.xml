@@ -321,6 +321,7 @@
     <string name="no_videos_on_page">Δεν βρέθηκαν βίντεο σε αυτή τη σελίδα. Τα βίντεο που αναπαράγει μόνο η ίδια η σελίδα (προστατευμένα ή με ροή μέσω δικού της κώδικα) δεν μπορούν να ανοίξουν σε άλλες εφαρμογές.</string>
     <string name="play_in_built_in_player">Αναπαραγωγή στο ενσωματωμένο πρόγραμμα αναπαραγωγής</string>
     <string name="built_in_player">Ενσωματωμένο πρόγραμμα αναπαραγωγής</string>
+    <string name="player_menu_hint">Ρυθμίσεις βίντεο</string>
     <string name="player_error">Δεν είναι δυνατή η αναπαραγωγή αυτού του βίντεο</string>
     <string name="player_back_to_page">Επιστροφή στη σελίδα</string>
     <string name="page_video_hint">Παρακολούθηση στο ενσωματωμένο πρόγραμμα αναπαραγωγής</string>

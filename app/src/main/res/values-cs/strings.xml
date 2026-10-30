@@ -341,6 +341,7 @@
     <string name="no_videos_on_page">Na této stránce nebyla nalezena žádná videa. Videa, která stránka přehrává jen sama (chráněná nebo streamovaná jejím vlastním kódem), nelze otevřít v jiných aplikacích.</string>
     <string name="play_in_built_in_player">Přehrát ve vestavěném přehrávači</string>
     <string name="built_in_player">Vestavěný přehrávač</string>
+    <string name="player_menu_hint">Nastavení videa</string>
     <string name="player_error">Toto video nelze přehrát</string>
     <string name="player_back_to_page">Zpět na stránku</string>
     <string name="page_video_hint">Sledovat ve vestavěném přehrávači</string>

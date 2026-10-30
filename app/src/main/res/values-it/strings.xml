@@ -330,6 +330,7 @@
   <string name="no_videos_on_page">Nessun video trovato in questa pagina. I video che solo la pagina stessa può riprodurre (protetti o trasmessi con il suo codice) non si possono aprire in altre app.</string>
   <string name="play_in_built_in_player">Riproduci nel player integrato</string>
   <string name="built_in_player">Player integrato</string>
+  <string name="player_menu_hint">Impostazioni video</string>
   <string name="player_error">Impossibile riprodurre questo video</string>
   <string name="player_back_to_page">Torna alla pagina</string>
   <string name="page_video_hint">Guarda nel player integrato</string>

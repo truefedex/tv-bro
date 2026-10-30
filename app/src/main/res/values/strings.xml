@@ -274,6 +274,8 @@
     <string name="play_in_built_in_player">Play in built-in player</string>
     <!-- on the seek bar of a fullscreen video, after the key cap of Down -->
     <string name="built_in_player">Built-in player</string>
+    <!-- on the seek bar of the built-in player, after the key cap of Down: the menu it opens -->
+    <string name="player_menu_hint">Video settings</string>
     <!-- the built-in player -->
     <string name="player_error">This video can not be played</string>
     <string name="player_back_to_page">Back to the page</string>

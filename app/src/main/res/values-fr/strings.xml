@@ -331,6 +331,7 @@
     <string name="no_videos_on_page">Aucune vidéo trouvée sur cette page. Les vidéos que seule la page peut lire (protégées ou diffusées par son propre code) ne peuvent pas être ouvertes dans d’autres applications.</string>
     <string name="play_in_built_in_player">Lire dans le lecteur intégré</string>
     <string name="built_in_player">Lecteur intégré</string>
+    <string name="player_menu_hint">Paramètres vidéo</string>
     <string name="player_error">Impossible de lire cette vidéo</string>
     <string name="player_back_to_page">Retour à la page</string>
     <string name="page_video_hint">Regarder dans le lecteur intégré</string>

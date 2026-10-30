@@ -340,6 +340,7 @@
   <string name="no_videos_on_page">לא נמצאו סרטונים בדף הזה. סרטונים שרק הדף עצמו מנגן (מוגנים או משודרים בקוד משלו) לא ניתנים לפתיחה באפליקציות אחרות.</string>
   <string name="play_in_built_in_player">נגן בנגן המובנה</string>
   <string name="built_in_player">נגן מובנה</string>
+  <string name="player_menu_hint">הגדרות וידאו</string>
   <string name="player_error">לא ניתן לנגן את הסרטון הזה</string>
   <string name="player_back_to_page">חזרה לדף</string>
   <string name="page_video_hint">צפה בנגן המובנה</string>

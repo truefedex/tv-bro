@@ -320,6 +320,7 @@
   <string name="no_videos_on_page">ویدیویی در این صفحه یافت نشد. ویدیوهایی که فقط خود صفحه پخش می‌کند (محافظت‌شده یا پخش‌شده با کد خود صفحه) در برنامه‌های دیگر باز نمی‌شوند.</string>
   <string name="play_in_built_in_player">پخش در پخش‌کننده داخلی</string>
   <string name="built_in_player">پخش‌کننده داخلی</string>
+  <string name="player_menu_hint">تنظیمات ویدیو</string>
   <string name="player_error">این ویدیو قابل پخش نیست</string>
   <string name="player_back_to_page">بازگشت به صفحه</string>
   <string name="page_video_hint">تماشا در پخش‌کننده داخلی</string>

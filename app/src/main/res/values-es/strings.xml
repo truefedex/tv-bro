@@ -331,6 +331,7 @@
     <string name="no_videos_on_page">No se han encontrado vídeos en esta página. Los vídeos que solo reproduce la propia página (protegidos o transmitidos con su propio código) no se pueden abrir en otras aplicaciones.</string>
     <string name="play_in_built_in_player">Reproducir en el reproductor integrado</string>
     <string name="built_in_player">Reproductor integrado</string>
+    <string name="player_menu_hint">Ajustes de vídeo</string>
     <string name="player_error">No se puede reproducir este vídeo</string>
     <string name="player_back_to_page">Volver a la página</string>
     <string name="page_video_hint">Ver en el reproductor integrado</string>

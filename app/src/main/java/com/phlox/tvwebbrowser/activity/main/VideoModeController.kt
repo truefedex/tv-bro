@@ -31,8 +31,8 @@ class VideoModeController(private val host: Host) {
         /** [active] changed: the keys go to the video (true) or to the cursor */
         fun onActiveChanged(active: Boolean) {}
         /**
-         * Up or Down ([down]): true if the host takes it (the built-in player opens its menu, Down takes the video
-         * of the page there); else they give the cursor back
+         * Up or Down ([down]): true if the host takes it (the built-in player opens its menu on Down and ignores Up,
+         * Down takes the video of the page there); else they give the cursor back
          */
         fun onUpDown(down: Boolean): Boolean = false
     }
@@ -42,7 +42,7 @@ class VideoModeController(private val host: Host) {
      * [seekDelta] from where it started), in seconds.
      */
     data class Osd(val media: MediaState, val seekTarget: Double? = null, val seekDelta: Double? = null,
-                   /** What Down does, drawn after its key cap ("Built-in player") */
+                   /** What Down does, drawn after its key cap ("Built-in player", "Video settings") */
                    val hint: String? = null)
 
     private val handler = Handler(Looper.getMainLooper())

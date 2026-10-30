@@ -310,6 +310,7 @@
   <string name="no_videos_on_page">此页面中未找到视频。只能由页面自身播放的视频（受保护的视频，或通过页面自己的代码串流的视频）无法在其他应用中打开。</string>
   <string name="play_in_built_in_player">在内置播放器中播放</string>
   <string name="built_in_player">内置播放器</string>
+  <string name="player_menu_hint">视频设置</string>
   <string name="player_error">无法播放此视频</string>
   <string name="player_back_to_page">返回页面</string>
   <string name="page_video_hint">在内置播放器中观看</string>

@@ -340,6 +340,7 @@
   <string name="no_videos_on_page">На цій сторінці не знайдено відео. Відео, які сторінка відтворює лише сама (захищені або передані її власним кодом), не можна відкрити в інших додатках.</string>
   <string name="play_in_built_in_player">Відтворити у вбудованому плеєрі</string>
   <string name="built_in_player">Вбудований плеєр</string>
+  <string name="player_menu_hint">Налаштування відео</string>
   <string name="player_error">Не вдається відтворити це відео</string>
   <string name="player_back_to_page">Назад до сторінки</string>
   <string name="page_video_hint">Дивитися у вбудованому плеєрі</string>

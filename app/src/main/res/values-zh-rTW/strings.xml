@@ -310,6 +310,7 @@
     <string name="no_videos_on_page">此頁面中找不到影片。只能由頁面本身播放的影片（受保護的影片，或透過頁面自己的程式碼串流的影片）無法在其他應用程式中開啟。</string>
     <string name="play_in_built_in_player">在內建播放器中播放</string>
     <string name="built_in_player">內建播放器</string>
+    <string name="player_menu_hint">影片設定</string>
     <string name="player_error">無法播放此影片</string>
     <string name="player_back_to_page">返回頁面</string>
     <string name="page_video_hint">在內建播放器中觀看</string>

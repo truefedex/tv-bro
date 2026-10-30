@@ -310,6 +310,7 @@
   <string name="no_videos_on_page">Không tìm thấy video nào trên trang này. Những video chỉ trang tự phát được (được bảo vệ hoặc truyền phát bằng mã riêng của trang) không thể mở trong ứng dụng khác.</string>
   <string name="play_in_built_in_player">Phát trong trình phát tích hợp</string>
   <string name="built_in_player">Trình phát tích hợp</string>
+  <string name="player_menu_hint">Cài đặt video</string>
   <string name="player_error">Không thể phát video này</string>
   <string name="player_back_to_page">Quay lại trang</string>
   <string name="page_video_hint">Xem trong trình phát tích hợp</string>

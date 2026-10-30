@@ -29,10 +29,11 @@ import kotlinx.coroutines.launch
 /**
  * The built-in player on TV, over the whole window ([NativePlayer]). The keys are those of the video mode
  * ([VideoModeController]: Left and Right seek, faster while held, OK plays and pauses, the seek bar shows on
- * seeks, on play and pause and while paused, with the title at the top); Up, Down and the Menu key open the menu
- * of the quality, the audio track, the subtitles and the speed ([PlayerTracks]), each with its options. Back closes
- * the menu, then the player; [onClosed] gives the focus back to the page. When the playback fails, the error
- * offers the video to another app and the way back.
+ * seeks, on play and pause and while paused, with the title at the top); Down and the Menu key (where it reaches
+ * the app) open the menu of the quality, the audio track, the subtitles and the speed ([PlayerTracks]), each with
+ * its options, and the seek bar tells it ("↓ Video settings"); Up does nothing. Back closes the menu, then the
+ * player; [onClosed] gives the focus back to the page. When the playback fails, the error offers the video to
+ * another app and the way back.
  */
 class PlayerScreenView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -75,10 +76,10 @@ class PlayerScreenView @JvmOverloads constructor(
         }
 
         override fun onUpDown(down: Boolean): Boolean {
-            showMenu()
+            if (down) showMenu()
             return true
         }
-    })
+    }).apply { hint = context.getString(R.string.player_menu_hint) }
 
     init {
         visibility = GONE

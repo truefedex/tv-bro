@@ -319,6 +319,7 @@
   <string name="no_videos_on_page">Auf dieser Seite wurden keine Videos gefunden. Videos, die nur die Seite selbst abspielen kann (geschützt oder über eigenen Code gestreamt), lassen sich nicht in anderen Apps öffnen.</string>
   <string name="play_in_built_in_player">Im integrierten Player abspielen</string>
   <string name="built_in_player">Integrierter Player</string>
+  <string name="player_menu_hint">Videoeinstellungen</string>
   <string name="player_error">Dieses Video kann nicht abgespielt werden</string>
   <string name="player_back_to_page">Zurück zur Seite</string>
   <string name="page_video_hint">Im integrierten Player ansehen</string>

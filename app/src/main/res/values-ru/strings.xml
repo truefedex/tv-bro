@@ -340,6 +340,7 @@
   <string name="no_videos_on_page">На этой странице не найдено видео. Видео, которые страница воспроизводит только сама (защищённые или переданные её собственным кодом), нельзя открыть в других приложениях.</string>
   <string name="play_in_built_in_player">Воспроизвести во встроенном плеере</string>
   <string name="built_in_player">Встроенный плеер</string>
+  <string name="player_menu_hint">Настройки видео</string>
   <string name="player_error">Не удаётся воспроизвести это видео</string>
   <string name="player_back_to_page">Назад на страницу</string>
   <string name="page_video_hint">Смотреть во встроенном плеере</string>

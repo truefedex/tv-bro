@@ -340,6 +340,7 @@
   <string name="no_videos_on_page">Na tej stronie nie znaleziono filmów. Filmów, które strona odtwarza tylko sama (chronionych lub przesyłanych jej własnym kodem), nie można otworzyć w innych aplikacjach.</string>
   <string name="play_in_built_in_player">Odtwórz we wbudowanym odtwarzaczu</string>
   <string name="built_in_player">Wbudowany odtwarzacz</string>
+  <string name="player_menu_hint">Ustawienia wideo</string>
   <string name="player_error">Nie można odtworzyć tego filmu</string>
   <string name="player_back_to_page">Wróć do strony</string>
   <string name="page_video_hint">Oglądaj we wbudowanym odtwarzaczu</string>
