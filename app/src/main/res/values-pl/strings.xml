@@ -355,6 +355,9 @@
   <string name="player_speed">Prędkość</string>
   <string name="player_auto">Auto</string>
   <string name="player_off">Wył.</string>
+  <string name="player_repeat">Powtarzanie</string>
+  <string name="player_repeat_on">Wł.</string>
+  <string name="player_repeat_off">Wył.</string>
   <string name="player_track">Ścieżka %d</string>
   <string name="err_no_video_player">Nie zainstalowano odtwarzacza wideo, na przykład VLC lub MX Player</string>
   <plurals name="videos_on_page_count">

@@ -325,6 +325,9 @@
   <string name="player_speed">Tốc độ</string>
   <string name="player_auto">Tự động</string>
   <string name="player_off">Tắt</string>
+  <string name="player_repeat">Lặp lại</string>
+  <string name="player_repeat_on">Bật</string>
+  <string name="player_repeat_off">Tắt</string>
   <string name="player_track">Bản âm thanh %d</string>
   <string name="err_no_video_player">Chưa cài ứng dụng phát video nào, ví dụ VLC hoặc MX Player</string>
   <plurals name="videos_on_page_count">

@@ -355,6 +355,9 @@
   <string name="player_speed">מהירות</string>
   <string name="player_auto">אוטומטי</string>
   <string name="player_off">כבוי</string>
+  <string name="player_repeat">חזרה</string>
+  <string name="player_repeat_on">פועל</string>
+  <string name="player_repeat_off">כבוי</string>
   <string name="player_track">רצועה %d</string>
   <string name="err_no_video_player">לא מותקנת אפליקציה לנגינת וידאו, למשל VLC או MX Player</string>
   <plurals name="videos_on_page_count">

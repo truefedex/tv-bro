@@ -131,6 +131,13 @@ class NativePlayer(private val context: Context) {
         player?.setPlaybackSpeed(speed)
     }
 
+    /** The video starts again from the beginning when it ends; off for each video [open]ed */
+    var looping: Boolean
+        get() = player?.repeatMode == Player.REPEAT_MODE_ONE
+        set(value) {
+            player?.repeatMode = if (value) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+        }
+
     /** Stops the playback and frees the decoders; [state] becomes null */
     fun release() {
         player?.removeListener(listener)

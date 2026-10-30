@@ -325,6 +325,9 @@
   <string name="player_speed">速度</string>
   <string name="player_auto">自动</string>
   <string name="player_off">关闭</string>
+  <string name="player_repeat">循环播放</string>
+  <string name="player_repeat_on">开启</string>
+  <string name="player_repeat_off">关闭</string>
   <string name="player_track">音轨 %d</string>
   <string name="err_no_video_player">未安装视频播放器应用，例如 VLC 或 MX Player</string>
   <plurals name="videos_on_page_count">

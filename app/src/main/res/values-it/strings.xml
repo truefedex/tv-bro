@@ -345,6 +345,9 @@
   <string name="player_speed">Velocità</string>
   <string name="player_auto">Automatica</string>
   <string name="player_off">Disattivati</string>
+  <string name="player_repeat">Ripeti</string>
+  <string name="player_repeat_on">Attivo</string>
+  <string name="player_repeat_off">Disattivo</string>
   <string name="player_track">Traccia %d</string>
   <string name="err_no_video_player">Nessuna app di riproduzione video installata, ad esempio VLC o MX Player</string>
   <plurals name="videos_on_page_count">

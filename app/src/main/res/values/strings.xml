@@ -295,6 +295,10 @@
     <string name="player_speed">Speed</string>
     <string name="player_auto">Auto</string>
     <string name="player_off">Off</string>
+    <!-- the repeat of the video in the menu of the built-in player: "Repeat: Off" -->
+    <string name="player_repeat">Repeat</string>
+    <string name="player_repeat_on">On</string>
+    <string name="player_repeat_off">Off</string>
     <string name="player_track">Track %d</string>
     <string name="err_no_video_player">No video player app is installed, for example VLC or MX Player</string>
     <plurals name="videos_on_page_count">

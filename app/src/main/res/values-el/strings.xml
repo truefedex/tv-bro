@@ -336,6 +336,9 @@
     <string name="player_speed">Ταχύτητα</string>
     <string name="player_auto">Αυτόματα</string>
     <string name="player_off">Ανενεργό</string>
+    <string name="player_repeat">Επανάληψη</string>
+    <string name="player_repeat_on">Ενεργή</string>
+    <string name="player_repeat_off">Ανενεργή</string>
     <string name="player_track">Κομμάτι %d</string>
     <string name="err_no_video_player">Δεν υπάρχει εγκατεστημένη εφαρμογή αναπαραγωγής βίντεο, για παράδειγμα VLC ή MX Player</string>
     <plurals name="videos_on_page_count">

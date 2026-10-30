@@ -356,6 +356,9 @@
     <string name="player_speed">Rychlost</string>
     <string name="player_auto">Auto</string>
     <string name="player_off">Vyp.</string>
+    <string name="player_repeat">Opakování</string>
+    <string name="player_repeat_on">Zap.</string>
+    <string name="player_repeat_off">Vyp.</string>
     <string name="player_track">Stopa %d</string>
     <string name="err_no_video_player">Není nainstalován žádný přehrávač videa, například VLC nebo MX Player</string>
     <plurals name="videos_on_page_count">

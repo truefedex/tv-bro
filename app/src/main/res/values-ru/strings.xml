@@ -355,6 +355,9 @@
   <string name="player_speed">Скорость</string>
   <string name="player_auto">Авто</string>
   <string name="player_off">Выкл.</string>
+  <string name="player_repeat">Повтор</string>
+  <string name="player_repeat_on">Вкл.</string>
+  <string name="player_repeat_off">Выкл.</string>
   <string name="player_track">Дорожка %d</string>
   <string name="err_no_video_player">Не установлен ни один видеоплеер, например VLC или MX Player</string>
   <plurals name="videos_on_page_count">

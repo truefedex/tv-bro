@@ -335,6 +335,9 @@
   <string name="player_speed">سرعت</string>
   <string name="player_auto">خودکار</string>
   <string name="player_off">خاموش</string>
+  <string name="player_repeat">تکرار</string>
+  <string name="player_repeat_on">روشن</string>
+  <string name="player_repeat_off">خاموش</string>
   <string name="player_track">قطعه %d</string>
   <string name="err_no_video_player">هیچ برنامه پخش ویدیویی نصب نیست، مثلاً VLC یا MX Player</string>
   <plurals name="videos_on_page_count">

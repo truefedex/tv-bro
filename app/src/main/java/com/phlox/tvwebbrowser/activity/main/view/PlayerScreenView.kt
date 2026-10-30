@@ -30,10 +30,10 @@ import kotlinx.coroutines.launch
  * The built-in player on TV, over the whole window ([NativePlayer]). The keys are those of the video mode
  * ([VideoModeController]: Left and Right seek, faster while held, OK plays and pauses, the seek bar shows on
  * seeks, on play and pause and while paused, with the title at the top); Down and the Menu key (where it reaches
- * the app) open the menu of the quality, the audio track, the subtitles and the speed ([PlayerTracks]), each with
- * its options, and the seek bar tells it ("↓ Video settings"); Up does nothing. Back closes the menu, then the
- * player; [onClosed] gives the focus back to the page. When the playback fails, the error offers the video to
- * another app and the way back.
+ * the app) open the menu of the quality, the audio track, the subtitles, the speed ([PlayerTracks]) and the repeat
+ * of the video (not for live streams, off for each video), each with its options, and the seek bar tells it
+ * ("↓ Video settings"); Up does nothing. Back closes the menu, then the player; [onClosed] gives the focus back to
+ * the page. When the playback fails, the error offers the video to another app and the way back.
  */
 class PlayerScreenView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -217,6 +217,17 @@ class PlayerScreenView @JvmOverloads constructor(
             showOptions(PlayerTracks.SPEEDS.map { option ->
                 PopupMenuView.Item(R.drawable.ic_check, PlayerTracks.speedLabel(option), checked = option == speed) { player.setSpeed(option) }
             }, PlayerTracks.SPEEDS.indexOf(speed).coerceAtLeast(0))
+        }
+        //a live stream has no end to start again from
+        if (state.media.duration != null) {
+            val looping = player.looping
+            fun label(on: Boolean) = context.getString(if (on) R.string.player_repeat_on else R.string.player_repeat_off)
+            rows += PopupMenuView.Item(R.drawable.ic_repeat,
+                context.getString(R.string.player_menu_row, context.getString(R.string.player_repeat), label(looping))) {
+                showOptions(listOf(false, true).map { option ->
+                    PopupMenuView.Item(R.drawable.ic_check, label(option), checked = option == looping) { player.looping = option }
+                }, if (looping) 1 else 0)
+            }
         }
         showOptions(rows, 0)
     }
