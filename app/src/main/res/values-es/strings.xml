@@ -568,8 +568,8 @@
     <string name="settings_cursor_acceleration">Aceleración del cursor</string>
     <string name="settings_cursor_acceleration_summary">Lo rápido que llega a la velocidad máxima</string>
     <string name="settings_percent">%d %%</string>
-    <string name="settings_joystick">Navegar con los joysticks</string>
-    <string name="settings_joystick_summary">Los joysticks de los mandos de juegos mueven el foco como la cruceta</string>
+    <string name="settings_joystick">Mover el cursor con los joysticks</string>
+    <string name="settings_joystick_summary">El joystick izquierdo del mando de juegos mueve el cursor con suavidad. Desactivar si el cursor se mueve solo</string>
     <string name="settings_group_keys">Teclas del mando</string>
     <string name="settings_press_key">Pulsa una tecla del mando. Mantenla pulsada para asignar una pulsación larga</string>
     <string name="settings_key_now_s">Ahora: %s</string>

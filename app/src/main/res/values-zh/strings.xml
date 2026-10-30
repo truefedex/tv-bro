@@ -533,8 +533,8 @@
   <string name="settings_cursor_acceleration">光标加速度</string>
   <string name="settings_cursor_acceleration_summary">达到最高速度的快慢</string>
   <string name="settings_percent">%d%%</string>
-  <string name="settings_joystick">用摇杆导航</string>
-  <string name="settings_joystick_summary">游戏手柄的摇杆像方向键一样移动焦点</string>
+  <string name="settings_joystick">用摇杆移动光标</string>
+  <string name="settings_joystick_summary">游戏手柄的左摇杆可平滑地移动光标。若光标自行漂移，请关闭此项</string>
   <string name="settings_group_keys">遥控器按键</string>
   <string name="settings_press_key">按下遥控器上的按键。按住可设置长按</string>
   <string name="settings_key_now_s">当前：%s</string>

@@ -584,8 +584,8 @@
   <string name="settings_cursor_acceleration">האצת הסמן</string>
   <string name="settings_cursor_acceleration_summary">כמה מהר הוא מגיע למהירות המרבית</string>
   <string name="settings_percent">%d%%</string>
-  <string name="settings_joystick">ניווט בג׳ויסטיקים</string>
-  <string name="settings_joystick_summary">הג׳ויסטיקים של בקרי משחק מזיזים את המיקוד כמו ה-D-pad</string>
+  <string name="settings_joystick">הזזת הסמן בג׳ויסטיקים</string>
+  <string name="settings_joystick_summary">הג׳ויסטיק השמאלי של בקר המשחק מזיז את הסמן בצורה חלקה. יש לכבות אם הסמן זז מעצמו</string>
   <string name="settings_group_keys">מקשי השלט</string>
   <string name="settings_press_key">לחץ על מקש בשלט. החזק אותו כדי להגדיר לחיצה ארוכה</string>
   <string name="settings_key_now_s">עכשיו: %s</string>

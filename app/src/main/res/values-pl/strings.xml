@@ -584,8 +584,8 @@
   <string name="settings_cursor_acceleration">Przyspieszenie kursora</string>
   <string name="settings_cursor_acceleration_summary">Jak szybko osiąga najwyższą prędkość</string>
   <string name="settings_percent">%d%%</string>
-  <string name="settings_joystick">Nawigacja gałkami kontrolera</string>
-  <string name="settings_joystick_summary">Gałki padów przesuwają fokus jak krzyżak</string>
+  <string name="settings_joystick">Ruch kursora gałkami</string>
+  <string name="settings_joystick_summary">Lewa gałka pada płynnie przesuwa kursor. Wyłącz, jeśli kursor sam się przesuwa</string>
   <string name="settings_group_keys">Przyciski pilota</string>
   <string name="settings_press_key">Naciśnij przycisk na pilocie. Przytrzymaj go, aby ustawić długie naciśnięcie</string>
   <string name="settings_key_now_s">Teraz: %s</string>

@@ -568,8 +568,8 @@
     <string name="settings_cursor_acceleration">Aceleração do cursor</string>
     <string name="settings_cursor_acceleration_summary">A rapidez com que ele chega à velocidade máxima</string>
     <string name="settings_percent">%d%%</string>
-    <string name="settings_joystick">Navegar com os analógicos</string>
-    <string name="settings_joystick_summary">Os analógicos dos controles de jogo movem o foco como o direcional</string>
+    <string name="settings_joystick">Mover o cursor com os analógicos</string>
+    <string name="settings_joystick_summary">O analógico esquerdo do controle de jogo move o cursor suavemente. Desative se o cursor se mover sozinho</string>
     <string name="settings_group_keys">Teclas do controle remoto</string>
     <string name="settings_press_key">Pressione uma tecla do controle remoto. Mantenha pressionada para definir um toque longo</string>
     <string name="settings_key_now_s">Atual: %s</string>

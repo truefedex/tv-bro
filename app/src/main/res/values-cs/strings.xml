@@ -585,8 +585,8 @@
     <string name="settings_cursor_acceleration">Zrychlení kurzoru</string>
     <string name="settings_cursor_acceleration_summary">Jak rychle dosáhne nejvyšší rychlosti</string>
     <string name="settings_percent">%d %%</string>
-    <string name="settings_joystick">Navigace páčkami ovladače</string>
-    <string name="settings_joystick_summary">Páčky herních ovladačů posouvají fokus jako směrová tlačítka</string>
+    <string name="settings_joystick">Pohyb kurzoru páčkami</string>
+    <string name="settings_joystick_summary">Levá páčka herního ovladače plynule posouvá kurzor. Vypněte, pokud se kurzor posouvá sám</string>
     <string name="settings_group_keys">Tlačítka ovladače</string>
     <string name="settings_press_key">Stiskněte tlačítko na ovladači. Podržením nastavíte dlouhé stisknutí</string>
     <string name="settings_key_now_s">Nyní: %s</string>

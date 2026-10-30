@@ -584,8 +584,8 @@
   <string name="settings_cursor_acceleration">Ускорение курсора</string>
   <string name="settings_cursor_acceleration_summary">Как быстро он достигает наибольшей скорости</string>
   <string name="settings_percent">%d%%</string>
-  <string name="settings_joystick">Навигация стиками джойстика</string>
-  <string name="settings_joystick_summary">Стики геймпадов перемещают фокус, как D-pad</string>
+  <string name="settings_joystick">Курсор стиками</string>
+  <string name="settings_joystick_summary">Левый стик геймпада плавно двигает курсор. Выключите, если курсор уплывает сам</string>
   <string name="settings_group_keys">Клавиши пульта</string>
   <string name="settings_press_key">Нажмите клавишу на пульте. Удерживайте её, чтобы задать долгое нажатие</string>
   <string name="settings_key_now_s">Сейчас: %s</string>
