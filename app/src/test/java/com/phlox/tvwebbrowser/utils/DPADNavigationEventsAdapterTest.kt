@@ -9,33 +9,24 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import kotlin.math.atan2
+import kotlin.math.hypot
 
 /**
- * Navigation keys of the virtual cursor from keys and joystick motion.
+ * The direction of the virtual cursor from keys and joystick motion, and the other navigation keys.
  */
 @RunWith(RobolectricTestRunner::class)
 class DPADNavigationEventsAdapterTest {
-    private val keys = mutableListOf<String>()
+    private val directions = mutableListOf<Pair<Float, Float>>()
+    private val keys = mutableListOf<Int>()
     private var stickEnabled = true
     private var imeVisible = false
     private val adapter = DPADNavigationEventsAdapter(
-        onEmulatedKeyEvent = { keys += describe(it.action, it.keyCode); true },
+        onDirection = { x, y -> directions += x to y },
+        onKeyEvent = { keys += it.keyCode; true },
         analogStickNavigationEnabled = { stickEnabled },
         isSoftwareKeyboardVisible = { imeVisible },
     )
-
-    //KeyEvent.keyCodeToString gives only numbers under Robolectric
-    private val names = mapOf(
-        KeyEvent.KEYCODE_DPAD_LEFT to "KEYCODE_DPAD_LEFT",
-        KeyEvent.KEYCODE_DPAD_RIGHT to "KEYCODE_DPAD_RIGHT",
-        KeyEvent.KEYCODE_DPAD_UP to "KEYCODE_DPAD_UP",
-        KeyEvent.KEYCODE_DPAD_DOWN to "KEYCODE_DPAD_DOWN",
-        KeyEvent.KEYCODE_DPAD_DOWN_RIGHT to "KEYCODE_DPAD_DOWN_RIGHT",
-        KeyEvent.KEYCODE_DPAD_CENTER to "KEYCODE_DPAD_CENTER",
-    )
-
-    private fun describe(action: Int, keyCode: Int) =
-        (if (action == KeyEvent.ACTION_DOWN) "down " else "up ") + (names[keyCode] ?: keyCode.toString())
 
     private fun motion(hatX: Float = 0f, hatY: Float = 0f, x: Float = 0f, y: Float = 0f,
                        source: Int = InputDevice.SOURCE_JOYSTICK, deviceId: Int = 1): MotionEvent {
@@ -50,31 +41,116 @@ class DPADNavigationEventsAdapterTest {
             0, 0, 1f, 1f, deviceId, 0, source, 0)
     }
 
-    private fun key(action: Int, keyCode: Int, deviceId: Int = 1) =
-        KeyEvent(1000L, 1000L, action, keyCode, 0, 0, deviceId, 0, 0, InputDevice.SOURCE_DPAD)
+    private fun key(action: Int, keyCode: Int, deviceId: Int = 1, repeat: Int = 0,
+                    source: Int = InputDevice.SOURCE_DPAD, flags: Int = 0) =
+        KeyEvent(1000L, 1000L, action, keyCode, repeat, 0, deviceId, 0, flags, source)
+
+    /** A D-pad key as `ViewRootImpl` makes it of joystick motion no view handled */
+    private fun synthesized(action: Int, keyCode: Int) =
+        key(action, keyCode, source = InputDevice.SOURCE_JOYSTICK, flags = KeyEvent.FLAG_FALLBACK)
+
+    private fun press(keyCode: Int, deviceId: Int = 1) = adapter.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, keyCode, deviceId))
+    private fun release(keyCode: Int, deviceId: Int = 1) = adapter.dispatchKeyEvent(key(KeyEvent.ACTION_UP, keyCode, deviceId))
+
+    private fun assertDirections(vararg expected: Pair<Float, Float>) {
+        assertEquals(expected.size, directions.size)
+        expected.zip(directions).forEach { (e, a) ->
+            assertEquals(e.first, a.first, 0.001f)
+            assertEquals(e.second, a.second, 0.001f)
+        }
+    }
 
     @Test
-    fun hatIsOnePress() {
+    fun hatIsOneDirection() {
         adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
         adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
         adapter.dispatchGenericMotionEvent(motion())
-        assertEquals(listOf("down KEYCODE_DPAD_RIGHT", "up KEYCODE_DPAD_RIGHT"), keys)
+        assertDirections(1f to 0f, 0f to 0f)
     }
 
     @Test
-    fun changingDirectionReleasesTheOldOne() {
+    fun changingTheHatDirectionDoesNotStop() {
         adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
         adapter.dispatchGenericMotionEvent(motion(hatX = 1f, hatY = 1f))
-        assertEquals(listOf("down KEYCODE_DPAD_RIGHT", "up KEYCODE_DPAD_RIGHT", "down KEYCODE_DPAD_DOWN_RIGHT"), keys)
+        assertDirections(1f to 0f, 1f to 1f)
     }
 
     @Test
-    fun stickHasHysteresis() {
+    fun stickKeepsItsAngle() {
+        // issue 280: a stick between two directions moved like the nearest D-pad key, or not at all
+        adapter.dispatchGenericMotionEvent(motion(x = 0.9f, y = 0.3f))
+        val (x, y) = directions.single()
+        assertEquals(atan2(0.3f, 0.9f), atan2(y, x), 0.001f)
+    }
+
+    @Test
+    fun stickSteersWithoutStopping() {
+        for (step in 0..10) {
+            val angle = step * Math.PI.toFloat() / 20
+            adapter.dispatchGenericMotionEvent(motion(x = kotlin.math.cos(angle), y = kotlin.math.sin(angle)))
+        }
+        assertEquals(11, directions.size)
+        assertTrue(directions.none { it.first == 0f && it.second == 0f })
+    }
+
+    @Test
+    fun stickDeflectionSetsTheSpeed() {
+        adapter.dispatchGenericMotionEvent(motion(x = 0.1f, y = 0.1f))
+        assertEquals(emptyList<Pair<Float, Float>>(), directions) // inside the dead zone
         adapter.dispatchGenericMotionEvent(motion(x = 0.5f))
-        adapter.dispatchGenericMotionEvent(motion(x = 0.3f))
-        assertEquals(listOf("down KEYCODE_DPAD_RIGHT"), keys)
-        adapter.dispatchGenericMotionEvent(motion(x = 0.2f))
-        assertEquals(listOf("down KEYCODE_DPAD_RIGHT", "up KEYCODE_DPAD_RIGHT"), keys)
+        adapter.dispatchGenericMotionEvent(motion(x = 1f))
+        val (half, full) = directions.map { hypot(it.first, it.second) }
+        assertTrue(half > 0f && half < full)
+        assertEquals(1f, full, 0.001f)
+    }
+
+    @Test
+    fun stickCornerIsClamped() {
+        adapter.dispatchGenericMotionEvent(motion(x = 1f, y = -1f))
+        val (x, y) = directions.single()
+        assertEquals(1f, hypot(x, y), 0.001f)
+        assertEquals(-x, y, 0.001f)
+    }
+
+    @Test
+    fun stickBackToTheCenterStops() {
+        adapter.dispatchGenericMotionEvent(motion(x = 1f))
+        adapter.dispatchGenericMotionEvent(motion(x = 0.05f))
+        assertEquals(0f to 0f, directions.last())
+    }
+
+    @Test
+    fun dpadAndStickStartingInOneEventGiveTheDpad() {
+        adapter.dispatchGenericMotionEvent(motion(hatY = -1f, x = 1f))
+        assertDirections(0f to -1f)
+    }
+
+    @Test
+    fun stickTakesOverFromAHeldHat() {
+        adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
+        adapter.dispatchGenericMotionEvent(motion(hatX = 1f, y = 1f))
+        // back to the hat, which is still held, when the stick is let go
+        adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
+        assertDirections(1f to 0f, 0f to 1f, 1f to 0f)
+    }
+
+    @Test
+    fun hatTakesOverFromAHeldStick() {
+        adapter.dispatchGenericMotionEvent(motion(y = 1f))
+        adapter.dispatchGenericMotionEvent(motion(hatX = -1f, y = 1f))
+        adapter.dispatchGenericMotionEvent(motion(y = 1f))
+        assertDirections(0f to 1f, -1f to 0f, 0f to 1f)
+    }
+
+    @Test
+    fun theChannelsAreNeverMixed() {
+        adapter.dispatchGenericMotionEvent(motion(y = 1f))
+        press(KeyEvent.KEYCODE_DPAD_RIGHT, deviceId = 2)
+        // the stick moving on does not take over again: it was engaged before the key
+        adapter.dispatchGenericMotionEvent(motion(x = -0.7f, y = 0.7f))
+        adapter.dispatchGenericMotionEvent(motion(x = -1f))
+        release(KeyEvent.KEYCODE_DPAD_RIGHT, deviceId = 2)
+        assertDirections(0f to 1f, 1f to 0f, -1f to 0f)
     }
 
     @Test
@@ -82,7 +158,7 @@ class DPADNavigationEventsAdapterTest {
         stickEnabled = false
         adapter.dispatchGenericMotionEvent(motion(hatY = -1f))
         adapter.dispatchGenericMotionEvent(motion())
-        assertEquals(listOf("down KEYCODE_DPAD_UP", "up KEYCODE_DPAD_UP"), keys)
+        assertDirections(0f to -1f, 0f to 0f)
     }
 
     @Test
@@ -90,7 +166,7 @@ class DPADNavigationEventsAdapterTest {
         //else the platform would turn the unhandled stick motion into D-pad keys itself
         stickEnabled = false
         assertTrue(adapter.dispatchGenericMotionEvent(motion(x = 1f)))
-        assertEquals(emptyList<String>(), keys)
+        assertEquals(emptyList<Pair<Float, Float>>(), directions)
     }
 
     @Test
@@ -104,55 +180,140 @@ class DPADNavigationEventsAdapterTest {
     fun mouseMotionIsIgnored() {
         //the axes of a mouse are pointer positions, not a deflected stick
         assertFalse(adapter.dispatchGenericMotionEvent(motion(x = 500f, y = 300f, source = InputDevice.SOURCE_MOUSE)))
-        assertEquals(emptyList<String>(), keys)
+        assertEquals(emptyList<Pair<Float, Float>>(), directions)
     }
 
     @Test
-    fun keysAreForwarded() {
-        assertTrue(adapter.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER)))
-        assertFalse(adapter.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_A)))
-        assertEquals(listOf("down KEYCODE_DPAD_CENTER"), keys)
+    fun selectKeysAreForwarded() {
+        assertTrue(press(KeyEvent.KEYCODE_DPAD_CENTER))
+        assertFalse(press(KeyEvent.KEYCODE_A))
+        assertEquals(listOf(KeyEvent.KEYCODE_DPAD_CENTER), keys)
+        assertEquals(emptyList<Pair<Float, Float>>(), directions)
     }
 
     @Test
-    fun hatOfADeviceWithDpadKeysIsIgnored() {
-        adapter.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT))
-        adapter.dispatchKeyEvent(key(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_LEFT))
-        adapter.dispatchGenericMotionEvent(motion(hatX = -1f))
-        adapter.dispatchGenericMotionEvent(motion())
-        assertEquals(listOf("down KEYCODE_DPAD_LEFT", "up KEYCODE_DPAD_LEFT"), keys)
+    fun directionKeysAreNotForwardedAsKeys() {
+        assertTrue(press(KeyEvent.KEYCODE_DPAD_LEFT))
+        assertTrue(release(KeyEvent.KEYCODE_DPAD_LEFT))
+        assertEquals(emptyList<Int>(), keys)
+        assertDirections(-1f to 0f, 0f to 0f)
+    }
 
-        //another device's hat still works
-        adapter.dispatchGenericMotionEvent(motion(hatX = 1f, deviceId = 2))
-        assertEquals("down KEYCODE_DPAD_RIGHT", keys.last())
+    @Test
+    fun keysCombineAndReleaseApart() {
+        press(KeyEvent.KEYCODE_DPAD_RIGHT)
+        press(KeyEvent.KEYCODE_DPAD_UP)
+        release(KeyEvent.KEYCODE_DPAD_RIGHT)
+        release(KeyEvent.KEYCODE_DPAD_UP)
+        assertDirections(1f to 0f, 1f to -1f, 0f to -1f, 0f to 0f)
+    }
 
-        //and the stick of the first one too
+    @Test
+    fun diagonalKeyIsBothAxes() {
+        press(KeyEvent.KEYCODE_DPAD_DOWN_LEFT)
+        assertDirections(-1f to 1f)
+    }
+
+    @Test
+    fun keyRepeatsSayTheDirectionAgain() {
+        //so a cursor whose gestures were cancelled while the key is held moves on
+        press(KeyEvent.KEYCODE_DPAD_RIGHT)
+        adapter.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT, repeat = 1))
+        assertDirections(1f to 0f, 1f to 0f)
+    }
+
+    @Test
+    fun releasingAKeyFallsBackToTheStick() {
         adapter.dispatchGenericMotionEvent(motion(y = 1f))
-        assertEquals("down KEYCODE_DPAD_DOWN", keys.last())
+        press(KeyEvent.KEYCODE_DPAD_RIGHT, deviceId = 2)
+        release(KeyEvent.KEYCODE_DPAD_RIGHT, deviceId = 2)
+        assertDirections(0f to 1f, 1f to 0f, 0f to 1f)
     }
 
     @Test
-    fun dpadKeyClosesThePressOfItsHat() {
-        adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
-        adapter.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT))
-        assertEquals(listOf("down KEYCODE_DPAD_RIGHT", "up KEYCODE_DPAD_RIGHT", "down KEYCODE_DPAD_RIGHT"), keys)
+    fun dpadKeysOfAGameControllerMove() {
+        val source = InputDevice.SOURCE_GAMEPAD or InputDevice.SOURCE_DPAD or InputDevice.SOURCE_KEYBOARD
+        assertTrue(adapter.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT, source = source)))
+        assertTrue(adapter.dispatchKeyEvent(key(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_LEFT, source = source)))
+        assertDirections(-1f to 0f, 0f to 0f)
     }
 
     @Test
-    fun softKeyboardReleasesTheHeldDirection() {
+    fun hatOfAPadThatAlsoSendsDpadKeysWorks() {
+        press(KeyEvent.KEYCODE_DPAD_LEFT)
+        release(KeyEvent.KEYCODE_DPAD_LEFT)
         adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
+        adapter.dispatchGenericMotionEvent(motion())
+        assertDirections(-1f to 0f, 0f to 0f, 1f to 0f, 0f to 0f)
+    }
+
+    @Test
+    fun aDpadSentAsKeysAndAsTheHatIsOnePress() {
+        adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
+        press(KeyEvent.KEYCODE_DPAD_RIGHT)
+        release(KeyEvent.KEYCODE_DPAD_RIGHT)
+        adapter.dispatchGenericMotionEvent(motion())
+        assertDirections(1f to 0f, 0f to 0f)
+    }
+
+    @Test
+    fun keysSynthesizedFromMotionAreConsumedAndIgnored() {
+        adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
+        assertTrue(adapter.dispatchKeyEvent(synthesized(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN)))
+        assertTrue(adapter.dispatchKeyEvent(synthesized(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_DOWN)))
+        adapter.dispatchGenericMotionEvent(motion())
+        assertDirections(1f to 0f, 0f to 0f)
+
+        // and the hat goes on working
+        adapter.dispatchGenericMotionEvent(motion(hatY = -1f))
+        assertEquals(0f to -1f, directions.last())
+    }
+
+    @Test
+    fun keysOfTheSoftKeyboardTimeAreNotTaken() {
+        // with the soft keyboard shown the platform's keys of the stick move its focus
+        imeVisible = true
+        assertFalse(adapter.dispatchKeyEvent(synthesized(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN)))
+    }
+
+    @Test
+    fun softKeyboardReleasesWhatIsHeld() {
+        adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
+        press(KeyEvent.KEYCODE_DPAD_UP, deviceId = 2)
         imeVisible = true
         assertFalse(adapter.dispatchGenericMotionEvent(motion(hatX = 1f)))
-        assertFalse(adapter.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT)))
-        assertEquals(listOf("down KEYCODE_DPAD_RIGHT", "up KEYCODE_DPAD_RIGHT"), keys)
+        assertFalse(press(KeyEvent.KEYCODE_DPAD_LEFT))
+        assertDirections(1f to 0f, 1f to -1f, 0f to 0f)
     }
 
     @Test
-    fun resetForgetsDevicesWithDpadKeys() {
-        adapter.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT))
+    fun theLastPressWinsOnItsAxis() {
+        //the up of RIGHT never comes (the focus was elsewhere): LEFT must not leave it moving right
+        press(KeyEvent.KEYCODE_DPAD_RIGHT)
+        press(KeyEvent.KEYCODE_DPAD_LEFT)
+        release(KeyEvent.KEYCODE_DPAD_LEFT)
+        assertDirections(1f to 0f, -1f to 0f, 0f to 0f)
+    }
+
+    @Test
+    fun resetStopsAMovingCursor() {
+        press(KeyEvent.KEYCODE_DPAD_RIGHT)
         adapter.resetState()
-        keys.clear()
-        adapter.dispatchGenericMotionEvent(motion(hatX = 1f))
-        assertEquals(listOf("down KEYCODE_DPAD_RIGHT"), keys)
+        release(KeyEvent.KEYCODE_DPAD_RIGHT)
+        assertDirections(1f to 0f, 0f to 0f)
+    }
+
+    @Test
+    fun resetOfAStandingCursorSaysNothing() {
+        adapter.resetState()
+        assertDirections()
+    }
+
+    @Test
+    fun resetForgetsTheStick() {
+        adapter.dispatchGenericMotionEvent(motion(x = 1f))
+        adapter.resetState()
+        adapter.dispatchGenericMotionEvent(motion(hatX = -1f))
+        assertDirections(1f to 0f, 0f to 0f, -1f to 0f)
     }
 }
