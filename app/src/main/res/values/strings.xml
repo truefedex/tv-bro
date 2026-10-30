@@ -565,6 +565,11 @@
     <string name="settings_mobile">Mobile</string>
     <string name="settings_site_view_summary_tv">For sites without their own choice. Auto: desktop on a TV</string>
     <string name="settings_site_view_summary_phone">For sites without their own choice. Auto: mobile on a phone</string>
+    <!-- the User-Agent sent to all sites; Auto follows the site view -->
+    <string name="settings_user_agent">User-Agent</string>
+    <string name="settings_user_agent_summary">How the browser introduces itself to sites. Auto: as fits the site view</string>
+    <string name="settings_user_agent_custom">Custom</string>
+    <string name="settings_user_agent_string">User-Agent string</string>
     <string name="settings_autoplay">Autoplay media</string>
     <string name="settings_autoplay_summary">Videos and sounds start without a click</string>
     <string name="settings_group_videos">Videos</string>

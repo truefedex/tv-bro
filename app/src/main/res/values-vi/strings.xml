@@ -488,6 +488,10 @@
   <string name="settings_mobile">Di động</string>
   <string name="settings_site_view_summary_tv">Cho các trang web không có lựa chọn riêng. Tự động: máy tính trên TV</string>
   <string name="settings_site_view_summary_phone">Cho các trang web không có lựa chọn riêng. Tự động: di động trên điện thoại</string>
+  <string name="settings_user_agent">User-Agent</string>
+  <string name="settings_user_agent_summary">Cách trình duyệt tự giới thiệu với các trang web. Tự động: theo chế độ xem trang</string>
+  <string name="settings_user_agent_custom">Tùy chỉnh</string>
+  <string name="settings_user_agent_string">Chuỗi User-Agent</string>
   <string name="settings_autoplay">Tự động phát phương tiện</string>
   <string name="settings_autoplay_summary">Video và âm thanh tự bắt đầu mà không cần nhấp</string>
   <string name="settings_group_videos">Video</string>

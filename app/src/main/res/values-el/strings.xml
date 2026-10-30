@@ -505,6 +505,10 @@
     <string name="settings_mobile">Κινητού</string>
     <string name="settings_site_view_summary_tv">Για ιστοτόπους χωρίς δική τους επιλογή. Αυτόματα: υπολογιστή σε τηλεόραση</string>
     <string name="settings_site_view_summary_phone">Για ιστοτόπους χωρίς δική τους επιλογή. Αυτόματα: κινητού σε τηλέφωνο</string>
+    <string name="settings_user_agent">User-Agent</string>
+    <string name="settings_user_agent_summary">Πώς συστήνεται ο περιηγητής στους ιστοτόπους. Αυτόματα: ανάλογα με την προβολή του ιστοτόπου</string>
+    <string name="settings_user_agent_custom">Προσαρμοσμένο</string>
+    <string name="settings_user_agent_string">Συμβολοσειρά User-Agent</string>
     <string name="settings_autoplay">Αυτόματη αναπαραγωγή πολυμέσων</string>
     <string name="settings_autoplay_summary">Τα βίντεο και οι ήχοι ξεκινούν χωρίς κλικ</string>
     <string name="settings_group_videos">Βίντεο</string>

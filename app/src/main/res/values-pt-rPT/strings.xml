@@ -521,6 +521,10 @@
     <string name="settings_mobile">Móvel</string>
     <string name="settings_site_view_summary_tv">Para sites sem escolha própria. Automática: computador numa TV</string>
     <string name="settings_site_view_summary_phone">Para sites sem escolha própria. Automática: móvel num telemóvel</string>
+    <string name="settings_user_agent">User-Agent</string>
+    <string name="settings_user_agent_summary">Como o navegador se apresenta aos sites. Automático: conforme a vista do site</string>
+    <string name="settings_user_agent_custom">Personalizado</string>
+    <string name="settings_user_agent_string">Cadeia User-Agent</string>
     <string name="settings_autoplay">Reprodução automática de multimédia</string>
     <string name="settings_autoplay_summary">Vídeos e sons começam sem um clique</string>
     <string name="settings_group_videos">Vídeos</string>

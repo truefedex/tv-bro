@@ -503,6 +503,10 @@
   <string name="settings_mobile">Mobil</string>
   <string name="settings_site_view_summary_tv">Für Websites ohne eigene Auswahl. Auto: Desktop auf einem Fernseher</string>
   <string name="settings_site_view_summary_phone">Für Websites ohne eigene Auswahl. Auto: Mobil auf einem Smartphone</string>
+  <string name="settings_user_agent">User-Agent</string>
+  <string name="settings_user_agent_summary">Wie sich der Browser bei Websites ausgibt. Auto: passend zur Websiteansicht</string>
+  <string name="settings_user_agent_custom">Benutzerdefiniert</string>
+  <string name="settings_user_agent_string">User-Agent-Zeichenfolge</string>
   <string name="settings_autoplay">Medien automatisch abspielen</string>
   <string name="settings_autoplay_summary">Videos und Töne starten ohne Klick</string>
   <string name="settings_group_videos">Videos</string>

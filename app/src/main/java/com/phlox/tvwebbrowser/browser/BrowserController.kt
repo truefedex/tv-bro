@@ -498,8 +498,11 @@ class BrowserController : ActiveModel() {
     /** The site view of sites without their own: the setting, or the one of the interface */
     val defaultDesktopView: Boolean get() = config.defaultDesktopView ?: interfaceDesktopView
 
-    /** Tabs get the new default view; the current tab loads again if its view changed */
-    fun onDefaultSiteViewChanged() {
+    /**
+     * Tabs get the new default view or User-Agent (settings of all sites); the current tab loads again if its view
+     * changed
+     */
+    fun onSiteViewSettingsChanged() {
         for (tab in tabsStates) {
             if (applySiteView(tab) && tab == currentTab.value) {
                 tab.webEngine.reload()
@@ -526,15 +529,18 @@ class BrowserController : ActiveModel() {
     }
 
     /**
-     * Gives the engine of the tab the view of its host (it takes effect with the next load).
+     * Gives the engine of the tab the view of its host and the User-Agent of the user (it takes effect with the
+     * next load).
      * @return true if the view changed
      */
     private fun applySiteView(tab: BrowserTab): Boolean {
         if (!tab.isWebEngineCreated) return false
         val siteView = tab.webEngine.siteView ?: return false
         val desktop = isDesktopView(tab.url)
-        if (siteView.desktopView == desktop) return false
+        val userAgent = config.userAgent
+        if (siteView.desktopView == desktop && siteView.userAgentOverride == userAgent) return false
         siteView.desktopView = desktop
+        siteView.userAgentOverride = userAgent
         return true
     }
 

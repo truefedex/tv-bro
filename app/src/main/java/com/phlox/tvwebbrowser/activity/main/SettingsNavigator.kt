@@ -47,7 +47,7 @@ class SettingsNavigator(
     enum class Key {
         SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS,
         CHANNEL_BOOKMARKS, CHANNEL_BOOKMARKS_SOURCE, CHANNEL_TABS, CHANNEL_DOWNLOADS,
-        SITE_VIEW, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
+        SITE_VIEW, USER_AGENT, USER_AGENT_STRING, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_CACHE, ENGINE_DEBUG, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD,
@@ -107,6 +107,8 @@ class SettingsNavigator(
 
         /** null follows the interface */
         var defaultDesktopView: Boolean?
+        /** The User-Agent of all sites; null (Auto) follows the site view */
+        var userAgent: String?
         var allowAutoplayMedia: Boolean
         var adBlockEnabled: Boolean
         /** The engine blocks trackers itself (GeckoView), apart from ad blocking */
@@ -322,6 +324,29 @@ class SettingsNavigator(
             false -> SITE_VIEW_MOBILE_OPTION
         }
 
+        /**
+         * The User-Agents of browsers the user can choose, by their names. Their versions are fixed: update them
+         * now and then (a User-Agent stored by an older version shows as Custom then).
+         */
+        val USER_AGENT_PRESETS = listOf(
+            "Chrome (Desktop)" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+            "Chrome (Mobile)" to "Mozilla/5.0 (Linux; Android 16; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36",
+            "Firefox (Desktop)" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0",
+            "Firefox (Mobile)" to "Mozilla/5.0 (Android 16; Mobile; rv:147.0) Gecko/147.0 Firefox/147.0",
+            "Edge (Desktop)" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0"
+        )
+
+        /** Positions of the User-Agent options: Auto, the presets, then Custom */
+        const val USER_AGENT_AUTO = 0
+        val USER_AGENT_CUSTOM = USER_AGENT_PRESETS.size + 1
+
+        /** The option of the [userAgent]: Auto for none, a preset, or Custom */
+        fun userAgentOption(userAgent: String?): Int {
+            if (userAgent == null) return USER_AGENT_AUTO
+            val preset = USER_AGENT_PRESETS.indexOfFirst { it.second == userAgent }
+            return if (preset >= 0) preset + 1 else USER_AGENT_CUSTOM
+        }
+
         /** The search engine of the [url]: one of the list, or the custom one */
         fun searchEngineOf(url: String): Int =
             Config.SearchEnginesURLs.indexOf(url).takeIf { it in 0 until CUSTOM_SEARCH_ENGINE } ?: CUSTOM_SEARCH_ENGINE
@@ -334,6 +359,8 @@ class SettingsNavigator(
     private var filterListsUpdating = false
     /** Custom URL was chosen and no address is typed yet */
     private var customSearchChosen = false
+    /** Custom was chosen for the User-Agent and none is typed yet */
+    private var customUserAgentChosen = false
     private var jobs = emptyList<Job>()
     /** The folders of bookmarks, loaded when the screen shows (for the name of the one the channel shows) */
     private var bookmarkFolders: List<BookmarkFolder>? = null
@@ -349,6 +376,7 @@ class SettingsNavigator(
         shown = true
         page = category ?: if (tvUi) categories.first() else null
         customSearchChosen = false
+        customUserAgentChosen = false
         jobs.forEach { it.cancel() }
         jobs = listOf(
             scope.launch {
@@ -379,6 +407,7 @@ class SettingsNavigator(
         if (page == category) return
         page = category
         customSearchChosen = false
+        customUserAgentChosen = false
         render()
     }
 
@@ -387,6 +416,7 @@ class SettingsNavigator(
         if (tvUi || page == null) return false
         page = null
         customSearchChosen = false
+        customUserAgentChosen = false
         render()
         return true
     }
@@ -411,6 +441,17 @@ class SettingsNavigator(
                 SITE_VIEW_DESKTOP_OPTION -> true
                 SITE_VIEW_MOBILE_OPTION -> false
                 else -> null
+            }
+            Key.USER_AGENT -> when (index) {
+                USER_AGENT_CUSTOM -> customUserAgentChosen = userAgentOption(store.userAgent) != USER_AGENT_CUSTOM
+                in 1..USER_AGENT_PRESETS.size -> {
+                    customUserAgentChosen = false
+                    store.userAgent = USER_AGENT_PRESETS[index - 1].second
+                }
+                else -> {
+                    customUserAgentChosen = false
+                    store.userAgent = null
+                }
             }
             Key.INTERFACE -> store.interfaceMode = Config.InterfaceMode.entries[index]
             Key.THEME -> store.theme = Config.Theme.entries[index]
@@ -513,6 +554,12 @@ class SettingsNavigator(
                 if (value.isEmpty() || value == store.searchEngineUrl) return
                 store.searchEngineUrl = value
                 customSearchChosen = false
+            }
+            Key.USER_AGENT_STRING -> {
+                //an empty field while Custom is chosen changes nothing; emptied, it gives Auto back
+                if (value == (store.userAgent ?: "") || (customUserAgentChosen && value.isEmpty())) return
+                store.userAgent = value.ifEmpty { null }
+                customUserAgentChosen = false
             }
             Key.HOME_PAGE_URL -> {
                 if (value == customHomePageUrl()) return
@@ -667,6 +714,22 @@ class SettingsNavigator(
     private fun siteViewOptions() = listOf(string(R.string.settings_auto), string(R.string.settings_desktop),
         string(R.string.settings_mobile))
 
+    private fun userAgentOptions() = listOf(string(R.string.settings_auto)) + USER_AGENT_PRESETS.map { it.first } +
+        string(R.string.settings_user_agent_custom)
+
+    /** The User-Agent (the field of a custom one only while Custom is chosen) */
+    private fun userAgentRows(): List<Row> {
+        val userAgent = store.userAgent
+        val option = if (customUserAgentChosen) USER_AGENT_CUSTOM else userAgentOption(userAgent)
+        val rows = arrayListOf<Row>(Row.Choice(Key.USER_AGENT, string(R.string.settings_user_agent),
+            string(R.string.settings_user_agent_summary), userAgentOptions(), option, segmented = false))
+        if (option == USER_AGENT_CUSTOM) {
+            rows += Row.Field(Key.USER_AGENT_STRING, string(R.string.settings_user_agent_string), null,
+                if (customUserAgentChosen) "" else userAgent ?: "", "Mozilla/5.0 (…)")
+        }
+        return rows
+    }
+
     private fun interfaceOptions() = listOf(string(R.string.settings_auto), string(R.string.settings_interface_tv),
         string(R.string.settings_interface_phone))
 
@@ -768,10 +831,9 @@ class SettingsNavigator(
         val siteView = listOf(
             Row.Choice(Key.SITE_VIEW, string(R.string.default_site_view),
                 string(if (tvUi) R.string.settings_site_view_summary_tv else R.string.settings_site_view_summary_phone),
-                siteViewOptions(), siteViewOption(store.defaultDesktopView), segmented = true),
-            Row.Toggle(Key.AUTOPLAY, string(R.string.settings_autoplay), string(R.string.settings_autoplay_summary),
-                store.allowAutoplayMedia)
-        )
+                siteViewOptions(), siteViewOption(store.defaultDesktopView), segmented = true)
+        ) + userAgentRows() + Row.Toggle(Key.AUTOPLAY, string(R.string.settings_autoplay),
+            string(R.string.settings_autoplay_summary), store.allowAutoplayMedia)
         val adBlock = arrayListOf<Row>(Row.Toggle(Key.AD_BLOCK, string(R.string.settings_block_ads),
             string(if (tvUi) R.string.settings_block_ads_summary_tv else R.string.settings_block_ads_summary_phone),
             store.adBlockEnabled))

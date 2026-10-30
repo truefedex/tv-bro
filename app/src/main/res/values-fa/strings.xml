@@ -504,6 +504,10 @@
   <string name="settings_mobile">موبایل</string>
   <string name="settings_site_view_summary_tv">برای سایت‌هایی که انتخاب خودشان را ندارند. خودکار: رایانه در تلویزیون</string>
   <string name="settings_site_view_summary_phone">برای سایت‌هایی که انتخاب خودشان را ندارند. خودکار: موبایل در تلفن</string>
+  <string name="settings_user_agent">User-Agent</string>
+  <string name="settings_user_agent_summary">مرورگر چگونه خود را به سایت‌ها معرفی می‌کند. خودکار: مطابق نمای سایت</string>
+  <string name="settings_user_agent_custom">سفارشی</string>
+  <string name="settings_user_agent_string">رشته User-Agent</string>
   <string name="settings_autoplay">پخش خودکار رسانه</string>
   <string name="settings_autoplay_summary">ویدیوها و صداها بدون کلیک شروع می‌شوند</string>
   <string name="settings_group_videos">ویدیوها</string>

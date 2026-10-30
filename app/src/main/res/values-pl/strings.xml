@@ -536,6 +536,10 @@
   <string name="settings_mobile">Mobilny</string>
   <string name="settings_site_view_summary_tv">Dla witryn bez własnego wyboru. Auto: komputerowy na telewizorze</string>
   <string name="settings_site_view_summary_phone">Dla witryn bez własnego wyboru. Auto: mobilny na telefonie</string>
+  <string name="settings_user_agent">User-Agent</string>
+  <string name="settings_user_agent_summary">Jak przeglądarka przedstawia się witrynom. Auto: zgodnie z widokiem witryny</string>
+  <string name="settings_user_agent_custom">Własny</string>
+  <string name="settings_user_agent_string">Ciąg User-Agent</string>
   <string name="settings_autoplay">Autoodtwarzanie multimediów</string>
   <string name="settings_autoplay_summary">Filmy i dźwięki uruchamiają się bez kliknięcia</string>
   <string name="settings_group_videos">Filmy</string>

@@ -488,6 +488,10 @@
   <string name="settings_mobile">移动版</string>
   <string name="settings_site_view_summary_tv">适用于没有单独设置的网站。自动：在电视上为桌面版</string>
   <string name="settings_site_view_summary_phone">适用于没有单独设置的网站。自动：在手机上为移动版</string>
+  <string name="settings_user_agent">User-Agent</string>
+  <string name="settings_user_agent_summary">浏览器向网站表明身份的方式。自动：依网站视图</string>
+  <string name="settings_user_agent_custom">自定义</string>
+  <string name="settings_user_agent_string">User-Agent 字符串</string>
   <string name="settings_autoplay">自动播放媒体</string>
   <string name="settings_autoplay_summary">视频和声音无需点击即开始播放</string>
   <string name="settings_group_videos">视频</string>

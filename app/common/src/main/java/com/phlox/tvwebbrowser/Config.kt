@@ -16,6 +16,9 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         const val SEARCH_ENGINE_AS_HOME_PAGE_KEY = "search_engine_as_home_page"
         const val HOME_PAGE_KEY = "home_page"
         const val DEFAULT_SITE_VIEW_KEY = "default_desktop_view"
+        const val USER_AGENT_KEY = "user_agent"
+        /** In the User-Agents of old versions, which should not be kept */
+        private const val LEGACY_USER_AGENT_PREFIX = "TV Bro/1.0 "
         const val THEME_KEY = "theme"
         const val INTERFACE_MODE_KEY = "interface_mode"
         const val LAST_UPDATE_USER_NOTIFICATION_TIME_KEY = "last_update_notif"
@@ -247,6 +250,19 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         set(value) {
             if (value == null) prefs.edit().remove(DEFAULT_SITE_VIEW_KEY).apply()
             else prefs.edit().putBoolean(DEFAULT_SITE_VIEW_KEY, value).apply()
+        }
+
+    /**
+     * The User-Agent of all pages in place of the one of their site view; null (Auto): the one of the view.
+     * Blank strings are null.
+     */
+    var userAgent: String?
+        get() = prefs.getString(USER_AGENT_KEY, null)
+            ?.takeIf { it.isNotBlank() && !it.contains(LEGACY_USER_AGENT_PREFIX) }
+        set(value) {
+            val userAgent = value?.trim()?.ifEmpty { null }
+            if (userAgent == null) prefs.edit().remove(USER_AGENT_KEY).apply()
+            else prefs.edit().putString(USER_AGENT_KEY, userAgent).apply()
         }
 
     var adBlockEnabled: Boolean

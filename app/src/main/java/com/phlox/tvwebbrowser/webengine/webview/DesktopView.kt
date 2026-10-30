@@ -19,14 +19,19 @@ internal class DesktopView(private val webView: WebView) {
     /** The client hints of the system, kept before the first change */
     private var systemUserAgentMetadata: UserAgentMetadata? = null
 
-    fun apply(desktop: Boolean) {
+    /**
+     * @param userAgent the User-Agent the user chose in place of the one of the view, null for the one of the
+     * view. The client hints still follow the view: WebView can not be told to drop them once they were set.
+     */
+    fun apply(desktop: Boolean, userAgent: String?) {
         val settings = webView.settings
+        //the metadata of the system is kept before the User-Agent changes, which may change what WebView gives
+        val metadataSupported = WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)
+        val system = if (!metadataSupported) null else systemUserAgentMetadata
+            ?: WebSettingsCompat.getUserAgentMetadata(settings).also { systemUserAgentMetadata = it }
         //null gives the system User-Agent back
-        settings.userAgentString = if (desktop) DesktopUserAgent.from(systemUserAgent(webView)) else null
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) {
-            val system = systemUserAgentMetadata ?: WebSettingsCompat.getUserAgentMetadata(settings).also {
-                systemUserAgentMetadata = it
-            }
+        settings.userAgentString = userAgent ?: if (desktop) DesktopUserAgent.from(systemUserAgent(webView)) else null
+        if (system != null) {
             WebSettingsCompat.setUserAgentMetadata(settings, if (desktop) desktopMetadata(system) else system)
         }
         viewportScript?.remove()

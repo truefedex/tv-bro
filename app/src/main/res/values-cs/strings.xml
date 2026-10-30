@@ -537,6 +537,10 @@
     <string name="settings_mobile">Mobilní</string>
     <string name="settings_site_view_summary_tv">Pro weby bez vlastní volby. Auto: počítačové na televizoru</string>
     <string name="settings_site_view_summary_phone">Pro weby bez vlastní volby. Auto: mobilní v telefonu</string>
+    <string name="settings_user_agent">User-Agent</string>
+    <string name="settings_user_agent_summary">Jak se prohlížeč představuje webům. Auto: podle zobrazení webu</string>
+    <string name="settings_user_agent_custom">Vlastní</string>
+    <string name="settings_user_agent_string">Řetězec User-Agent</string>
     <string name="settings_autoplay">Automatické přehrávání médií</string>
     <string name="settings_autoplay_summary">Videa a zvuky se spustí bez kliknutí</string>
     <string name="settings_group_videos">Videa</string>

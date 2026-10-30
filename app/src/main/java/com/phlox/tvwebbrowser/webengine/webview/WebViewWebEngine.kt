@@ -87,6 +87,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     private var hostDesktopView = false
     /** The view the WebView has: the one of the host, except on pages that need the mobile view */
     private var appliedDesktopView = false
+    /** The User-Agent of the user the WebView has: none on pages that need the mobile view */
+    private var appliedUserAgent: String? = null
     /** The view was corrected when a page started, so the page loaded again */
     private var siteViewCorrected = false
 
@@ -97,15 +99,25 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             applySiteView(webView?.url)
         }
 
+    override var userAgentOverride: String? = null
+        set(value) {
+            field = value
+            applySiteView(webView?.url)
+        }
+
     /**
-     * Gives the WebView the view for [url].
+     * Gives the WebView the view for [url]. Pages that need the mobile view get the system User-Agent, also
+     * when the user chose another one.
      * @return true if the view changed
      */
     private fun applySiteView(url: String?): Boolean {
-        val desktop = hostDesktopView && !MobileViewPages.matches(url)
-        if (desktop == appliedDesktopView) return false
+        val mobilePage = MobileViewPages.matches(url)
+        val desktop = hostDesktopView && !mobilePage
+        val userAgent = if (mobilePage) null else userAgentOverride
+        if (desktop == appliedDesktopView && userAgent == appliedUserAgent) return false
         appliedDesktopView = desktop
-        webView?.setDesktopView(desktop)
+        appliedUserAgent = userAgent
+        webView?.setSiteView(desktop, userAgent)
         applyPointerMode()
         return true
     }
@@ -184,7 +196,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     override fun getOrCreateView(activityContext: Context): View {
         if (webView == null) {
             val webView = WebViewEx(activityContext, webViewCallback, jsInterface)
-            if (appliedDesktopView) webView.setDesktopView(true)
+            if (appliedDesktopView || appliedUserAgent != null) webView.setSiteView(appliedDesktopView, appliedUserAgent)
             cursorLayout = CursorLayout(activityContext).apply {
                 addView(webView)
                 cursorDrawerDelegate.callback = this@WebViewWebEngine

@@ -51,6 +51,7 @@ class SettingsNavigatorTest {
         override var channelTabs = false
         override var channelDownloads = false
         override var defaultDesktopView: Boolean? = null
+        override var userAgent: String? = null
         override var allowAutoplayMedia = false
         override var adBlockEnabled = true
         override var supportsTrackingProtection = false
@@ -244,6 +245,43 @@ class SettingsNavigatorTest {
         assertEquals(true, store.defaultDesktopView)
         navigator.choose(Key.SITE_VIEW, SettingsNavigator.SITE_VIEW_AUTO)
         assertNull(store.defaultDesktopView)
+    }
+
+    @Test
+    fun userAgentFollowsTheSiteViewUntilChosen() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.SITES)
+        assertEquals(SettingsNavigator.USER_AGENT_AUTO, row<Row.Choice>(Key.USER_AGENT).selected)
+        assertFalse(Key.USER_AGENT_STRING in keys())
+
+        val firefox = SettingsNavigator.USER_AGENT_PRESETS[2]
+        navigator.choose(Key.USER_AGENT, 3)
+        assertEquals(firefox.second, store.userAgent)
+        assertEquals(3, row<Row.Choice>(Key.USER_AGENT).selected)
+        assertFalse(Key.USER_AGENT_STRING in keys())
+
+        //Custom shows an empty field and keeps the preset until a User-Agent is typed
+        navigator.choose(Key.USER_AGENT, SettingsNavigator.USER_AGENT_CUSTOM)
+        assertEquals(SettingsNavigator.USER_AGENT_CUSTOM, row<Row.Choice>(Key.USER_AGENT).selected)
+        assertEquals("", row<Row.Field>(Key.USER_AGENT_STRING).text)
+        navigator.setText(Key.USER_AGENT_STRING, "")
+        assertEquals(firefox.second, store.userAgent)
+        assertTrue(Key.USER_AGENT_STRING in keys())
+        navigator.setText(Key.USER_AGENT_STRING, " MyAgent/1.0 ")
+        assertEquals("MyAgent/1.0", store.userAgent)
+        assertEquals("MyAgent/1.0", row<Row.Field>(Key.USER_AGENT_STRING).text)
+
+        //a stored User-Agent shows as Custom when it is no preset
+        navigator.show(Category.SITES)
+        assertEquals(SettingsNavigator.USER_AGENT_CUSTOM, row<Row.Choice>(Key.USER_AGENT).selected)
+        //an emptied field gives Auto back
+        navigator.setText(Key.USER_AGENT_STRING, "")
+        assertNull(store.userAgent)
+        assertFalse(Key.USER_AGENT_STRING in keys())
+
+        navigator.choose(Key.USER_AGENT, 1)
+        navigator.choose(Key.USER_AGENT, SettingsNavigator.USER_AGENT_AUTO)
+        assertNull(store.userAgent)
     }
 
     @Test

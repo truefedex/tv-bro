@@ -610,8 +610,11 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         loadUrl(url)
     }
 
-    /** Pages load as on a desktop computer or as on a phone; takes effect with the next load */
-    fun setDesktopView(desktop: Boolean) = desktopView.apply(desktop)
+    /**
+     * Pages load as on a desktop computer or as on a phone, with the [userAgent] in place of the one of the view
+     * if not null; takes effect with the next load
+     */
+    fun setSiteView(desktop: Boolean, userAgent: String?) = desktopView.apply(desktop, userAgent)
 
     override fun loadUrl(url: String) {
         when {

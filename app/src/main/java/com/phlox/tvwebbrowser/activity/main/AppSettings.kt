@@ -154,7 +154,13 @@ class AppSettingsStore(
         get() = config.defaultDesktopView
         set(value) {
             config.defaultDesktopView = value
-            controller.onDefaultSiteViewChanged()
+            controller.onSiteViewSettingsChanged()
+        }
+    override var userAgent: String?
+        get() = config.userAgent
+        set(value) {
+            config.userAgent = value
+            controller.onSiteViewSettingsChanged()
         }
     override var allowAutoplayMedia: Boolean by config::allowAutoplayMedia
     override var adBlockEnabled: Boolean by config::adBlockEnabled

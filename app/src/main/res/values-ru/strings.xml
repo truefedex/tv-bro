@@ -536,6 +536,10 @@
   <string name="settings_mobile">Мобильный</string>
   <string name="settings_site_view_summary_tv">Для сайтов без собственного выбора. Авто: компьютерный на телевизоре</string>
   <string name="settings_site_view_summary_phone">Для сайтов без собственного выбора. Авто: мобильный на телефоне</string>
+  <string name="settings_user_agent">User-Agent</string>
+  <string name="settings_user_agent_summary">Как браузер представляется сайтам. Авто: по виду сайта</string>
+  <string name="settings_user_agent_custom">Свой</string>
+  <string name="settings_user_agent_string">Строка User-Agent</string>
   <string name="settings_autoplay">Автовоспроизведение медиа</string>
   <string name="settings_autoplay_summary">Видео и звуки запускаются без нажатия</string>
   <string name="settings_group_videos">Видео</string>

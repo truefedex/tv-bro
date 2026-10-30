@@ -377,11 +377,43 @@ class BrowserControllerEventsTest {
         assertTrue(tab.fakeEngine.desktopView)
         tab.fakeEngine.log.clear()
         config.defaultDesktopView = false
-        controller.onDefaultSiteViewChanged()
+        controller.onSiteViewSettingsChanged()
         assertFalse(tab.fakeEngine.desktopView)
         assertEquals(listOf("reload"), tab.fakeEngine.log)
         assertFalse(state.desktopView)
         config.defaultDesktopView = null
+    }
+
+    @Test
+    fun userAgentSettingReachesAllTabsAndReloadsTheCurrentOne() {
+        val first = open("https://a.com/")
+        val current = open("https://b.com/")
+        assertNull(current.fakeEngine.userAgentOverride)
+        first.fakeEngine.log.clear()
+        current.fakeEngine.log.clear()
+        config.userAgent = "MyAgent/1.0"
+        try {
+            controller.onSiteViewSettingsChanged()
+            assertEquals("MyAgent/1.0", current.fakeEngine.userAgentOverride)
+            assertEquals("MyAgent/1.0", first.fakeEngine.userAgentOverride)
+            assertEquals(listOf("reload"), current.fakeEngine.log)
+            assertFalse("reload" in first.fakeEngine.log)
+            //the site view stays
+            assertTrue(current.fakeEngine.desktopView)
+        } finally {
+            config.userAgent = null
+        }
+        controller.onSiteViewSettingsChanged()
+        assertNull(current.fakeEngine.userAgentOverride)
+    }
+
+    @Test
+    fun blankAndLegacyUserAgentsAreAuto() {
+        config.userAgent = "  "
+        assertNull(config.userAgent)
+        config.prefs.edit().putString(Config.USER_AGENT_KEY, "TV Bro/1.0 Mozilla/5.0").commit()
+        assertNull(config.userAgent)
+        config.userAgent = null
     }
 
     @Test

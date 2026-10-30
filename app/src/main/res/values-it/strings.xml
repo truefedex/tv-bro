@@ -520,6 +520,10 @@
   <string name="settings_mobile">Mobile</string>
   <string name="settings_site_view_summary_tv">Per i siti senza una scelta propria. Automatica: desktop su un TV</string>
   <string name="settings_site_view_summary_phone">Per i siti senza una scelta propria. Automatica: mobile su un telefono</string>
+  <string name="settings_user_agent">User-Agent</string>
+  <string name="settings_user_agent_summary">Come il browser si presenta ai siti. Automatico: secondo la visualizzazione del sito</string>
+  <string name="settings_user_agent_custom">Personalizzato</string>
+  <string name="settings_user_agent_string">Stringa User-Agent</string>
   <string name="settings_autoplay">Riproduzione automatica</string>
   <string name="settings_autoplay_summary">Video e suoni partono senza un clic</string>
   <string name="settings_group_videos">Video</string>

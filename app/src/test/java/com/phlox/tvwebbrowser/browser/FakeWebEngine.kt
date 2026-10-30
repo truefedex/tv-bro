@@ -37,6 +37,7 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport {
     var engineView: View? = null
     var canGoBackValue = false
     override var desktopView = false
+    override var userAgentOverride: String? = null
 
     override val url: String? get() = loadedUrls.lastOrNull()
     override val userAgentString: String? = null

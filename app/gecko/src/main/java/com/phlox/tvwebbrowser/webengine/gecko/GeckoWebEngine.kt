@@ -336,8 +336,15 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         get() = navigationDelegate.locationURL
     override val stateFilePrefix: String
         get() = "gecko:"
-    /** GeckoView gives its User-Agent only asynchronously */
-    override val userAgentString: String? = null
+    /** The one of the user; GeckoView gives its own User-Agent only asynchronously */
+    override val userAgentString: String?
+        get() = userAgentOverride
+
+    override var userAgentOverride: String?
+        get() = session.settings.userAgentOverride
+        set(value) {
+            if (value != userAgentOverride) session.settings.userAgentOverride = value
+        }
 
     /** The desktop User-Agent and viewport of GeckoView; a change takes effect with the next load */
     override var desktopView: Boolean
