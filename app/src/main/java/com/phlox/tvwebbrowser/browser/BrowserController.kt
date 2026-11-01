@@ -747,7 +747,8 @@ class BrowserController : ActiveModel() {
         }
 
         override fun onReceivedIcon(icon: Bitmap) {
-            val url = tab.url
+            //the icon is of the page shown now: tab.url is not changed by redirects and history.pushState
+            val url = tab.webEngine.url ?: tab.url
             modelScope.launch {
                 //shown at once, then again if the page has a bigger one
                 FaviconsPool.onEngineIcon(url, icon) { sendUiEvent(BrowserUiEvent.TabUpdated(tab)) }

@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
+import android.graphics.Bitmap
 import android.os.Looper
 import androidx.room.Room
 import com.phlox.tvwebbrowser.AppContext
@@ -8,6 +9,7 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.singleton.AppDatabase
+import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +31,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
 
 @RunWith(RobolectricTestRunner::class)
 class BrowserControllerEventsTest {
@@ -496,6 +499,35 @@ class BrowserControllerEventsTest {
         tab.callback.onPageStarted("https://b.com/")
         tab.callback.onVisited("https://b.com/")
         assertEquals(listOf(" https://b.com/"), storedHistory(1))
+    }
+
+    @Test
+    fun iconIsStoredForTheHostOfThePageShownNow() {
+        val stored = ConcurrentHashMap<String, String>()
+        val originalDelegate = FaviconsPool.databaseDelegate
+        val originalFetcher = FaviconsPool.fetcher
+        FaviconsPool.clear()
+        FaviconsPool.databaseDelegate = object : FaviconsPool.DatabaseDelegate {
+            override suspend fun setFavicon(host: String, fileName: String) { stored[host] = fileName }
+        }
+        //the page has no icon of its own: the one of the engine is kept
+        FaviconsPool.fetcher = FaviconsPool.Fetcher { null }
+        try {
+            val tab = open("https://a.com/")
+            //a redirect or history.pushState to another host: tab.url stays
+            tab.fakeEngine.loadedUrls += "https://www.a.com/"
+            tab.callback.onReceivedIcon(Bitmap.createBitmap(16, 16, Bitmap.Config.ARGB_8888))
+            val deadline = System.currentTimeMillis() + 5000
+            while (stored.isEmpty() && System.currentTimeMillis() < deadline) {
+                shadowOf(Looper.getMainLooper()).idle()
+                Thread.sleep(5)
+            }
+            assertEquals(setOf("www.a.com"), stored.keys)
+        } finally {
+            FaviconsPool.databaseDelegate = originalDelegate
+            FaviconsPool.fetcher = originalFetcher
+            FaviconsPool.clear()
+        }
     }
 
     @Test
