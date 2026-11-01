@@ -109,15 +109,21 @@ object PageVideoUrls {
     private val FILE_TYPES = mapOf("mp4" to "video/mp4", "m4v" to "video/mp4", "webm" to "video/webm",
         "mkv" to "video/x-matroska", "mov" to "video/quicktime", "ogv" to "video/ogg", "avi" to "video/x-msvideo",
         "flv" to "video/x-flv", "3gp" to "video/3gpp")
+    private val HLS_TYPES = setOf("application/vnd.apple.mpegurl", "application/x-mpegurl", "audio/mpegurl",
+        "audio/x-mpegurl")
 
     /**
-     * The kind of the video at the http(s) [url], null if it is none: the manifests of HLS (.m3u8) and
-     * DASH (.mpd), and the files media elements play ([fromMediaElement]). A file that the page fetched
-     * itself (fetch, XHR) is rather a segment of a stream it plays, so it is none.
+     * The kind of the video at the http(s) [url], null if it is none: the manifests of HLS and DASH, by the
+     * [type] of the response (its MIME type, where the engine tells it) or the extension (.m3u8, .mpd), and
+     * the files media elements play ([fromMediaElement]). A file that the page fetched itself (fetch, XHR) is
+     * rather a segment of a stream it plays, so it is none.
      */
-    fun kindOf(url: String, fromMediaElement: Boolean): PageVideo.Kind? {
+    fun kindOf(url: String, fromMediaElement: Boolean, type: String? = null): PageVideo.Kind? {
         val extension = extensionOf(pathOf(url) ?: return null)
+        val mime = type?.substringBefore(';')?.trim()?.lowercase()
         return when {
+            mime in HLS_TYPES -> PageVideo.Kind.HLS
+            mime == "application/dash+xml" -> PageVideo.Kind.DASH
             extension == "m3u8" -> PageVideo.Kind.HLS
             extension == "mpd" -> PageVideo.Kind.DASH
             //what a media element plays is a file, whatever its address looks like
@@ -251,7 +257,8 @@ object PageVideoReports {
         return (0 until items.length()).mapNotNull { i ->
             val item = items.optJSONObject(i) ?: return@mapNotNull null
             val url = item.optString("url")
-            val kind = PageVideoUrls.kindOf(url, item.optBoolean("element")) ?: return@mapNotNull null
+            val type = item.optString("type").ifBlank { null }
+            val kind = PageVideoUrls.kindOf(url, item.optBoolean("element"), type) ?: return@mapNotNull null
             PageVideo(url, kind, title, page, userAgent,
                 width = item.optInt("width").takeIf { it > 0 },
                 height = item.optInt("height").takeIf { it > 0 },

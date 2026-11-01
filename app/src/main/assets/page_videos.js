@@ -1,17 +1,20 @@
 // The videos of a frame that other apps can play (see PageVideos.kt), for both engines: WebView runs it
 // with media_controls.js in every frame, GeckoView in the content script of its extension (the build
 // copies it there). tvBroWatchPageVideos(send) reports the videos of the frame as a JSON string to send:
-// {videos: [{url, element, width, height, duration}], title, page, ua}; an empty list when the frame goes.
-// The app decides which addresses are videos: here only the candidates are picked, the media elements
-// (their addresses, and the files they load) and the manifests of streams the page loads (.m3u8, .mpd).
+// {videos: [{url, element, type, width, height, duration}], title, page, ua}; an empty list when the frame
+// goes. The app decides which addresses are videos: here only the candidates are picked, the media elements
+// (their addresses, and the files they load) and the manifests of streams the page loads: by the extension
+// (.m3u8, .mpd), or by the type of the response where the engine tells it (contentType of Resource Timing:
+// empty for other sites unless the request passed CORS, as players load manifests), then reported as type.
 function tvBroWatchPageVideos(send) {
     var MAX = 50;
+    var STREAM_TYPES = /^(application|audio)\/(vnd\.apple\.mpegurl|x-mpegurl|mpegurl|dash\+xml)$/i;
     var found = {};
     var order = [];
     var timer = null;
     var lastSent = '';
 
-    function add(url, element, info) {
+    function add(url, element, info, type) {
         if (!url || !/^https?:/i.test(url)) return;
         var known = found[url];
         var changed = false;
@@ -23,6 +26,10 @@ function tvBroWatchPageVideos(send) {
         }
         if (element && !known.element) {
             known.element = true;
+            changed = true;
+        }
+        if (type && !known.type) {
+            known.type = type;
             changed = true;
         }
         if (info) {
@@ -65,7 +72,10 @@ function tvBroWatchPageVideos(send) {
 
     function onResource(entry) {
         var path = entry.name.split(/[?#]/)[0].toLowerCase();
-        if (/\.(m3u8|mpd)$/.test(path)) {
+        var type = entry.contentType;
+        if (type && STREAM_TYPES.test(type)) {
+            add(entry.name, false, null, type.toLowerCase());
+        } else if (/\.(m3u8|mpd)$/.test(path)) {
             add(entry.name, false, null);
         } else if (entry.initiatorType == 'video') {
             add(entry.name, true, null);

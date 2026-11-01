@@ -16,6 +16,19 @@ class PageVideosTest {
     }
 
     @Test
+    fun manifestsAreKnownByTheTypeOfTheResponseToo() {
+        assertEquals(Kind.HLS, PageVideoUrls.kindOf("https://cdn.example.com/hls/abc", false, "application/vnd.apple.mpegurl"))
+        assertEquals(Kind.HLS, PageVideoUrls.kindOf("https://cdn.example.com/play?id=1", false, "Audio/X-MpegURL; charset=utf-8"))
+        assertEquals(Kind.DASH, PageVideoUrls.kindOf("https://cdn.example.com/manifest", false, "application/dash+xml"))
+        //the type wins over the extension
+        assertEquals(Kind.DASH, PageVideoUrls.kindOf("https://cdn.example.com/a.m3u8", false, "application/dash+xml"))
+        //other types change nothing
+        assertEquals(Kind.HLS, PageVideoUrls.kindOf("https://cdn.example.com/a.m3u8", false, "application/octet-stream"))
+        assertNull(PageVideoUrls.kindOf("https://cdn.example.com/hls/abc", false, "text/plain"))
+        assertNull(PageVideoUrls.kindOf("blob:https://example.com/8c1e", false, "application/vnd.apple.mpegurl"))
+    }
+
+    @Test
     fun filesCountOnlyFromMediaElements() {
         assertEquals(Kind.FILE, PageVideoUrls.kindOf("https://example.com/movie.mp4", true))
         assertEquals(Kind.FILE, PageVideoUrls.kindOf("https://example.com/stream?id=42", true))
