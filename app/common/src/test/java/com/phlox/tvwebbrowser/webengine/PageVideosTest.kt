@@ -107,6 +107,25 @@ class PageVideosTest {
     }
 
     @Test
+    fun numbersInFoldersAreComparedWithoutLeadingZeros() {
+        //ashdi.vip: a master in video01/ lists its qualities in video1/
+        val master = "https://ashdi.vip/video01/3/films/sneaks.2025_298984/hls/BqiXj3SRl+1Ckw0=/index.m3u8"
+        val variants = listOf("1080", "720", "480").map {
+            "https://ashdi.vip/video1/3/films/sneaks.2025_298984/hls/$it/BqiXj3SRl+1Ckw0=/index.m3u8"
+        }
+        variants.forEach { assertTrue(it, PageVideoUrls.isVariantOf(it, master)) }
+        val ad = "https://v.quickcore.fun/media/1/4/v14776193840398_861_v7.mp4?2aea27f6849e638a0a808f51d8733114"
+        val list = PageVideoList<String>()
+        list.onFrameVideos("player", listOf(PageVideo(master, Kind.HLS), PageVideo(ad, Kind.FILE)) +
+                variants.map { PageVideo(it, Kind.HLS) })
+        assertEquals(listOf(master, ad), list.videos().map { it.url })
+        assertEquals(master, PageVideoMatch.of(MediaSource(null, mse = true), list.videosOf("player")).video?.url)
+        //other numbers stay apart
+        assertFalse(PageVideoUrls.isVariantOf("https://cdn.com/video10/hls/480/index.m3u8", "https://cdn.com/video1/hls/index.m3u8"))
+        assertFalse(PageVideoUrls.isVariantOf("https://cdn.com/s01/hls/480/index.m3u8", "https://cdn.com/s02/hls/index.m3u8"))
+    }
+
+    @Test
     fun theListHasALimit() {
         val list = PageVideoList<String>(limit = 2)
         list.onFrameVideos("a", (1..5).map { PageVideo("https://a.com/$it/index.m3u8", Kind.HLS) })

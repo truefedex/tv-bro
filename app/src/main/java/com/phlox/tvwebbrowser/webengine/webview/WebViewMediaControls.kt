@@ -3,10 +3,12 @@ package com.phlox.tvwebbrowser.webengine.webview
 import android.content.Context
 import android.os.SystemClock
 import android.util.Log
+import android.webkit.CookieManager
 import android.webkit.WebView
 import androidx.webkit.JavaScriptReplyProxy
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import com.phlox.tvwebbrowser.webengine.HlsPlaylists
 import com.phlox.tvwebbrowser.webengine.MediaFrames
 import com.phlox.tvwebbrowser.webengine.MediaReports
 import com.phlox.tvwebbrowser.webengine.PageVideoMatch
@@ -16,6 +18,10 @@ import com.phlox.tvwebbrowser.webengine.PageVideo
 import com.phlox.tvwebbrowser.webengine.PageVideoList
 import com.phlox.tvwebbrowser.webengine.PageVideoReports
 import com.phlox.tvwebbrowser.webengine.MediaCommand
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -28,13 +34,19 @@ import org.json.JSONObject
  */
 internal class WebViewMediaControls(private val webView: WebView, private val onStateChanged: (MediaState?) -> Unit,
                                     private val onVideosChanged: (List<PageVideo>) -> Unit,
-                                    private val onMediaVideoChanged: (PageVideo?) -> Unit) {
+                                    private val onMediaVideoChanged: (PageVideoMatch) -> Unit) {
     private val frames = MediaFrames<JavaScriptReplyProxy>()
     /** What the media of each frame plays, for [mediaVideo] */
     private val sources = HashMap<JavaScriptReplyProxy, MediaSource>()
-    private var mediaVideo: PageVideo? = null
+    private var mediaVideo = PageVideoMatch.NONE
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    /** The playlists of streams the addresses leave unclear */
+    private val playlists: HlsPlaylists = HlsPlaylists(scope, { HlsPlaylists.download(it, CookieManager.getInstance().getCookie(it.url)) }) {
+        onVideosChanged(videos.videos())
+        updateMediaVideo()
+    }
     /** The videos other apps can play, also reported by the script of each frame (page_videos.js) */
-    private val videos = PageVideoList<JavaScriptReplyProxy>()
+    private val videos: PageVideoList<JavaScriptReplyProxy> = PageVideoList(playlists = playlists::get)
     private val allFrames = WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT) &&
             WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)
     private var state: MediaState? = null
@@ -58,6 +70,7 @@ internal class WebViewMediaControls(private val webView: WebView, private val on
         }
         if (json.has("videos")) {
             onVideosChanged(videos.onFrameVideos(frame, PageVideoReports.parse(json)))
+            playlists.read(videos.unclearStreams())
             updateMediaVideo()
             return
         }
@@ -71,7 +84,9 @@ internal class WebViewMediaControls(private val webView: WebView, private val on
     /** The video of the page the media the keys control plays ([PageVideoMatch]) */
     private fun updateMediaVideo() {
         val frame = frames.target()
-        val video = frame?.let { PageVideoMatch.of(sources[it], videos.videosOf(it)) }
+        val video = frame?.let {
+            PageVideoMatch.of(sources[it], videos.videosOf(it), frames.targetMedia()?.duration, playlists::get)
+        } ?: PageVideoMatch.NONE
         if (video == mediaVideo) return
         mediaVideo = video
         onMediaVideoChanged(video)
@@ -105,9 +120,13 @@ internal class WebViewMediaControls(private val webView: WebView, private val on
         sources.clear()
         updateState()
         videos.clear()
+        playlists.clear()
         onVideosChanged(emptyList())
         updateMediaVideo()
     }
+
+    /** The engine drops the view: nothing is reported any more */
+    fun close() = scope.cancel()
 
     fun onPageFinished() {
         if (!allFrames) webView.evaluateJavascript(script(webView.context), null)

@@ -32,10 +32,15 @@ import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.MediaFrames
 import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideoMatch
+import com.phlox.tvwebbrowser.webengine.HlsPlaylists
 import com.phlox.tvwebbrowser.webengine.MediaSource
 import com.phlox.tvwebbrowser.webengine.PageVideo
 import com.phlox.tvwebbrowser.webengine.PageVideoList
 import com.phlox.tvwebbrowser.webengine.PageVideosSupport
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -267,12 +272,18 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         sessionState = it
         updateMediaState()
     }
+    private val videoScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    /** The playlists of streams the addresses leave unclear (GeckoView gives no cookies) */
+    private val playlists: HlsPlaylists = HlsPlaylists(videoScope, { HlsPlaylists.download(it, null) }) {
+        _pageVideos.value = videos.videos()
+        updateMediaVideo()
+    }
     /** The videos of the page, from the content scripts of its frames (one port each) */
-    private val videos = PageVideoList<WebExtension.Port>()
+    private val videos: PageVideoList<WebExtension.Port> = PageVideoList(playlists = playlists::get)
     private val _pageVideos = MutableStateFlow<List<PageVideo>>(emptyList())
     override val pageVideos: StateFlow<List<PageVideo>> = _pageVideos.asStateFlow()
-    private val _mediaVideo = MutableStateFlow<PageVideo?>(null)
-    override val mediaVideo: StateFlow<PageVideo?> = _mediaVideo.asStateFlow()
+    private val _mediaVideo = MutableStateFlow(PageVideoMatch.NONE)
+    override val mediaVideo: StateFlow<PageVideoMatch> = _mediaVideo.asStateFlow()
     private val _findResult = MutableStateFlow<FindResult?>(null)
     override val findResult: StateFlow<FindResult?> = _findResult.asStateFlow()
     /** The text of the search in the session, null while there is none */
@@ -285,6 +296,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     /** The content script of a frame reported its videos (none: the frame is gone) */
     fun onFrameVideos(port: WebExtension.Port, frameVideos: List<PageVideo>) {
         _pageVideos.value = videos.onFrameVideos(port, frameVideos)
+        playlists.read(videos.unclearStreams())
         updateMediaVideo()
     }
 
@@ -299,7 +311,9 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     /** The video of the page the media the keys control plays ([PageVideoMatch]) */
     private fun updateMediaVideo() {
         val port = mediaFrames.target()
-        _mediaVideo.value = port?.let { PageVideoMatch.of(mediaSources[it], videos.videosOf(it)) }
+        _mediaVideo.value = port?.let {
+            PageVideoMatch.of(mediaSources[it], videos.videosOf(it), mediaFrames.targetMedia()?.duration, playlists::get)
+        } ?: PageVideoMatch.NONE
     }
 
     private fun updateMediaState() {
@@ -316,6 +330,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     /** The page starts loading another document: the media and the videos of the old one are gone */
     fun onPageStartedForFrames() {
         videos.clear()
+        playlists.clear()
         _pageVideos.value = emptyList()
         mediaFrames.clear()
         mediaSources.clear()
@@ -763,6 +778,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             Log.d(TAG, "Closing session completely")
             mediaSessionDelegate.mediaSession?.stop()
             session.close()
+            videoScope.cancel()
         }
     }
 

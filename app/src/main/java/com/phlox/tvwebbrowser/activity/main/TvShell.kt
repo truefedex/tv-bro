@@ -70,6 +70,7 @@ import com.phlox.tvwebbrowser.activity.main.view.PlayerScreenView
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.pageVideosSupport
 import com.phlox.tvwebbrowser.webengine.PageVideo
+import com.phlox.tvwebbrowser.webengine.PageVideoMatch
 import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
 import com.phlox.tvwebbrowser.activity.main.view.VideosPanelView
 import com.phlox.tvwebbrowser.widgets.NotificationView
@@ -260,7 +261,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private val videosCallback = object : VideosPanelView.Callback {
         //the video the page plays goes on from where it is
         override fun play(video: PageVideo) {
-            if (video == mediaVideo) openMediaVideoInPlayer() else openBuiltInPlayer(video, 0.0)
+            //by address: the list may tell more about it than its frame
+            val playing = video.url == mediaVideo?.url || mediaVideoChoices.any { it.url == video.url }
+            openBuiltInPlayer(video, if (playing) mediaPosition() else 0.0)
         }
 
         override fun openInOtherApp(video: PageVideo) {
@@ -496,19 +499,30 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
         override fun onActiveChanged(active: Boolean) = onCursorModesChanged(cursorModes)
 
-        /** Down takes the video of the page to the built-in player, where its stream is known */
+        /**
+         * Down takes the video of the page to the built-in player where its stream is known, else to the
+         * Videos panel to pick it among the streams it may be
+         */
         override fun onUpDown(down: Boolean): Boolean {
             if (!down) return false
-            return openMediaVideoInPlayer()
+            return openMediaVideoInPlayer() || showMediaVideoChoices()
         }
     })
 
     /** The video of the page the media keys control plays, when its stream is known ([PageVideosSupport.mediaVideo]) */
     private var mediaVideo: PageVideo? = null
+    /** The videos it may be when that is not clear, the likeliest first */
+    private var mediaVideoChoices: List<PageVideo> = emptyList()
 
-    private fun onMediaVideoChanged(video: PageVideo?) {
+    private fun onMediaVideoChanged(match: PageVideoMatch) {
+        val video = match.video
         mediaVideo = video
-        videoMode.hint = if (video != null) activity.getString(R.string.built_in_player) else null
+        mediaVideoChoices = match.choices
+        videoMode.hint = when {
+            video != null -> activity.getString(R.string.built_in_player)
+            match.choices.isNotEmpty() -> activity.getString(R.string.videos_on_page)
+            else -> null
+        }
         pageVideoHint.setMediaVideo(video)
         updatePlayingVideo()
     }
@@ -563,17 +577,34 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     /** The video of the fullscreen view goes on in the built-in player, from where it is; false if its stream is not known */
     private fun openMediaVideoInPlayer(): Boolean {
         val video = mediaVideo ?: return false
-        val engine = controller.currentTab.value?.webEngine
-        val position = engine?.mediaPlayback?.mediaState?.value?.positionAt(SystemClock.elapsedRealtime()) ?: 0.0
-        openBuiltInPlayer(video, position)
+        openBuiltInPlayer(video, mediaPosition())
+        return true
+    }
+
+    /** Where the media of the page is now, seconds */
+    private fun mediaPosition(): Double = controller.currentTab.value?.webEngine?.mediaPlayback?.mediaState?.value
+        ?.positionAt(SystemClock.elapsedRealtime()) ?: 0.0
+
+    /**
+     * The page leaves fullscreen and the Videos panel opens on the likeliest of the streams the video of the
+     * page may be (OK goes on with it in the built-in player from where it is); false if there are none
+     */
+    private fun showMediaVideoChoices(): Boolean {
+        val video = mediaVideoChoices.firstOrNull() ?: return false
+        if (fullscreen) controller.currentTab.value?.webEngine?.hideFullscreenView()
+        vb.rlRoot.post {
+            showMenuOverlay {
+                vb.vVideosPanel.show(vb.vActionBar.videosButton, vb.vActionBar.functionsGroup, focusUrl = video.url)
+            }
+        }
         return true
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (vb.vPlayerScreen.dispatchPlayerKey(event)) return true
         //the Menu key (where it reaches the app) does what Down does in the video mode
-        if (event.keyCode == KeyEvent.KEYCODE_MENU && videoMode.isActive && mediaVideo != null) {
-            if (event.action == KeyEvent.ACTION_UP) openMediaVideoInPlayer()
+        if (event.keyCode == KeyEvent.KEYCODE_MENU && videoMode.isActive && (mediaVideo != null || mediaVideoChoices.isNotEmpty())) {
+            if (event.action == KeyEvent.ACTION_UP) openMediaVideoInPlayer() || showMediaVideoChoices()
             return true
         }
         return videoMode.dispatchKeyEvent(event)
@@ -931,7 +962,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         mediaVideoJob?.cancel()
         mediaVideoJob = null
         onPageVideosChanged(emptyList())
-        onMediaVideoChanged(null)
+        onMediaVideoChanged(PageVideoMatch.NONE)
         controller.currentTab.value?.webEngine?.pageVideosSupport?.let { videos ->
             pageVideosJob = lifecycleScope.launch { videos.pageVideos.collect { onPageVideosChanged(it) } }
             mediaVideoJob = lifecycleScope.launch { videos.mediaVideo.collect { onMediaVideoChanged(it) } }

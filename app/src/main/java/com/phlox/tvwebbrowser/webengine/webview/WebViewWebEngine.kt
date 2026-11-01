@@ -40,6 +40,7 @@ import com.phlox.tvwebbrowser.webengine.MediaPlaybackSupport
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideo
+import com.phlox.tvwebbrowser.webengine.PageVideoMatch
 import com.phlox.tvwebbrowser.webengine.PageVideosSupport
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,8 +64,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     override val mediaState: StateFlow<MediaState?> = _mediaState.asStateFlow()
     private val _pageVideos = MutableStateFlow<List<PageVideo>>(emptyList())
     override val pageVideos: StateFlow<List<PageVideo>> = _pageVideos.asStateFlow()
-    private val _mediaVideo = MutableStateFlow<PageVideo?>(null)
-    override val mediaVideo: StateFlow<PageVideo?> = _mediaVideo.asStateFlow()
+    private val _mediaVideo = MutableStateFlow(PageVideoMatch.NONE)
+    override val mediaVideo: StateFlow<PageVideoMatch> = _mediaVideo.asStateFlow()
     private val _findResult = MutableStateFlow<FindResult?>(null)
     override val findResult: StateFlow<FindResult?> = _findResult.asStateFlow()
     /** The text of the search in the view, null while there is none */
@@ -335,11 +336,12 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     /** Forgets the view and its cursor surface (taking them out of the window); a new one is created when needed */
     private fun dropView() {
         cursorLayout?.let { (it.parent as? ViewGroup)?.removeView(it) }
+        webView?.releaseMediaControls()
         webView = null
         cursorLayout = null
         _mediaState.value = null
         _pageVideos.value = emptyList()
-        _mediaVideo.value = null
+        _mediaVideo.value = PageVideoMatch.NONE
         findQuery = null
         _findResult.value = null
     }
@@ -540,7 +542,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             _pageVideos.value = videos
         }
 
-        override fun onMediaVideoChanged(video: PageVideo?) {
+        override fun onMediaVideoChanged(video: PageVideoMatch) {
             _mediaVideo.value = video
         }
 

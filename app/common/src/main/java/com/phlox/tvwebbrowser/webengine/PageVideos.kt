@@ -38,10 +38,10 @@ interface PageVideosSupport {
     /** The videos of the page in the order they were found; the same flow for the engine's whole life */
     val pageVideos: StateFlow<List<PageVideo>>
     /**
-     * The video among them that the media the keys control plays ([PageVideoMatch]; the built-in player can
-     * go on with it), null if none is known; the same flow for the engine's whole life
+     * The video among them that the media the keys control plays (the built-in player can go on with it), or
+     * the videos it may be when that is not clear ([PageVideoMatch]); the same flow for the engine's whole life
      */
-    val mediaVideo: StateFlow<PageVideo?>
+    val mediaVideo: StateFlow<PageVideoMatch>
 }
 
 /** What a media element plays, as media_controls.js reports it ([MediaReports.source]) */
@@ -52,17 +52,51 @@ data class MediaSource(
     val mse: Boolean,
 )
 
-/** The video of the page a media element plays */
-object PageVideoMatch {
-    /**
-     * Among the videos of the frame of the media: the one at its address, else, for media the page streams
-     * itself (MSE), the only stream (HLS or DASH) of the frame; null when it is not known which
-     */
-    fun of(source: MediaSource?, frameVideos: List<PageVideo>): PageVideo? {
-        if (source == null) return null
-        source.src?.let { src -> frameVideos.firstOrNull { it.url == src }?.let { return it } }
-        if (!source.mse) return null
-        return frameVideos.filter { it.kind != PageVideo.Kind.FILE }.singleOrNull()
+/**
+ * The video of the page a media element plays: [video] when it is known, else the [choices] it may be (the
+ * streams of its frame, the likeliest first), so the user can pick it
+ */
+data class PageVideoMatch(val video: PageVideo?, val choices: List<PageVideo> = emptyList()) {
+    companion object {
+        val NONE = PageVideoMatch(null)
+
+        /**
+         * Among the videos of the frame of the media ([PageVideoList.videosOf]): the one at its address, else,
+         * for media the page streams itself (MSE), the only stream (HLS or DASH) of the frame, or the only one
+         * that lasts as long as the media ([duration], seconds) when the durations of all of them are known
+         * ([playlists]); the others are [choices]
+         */
+        fun of(source: MediaSource?, frameVideos: List<PageVideo>, duration: Double? = null,
+               playlists: (String) -> HlsPlaylist? = { null }): PageVideoMatch {
+            if (source == null) return NONE
+            source.src?.let { src -> frameVideos.firstOrNull { it.url == src }?.let { return PageVideoMatch(it) } }
+            if (!source.mse) return NONE
+            val streams = frameVideos.filter { it.kind != PageVideo.Kind.FILE }
+            if (streams.size <= 1) return PageVideoMatch(streams.singleOrNull())
+            if (duration == null) return PageVideoMatch(null, streams)
+            val fitting = streams.map { stream -> durationOf(stream, playlists)?.let { fits(it, duration) } }
+            if (fitting.count { it == true } == 1 && fitting.none { it == null }) {
+                return PageVideoMatch(streams[fitting.indexOf(true)])
+            }
+            //those that last as long as the media first
+            return PageVideoMatch(null, streams.indices.sortedBy { if (fitting[it] == true) 0 else 1 }.map { streams[it] })
+        }
+
+        private fun fits(a: Double, b: Double) = kotlin.math.abs(a - b) <= maxOf(2.0, 0.01 * maxOf(a, b))
+
+        /**
+         * How long the HLS [stream] lasts: its media playlist, or one of the playlists its master lists (the
+         * page loads those it plays); null when unknown or for a live stream
+         */
+        private fun durationOf(stream: PageVideo, playlists: (String) -> HlsPlaylist?): Double? {
+            if (stream.kind != PageVideo.Kind.HLS) return null
+            val media = when (val playlist = playlists(stream.url)) {
+                is HlsPlaylist.Media -> listOf(playlist)
+                is HlsPlaylist.Master -> playlist.playlists.mapNotNull { playlists(it) as? HlsPlaylist.Media }
+                null -> emptyList()
+            }
+            return media.firstOrNull { it.ended && it.duration > 0 }?.duration
+        }
     }
 }
 
@@ -99,7 +133,9 @@ object PageVideoUrls {
      * Whether the HLS playlist at [url] is a variant (a quality, the audio) of the one at [master]: players
      * load the master playlist first, then the playlists it lists, which lie on the same server in its folder
      * or below it, or in its folder with one more folder put in its path (`hls/<token>/` and
-     * `hls/480/<token>/`). A second stream in the same folder is taken for a variant too.
+     * `hls/480/<token>/`). A second stream in the same folder is taken for a variant too. Numbers in the
+     * names of folders are compared without their leading zeros: the variants of a master in `video01/` may
+     * lie in `video1/`.
      */
     fun isVariantOf(url: String, master: String): Boolean {
         if (url == master) return false
@@ -112,12 +148,15 @@ object PageVideoUrls {
 
     private fun List<String>.startsWith(prefix: List<String>) = size >= prefix.size && subList(0, prefix.size) == prefix
 
-    /** The server and the folders of the path */
+    /** The server and the folders of the path, their numbers without leading zeros */
     private fun folderOf(url: String): Pair<String, List<String>>? {
         val path = pathOf(url) ?: return null
         val host = url.substringAfter("://").substringBefore('/').substringBefore('?').substringBefore('#').lowercase()
         return host to path.substringBeforeLast('/', "").split('/').filter { it.isNotEmpty() }
+            .map { it.replace(LEADING_ZEROS, "") }
     }
+
+    private val LEADING_ZEROS = Regex("(?<![0-9])0+(?=[0-9])")
 
     /** The path of an http(s) address with a host, null for other addresses */
     private fun pathOf(url: String): String? {
@@ -139,10 +178,11 @@ object PageVideoUrls {
 /**
  * The videos of a page, from the reports of its frames ([F]: how a frame is known, compared by identity):
  * each report replaces the videos of its frame. One address is one video, kept at the place where it was
- * first found, with what the frames tell about it; the variants of an HLS stream are not listed apart
- * ([PageVideoUrls.isVariantOf]). The list keeps at most [limit] videos.
+ * first found, with what the frames tell about it; the variants of an HLS stream are not listed apart: those
+ * a master playlist that was read lists ([playlists]), and by their addresses ([PageVideoUrls.isVariantOf]).
+ * The list keeps at most [limit] videos.
  */
-class PageVideoList<F : Any>(private val limit: Int = 50) {
+class PageVideoList<F : Any>(private val limit: Int = 50, private val playlists: (String) -> HlsPlaylist? = { null }) {
     private val frames = LinkedHashMap<F, List<PageVideo>>()
     /** The order the addresses were found in, also after their frames are gone, until the page changes */
     private val order = LinkedHashMap<String, Int>()
@@ -172,11 +212,23 @@ class PageVideoList<F : Any>(private val limit: Int = 50) {
     /** The videos one frame reported, the variants of an HLS stream as one */
     fun videosOf(frame: F): List<PageVideo> = withoutVariants(frames[frame] ?: emptyList())
 
+    /**
+     * The HLS playlists to read ([HlsPlaylists]) where the addresses leave the streams of a frame unclear: all
+     * of those of each frame that has more than one stream by its addresses (a master with qualities that lie
+     * elsewhere, or another stream, an ad, whose duration tells it apart)
+     */
+    fun unclearStreams(): List<PageVideo> = frames.values.flatMap { videos ->
+        val streams = withoutVariants(videos).count { it.kind != PageVideo.Kind.FILE }
+        if (streams > 1) videos.filter { it.kind == PageVideo.Kind.HLS } else emptyList()
+    }
+
     private fun withoutVariants(videos: List<PageVideo>): List<PageVideo> {
+        //listed by a master that was read
+        val listed = videos.flatMapTo(HashSet()) { (playlists(it.url) as? HlsPlaylist.Master)?.playlists ?: emptySet() }
         val masters = ArrayList<String>()
         return videos.filter { video ->
             if (video.kind != PageVideo.Kind.HLS) return@filter true
-            if (masters.any { PageVideoUrls.isVariantOf(video.url, it) }) return@filter false
+            if (video.url in listed || masters.any { PageVideoUrls.isVariantOf(video.url, it) }) return@filter false
             masters += video.url
             true
         }

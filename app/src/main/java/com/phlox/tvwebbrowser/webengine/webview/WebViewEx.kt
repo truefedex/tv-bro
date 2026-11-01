@@ -57,6 +57,7 @@ import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideo
+import com.phlox.tvwebbrowser.webengine.PageVideoMatch
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.utils.DPADNavigationEventsAdapter
 import com.phlox.tvwebbrowser.webengine.ErrorPageTemplate
@@ -166,8 +167,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onMediaStateChanged(state: MediaState?)
         /** The videos of the page that other apps can play changed */
         fun onPageVideosChanged(videos: List<PageVideo>)
-        /** The video of the page the media the keys control plays changed (null: none is known) */
-        fun onMediaVideoChanged(video: PageVideo?)
+        /** The video of the page the media the keys control plays changed, or the videos it may be */
+        fun onMediaVideoChanged(video: PageVideoMatch)
         /** The renderer process of the view died ([didCrash], or the system killed it): the view can not be used */
         fun onRenderProcessGone(didCrash: Boolean)
     }
@@ -720,6 +721,9 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
     /** A media key of the remote for the media of the page */
     fun mediaCommand(command: MediaCommand) = mediaControls.command(command)
+
+    /** The engine drops the view: the playlists it reads are not waited for */
+    fun releaseMediaControls() = mediaControls.close()
 
     fun seekMediaTo(position: Double) = mediaControls.seekTo(position)
 

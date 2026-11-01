@@ -12,17 +12,17 @@ class PageVideoMatchTest {
 
     @Test
     fun theVideoAtTheAddressOfTheMedia() {
-        assertEquals(file, PageVideoMatch.of(MediaSource("https://a.com/movie.mp4", false), listOf(hls, file)))
-        assertNull(PageVideoMatch.of(MediaSource("https://a.com/other.mp4", false), listOf(hls, file)))
+        assertEquals(file, PageVideoMatch.of(MediaSource("https://a.com/movie.mp4", false), listOf(hls, file)).video)
+        assertNull(PageVideoMatch.of(MediaSource("https://a.com/other.mp4", false), listOf(hls, file)).video)
     }
 
     @Test
     fun mediaThePageStreamsPlaysTheOnlyStreamOfItsFrame() {
-        assertEquals(hls, PageVideoMatch.of(MediaSource(null, true), listOf(file, hls)))
-        //two streams: not known which
-        assertNull(PageVideoMatch.of(MediaSource(null, true), listOf(hls, dash)))
-        assertNull(PageVideoMatch.of(MediaSource(null, true), listOf(file)))
-        assertNull(PageVideoMatch.of(null, listOf(hls)))
+        assertEquals(hls, PageVideoMatch.of(MediaSource(null, true), listOf(file, hls)).video)
+        //two streams: not known which, both may be
+        assertNull(PageVideoMatch.of(MediaSource(null, true), listOf(hls, dash)).video)
+        assertNull(PageVideoMatch.of(MediaSource(null, true), listOf(file)).video)
+        assertNull(PageVideoMatch.of(null, listOf(hls)).video)
     }
 
     @Test
@@ -32,7 +32,7 @@ class PageVideoMatchTest {
         list.onFrameVideos("b", listOf(file))
         assertEquals(listOf(hls), list.videosOf("a"))
         assertEquals(emptyList<PageVideo>(), list.videosOf("c"))
-        assertEquals(hls, PageVideoMatch.of(MediaSource(null, true), list.videosOf("a")))
+        assertEquals(hls, PageVideoMatch.of(MediaSource(null, true), list.videosOf("a")).video)
     }
 
     @Test
@@ -42,7 +42,7 @@ class PageVideoMatchTest {
         val ad = PageVideo("https://v.ads.example/media/v7.mp4", Kind.FILE)
         val list = PageVideoList<String>()
         list.onFrameVideos("a", listOf(master, ad, PageVideo("https://ashdi.vip/v/hls/480/BqiXj3SRl+1Ckw0=/index.m3u8", Kind.HLS)))
-        assertEquals(ad, PageVideoMatch.of(MediaSource(ad.url, false), list.videosOf("a")))
-        assertEquals(master, PageVideoMatch.of(MediaSource(null, true), list.videosOf("a")))
+        assertEquals(ad, PageVideoMatch.of(MediaSource(ad.url, false), list.videosOf("a")).video)
+        assertEquals(master, PageVideoMatch.of(MediaSource(null, true), list.videosOf("a")).video)
     }
 }
