@@ -13,7 +13,8 @@ import com.phlox.tvwebbrowser.databinding.ViewPopupMenuRowBinding
 /**
  * A menu of the given rows under the view that opened it (above it when there is no room under it),
  * the first row focused (or the given one). Rows that can not act are only dimmed, so the number of presses
- * to each row never changes. A menu of options marks the chosen one ([Item.checked]).
+ * to each row never changes. A menu of options marks the chosen one ([Item.checked]). A menu taller than the
+ * screen scrolls, keeping the focused row in view.
  */
 class PopupMenuView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -26,13 +27,13 @@ class PopupMenuView @JvmOverloads constructor(
                val action: () -> Unit)
 
     private val vb = ViewPopupMenuBinding.inflate(LayoutInflater.from(context), this)
-    override val panel: View get() = vb.llMenu
+    override val panel: View get() = vb.svMenu
     private val defaultWidth = resources.getDimensionPixelSize(R.dimen.ds_bookmark_menu_width)
     /** The anchor is selected while the menu is open */
     private var activatedAnchor: View? = null
 
     init {
-        vb.llMenu.clipToOutline = true
+        vb.svMenu.clipToOutline = true
     }
 
     /**
@@ -70,23 +71,26 @@ class PopupMenuView @JvmOverloads constructor(
             if (i == focusIndex || focusRow == null) focusRow = row.root
         }
         val margin = resources.getDimensionPixelSize(R.dimen.ds_bookmarks_panel_margin_bottom)
-        vb.llMenu.layoutParams = vb.llMenu.layoutParams.apply {
+        vb.svMenu.layoutParams = vb.svMenu.layoutParams.apply {
             this.width = if (width == null) defaultWidth else resources.getDimensionPixelSize(width)
         }
+        //the focused row is scrolled into view when the menu is laid out
+        vb.svMenu.scrollTo(0, 0)
         if (activateAnchor) {
             anchor.isActivated = true
             activatedAnchor = anchor
         }
         showUnder(anchor, gap, focusRow ?: return, if (alignEnd) endAlignTo else null, margin)
-        //no room under the anchor: the menu goes above it
+        //no room under the anchor: the menu goes above it (from the top margin when it is taller than the
+        //screen, which cuts it at the bottom margin, and it scrolls)
         val screenHeight = (parent as View).height
-        val lp = vb.llMenu.layoutParams as LayoutParams
-        vb.llMenu.measure(MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY),
+        val lp = vb.svMenu.layoutParams as LayoutParams
+        vb.svMenu.measure(MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY),
             MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
-        val menuHeight = vb.llMenu.measuredHeight
+        val menuHeight = vb.svMenu.measuredHeight
         if (lp.topMargin + menuHeight > screenHeight - margin) {
             lp.topMargin = maxOf(margin, lp.topMargin - anchor.height - menuHeight)
-            vb.llMenu.layoutParams = lp
+            vb.svMenu.layoutParams = lp
         }
     }
 
