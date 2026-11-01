@@ -29,6 +29,14 @@ bookmarks and the downloads over the whole window.
             android:layout_alignParentBottom="true"
             android:elevation="4dp" />
 
+        <!-- Find in page, in the place of the bar (it is invisible meanwhile) -->
+        <com.phlox.tvwebbrowser.activity.main.view.PhoneFindBar
+            android:id="@+id/vFindBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:elevation="4dp" />
+
         <!-- along the top edge of the page -->
         <ProgressBar
             style="@android:style/Widget.ProgressBar.Horizontal"

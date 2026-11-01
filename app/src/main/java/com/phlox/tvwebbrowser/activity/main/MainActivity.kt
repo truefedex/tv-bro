@@ -369,6 +369,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         override fun fastForward() {
             if (!shell.onMediaCommand(MediaCommand.FAST_FORWARD)) controller.fastForward()
         }
+
+        override fun findInPage() = shell.showFindInPage()
     }
 
     override fun onDestroy() {

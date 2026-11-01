@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The find bar of the phone (Find in page), in the place of the bar at the bottom: the pill with the text and the
+count of the matches, the previous and next match, and close.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="horizontal">
+
+  <LinearLayout
+      android:id="@+id/llPill"
+      android:layout_width="0dp"
+      android:layout_height="@dimen/ds_phone_pill_height"
+      android:layout_weight="1"
+      android:layout_marginStart="@dimen/ds_phone_bar_gap"
+      android:layout_marginEnd="@dimen/ds_phone_bar_gap"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingStart="@dimen/ds_phone_pill_search_inset"
+      android:paddingEnd="@dimen/ds_phone_pill_search_inset"
+      android:background="@drawable/ds_address_pill_bg">
+
+    <ImageView
+        android:layout_width="@dimen/ds_phone_pill_search_icon"
+        android:layout_height="@dimen/ds_phone_pill_search_icon"
+        android:src="@drawable/ic_search"
+        app:tint="?attr/tbColorDsIcon"
+        android:importantForAccessibility="no" />
+
+    <EditText
+        style="@style/Widget.TVBro.Text.PhoneAddress"
+        android:id="@+id/etQuery"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:paddingStart="@dimen/ds_phone_pill_search_inset"
+        android:paddingEnd="@dimen/ds_phone_pill_text_inset"
+        android:gravity="center_vertical"
+        android:background="@null"
+        android:textColor="?attr/tbColorDsInk"
+        android:textColorHint="?attr/tbColorDsInkFaint"
+        android:singleLine="true"
+        android:imeOptions="actionSearch"
+        android:hint="@string/find_in_page"
+        android:inputType="text|textNoSuggestions"
+        android:importantForAutofill="no" />
+
+    <!-- "3/17" -->
+    <TextView
+        style="@style/Widget.TVBro.Text.PhoneAddress"
+        android:id="@+id/tvCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="?attr/tbColorDsInkFaint"
+        android:accessibilityLiveRegion="polite"
+        tools:text="3/17" />
+  </LinearLayout>
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+      android:id="@+id/ibPrevious"
+      android:src="@drawable/ic_chevron_up"
+      android:contentDescription="@string/find_in_page_previous" />
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+      android:id="@+id/ibNext"
+      android:src="@drawable/ic_chevron_down"
+      android:contentDescription="@string/find_in_page_next" />
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Phone"
+      android:id="@+id/ibClose"
+      android:src="@drawable/ic_close"
+      android:contentDescription="@string/find_in_page_close" />
+</merge>

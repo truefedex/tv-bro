@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+The find bar of the TV (Find in page), over the top end of the page: the field with the text, the count of
+the matches and the mic, the previous and next match, and close.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout"
+    tools:orientation="horizontal">
+
+  <com.phlox.tvwebbrowser.activity.main.view.AddressFieldLayout
+      android:id="@+id/llField"
+      android:layout_width="0dp"
+      android:layout_height="@dimen/ds_size_chrome_control"
+      android:layout_weight="1"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:background="@drawable/ds_address_field_bg"
+      android:padding="@dimen/ds_border_hairline">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingStart="@dimen/ds_space_field_inset"
+        android:src="@drawable/ic_search"
+        app:tint="?attr/tbColorDsIcon"
+        android:importantForAccessibility="no" />
+
+    <EditText
+        style="@style/Widget.TVBro.Text.Address"
+        android:id="@+id/etQuery"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:paddingStart="@dimen/ds_space_field_inset"
+        android:paddingEnd="@dimen/ds_space_field_inset"
+        android:gravity="center_vertical"
+        android:background="@null"
+        android:textCursorDrawable="@null"
+        android:textColor="?attr/tbColorDsInk"
+        android:textColorHint="?attr/tbColorDsInkFaint"
+        android:singleLine="true"
+        android:selectAllOnFocus="true"
+        android:imeOptions="actionSearch"
+        android:hint="@string/find_in_page"
+        android:inputType="text|textNoSuggestions"
+        android:importantForAutofill="no" />
+
+    <!-- "3/17" -->
+    <TextView
+        style="@style/Widget.TVBro.Text.Address"
+        android:id="@+id/tvCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingEnd="@dimen/ds_space_field_inset"
+        android:textColor="?attr/tbColorDsInkFaint"
+        android:accessibilityLiveRegion="polite"
+        tools:text="3/17" />
+
+    <View style="@style/Widget.TVBro.FieldDivider" />
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Field"
+        android:id="@+id/ibVoice"
+        android:src="@drawable/ic_voice_search"
+        android:contentDescription="@string/voice_search" />
+  </com.phlox.tvwebbrowser.activity.main.view.AddressFieldLayout>
+
+  <LinearLayout
+      style="@style/Widget.TVBro.ToolbarGroup"
+      android:layout_height="@dimen/ds_size_chrome_control">
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibPrevious"
+        android:src="@drawable/ic_chevron_up"
+        android:contentDescription="@string/find_in_page_previous" />
+
+    <View style="@style/Widget.TVBro.ToolbarSeparator" />
+
+    <ImageButton
+        style="@style/Widget.TVBro.ImageButton.Ds.Segment"
+        android:id="@+id/ibNext"
+        android:src="@drawable/ic_chevron_down"
+        android:contentDescription="@string/find_in_page_next" />
+  </LinearLayout>
+
+  <ImageButton
+      style="@style/Widget.TVBro.ImageButton.Ds.Standalone"
+      android:id="@+id/ibClose"
+      android:layout_marginStart="@dimen/ds_space_gutter"
+      android:src="@drawable/ic_close"
+      android:contentDescription="@string/find_in_page_close" />
+</merge>

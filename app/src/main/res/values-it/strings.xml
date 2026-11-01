@@ -119,6 +119,10 @@
   <string name="media_stop">Arresta riproduzione multimediale</string>
   <string name="media_rewind">Riavvolgi</string>
   <string name="media_fast_forward">Avanti veloce</string>
+  <string name="find_in_page">Trova nella pagina</string>
+  <string name="find_in_page_previous">Risultato precedente</string>
+  <string name="find_in_page_next">Risultato successivo</string>
+  <string name="find_in_page_close">Chiudi la ricerca nella pagina</string>
   <string name="long_press">Pressione prolungata</string>
   <string name="local_network_access_denied">Accesso alla rete locale negato</string>
   <string name="web_engine_debug_warning_message">L\'attivazione del debug del motore web può esporre contenuti delle pagine, cookie e dati di sessione sensibili a chiunque abbia accesso al debug del dispositivo. Abilitalo solo su dispositivi attendibili per la risoluzione dei problemi.</string>

@@ -34,6 +34,8 @@ import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.CursorModes
+import com.phlox.tvwebbrowser.webengine.FindInPageSupport
+import com.phlox.tvwebbrowser.webengine.FindResult
 import com.phlox.tvwebbrowser.webengine.MediaPlaybackSupport
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.MediaState
@@ -49,7 +51,7 @@ import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 
 
 class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, SiteViewSupport,
-    MediaPlaybackSupport, PageVideosSupport, CursorDrawerDelegate.Callback {
+    MediaPlaybackSupport, PageVideosSupport, FindInPageSupport, CursorDrawerDelegate.Callback {
     private var webView: WebViewEx? = null
     internal var callback: WebEngineCallbacks? = null
     /** The cursor surface around [webView] and the fullscreen view, created and dropped together with [webView] */
@@ -63,6 +65,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     override val pageVideos: StateFlow<List<PageVideo>> = _pageVideos.asStateFlow()
     private val _mediaVideo = MutableStateFlow<PageVideo?>(null)
     override val mediaVideo: StateFlow<PageVideo?> = _mediaVideo.asStateFlow()
+    private val _findResult = MutableStateFlow<FindResult?>(null)
+    override val findResult: StateFlow<FindResult?> = _findResult.asStateFlow()
+    /** The text of the search in the view, null while there is none */
+    private var findQuery: String? = null
     private val jsInterface = AndroidJSInterface(this)
     /** The page whose renderer died while the tab was shown: the next view shows the page of the crash for it */
     private var lostPage: LostPage? = null
@@ -204,6 +210,12 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             applyPointerMode()
             //a new cursor surface starts in the cursor mode
             _cursorModes.value = CursorModes()
+            //the matches of findAllAsync, counted on: their number grows until it is done
+            webView.setFindListener { activeMatchOrdinal, numberOfMatches, _ ->
+                val query = findQuery ?: return@setFindListener
+                _findResult.value = FindResult(query, if (numberOfMatches > 0) activeMatchOrdinal + 1 else 0,
+                    numberOfMatches)
+            }
             this.webView = webView
             lostPage?.let {
                 lostPage = null
@@ -270,6 +282,26 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         webView?.mediaCommand(MediaCommand.PAUSE)
     }
 
+    override fun find(text: String) {
+        if (text.isEmpty()) {
+            clearFind()
+            return
+        }
+        findQuery = text
+        webView?.findAllAsync(text)
+    }
+
+    override fun findNext(forward: Boolean) {
+        if (findQuery == null) return
+        webView?.findNext(forward)
+    }
+
+    override fun clearFind() {
+        findQuery = null
+        webView?.clearMatches()
+        _findResult.value = null
+    }
+
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
         return webView?.renderThumbnail(bitmap)
     }
@@ -307,6 +339,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         _mediaState.value = null
         _pageVideos.value = emptyList()
         _mediaVideo.value = null
+        findQuery = null
+        _findResult.value = null
     }
 
     override fun onLongPress(x: Int, y: Int) {

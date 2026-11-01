@@ -391,6 +391,13 @@
     <string name="media_stop">Stop media</string>
     <string name="media_rewind">Rewind media</string>
     <string name="media_fast_forward">Fast-forward media</string>
+    <string name="find_in_page">Find in page</string>
+    <string name="find_in_page_previous">Previous match</string>
+    <string name="find_in_page_next">Next match</string>
+    <string name="find_in_page_close">Close Find in page</string>
+    <!-- the current match and the number of matches; the second one when there are more than the engine counts -->
+    <string name="find_in_page_count" translatable="false">%1$d/%2$d</string>
+    <string name="find_in_page_count_many" translatable="false">%1$d/%2$d+</string>
     <string name="long_press">Long press</string>
     <string name="local_network_access_denied">Local network access denied</string>
 

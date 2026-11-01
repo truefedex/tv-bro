@@ -25,6 +25,8 @@ import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.utils.HardwareCodecs
+import com.phlox.tvwebbrowser.webengine.FindInPageSupport
+import com.phlox.tvwebbrowser.webengine.FindResult
 import com.phlox.tvwebbrowser.webengine.MediaPlaybackSupport
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.MediaFrames
@@ -71,7 +73,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, SiteViewSupport,
-    MediaPlaybackSupport, PageVideosSupport, CursorDrawerDelegate.Callback {
+    MediaPlaybackSupport, PageVideosSupport, FindInPageSupport, CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
         /** Changes with the files of the extension: it is installed again then */
@@ -271,6 +273,12 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     override val pageVideos: StateFlow<List<PageVideo>> = _pageVideos.asStateFlow()
     private val _mediaVideo = MutableStateFlow<PageVideo?>(null)
     override val mediaVideo: StateFlow<PageVideo?> = _mediaVideo.asStateFlow()
+    private val _findResult = MutableStateFlow<FindResult?>(null)
+    override val findResult: StateFlow<FindResult?> = _findResult.asStateFlow()
+    /** The text of the search in the session, null while there is none */
+    private var findQuery: String? = null
+    /** Counts the searches: the result of an older one (it comes later) is dropped */
+    private var findGeneration = 0
     /** What the media of each frame plays, for [mediaVideo] */
     private val mediaSources = HashMap<WebExtension.Port, MediaSource>()
 
@@ -659,6 +667,44 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             delta < 0 -> session.seekBackward()
             else -> session.seekForward()
         }
+    }
+
+    override fun find(text: String) {
+        if (text.isEmpty()) {
+            clearFind()
+            return
+        }
+        findQuery = text
+        runFind(text, GeckoSession.FINDER_FIND_FORWARD)
+    }
+
+    override fun findNext(forward: Boolean) {
+        if (findQuery == null) return
+        //no text: the next match of the last one
+        runFind(null, if (forward) GeckoSession.FINDER_FIND_FORWARD else GeckoSession.FINDER_FIND_BACKWARDS)
+    }
+
+    private fun runFind(text: String?, flags: Int) {
+        val query = findQuery ?: return
+        val generation = ++findGeneration
+        val finder = session.finder
+        finder.displayFlags = GeckoSession.FINDER_DISPLAY_HIGHLIGHT_ALL or GeckoSession.FINDER_DISPLAY_DRAW_LINK_OUTLINE
+        finder.find(text, flags).accept({ result ->
+            if (result == null || generation != findGeneration || findQuery != query) return@accept
+            //a total of -1: more matches than Gecko counts
+            val total = if (result.total < 0) FindResult.MANY else result.total
+            _findResult.value = FindResult(query, if (result.found) result.current.coerceAtLeast(1) else 0,
+                if (result.found) total else 0)
+        }, { e ->
+            Log.w(TAG, "find failed", e)
+        })
+    }
+
+    override fun clearFind() {
+        findQuery = null
+        findGeneration++
+        session.finder.clear()
+        _findResult.value = null
     }
 
     override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {

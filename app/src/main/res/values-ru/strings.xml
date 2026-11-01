@@ -119,6 +119,10 @@
   <string name="media_stop">Остановить воспроизведение</string>
   <string name="media_rewind">Перемотка назад</string>
   <string name="media_fast_forward">Перемотка вперёд</string>
+  <string name="find_in_page">Найти на странице</string>
+  <string name="find_in_page_previous">Предыдущее совпадение</string>
+  <string name="find_in_page_next">Следующее совпадение</string>
+  <string name="find_in_page_close">Закрыть поиск на странице</string>
   <string name="long_press">Долгое нажатие</string>
   <string name="local_network_access_denied">Доступ к локальной сети запрещён</string>
   <string name="web_engine_debug_warning_message">Включение отладки веб-движка может раскрыть содержимое страниц, cookie и чувствительные данные сессии любому, у кого есть доступ к отладке устройства. Включайте только на доверенных устройствах для устранения неполадок.</string>

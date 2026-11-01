@@ -89,6 +89,13 @@ the settings of the current site, then History, Bookmarks, Downloads and Setting
           android:orientation="vertical">
         <LinearLayout
             style="@style/Widget.TVBro.PhoneMenuRow"
+            android:id="@+id/llFindInPage">
+          <ImageView style="@style/Widget.TVBro.PhoneMenuIcon" android:src="@drawable/ic_search" />
+          <TextView style="@style/Widget.TVBro.Text.PhoneMenuItem" android:text="@string/find_in_page" />
+        </LinearLayout>
+        <View style="@style/Widget.TVBro.MenuSeparator" />
+        <LinearLayout
+            style="@style/Widget.TVBro.PhoneMenuRow"
             android:id="@+id/llHistory">
           <ImageView style="@style/Widget.TVBro.PhoneMenuIcon" android:src="@drawable/ic_history" />
           <TextView style="@style/Widget.TVBro.Text.PhoneMenuItem" android:text="@string/history" />

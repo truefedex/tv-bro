@@ -119,6 +119,10 @@
   <string name="media_stop">توقف رسانه</string>
   <string name="media_rewind">عقب بردن رسانه</string>
   <string name="media_fast_forward">جلو بردن سریع رسانه</string>
+  <string name="find_in_page">یافتن در صفحه</string>
+  <string name="find_in_page_previous">مورد قبلی</string>
+  <string name="find_in_page_next">مورد بعدی</string>
+  <string name="find_in_page_close">بستن یافتن در صفحه</string>
   <string name="long_press">فشار طولانی</string>
   <string name="local_network_access_denied">دسترسی به شبکه محلی رد شد</string>
   <string name="web_engine_debug_warning_message">فعال‌سازی اشکال‌زدایی موتور وب می‌تواند محتوای صفحات، کوکی‌ها و داده‌های حساس نشست را برای هر کسی که به اشکال‌زدایی دستگاه دسترسی دارد افشا کند. فقط برای رفع اشکال و روی دستگاه‌های مورداعتماد فعال کنید.</string>

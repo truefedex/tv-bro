@@ -119,6 +119,10 @@
   <string name="media_stop">停止媒体</string>
   <string name="media_rewind">快退</string>
   <string name="media_fast_forward">快进</string>
+  <string name="find_in_page">在网页中查找</string>
+  <string name="find_in_page_previous">上一个匹配项</string>
+  <string name="find_in_page_next">下一个匹配项</string>
+  <string name="find_in_page_close">关闭网页查找</string>
   <string name="long_press">长按</string>
   <string name="local_network_access_denied">已拒绝本地网络访问</string>
   <string name="web_engine_debug_warning_message">启用 Web 引擎调试可能会将页面内容、Cookie 和敏感会话数据暴露给任何具有设备调试访问权限的人。仅在受信任设备上用于故障排查时启用。</string>

@@ -110,5 +110,6 @@ class ShortcutMgrTest {
         override fun stopPlayback() { log += "stopPlayback" }
         override fun rewind() { log += "rewind" }
         override fun fastForward() { log += "fastForward" }
+        override fun findInPage() { log += "findInPage" }
     }
 }

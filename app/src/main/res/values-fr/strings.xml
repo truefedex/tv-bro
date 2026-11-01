@@ -121,6 +121,10 @@
     <string name="media_stop">Arrêter le média</string>
     <string name="media_rewind">Retour rapide</string>
     <string name="media_fast_forward">Avance rapide</string>
+    <string name="find_in_page">Rechercher dans la page</string>
+    <string name="find_in_page_previous">Résultat précédent</string>
+    <string name="find_in_page_next">Résultat suivant</string>
+    <string name="find_in_page_close">Fermer la recherche dans la page</string>
     <string name="long_press">Appui long</string>
     <string name="local_network_access_denied">Accès au réseau local refusé</string>
   <string name="speak_now">Parlez maintenant</string>

@@ -118,6 +118,10 @@
   <string name="media_stop">Medien stoppen</string>
   <string name="media_rewind">Medien zurückspulen</string>
   <string name="media_fast_forward">Medien vorspulen</string>
+  <string name="find_in_page">Auf Seite suchen</string>
+  <string name="find_in_page_previous">Vorheriger Treffer</string>
+  <string name="find_in_page_next">Nächster Treffer</string>
+  <string name="find_in_page_close">Suche auf der Seite schließen</string>
   <string name="long_press">Langes Drücken</string>
   <string name="local_network_access_denied">Zugriff auf das lokale Netzwerk verweigert</string>
   <string name="web_engine_debug_warning_message">Das Aktivieren des Web-Engine-Debuggings kann Seiteninhalte, Cookies und sensible Sitzungsdaten für jeden mit Debugging-Zugriff auf das Gerät offenlegen. Nur auf vertrauenswürdigen Geräten zur Fehlersuche aktivieren.</string>

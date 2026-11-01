@@ -121,6 +121,10 @@
     <string name="media_stop">Διακοπή πολυμέσων</string>
     <string name="media_rewind">Γρήγορη επιστροφή</string>
     <string name="media_fast_forward">Γρήγορη προώθηση</string>
+    <string name="find_in_page">Εύρεση στη σελίδα</string>
+    <string name="find_in_page_previous">Προηγούμενο αποτέλεσμα</string>
+    <string name="find_in_page_next">Επόμενο αποτέλεσμα</string>
+    <string name="find_in_page_close">Κλείσιμο εύρεσης στη σελίδα</string>
     <string name="long_press">Παρατεταμένο πάτημα</string>
     <string name="local_network_access_denied">Δεν επιτράπηκε η πρόσβαση στο τοπικό δίκτυο</string>
   <string name="speak_now">Μιλήστε τώρα</string>

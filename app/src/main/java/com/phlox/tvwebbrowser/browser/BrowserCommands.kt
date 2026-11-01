@@ -15,4 +15,6 @@ interface BrowserCommands {
     fun stopPlayback()
     fun rewind()
     fun fastForward()
+    /** Opens the search of text in the current page */
+    fun findInPage()
 }

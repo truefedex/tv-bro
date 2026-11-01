@@ -119,6 +119,10 @@
   <string name="media_stop">Zatrzymaj multimedia</string>
   <string name="media_rewind">Przewiń do tyłu</string>
   <string name="media_fast_forward">Przewiń do przodu</string>
+  <string name="find_in_page">Znajdź na stronie</string>
+  <string name="find_in_page_previous">Poprzednie wystąpienie</string>
+  <string name="find_in_page_next">Następne wystąpienie</string>
+  <string name="find_in_page_close">Zamknij wyszukiwanie na stronie</string>
   <string name="long_press">Długie naciśnięcie</string>
   <string name="local_network_access_denied">Odmowa dostępu do sieci lokalnej</string>
   <string name="web_engine_debug_warning_message">Włączenie debugowania silnika webowego może ujawnić zawartość stron, pliki cookie oraz wrażliwe dane sesji każdej osobie z dostępem do debugowania urządzenia. Włączaj tylko na zaufanych urządzeniach do diagnozowania problemów.</string>

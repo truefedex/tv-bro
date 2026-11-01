@@ -136,6 +136,17 @@
         android:layout_marginEnd="@dimen/ds_space_screen_x"
         android:elevation="6dp" />
 
+    <!-- Find in page, over the top end of the page (the bar closes when it opens) -->
+    <com.phlox.tvwebbrowser.activity.main.view.TvFindBarView
+        android:id="@+id/vFindBar"
+        android:layout_width="@dimen/tv_find_bar_width"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="@dimen/ds_space_screen_top"
+        android:layout_marginEnd="@dimen/ds_space_screen_x"
+        android:elevation="6dp" />
+
     <!-- above the bar (their elevation is higher) -->
     <com.phlox.tvwebbrowser.activity.main.view.TabMenuView
         android:id="@+id/vTabMenu"

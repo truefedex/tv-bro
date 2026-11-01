@@ -95,6 +95,9 @@ interface BrowserShell {
     /** Opens the settings at the [category] (the first one on TV, the list of the categories on the phone) */
     fun showSettings(category: SettingsNavigator.Category? = null)
 
+    /** Opens the find bar of the current page (Find in page), its field focused with the keyboard */
+    fun showFindInPage()
+
     /** Opens all downloads, the download [focusId] focused (else the first one) */
     fun showAllDownloads(focusId: Long? = null)
 

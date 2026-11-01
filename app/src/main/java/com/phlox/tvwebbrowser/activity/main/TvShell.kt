@@ -36,6 +36,7 @@ import com.phlox.tvwebbrowser.activity.main.view.ClearDownloadsDialog
 import com.phlox.tvwebbrowser.activity.main.view.PopupMenuView
 import com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
 import com.phlox.tvwebbrowser.activity.main.view.TabMenuView
+import com.phlox.tvwebbrowser.activity.main.view.TvFindBarView
 import com.phlox.tvwebbrowser.activity.main.view.TvSyncScreenView
 import com.phlox.tvwebbrowser.activity.main.view.tabs.TabsAdapter.Listener
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
@@ -60,6 +61,7 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.virtualCursor
+import com.phlox.tvwebbrowser.webengine.findInPage
 import com.phlox.tvwebbrowser.webengine.mediaPlayback
 import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideosSupport
@@ -86,7 +88,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     }
 
     private val activity = host.activity
-    /** Recognizes speech for the bookmarks search (not for the search of the bar, which shows the page) */
+    /** Recognizes speech for the bookmarks search and Find in page (not for the search of the bar, which shows the page) */
     private val bookmarksVoiceSearch = VoiceSearchHelper(activity, ::showMessage)
     private val controller = host.controller
     private val settingsModel = host.settingsModel
@@ -392,6 +394,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     /** Under the ⋮ button, its end under the end of the group of the button, as the panels of the bar */
     override fun showMoreMenu() {
         val items = listOf(
+            PopupMenuView.Item(R.drawable.ic_search, activity.getString(R.string.find_in_page)) { showFindInPage() },
             PopupMenuView.Item(R.drawable.ic_history, activity.getString(R.string.history)) { showHistory() },
             PopupMenuView.Item(R.drawable.ic_phone, activity.getString(R.string.sync_phone_sync)) { showPhoneSync() },
             PopupMenuView.Item(R.drawable.ic_settings, activity.getString(R.string.settings)) { showSettings() }
@@ -462,6 +465,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun onFullscreenChanged(fullscreen: Boolean) {
         this.fullscreen = fullscreen
+        if (fullscreen) findInPage.close()
         videoMode.setFullscreen(fullscreen)
         updatePageCovered()
     }
@@ -544,7 +548,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     /** Something covers the page (the hint waits): the bar, a panel, menu or screen, the player, fullscreen */
     private fun isPageCovered(): Boolean = fullscreen || vb.rlActionBar.isVisible ||
             !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) ||
-            listOf(vb.vSitePanel, vb.vTabMenu, vb.vPopupMenu, vb.vBookmarksPanel, vb.vDownloadsPanel, vb.vVideosPanel,
+            listOf(vb.vFindBar, vb.vSitePanel, vb.vTabMenu, vb.vPopupMenu, vb.vBookmarksPanel, vb.vDownloadsPanel, vb.vVideosPanel,
                 vb.vDownloadsScreen, vb.vHistoryScreen, vb.vSyncScreen, vb.vSettingsScreen, vb.vPlayerScreen,
                 vb.vCursorMenu, vb.progressBarGeneric).any { it.isVisible }
 
@@ -718,6 +722,57 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun toggleIncognitoMode() = host.toggleIncognitoMode()
 
+    /** Find in page: the find bar over the top end of the page */
+    private val findInPage: FindInPageController = FindInPageController(lifecycleScope, object : FindInPageController.Host {
+        override fun currentEngine() = controller.currentTab.value?.webEngine?.findInPage
+
+        override fun render(state: FindInPageController.State?) {
+            val wasOpen = vb.vFindBar.isVisible
+            vb.vFindBar.render(state)
+            findBackCallback.isEnabled = state != null
+            //closed: the page has the focus again
+            if (state == null && wasOpen && !vb.rlActionBar.isVisible) focusPage()
+        }
+    })
+
+    private val findBarCallback = object : TvFindBarView.Callback {
+        override fun onQueryChanged(text: String) = findInPage.setQuery(text)
+
+        override fun next() = findInPage.next()
+
+        override fun previous() = findInPage.previous()
+
+        override fun close() = findInPage.close()
+
+        override fun voiceSearch() = bookmarksVoiceSearch.recognize { vb.vFindBar.setQuery(it) }
+
+        override fun focusPage() = this@TvShell.focusPage()
+    }
+
+    /** Back on the find bar closes it; Back in the page under it gives the focus back to the bar */
+    private val findBackCallback: OnBackPressedCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            if (vb.vFindBar.hasFocus()) {
+                findInPage.close()
+            } else {
+                vb.vFindBar.focusBar(findInPage.state?.hasMatches == true)
+            }
+        }
+    }
+
+    private fun focusPage() {
+        controller.currentTab.value?.webEngine?.getView()?.requestFocus()
+    }
+
+    override fun showFindInPage() {
+        //not over the screens, the player or a fullscreen video
+        if (fullscreen || listOf(vb.vDownloadsScreen, vb.vHistoryScreen, vb.vSyncScreen, vb.vSettingsScreen,
+                vb.vPlayerScreen).any { it.isVisible }) return
+        if (!findInPage.open()) return
+        //the bar closes first: the field gets the focus when the page is shown
+        if (vb.rlActionBar.isVisible) hideMenuOverlay() else vb.vFindBar.focusField()
+    }
+
     //after the listeners: properties are initialized in their order
     init {
         vb.ivMiniatures.visibility = View.INVISIBLE
@@ -727,6 +782,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vTabs.listener = tabsListener
 
         vb.vActionBar.callback = this
+        vb.vFindBar.callback = findBarCallback
         vb.vSitePanel.callback = sitePanelCallback
         vb.vTabMenu.callback = tabMenuCallback
         vb.vBookmarksPanel.attach(lifecycleScope, vb.vPopupMenu, bookmarksCallback)
@@ -831,6 +887,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private var renderedTabIdentity: Int? = null
 
     override fun render(state: CurrentTabState) {
+        findInPage.onPage(state.tabIdentity, state.url, state.loading)
         vb.vActionBar.setNavigationState(state.canGoBack, state.canGoForward, state.loading)
 
         vb.vActionBar.setSiteState(state.host, state.connection)
@@ -986,6 +1043,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, menuBackCallback)
         //Back on the hint plate opens the bar at the Videos panel; it shows only while nothing else is open
         dispatcher.addCallback(activity, pageVideoHint.backCallback)
+        dispatcher.addCallback(activity, findBackCallback)
         dispatcher.addCallback(activity, vb.vSitePanel.backCallback)
         dispatcher.addCallback(activity, vb.vTabMenu.backCallback)
         dispatcher.addCallback(activity, vb.vBookmarksPanel.backCallback)
@@ -1011,6 +1069,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
      * instead of giving the focus to the address
      */
     private fun showMenuOverlay(onShown: (() -> Unit)? = null) {
+        //the bar shows a picture of the page: its search ends
+        findInPage.close()
         vb.ivMiniatures.visibility = View.VISIBLE
         vb.flWebViewContainer.visibility = View.INVISIBLE
         val currentTab = controller.currentTab.value
@@ -1102,7 +1162,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                     vb.ivMiniatures.setImageResource(0)
                     returnToCurrentTab()
                     vb.flWebViewContainer.visibility = View.VISIBLE
-                    controller.currentTab.value?.webEngine?.getView()?.requestFocus()
+                    if (findInPage.isOpen) vb.vFindBar.focusField() else focusPage()
                 }
                 .start()
     }

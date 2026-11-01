@@ -362,6 +362,9 @@
     <!-- the hint about a found video that plays in the page, at the top end where the Videos button is -->
     <dimen name="page_video_hint_padding_start">12dp</dimen>
     <dimen name="page_video_hint_padding_end">10dp</dimen>
+    <!-- the find bar of the TV (Find in page), over the top end of the page -->
+    <dimen name="tv_find_bar_width">640dp</dimen>
+    <dimen name="tv_find_bar_padding">8dp</dimen>
     <!-- "Playing on the page" on a row of the Videos panel: the title keeps most of the row -->
     <dimen name="page_video_row_playing_max_width">140dp</dimen>
 

@@ -119,6 +119,10 @@
   <string name="media_stop">עצור מדיה</string>
   <string name="media_rewind">הרצה אחורה במדיה</string>
   <string name="media_fast_forward">הרצה קדימה במדיה</string>
+  <string name="find_in_page">חיפוש בדף</string>
+  <string name="find_in_page_previous">ההתאמה הקודמת</string>
+  <string name="find_in_page_next">ההתאמה הבאה</string>
+  <string name="find_in_page_close">סגירת החיפוש בדף</string>
   <string name="long_press">לחיצה ארוכה</string>
   <string name="local_network_access_denied">הגישה לרשת המקומית נדחתה</string>
   <string name="web_engine_debug_warning_message">הפעלת ניפוי שגיאות של מנוע הווב עלולה לחשוף תוכן דפים, עוגיות ונתוני סשן רגישים לכל מי שיש לו גישה לניפוי שגיאות במכשיר. יש להפעיל רק במכשירים מהימנים לצורכי פתרון תקלות.</string>

@@ -17,7 +17,8 @@ enum class Shortcut(val titleResId: Int, val prefsKey: String, val defaultBindin
     PLAY_PAUSE(R.string.play_pause,  "shortcut_play_pause", KeyBinding(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)),
     MEDIA_STOP(R.string.media_stop, "shortcut_media_stop", KeyBinding(KeyEvent.KEYCODE_MEDIA_STOP)),
     MEDIA_REWIND(R.string.media_rewind, "shortcut_media_rewind", KeyBinding(KeyEvent.KEYCODE_MEDIA_REWIND)),
-    MEDIA_FAST_FORWARD(R.string.media_fast_forward, "shortcut_media_fast_forward", KeyBinding(KeyEvent.KEYCODE_MEDIA_FAST_FORWARD));
+    MEDIA_FAST_FORWARD(R.string.media_fast_forward, "shortcut_media_fast_forward", KeyBinding(KeyEvent.KEYCODE_MEDIA_FAST_FORWARD)),
+    FIND_IN_PAGE(R.string.find_in_page, "shortcut_find_in_page", KeyBinding.NONE);
 }
 
 /**

@@ -33,6 +33,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.view.ClearDownloadsDialog
 import com.phlox.tvwebbrowser.activity.main.view.PhoneBar
+import com.phlox.tvwebbrowser.activity.main.view.PhoneFindBar
 import com.phlox.tvwebbrowser.activity.main.view.PhoneMenuSheet
 import com.phlox.tvwebbrowser.activity.main.view.PhoneTabSwitcher
 import com.phlox.tvwebbrowser.activity.main.view.ScrollAwayBar
@@ -49,6 +50,7 @@ import com.phlox.tvwebbrowser.utils.SystemBars
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
+import com.phlox.tvwebbrowser.webengine.findInPage
 import com.phlox.tvwebbrowser.webengine.virtualCursor
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
@@ -146,6 +148,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         }
 
         override fun toggleIncognitoMode() = host.toggleIncognitoMode()
+
+        override fun findInPage() = showFindInPage()
 
         override fun bookmarkPage() {
             activity.lifecycleScope.launch {
@@ -429,9 +433,45 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         override fun openSiteSettings() = showSiteSheet()
     }
 
+    /** Find in page: the find bar in the place of the bar */
+    private val findInPage: FindInPageController = FindInPageController(activity.lifecycleScope, object : FindInPageController.Host {
+        override fun currentEngine() = controller.currentTab.value?.webEngine?.findInPage
+
+        override fun render(state: FindInPageController.State?) {
+            vb.vFindBar.render(state)
+            findBackCallback.isEnabled = state != null
+            if (!fullscreen) vb.vPhoneBar.visibility = if (state != null) View.INVISIBLE else View.VISIBLE
+            //the find bar does not slide away
+            if (state != null) scrollAwayBar.show(animate = false)
+        }
+    })
+
+    private val findBarCallback = object : PhoneFindBar.Callback {
+        override fun onQueryChanged(text: String) = findInPage.setQuery(text)
+
+        override fun next() = findInPage.next()
+
+        override fun previous() = findInPage.previous()
+
+        override fun close() = findInPage.close()
+    }
+
+    /** Back closes the find bar (a first Back hides the keyboard) */
+    private val findBackCallback: OnBackPressedCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = findInPage.close()
+    }
+
+    override fun showFindInPage() {
+        if (fullscreen) return
+        vb.vPhoneBar.stopEditing()
+        if (!findInPage.open()) return
+        vb.vFindBar.focusField()
+    }
+
     //after the callbacks: properties are initialized in their order
     init {
         vb.vPhoneBar.callback = barCallback
+        vb.vFindBar.callback = findBarCallback
         vb.vMenuSheet.callback = menuCallback
         vb.vMenuSheet.siteSettings.callback = siteSettingsCallback
         vb.vSiteSheet.siteSettings.callback = siteSettingsCallback
@@ -459,6 +499,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         //the enabled callback added last goes first
         dispatcher.addCallback(activity, pageBackCallback)
         dispatcher.addCallback(activity, editingBackCallback)
+        dispatcher.addCallback(activity, findBackCallback)
         dispatcher.addCallback(activity, vb.vMenuSheet.backCallback)
         dispatcher.addCallback(activity, vb.vSiteSheet.backCallback)
         dispatcher.addCallback(activity, vb.vTabSwitcher.backCallback)
@@ -477,6 +518,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     override fun onFullscreenChanged(fullscreen: Boolean) {
         this.fullscreen = fullscreen
         if (fullscreen) {
+            findInPage.close()
             vb.vPhoneBar.stopEditing()
             vb.vMenuSheet.hide()
             vb.vSiteSheet.hide()
@@ -508,6 +550,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     }
 
     override fun render(state: CurrentTabState) {
+        findInPage.onPage(state.tabIdentity, state.url, state.loading)
         //another tab or page, or the page starts loading
         if (state.url != renderedUrl || (state.loading && !renderedLoading)) {
             scrollAwayBar.show()
@@ -524,7 +567,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
      * again after a rotation, restores its position or jumps to an anchor)
      */
     override fun onPageScrolled(scrollY: Int, dy: Int) {
-        if (fullscreen || editingBackCallback.isEnabled || !vb.flWebViewContainer.isTouchedRecently) return
+        if (fullscreen || editingBackCallback.isEnabled || findInPage.isOpen || !vb.flWebViewContainer.isTouchedRecently) return
         scrollAwayBar.onPageScrolled(scrollY, dy)
     }
 
