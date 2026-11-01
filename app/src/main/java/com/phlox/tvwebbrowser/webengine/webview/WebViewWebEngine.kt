@@ -206,6 +206,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             cursorLayout = CursorLayout(activityContext).apply {
                 addView(webView)
                 cursorDrawerDelegate.callback = this@WebViewWebEngine
+                mouseClicks = WebViewMouseClicks.get(activityContext)
             }
             applyPointerMode()
             //a new cursor surface starts in the cursor mode

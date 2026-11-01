@@ -17,17 +17,27 @@ import android.view.MotionEvent
  * GeckoView on a device in the television UI mode treats mouse events of the touch path as touches
  * (`PanZoomController.treatMouseAsTouch`, as for a physical mouse there), so there a click arrives
  * in the page as a tap, while hover and wheel stay mouse events.
+ *
+ * Old WebView needs more for a click, see [MouseClicks] (the target's [PointerTarget.mouseClicks]).
  */
 class MouseEmulator(private val target: PointerTarget) : PointerEmulator {
     private var downTime: Long = 0L
     private var hovering = false
     private var lastX = 0f
     private var lastY = 0f
+    /** Clicks as a finger where the page can get no mouse press, see [MouseClicks.TOUCH] */
+    private val finger = TouchEmulator(target)
+    /** The press in flight is the finger's */
+    private var fingerPressed = false
 
     override fun move(x: Float, y: Float, pressed: Boolean) {
         remember(x, y)
         if (pressed) {
-            dispatchPointer(x, y, MotionEvent.ACTION_MOVE, MotionEvent.BUTTON_PRIMARY)
+            if (fingerPressed) {
+                finger.move(x, y, true)
+            } else {
+                dispatchPointer(x, y, MotionEvent.ACTION_MOVE, MotionEvent.BUTTON_PRIMARY)
+            }
         } else {
             hovering = true
             dispatchHoverOrScroll(x, y, MotionEvent.ACTION_HOVER_MOVE)
@@ -36,6 +46,11 @@ class MouseEmulator(private val target: PointerTarget) : PointerEmulator {
 
     override fun press(x: Float, y: Float) {
         remember(x, y)
+        if (target.mouseClicks == MouseClicks.TOUCH) {
+            fingerPressed = true
+            finger.press(x, y)
+            return
+        }
         // No HOVER_EXIT here: on the web the pointer keeps hovering while a button is held, and an
         // exit would make the page fire mouseleave right before mousedown.
         downTime = SystemClock.uptimeMillis()
@@ -45,19 +60,30 @@ class MouseEmulator(private val target: PointerTarget) : PointerEmulator {
 
     override fun release(x: Float, y: Float) {
         remember(x, y)
+        if (fingerPressed) {
+            fingerPressed = false
+            finger.release(x, y)
+            return
+        }
         dispatchButtonChange(x, y, MotionEvent.ACTION_BUTTON_RELEASE)
         dispatchPointer(x, y, MotionEvent.ACTION_UP, 0)
     }
 
     override fun cancel(x: Float, y: Float) {
         remember(x, y)
+        if (fingerPressed) {
+            fingerPressed = false
+            finger.cancel(x, y)
+            return
+        }
         // The button is released first, or the page is left believing it is still held
         dispatchButtonChange(x, y, MotionEvent.ACTION_BUTTON_RELEASE)
         dispatchPointer(x, y, MotionEvent.ACTION_CANCEL, 0)
     }
 
-    /** A right click: press and release of the secondary button */
+    /** A right click: press and release of the secondary button; a page that gets no mouse press gets none */
     override fun contextClick(x: Float, y: Float) {
+        if (target.mouseClicks == MouseClicks.TOUCH) return
         remember(x, y)
         downTime = SystemClock.uptimeMillis()
         dispatchPointer(x, y, MotionEvent.ACTION_DOWN, MotionEvent.BUTTON_SECONDARY)
@@ -70,10 +96,12 @@ class MouseEmulator(private val target: PointerTarget) : PointerEmulator {
      * The event that makes WebView fire `mousedown`/`mouseup` in the page: Chromium ignores a bare
      * mouse ACTION_DOWN/ACTION_UP and takes the button change from ACTION_BUTTON_PRESS/RELEASE.
      * `MotionEvent.obtain` cannot set `actionButton`, so the button is carried in `buttonState`,
-     * on both press and release, which is where Chromium reads it from.
+     * on both press and release, where Chromium 137+ reads it when `actionButton` is 0; older
+     * Chromium reads only `actionButton`, which [MouseClicks.ACTION_BUTTON] sets by reflection.
      */
     private fun dispatchButtonChange(x: Float, y: Float, action: Int, button: Int = MotionEvent.BUTTON_PRIMARY) {
-        dispatch(x, y, action, button, 0f, 0f, touch = false)
+        val actionButton = if (target.mouseClicks == MouseClicks.ACTION_BUTTON) button else 0
+        dispatch(x, y, action, button, 0f, 0f, touch = false, actionButton = actionButton)
     }
 
     override fun scroll(x: Float, y: Float, dx: Float, dy: Float): Boolean {
@@ -124,6 +152,7 @@ class MouseEmulator(private val target: PointerTarget) : PointerEmulator {
         vScroll: Float,
         hScroll: Float,
         touch: Boolean,
+        actionButton: Int = 0,
     ) {
         val eventTime = SystemClock.uptimeMillis()
         val properties = arrayOf(MotionEvent.PointerProperties().also {
@@ -145,6 +174,7 @@ class MouseEmulator(private val target: PointerTarget) : PointerEmulator {
             if (touch) downTime else eventTime, eventTime, action, 1, properties, coords,
             0, buttonState, 1f, 1f, 0, 0, InputDevice.SOURCE_MOUSE, 0
         )
+        if (actionButton != 0) MouseActionButton.set(event, actionButton)
         try {
             if (touch) {
                 target.dispatchSyntheticTouch(event)

@@ -18,6 +18,25 @@ interface PointerTarget {
      */
     val contextClickOnLongPress: Boolean
         get() = false
+    /** How the mouse of the cursor clicks in the page of this target */
+    val mouseClicks: MouseClicks
+        get() = MouseClicks.BUTTON_STATE
+}
+
+/** How the mouse of the cursor gets a press and a release of its button into the page */
+enum class MouseClicks {
+    /** The button change events carry the button in `buttonState` (GeckoView, WebView 137+) */
+    BUTTON_STATE,
+    /**
+     * The button change events also carry it in `actionButton` ([MouseActionButton]): WebView before
+     * 137 takes the button of `mousedown` and `mouseup` only from there and drops a press without one
+     */
+    ACTION_BUTTON,
+    /**
+     * The press, the drag and the release go as a finger, while hover and wheel stay a mouse: for
+     * WebView before 137 where `actionButton` can not be set (Android 9 and 10)
+     */
+    TOUCH,
 }
 
 /** How the virtual cursor talks to the page */

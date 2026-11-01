@@ -31,11 +31,13 @@ class CursorPointerEmulationTest {
         val hScroll: Float = 0f,
         val mouseSource: Boolean = false,
         val downTimeIsEventTime: Boolean = false,
+        val actionButton: Int = 0,
     )
 
     private class RecordingTarget(
         override val wheelScrollFactor: Float = 64f,
         override val contextClickOnLongPress: Boolean = false,
+        override val mouseClicks: MouseClicks = MouseClicks.BUTTON_STATE,
     ) : PointerTarget {
         val sent = ArrayList<Sent>()
 
@@ -48,6 +50,7 @@ class CursorPointerEmulationTest {
                 touch, event.actionMasked, event.getToolType(0), event.buttonState,
                 event.getAxisValue(MotionEvent.AXIS_VSCROLL), event.getAxisValue(MotionEvent.AXIS_HSCROLL),
                 event.isFromSource(InputDevice.SOURCE_MOUSE), event.downTime == event.eventTime,
+                event.actionButton,
             )
             return true
         }
@@ -76,6 +79,62 @@ class CursorPointerEmulationTest {
         assertEquals(
             listOf(MotionEvent.BUTTON_PRIMARY, MotionEvent.BUTTON_PRIMARY, MotionEvent.BUTTON_PRIMARY, 0),
             target.sent.map { it.buttonState }
+        )
+        // WebView 137+ and GeckoView take the button from buttonState
+        assertTrue(target.sent.all { it.actionButton == 0 })
+    }
+
+    @Test
+    fun forOldWebViewTheButtonChangesCarryTheActionButton() {
+        assertTrue(MouseActionButton.canSet)
+        val target = RecordingTarget(mouseClicks = MouseClicks.ACTION_BUTTON)
+        val mouse = MouseEmulator(target)
+        mouse.press(10f, 20f)
+        mouse.release(10f, 20f)
+        mouse.contextClick(10f, 20f)
+
+        assertEquals(
+            listOf(
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_BUTTON_PRESS,
+                MotionEvent.ACTION_BUTTON_RELEASE, MotionEvent.ACTION_UP,
+            ),
+            target.actions().take(4)
+        )
+        assertEquals(
+            listOf(0, MotionEvent.BUTTON_PRIMARY, MotionEvent.BUTTON_PRIMARY, 0,
+                0, MotionEvent.BUTTON_SECONDARY, MotionEvent.BUTTON_SECONDARY, 0),
+            target.sent.map { it.actionButton }
+        )
+    }
+
+    @Test
+    fun whereNoMousePressReachesThePageAFingerClicksAndTheMouseHovers() {
+        val target = RecordingTarget(mouseClicks = MouseClicks.TOUCH)
+        val mouse = MouseEmulator(target)
+        mouse.move(1f, 1f, pressed = false)
+        mouse.press(1f, 1f)
+        mouse.move(2f, 2f, pressed = true)
+        mouse.release(2f, 2f)
+        mouse.press(2f, 2f)
+        mouse.cancel(2f, 2f)
+        mouse.contextClick(2f, 2f)
+        mouse.move(3f, 3f, pressed = false)
+
+        assertEquals(
+            listOf(
+                MotionEvent.ACTION_HOVER_MOVE, MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE,
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_DOWN, MotionEvent.ACTION_CANCEL,
+                MotionEvent.ACTION_HOVER_MOVE,
+            ),
+            target.actions()
+        )
+        assertEquals(
+            listOf(
+                MotionEvent.TOOL_TYPE_MOUSE, MotionEvent.TOOL_TYPE_FINGER, MotionEvent.TOOL_TYPE_FINGER,
+                MotionEvent.TOOL_TYPE_FINGER, MotionEvent.TOOL_TYPE_FINGER, MotionEvent.TOOL_TYPE_FINGER,
+                MotionEvent.TOOL_TYPE_MOUSE,
+            ),
+            target.sent.map { it.toolType }
         )
     }
 

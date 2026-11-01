@@ -94,6 +94,9 @@ class CursorLayout @JvmOverloads constructor(context: Context, attrs: AttributeS
     override fun dispatchSyntheticGenericMotion(event: MotionEvent): Boolean =
         super.dispatchGenericMotionEvent(event)
 
+    /** Set by the engine, which knows how its page takes a mouse press */
+    override var mouseClicks: MouseClicks = MouseClicks.BUTTON_STATE
+
     /** WebView scrolls by the scroll factor of the system for one wheel click */
     override val wheelScrollFactor: Float
         get() = ViewConfigurationCompat.getScaledVerticalScrollFactor(ViewConfiguration.get(context), context)
