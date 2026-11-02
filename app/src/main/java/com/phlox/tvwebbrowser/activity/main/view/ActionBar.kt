@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.activity.main.AddressSuggestions
 import com.phlox.tvwebbrowser.browser.DownloadsModel
 import com.phlox.tvwebbrowser.browser.SiteConnection
 import com.phlox.tvwebbrowser.databinding.ViewActionbarBinding
@@ -51,6 +52,8 @@ class ActionBar @JvmOverloads constructor(
         fun showMoreMenu()
         fun initiateVoiceSearch()
         fun search(text: String)
+        /** Opens the [url] as it is (a suggestion of the history) */
+        fun openUrl(url: String)
         fun onUrlInputDone()
         fun toggleIncognitoMode()
         fun showSitePanel()
@@ -63,20 +66,72 @@ class ActionBar @JvmOverloads constructor(
         }
     }
 
+    /**
+     * While the address is edited, Down and Up choose a suggestion under it (the focus stays in the field),
+     * OK and Enter open the chosen one; Left and Right go back to the text
+     */
     private val etUrlKeyListener = OnKeyListener { view, i, keyEvent ->
+        val list = suggestionsView
+        val chosen = list?.highlightedUrl
         when (keyEvent.keyCode) {
-            KeyEvent.KEYCODE_ENTER -> {
+            KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 if (keyEvent.action == KeyEvent.ACTION_UP) {
-                    val text = vb.etUrl.text.toString()
-                    stopEditing(submitted = true)
-                    callback?.search(text)
-                    callback?.onUrlInputDone()
+                    if (chosen != null) {
+                        openSuggestion(chosen)
+                    } else {
+                        submit()
+                    }
                 }
                 return@OnKeyListener true
             }
+            KeyEvent.KEYCODE_DPAD_CENTER -> if (chosen != null) {
+                if (keyEvent.action == KeyEvent.ACTION_UP) openSuggestion(chosen)
+                return@OnKeyListener true
+            }
+            KeyEvent.KEYCODE_DPAD_DOWN -> if (editing && list != null && list.rows.isNotEmpty()) {
+                if (keyEvent.action == KeyEvent.ACTION_DOWN) list.moveHighlight(down = true)
+                return@OnKeyListener true
+            }
+            KeyEvent.KEYCODE_DPAD_UP -> if (chosen != null) {
+                if (keyEvent.action == KeyEvent.ACTION_DOWN) list.moveHighlight(down = false)
+                return@OnKeyListener true
+            }
+            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> list?.clearHighlight()
         }
         false
     }
+
+    /** The field is submitted: the address it completed inline, else its text (an address or a search) */
+    private fun submit() {
+        val text = vb.etUrl.text.toString()
+        val url = inlineCompletion?.urlFor(text)
+        stopEditing(submitted = true)
+        if (url != null) callback?.openUrl(url) else callback?.search(text)
+        callback?.onUrlInputDone()
+    }
+
+    /** Opens a suggestion of the history (a row of the list chosen or clicked) */
+    fun openSuggestion(url: String) {
+        if (!editing) return
+        stopEditing(submitted = true)
+        callback?.openUrl(url)
+        callback?.onUrlInputDone()
+    }
+
+    private var suggestions: AddressSuggestions? = null
+    private var suggestionsView: AddressSuggestionsView? = null
+    private var inlineCompletion: InlineAddressCompletion? = null
+
+    /** The suggestions of the history follow the address typed, in the [view] under it */
+    fun setSuggestions(suggestions: AddressSuggestions, view: AddressSuggestionsView) {
+        this.suggestions = suggestions
+        this.suggestionsView = view
+        inlineCompletion = InlineAddressCompletion(vb.etUrl, suggestions::inlineCompletion, suggestions::query)
+        view.onOpen = ::openSuggestion
+    }
+
+    /** The address field, which the suggestions are under */
+    val addressField: View get() = vb.llAddress
 
     /** Typing on a keyboard while the field is focused starts the editing with the typed character */
     private val addressFieldKeyListener = OnKeyListener { _, _, keyEvent ->
@@ -230,10 +285,13 @@ class ActionBar @JvmOverloads constructor(
         vb.etUrl.isFocusable = true
         vb.etUrl.isFocusableInTouchMode = true
         vb.etUrl.requestFocus()
+        suggestions?.start(textBeforeEditing)
+        inlineCompletion?.start()
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_IMPLICIT)
         if (selectAllLater) {
-            postDelayed({ if (editing) vb.etUrl.selectAll() }, 500)
+            //not once the user typed: that would select what was completed inline too
+            postDelayed({ if (editing && vb.etUrl.text.toString() == textBeforeEditing) vb.etUrl.selectAll() }, 500)
         }
     }
 
@@ -244,6 +302,8 @@ class ActionBar @JvmOverloads constructor(
     private fun stopEditing(submitted: Boolean) {
         if (!editing) return
         editing = false
+        inlineCompletion?.stop()
+        suggestions?.stop()
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
         if (!submitted) {

@@ -37,6 +37,16 @@ bookmarks and the downloads over the whole window.
             android:layout_alignParentBottom="true"
             android:elevation="4dp" />
 
+        <!-- the suggestions of the history above the bar while the address is edited, the best next to it -->
+        <com.phlox.tvwebbrowser.activity.main.view.AddressSuggestionsView
+            android:id="@+id/vAddressSuggestions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/vPhoneBar"
+            android:background="?attr/tbColorDsSurface"
+            android:elevation="4dp"
+            android:visibility="gone" />
+
         <!-- along the top edge of the page -->
         <ProgressBar
             style="@android:style/Widget.ProgressBar.Horizontal"

@@ -80,23 +80,25 @@ class HistoryRowBinder(private val context: Context) {
         return true
     }
 
-    /** The [text] with the [words] marked, from [skip] on */
-    private fun mark(text: String, words: List<String>, skip: Int = 0): CharSequence {
-        if (words.isEmpty()) return text
-        val ranges = HistoryNavigator.highlights(text.substring(skip), words)
-        if (ranges.isEmpty()) return text
-        val spannable = SpannableString(text)
-        for (range in ranges) {
-            spannable.setSpan(BackgroundColorSpan(markColor), skip + range.first, skip + range.last + 1,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        }
-        return spannable
-    }
+    private fun mark(text: String, words: List<String>, skip: Int = 0) = markWords(text, words, markColor, skip)
 
     companion object {
         /** The title of the item, or its address if it has none */
         fun titleOf(item: HistoryItem): String = item.title.ifBlank { HistoryNavigator.withoutScheme(item.url) }
     }
+}
+
+/** The [text] with the [words] marked by the background [color], from [skip] on */
+fun markWords(text: String, words: List<String>, color: Int, skip: Int = 0): CharSequence {
+    if (words.isEmpty()) return text
+    val ranges = HistoryNavigator.highlights(text.substring(skip), words)
+    if (ranges.isEmpty()) return text
+    val spannable = SpannableString(text)
+    for (range in ranges) {
+        spannable.setSpan(BackgroundColorSpan(color), skip + range.first, skip + range.last + 1,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    }
+    return spannable
 }
 
 fun copyLinkToClipboard(context: Context, url: String) {

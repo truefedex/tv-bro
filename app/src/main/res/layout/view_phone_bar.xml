@@ -89,7 +89,7 @@ Refresh), the tab count and the menu.
     </LinearLayout>
 
     <!-- the address while it is edited: the full url -->
-    <EditText
+    <com.phlox.tvwebbrowser.activity.main.view.AddressEditText
         style="@style/Widget.TVBro.Text.PhoneAddress"
         android:id="@+id/etUrl"
         android:layout_width="match_parent"
@@ -102,7 +102,7 @@ Refresh), the tab count and the menu.
         android:textColorHint="?attr/tbColorDsInkFaint"
         android:singleLine="true"
         android:selectAllOnFocus="true"
-        android:imeOptions="actionGo"
+        android:imeOptions="actionGo|flagNoExtractUi"
         android:hint="@string/search_or_type_url"
         android:inputType="textUri|textNoSuggestions"
         android:importantForAutofill="no"

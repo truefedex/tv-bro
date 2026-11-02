@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.data
 
+import com.phlox.tvwebbrowser.activity.main.AddressSuggestions
 import com.phlox.tvwebbrowser.activity.main.HistoryNavigator
 import com.phlox.tvwebbrowser.browser.VisitedHistoryLogger
 import com.phlox.tvwebbrowser.model.HistoryItem
@@ -9,7 +10,8 @@ import java.util.Calendar
 /**
  * The browsing history.
  */
-class HistoryRepository(private val dao: HistoryDao) : VisitedHistoryLogger.Store, HistoryNavigator.Store {
+class HistoryRepository(private val dao: HistoryDao) : VisitedHistoryLogger.Store, HistoryNavigator.Store,
+    AddressSuggestions.Store {
     companion object {
         private const val MAX_ITEMS = 5000
         private const val KEPT_MONTHS_WHEN_TRIMMED = 3

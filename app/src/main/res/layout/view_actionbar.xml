@@ -80,7 +80,7 @@ to each button never changes.
         android:contentDescription="@string/url_prompt">
 
       <!-- focusable only while the address is edited: the address around it is the focus stop -->
-      <EditText
+      <com.phlox.tvwebbrowser.activity.main.view.AddressEditText
           style="@style/Widget.TVBro.Text.Address"
           android:id="@+id/etUrl"
           android:layout_width="match_parent"
@@ -96,7 +96,7 @@ to each button never changes.
           android:focusable="false"
           android:focusableInTouchMode="false"
           android:nextFocusDown="@+id/vTabs"
-          android:imeOptions="actionSearch"
+          android:imeOptions="actionSearch|flagNoExtractUi"
           android:hint="@string/url_prompt"
           android:inputType="textFilter|textNoSuggestions|textUri"
           android:importantForAutofill="no" />

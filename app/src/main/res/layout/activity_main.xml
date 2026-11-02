@@ -216,6 +216,15 @@
         android:elevation="7dp"
         android:outlineProvider="none" />
 
+    <!-- the suggestions of the history under the address while it is edited (TvShell places it) -->
+    <com.phlox.tvwebbrowser.activity.main.view.AddressSuggestionsView
+        android:id="@+id/vAddressSuggestions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ds_menu_bg"
+        android:elevation="7dp"
+        android:visibility="gone" />
+
     <!-- the built-in player, over the whole window and the bar -->
     <com.phlox.tvwebbrowser.activity.main.view.PlayerScreenView
         android:id="@+id/vPlayerScreen"

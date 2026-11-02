@@ -11,6 +11,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.activity.main.AddressSuggestions
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.databinding.ViewPhoneBarBinding
 
@@ -31,6 +32,8 @@ class PhoneBar @JvmOverloads constructor(
         fun showMenu()
         /** Navigates to the url or searches the text */
         fun search(text: String)
+        /** Opens the [url] as it is (a suggestion of the history) */
+        fun openUrl(url: String)
         /** The address is edited or not any more (Back ends the editing) */
         fun onEditingChanged(editing: Boolean)
     }
@@ -62,9 +65,11 @@ class PhoneBar @JvmOverloads constructor(
             vb.etUrl.setOnEditorActionListener { _, actionId, event ->
                 val enter = event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
                 if (actionId == EditorInfo.IME_ACTION_GO || enter) {
+                    //the address completed inline opens as it is
                     val text = vb.etUrl.text.toString()
+                    val url = inlineCompletion?.urlFor(text)
                     stopEditing()
-                    if (text.isNotBlank()) callback?.search(text)
+                    if (url != null) callback?.openUrl(url) else if (text.isNotBlank()) callback?.search(text)
                     true
                 } else false
             }
@@ -102,7 +107,10 @@ class PhoneBar @JvmOverloads constructor(
     fun startEditing() {
         if (editing) return
         editing = true
-        vb.etUrl.setText(if (homePage) "" else url)
+        val text = if (homePage) "" else url
+        vb.etUrl.setText(text)
+        suggestions?.start(text)
+        inlineCompletion?.start()
         updatePill()
         vb.etUrl.requestFocus()
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -113,11 +121,30 @@ class PhoneBar @JvmOverloads constructor(
     fun stopEditing() {
         if (!editing) return
         editing = false
+        inlineCompletion?.stop()
+        suggestions?.stop()
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(vb.etUrl.windowToken, 0)
         if (vb.etUrl.hasFocus()) vb.etUrl.clearFocus()
         updatePill()
         callback?.onEditingChanged(false)
+    }
+
+    private var suggestions: AddressSuggestions? = null
+    private var inlineCompletion: InlineAddressCompletion? = null
+
+    /** The suggestions of the history follow the address typed, in the [view] above the bar */
+    fun setSuggestions(suggestions: AddressSuggestions, view: AddressSuggestionsView) {
+        this.suggestions = suggestions
+        inlineCompletion = InlineAddressCompletion(vb.etUrl, suggestions::inlineCompletion, suggestions::query)
+        view.onOpen = ::openSuggestion
+    }
+
+    /** Opens a suggestion of the history (a tapped row) */
+    private fun openSuggestion(url: String) {
+        if (!editing) return
+        stopEditing()
+        callback?.openUrl(url)
     }
 
     private fun isHomePage(url: String) =

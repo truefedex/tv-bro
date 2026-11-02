@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.widget.RelativeLayout
 import android.view.KeyEvent
 import android.os.SystemClock
 import android.view.ViewGroup
@@ -751,6 +752,41 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun search(text: String) = host.search(text)
 
+    override fun openUrl(url: String) = host.navigate(url)
+
+    /** The suggestions of the history under the address while it is edited */
+    private val addressSuggestions = AddressSuggestions(TVBro.container.data.history, lifecycleScope,
+        object : AddressSuggestions.Host {
+            override fun render(rows: List<AddressSuggestions.Row>) {
+                if (rows.isNotEmpty()) placeAddressSuggestions()
+                vb.vAddressSuggestions.render(rows)
+            }
+        })
+
+    /** The list of the suggestions goes under the address field, as wide as it */
+    private fun placeAddressSuggestions() {
+        val anchor = vb.vActionBar.addressField
+        val anchorLocation = IntArray(2)
+        val rootLocation = IntArray(2)
+        anchor.getLocationInWindow(anchorLocation)
+        vb.rlRoot.getLocationInWindow(rootLocation)
+        val lp = vb.vAddressSuggestions.layoutParams as RelativeLayout.LayoutParams
+        //the margins start inside the padding of the root (it fits the system windows)
+        val left = anchorLocation[0] - rootLocation[0] - vb.rlRoot.paddingLeft
+        val top = anchorLocation[1] - rootLocation[1] - vb.rlRoot.paddingTop + anchor.height +
+            activity.resources.getDimensionPixelSize(R.dimen.ds_space_gutter)
+        if (lp.leftMargin == left && lp.topMargin == top && lp.width == anchor.width) return
+        lp.leftMargin = left
+        lp.topMargin = top
+        lp.width = anchor.width
+        vb.vAddressSuggestions.layoutParams = lp
+    }
+
+    /** Back while a suggestion is chosen goes back to the text */
+    private val addressSuggestionsBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = vb.vAddressSuggestions.clearHighlight()
+    }
+
     override fun toggleIncognitoMode() = host.toggleIncognitoMode()
 
     /** Find in page: the find bar over the top end of the page */
@@ -813,6 +849,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vTabs.listener = tabsListener
 
         vb.vActionBar.callback = this
+        vb.vActionBar.setSuggestions(addressSuggestions, vb.vAddressSuggestions)
+        vb.vAddressSuggestions.onHighlightChanged = { addressSuggestionsBackCallback.isEnabled = it >= 0 }
         vb.vFindBar.callback = findBarCallback
         vb.vSitePanel.callback = sitePanelCallback
         vb.vTabMenu.callback = tabMenuCallback
@@ -1072,6 +1110,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     override fun registerBackCallbacks(dispatcher: OnBackPressedDispatcher, fullscreen: OnBackPressedCallback) {
         //the enabled callback added last goes first
         dispatcher.addCallback(activity, menuBackCallback)
+        dispatcher.addCallback(activity, addressSuggestionsBackCallback)
         //Back on the hint plate opens the bar at the Videos panel; it shows only while nothing else is open
         dispatcher.addCallback(activity, pageVideoHint.backCallback)
         dispatcher.addCallback(activity, findBackCallback)
@@ -1158,6 +1197,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         if (vb.rlActionBar.visibility == View.INVISIBLE) {
             return
         }
+        //the suggestions go with the editing at once, not when the bar is gone
+        vb.vActionBar.cancelEditing()
         vb.vSitePanel.hide()
         vb.vTabMenu.hide()
         vb.vPopupMenu.hide()

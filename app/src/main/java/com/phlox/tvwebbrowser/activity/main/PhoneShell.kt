@@ -129,6 +129,8 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
 
         override fun search(text: String) = host.search(text)
 
+        override fun openUrl(url: String) = host.navigate(url)
+
         override fun onEditingChanged(editing: Boolean) {
             editingBackCallback.isEnabled = editing
             if (editing) scrollAwayBar.show()
@@ -468,9 +470,18 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
         vb.vFindBar.focusField()
     }
 
+    /** The suggestions of the history above the bar while the address is edited */
+    private val addressSuggestions = AddressSuggestions(TVBro.container.data.history, activity.lifecycleScope,
+        object : AddressSuggestions.Host {
+            override fun render(rows: List<AddressSuggestions.Row>) = vb.vAddressSuggestions.render(rows)
+        })
+
     //after the callbacks: properties are initialized in their order
     init {
         vb.vPhoneBar.callback = barCallback
+        vb.vAddressSuggestions.rowLayout = R.layout.view_phone_address_suggestion_row
+        vb.vAddressSuggestions.bestAtBottom = true
+        vb.vPhoneBar.setSuggestions(addressSuggestions, vb.vAddressSuggestions)
         vb.vFindBar.callback = findBarCallback
         vb.vMenuSheet.callback = menuCallback
         vb.vMenuSheet.siteSettings.callback = siteSettingsCallback
