@@ -508,7 +508,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             if (!down) return false
             return openMediaVideoInPlayer() || showMediaVideoChoices()
         }
-    })
+    }).apply { upHint = activity.getString(R.string.video_osd_cursor) }
 
     /** The video of the page the media keys control plays, when its stream is known ([PageVideosSupport.mediaVideo]) */
     private var mediaVideo: PageVideo? = null

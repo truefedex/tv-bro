@@ -346,6 +346,8 @@
     <string name="play_in_built_in_player">Přehrát ve vestavěném přehrávači</string>
     <string name="built_in_player">Vestavěný přehrávač</string>
     <string name="player_menu_hint">Nastavení videa</string>
+    <string name="video_osd_cursor">Kurzor</string>
+    <string name="built_in_player_intro">Video se teď přehrává ve vlastním přehrávači TV Bro místo přehrávače stránky: plynuleji, v plném rozlišení televizoru a s menší zátěží zařízení.\n\nStiskněte ↓ pro nastavení videa: kvalita, zvuk, titulky, rychlost a opakování.</string>
     <string name="player_error">Toto video nelze přehrát</string>
     <string name="player_back_to_page">Zpět na stránku</string>
     <string name="page_video_hint">Sledovat ve vestavěném přehrávači</string>

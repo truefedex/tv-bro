@@ -13,11 +13,12 @@ import kotlin.math.min
 /**
  * The video mode of the TV: while the page shows a video in fullscreen, the remote controls the video instead
  * of the cursor, which is hidden. Left and right seek (a press by [STEP] seconds at once; held, faster and
- * faster, to where the key goes up), OK plays and pauses, Up and Down give the cursor back for the controls of
- * the page. Back with the cursor ([backCallback]) hides it again; Back in the video mode leaves fullscreen
- * (the fullscreen callback of the activity, below [backCallback]). The seek bar ([Osd]) shows on seeks, on
- * play and pause and while the video is paused, and for a while when the video mode starts or a [hint] comes
- * (longer with a hint). Media keys keep working through the shortcuts.
+ * faster, to where the key goes up), OK plays and pauses, Up (and Down, unless the host takes it) gives the
+ * cursor back for the controls of the page. Back with the cursor ([backCallback]) hides it again; Back in the
+ * video mode leaves fullscreen (the fullscreen callback of the activity, below [backCallback]). The seek bar
+ * ([Osd]) shows on seeks, on play and pause and while the video is paused, and for a while when the video mode
+ * starts or a [hint] comes (longer with a hint); it tells what Up ([upHint]) and Down ([hint]) do. Media keys
+ * keep working through the shortcuts.
  */
 class VideoModeController(private val host: Host) {
     interface Host {
@@ -43,7 +44,9 @@ class VideoModeController(private val host: Host) {
      */
     data class Osd(val media: MediaState, val seekTarget: Double? = null, val seekDelta: Double? = null,
                    /** What Down does, drawn after its key cap ("Built-in player", "Video settings") */
-                   val hint: String? = null)
+                   val hint: String? = null,
+                   /** What Up does, drawn before the hint of Down ("Cursor") */
+                   val upHint: String? = null)
 
     private val handler = Handler(Looper.getMainLooper())
     private var fullscreen = false
@@ -61,6 +64,14 @@ class VideoModeController(private val host: Host) {
             if (field == value) return
             field = value
             if (value != null && isActive) showOsd(HINT_SHOWN_MS) else renderOsd()
+        }
+
+    /** What Up does, shown in the seek bar whenever it shows; unlike [hint], it does not show the bar by itself */
+    var upHint: String? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            renderOsd()
         }
 
     /** Hides the cursor that Up or Down gave back, while there is a video in fullscreen */
@@ -254,7 +265,7 @@ class VideoModeController(private val host: Host) {
             host.renderOsd(null)
             return
         }
-        host.renderOsd(Osd(media, target, target?.let { it - seekStart }, hint))
+        host.renderOsd(Osd(media, target, target?.let { it - seekStart }, hint, upHint))
         //the next change: the end of the seek shown or of the bar while it plays
         val next = listOf(seekShownUntil, osdUntil).filter { it > now }.minOrNull() ?: return
         handler.postDelayed(updateRunnable, next - now)

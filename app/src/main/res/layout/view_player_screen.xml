@@ -19,7 +19,8 @@ the tracks (under the anchor at the top end).
       app:show_buffering="never"
       android:focusable="false" />
 
-  <!-- the video and its server, while the seek bar shows -->
+  <!-- while the seek bar shows: the title of the video, and under it the player, the height of its track, the kind
+       and the server -->
   <LinearLayout
       android:id="@+id/llTitle"
       android:layout_width="wrap_content"

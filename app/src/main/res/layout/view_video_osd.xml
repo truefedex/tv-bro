@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 The seek bar of the video mode, over the fullscreen video (VideoOsdView): play or pause, the position, the
-progress and the duration; under them, at the end, what Down does (a key cap and its action), when it does
-something
+progress and the duration; under them, at the end, what Up and Down do (a key cap and its action each), when
+they do something
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -64,7 +64,7 @@ something
             tools:text="1:45:00" />
     </LinearLayout>
 
-    <!-- what Down does, as "↓ Built-in player" -->
+    <!-- what Up and Down do, as "↑ Cursor   ↓ Built-in player" -->
     <LinearLayout
         android:id="@+id/llHint"
         android:layout_width="wrap_content"
@@ -76,21 +76,60 @@ something
         android:visibility="gone"
         tools:visibility="visible">
 
-        <TextView
-            style="@style/Widget.TVBro.KeyCap"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/ds_key_cap_height"
-            android:importantForAccessibility="no"
-            android:text="@string/key_down" />
-
-        <TextView
-            android:id="@+id/tvHint"
+        <LinearLayout
+            android:id="@+id/llUpHint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/video_osd_hint_key_gap"
-            android:textSize="@dimen/video_osd_hint_text"
-            android:textColor="?attr/tbColorDsOnToast"
-            android:singleLine="true"
-            tools:text="Built-in player" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                style="@style/Widget.TVBro.KeyCap"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/ds_key_cap_height"
+                android:importantForAccessibility="no"
+                android:text="@string/key_up" />
+
+            <TextView
+                android:id="@+id/tvUpHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/video_osd_hint_key_gap"
+                android:textSize="@dimen/video_osd_hint_text"
+                android:textColor="?attr/tbColorDsOnToast"
+                android:singleLine="true"
+                android:ellipsize="end"
+                tools:text="Cursor" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/llDownHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                style="@style/Widget.TVBro.KeyCap"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/ds_key_cap_height"
+                android:importantForAccessibility="no"
+                android:text="@string/key_down" />
+
+            <TextView
+                android:id="@+id/tvHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/video_osd_hint_key_gap"
+                android:textSize="@dimen/video_osd_hint_text"
+                android:textColor="?attr/tbColorDsOnToast"
+                android:singleLine="true"
+                android:ellipsize="end"
+                tools:text="Built-in player" />
+        </LinearLayout>
     </LinearLayout>
 </merge>

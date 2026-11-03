@@ -315,6 +315,8 @@
   <string name="play_in_built_in_player">Phát trong trình phát tích hợp</string>
   <string name="built_in_player">Trình phát tích hợp</string>
   <string name="player_menu_hint">Cài đặt video</string>
+  <string name="video_osd_cursor">Con trỏ</string>
+  <string name="built_in_player_intro">Video giờ phát trong trình phát riêng của TV Bro thay vì trình phát của trang: mượt hơn, ở độ phân giải đầy đủ của TV và ít tải cho thiết bị hơn.\n\nNhấn ↓ để mở cài đặt video: chất lượng, âm thanh, phụ đề, tốc độ và lặp lại.</string>
   <string name="player_error">Không thể phát video này</string>
   <string name="player_back_to_page">Quay lại trang</string>
   <string name="page_video_hint">Xem trong trình phát tích hợp</string>

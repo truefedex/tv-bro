@@ -276,14 +276,19 @@
     <string name="built_in_player">Built-in player</string>
     <!-- on the seek bar of the built-in player, after the key cap of Down: the menu it opens -->
     <string name="player_menu_hint">Video settings</string>
+    <!-- on the seek bar of a fullscreen video, after the key cap of Up: it shows the cursor for the controls of the page -->
+    <string name="video_osd_cursor">Cursor</string>
     <!-- the built-in player -->
     <string name="player_error">This video can not be played</string>
+    <!-- the dialog when the built-in player opens (its title is built_in_player) -->
+    <string name="built_in_player_intro">The video now plays in TV Bro\'s own player instead of the page\'s: smoother, in the full resolution of your TV and with less load on the device.\n\nPress ↓ for the video settings: quality, audio, subtitles, speed and repeat.</string>
     <string name="player_back_to_page">Back to the page</string>
     <!-- the TV hint about a found video that plays in the page -->
     <string name="page_video_hint">Watch in the built-in player</string>
     <!-- the name of the Back key of the remote, drawn on a key cap -->
     <string name="key_back">Back</string>
     <string name="key_down" translatable="false">↓</string>
+    <string name="key_up" translatable="false">↑</string>
     <string name="playing_on_page">Playing on the page</string>
     <string name="settings_match_frame_rate">Match the frame rate of videos</string>
     <string name="settings_match_frame_rate_summary">The built-in player switches the TV to the frame rate of the video, so that it plays smoothly. The screen goes black for a moment when it switches.</string>

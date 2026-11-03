@@ -191,6 +191,21 @@ class VideoModeControllerTest {
         assertNull(osd)
     }
 
+    @Test
+    fun theHintOfUpShowsWithTheBarButDoesNotShowItLonger() {
+        video.upHint = "Cursor"
+        enter()
+        assertEquals("Cursor", osd?.upHint)
+        assertNull(osd?.hint)
+        idle(3500)
+        assertNull(osd)
+        //a new hint of Up does not bring the bar back
+        video.upHint = "Pointer"
+        assertNull(osd)
+        press(KeyEvent.KEYCODE_DPAD_RIGHT)
+        assertEquals("Pointer", osd?.upHint)
+    }
+
     private fun press(controller: VideoModeController, keyCode: Int): Boolean {
         val down = controller.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, keyCode))
         val up = controller.dispatchKeyEvent(key(KeyEvent.ACTION_UP, keyCode))

@@ -14,6 +14,17 @@ object PageVideoRowText {
         video.duration?.let { DateUtils.formatElapsedTime(it.roundToLong()) },
     ).joinToString(" · ")
 
+    /**
+     * The caption under the title of the built-in player: its name ([player]), the height of the video track
+     * playing (null while unknown), the kind and the server, as "Built-in player · 2160p · HLS · example.com"
+     */
+    fun playerCaption(player: String, video: PageVideo, height: Int?): String = listOfNotNull(
+        player,
+        height?.let { "${it}p" },
+        kind(video),
+        Uri.parse(video.url).host,
+    ).joinToString(" · ")
+
     /** HLS, DASH, or the extension of a file (MP4); null for a file without one */
     fun kind(video: PageVideo): String? = when (video.kind) {
         PageVideo.Kind.HLS -> "HLS"

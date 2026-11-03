@@ -7,6 +7,7 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.C
@@ -29,11 +30,14 @@ import kotlinx.coroutines.launch
 /**
  * The built-in player on TV, over the whole window ([NativePlayer]). The keys are those of the video mode
  * ([VideoModeController]: Left and Right seek, faster while held, OK plays and pauses, the seek bar shows on
- * seeks, on play and pause and while paused, with the title at the top); Down and the Menu key (where it reaches
+ * seeks, on play and pause and while paused, with the plate at the top: the title, and under it the name of the
+ * player, the height of the video track, the kind and the server); Down and the Menu key (where it reaches
  * the app) open the menu of the quality, the audio track, the subtitles, the speed ([PlayerTracks]) and the repeat
  * of the video (not for live streams, off for each video), each with its options, and the seek bar tells it
  * ("↓ Video settings"); Up does nothing. Back closes the menu, then the player; [onClosed] gives the focus back to
- * the page. When the playback fails, the error offers the video to another app and the way back.
+ * the page. When the playback fails, the error offers the video to another app and the way back. Until the user
+ * chooses "Don't show again" ([Config.builtInPlayerHintSuppress]), a dialog tells what the player is for when it
+ * opens, the video paused meanwhile.
  */
 class PlayerScreenView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -103,9 +107,12 @@ class PlayerScreenView @JvmOverloads constructor(
         visibility = VISIBLE
         backCallback.isEnabled = true
         vb.tvTitle.text = ExternalVideoPlayer.title(video)
-        vb.tvCaption.text = PageVideoRowText.caption(video)
-        matchFrameRate = AppContext.provideConfig().matchFrameRate
+        captionHeight = null
+        vb.tvCaption.text = PageVideoRowText.playerCaption(context.getString(R.string.built_in_player), video, null)
+        val config = AppContext.provideConfig()
+        matchFrameRate = config.matchFrameRate
         player.open(video, callback.cookies(video.url), startPosition, ownFrameRate = matchFrameRate)
+        if (!config.builtInPlayerHintSuppress) showIntroDialog()
         vb.vPlayer.player = player.exoPlayer
         keys.setFullscreen(true)
         stateJob?.cancel()
@@ -136,8 +143,35 @@ class PlayerScreenView @JvmOverloads constructor(
 
     fun onResume() = frameRates.resume()
 
+    /**
+     * What the built-in player is for, while the video waits; it shows each time the player opens until the user
+     * chooses "Don't show again" (as the hint of the incognito mode)
+     */
+    private fun showIntroDialog() {
+        player.pause()
+        AlertDialog.Builder(context)
+            .setTitle(R.string.built_in_player)
+            .setIcon(R.drawable.ic_play)
+            .setMessage(R.string.built_in_player_intro)
+            .setPositiveButton(android.R.string.ok, null)
+            .setNeutralButton(R.string.don_t_show_again) { _, _ ->
+                AppContext.provideConfig().builtInPlayerHintSuppress = true
+            }
+            //OK, Don't show again and Back: the video goes on
+            .setOnDismissListener { if (isOpen) player.play() }
+            .show()
+    }
+
+    /** The height of the video track the caption tells */
+    private var captionHeight: Int? = null
+
     private fun render(state: NativePlayer.State?) {
         if (state == null) return
+        if (state.videoHeight != captionHeight) {
+            captionHeight = state.videoHeight
+            vb.tvCaption.text = PageVideoRowText.playerCaption(context.getString(R.string.built_in_player),
+                state.video, state.videoHeight)
+        }
         if (matchFrameRate) frameRates.request(state.frameRate)
         keys.setMedia(if (state.error == null) state.media else null)
         vb.pbBuffering.isVisible = state.buffering && state.error == null

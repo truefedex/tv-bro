@@ -40,6 +40,8 @@ class NativePlayer(private val context: Context) {
         val tracks: Tracks = Tracks.EMPTY,
         /** Frames per second of the video track playing; null while unknown */
         val frameRate: Float? = null,
+        /** Height of the video track playing, pixels; null while unknown */
+        val videoHeight: Int? = null,
     )
 
     private var player: ExoPlayer? = null
@@ -95,6 +97,10 @@ class NativePlayer(private val context: Context) {
 
     fun pause() {
         player?.pause()
+    }
+
+    fun play() {
+        player?.play()
     }
 
     fun seekTo(position: Double) {
@@ -171,6 +177,7 @@ class NativePlayer(private val context: Context) {
             error = player.playerError,
             tracks = player.currentTracks,
             frameRate = (player as? ExoPlayer)?.videoFormat?.frameRate?.takeIf { it > 0 },
+            videoHeight = (player as? ExoPlayer)?.videoFormat?.height?.takeIf { it > 0 },
         )
     }
 

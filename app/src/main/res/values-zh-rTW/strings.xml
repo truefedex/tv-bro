@@ -315,6 +315,8 @@
     <string name="play_in_built_in_player">在內建播放器中播放</string>
     <string name="built_in_player">內建播放器</string>
     <string name="player_menu_hint">影片設定</string>
+    <string name="video_osd_cursor">游標</string>
+    <string name="built_in_player_intro">影片現在在 TV Bro 自己的播放器中播放，而不是網頁的播放器：更流暢，以電視的完整解析度播放，裝置負載更低。\n\n按 ↓ 開啟影片設定：畫質、音訊、字幕、速度和重複播放。</string>
     <string name="player_error">無法播放此影片</string>
     <string name="player_back_to_page">返回頁面</string>
     <string name="page_video_hint">在內建播放器中觀看</string>
