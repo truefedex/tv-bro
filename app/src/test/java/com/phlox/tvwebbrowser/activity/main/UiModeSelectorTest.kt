@@ -8,25 +8,23 @@ class UiModeSelectorTest {
     private fun detect(
         uiModeType: Int = Configuration.UI_MODE_TYPE_NORMAL,
         hasLeanback: Boolean = false,
-        touchscreen: Int = Configuration.TOUCHSCREEN_FINGER,
-        smallestScreenWidthDp: Int = 390
-    ) = UiModeSelector.detect(uiModeType, hasLeanback, touchscreen, smallestScreenWidthDp)
+        touchscreen: Int = Configuration.TOUCHSCREEN_FINGER
+    ) = UiModeSelector.detect(uiModeType, hasLeanback, touchscreen)
 
     @Test
-    fun touchPhoneGetsThePhoneUi() {
+    fun touchPhoneOrTabletGetsThePhoneUi() {
         assertEquals(UiMode.PHONE, detect())
     }
 
     @Test
     fun androidTvGetsTheTvUi() {
         assertEquals(UiMode.TV, detect(uiModeType = Configuration.UI_MODE_TYPE_TELEVISION,
-            hasLeanback = true, touchscreen = Configuration.TOUCHSCREEN_NOTOUCH, smallestScreenWidthDp = 540))
+            hasLeanback = true, touchscreen = Configuration.TOUCHSCREEN_NOTOUCH))
     }
 
     @Test
     fun tvBoxWithTabletFirmwareAndNoTouchPanelGetsTheTvUi() {
-        //a 1080p screen at xhdpi is as narrow as a phone
-        assertEquals(UiMode.TV, detect(touchscreen = Configuration.TOUCHSCREEN_NOTOUCH, smallestScreenWidthDp = 540))
+        assertEquals(UiMode.TV, detect(touchscreen = Configuration.TOUCHSCREEN_NOTOUCH))
     }
 
     @Test
@@ -35,8 +33,7 @@ class UiModeSelectorTest {
     }
 
     @Test
-    fun tabletGetsTheTvUiForNow() {
-        assertEquals(UiMode.TV, detect(smallestScreenWidthDp = 600))
-        assertEquals(UiMode.PHONE, detect(smallestScreenWidthDp = 599))
+    fun televisionUiModeWithATouchScreenGetsTheTvUi() {
+        assertEquals(UiMode.TV, detect(uiModeType = Configuration.UI_MODE_TYPE_TELEVISION))
     }
 }

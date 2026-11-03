@@ -25,6 +25,7 @@ class PhoneSnackbar @JvmOverloads constructor(
     private val vb: ViewPhoneSnackbarBinding
     private val hideRunnable = Runnable { hide() }
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+    private val maxWidth = resources.getDimensionPixelSize(R.dimen.ds_phone_snackbar_max_width)
     private var downX = 0f
     private var swiping = false
 
@@ -37,6 +38,14 @@ class PhoneSnackbar @JvmOverloads constructor(
         setBackgroundResource(R.drawable.ds_toast_bg)
         visibility = GONE
         vb = ViewPhoneSnackbarBinding.inflate(LayoutInflater.from(context), this)
+    }
+
+    /** No wider on tablets (phones keep the whole width, also in landscape); its parent centers it */
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val capped = isTablet(context) && width > maxWidth
+        super.onMeasure(if (capped) MeasureSpec.makeMeasureSpec(maxWidth, MeasureSpec.EXACTLY)
+            else widthMeasureSpec, heightMeasureSpec)
     }
 
     /** Shows the message; [actionLabel] and [action] make the button, none if null */

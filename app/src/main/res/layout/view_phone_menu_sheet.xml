@@ -18,7 +18,7 @@ the settings of the current site, then History, Bookmarks, Downloads and Setting
       android:id="@+id/svSheet"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_gravity="bottom"
+      android:layout_gravity="bottom|center_horizontal"
       android:background="@drawable/ds_sheet_bg"
       android:elevation="8dp"
       android:clickable="true">

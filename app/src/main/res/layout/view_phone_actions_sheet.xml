@@ -14,7 +14,7 @@
       android:id="@+id/llSheet"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_gravity="bottom"
+      android:layout_gravity="bottom|center_horizontal"
       android:orientation="vertical"
       android:paddingStart="@dimen/ds_phone_sheet_padding_horizontal"
       android:paddingEnd="@dimen/ds_phone_sheet_padding_horizontal"

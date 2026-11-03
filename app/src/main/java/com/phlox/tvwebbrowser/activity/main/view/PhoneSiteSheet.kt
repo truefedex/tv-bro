@@ -38,10 +38,23 @@ class PhoneSiteSheet @JvmOverloads constructor(
         vb.vScrim.setOnClickListener { hide() }
     }
 
+    private val sheetWidth = SheetWidth(context)
+    private var insetBottom = 0
+
     /** The sheet keeps out of the navigation bar; the scrim covers it */
     fun setInsets(left: Int, right: Int, bottom: Int) {
-        vb.llSheet.setPadding(sheetPaddingHorizontal + left, vb.llSheet.paddingTop, sheetPaddingHorizontal + right,
-            sheetPaddingBottom + bottom)
+        sheetWidth.insetLeft = left
+        sheetWidth.insetRight = right
+        insetBottom = bottom
+        requestLayout()
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        sheetWidth.fit(vb.llSheet, MeasureSpec.getSize(widthMeasureSpec)) { left, right ->
+            vb.llSheet.setPaddingIfChanged(sheetPaddingHorizontal + left, vb.llSheet.paddingTop,
+                sheetPaddingHorizontal + right, sheetPaddingBottom + insetBottom)
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
     fun render(state: CurrentTabState) {

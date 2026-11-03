@@ -422,6 +422,16 @@ the logo and the search bar in the flow, the speed dial in two columns of 56px t
         margin: 8px 4px;
     }
 }
+/*
+Tablets (touch screens wider than phones; TVs have no coarse pointer): a bigger touch target for the menu
+of a tile, its padding taken back by margins so the tile keeps its layout.
+*/
+@media (any-pointer: coarse) and (min-width: 601px) and (min-height: 421px) {
+    .more {
+        padding: 12px 16px;
+        margin: calc(1vh - 12px) -1vw -12px -16px;
+    }
+}
 @media (prefers-color-scheme: dark) and (max-width: 600px), (prefers-color-scheme: dark) and (max-height: 420px) {
     .wrapper .search_box .dropdown ul {
         box-shadow: 4px 4px 16px -4px #000000;

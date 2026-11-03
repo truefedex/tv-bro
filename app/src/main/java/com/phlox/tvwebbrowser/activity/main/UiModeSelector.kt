@@ -23,24 +23,19 @@ object UiModeSelector {
         return detect(
             uiModeType = configuration.uiMode and Configuration.UI_MODE_TYPE_MASK,
             hasLeanback = context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK),
-            touchscreen = configuration.touchscreen,
-            smallestScreenWidthDp = configuration.smallestScreenWidthDp
+            touchscreen = configuration.touchscreen
         )
     }
 
     /**
-     * The phone UI is for touch phones: not a TV, a touch screen that is really there (the configuration
-     * comes from the input devices; TV boxes with tablet firmware declare the touchscreen feature too),
-     * and a small screen (no tablets for now). The width alone does not tell a phone from a TV:
-     * a 1080p TV at xhdpi is 540dp wide.
+     * The touch UI is for phones and tablets: not a TV and a touch screen that is really there (the
+     * configuration comes from the input devices; TV boxes with tablet firmware declare the touchscreen
+     * feature too). The width does not tell a phone or a tablet from a TV: a 1080p TV at xhdpi is 540dp wide.
      */
-    fun detect(uiModeType: Int, hasLeanback: Boolean, touchscreen: Int, smallestScreenWidthDp: Int): UiMode {
-        val phone = uiModeType != Configuration.UI_MODE_TYPE_TELEVISION &&
+    fun detect(uiModeType: Int, hasLeanback: Boolean, touchscreen: Int): UiMode {
+        val touch = uiModeType != Configuration.UI_MODE_TYPE_TELEVISION &&
                 !hasLeanback &&
-                touchscreen == Configuration.TOUCHSCREEN_FINGER &&
-                smallestScreenWidthDp < PHONE_MAX_SMALLEST_WIDTH_DP
-        return if (phone) UiMode.PHONE else UiMode.TV
+                touchscreen == Configuration.TOUCHSCREEN_FINGER
+        return if (touch) UiMode.PHONE else UiMode.TV
     }
-
-    private const val PHONE_MAX_SMALLEST_WIDTH_DP = 600
 }

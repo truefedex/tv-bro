@@ -115,6 +115,9 @@
     <dimen name="ds_text_phone_address">16sp</dimen>
     <dimen name="ds_text_phone_tab_count">12sp</dimen>
     <dimen name="ds_phone_sheet_radius">16dp</dimen>
+    <!-- sheets and the snackbar are no wider on tablets (phones are narrower) -->
+    <dimen name="ds_phone_sheet_max_width">640dp</dimen>
+    <dimen name="ds_phone_snackbar_max_width">560dp</dimen>
     <dimen name="ds_phone_sheet_padding_horizontal">16dp</dimen>
     <dimen name="ds_phone_sheet_padding_top">8dp</dimen>
     <dimen name="ds_phone_sheet_padding_bottom">16dp</dimen>

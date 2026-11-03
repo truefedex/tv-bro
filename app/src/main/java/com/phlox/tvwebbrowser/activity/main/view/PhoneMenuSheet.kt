@@ -86,11 +86,22 @@ class PhoneMenuSheet @JvmOverloads constructor(
         vb.tvBookmark.setText(if (bookmarked) R.string.bookmarked else R.string.add_bookmark)
     }
 
+    private val sheetWidth = SheetWidth(context)
+
     /** The sheet keeps out of the navigation bar; the scrim covers it */
     fun setInsets(left: Int, right: Int, bottom: Int) {
-        vb.svSheet.setPadding(left, 0, right, 0)
+        sheetWidth.insetLeft = left
+        sheetWidth.insetRight = right
         vb.llSheet.setPadding(vb.llSheet.paddingLeft, vb.llSheet.paddingTop, vb.llSheet.paddingRight,
             sheetPaddingBottom + bottom)
+        requestLayout()
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        sheetWidth.fit(vb.svSheet, MeasureSpec.getSize(widthMeasureSpec)) { left, right ->
+            vb.svSheet.setPaddingIfChanged(left, 0, right, 0)
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
     fun render(state: CurrentTabState) {
