@@ -511,7 +511,7 @@
     <string name="settings_filter_list_updated_s">更新於 %s</string>
     <string name="settings_filter_list_never_updated">從未更新</string>
     <string name="settings_filter_list_updating">正在更新…</string>
-    <string name="settings_public_suffix_list">Public Suffix List（Mozilla Public License 2.0），供廣告封鎖使用</string>
+    <string name="settings_group_third_party">第三方元件</string>
     <string name="settings_tracking_protection">追蹤保護</string>
     <string name="settings_tracking_protection_summary">Firefox 的追蹤器防護，適用於所有網站</string>
     <string name="settings_group_filter_lists">過濾清單</string>

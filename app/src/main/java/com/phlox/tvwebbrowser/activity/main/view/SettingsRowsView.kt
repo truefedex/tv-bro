@@ -131,6 +131,7 @@ class SettingsRowsView @JvmOverloads constructor(
         is Row.Action -> ActionHolder()
         is Row.ShortcutKey -> KeyHolder()
         is Row.Link -> LinkHolder()
+        is Row.Notice -> NoticeHolder()
         is Row.Info -> InfoHolder()
     }
 
@@ -388,6 +389,14 @@ class SettingsRowsView @JvmOverloads constructor(
         }
 
         override fun accepts(row: Row) = row is Row.Link
+    }
+
+    private inner class NoticeHolder : Holder(R.layout.view_settings_row_notice) {
+        init {
+            view.setOnClickListener { callback.act(row) }
+        }
+
+        override fun accepts(row: Row) = row is Row.Notice
     }
 
     private inner class InfoHolder : Holder(R.layout.view_settings_row_info) {

@@ -1,0 +1,100 @@
+[
+  {
+    "id": "androidx",
+    "name": "AndroidX",
+    "license": "Apache License 2.0",
+    "licenseFile": "apache-2.0.txt",
+    "copyright": "Copyright The Android Open Source Project",
+    "url": "https://github.com/androidx/androidx",
+    "includes": "AppCompat, Activity, Fragment, Core, Collection, ConstraintLayout, RecyclerView, Lifecycle, Room, SQLite, SavedState, WebKit and the libraries they use"
+  },
+  {
+    "id": "media3",
+    "name": "AndroidX Media3 (ExoPlayer)",
+    "license": "Apache License 2.0",
+    "licenseFile": "apache-2.0.txt",
+    "copyright": "Copyright The Android Open Source Project",
+    "url": "https://github.com/androidx/media",
+    "note": "The built-in video player."
+  },
+  {
+    "id": "guava",
+    "name": "Guava",
+    "license": "Apache License 2.0",
+    "licenseFile": "apache-2.0.txt",
+    "copyright": "Copyright The Guava Authors",
+    "url": "https://github.com/google/guava"
+  },
+  {
+    "id": "kotlin",
+    "name": "Kotlin Standard Library",
+    "license": "Apache License 2.0",
+    "licenseFile": "apache-2.0.txt",
+    "copyright": "Copyright JetBrains s.r.o. and Kotlin Programming Language contributors",
+    "url": "https://github.com/JetBrains/kotlin"
+  },
+  {
+    "id": "kotlinx-coroutines",
+    "name": "kotlinx.coroutines",
+    "license": "Apache License 2.0",
+    "licenseFile": "apache-2.0.txt",
+    "copyright": "Copyright JetBrains s.r.o. and contributors",
+    "url": "https://github.com/Kotlin/kotlinx.coroutines"
+  },
+  {
+    "id": "kotlinx-serialization",
+    "name": "kotlinx.serialization",
+    "license": "Apache License 2.0",
+    "licenseFile": "apache-2.0.txt",
+    "copyright": "Copyright JetBrains s.r.o. and contributors",
+    "url": "https://github.com/Kotlin/kotlinx.serialization"
+  },
+  {
+    "id": "jetbrains-annotations",
+    "name": "JetBrains Java Annotations",
+    "license": "Apache License 2.0",
+    "licenseFile": "apache-2.0.txt",
+    "copyright": "Copyright JetBrains s.r.o.",
+    "url": "https://github.com/JetBrains/java-annotations"
+  },
+  {
+    "id": "jspecify",
+    "name": "JSpecify",
+    "license": "Apache License 2.0",
+    "licenseFile": "apache-2.0.txt",
+    "copyright": "Copyright The JSpecify Authors",
+    "url": "https://github.com/jspecify/jspecify"
+  },
+  {
+    "id": "qrcodegen",
+    "name": "QR Code generator library",
+    "license": "MIT License",
+    "licenseFile": "mit-qrcodegen.txt",
+    "copyright": "Copyright (c) Project Nayuki",
+    "url": "https://www.nayuki.io/page/qr-code-generator-library",
+    "note": "The QR codes of the phone sync."
+  },
+  {
+    "id": "public-suffix-list",
+    "name": "Public Suffix List",
+    "license": "Mozilla Public License 2.0",
+    "licenseFile": "mpl-2.0.txt",
+    "url": "https://publicsuffix.org/",
+    "note": "Used by ad blocking. Its source is at the address above."
+  },
+  {
+    "id": "material-icons",
+    "name": "Material Design Icons",
+    "license": "Apache License 2.0",
+    "licenseFile": "apache-2.0.txt",
+    "copyright": "Copyright Google LLC",
+    "url": "https://github.com/google/material-design-icons",
+    "note": "The icons of the interface."
+  },
+  {
+    "id": "search-engine-logos",
+    "name": "Search engine logos",
+    "license": "Trademarks of their owners",
+    "note": "The logos of Google, Bing, Yahoo!, DuckDuckGo, Yandex and Startpage on the home page are trademarks of their owners. They are used only to show which search engine is chosen; TV Bro is not affiliated with or endorsed by them."
+  }
+]

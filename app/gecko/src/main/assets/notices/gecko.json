@@ -1,0 +1,28 @@
+[
+  {
+    "id": "geckoview",
+    "name": "GeckoView",
+    "license": "Mozilla Public License 2.0",
+    "licenseFile": "mpl-2.0.txt",
+    "copyright": "Copyright Mozilla Foundation and contributors",
+    "url": "https://github.com/mozilla-firefox/firefox",
+    "note": "The web engine. Its source is at the address above. GeckoView includes code of other authors under their own licenses, which toolkit/content/license.html of that source lists."
+  },
+  {
+    "id": "snakeyaml",
+    "name": "SnakeYAML",
+    "license": "Apache License 2.0",
+    "licenseFile": "apache-2.0.txt",
+    "copyright": "Copyright (c) 2008, SnakeYAML",
+    "url": "https://bitbucket.org/snakeyaml/snakeyaml",
+    "note": "Used by GeckoView."
+  },
+  {
+    "id": "play-services-fido",
+    "name": "Google Play services (FIDO)",
+    "license": "Android Software Development Kit License",
+    "copyright": "Copyright Google LLC",
+    "url": "https://developer.android.com/studio/terms",
+    "note": "Used by GeckoView for passkeys and security keys (WebAuthn). It is not open source: its terms are at the address above."
+  }
+]

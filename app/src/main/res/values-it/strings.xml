@@ -543,7 +543,7 @@
   <string name="settings_filter_list_updated_s">Aggiornato %s</string>
   <string name="settings_filter_list_never_updated">Mai aggiornato</string>
   <string name="settings_filter_list_updating">Aggiornamento…</string>
-  <string name="settings_public_suffix_list">Public Suffix List (Mozilla Public License 2.0), usata dal blocco pubblicità</string>
+  <string name="settings_group_third_party">Componenti di terze parti</string>
   <string name="settings_tracking_protection">Protezione dal tracciamento</string>
   <string name="settings_tracking_protection_summary">La protezione di Firefox dagli elementi traccianti, su tutti i siti</string>
   <string name="settings_group_filter_lists">Elenchi di filtri</string>

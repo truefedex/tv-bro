@@ -118,6 +118,11 @@ class SettingsNavigatorTest {
         override val versionName = "2.2.0"
         override val buildName = "generic"
         override val engineVersion = "WebView 1.0"
+        override var notices = listOf(
+            ThirdPartyNotices.Notice("a", "Library A", "Apache License 2.0", "apache-2.0.txt", "Copyright A",
+                "https://a.example", null, null),
+            ThirdPartyNotices.Notice("b", "Logos", "Trademarks of their owners", null, null, null, null, "Logos.")
+        )
         override var builtInUpdates = true
         override var autoCheckUpdates = true
         override var updateChannel = "release"
@@ -163,6 +168,7 @@ class SettingsNavigatorTest {
             pickedOption?.let(onChosen)
         }
         override fun open(url: String) { log += "open $url" }
+        override fun showNotice(notice: ThirdPartyNotices.Notice) { log += "notice ${notice.id}" }
         override fun startUpdate() { log += "update" }
         override fun restart() { log += "restart" }
     }
@@ -543,6 +549,24 @@ class SettingsNavigatorTest {
         navigator.show(Category.ABOUT)
         navigator.act(row<Row.Link>(Key.LINK_LICENSE))
         assertEquals("open ${SettingsNavigator.URL_LICENSE}", log.last())
+    }
+
+    @Test
+    fun noticesOfThirdPartyComponentsAreListedInAbout() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ABOUT)
+        val section = screen.sections.first { it.title == context.getString(R.string.settings_group_third_party) }
+        val rows = section.rows.map { it as Row.Notice }
+        assertEquals(listOf("Library A", "Logos"), rows.map { it.title })
+        assertEquals("Apache License 2.0", rows[0].summary)
+        //rows of one key are told apart by their ids
+        assertEquals(2, rows.map { it.id }.distinct().size)
+        navigator.act(rows[1])
+        assertEquals("notice b", log.last())
+        //nothing to list: no section
+        store.notices = emptyList()
+        navigator.show(Category.ABOUT)
+        assertTrue(screen.sections.none { it.title == context.getString(R.string.settings_group_third_party) })
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.activity.main
 import android.content.Intent
 import android.media.tv.TvContract
 import android.util.Log
+import android.view.LayoutInflater
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AlertDialog
@@ -16,6 +17,7 @@ import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutKeyDialog
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.ProxySetup
 import com.phlox.tvwebbrowser.channels.ChannelKind
+import com.phlox.tvwebbrowser.databinding.DialogNoticeBinding
 import com.phlox.tvwebbrowser.channels.HomeChannels
 import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.browser.adblock.AdBlockService
@@ -296,6 +298,7 @@ class AppSettingsStore(
     override val versionName: String get() = BuildConfig.VERSION_NAME
     override val buildName: String get() = BuildConfig.FLAVOR_appstore
     override val engineVersion: String get() = WebEngineFactory.getWebEngineVersionString()
+    override val notices: List<ThirdPartyNotices.Notice> by lazy { ThirdPartyNotices.load(activity.assets) }
     override val builtInUpdates: Boolean get() = BuildConfig.BUILT_IN_AUTO_UPDATE
     override var autoCheckUpdates: Boolean
         get() = autoUpdate.needAutoCheckUpdates
@@ -376,6 +379,19 @@ class SettingsShellCallback(
 
     override fun open(url: String) {
         host.openInNewTab(url, host.controller.tabsStates.size)
+    }
+
+    override fun showNotice(notice: ThirdPartyNotices.Notice, open: (String) -> Unit) {
+        val vb = DialogNoticeBinding.inflate(LayoutInflater.from(activity))
+        vb.tvNotice.text = ThirdPartyNotices.text(activity.assets, notice)
+        val builder = AlertDialog.Builder(activity)
+            .setTitle(notice.name)
+            .setView(vb.root)
+            .setPositiveButton(R.string.ok, null)
+        notice.url?.let { url -> builder.setNeutralButton(R.string.open) { _, _ -> open(url) } }
+        builder.show()
+        //the D-pad scrolls the text first
+        vb.svNotice.requestFocus()
     }
 
     /** The screen is closed already; the dialog of the update offers to download it */

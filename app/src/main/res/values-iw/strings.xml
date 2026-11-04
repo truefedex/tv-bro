@@ -559,7 +559,7 @@
   <string name="settings_filter_list_updated_s">עודכנה %s</string>
   <string name="settings_filter_list_never_updated">לא עודכנה אף פעם</string>
   <string name="settings_filter_list_updating">מעדכן…</string>
-  <string name="settings_public_suffix_list">Public Suffix List (Mozilla Public License 2.0), בשימוש של חסימת הפרסומות</string>
+  <string name="settings_group_third_party">רכיבי צד שלישי</string>
   <string name="settings_tracking_protection">הגנה מפני מעקב</string>
   <string name="settings_tracking_protection_summary">ההגנה של Firefox מפני רכיבי מעקב, בכל האתרים</string>
   <string name="settings_group_filter_lists">רשימות סינון</string>

@@ -559,7 +559,7 @@
   <string name="settings_filter_list_updated_s">Обновлено %s</string>
   <string name="settings_filter_list_never_updated">Ещё не обновлялся</string>
   <string name="settings_filter_list_updating">Обновление…</string>
-  <string name="settings_public_suffix_list">Public Suffix List (Mozilla Public License 2.0), используется для блокировки рекламы</string>
+  <string name="settings_group_third_party">Сторонние компоненты</string>
   <string name="settings_tracking_protection">Защита от отслеживания</string>
   <string name="settings_tracking_protection_summary">Защита Firefox от трекеров на всех сайтах</string>
   <string name="settings_group_filter_lists">Списки фильтров</string>

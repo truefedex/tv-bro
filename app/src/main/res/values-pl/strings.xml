@@ -559,7 +559,7 @@
   <string name="settings_filter_list_updated_s">Zaktualizowano %s</string>
   <string name="settings_filter_list_never_updated">Nigdy nie aktualizowano</string>
   <string name="settings_filter_list_updating">Aktualizowanie…</string>
-  <string name="settings_public_suffix_list">Public Suffix List (Mozilla Public License 2.0), używana przez blokowanie reklam</string>
+  <string name="settings_group_third_party">Komponenty innych firm</string>
   <string name="settings_tracking_protection">Ochrona przed śledzeniem</string>
   <string name="settings_tracking_protection_summary">Ochrona Firefoksa przed elementami śledzącymi, na wszystkich witrynach</string>
   <string name="settings_group_filter_lists">Listy filtrów</string>

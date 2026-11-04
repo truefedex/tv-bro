@@ -52,7 +52,7 @@ class SettingsNavigator(
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_CACHE, ENGINE_DEBUG, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
-        LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, LINK_PUBLIC_SUFFIX_LIST
+        LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, NOTICE
     }
 
     /** The values that are read when the app starts: changing one needs a restart */
@@ -171,6 +171,8 @@ class SettingsNavigator(
         /** The build (the app store flavor) */
         val buildName: String
         val engineVersion: String
+        /** The code and resources of other authors the app ships, by name */
+        val notices: List<ThirdPartyNotices.Notice>
         /** The app updates itself (the generic build) */
         val builtInUpdates: Boolean
         var autoCheckUpdates: Boolean
@@ -195,6 +197,8 @@ class SettingsNavigator(
         fun pickFromList(title: String, options: List<String>, checked: Int, onChosen: (Int) -> Unit)
         /** Opens the page in a new tab (the screen closes) */
         fun open(url: String)
+        /** Shows what the [notice] says and the text of its license */
+        fun showNotice(notice: ThirdPartyNotices.Notice)
         /** Closes the screen and offers to install the new version */
         fun startUpdate()
         /** Restarts the app to apply the settings marked [Row.restart] */
@@ -210,6 +214,8 @@ class SettingsNavigator(
         fun pickDownloadFolder(onDone: () -> Unit)
         fun pickFromList(title: String, options: List<String>, checked: Int, onChosen: (Int) -> Unit)
         fun open(url: String)
+        /** [open] opens the address of the notice the way the screen opens links */
+        fun showNotice(notice: ThirdPartyNotices.Notice, open: (String) -> Unit)
         fun startUpdate()
         fun restart()
     }
@@ -279,6 +285,14 @@ class SettingsNavigator(
             override val summary: String? get() = null
         }
 
+        /** Code or a resource of other authors; the row shows what its notice says */
+        data class Notice(val notice: ThirdPartyNotices.Notice) : Row() {
+            override val key: Key get() = Key.NOTICE
+            override val title: String get() = notice.name
+            override val summary: String get() = notice.license
+            override val id: String get() = "${Key.NOTICE}_${notice.id}"
+        }
+
         /** Lines of text (the version of the app) */
         data class Info(override val key: Key, override val title: String, override val summary: String?) : Row()
     }
@@ -304,8 +318,6 @@ class SettingsNavigator(
         const val URL_WHY_ICON = "https://tv-bro-3546c.web.app/msg001.html"
         const val URL_LICENSE = "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/LICENSE.md"
         const val URL_PRIVACY_POLICY = "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/PRIVACY.md"
-        /** The data of the ad blocker (MPL-2.0, which asks to tell where its source is) */
-        const val URL_PUBLIC_SUFFIX_LIST = "https://publicsuffix.org/"
 
         /** The index of the custom search engine in the options of Search engine */
         val CUSTOM_SEARCH_ENGINE = Config.SearchEnginesURLs.size - 1
@@ -660,6 +672,7 @@ class SettingsNavigator(
         when (row) {
             is Row.ShortcutKey -> host.captureKey(row.shortcut) { render() }
             is Row.Link -> host.open(row.url)
+            is Row.Notice -> host.showNotice(row.notice)
             else -> when (row.key) {
                 Key.UPDATE_LISTS -> if (!filterListsUpdating && !store.filterLists.updating) {
                     filterListsUpdating = true
@@ -1084,9 +1097,12 @@ class SettingsNavigator(
             Row.Link(Key.LINK_SUPPORT, string(R.string.settings_support_author), URL_SUPPORT_AUTHOR),
             Row.Link(Key.LINK_ICON, string(R.string.why_icon_changed), URL_WHY_ICON),
             Row.Link(Key.LINK_LICENSE, string(R.string.settings_license), URL_LICENSE),
-            Row.Link(Key.LINK_PRIVACY, string(R.string.settings_privacy_policy), URL_PRIVACY_POLICY),
-            Row.Link(Key.LINK_PUBLIC_SUFFIX_LIST, string(R.string.settings_public_suffix_list), URL_PUBLIC_SUFFIX_LIST)
+            Row.Link(Key.LINK_PRIVACY, string(R.string.settings_privacy_policy), URL_PRIVACY_POLICY)
         ))
+        val notices = store.notices
+        if (notices.isNotEmpty()) {
+            sections += Section(string(R.string.settings_group_third_party), notices.map { Row.Notice(it) })
+        }
         return sections
     }
 

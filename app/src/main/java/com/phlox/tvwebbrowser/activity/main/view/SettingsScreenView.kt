@@ -15,6 +15,7 @@ import com.phlox.tvwebbrowser.activity.main.SettingsNavigator
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Category
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Key
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Row
+import com.phlox.tvwebbrowser.activity.main.ThirdPartyNotices
 import com.phlox.tvwebbrowser.databinding.ViewSettingsScreenBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import com.phlox.tvwebbrowser.utils.themeColor
@@ -186,6 +187,8 @@ class SettingsScreenView @JvmOverloads constructor(
             hide()
             callback.open(url)
         }
+
+        override fun showNotice(notice: ThirdPartyNotices.Notice) = callback.showNotice(notice, ::open)
 
         override fun startUpdate() {
             hide()

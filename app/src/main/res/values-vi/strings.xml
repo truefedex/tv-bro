@@ -511,7 +511,7 @@
   <string name="settings_filter_list_updated_s">Cập nhật %s</string>
   <string name="settings_filter_list_never_updated">Chưa từng cập nhật</string>
   <string name="settings_filter_list_updating">Đang cập nhật…</string>
-  <string name="settings_public_suffix_list">Public Suffix List (Mozilla Public License 2.0), dùng cho tính năng chặn quảng cáo</string>
+  <string name="settings_group_third_party">Thành phần bên thứ ba</string>
   <string name="settings_tracking_protection">Chống theo dõi</string>
   <string name="settings_tracking_protection_summary">Tính năng chống trình theo dõi của Firefox, trên mọi trang web</string>
   <string name="settings_group_filter_lists">Danh sách bộ lọc</string>

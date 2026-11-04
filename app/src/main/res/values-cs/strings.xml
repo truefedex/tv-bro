@@ -560,7 +560,7 @@
     <string name="settings_filter_list_updated_s">Aktualizováno %s</string>
     <string name="settings_filter_list_never_updated">Nikdy neaktualizováno</string>
     <string name="settings_filter_list_updating">Aktualizace…</string>
-    <string name="settings_public_suffix_list">Public Suffix List (Mozilla Public License 2.0), používá ji blokování reklam</string>
+    <string name="settings_group_third_party">Komponenty třetích stran</string>
     <string name="settings_tracking_protection">Ochrana proti sledování</string>
     <string name="settings_tracking_protection_summary">Ochrana Firefoxu proti sledovacím prvkům, na všech webech</string>
     <string name="settings_group_filter_lists">Seznamy filtrů</string>

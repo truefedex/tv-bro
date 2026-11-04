@@ -527,7 +527,7 @@
   <string name="settings_filter_list_updated_s">به‌روزشده %s</string>
   <string name="settings_filter_list_never_updated">هرگز به‌روز نشده</string>
   <string name="settings_filter_list_updating">در حال به‌روزرسانی…</string>
-  <string name="settings_public_suffix_list">Public Suffix List (Mozilla Public License 2.0)، مورد استفاده مسدودسازی تبلیغات</string>
+  <string name="settings_group_third_party">اجزای شخص ثالث</string>
   <string name="settings_tracking_protection">محافظت در برابر ردیابی</string>
   <string name="settings_tracking_protection_summary">محافظت Firefox در برابر ردیاب‌ها، در همه سایت‌ها</string>
   <string name="settings_group_filter_lists">فهرست‌های فیلتر</string>

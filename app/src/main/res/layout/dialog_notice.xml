@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A notice of code or a resource of other authors and the text of its license. The scroll view takes the
+     focus, so the D-pad scrolls the text; Down at its end goes to the buttons. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/svNotice"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:focusable="true"
+    android:focusableInTouchMode="false"
+    android:paddingStart="@dimen/ds_phone_form_padding"
+    android:paddingEnd="@dimen/ds_phone_form_padding"
+    android:paddingTop="@dimen/ds_panel_field_gap"
+    android:scrollbarStyle="outsideOverlay">
+
+  <TextView
+      style="@style/Widget.TVBro.Text.Caption"
+      android:id="@+id/tvNotice"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      tools:text="Copyright The Android Open Source Project\nApache License 2.0" />
+</ScrollView>

@@ -528,7 +528,7 @@
     <string name="settings_filter_list_updated_s">Ενημερώθηκε %s</string>
     <string name="settings_filter_list_never_updated">Δεν έχει ενημερωθεί ποτέ</string>
     <string name="settings_filter_list_updating">Ενημέρωση…</string>
-    <string name="settings_public_suffix_list">Public Suffix List (Mozilla Public License 2.0), χρησιμοποιείται από τον αποκλεισμό διαφημίσεων</string>
+    <string name="settings_group_third_party">Στοιχεία τρίτων</string>
     <string name="settings_tracking_protection">Προστασία από παρακολούθηση</string>
     <string name="settings_tracking_protection_summary">Η προστασία του Firefox από ιχνηλάτες, σε όλους τους ιστοτόπους</string>
     <string name="settings_group_filter_lists">Λίστες φίλτρων</string>
