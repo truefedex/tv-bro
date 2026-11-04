@@ -31,6 +31,9 @@ interface FavoritesDao {
     @Query("SELECT MIN(i_order) FROM favorites WHERE parent=:parent AND home_page_bookmark=0")
     suspend fun minOrder(parent: Long): Int?
 
+    @Query("SELECT MAX(i_order) FROM favorites WHERE parent=:parent AND home_page_bookmark=0")
+    suspend fun maxOrder(parent: Long): Int?
+
     @Query("SELECT MAX(i_order) FROM favorites WHERE parent=0 AND home_page_bookmark=1")
     suspend fun maxHomePageOrder(): Int?
 

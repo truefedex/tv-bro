@@ -41,6 +41,9 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         const val DIRECT_NAVIGATION_MODE_HINT_SUPPRESS_KEY = "direct_navigation_mode_hint_suppress"
         const val HOME_PAGE_MODE = "home_page_mode"
         const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
+        const val HOME_PAGE_BOOKMARKS_FOLDER_KEY = "home_page_bookmarks_folder"
+        /** [homePageBookmarksFolder]: the Home page folder of the bookmarks */
+        const val HOME_PAGE_BOOKMARKS_OWN_FOLDER = -1L
         const val ALLOW_AUTOPLAY_MEDIA = "allow_autoplay_media"
         const val WEBVIEW_USE_ALGORITHMIC_DARKENING_WITH_DARK_UI_MODE_KEY =
             "webview_use_algorithmic_darkening_with_dark_ui_mode"
@@ -215,6 +218,17 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
             .let { HomePageLinksMode.values()[it] }
         set(value) {
             prefs.edit().putInt(HOME_PAGE_SUGGESTIONS_MODE, value.ordinal).apply()
+        }
+
+    /**
+     * The folder whose bookmarks the built-in home page shows in [HomePageLinksMode.BOOKMARKS]:
+     * [HOME_PAGE_BOOKMARKS_OWN_FOLDER] (the Home page folder, the default), 0 for the top level, else the id
+     * of a folder
+     */
+    var homePageBookmarksFolder: Long
+        get() = prefs.getLong(HOME_PAGE_BOOKMARKS_FOLDER_KEY, HOME_PAGE_BOOKMARKS_OWN_FOLDER)
+        set(value) {
+            prefs.edit().putLong(HOME_PAGE_BOOKMARKS_FOLDER_KEY, value).apply()
         }
 
     var homePage: String

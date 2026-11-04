@@ -475,6 +475,7 @@
   <string name="settings_home_page_url_hint">https://…</string>
   <string name="settings_home_page_links">Liên kết trên trang chủ</string>
   <string name="settings_home_page_links_summary">Các ô bên dưới thanh tìm kiếm</string>
+  <string name="settings_home_page_bookmarks_folder">Thư mục dấu trang</string>
   <string name="settings_group_home_screen">Màn hình chính Android TV</string>
   <string name="settings_channel_bookmarks">Hàng dấu trang</string>
   <string name="settings_channel_bookmarks_summary">Dấu trang của bạn thành một hàng trên màn hình chính</string>

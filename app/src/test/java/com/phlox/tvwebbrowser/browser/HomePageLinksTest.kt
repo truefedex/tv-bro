@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.model.FavoriteItem
 import com.phlox.tvwebbrowser.model.HistoryItem
 import com.phlox.tvwebbrowser.singleton.AppDatabase
@@ -125,6 +126,76 @@ class HomePageLinksTest {
         links.remove(links.links.value[0])
         assertEquals(listOf("c", "new"), links.links.value.map { it.title })
         assertEquals(listOf(0, 1), links.links.value.map { it.order })
+    }
+
+    private suspend fun folderWith(vararg titles: String): FavoriteItem {
+        val favorites = TVBro.container.data.favorites
+        val folder = FavoriteItem().apply { title = "folder" }
+        favorites.add(folder, FavoritesRepository.ROOT)
+        favorites.add(FavoriteItem().apply { title = "sub" }, folder.id)
+        //added to the top one by one: the first title ends at the top
+        for (title in titles.reversed()) {
+            favorites.add(FavoriteItem().apply { this.title = title; url = "https://$title.com/" }, folder.id)
+        }
+        return folder
+    }
+
+    @Test
+    fun aChosenFolderShowsItsBookmarksWithoutItsFolders() = runBlocking {
+        db.favoritesDao().insert(bookmark("home", 0))
+        val folder = folderWith("a", "b")
+        config.homePageBookmarksFolder = folder.id
+        links.load()
+        assertEquals(listOf("a", "b"), links.links.value.map { it.title })
+        assertEquals(listOf(0, 1), links.links.value.map { it.order })
+    }
+
+    @Test
+    fun anEmptyChosenFolderGetsNoSuggestions() = runBlocking {
+        val folder = folderWith()
+        config.homePageBookmarksFolder = folder.id
+        links.load()
+        assertTrue(links.links.value.isEmpty())
+        assertTrue(db.favoritesDao().getHomePageBookmarks().isEmpty())
+        assertFalse(config.initialBookmarksSuggestionsLoaded)
+    }
+
+    @Test
+    fun aGoneFolderShowsTheHomePageBookmarks() = runBlocking {
+        config.initialBookmarksSuggestionsLoaded = true
+        db.favoritesDao().insert(bookmark("home", 0))
+        config.homePageBookmarksFolder = 99
+        links.load()
+        assertEquals(listOf("home"), links.links.value.map { it.title })
+
+        //a new tile goes there too
+        links.onBookmarkEdited(FavoriteItem().apply { title = "new"; url = "https://new.com/" })
+        assertEquals(listOf("home", "new"), db.favoritesDao().getHomePageBookmarks().map { it.title })
+    }
+
+    @Test
+    fun aNewTileGoesToTheEndOfTheChosenFolder() = runBlocking {
+        val folder = folderWith("a", "b")
+        config.homePageBookmarksFolder = folder.id
+        links.load()
+        val item = FavoriteItem().apply { title = "new"; url = "https://new.com/" }
+        links.onBookmarkEdited(item)
+        assertFalse(item.homePageBookmark)
+        assertEquals(folder.id, item.parent)
+        assertEquals(listOf("a", "b", "new"), links.links.value.map { it.title })
+        assertTrue(db.favoritesDao().getHomePageBookmarks().isEmpty())
+
+        links.remove(links.links.value[0])
+        assertEquals(listOf("b", "new"), links.links.value.map { it.title })
+    }
+
+    @Test
+    fun theTopLevelCanBeShown() = runBlocking {
+        TVBro.container.data.favorites.add(FavoriteItem().apply { title = "top"; url = "https://top.com/" },
+            FavoritesRepository.ROOT)
+        config.homePageBookmarksFolder = FavoritesRepository.ROOT
+        links.load()
+        assertEquals(listOf("top"), links.links.value.map { it.title })
     }
 
     @Test

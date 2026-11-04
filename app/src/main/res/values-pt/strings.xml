@@ -508,6 +508,7 @@
     <string name="settings_home_page_url_hint">https://…</string>
     <string name="settings_home_page_links">Links da página inicial</string>
     <string name="settings_home_page_links_summary">Blocos abaixo da barra de pesquisa</string>
+    <string name="settings_home_page_bookmarks_folder">Pasta de favoritos</string>
     <string name="settings_group_home_screen">Tela inicial do Android TV</string>
     <string name="settings_channel_bookmarks">Fileira de favoritos</string>
     <string name="settings_channel_bookmarks_summary">Seus favoritos como uma fileira na tela inicial</string>

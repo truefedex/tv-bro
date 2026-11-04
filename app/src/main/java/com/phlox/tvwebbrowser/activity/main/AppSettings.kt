@@ -81,6 +81,14 @@ class AppSettingsStore(
         TVBro.container.appScope.launch { controller.homePageLinks.load() }
     }
 
+    override var homePageBookmarksFolder: Long
+        get() = config.homePageBookmarksFolder
+        set(value) {
+            config.homePageBookmarksFolder = value
+            //the home page shows the bookmarks of the new folder
+            TVBro.container.appScope.launch { controller.homePageLinks.load() }
+        }
+
     override val supportsHomeChannels: Boolean get() = HomeChannels.isSupported(activity)
     override var channelBookmarks: Boolean
         get() = config.channelBookmarks

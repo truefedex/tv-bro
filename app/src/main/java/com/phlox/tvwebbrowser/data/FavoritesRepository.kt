@@ -20,7 +20,7 @@ class FavoritesRepository(private val dao: FavoritesDao) {
         /** The top level */
         const val ROOT = 0L
         /** The folder of the home page bookmarks */
-        const val HOME_PAGE = -1L
+        const val HOME_PAGE = Config.HOME_PAGE_BOOKMARKS_OWN_FOLDER
     }
 
     /** How the bookmarks of a file are added to the user's ones */
@@ -62,6 +62,17 @@ class FavoritesRepository(private val dao: FavoritesDao) {
     /** All folders but [HOME_PAGE] */
     suspend fun folders(): List<FavoriteItem> = dao.getFolders()
 
+    /** The [folder] when it is there ([ROOT] and [HOME_PAGE] always are), else [HOME_PAGE] */
+    suspend fun existingFolder(folder: Long): Long =
+        if (folder == ROOT || folder == HOME_PAGE || dao.getById(folder)?.isFolder == true) folder else HOME_PAGE
+
+    /**
+     * The bookmarks the built-in home page shows: those right in the [folder] (not in its folders), or those of
+     * [HOME_PAGE] when the folder is gone
+     */
+    suspend fun homePageLinkBookmarks(folder: Long): List<FavoriteItem> =
+        children(existingFolder(folder)).filter { !it.isFolder }
+
     /**
      * The bookmarks of the channel of the TV home screen, in the order the bookmarks screens show them, each
      * address once:
@@ -74,9 +85,7 @@ class FavoritesRepository(private val dao: FavoritesDao) {
     suspend fun channelBookmarks(source: Config.ChannelBookmarksSource, folder: Long): List<FavoriteItem> {
         val items = when (source) {
             Config.ChannelBookmarksSource.HOME_PAGE -> homePageBookmarks()
-            Config.ChannelBookmarksSource.FOLDER ->
-                if (folder == ROOT || dao.getById(folder)?.isFolder == true) children(folder).filter { !it.isFolder }
-                else homePageBookmarks()
+            Config.ChannelBookmarksSource.FOLDER -> children(existingFolder(folder)).filter { !it.isFolder }
             Config.ChannelBookmarksSource.ALL -> {
                 val result = ArrayList<FavoriteItem>()
                 val visited = HashSet<Long>()
@@ -282,10 +291,16 @@ class FavoritesRepository(private val dao: FavoritesDao) {
         }
     }
 
-    /** Saves a new bookmark or folder in the [folder]; a folder can not go to [HOME_PAGE] */
-    suspend fun add(item: FavoriteItem, folder: Long) {
+    /**
+     * Saves a new bookmark or folder in the [folder]; a folder can not go to [HOME_PAGE].
+     * @param last to the end of the folder rather than to its top ([HOME_PAGE] always puts it at the end)
+     */
+    suspend fun add(item: FavoriteItem, folder: Long, last: Boolean = false) {
         require(!(item.isFolder && folder == HOME_PAGE))
         place(item, folder)
+        if (last && folder != HOME_PAGE) {
+            item.order = (dao.maxOrder(folder) ?: -1) + 1
+        }
         save(item)
     }
 

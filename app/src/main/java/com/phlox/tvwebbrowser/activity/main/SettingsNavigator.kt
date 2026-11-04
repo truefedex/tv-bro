@@ -45,7 +45,7 @@ class SettingsNavigator(
 
     /** The settings, and the rows that act */
     enum class Key {
-        SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS,
+        SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS, HOME_PAGE_BOOKMARKS_FOLDER,
         CHANNEL_BOOKMARKS, CHANNEL_BOOKMARKS_SOURCE, CHANNEL_TABS, CHANNEL_DOWNLOADS,
         SITE_VIEW, USER_AGENT, USER_AGENT_STRING, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
@@ -91,6 +91,11 @@ class SettingsNavigator(
         val homePageUrl: String
         val homePageLinksMode: Config.HomePageLinksMode
         fun setHomePage(mode: Config.HomePageMode, customUrl: String?, linksMode: Config.HomePageLinksMode)
+        /**
+         * The folder whose bookmarks the built-in home page shows: [FavoritesRepository.HOME_PAGE],
+         * [FavoritesRepository.ROOT] for the top level, or a folder
+         */
+        var homePageBookmarksFolder: Long
 
         /** The home screen of the TV shows channels of apps (Android 8+ with the TvProvider of Android TV) */
         val supportsHomeChannels: Boolean
@@ -313,6 +318,10 @@ class SettingsNavigator(
         const val CHANNEL_SOURCE_ALL = 1
         const val CHANNEL_SOURCE_FOLDER = 2
 
+        /** Positions in the options of the bookmarks of the home page (the chosen folder is there only when one is) */
+        const val HOME_PAGE_FOLDER_OWN = 0
+        const val HOME_PAGE_FOLDER_CHOSEN = 1
+
         /** Positions of the default site views */
         const val SITE_VIEW_AUTO = 0
         const val SITE_VIEW_DESKTOP_OPTION = 1
@@ -362,7 +371,10 @@ class SettingsNavigator(
     /** Custom was chosen for the User-Agent and none is typed yet */
     private var customUserAgentChosen = false
     private var jobs = emptyList<Job>()
-    /** The folders of bookmarks, loaded when the screen shows (for the name of the one the channel shows) */
+    /**
+     * The folders of bookmarks, loaded when the screen shows (for the names of those the home page and the
+     * channel show)
+     */
     private var bookmarkFolders: List<BookmarkFolder>? = null
 
     /** The categories of this interface */
@@ -385,12 +397,10 @@ class SettingsNavigator(
                 }
             }
         )
-        if (tvUi && store.supportsHomeChannels) {
-            //the name of the folder the bookmarks channel shows
-            jobs += scope.launch {
-                bookmarkFolders = store.bookmarkFolders()
-                if (shown) render()
-            }
+        //the names of the folders the home page and the bookmarks channel show
+        jobs += scope.launch {
+            bookmarkFolders = store.bookmarkFolders()
+            if (shown) render()
         }
         render()
         if (store.builtInUpdates) checkUpdates(force = false)
@@ -437,6 +447,19 @@ class SettingsNavigator(
             }
             Key.HOME_PAGE_LINKS -> store.setHomePage(store.homePageMode, customHomePageUrl(),
                 Config.HomePageLinksMode.entries[index])
+            Key.HOME_PAGE_BOOKMARKS_FOLDER -> when (index) {
+                HOME_PAGE_FOLDER_OWN -> if (store.homePageBookmarksFolder != FavoritesRepository.HOME_PAGE) {
+                    store.homePageBookmarksFolder = FavoritesRepository.HOME_PAGE
+                } else return
+                //Choose a folder… is the last option, the chosen folder (if any) the one before it
+                homePageFolderOptions().lastIndex -> {
+                    pickFolder(string(R.string.settings_home_page_bookmarks_folder), store.homePageBookmarksFolder) {
+                        store.homePageBookmarksFolder = it
+                    }
+                    return
+                }
+                else -> return
+            }
             Key.SITE_VIEW -> store.defaultDesktopView = when (index) {
                 SITE_VIEW_DESKTOP_OPTION -> true
                 SITE_VIEW_MOBILE_OPTION -> false
@@ -476,7 +499,11 @@ class SettingsNavigator(
                 CHANNEL_SOURCE_ALL -> store.setChannelBookmarks(Config.ChannelBookmarksSource.ALL, store.channelBookmarksFolder)
                 //Choose a folder… is the last option, the chosen folder (if any) the one before it
                 channelSourceOptions().lastIndex -> {
-                    pickChannelFolder()
+                    val current = if (store.channelBookmarksSource == Config.ChannelBookmarksSource.FOLDER)
+                        store.channelBookmarksFolder else null
+                    pickFolder(string(R.string.settings_channel_bookmarks_source), current) {
+                        store.setChannelBookmarks(Config.ChannelBookmarksSource.FOLDER, it)
+                    }
                     return
                 }
                 else -> return
@@ -757,10 +784,19 @@ class SettingsNavigator(
             string(R.string.settings_home_page_summary),
             context.resources.getStringArray(R.array.home_page_modes).toList(), mode.ordinal, segmented = false))
         when (mode) {
-            Config.HomePageMode.HOME_PAGE -> home += Row.Choice(Key.HOME_PAGE_LINKS,
-                string(R.string.settings_home_page_links), string(R.string.settings_home_page_links_summary),
-                context.resources.getStringArray(R.array.home_page_links_modes).toList(),
-                store.homePageLinksMode.ordinal, segmented = false)
+            Config.HomePageMode.HOME_PAGE -> {
+                home += Row.Choice(Key.HOME_PAGE_LINKS,
+                    string(R.string.settings_home_page_links), string(R.string.settings_home_page_links_summary),
+                    context.resources.getStringArray(R.array.home_page_links_modes).toList(),
+                    store.homePageLinksMode.ordinal, segmented = false)
+                if (store.homePageLinksMode == Config.HomePageLinksMode.BOOKMARKS) {
+                    val folderChosen = chosenHomePageFolderName() != null
+                    home += Row.Choice(Key.HOME_PAGE_BOOKMARKS_FOLDER, string(R.string.settings_home_page_bookmarks_folder),
+                        if (folderChosen) string(R.string.settings_channel_folder_summary) else null,
+                        homePageFolderOptions(), if (folderChosen) HOME_PAGE_FOLDER_CHOSEN else HOME_PAGE_FOLDER_OWN,
+                        segmented = false)
+                }
+            }
             Config.HomePageMode.CUSTOM -> home += Row.Field(Key.HOME_PAGE_URL, string(R.string.settings_home_page_url),
                 null, customHomePageUrl(), string(R.string.settings_home_page_url_hint))
             else -> {}
@@ -808,20 +844,45 @@ class SettingsNavigator(
      */
     private fun chosenChannelFolderName(): String? {
         if (store.channelBookmarksSource != Config.ChannelBookmarksSource.FOLDER) return null
-        val folder = store.channelBookmarksFolder
+        return folderName(store.channelBookmarksFolder)
+    }
+
+    /**
+     * The name of the folder the home page shows; null when it shows the Home page folder, or the chosen folder
+     * is gone (it shows the Home page folder then)
+     */
+    private fun chosenHomePageFolderName(): String? {
+        val folder = store.homePageBookmarksFolder
+        if (folder == FavoritesRepository.HOME_PAGE) return null
+        return folderName(folder)
+    }
+
+    /** The path of a user's [folder] ([FavoritesRepository.ROOT] included); null when it is gone */
+    private fun folderName(folder: Long): String? {
         if (folder == FavoritesRepository.ROOT) return string(R.string.settings_channel_folder_top_level)
         val folders = bookmarkFolders ?: return "…"
         return folders.find { it.id == folder }?.path
     }
 
-    private fun pickChannelFolder() {
+    /** Home page bookmarks, the chosen folder (if one is) and the choice of a folder */
+    private fun homePageFolderOptions(): List<String> {
+        val options = arrayListOf(string(R.string.settings_channel_source_home_page))
+        chosenHomePageFolderName()?.let { options += it }
+        options += string(R.string.settings_channel_source_choose_folder)
+        return options
+    }
+
+    /**
+     * Lets the user choose one of the user's folders (the top level too) in a list titled [title], with the
+     * [current] one checked
+     */
+    private fun pickFolder(title: String, current: Long?, onChosen: (Long) -> Unit) {
         scope.launch {
             val folders = store.bookmarkFolders().also { bookmarkFolders = it }
             val choices = listOf(BookmarkFolder(FavoritesRepository.ROOT, string(R.string.settings_channel_folder_top_level))) + folders
-            val checked = if (store.channelBookmarksSource == Config.ChannelBookmarksSource.FOLDER)
-                choices.indexOfFirst { it.id == store.channelBookmarksFolder } else -1
-            host.pickFromList(string(R.string.settings_channel_bookmarks_source), choices.map { it.path }, checked) { index ->
-                store.setChannelBookmarks(Config.ChannelBookmarksSource.FOLDER, choices[index].id)
+            val checked = choices.indexOfFirst { it.id == current }
+            host.pickFromList(title, choices.map { it.path }, checked) { index ->
+                onChosen(choices[index].id)
                 render()
             }
         }

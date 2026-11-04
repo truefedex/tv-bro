@@ -507,6 +507,7 @@
   <string name="settings_home_page_url_hint">https://…</string>
   <string name="settings_home_page_links">Link della pagina iniziale</string>
   <string name="settings_home_page_links_summary">Riquadri sotto la barra di ricerca</string>
+  <string name="settings_home_page_bookmarks_folder">Cartella dei segnalibri</string>
   <string name="settings_group_home_screen">Schermata Home di Android TV</string>
   <string name="settings_channel_bookmarks">Riga dei segnalibri</string>
   <string name="settings_channel_bookmarks_summary">I tuoi segnalibri come riga nella schermata Home</string>

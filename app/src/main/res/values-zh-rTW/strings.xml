@@ -475,6 +475,7 @@
     <string name="settings_home_page_url_hint">https://…</string>
     <string name="settings_home_page_links">首頁上的連結</string>
     <string name="settings_home_page_links_summary">搜尋列下方的資訊方塊</string>
+    <string name="settings_home_page_bookmarks_folder">書籤資料夾</string>
     <string name="settings_group_home_screen">Android TV 主畫面</string>
     <string name="settings_channel_bookmarks">書籤列</string>
     <string name="settings_channel_bookmarks_summary">在主畫面上以一列顯示您的書籤</string>

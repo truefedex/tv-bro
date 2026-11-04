@@ -7,6 +7,7 @@ import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Key
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Row
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Screen
 import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
+import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
@@ -38,6 +39,7 @@ class SettingsNavigatorTest {
             homePageLinksMode = linksMode
             homePageUrl = if (mode == Config.HomePageMode.CUSTOM) customUrl ?: Config.HOME_URL_ALIAS else Config.HOME_URL_ALIAS
         }
+        override var homePageBookmarksFolder = FavoritesRepository.HOME_PAGE
         override var supportsHomeChannels = true
         override var channelBookmarks = false
         override var channelBookmarksSource = Config.ChannelBookmarksSource.HOME_PAGE
@@ -674,5 +676,46 @@ class SettingsNavigatorTest {
         val source = row<Row.Choice>(Key.CHANNEL_BOOKMARKS_SOURCE)
         assertEquals(SettingsNavigator.CHANNEL_SOURCE_HOME_PAGE, source.selected)
         assertEquals(3, source.options.size)
+    }
+
+    @Test
+    fun theHomePageShowsTheBookmarksOfAChosenFolder() {
+        //the phone has it too
+        val navigator = navigator(tvUi = false)
+        navigator.show(Category.SEARCH)
+        val folder = row<Row.Choice>(Key.HOME_PAGE_BOOKMARKS_FOLDER)
+        assertEquals(listOf("Home page bookmarks", "Choose a folder…"), folder.options)
+        assertEquals(SettingsNavigator.HOME_PAGE_FOLDER_OWN, folder.selected)
+
+        //the list has the top level first, then the folders as paths; nothing is chosen in it yet
+        pickedOption = 1
+        navigator.choose(Key.HOME_PAGE_BOOKMARKS_FOLDER, folder.options.lastIndex)
+        assertEquals(listOf("Bookmarks (top level)", "News", "News / Local"), listOptions)
+        assertEquals(-1, listChecked)
+        assertEquals(5L, store.homePageBookmarksFolder)
+        val chosen = row<Row.Choice>(Key.HOME_PAGE_BOOKMARKS_FOLDER)
+        assertEquals(listOf("Home page bookmarks", "News", "Choose a folder…"), chosen.options)
+        assertEquals(SettingsNavigator.HOME_PAGE_FOLDER_CHOSEN, chosen.selected)
+
+        //the chosen folder is checked in the list
+        pickedOption = null
+        navigator.choose(Key.HOME_PAGE_BOOKMARKS_FOLDER, chosen.options.lastIndex)
+        assertEquals(1, listChecked)
+
+        navigator.choose(Key.HOME_PAGE_BOOKMARKS_FOLDER, SettingsNavigator.HOME_PAGE_FOLDER_OWN)
+        assertEquals(FavoritesRepository.HOME_PAGE, store.homePageBookmarksFolder)
+
+        //only bookmarks have a folder
+        navigator.choose(Key.HOME_PAGE_LINKS, Config.HomePageLinksMode.LATEST_HISTORY.ordinal)
+        assertFalse(Key.HOME_PAGE_BOOKMARKS_FOLDER in keys())
+    }
+
+    @Test
+    fun aGoneHomePageFolderShowsAsTheHomePageOne() {
+        store.homePageBookmarksFolder = 99
+        navigator(tvUi = true).show(Category.SEARCH)
+        val folder = row<Row.Choice>(Key.HOME_PAGE_BOOKMARKS_FOLDER)
+        assertEquals(SettingsNavigator.HOME_PAGE_FOLDER_OWN, folder.selected)
+        assertEquals(2, folder.options.size)
     }
 }

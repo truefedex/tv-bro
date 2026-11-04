@@ -16,8 +16,9 @@ import java.util.Locale
 
 /**
  * Links shown on the built-in home page: bookmarks, latest or most visited history items.
- * The bookmarks are the ones of the Home page folder, in its order: a link's order is its place
- * on the page, and the page leaves out those it has no room for.
+ * The bookmarks are the ones right in the folder of [Config.homePageBookmarksFolder] (the Home page folder by
+ * default, and when the chosen one is gone), in its order: a link's order is its place on the page, and the
+ * page leaves out those it has no room for.
  */
 class HomePageLinks(
     private val config: Config,
@@ -45,8 +46,11 @@ class HomePageLinks(
                     .map { HomePageLink.fromHistoryItem(it) }
             }
             Config.HomePageLinksMode.BOOKMARKS -> {
-                val bookmarks = favorites.homePageBookmarks()
-                if (bookmarks.isEmpty() && !config.initialBookmarksSuggestionsLoaded) {
+                val folder = favorites.existingFolder(config.homePageBookmarksFolder)
+                val bookmarks = favorites.homePageLinkBookmarks(folder)
+                //the first start fills the Home page folder only, a chosen folder stays as the user left it
+                if (folder == FavoritesRepository.HOME_PAGE && bookmarks.isEmpty() &&
+                    !config.initialBookmarksSuggestionsLoaded) {
                     val suggestions = initialBookmarksSuggestions() ?: return
                     for (s in suggestions) {
                         favorites.save(s)
@@ -70,15 +74,15 @@ class HomePageLinks(
     }
 
     /**
-     * Saves the bookmark edited (or created, if its id is 0: it goes after the others) by the user and
-     * updates the links.
+     * Saves the bookmark edited (or created, if its id is 0: it goes after the others of the folder the page
+     * shows) by the user and updates the links.
      */
     suspend fun onBookmarkEdited(item: FavoriteItem) {
         if (item.id == 0L) {
-            item.homePageBookmark = true
-            item.order = favorites.nextHomePageOrder()
+            favorites.add(item, favorites.existingFolder(config.homePageBookmarksFolder), last = true)
+        } else {
+            favorites.save(item)
         }
-        favorites.save(item)
         load()
     }
 

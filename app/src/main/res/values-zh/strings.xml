@@ -475,6 +475,7 @@
   <string name="settings_home_page_url_hint">https://…</string>
   <string name="settings_home_page_links">主页上的链接</string>
   <string name="settings_home_page_links_summary">搜索栏下方的磁贴</string>
+  <string name="settings_home_page_bookmarks_folder">书签文件夹</string>
   <string name="settings_group_home_screen">Android TV 主屏幕</string>
   <string name="settings_channel_bookmarks">书签行</string>
   <string name="settings_channel_bookmarks_summary">在主屏幕上以一行显示您的书签</string>

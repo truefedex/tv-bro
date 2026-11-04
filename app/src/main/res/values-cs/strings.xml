@@ -524,6 +524,7 @@
     <string name="settings_home_page_url_hint">https://…</string>
     <string name="settings_home_page_links">Odkazy na domovské stránce</string>
     <string name="settings_home_page_links_summary">Dlaždice pod vyhledávacím řádkem</string>
+    <string name="settings_home_page_bookmarks_folder">Složka záložek</string>
     <string name="settings_group_home_screen">Domovská obrazovka Android TV</string>
     <string name="settings_channel_bookmarks">Řada záložek</string>
     <string name="settings_channel_bookmarks_summary">Vaše záložky jako řada na domovské obrazovce</string>

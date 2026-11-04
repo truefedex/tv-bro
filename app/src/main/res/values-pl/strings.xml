@@ -523,6 +523,7 @@
   <string name="settings_home_page_url_hint">https://…</string>
   <string name="settings_home_page_links">Linki na stronie głównej</string>
   <string name="settings_home_page_links_summary">Kafelki pod paskiem wyszukiwania</string>
+  <string name="settings_home_page_bookmarks_folder">Folder zakładek</string>
   <string name="settings_group_home_screen">Ekran główny Android TV</string>
   <string name="settings_channel_bookmarks">Rząd zakładek</string>
   <string name="settings_channel_bookmarks_summary">Twoje zakładki jako rząd na ekranie głównym</string>

@@ -154,8 +154,8 @@ class TabUiHost(
                 favoriteItem = FavoriteItem()
                 favoriteItem.title = bookmark?.title
                 favoriteItem.url = bookmark?.url
-                //an empty tile adds a bookmark after the others (HomePageLinks.onBookmarkEdited)
-                favoriteItem.homePageBookmark = true
+                //an empty tile adds a bookmark after the others of the folder the page shows
+                // (HomePageLinks.onBookmarkEdited)
                 editHomePageBookmark(favoriteItem)
             } else {
                 AlertDialog.Builder(activity)
