@@ -8,6 +8,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -47,6 +48,7 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.sync.SyncLink
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
+import com.phlox.tvwebbrowser.utils.OverlayBackInvokedCallback
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
 import com.phlox.tvwebbrowser.utils.launchForResult
@@ -129,7 +131,15 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         set(value) {
             field = value
             fullscreenBackCallback.isEnabled = value
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val overlayBack = fullscreenOverlayBack ?: OverlayBackInvokedCallback(onBackInvokedDispatcher) {
+                    backNavigationEventsAdapter.dispatchSystemBackNavigationEvent()
+                }.also { fullscreenOverlayBack = it }
+                overlayBack.setRegistered(value)
+            }
         }
+    /** Back of a fullscreen page goes to the back callbacks of the screen, not to the fullscreen view of WebView */
+    private var fullscreenOverlayBack: OverlayBackInvokedCallback? = null
     protected val config = AppContext.provideConfig()
     private val voiceSearchHelper = VoiceSearchHelper(this) { icon, message -> shell.showMessage(icon, message) }
     private val downloadLauncher = DownloadLauncher(this,
@@ -709,7 +719,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
                 val keyCodeBackNavigation = keyCode == KeyEvent.KEYCODE_ESCAPE ||
                         keyCode == KeyEvent.KEYCODE_BUTTON_B || keyCode == KeyEvent.KEYCODE_BACK
                 if (keyCodeBackNavigation && isFullscreen) {
-                    //the back callbacks decide (the video mode may take Back), not the fullscreen view of the engine
+                    //the back callbacks decide (the video mode may take Back), not the fullscreen view of the engine;
+                    //where the window gives Back to its callbacks, fullscreenOverlayBack does the same
                     return true
                 }
                 if (!keyCodeBackNavigation && shell.dispatchKeyEvent(event)) {
