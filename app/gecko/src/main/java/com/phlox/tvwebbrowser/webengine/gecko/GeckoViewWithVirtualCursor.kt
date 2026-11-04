@@ -94,12 +94,50 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
     var onCursorMouseClick: (() -> Unit)? = null
     private var cursorPrimaryButtonDown = false
 
+    /**
+     * The last press on the page came from the cursor, not from a finger or a mouse of the device: the
+     * menu of a selection is only for the latter, the D-pad can not reach it
+     */
+    var lastPressFromCursor = false
+        private set
+    private var dispatchingSynthetic = false
+    /** A right button press of a mouse of the device is in progress */
+    private var deviceRightPress = false
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            lastPressFromCursor = dispatchingSynthetic
+            deviceRightPress = !dispatchingSynthetic && event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE &&
+                (event.buttonState and MotionEvent.BUTTON_SECONDARY) != 0
+        }
+        if (!deviceRightPress) return super.dispatchTouchEvent(event)
+        // on TV GeckoView would take the right button of a mouse for a finger and tap the page with it;
+        // as a mouse press it opens the context menu of the page
+        try {
+            return dispatchAsMouse(event)
+        } finally {
+            if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                deviceRightPress = false
+            }
+        }
+    }
+
     override fun dispatchSyntheticTouch(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) lastPressFromCursor = true
+        dispatchingSynthetic = true
+        try {
+            return dispatchCursorTouch(event)
+        } finally {
+            dispatchingSynthetic = false
+        }
+    }
+
+    private fun dispatchCursorTouch(event: MotionEvent): Boolean {
         if (event.getToolType(0) != MotionEvent.TOOL_TYPE_MOUSE) {
             return dispatchTouchEvent(event)
         }
         try {
-            return dispatchMouseTouch(event)
+            return dispatchAsMouse(event)
         } finally {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> cursorPrimaryButtonDown = (event.buttonState and MotionEvent.BUTTON_PRIMARY) != 0
@@ -112,16 +150,17 @@ class GeckoViewWithVirtualCursor @JvmOverloads constructor(context: Context, att
         }
     }
 
-    private fun dispatchMouseTouch(event: MotionEvent): Boolean {
+    private fun dispatchAsMouse(event: MotionEvent): Boolean {
         // On a device in the television UI mode GeckoView handles the presses of a mouse as touches
         // (PanZoomController.treatMouseAsTouch, a global flag that is also kept for physical mice).
         // The cursor is a mouse only for pages in the desktop view, which expect mouse presses, so
-        // the flag is off while GeckoView handles a press of the cursor (synchronously, on this thread).
-        val field = treatMouseAsTouchField ?: return dispatchTouchEvent(event)
+        // the flag is off while GeckoView handles a press of the cursor or the right button of a mouse
+        // (synchronously, on this thread).
+        val field = treatMouseAsTouchField ?: return super.dispatchTouchEvent(event)
         val saved = field.get(null)
         field.set(null, false)
         try {
-            return dispatchTouchEvent(event)
+            return super.dispatchTouchEvent(event)
         } finally {
             field.set(null, saved)
         }

@@ -337,7 +337,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         updateMediaState()
         updateMediaVideo()
     }
-    val selectionActionDelegate = MySelectionActionDelegate()
+    val selectionActionDelegate = MySelectionActionDelegate { webView }
     /** The last scroll position of the page in pixels, to report how far it scrolled; unknown when -1 */
     private var lastScrollY = -1
     /** GeckoView reports the offset of the visual viewport in CSS pixels */
