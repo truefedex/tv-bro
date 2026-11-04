@@ -294,6 +294,7 @@
   <string name="show_in_all_downloads">在所有下载中显示</string>
   <string name="download_again">重新下载</string>
   <string name="pause">暂停</string>
+  <string name="play">播放</string>
   <string name="resume">继续</string>
   <string name="cancel_download">取消下载</string>
   <string name="remove_from_list">从列表中移除</string>
@@ -334,6 +335,7 @@
   <string name="player_repeat">循环播放</string>
   <string name="player_repeat_on">开启</string>
   <string name="player_repeat_off">关闭</string>
+  <string name="player_picture_in_picture">画中画</string>
   <string name="player_track">音轨 %d</string>
   <string name="err_no_video_player">未安装视频播放器应用，例如 VLC 或 MX Player</string>
   <plurals name="videos_on_page_count">

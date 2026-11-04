@@ -20,6 +20,8 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.player.FrameRateSwitcher
 import com.phlox.tvwebbrowser.player.NativePlayer
+import com.phlox.tvwebbrowser.player.PictureInPicturePlayback
+import com.phlox.tvwebbrowser.player.PictureInPictureSupport
 import com.phlox.tvwebbrowser.player.PlayerTracks
 import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
 import com.phlox.tvwebbrowser.webengine.MediaCommand
@@ -37,7 +39,9 @@ import kotlinx.coroutines.launch
  * ("↓ Video settings"); Up does nothing. Back closes the menu, then the player; [onClosed] gives the focus back to
  * the page. When the playback fails, the error offers the video to another app and the way back. Until the user
  * chooses "Don't show again" ([Config.builtInPlayerHintSuppress]), a dialog tells what the player is for when it
- * opens, the video paused meanwhile.
+ * opens, the video paused meanwhile. Where the device has picture-in-picture ([PictureInPictureSupport]), the menu
+ * and the PiP key of remotes hand the playing video to a picture-in-picture window over the browser
+ * ([enterPictureInPicture], [PictureInPicturePlayback]), and it comes back here when the window is expanded ([adopt]).
  */
 class PlayerScreenView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -48,12 +52,15 @@ class PlayerScreenView @JvmOverloads constructor(
         /** Opens the video in another app; false if there is none */
         fun openInOtherApp(video: PageVideo): Boolean
         fun onClosed()
+        /** Starts the picture-in-picture window of the player handed to [PictureInPicturePlayback] */
+        fun openPictureInPicture()
     }
 
     private val vb = ViewPlayerScreenBinding.inflate(LayoutInflater.from(context), this)
     private lateinit var callback: Callback
     private lateinit var scope: LifecycleCoroutineScope
-    private val player = NativePlayer(context)
+    /** Replaced when the playing one goes to the picture-in-picture window or comes back from it */
+    private var player = NativePlayer(context)
     private var stateJob: Job? = null
     /** The display follows the frame rate of the video while the setting is on (read when a video opens) */
     private val frameRates = FrameRateSwitcher(context as Activity)
@@ -104,20 +111,66 @@ class PlayerScreenView @JvmOverloads constructor(
 
     /** Plays [video] from [startPosition] seconds */
     fun show(video: PageVideo, startPosition: Double = 0.0) {
+        showScreen(video)
+        val config = AppContext.provideConfig()
+        matchFrameRate = config.matchFrameRate
+        player.open(video, callback.cookies(video.url), startPosition, ownFrameRate = matchFrameRate)
+        if (!config.builtInPlayerHintSuppress) showIntroDialog()
+        bindPlayer()
+    }
+
+    /** Shows [player], a video that plays already (back from the picture-in-picture window), without the intro */
+    fun adopt(player: NativePlayer) {
+        val video = player.state.value?.video
+        if (video == null) {
+            player.release()
+            return
+        }
+        if (isOpen) close()
+        this.player.release()
+        this.player = player
+        showScreen(video)
+        matchFrameRate = player.ownFrameRate
+        bindPlayer()
+    }
+
+    private fun showScreen(video: PageVideo) {
         visibility = VISIBLE
         backCallback.isEnabled = true
         vb.tvTitle.text = ExternalVideoPlayer.title(video)
         captionHeight = null
         vb.tvCaption.text = PageVideoRowText.playerCaption(context.getString(R.string.built_in_player), video, null)
-        val config = AppContext.provideConfig()
-        matchFrameRate = config.matchFrameRate
-        player.open(video, callback.cookies(video.url), startPosition, ownFrameRate = matchFrameRate)
-        if (!config.builtInPlayerHintSuppress) showIntroDialog()
+    }
+
+    private fun bindPlayer() {
         vb.vPlayer.player = player.exoPlayer
         keys.setFullscreen(true)
         stateJob?.cancel()
         stateJob = scope.launch { player.state.collect { render(it) } }
         requestFocus()
+    }
+
+    /**
+     * The video goes on in a picture-in-picture window over the browser: the player is handed over playing
+     * ([PictureInPicturePlayback]) and the screen closes with a player of its own for the next video. All of it
+     * happens before the window starts, since the activity pauses then, which pauses the player of the screen.
+     */
+    fun enterPictureInPicture() {
+        if (!isOpen || player.state.value == null || !PictureInPictureSupport.isAvailable(context)) return
+        val playing = player
+        vb.vMenu.hide()
+        stateJob?.cancel()
+        stateJob = null
+        keys.setFullscreen(false)
+        keys.setMedia(null)
+        vb.vPlayer.player = null
+        frameRates.restore()
+        player = NativePlayer(context)
+        PictureInPicturePlayback.start(playing)
+        visibility = GONE
+        backCallback.isEnabled = false
+        callback.onClosed()
+        callback.openPictureInPicture()
     }
 
     fun close() {
@@ -197,12 +250,7 @@ class PlayerScreenView @JvmOverloads constructor(
     /** The media keys of the remote, while the player is open; @return true if the player took it */
     fun mediaCommand(command: MediaCommand): Boolean {
         if (!isOpen) return false
-        when (command) {
-            MediaCommand.TOGGLE -> player.togglePlayback()
-            MediaCommand.STOP, MediaCommand.PAUSE -> player.pause()
-            MediaCommand.REWIND -> player.seekBy(-VideoModeController.STEP)
-            MediaCommand.FAST_FORWARD -> player.seekBy(VideoModeController.STEP)
-        }
+        player.mediaCommand(command)
         return true
     }
 
@@ -216,6 +264,11 @@ class PlayerScreenView @JvmOverloads constructor(
         if (vb.vMenu.isOpen || vb.llError.isVisible) return false
         if (event.keyCode == KeyEvent.KEYCODE_MENU) {
             if (event.action == KeyEvent.ACTION_UP) showMenu()
+            return true
+        }
+        //the PiP key of remotes; the system keeps it to itself while a picture-in-picture window is shown
+        if (event.keyCode == KeyEvent.KEYCODE_WINDOW && PictureInPictureSupport.isAvailable(context)) {
+            if (event.action == KeyEvent.ACTION_UP) enterPictureInPicture()
             return true
         }
         if (keys.dispatchKeyEvent(event)) return true
@@ -261,6 +314,11 @@ class PlayerScreenView @JvmOverloads constructor(
                 showOptions(listOf(false, true).map { option ->
                     PopupMenuView.Item(R.drawable.ic_check, label(option), checked = option == looping) { player.looping = option }
                 }, if (looping) 1 else 0)
+            }
+        }
+        if (PictureInPictureSupport.isAvailable(context)) {
+            rows += PopupMenuView.Item(R.drawable.ic_picture_in_picture, context.getString(R.string.player_picture_in_picture)) {
+                enterPictureInPicture()
             }
         }
         showOptions(rows, 0)

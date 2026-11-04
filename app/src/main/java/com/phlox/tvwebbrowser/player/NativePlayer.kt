@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.player
 
 import android.content.Context
 import android.os.SystemClock
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
@@ -14,7 +15,9 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import com.phlox.tvwebbrowser.activity.main.VideoModeController
 import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
+import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideo
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,9 +28,13 @@ import kotlinx.coroutines.flow.asStateFlow
  * The built-in player of the videos of pages ([PageVideo]), on ExoPlayer (Media3), without views: it requests
  * the video with the headers of the page (the Referer of its frame, the User-Agent and the cookies of the engine,
  * as [ExternalVideoPlayer] gives them to other apps) and tells its [state]. It lives on the main thread; [release]
- * it when its screen closes.
+ * it when its screen closes. It holds the application context only, so it can go from the screen of the browser to
+ * the picture-in-picture window and back ([PictureInPicturePlayback]). It takes the audio focus: the sound of another
+ * app pauses it.
  */
-class NativePlayer(private val context: Context) {
+class NativePlayer(context: Context) {
+    private val context = context.applicationContext
+
     /** What the screen of the player shows */
     data class State(
         val video: PageVideo,
@@ -42,6 +49,8 @@ class NativePlayer(private val context: Context) {
         val frameRate: Float? = null,
         /** Height of the video track playing, pixels; null while unknown */
         val videoHeight: Int? = null,
+        /** Width to height of the picture shown (with the shape of its pixels); null while unknown */
+        val aspectRatio: Float? = null,
     )
 
     private var player: ExoPlayer? = null
@@ -53,6 +62,10 @@ class NativePlayer(private val context: Context) {
     /** The ExoPlayer of the open video, for the view that shows it; null while no video is open */
     val exoPlayer: Player? get() = player
 
+    /** The open video was opened with the frame rate left to the app ([open]) */
+    var ownFrameRate = false
+        private set
+
     /**
      * Plays [video] from [startPosition] seconds; [cookies]: of the engine, for the address of the video.
      * [ownFrameRate]: the app switches the mode of the display itself ([FrameRateSwitcher]), so the player does
@@ -61,6 +74,7 @@ class NativePlayer(private val context: Context) {
     fun open(video: PageVideo, cookies: String?, startPosition: Double = 0.0, ownFrameRate: Boolean = false) {
         release()
         this.video = video
+        this.ownFrameRate = ownFrameRate
         val headers = ExternalVideoPlayer.headers(video, cookies)
         val http = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
@@ -68,6 +82,8 @@ class NativePlayer(private val context: Context) {
         headers[USER_AGENT]?.let { http.setUserAgent(it) }
         val player = ExoPlayer.Builder(context)
             .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(context, http)))
+            .setAudioAttributes(AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true)
             .build()
         this.player = player
         if (ownFrameRate) player.videoChangeFrameRateStrategy = C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_OFF
@@ -97,6 +113,16 @@ class NativePlayer(private val context: Context) {
 
     fun pause() {
         player?.pause()
+    }
+
+    /** The media keys of the remote (and the controls of the picture-in-picture window) */
+    fun mediaCommand(command: MediaCommand) {
+        when (command) {
+            MediaCommand.TOGGLE -> togglePlayback()
+            MediaCommand.STOP, MediaCommand.PAUSE -> pause()
+            MediaCommand.REWIND -> seekBy(-VideoModeController.STEP)
+            MediaCommand.FAST_FORWARD -> seekBy(VideoModeController.STEP)
+        }
     }
 
     fun play() {
@@ -178,6 +204,8 @@ class NativePlayer(private val context: Context) {
             tracks = player.currentTracks,
             frameRate = (player as? ExoPlayer)?.videoFormat?.frameRate?.takeIf { it > 0 },
             videoHeight = (player as? ExoPlayer)?.videoFormat?.height?.takeIf { it > 0 },
+            aspectRatio = player.videoSize.takeIf { it.width > 0 && it.height > 0 }
+                ?.let { it.width * it.pixelWidthHeightRatio / it.height },
         )
     }
 

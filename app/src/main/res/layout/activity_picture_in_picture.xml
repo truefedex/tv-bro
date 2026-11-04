@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The built-in player in a picture-in-picture window (PictureInPictureActivity): only the video, with its subtitles -->
+<androidx.media3.ui.PlayerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/vPlayer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true"
+    app:use_controller="false"
+    app:surface_type="surface_view"
+    app:shutter_background_color="@android:color/black"
+    app:show_buffering="never"
+    android:focusable="false" />

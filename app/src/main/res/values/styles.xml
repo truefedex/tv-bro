@@ -3,6 +3,11 @@
 
     <style name="AppTheme" parent="@style/Theme.TVBro" />
 
+    <!-- The built-in player in a picture-in-picture window (PictureInPictureActivity): black around the video -->
+    <style name="Theme.TVBro.PictureInPicture" parent="AppTheme">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+
     <!--
     Widget styles. Layouts set them with style="..." on each view; the theme does not set them as
     defaults (buttonStyle and others), so views without a style keep the platform look.

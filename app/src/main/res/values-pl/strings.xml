@@ -318,6 +318,7 @@
   <string name="show_in_all_downloads">Pokaż we wszystkich pobranych</string>
   <string name="download_again">Pobierz ponownie</string>
   <string name="pause">Wstrzymaj</string>
+  <string name="play">Odtwórz</string>
   <string name="resume">Wznów</string>
   <string name="cancel_download">Anuluj pobieranie</string>
   <string name="remove_from_list">Usuń z listy</string>
@@ -364,6 +365,7 @@
   <string name="player_repeat">Powtarzanie</string>
   <string name="player_repeat_on">Wł.</string>
   <string name="player_repeat_off">Wył.</string>
+  <string name="player_picture_in_picture">Obraz w obrazie</string>
   <string name="player_track">Ścieżka %d</string>
   <string name="err_no_video_player">Nie zainstalowano odtwarzacza wideo, na przykład VLC lub MX Player</string>
   <plurals name="videos_on_page_count">

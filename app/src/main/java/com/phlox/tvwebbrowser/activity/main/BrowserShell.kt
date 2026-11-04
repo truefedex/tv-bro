@@ -66,6 +66,13 @@ interface BrowserShell {
     /** A media key of the remote (play/pause, stop, rewind, fast forward) before the page gets it; @return true if taken */
     fun onMediaCommand(command: MediaCommand): Boolean = false
 
+    /**
+     * The picture-in-picture window of the built-in player was expanded: its video goes on in the player of the
+     * shell ([com.phlox.tvwebbrowser.player.PictureInPicturePlayback.takeBack]). @return false if the shell has
+     * no player
+     */
+    fun showPictureInPicturePlayer(): Boolean = false
+
     /** The page of the current tab scrolled vertically to [scrollY] by [dy] (in pixels, positive downwards) */
     fun onPageScrolled(scrollY: Int, dy: Int) {}
 

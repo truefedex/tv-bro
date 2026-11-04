@@ -318,6 +318,7 @@
   <string name="show_in_all_downloads">Показать во всех загрузках</string>
   <string name="download_again">Скачать снова</string>
   <string name="pause">Пауза</string>
+  <string name="play">Воспроизвести</string>
   <string name="resume">Продолжить</string>
   <string name="cancel_download">Отменить загрузку</string>
   <string name="remove_from_list">Убрать из списка</string>
@@ -364,6 +365,7 @@
   <string name="player_repeat">Повтор</string>
   <string name="player_repeat_on">Вкл.</string>
   <string name="player_repeat_off">Выкл.</string>
+  <string name="player_picture_in_picture">Картинка в картинке</string>
   <string name="player_track">Дорожка %d</string>
   <string name="err_no_video_player">Не установлен ни один видеоплеер, например VLC или MX Player</string>
   <plurals name="videos_on_page_count">

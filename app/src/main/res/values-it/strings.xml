@@ -310,6 +310,7 @@
   <string name="show_in_all_downloads">Mostra in tutti i download</string>
   <string name="download_again">Scarica di nuovo</string>
   <string name="pause">Pausa</string>
+  <string name="play">Riproduci</string>
   <string name="resume">Riprendi</string>
   <string name="cancel_download">Annulla download</string>
   <string name="remove_from_list">Rimuovi dall\'elenco</string>
@@ -354,6 +355,7 @@
   <string name="player_repeat">Ripeti</string>
   <string name="player_repeat_on">Attivo</string>
   <string name="player_repeat_off">Disattivo</string>
+  <string name="player_picture_in_picture">Picture in picture</string>
   <string name="player_track">Traccia %d</string>
   <string name="err_no_video_player">Nessuna app di riproduzione video installata, ad esempio VLC o MX Player</string>
   <plurals name="videos_on_page_count">

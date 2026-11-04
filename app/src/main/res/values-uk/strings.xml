@@ -318,6 +318,7 @@
   <string name="show_in_all_downloads">Показати в усіх завантаженнях</string>
   <string name="download_again">Завантажити знову</string>
   <string name="pause">Пауза</string>
+  <string name="play">Відтворити</string>
   <string name="resume">Продовжити</string>
   <string name="cancel_download">Скасувати завантаження</string>
   <string name="remove_from_list">Прибрати зі списку</string>
@@ -364,6 +365,7 @@
   <string name="player_repeat">Повтор</string>
   <string name="player_repeat_on">Увімк.</string>
   <string name="player_repeat_off">Вимк.</string>
+  <string name="player_picture_in_picture">Картинка в картинці</string>
   <string name="player_track">Доріжка %d</string>
   <string name="err_no_video_player">Не встановлено жодного відеоплеєра, наприклад VLC чи MX Player</string>
   <plurals name="videos_on_page_count">

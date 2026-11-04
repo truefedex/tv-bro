@@ -53,6 +53,7 @@ import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.sameDay
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
+import com.phlox.tvwebbrowser.player.PictureInPicturePlayback
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
@@ -75,6 +76,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         const val KEY_SHOW_DOWNLOADS = "show_downloads"
         /** With [KEY_SHOW_DOWNLOADS]: the download to focus */
         const val KEY_DOWNLOAD_ID = "download_id"
+        /** The picture-in-picture window of the built-in player was expanded: its video goes on in the browser */
+        const val KEY_SHOW_PIP_PLAYER = "show_pip_player"
         /** A tile of the tabs channel of the TV home screen: the tab to show (its url is the data) */
         private const val EXTRA_TAB_ID = "channel_tab_id"
         /**
@@ -355,20 +358,24 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         override fun startVoiceSearch() = initiateVoiceSearch()
 
         override fun togglePlayback() {
-            if (!shell.onMediaCommand(MediaCommand.TOGGLE)) controller.togglePlayback()
+            if (!mediaCommand(MediaCommand.TOGGLE)) controller.togglePlayback()
         }
 
         override fun stopPlayback() {
-            if (!shell.onMediaCommand(MediaCommand.STOP)) controller.stopPlayback()
+            if (!mediaCommand(MediaCommand.STOP)) controller.stopPlayback()
         }
 
         override fun rewind() {
-            if (!shell.onMediaCommand(MediaCommand.REWIND)) controller.rewind()
+            if (!mediaCommand(MediaCommand.REWIND)) controller.rewind()
         }
 
         override fun fastForward() {
-            if (!shell.onMediaCommand(MediaCommand.FAST_FORWARD)) controller.fastForward()
+            if (!mediaCommand(MediaCommand.FAST_FORWARD)) controller.fastForward()
         }
+
+        /** The built-in player, then its picture-in-picture window over the browser, before the page */
+        private fun mediaCommand(command: MediaCommand): Boolean =
+            shell.onMediaCommand(command) || PictureInPicturePlayback.mediaCommand(command)
 
         override fun findInPage() = shell.showFindInPage()
     }
@@ -391,6 +398,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false)) {
             shell.showAllDownloads(intent.getLongExtra(KEY_DOWNLOAD_ID, 0L).takeIf { it > 0L })
         }
+        if (intent.getBooleanExtra(KEY_SHOW_PIP_PLAYER, false)) showPictureInPicturePlayer()
         if (intent.data != null) {
             if (tabsLoaded) {
                 handleIntent(intent)
@@ -399,6 +407,11 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
                 pendingIntent = intent
             }
         }
+    }
+
+    /** The video of the expanded picture-in-picture window goes on in the player of the shell, else it ends */
+    private fun showPictureInPicturePlayer() {
+        if (!shell.showPictureInPicturePlayer()) PictureInPicturePlayback.end()
     }
 
     private fun loadState() = lifecycleScope.launch(Dispatchers.Main) {
@@ -429,6 +442,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false)) {
             shell.showAllDownloads(intent.getLongExtra(KEY_DOWNLOAD_ID, 0L).takeIf { it > 0L })
         }
+        //the window of the player was expanded after this activity had been destroyed
+        if (intent.getBooleanExtra(KEY_SHOW_PIP_PLAYER, false)) showPictureInPicturePlayer()
         if (autoUpdateModel.needAutoCheckUpdates &&
             autoUpdateModel.updateChecker.versionCheckResult == null &&
                 !autoUpdateModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {

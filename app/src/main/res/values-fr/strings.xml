@@ -311,6 +311,7 @@
     <string name="show_in_all_downloads">Afficher dans tous les téléchargements</string>
     <string name="download_again">Télécharger à nouveau</string>
     <string name="pause">Pause</string>
+    <string name="play">Lecture</string>
     <string name="resume">Reprendre</string>
     <string name="cancel_download">Annuler le téléchargement</string>
     <string name="remove_from_list">Retirer de la liste</string>
@@ -355,6 +356,7 @@
     <string name="player_repeat">Répéter</string>
     <string name="player_repeat_on">Activé</string>
     <string name="player_repeat_off">Désactivé</string>
+    <string name="player_picture_in_picture">Image dans l\'image</string>
     <string name="player_track">Piste %d</string>
     <string name="err_no_video_player">Aucune application de lecture vidéo installée, par exemple VLC ou MX Player</string>
     <plurals name="videos_on_page_count">

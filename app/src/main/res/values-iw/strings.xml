@@ -318,6 +318,7 @@
   <string name="show_in_all_downloads">הצג בכל ההורדות</string>
   <string name="download_again">הורד שוב</string>
   <string name="pause">השהה</string>
+  <string name="play">הפעל</string>
   <string name="resume">המשך</string>
   <string name="cancel_download">בטל הורדה</string>
   <string name="remove_from_list">הסר מהרשימה</string>
@@ -364,6 +365,7 @@
   <string name="player_repeat">חזרה</string>
   <string name="player_repeat_on">פועל</string>
   <string name="player_repeat_off">כבוי</string>
+  <string name="player_picture_in_picture">תמונה בתוך תמונה</string>
   <string name="player_track">רצועה %d</string>
   <string name="err_no_video_player">לא מותקנת אפליקציה לנגינת וידאו, למשל VLC או MX Player</string>
   <plurals name="videos_on_page_count">

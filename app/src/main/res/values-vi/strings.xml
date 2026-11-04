@@ -294,6 +294,7 @@
   <string name="show_in_all_downloads">Hiển thị trong tất cả tệp tải xuống</string>
   <string name="download_again">Tải xuống lại</string>
   <string name="pause">Tạm dừng</string>
+  <string name="play">Phát</string>
   <string name="resume">Tiếp tục</string>
   <string name="cancel_download">Hủy tải xuống</string>
   <string name="remove_from_list">Xóa khỏi danh sách</string>
@@ -334,6 +335,7 @@
   <string name="player_repeat">Lặp lại</string>
   <string name="player_repeat_on">Bật</string>
   <string name="player_repeat_off">Tắt</string>
+  <string name="player_picture_in_picture">Hình trong hình</string>
   <string name="player_track">Bản âm thanh %d</string>
   <string name="err_no_video_player">Chưa cài ứng dụng phát video nào, ví dụ VLC hoặc MX Player</string>
   <plurals name="videos_on_page_count">

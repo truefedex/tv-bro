@@ -3,6 +3,12 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+/** Picture-in-picture of the built-in player: `BuildConfig.PICTURE_IN_PICTURE` and its activities in the manifest */
+fun com.android.build.api.dsl.ApplicationProductFlavor.pictureInPicture(enabled: Boolean) {
+    buildConfigField("Boolean", "PICTURE_IN_PICTURE", enabled.toString())
+    manifestPlaceholders["pictureInPicture"] = enabled.toString()
+}
+
 android {
     namespace = "com.phlox.tvwebbrowser"
 
@@ -55,16 +61,20 @@ android {
             dimension = "appstore"
             isDefault = true
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "true")
+            pictureInPicture(true)
         }
         create("google") {
             dimension = "appstore"
             //now auto-update violates Google Play policies
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
+            //the quality guidelines of TV apps on Google Play allow no media playback in picture-in-picture
+            pictureInPicture(false)
         }
         create("foss") {
             dimension = "appstore"
             applicationIdSuffix = ".foss"
             buildConfigField("Boolean", "BUILT_IN_AUTO_UPDATE", "false")
+            pictureInPicture(true)
         }
 
         // each variant has one web engine, registered by TVBro.initWebEngineStuff()

@@ -250,6 +250,7 @@
     <string name="show_in_all_downloads">Show in all downloads</string>
     <string name="download_again">Download again</string>
     <string name="pause">Pause</string>
+    <string name="play">Play</string>
     <string name="resume">Resume</string>
     <string name="cancel_download">Cancel download</string>
     <string name="remove_from_list">Remove from list</string>
@@ -304,6 +305,7 @@
     <string name="player_repeat">Repeat</string>
     <string name="player_repeat_on">On</string>
     <string name="player_repeat_off">Off</string>
+    <string name="player_picture_in_picture">Picture in picture</string>
     <string name="player_track">Track %d</string>
     <string name="err_no_video_player">No video player app is installed, for example VLC or MX Player</string>
     <plurals name="videos_on_page_count">

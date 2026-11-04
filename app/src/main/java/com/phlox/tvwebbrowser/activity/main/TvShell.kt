@@ -31,6 +31,7 @@ import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.activity.PictureInPictureActivity
 import com.phlox.tvwebbrowser.activity.main.view.ActionBar
 import com.phlox.tvwebbrowser.activity.main.view.BookmarksPanelView
 import com.phlox.tvwebbrowser.activity.main.view.ClearDownloadsDialog
@@ -68,6 +69,7 @@ import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideosSupport
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.activity.main.view.PlayerScreenView
+import com.phlox.tvwebbrowser.player.PictureInPicturePlayback
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.pageVideosSupport
 import com.phlox.tvwebbrowser.webengine.PageVideo
@@ -292,12 +294,27 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
      * fullscreen and pauses its media (the player plays it instead)
      */
     private fun openBuiltInPlayer(video: PageVideo, startPosition: Double) {
+        //one video at a time: it ends the picture-in-picture window
+        PictureInPicturePlayback.end()
+        coverPageWithPlayer()
+        vb.vPlayerScreen.show(video, startPosition)
+    }
+
+    /** The bar closes, the page leaves fullscreen and pauses its media, before the player shows */
+    private fun coverPageWithPlayer() {
         vb.vVideosPanel.hide()
         hideMenuOverlay()
-        val engine = controller.currentTab.value?.webEngine
+        //the tabs may not be loaded yet (back from the picture-in-picture window to a new activity)
+        val engine = controller.currentTab.value?.takeIf { it.isWebEngineCreated }?.webEngine
         engine?.mediaPlayback?.pausePlayback()
         if (fullscreen) engine?.hideFullscreenView()
-        vb.vPlayerScreen.show(video, startPosition)
+    }
+
+    override fun showPictureInPicturePlayer(): Boolean {
+        val player = PictureInPicturePlayback.takeBack() ?: return true
+        coverPageWithPlayer()
+        vb.vPlayerScreen.adopt(player)
+        return true
     }
 
     private val playerCallback = object : PlayerScreenView.Callback {
@@ -308,6 +325,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         override fun onClosed() {
             controller.currentTab.value?.webEngine?.getView()?.requestFocus()
         }
+
+        override fun openPictureInPicture() = PictureInPictureActivity.start(activity)
     }
 
     override fun onMediaCommand(command: MediaCommand): Boolean = vb.vPlayerScreen.mediaCommand(command)

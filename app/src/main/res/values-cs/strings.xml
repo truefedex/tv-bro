@@ -319,6 +319,7 @@
     <string name="show_in_all_downloads">Zobrazit ve všech stahováních</string>
     <string name="download_again">Stáhnout znovu</string>
     <string name="pause">Pozastavit</string>
+    <string name="play">Přehrát</string>
     <string name="resume">Pokračovat</string>
     <string name="cancel_download">Zrušit stahování</string>
     <string name="remove_from_list">Odebrat ze seznamu</string>
@@ -365,6 +366,7 @@
     <string name="player_repeat">Opakování</string>
     <string name="player_repeat_on">Zap.</string>
     <string name="player_repeat_off">Vyp.</string>
+    <string name="player_picture_in_picture">Obraz v obraze</string>
     <string name="player_track">Stopa %d</string>
     <string name="err_no_video_player">Není nainstalován žádný přehrávač videa, například VLC nebo MX Player</string>
     <plurals name="videos_on_page_count">

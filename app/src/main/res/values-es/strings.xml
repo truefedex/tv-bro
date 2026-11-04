@@ -311,6 +311,7 @@
     <string name="show_in_all_downloads">Mostrar en todas las descargas</string>
     <string name="download_again">Volver a descargar</string>
     <string name="pause">Pausar</string>
+    <string name="play">Reproducir</string>
     <string name="resume">Reanudar</string>
     <string name="cancel_download">Cancelar descarga</string>
     <string name="remove_from_list">Quitar de la lista</string>
@@ -355,6 +356,7 @@
     <string name="player_repeat">Repetir</string>
     <string name="player_repeat_on">Activado</string>
     <string name="player_repeat_off">Desactivado</string>
+    <string name="player_picture_in_picture">Imagen en imagen</string>
     <string name="player_track">Pista %d</string>
     <string name="err_no_video_player">No hay ninguna aplicación de reproducción de vídeo instalada, por ejemplo VLC o MX Player</string>
     <plurals name="videos_on_page_count">

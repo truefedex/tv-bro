@@ -303,6 +303,7 @@
     <string name="show_in_all_downloads">Εμφάνιση σε όλες τις λήψεις</string>
     <string name="download_again">Νέα λήψη</string>
     <string name="pause">Παύση</string>
+    <string name="play">Αναπαραγωγή</string>
     <string name="resume">Συνέχιση</string>
     <string name="cancel_download">Ακύρωση λήψης</string>
     <string name="remove_from_list">Αφαίρεση από τη λίστα</string>
@@ -345,6 +346,7 @@
     <string name="player_repeat">Επανάληψη</string>
     <string name="player_repeat_on">Ενεργή</string>
     <string name="player_repeat_off">Ανενεργή</string>
+    <string name="player_picture_in_picture">Εικόνα σε εικόνα</string>
     <string name="player_track">Κομμάτι %d</string>
     <string name="err_no_video_player">Δεν υπάρχει εγκατεστημένη εφαρμογή αναπαραγωγής βίντεο, για παράδειγμα VLC ή MX Player</string>
     <plurals name="videos_on_page_count">

@@ -302,6 +302,7 @@
   <string name="show_in_all_downloads">نمایش در همه بارگیری‌ها</string>
   <string name="download_again">بارگیری دوباره</string>
   <string name="pause">توقف موقت</string>
+  <string name="play">پخش</string>
   <string name="resume">ادامه</string>
   <string name="cancel_download">لغو بارگیری</string>
   <string name="remove_from_list">حذف از فهرست</string>
@@ -344,6 +345,7 @@
   <string name="player_repeat">تکرار</string>
   <string name="player_repeat_on">روشن</string>
   <string name="player_repeat_off">خاموش</string>
+  <string name="player_picture_in_picture">تصویر در تصویر</string>
   <string name="player_track">قطعه %d</string>
   <string name="err_no_video_player">هیچ برنامه پخش ویدیویی نصب نیست، مثلاً VLC یا MX Player</string>
   <plurals name="videos_on_page_count">

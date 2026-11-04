@@ -156,6 +156,28 @@
             android:label="@string/app_name_short"
             android:launchMode="singleTask"
             android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize" />
+        <!-- the built-in player in a picture-in-picture window (see PictureInPicturePlayback): a task of its own,
+             so the browser stays usable behind it and closing the window leaves the browser alone; one per
+             process of the browser, since the player is handed over in memory -->
+        <activity android:name=".activity.PictureInPictureActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}.pip"
+            android:excludeFromRecents="true"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="${pictureInPicture}"
+            android:theme="@style/Theme.TVBro.PictureInPicture"
+            android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize" />
+        <activity android:name=".activity.IncognitoPictureInPictureActivity"
+            android:process=":incognito"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}.pip.incognito"
+            android:excludeFromRecents="true"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="${pictureInPicture}"
+            android:theme="@style/Theme.TVBro.PictureInPicture"
+            android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize" />
 
         <meta-data
             android:name="android.webkit.WebView.MetricsOptOut"
