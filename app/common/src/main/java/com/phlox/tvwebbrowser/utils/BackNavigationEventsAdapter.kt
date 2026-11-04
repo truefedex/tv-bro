@@ -15,7 +15,9 @@ import android.view.ViewConfiguration
  * - [dispatchKeyEvent]: the BACK, ESCAPE and B (game controllers) keys, back on release;
  * - [dispatchSystemBackNavigationEvent]: the system back callback (gestures, and also key presses
  *   the activity did not take: since Android 13 the release of the key then comes canceled);
- * - [dispatchGenericMotionEvent]: the right and back buttons of a mouse, back on release.
+ * - [dispatchGenericMotionEvent]: the back button of a mouse, back on release (not the right button: it goes
+ *   to the page: WebView opens the menu of a text selection only on a right click; mouse users go back
+ *   with Escape).
  *
  * One press often comes through more than one channel (a key the views did not handle reaches the
  * system callback too, the back button of a mouse also comes as a BACK key), so an event of another
@@ -86,7 +88,7 @@ class BackNavigationEventsAdapter(
      * long press. The cursor's own mouse events go to the page views directly, not through here.
      */
     fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        val down = (event.buttonState and (MotionEvent.BUTTON_SECONDARY or MotionEvent.BUTTON_BACK)) != 0
+        val down = (event.buttonState and MotionEvent.BUTTON_BACK) != 0
         if (down == mouseButtonDown) return false
         mouseButtonDown = down
         if (!takeChannel(Channel.MOUSE, event.eventTime)) return false

@@ -7,6 +7,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.ViewConfiguration
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -141,11 +142,19 @@ class BackNavigationEventsAdapterTest {
     }
 
     @Test
-    fun mouseRightButtonIsBackOnRelease() {
-        adapter.dispatchGenericMotionEvent(mouse(MotionEvent.BUTTON_SECONDARY))
+    fun mouseBackButtonIsBackOnRelease() {
+        adapter.dispatchGenericMotionEvent(mouse(MotionEvent.BUTTON_BACK))
         assertEquals(0, backs)
         adapter.dispatchGenericMotionEvent(mouse(0))
         assertEquals(1, backs)
+    }
+
+    /** The right button goes to the page (WebView opens the menu of a text selection on it) */
+    @Test
+    fun mouseRightButtonIsNotBack() {
+        assertFalse(adapter.dispatchGenericMotionEvent(mouse(MotionEvent.BUTTON_SECONDARY)))
+        assertFalse(adapter.dispatchGenericMotionEvent(mouse(0)))
+        assertEquals(0, backs)
     }
 
     @Test
