@@ -1,10 +1,13 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.View.OnTouchListener
 import android.view.ViewTreeObserver
 import android.view.View.OnFocusChangeListener
 import android.view.View.OnKeyListener
@@ -144,6 +147,24 @@ class ActionBar @JvmOverloads constructor(
         false
     }
 
+    /** The field was clicked by a mouse (or a touch) while edited: the user placed the cursor or selected text */
+    private var pointerInEditing = false
+
+    /**
+     * A mouse (or a touch) on the text: the text is an EditText, which takes the touches even while it is not
+     * focusable, so they go to the address around it, which starts the editing as OK of a remote does.
+     * Remotes and game controllers send keys, never touches, so this changes nothing for them.
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    private val etUrlTouchListener = OnTouchListener { _, event ->
+        if (editing) {
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) pointerInEditing = true
+            return@OnTouchListener false
+        }
+        vb.flUrl.onTouchEvent(event)
+        true
+    }
+
     init {
         init()
     }
@@ -185,6 +206,7 @@ class ActionBar @JvmOverloads constructor(
         vb.flUrl.setOnKeyListener(addressFieldKeyListener)
         vb.etUrl.onFocusChangeListener = etUrlFocusChangeListener
         vb.etUrl.setOnKeyListener(etUrlKeyListener)
+        vb.etUrl.setOnTouchListener(etUrlTouchListener)
 
 
         (context as AppCompatActivity).lifecycleScope.launch {
@@ -280,6 +302,7 @@ class ActionBar @JvmOverloads constructor(
     private fun startEditing(selectAllLater: Boolean) {
         if (editing) return
         editing = true
+        pointerInEditing = false
         textBeforeEditing = vb.etUrl.text.toString()
         vb.llAddress.isActivated = true
         vb.etUrl.isFocusable = true
@@ -290,8 +313,11 @@ class ActionBar @JvmOverloads constructor(
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(vb.etUrl, InputMethodManager.SHOW_IMPLICIT)
         if (selectAllLater) {
-            //not once the user typed: that would select what was completed inline too
-            postDelayed({ if (editing && vb.etUrl.text.toString() == textBeforeEditing) vb.etUrl.selectAll() }, 500)
+            //not once the user typed: that would select what was completed inline too;
+            //nor once a mouse placed the cursor or selected text
+            postDelayed({
+                if (editing && !pointerInEditing && vb.etUrl.text.toString() == textBeforeEditing) vb.etUrl.selectAll()
+            }, 500)
         }
     }
 

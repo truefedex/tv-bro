@@ -1,7 +1,9 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
 import android.os.Looper
+import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -131,6 +133,29 @@ class ActionBarSuggestionsTest {
         assertEquals("example.com", field.text.toString())
         press(KeyEvent.KEYCODE_ENTER)
         assertEquals(listOf("open http://example.com/"), log)
+    }
+
+    private fun mouseClick() {
+        val time = android.os.SystemClock.uptimeMillis()
+        for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+            val event = MotionEvent.obtain(time, time, action, 20f, 20f, 0)
+            event.source = InputDevice.SOURCE_MOUSE
+            field.dispatchTouchEvent(event)
+            event.recycle()
+        }
+        idle()
+    }
+
+    /** The text takes the touches of a mouse even while it is not focusable: a click there starts the editing */
+    @Test
+    fun aMouseClickOnTheAddressStartsTheEditing() {
+        mouseClick()
+        assertTrue(bar.isEditingAddress())
+        assertTrue(field.hasFocus())
+        //a click while editing stays in the text
+        mouseClick()
+        assertTrue(bar.isEditingAddress())
+        assertTrue(field.hasFocus())
     }
 
     @Test
