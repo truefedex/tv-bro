@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 The built-in player over the whole window (PlayerScreenView): the video (a SurfaceView of the PlayerView, with the
-subtitles), the title and the seek bar while they show, the buffering, the error with its buttons and the menu of
-the tracks (under the anchor at the top end).
+subtitles; the page shows through, dimmed, until its first frame), the title and the seek bar while they show, the
+buffering, the error with its buttons and the menu of the tracks (under the anchor at the top end).
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -18,6 +18,14 @@ the tracks (under the anchor at the top end).
       app:shutter_background_color="@android:color/black"
       app:show_buffering="never"
       android:focusable="false" />
+
+  <!-- until the first frame of the video: the paused page shows through it, dimmed, under the spinner -->
+  <View
+      android:id="@+id/vStartScrim"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="?attr/tbColorDsScrim"
+      android:visibility="gone" />
 
   <!-- while the seek bar shows: the title of the video, and under it the player, the height of its track, the kind
        and the server -->

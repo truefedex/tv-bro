@@ -88,6 +88,8 @@
     <dimen name="ds_size_icon_toast">22dp</dimen>
     <dimen name="ds_toast_padding_horizontal">24dp</dimen>
     <dimen name="ds_toast_margin_bottom">30dp</dimen>
+    <!-- a toast over a video, at the top (its seek bar is at the bottom) -->
+    <dimen name="ds_toast_margin_top">36dp</dimen>
     <dimen name="ds_toast_elevation">10dp</dimen>
     <!-- The cursor menu: a round plate (a board pixel is half a dp) with four buttons around the grab button -->
     <dimen name="ds_cursor_menu_size">170dp</dimen>

@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.activity.main.view
 
 import android.app.Activity
 import android.content.Context
+import android.graphics.Color
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.KeyEvent
@@ -10,7 +11,6 @@ import android.view.View
 import android.view.ViewParent
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.C
@@ -25,6 +25,7 @@ import com.phlox.tvwebbrowser.player.FrameRateSwitcher
 import com.phlox.tvwebbrowser.player.NativePlayer
 import com.phlox.tvwebbrowser.player.PictureInPicturePlayback
 import com.phlox.tvwebbrowser.player.PictureInPictureSupport
+import com.phlox.tvwebbrowser.player.PlayerStart
 import com.phlox.tvwebbrowser.player.PlayerTracks
 import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
 import com.phlox.tvwebbrowser.webengine.MediaCommand
@@ -42,12 +43,14 @@ import kotlinx.coroutines.launch
  * ("↓ Video settings"). For the video of the page ([show] with pageMedia) Up gives it back to the page from where
  * the player is ("↑ Site player"); the page stays in fullscreen under the player meanwhile. Back closes the menu,
  * then the player ([Callback.onClosed] tells the page how, [Exit]). The player takes the focus only for the menu and
- * the error, and gives it back to the view that had it (the fullscreen view of the page). When the playback fails,
- * the error offers the video to another app and the way back. Until the user chooses "Don't show again"
- * ([Config.builtInPlayerHintSuppress]), a dialog tells what the player is for when it opens, the video paused
- * meanwhile. Where the device has picture-in-picture ([PictureInPictureSupport]), the menu and the PiP key of remotes
- * hand the playing video to a picture-in-picture window over the browser ([enterPictureInPicture],
- * [PictureInPicturePlayback]), and it comes back here when the window is expanded ([adopt]).
+ * the error, and gives it back to the view that had it (the fullscreen view of the page). Until the first frame of
+ * the video the screen is transparent: the paused page shows through, dimmed, under the spinner. A video that the
+ * rules opened by themselves ([show] with auto, [com.phlox.tvwebbrowser.activity.main.PlayerChoice]) goes back to the
+ * page when it does not start ([PlayerStart], [Exit.FAILED]); for others, a failed playback shows the error, which
+ * offers the video to another app and the way back. Where the device has picture-in-picture
+ * ([PictureInPictureSupport]), the menu and the PiP key of remotes hand the playing video to a picture-in-picture
+ * window over the browser ([enterPictureInPicture], [PictureInPicturePlayback]), and it comes back here when the
+ * window is expanded ([adopt]).
  */
 class PlayerScreenView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -74,6 +77,8 @@ class PlayerScreenView @JvmOverloads constructor(
         SITE_PLAYER,
         /** The video went on in the picture-in-picture window or in another app: the page leaves fullscreen */
         ELSEWHERE,
+        /** The rules opened the player and it did not start: the page plays its video on, as with Up */
+        FAILED,
         /** The screen went away (the activity ends, or the picture-in-picture window gives its player back) */
         CLOSED,
     }
@@ -94,6 +99,11 @@ class PlayerScreenView @JvmOverloads constructor(
     private var pageMedia = false
     /** The view that had the focus before the menu or the error took it (the fullscreen view of the page) */
     private var focusBefore: View? = null
+    /** The page shows through until the first frame of the video */
+    private var pageUnder = false
+    /** Whether a video the rules opened starts in time */
+    private val start = PlayerStart(SystemClock::elapsedRealtime)
+    private val startCheck = Runnable { checkStart() }
 
     val backCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
@@ -121,7 +131,7 @@ class PlayerScreenView @JvmOverloads constructor(
 
     init {
         visibility = GONE
-        setBackgroundColor(android.graphics.Color.BLACK)
+        showPageUnder(false)
         //the screen stays on while the player is shown
         vb.vPlayer.keepScreenOn = true
         vb.btnBack.setOnClickListener { close(Exit.BACK) }
@@ -139,14 +149,16 @@ class PlayerScreenView @JvmOverloads constructor(
 
     /**
      * Plays [video] from [startPosition] seconds; [pageMedia]: it is the video the page plays (Up gives it back
-     * to the page from where the player is)
+     * to the page from where the player is); [auto]: the rules opened it, so it goes back to the page if it does
+     * not start
      */
-    fun show(video: PageVideo, startPosition: Double = 0.0, pageMedia: Boolean = false) {
+    fun show(video: PageVideo, startPosition: Double = 0.0, pageMedia: Boolean = false, auto: Boolean = false) {
         showScreen(video, pageMedia)
-        val config = AppContext.provideConfig()
-        matchFrameRate = config.matchFrameRate
+        showPageUnder(true)
+        matchFrameRate = AppContext.provideConfig().matchFrameRate
         player.open(video, callback.cookies(video.url), startPosition, ownFrameRate = matchFrameRate)
-        if (!config.builtInPlayerHintSuppress) showIntroDialog()
+        start.open(watch = auto)
+        scheduleStartCheck()
         bindPlayer()
     }
 
@@ -161,8 +173,35 @@ class PlayerScreenView @JvmOverloads constructor(
         this.player.release()
         this.player = player
         showScreen(video, pageMedia)
+        //it shows its frame at once: no page under it meanwhile
+        showPageUnder(false)
+        start.stop()
         matchFrameRate = player.ownFrameRate
         bindPlayer()
+    }
+
+    /**
+     * Until the first frame of the video the screen is transparent and dimmed (the paused page shows through, the
+     * frame of its fullscreen video); then black, around a video of another shape
+     */
+    private fun showPageUnder(under: Boolean) {
+        pageUnder = under
+        val ground = if (under) Color.TRANSPARENT else Color.BLACK
+        setBackgroundColor(ground)
+        vb.vPlayer.setShutterBackgroundColor(ground)
+        vb.vStartScrim.isVisible = under
+    }
+
+    private fun scheduleStartCheck() {
+        removeCallbacks(startCheck)
+        start.remaining()?.let { postDelayed(startCheck, it) }
+    }
+
+    /** A video the rules opened did not start: it goes back to the page */
+    private fun checkStart() {
+        if (!isOpen) return
+        val state = player.state.value
+        if (start.check(state?.firstFrame == true, state?.error != null)) close(Exit.FAILED) else scheduleStartCheck()
     }
 
     private fun showScreen(video: PageVideo, pageMedia: Boolean) {
@@ -224,6 +263,8 @@ class PlayerScreenView @JvmOverloads constructor(
         player = NativePlayer(context)
         PictureInPicturePlayback.start(playing)
         hideError()
+        start.stop()
+        removeCallbacks(startCheck)
         visibility = GONE
         backCallback.isEnabled = false
         callback.onClosed(Exit.ELSEWHERE, null)
@@ -237,6 +278,8 @@ class PlayerScreenView @JvmOverloads constructor(
         val position = if (pageMedia) player.state.value?.media?.positionAt(SystemClock.elapsedRealtime()) else null
         vb.vMenu.hide()
         hideError()
+        start.stop()
+        removeCallbacks(startCheck)
         stateJob?.cancel()
         stateJob = null
         keys.setFullscreen(false)
@@ -255,38 +298,30 @@ class PlayerScreenView @JvmOverloads constructor(
         restoreFocus()
     }
 
-    /** The activity is paused: so is the video, and the display gets its mode back */
+    /**
+     * The activity is paused: so is the video, and the display gets its mode back. A video that waits for its start
+     * then stays here: it does not go back to the page by itself.
+     */
     fun onPause() {
         player.pause()
         frameRates.pause()
+        start.stop()
+        removeCallbacks(startCheck)
     }
 
     fun onResume() = frameRates.resume()
-
-    /**
-     * What the built-in player is for, while the video waits; it shows each time the player opens until the user
-     * chooses "Don't show again" (as the hint of the incognito mode)
-     */
-    private fun showIntroDialog() {
-        player.pause()
-        AlertDialog.Builder(context)
-            .setTitle(R.string.built_in_player)
-            .setIcon(R.drawable.ic_play)
-            .setMessage(R.string.built_in_player_intro)
-            .setPositiveButton(android.R.string.ok, null)
-            .setNeutralButton(R.string.don_t_show_again) { _, _ ->
-                AppContext.provideConfig().builtInPlayerHintSuppress = true
-            }
-            //OK, Don't show again and Back: the video goes on
-            .setOnDismissListener { if (isOpen) player.play() }
-            .show()
-    }
 
     /** The height of the video track the caption tells */
     private var captionHeight: Int? = null
 
     private fun render(state: NativePlayer.State?) {
         if (state == null) return
+        if (start.check(state.firstFrame, state.error != null)) {
+            //the rules opened it: the page plays the video on, no error is shown
+            close(Exit.FAILED)
+            return
+        }
+        if (state.firstFrame && pageUnder) showPageUnder(false)
         if (state.videoHeight != captionHeight) {
             captionHeight = state.videoHeight
             vb.tvCaption.text = PageVideoRowText.playerCaption(context.getString(R.string.built_in_player),

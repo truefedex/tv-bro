@@ -51,6 +51,8 @@ class NativePlayer(context: Context) {
         val videoHeight: Int? = null,
         /** Width to height of the picture shown (with the shape of its pixels); null while unknown */
         val aspectRatio: Float? = null,
+        /** A frame of the video was shown since it opened */
+        val firstFrame: Boolean = false,
     )
 
     private var player: ExoPlayer? = null
@@ -58,6 +60,7 @@ class NativePlayer(context: Context) {
     /** Null while no video is open */
     val state: StateFlow<State?> = _state.asStateFlow()
     private var video: PageVideo? = null
+    private var firstFrame = false
 
     /** The ExoPlayer of the open video, for the view that shows it; null while no video is open */
     val exoPlayer: Player? get() = player
@@ -75,6 +78,7 @@ class NativePlayer(context: Context) {
         release()
         this.video = video
         this.ownFrameRate = ownFrameRate
+        firstFrame = false
         val headers = ExternalVideoPlayer.headers(video, cookies)
         val http = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
@@ -181,7 +185,10 @@ class NativePlayer(context: Context) {
     }
 
     private val listener = object : Player.Listener {
-        override fun onEvents(player: Player, events: Player.Events) = update()
+        override fun onEvents(player: Player, events: Player.Events) {
+            if (events.contains(Player.EVENT_RENDERED_FIRST_FRAME)) firstFrame = true
+            update()
+        }
     }
 
     private fun update() {
@@ -198,6 +205,7 @@ class NativePlayer(context: Context) {
                 fullscreen = true,
                 rate = if (player.isPlaying) player.playbackParameters.speed.toDouble() else 0.0,
                 at = SystemClock.elapsedRealtime(),
+                live = player.isCurrentMediaItemLive,
             ),
             buffering = player.playbackState == Player.STATE_BUFFERING,
             ended = ended,
@@ -207,6 +215,7 @@ class NativePlayer(context: Context) {
             videoHeight = (player as? ExoPlayer)?.videoFormat?.height?.takeIf { it > 0 },
             aspectRatio = player.videoSize.takeIf { it.width > 0 && it.height > 0 }
                 ?.let { it.width * it.pixelWidthHeightRatio / it.height },
+            firstFrame = firstFrame,
         )
     }
 

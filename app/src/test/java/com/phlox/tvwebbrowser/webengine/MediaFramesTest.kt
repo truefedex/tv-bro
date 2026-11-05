@@ -2,7 +2,9 @@ package com.phlox.tvwebbrowser.webengine
 
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -89,5 +91,20 @@ class MediaFramesTest {
         //reports of older scripts have no "muted": the media is taken to have sound
         assertEquals(false, MediaReports.parse(JSONObject(
             """{"media":true,"playing":true,"fullscreen":false,"position":0,"duration":30,"rate":1}"""), 0)?.muted)
+    }
+
+    @Test
+    fun theReportsTellLiveProtectedMediaAndWhatItPlays() {
+        val state = MediaReports.parse(JSONObject("""{"media":true,"playing":true,"fullscreen":true,"position":7,
+            |"duration":null,"rate":1,"live":true,"drm":true,"source":"blob:https://a.com/1"}""".trimMargin()), 0)!!
+        assertTrue(state.live)
+        assertTrue(state.drm)
+        assertEquals("blob:https://a.com/1", state.source)
+        //an unknown duration is not a live stream; media without an address plays nothing yet
+        val loading = MediaReports.parse(JSONObject(
+            """{"media":true,"playing":false,"fullscreen":true,"position":0,"duration":null,"rate":0,"source":null}"""), 0)!!
+        assertFalse(loading.live)
+        assertFalse(loading.drm)
+        assertNull(loading.source)
     }
 }

@@ -7,6 +7,8 @@
 function tvBroWatchMedia(send) {
     var lastPlayed = null;
     var lastState = '';
+    // the media that met encrypted data: the page plays it with DRM, often before it sets its mediaKeys
+    var encrypted = typeof WeakSet == 'function' ? new WeakSet() : null;
 
     function isPlaying(m) {
         return !m.paused && !m.ended;
@@ -114,13 +116,19 @@ function tvBroWatchMedia(send) {
             fullscreen: !!(fs && (fs == m || fs.contains(m))),
             position: m.currentTime,
             duration: isFinite(m.duration) ? m.duration : null,
+            // a live stream has no end (an unknown duration is NaN)
+            live: m.duration === Infinity,
             // the position stands still while the media waits for data
             rate: isPlaying(m) && m.readyState > 2 ? m.playbackRate : 0,
             // no sound: previews and ads mostly play muted
             muted: m.muted || m.volume === 0,
             // what it plays: its address, or a stream of the page (Media Source Extensions)
             src: /^https?:/i.test(m.currentSrc) ? m.currentSrc : null,
-            mse: /^blob:/i.test(m.currentSrc)
+            mse: /^blob:/i.test(m.currentSrc),
+            // another address is another video (an ad, then the film)
+            source: m.currentSrc || null,
+            // protected (Encrypted Media Extensions): only the page can play it
+            drm: !!m.mediaKeys || !!(encrypted && encrypted.has(m))
         }));
     }
 
@@ -136,10 +144,11 @@ function tvBroWatchMedia(send) {
     if (!send) return command;
     // media events do not bubble, but the window gets them while they are captured
     ['play', 'pause', 'ended', 'emptied', 'seeked', 'playing', 'waiting', 'ratechange', 'durationchange',
-            'loadedmetadata', 'volumechange', 'timeupdate'].forEach(function(type) {
+            'loadedmetadata', 'volumechange', 'timeupdate', 'encrypted'].forEach(function(type) {
         window.addEventListener(type, function(e) {
             if (!(e.target instanceof HTMLMediaElement)) return;
             if (type == 'play') lastPlayed = e.target;
+            if (type == 'encrypted' && encrypted) encrypted.add(e.target);
             if (type == 'timeupdate') reportTime(); else report();
         }, true);
     });

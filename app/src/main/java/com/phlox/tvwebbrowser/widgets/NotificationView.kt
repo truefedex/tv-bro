@@ -24,15 +24,24 @@ open class NotificationView @JvmOverloads constructor(
 
         private var lastView: NotificationView? = null
 
-        /** Shows a toast at the bottom center of [parent]; it replaces the toast shown before */
-        fun show(parent: RelativeLayout, @DrawableRes icon: Int, message: String): NotificationView {
+        /**
+         * Shows a toast at the bottom center of [parent], or at the top center ([top]: over a video, whose seek bar
+         * is at the bottom); it replaces the toast shown before
+         */
+        fun show(parent: RelativeLayout, @DrawableRes icon: Int, message: String, top: Boolean = false): NotificationView {
             val view = NotificationView(parent.context)
             view.setIcon(icon)
             view.setMessage(message)
+            view.atTop = top
             val lp = RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             lp.addRule(RelativeLayout.CENTER_HORIZONTAL)
-            lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
-            lp.bottomMargin = parent.resources.getDimensionPixelSize(R.dimen.ds_toast_margin_bottom)
+            if (top) {
+                lp.addRule(RelativeLayout.ALIGN_PARENT_TOP)
+                lp.topMargin = parent.resources.getDimensionPixelSize(R.dimen.ds_toast_margin_top)
+            } else {
+                lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM)
+                lp.bottomMargin = parent.resources.getDimensionPixelSize(R.dimen.ds_toast_margin_bottom)
+            }
             //above the panels and screens over the page (all downloads covers the whole window)
             view.elevation = parent.resources.getDimension(R.dimen.ds_toast_elevation)
             parent.addView(view, lp)
@@ -53,12 +62,16 @@ open class NotificationView @JvmOverloads constructor(
         }
     }
 
+    /** It shows at the top: it goes away upwards */
+    private var atTop = false
+
     init {
         vb = ViewNotificationBinding.inflate(LayoutInflater.from(context), this, true)
     }
 
     private fun animateDisappearing() {
-        lastAnimator = animate().alpha(0f).translationY(height.toFloat()).setDuration(DISAPPEARING_DURATION).withEndAction {
+        val away = if (atTop) -height.toFloat() else height.toFloat()
+        lastAnimator = animate().alpha(0f).translationY(away).setDuration(DISAPPEARING_DURATION).withEndAction {
             val parent = parent
             if (parent != null && parent is ViewGroup) {
                 parent.removeView(this)

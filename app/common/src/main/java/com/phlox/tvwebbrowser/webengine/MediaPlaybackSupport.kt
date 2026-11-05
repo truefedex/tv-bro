@@ -32,6 +32,12 @@ data class MediaState(
     val muted: Boolean = false,
     /** When [position] was reported, in [android.os.SystemClock.elapsedRealtime] milliseconds */
     val at: Long,
+    /** A live stream: it has no end (and no [duration]) */
+    val live: Boolean = false,
+    /** Protected (DRM, Encrypted Media Extensions): only the page can play it */
+    val drm: Boolean = false,
+    /** What it plays: its address (`blob:` for a stream of the page); another one is another video. Null if unknown */
+    val source: String? = null,
 ) {
     /** The position at [now] (elapsedRealtime), going on while it plays */
     fun positionAt(now: Long): Double {
