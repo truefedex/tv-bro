@@ -770,6 +770,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         return videoMode.dispatchKeyEvent(event)
     }
 
+    //the focus stays in the view of the page meanwhile (its fullscreen view): its cursor would take the D-pad of a pad
+    override fun takesDpad(): Boolean = vb.vPlayerScreen.isOpen || vb.vVideoChoice.isOpen || videoMode.isActive
+
     /** The bookmarks of the TV that phones change, with the backup of before the last change */
     private val bookmarks = LocalBookmarks({ TVBro.container.data }, BookmarksBackup(activity.filesDir),
         activity.getString(R.string.home_page))
