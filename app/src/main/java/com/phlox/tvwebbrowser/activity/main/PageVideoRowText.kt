@@ -16,12 +16,46 @@ object PageVideoRowText {
 
     /**
      * The caption under the title of the built-in player: its name ([player]), the height of the video track
-     * playing (null while unknown), the kind and the server, as "Built-in player · 2160p · HLS · example.com"
+     * playing (null while unknown), the kind and the [site] of the page (the host of the tab, not the server of the
+     * stream; null to leave it out), as "TV Bro player · 2160p · HLS · example.com"
      */
-    fun playerCaption(player: String, video: PageVideo, height: Int?): String = listOfNotNull(
+    fun playerCaption(player: String, video: PageVideo, height: Int?, site: String?): String = listOfNotNull(
         player,
         height?.let { "${it}p" },
         kind(video),
+        site?.ifEmpty { null },
+    ).joinToString(" · ")
+
+    /** The caption under the title of the player of the page: its name ([player]) and the [site], "Site player · example.com" */
+    fun sitePlayerCaption(player: String, site: String?): String = listOfNotNull(player, site?.ifEmpty { null }).joinToString(" · ")
+
+    /** The name of the file of a stream, as "index.m3u8" (its server if the address has no path) */
+    fun fileName(video: PageVideo): String {
+        val uri = Uri.parse(video.url)
+        return uri.lastPathSegment ?: uri.host ?: video.url
+    }
+
+    /**
+     * The names of the files of [videos] ([fileName]), with their folder where two would have the same name (streams
+     * are mostly index.m3u8 or master.m3u8): "film/index.m3u8", "promo/index.m3u8"
+     */
+    fun fileNames(videos: List<PageVideo>): List<String> {
+        val names = videos.map { fileName(it) }
+        return videos.mapIndexed { i, video ->
+            if (names.count { it == names[i] } < 2) return@mapIndexed names[i]
+            val segments = Uri.parse(video.url).pathSegments
+            if (segments.size >= 2) segments.takeLast(2).joinToString("/") else names[i]
+        }
+    }
+
+    /**
+     * The caption of a stream in the choice over a video: the kind, the height, the duration (its playlist's) and the
+     * server, as "HLS · 1080p · 22:32 · cdn.example"
+     */
+    fun choiceCaption(video: PageVideo): String = listOfNotNull(
+        kind(video),
+        video.height?.let { "${it}p" },
+        video.duration?.let { DateUtils.formatElapsedTime(it.roundToLong()) },
         Uri.parse(video.url).host,
     ).joinToString(" · ")
 

@@ -300,6 +300,21 @@
     <!-- Settings, Sites, Videos: the default of player_for_site (built_in_player or site_player) -->
     <string name="settings_video_player">Player for videos</string>
     <string name="settings_video_player_summary">For videos in fullscreen. Each site can have its own in the video settings</string>
+    <string name="video_live">Live</string>
+    <string name="player_panel_close">Close</string>
+    <string name="player_panel_back">To video settings</string>
+    <string name="player_open_in_other_app">Open in another app</string>
+    <string name="player_watch_on_site">Watch in the site player</string>
+    <string name="player_error_refused">The video server refused access (HTTP %d)</string>
+    <string name="player_error_not_found">The video is not on its server (HTTP %d)</string>
+    <string name="player_error_server">The video server answered with an error (HTTP %d)</string>
+    <string name="player_error_network">No connection to the video server</string>
+    <string name="player_error_format">This video format is not supported</string>
+    <string name="player_error_protected">The video is protected from copying</string>
+    <string name="player_error_other">Playback error: %s</string>
+    <string name="choose_video_caption">Choose the one that plays: it goes on from %s in TV Bro player</string>
+    <string name="choose_video_same_length">Same length</string>
+    <string name="choose_video_stay">Stay in the site player</string>
     <!-- the built-in player -->
     <string name="player_error">This video can not be played</string>
     <string name="player_back_to_page">Back to the page</string>
@@ -312,15 +327,14 @@
     <string name="playing_on_page">Playing on the page</string>
     <string name="settings_match_frame_rate">Match the frame rate of videos</string>
     <string name="settings_match_frame_rate_summary">TV Bro player switches the TV to the frame rate of the video, so that it plays smoothly. The screen goes black for a moment when it switches.</string>
-    <!-- the menu of the tracks: "Quality: 1080p" -->
-    <string name="player_menu_row">%1$s: %2$s</string>
+    <!-- the video settings of the built-in player: the names of its rows and options -->
     <string name="player_quality">Quality</string>
     <string name="player_audio">Audio</string>
     <string name="player_subtitles">Subtitles</string>
     <string name="player_speed">Speed</string>
     <string name="player_auto">Auto</string>
     <string name="player_off">Off</string>
-    <!-- the repeat of the video in the menu of the built-in player: "Repeat: Off" -->
+    <!-- the repeat of the video in the video settings of the built-in player -->
     <string name="player_repeat">Repeat</string>
     <string name="player_repeat_on">On</string>
     <string name="player_repeat_off">Off</string>

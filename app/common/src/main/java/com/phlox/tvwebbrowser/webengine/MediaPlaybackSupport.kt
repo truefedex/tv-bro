@@ -38,6 +38,8 @@ data class MediaState(
     val drm: Boolean = false,
     /** What it plays: its address (`blob:` for a stream of the page); another one is another video. Null if unknown */
     val source: String? = null,
+    /** Seconds from the start it has loaded, as far as it plays on without waiting; null if unknown (pages) */
+    val buffered: Double? = null,
 ) {
     /** The position at [now] (elapsedRealtime), going on while it plays */
     fun positionAt(now: Long): Double {

@@ -1,135 +1,244 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-The seek bar of the video mode, over the fullscreen video (VideoOsdView): play or pause, the position, the
-progress and the duration; under them, at the end, what Up and Down do (a key cap and its action each), when
-they do something
+The seek bar of a video (VideoOsdView), across the bottom of the screen under its gradient: the title (of the tab), the
+caption (which player, the height, the kind, the site), the row (the round glyph of what OK does, the position, the
+progress, the duration; a live stream has its badge instead) and, at the end, what Up and Down do (a key cap and its
+action each). While a seek goes, the bubble over the thumb tells where it goes and how far.
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:parentTag="android.widget.LinearLayout"
-    tools:orientation="vertical">
+    tools:parentTag="android.widget.FrameLayout"
+    tools:layout_height="@dimen/video_osd_height"
+    tools:theme="@style/ThemeOverlay.TVBro.Video">
 
     <LinearLayout
+        android:id="@+id/llContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:id="@+id/ivState"
-            android:layout_width="@dimen/video_osd_icon_size"
-            android:layout_height="@dimen/video_osd_icon_size"
-            android:importantForAccessibility="no"
-            android:src="@drawable/ic_pause"
-            app:tint="?attr/tbColorDsOnToast" />
+        android:layout_gravity="bottom"
+        android:paddingStart="@dimen/video_osd_margin_x"
+        android:paddingEnd="@dimen/video_osd_margin_x"
+        android:paddingBottom="@dimen/video_osd_margin_bottom"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tvDelta"
-            style="@style/Widget.TVBro.Text.Toast"
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/video_osd_text_title"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="?attr/tbColorDsInk"
+            android:singleLine="true"
+            android:ellipsize="end"
+            tools:text="Space flight, episode 3" />
+
+        <TextView
+            android:id="@+id/tvCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/video_osd_caption_gap"
+            android:textSize="@dimen/video_osd_text_caption"
+            android:textColor="?attr/tbColorDsInkFaint"
+            android:singleLine="true"
+            android:ellipsize="end"
+            tools:text="TV Bro player · 1080p · HLS · kino.example" />
+
+        <LinearLayout
+            android:id="@+id/llRow"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/video_osd_button_size"
+            android:layout_marginTop="@dimen/video_osd_gap"
+            android:clipChildren="false"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- what OK does: plays (paused), pauses (playing), ends the seek -->
+            <ImageView
+                android:id="@+id/ivState"
+                android:layout_width="@dimen/video_osd_button_size"
+                android:layout_height="@dimen/video_osd_button_size"
+                android:padding="8dp"
+                android:background="@drawable/ds_video_glyph_bg"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_play"
+                app:tint="?attr/tbColorDsIcon" />
+
+            <TextView
+                android:id="@+id/tvPosition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/video_osd_gap"
+                android:textSize="@dimen/video_osd_text_time"
+                android:fontFeatureSettings="tnum"
+                android:textColor="?attr/tbColorDsInk"
+                tools:text="12:05" />
+
+            <LinearLayout
+                android:id="@+id/llLive"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/video_osd_live_height"
+                android:layout_marginStart="@dimen/video_osd_gap"
+                android:paddingStart="@dimen/video_osd_live_padding"
+                android:paddingEnd="@dimen/video_osd_live_padding"
+                android:background="@drawable/ds_video_badge_bg"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <View
+                    android:layout_width="@dimen/video_osd_live_dot"
+                    android:layout_height="@dimen/video_osd_live_dot"
+                    android:background="@drawable/ds_video_live_dot" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/video_osd_live_gap"
+                    android:textSize="@dimen/video_osd_text_live"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="?attr/tbColorDsInk"
+                    android:singleLine="true"
+                    android:text="@string/video_live" />
+            </LinearLayout>
+
+            <!-- the distance of a seek where there is no timeline (a live stream, an unknown duration) -->
+            <TextView
+                android:id="@+id/tvDelta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/video_osd_gap"
+                android:textSize="@dimen/video_osd_text_delta"
+                android:fontFamily="sans-serif-medium"
+                android:fontFeatureSettings="tnum"
+                android:textColor="?attr/tbColorDsSelected"
+                android:visibility="gone"
+                tools:text="−0:30"
+                tools:visibility="visible" />
+
+            <com.phlox.tvwebbrowser.activity.main.view.VideoProgressView
+                android:id="@+id/vProgress"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/video_osd_progress_height"
+                android:layout_marginStart="@dimen/video_osd_gap"
+                android:layout_marginEnd="@dimen/video_osd_gap"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/tvDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/video_osd_text_time"
+                android:fontFeatureSettings="tnum"
+                android:textColor="?attr/tbColorDsInk"
+                tools:text="22:32" />
+        </LinearLayout>
+
+        <!-- what Up and Down do, as "↑ Site player   ↓ Video settings" -->
+        <LinearLayout
+            android:id="@+id/llHint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/ds_space_icon_text"
-            android:textColor="?attr/tbColorDsAccent"
-            android:textStyle="bold"
+            android:layout_gravity="end"
+            android:layout_marginTop="@dimen/video_osd_gap"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:visibility="gone"
-            tools:text="+0:30"
-            tools:visibility="visible" />
+            tools:visibility="visible">
 
-        <TextView
-            android:id="@+id/tvPosition"
-            style="@style/Widget.TVBro.Text.Toast"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/ds_space_icon_text"
-            android:fontFeatureSettings="tnum"
-            android:textColor="?attr/tbColorDsOnToast"
-            tools:text="12:34" />
+            <LinearLayout
+                android:id="@+id/llUpHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
 
-        <com.phlox.tvwebbrowser.activity.main.view.VideoProgressView
-            android:id="@+id/vProgress"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/video_osd_icon_size"
-            android:layout_marginStart="@dimen/ds_space_gutter"
-            android:layout_marginEnd="@dimen/ds_space_gutter"
-            android:layout_weight="1" />
+                <TextView
+                    style="@style/Widget.TVBro.KeyCap"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/ds_key_cap_height"
+                    android:importantForAccessibility="no"
+                    android:text="@string/key_up" />
 
-        <TextView
-            android:id="@+id/tvDuration"
-            style="@style/Widget.TVBro.Text.Toast"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFeatureSettings="tnum"
-            android:textColor="?attr/tbColorDsOnToast"
-            tools:text="1:45:00" />
+                <TextView
+                    android:id="@+id/tvUpHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/video_osd_hint_key_gap"
+                    android:textSize="@dimen/video_osd_hint_text"
+                    android:textColor="?attr/tbColorDsInk"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    tools:text="Site player" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llDownHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    style="@style/Widget.TVBro.KeyCap"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/ds_key_cap_height"
+                    android:importantForAccessibility="no"
+                    android:text="@string/key_down" />
+
+                <TextView
+                    android:id="@+id/tvHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/video_osd_hint_key_gap"
+                    android:textSize="@dimen/video_osd_hint_text"
+                    android:textColor="?attr/tbColorDsInk"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    tools:text="Video settings" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- what Up and Down do, as "↑ Cursor   ↓ Built-in player" -->
+    <!-- while a seek goes: where it goes and how far, over the thumb (placed by VideoOsdView) -->
     <LinearLayout
-        android:id="@+id/llHint"
-        android:layout_width="wrap_content"
+        android:id="@+id/llBubble"
+        android:layout_width="@dimen/video_osd_bubble_width"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_marginTop="@dimen/video_osd_row_gap"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
+        android:layout_gravity="top|start"
+        android:paddingTop="@dimen/video_osd_bubble_padding"
+        android:paddingBottom="@dimen/video_osd_bubble_padding"
+        android:background="@drawable/ds_video_bubble_bg"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
         android:visibility="gone"
         tools:visibility="visible">
 
-        <LinearLayout
-            android:id="@+id/llUpHint"
+        <TextView
+            android:id="@+id/tvBubbleTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="gone"
-            tools:visibility="visible">
+            android:textSize="@dimen/video_osd_text_time"
+            android:fontFamily="sans-serif-medium"
+            android:fontFeatureSettings="tnum"
+            android:textColor="?attr/tbColorDsInk"
+            tools:text="14:35" />
 
-            <TextView
-                style="@style/Widget.TVBro.KeyCap"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/ds_key_cap_height"
-                android:importantForAccessibility="no"
-                android:text="@string/key_up" />
-
-            <TextView
-                android:id="@+id/tvUpHint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/video_osd_hint_key_gap"
-                android:textSize="@dimen/video_osd_hint_text"
-                android:textColor="?attr/tbColorDsOnToast"
-                android:singleLine="true"
-                android:ellipsize="end"
-                tools:text="Cursor" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/llDownHint"
+        <TextView
+            android:id="@+id/tvBubbleDelta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:visibility="gone"
-            tools:visibility="visible">
-
-            <TextView
-                style="@style/Widget.TVBro.KeyCap"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/ds_key_cap_height"
-                android:importantForAccessibility="no"
-                android:text="@string/key_down" />
-
-            <TextView
-                android:id="@+id/tvHint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/video_osd_hint_key_gap"
-                android:textSize="@dimen/video_osd_hint_text"
-                android:textColor="?attr/tbColorDsOnToast"
-                android:singleLine="true"
-                android:ellipsize="end"
-                tools:text="Built-in player" />
-        </LinearLayout>
+            android:textSize="@dimen/video_osd_text_bubble_delta"
+            android:fontFamily="sans-serif-medium"
+            android:fontFeatureSettings="tnum"
+            android:textColor="?attr/tbColorDsSelected"
+            tools:text="+2:30" />
     </LinearLayout>
 </merge>

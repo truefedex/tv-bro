@@ -1,6 +1,8 @@
 package com.phlox.tvwebbrowser.player
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -61,6 +63,14 @@ class NativePlayer(context: Context) {
     val state: StateFlow<State?> = _state.asStateFlow()
     private var video: PageVideo? = null
     private var firstFrame = false
+    private val handler = Handler(Looper.getMainLooper())
+    /** The player tells no event while it only loads on: the state is told again now and then for the part loaded */
+    private val refresh = object : Runnable {
+        override fun run() {
+            update()
+            if (player != null) handler.postDelayed(this, REFRESH_MS)
+        }
+    }
 
     /** The ExoPlayer of the open video, for the view that shows it; null while no video is open */
     val exoPlayer: Player? get() = player
@@ -97,6 +107,8 @@ class NativePlayer(context: Context) {
         player.playWhenReady = true
         player.prepare()
         update()
+        handler.removeCallbacks(refresh)
+        handler.postDelayed(refresh, REFRESH_MS)
     }
 
     fun togglePlayback() {
@@ -177,6 +189,7 @@ class NativePlayer(context: Context) {
 
     /** Stops the playback and frees the decoders; [state] becomes null */
     fun release() {
+        handler.removeCallbacks(refresh)
         player?.removeListener(listener)
         player?.release()
         player = null
@@ -206,6 +219,7 @@ class NativePlayer(context: Context) {
                 rate = if (player.isPlaying) player.playbackParameters.speed.toDouble() else 0.0,
                 at = SystemClock.elapsedRealtime(),
                 live = player.isCurrentMediaItemLive,
+                buffered = duration?.let { player.bufferedPosition / 1000.0 },
             ),
             buffering = player.playbackState == Player.STATE_BUFFERING,
             ended = ended,
@@ -221,6 +235,7 @@ class NativePlayer(context: Context) {
 
     companion object {
         private const val USER_AGENT = "User-Agent"
+        private const val REFRESH_MS = 1000L
 
         /** Streams by their manifests; files by what the server says */
         fun mimeType(kind: PageVideo.Kind): String? = when (kind) {

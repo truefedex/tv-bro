@@ -28,21 +28,21 @@
     <color name="badge_stroke">#4E4E4E</color>
 
     <!-- Design system tokens, dark theme (the ones that differ) -->
-    <color name="ds_bg_page">#343A3C</color>
-    <color name="ds_bg_chrome">#272727</color>
-    <color name="ds_surface">#1B1B1B</color>
-    <color name="ds_surface_focused">#343A3C</color>
-    <color name="ds_tab">#272727</color>
-    <color name="ds_menu">#2F2F2F</color>
-    <color name="ds_control">#323940</color>
-    <color name="ds_control_focused">#003E4F</color>
-    <color name="ds_control_selected">#5A5A5A</color>
-    <color name="ds_line">#4E4E4E</color>
-    <color name="ds_line_strong">#5A5A5A</color>
-    <color name="ds_divider">#343A3C</color>
-    <color name="ds_ink">#F8F9FA</color>
-    <color name="ds_ink_faint">#BBBBBB</color>
-    <color name="ds_icon">#FDFDFD</color>
-    <color name="ds_on_badge">#1B1B1B</color>
-    <color name="ds_danger">#FF8A80</color>
+    <color name="ds_bg_page">@color/ds_dark_bg_page</color>
+    <color name="ds_bg_chrome">@color/ds_dark_bg_chrome</color>
+    <color name="ds_surface">@color/ds_dark_surface</color>
+    <color name="ds_surface_focused">@color/ds_dark_surface_focused</color>
+    <color name="ds_tab">@color/ds_dark_tab</color>
+    <color name="ds_menu">@color/ds_dark_menu</color>
+    <color name="ds_control">@color/ds_dark_control</color>
+    <color name="ds_control_focused">@color/ds_dark_control_focused</color>
+    <color name="ds_control_selected">@color/ds_dark_control_selected</color>
+    <color name="ds_line">@color/ds_dark_line</color>
+    <color name="ds_line_strong">@color/ds_dark_line_strong</color>
+    <color name="ds_divider">@color/ds_dark_divider</color>
+    <color name="ds_ink">@color/ds_dark_ink</color>
+    <color name="ds_ink_faint">@color/ds_dark_ink_faint</color>
+    <color name="ds_icon">@color/ds_dark_icon</color>
+    <color name="ds_on_badge">@color/ds_dark_on_badge</color>
+    <color name="ds_danger">@color/ds_dark_danger</color>
 </resources>

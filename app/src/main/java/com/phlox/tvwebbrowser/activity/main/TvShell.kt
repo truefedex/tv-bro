@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.text.format.DateUtils
 import android.widget.RelativeLayout
 import android.view.KeyEvent
 import android.os.SystemClock
@@ -70,6 +71,7 @@ import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideosSupport
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.activity.main.view.PlayerScreenView
+import com.phlox.tvwebbrowser.activity.main.view.PlayerPanelView
 import com.phlox.tvwebbrowser.player.PictureInPicturePlayback
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.pageVideosSupport
@@ -82,6 +84,7 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.math.roundToLong
 
 /**
  * The TV look: the bar above the page (its row of buttons and the address, and the tabs; opened and
@@ -306,7 +309,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         //one video at a time: it ends the picture-in-picture window
         PictureInPicturePlayback.end()
         coverPageWithPlayer()
-        vb.vPlayerScreen.show(video, startPosition, pageMedia, auto)
+        val state = controller.currentTabState.value
+        vb.vPlayerScreen.show(video, startPosition, pageMedia, auto, title = state.title, site = state.host)
         val config = AppContext.provideConfig()
         if (config.builtInPlayerIntroShown < Config.BUILT_IN_PLAYER_INTRO_TIMES) {
             config.builtInPlayerIntroShown++
@@ -328,7 +332,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         val player = PictureInPicturePlayback.takeBack() ?: return true
         coverPageWithPlayer()
         val video = player.state.value?.video
-        vb.vPlayerScreen.adopt(player, pageMedia = video != null && isPageMedia(video))
+        val state = controller.currentTabState.value
+        vb.vPlayerScreen.adopt(player, pageMedia = video != null && isPageMedia(video), title = state.title, site = state.host)
         return true
     }
 
@@ -340,6 +345,11 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         override fun onClosed(exit: PlayerScreenView.Exit, position: Double?) {
             //the activity ends, or the player of the picture-in-picture window takes the place of this one
             if (exit == PlayerScreenView.Exit.CLOSED) return
+            if (exit == PlayerScreenView.Exit.PAGE) {
+                playerChoice.playerOpen = false
+                videoMode.suspended = false
+                return
+            }
             val engine = currentEngine
             val media = engine?.mediaPlayback
             when (exit) {
@@ -545,6 +555,11 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         if (fullscreen) findInPage.close()
         //the player that covered the page closed with Back or went elsewhere: the page left fullscreen
         if (!fullscreen && !vb.vPlayerScreen.isOpen) videoMode.suspended = false
+        //the page left fullscreen by itself while the user chose its stream
+        if (!fullscreen && vb.vVideoChoice.isOpen) {
+            choiceResumes = false
+            vb.vVideoChoice.close()
+        }
         videoMode.setFullscreen(fullscreen)
         //the default may have changed in the settings meanwhile
         playerChoice.builtInPlayerPreferred = controller.prefersBuiltInPlayer(controller.currentTabState.value.host)
@@ -605,11 +620,14 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private var mediaVideo: PageVideo? = null
     /** The videos it may be when that is not clear, the likeliest first */
     private var mediaVideoChoices: List<PageVideo> = emptyList()
+    /** All of it, with the choices of the same length */
+    private var mediaVideoMatch = PageVideoMatch.NONE
 
     private fun onMediaVideoChanged(match: PageVideoMatch) {
         val video = match.video
         mediaVideo = video
         mediaVideoChoices = match.choices
+        mediaVideoMatch = match
         playerChoice.setMatch(match)
         updateDownHint()
         pageVideoHint.setMediaVideo(video)
@@ -620,7 +638,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private fun updateDownHint() {
         videoMode.hint = when (playerChoice.down) {
             PlayerChoice.Down.BUILT_IN_PLAYER -> activity.getString(R.string.built_in_player)
-            PlayerChoice.Down.CHOOSE_STREAM -> activity.getString(R.string.videos_on_page)
+            //it goes there too, through the choice of the stream
+            PlayerChoice.Down.CHOOSE_STREAM -> activity.getString(R.string.built_in_player)
             PlayerChoice.Down.CURSOR -> null
         }
     }
@@ -664,7 +683,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private fun isPageCovered(): Boolean = fullscreen || vb.rlActionBar.isVisible ||
             !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) ||
             listOf(vb.vFindBar, vb.vSitePanel, vb.vTabMenu, vb.vPopupMenu, vb.vBookmarksPanel, vb.vDownloadsPanel, vb.vVideosPanel,
-                vb.vDownloadsScreen, vb.vHistoryScreen, vb.vSyncScreen, vb.vSettingsScreen, vb.vPlayerScreen,
+                vb.vDownloadsScreen, vb.vHistoryScreen, vb.vSyncScreen, vb.vSettingsScreen, vb.vPlayerScreen, vb.vVideoChoice,
                 vb.vCursorMenu, vb.progressBarGeneric).any { it.isVisible }
 
     private fun updatePageCovered() = pageVideoHint.setBlocked(isPageCovered())
@@ -686,19 +705,56 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private fun mediaPosition(): Double = controller.currentTab.value?.webEngine?.mediaPlayback?.mediaState?.value
         ?.positionAt(SystemClock.elapsedRealtime()) ?: 0.0
 
+    /** The video of the page paused for the choice of a stream: it plays on when the user stays with the page */
+    private var choiceResumes = false
+    /** The view that had the focus before the choice of a stream took it (the fullscreen view of the page) */
+    private var focusBeforeChoice: View? = null
+
     /**
-     * The page leaves fullscreen and the Videos panel opens on the likeliest of the streams the video of the
-     * page may be (OK goes on with it in the built-in player from where it is); false if there are none
+     * The choice among the streams the video of the page may be, over the video: the page pauses (the second it
+     * goes on from stays the same), OK goes on with the chosen stream in the built-in player from there, Back stays
+     * with the player of the page; false if there are none
      */
     private fun showMediaVideoChoices(): Boolean {
-        val video = mediaVideoChoices.firstOrNull() ?: return false
-        if (fullscreen) controller.currentTab.value?.webEngine?.hideFullscreenView()
-        vb.rlRoot.post {
-            showMenuOverlay {
-                vb.vVideosPanel.show(vb.vActionBar.videosButton, vb.vActionBar.functionsGroup, focusUrl = video.url)
+        val choices = mediaVideoMatch.choices.takeIf { it.isNotEmpty() } ?: return false
+        val position = mediaPosition()
+        choiceResumes = media?.playing == true
+        videoMode.suspended = true
+        currentEngine?.mediaPlayback?.pausePlayback()
+        focusBeforeChoice = activity.currentFocus
+        val sameLength = mediaVideoMatch.sameLength
+        val names = PageVideoRowText.fileNames(choices)
+        val rows = choices.mapIndexed { i, video ->
+            PlayerPanelView.Row(R.drawable.ic_play_circle, names[i],
+                caption = PageVideoRowText.choiceCaption(video),
+                badge = if (video.url in sameLength) activity.getString(R.string.choose_video_same_length) else null) {
+                choiceResumes = false
+                openBuiltInPlayer(video, position, pageMedia = true)
+                vb.vVideoChoice.close()
             }
         }
+        vb.vVideoChoice.open(PlayerPanelView.Page(activity.getString(R.string.videos_on_page),
+            activity.getString(R.string.choose_video_caption, DateUtils.formatElapsedTime(position.roundToLong())), rows,
+            activity.getString(R.string.choose_video_stay)))
+        videoChoiceBackCallback.isEnabled = true
         return true
+    }
+
+    /** The choice of a stream closed: chosen (the built-in player took the video) or Back (the page plays it on) */
+    private fun onVideoChoiceClosed() {
+        videoChoiceBackCallback.isEnabled = false
+        focusBeforeChoice?.takeIf { it.isAttachedToWindow && it.isShown }?.requestFocus()
+        focusBeforeChoice = null
+        //the built-in player keeps the video mode of the page off
+        if (vb.vPlayerScreen.isOpen) return
+        videoMode.suspended = false
+        if (choiceResumes) currentEngine?.mediaPlayback?.resumePlayback()
+        choiceResumes = false
+    }
+
+    /** Back on the choice of a stream: the page plays its video on */
+    private val videoChoiceBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = vb.vVideoChoice.back()
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
@@ -752,7 +808,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         if (!controller.loaded) return
         tabs.forEachIndexed { i, tab ->
             val open = controller.tabsStates.firstOrNull { it.url == tab.url }
-            if (i == 0 && !fullscreen) {
+            //the video in fullscreen or in the built-in player goes on: the tabs wait
+            if (i == 0 && !fullscreen && !vb.vPlayerScreen.isOpen) {
                 vb.vSyncScreen.hide()
                 vb.vSettingsScreen.hide()
                 vb.vDownloadsScreen.hide()
@@ -958,6 +1015,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vDownloadsPanel.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback) { showAllDownloads(it) }
         vb.vVideosPanel.attach(vb.vPopupMenu, videosCallback)
         vb.vPlayerScreen.attach(lifecycleScope, playerCallback)
+        vb.vVideoChoice.onClosed = ::onVideoChoiceClosed
         vb.vDownloadsScreen.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback, ::onDownloadsScreenClosed)
         vb.vHistoryScreen.attach(lifecycleScope, vb.vPopupMenu, historyCallback, ::onHistoryScreenClosed)
         vb.vSyncScreen.attach(lifecycleScope, syncScreenCallback)
@@ -1035,6 +1093,12 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     }
 
     override fun showPage() {
+        //the player and the choice of a stream cover it too; the page they covered keeps its video paused
+        vb.vPlayerScreen.close(PlayerScreenView.Exit.PAGE)
+        if (vb.vVideoChoice.isOpen) {
+            choiceResumes = false
+            vb.vVideoChoice.close()
+        }
         if (vb.rlActionBar.visibility == View.VISIBLE) {
             hideMenuOverlay()
         }
@@ -1068,6 +1132,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         val page = if (state.hasTab && state.url.isNotEmpty()) "${state.tabIdentity}|${state.url.substringBefore('#')}" else null
         pageVideoHint.setPage(page)
         playerChoice.builtInPlayerPreferred = controller.prefersBuiltInPlayer(state.host)
+        //the seek bar of the video mode: the title of the tab, the player of the site
+        vb.vVideoOsd.setInfo(state.title, PageVideoRowText.sitePlayerCaption(activity.getString(R.string.site_player), state.host))
         playerChoice.setPage(page)
         if (tabChanged) {
             onRenderedTabChanged()
@@ -1230,6 +1296,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         dispatcher.addCallback(activity, videoMode.backCallback)
         dispatcher.addCallback(activity, vb.vCursorMenu.backCallback)
         dispatcher.addCallback(activity, cursorModesBackCallback)
+        //the choice of a stream over the fullscreen video: Back stays with the player of the page, whatever the mode of
+        //the cursor (the video mode is off meanwhile, so the callback of the cursor modes may be on)
+        dispatcher.addCallback(activity, videoChoiceBackCallback)
         //the built-in player over everything: Back closes it, whatever the cursor of the page under it does
         dispatcher.addCallback(activity, vb.vPlayerScreen.backCallback)
         //the voice input of the bookmarks search: Back cancels it

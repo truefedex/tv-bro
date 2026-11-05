@@ -345,15 +345,44 @@
     <dimen name="ds_phone_settings_badge_icon_padding">9dp</dimen>
     <dimen name="ds_phone_settings_block_padding">12dp</dimen>
 
-    <!-- the seek bar of the video mode, over the fullscreen video -->
+    <!--
+    The seek bar of a video (the video mode and the built-in player), across the bottom of the screen: a band of
+    video_osd_height under a gradient, its content video_osd_margin_x from the sides and video_osd_margin_bottom from the
+    bottom: the title, the caption, the row (the round glyph, the time, the progress, the duration) and what Up and Down do
+    -->
+    <dimen name="video_osd_height">300dp</dimen>
     <dimen name="video_osd_margin_x">96dp</dimen>
-    <dimen name="video_osd_margin_bottom">88dp</dimen>
-    <dimen name="video_osd_padding">16dp</dimen>
-    <dimen name="video_osd_icon_size">32dp</dimen>
+    <dimen name="video_osd_margin_bottom">48dp</dimen>
+    <dimen name="video_osd_caption_gap">3dp</dimen>
+    <dimen name="video_osd_gap">14dp</dimen>
+    <dimen name="video_osd_button_size">36dp</dimen>
+    <dimen name="video_osd_glyph_size">20dp</dimen>
+    <dimen name="video_osd_text_title">18sp</dimen>
+    <dimen name="video_osd_text_caption">13sp</dimen>
+    <dimen name="video_osd_text_time">18sp</dimen>
+    <!-- the progress: its line, the thumb while it plays, while paused, while a seek goes (with its ring), the mark of
+         where the video is -->
+    <dimen name="video_osd_progress_height">26dp</dimen>
     <dimen name="video_osd_line_height">4dp</dimen>
+    <dimen name="video_osd_thumb_radius_playing">5dp</dimen>
     <dimen name="video_osd_thumb_radius">7dp</dimen>
-    <!-- the second row: what Down does -->
-    <dimen name="video_osd_row_gap">10dp</dimen>
+    <dimen name="video_osd_thumb_radius_seek">10dp</dimen>
+    <dimen name="video_osd_thumb_ring">3dp</dimen>
+    <dimen name="video_osd_mark_radius">4dp</dimen>
+    <!-- the bubble over the thumb while a seek goes: where it goes and how far -->
+    <dimen name="video_osd_bubble_width">100dp</dimen>
+    <dimen name="video_osd_bubble_padding">6dp</dimen>
+    <dimen name="video_osd_bubble_gap">12dp</dimen>
+    <dimen name="video_osd_text_bubble_delta">13sp</dimen>
+    <!-- a live stream: its badge and the distance of a seek -->
+    <dimen name="video_osd_live_height">22dp</dimen>
+    <dimen name="video_osd_live_padding">8dp</dimen>
+    <dimen name="video_osd_live_dot">6dp</dimen>
+    <dimen name="video_osd_live_gap">5dp</dimen>
+    <dimen name="video_osd_text_live">12sp</dimen>
+    <dimen name="video_osd_text_delta">15sp</dimen>
+    <!-- what Up and Down do -->
+    <dimen name="video_osd_hint_gap">24dp</dimen>
     <dimen name="video_osd_hint_key_gap">8dp</dimen>
     <dimen name="video_osd_hint_text">16sp</dimen>
 
@@ -373,9 +402,45 @@
     <!-- "Playing on the page" on a row of the Videos panel: the title keeps most of the row -->
     <dimen name="page_video_row_playing_max_width">140dp</dimen>
 
-    <!-- the built-in player -->
-    <dimen name="player_title_margin_top">48dp</dimen>
-    <dimen name="player_osd_margin_bottom">48dp</dimen>
+    <!-- the built-in player: the error card, the spinner until the video plays -->
     <dimen name="player_error_width">560dp</dimen>
-    <dimen name="player_menu_width">360dp</dimen>
+    <dimen name="player_error_padding">28dp</dimen>
+    <dimen name="player_error_icon_plate">44dp</dimen>
+    <dimen name="player_error_icon">22dp</dimen>
+    <dimen name="player_error_title_margin">16dp</dimen>
+    <dimen name="player_error_text_title">20sp</dimen>
+    <dimen name="player_error_text_reason">14sp</dimen>
+    <dimen name="player_error_buttons_margin">24dp</dimen>
+    <dimen name="player_error_button_gap">12dp</dimen>
+    <dimen name="player_button_height">40dp</dimen>
+    <dimen name="player_button_padding">20dp</dimen>
+    <dimen name="player_text_button">14sp</dimen>
+    <dimen name="player_spinner_size">52dp</dimen>
+    <!--
+    A panel at the end of the screen over a video (the video settings, the choice of a stream): a column of the full
+    height with a title and a caption, rows and what Back does
+    -->
+    <dimen name="player_panel_width">380dp</dimen>
+    <dimen name="player_panel_padding_top">28dp</dimen>
+    <dimen name="player_panel_padding_x">20dp</dimen>
+    <dimen name="player_panel_padding_bottom">24dp</dimen>
+    <dimen name="player_panel_header_padding">12dp</dimen>
+    <dimen name="player_panel_back_icon">20dp</dimen>
+    <dimen name="player_panel_rows_margin_top">16dp</dimen>
+    <dimen name="player_panel_row_gap">2dp</dimen>
+    <dimen name="player_panel_row_height">44dp</dimen>
+    <dimen name="player_panel_row_padding">12dp</dimen>
+    <dimen name="player_panel_row_padding_y">8dp</dimen>
+    <dimen name="player_panel_row_icon">18dp</dimen>
+    <dimen name="player_panel_chevron">16dp</dimen>
+    <dimen name="player_panel_divider_margin">8dp</dimen>
+    <dimen name="player_panel_badge_height">18dp</dimen>
+    <dimen name="player_panel_badge_padding">6dp</dimen>
+    <dimen name="player_panel_badge_gap">8dp</dimen>
+    <dimen name="player_panel_elevation">8dp</dimen>
+    <dimen name="player_panel_text_title">18sp</dimen>
+    <dimen name="player_panel_text_caption">13sp</dimen>
+    <dimen name="player_panel_text_row">14sp</dimen>
+    <dimen name="player_panel_text_row_caption">12sp</dimen>
+    <dimen name="player_panel_text_badge">11sp</dimen>
 </resources>

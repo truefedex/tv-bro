@@ -65,14 +65,17 @@ class HlsPlaylistsTest {
         val mse = MediaSource(null, mse = true)
         assertEquals(PageVideoMatch(film), PageVideoMatch.of(mse, frame, 5537.125, playlists::get))
         assertEquals(PageVideoMatch(ad), PageVideoMatch.of(mse, frame, 20.0, playlists::get))
+        //the choices tell how long their playlists are
+        val adOf20 = ad.copy(duration = 20.0)
+        val filmOf5537 = film.copy(duration = 5537.1)
         //not known how long the media is: the user picks
-        assertEquals(PageVideoMatch(null, listOf(ad, film)), PageVideoMatch.of(mse, frame, null, playlists::get))
-        //a stream of unknown duration may be the one: the one that fits comes first
+        assertEquals(PageVideoMatch(null, listOf(adOf20, filmOf5537)), PageVideoMatch.of(mse, frame, null, playlists::get))
+        //a stream of unknown duration may be the one: the one that fits comes first, and is of the same length
         val unknown = PageVideo("https://c.com/other.m3u8", Kind.HLS)
-        assertEquals(PageVideoMatch(null, listOf(film, ad, unknown)),
+        assertEquals(PageVideoMatch(null, listOf(filmOf5537, adOf20, unknown), sameLength = setOf(film.url)),
             PageVideoMatch.of(mse, frame + unknown, 5537.0, playlists::get))
         //none fits
-        assertEquals(PageVideoMatch(null, listOf(ad, film)), PageVideoMatch.of(mse, frame, 100.0, playlists::get))
+        assertEquals(PageVideoMatch(null, listOf(adOf20, filmOf5537)), PageVideoMatch.of(mse, frame, 100.0, playlists::get))
     }
 
     @Test

@@ -54,9 +54,11 @@ data class MediaSource(
 
 /**
  * The video of the page a media element plays: [video] when it is known, else the [choices] it may be (the
- * streams of its frame, the likeliest first), so the user can pick it
+ * streams of its frame, the likeliest first, with the durations their playlists tell), so the user can pick it;
+ * [sameLength]: the addresses of the choices that last as long as the media
  */
-data class PageVideoMatch(val video: PageVideo?, val choices: List<PageVideo> = emptyList()) {
+data class PageVideoMatch(val video: PageVideo?, val choices: List<PageVideo> = emptyList(),
+                          val sameLength: Set<String> = emptySet()) {
     companion object {
         val NONE = PageVideoMatch(null)
 
@@ -73,13 +75,16 @@ data class PageVideoMatch(val video: PageVideo?, val choices: List<PageVideo> = 
             if (!source.mse) return NONE
             val streams = frameVideos.filter { it.kind != PageVideo.Kind.FILE }
             if (streams.size <= 1) return PageVideoMatch(streams.singleOrNull())
-            if (duration == null) return PageVideoMatch(null, streams)
-            val fitting = streams.map { stream -> durationOf(stream, playlists)?.let { fits(it, duration) } }
+            val durations = streams.map { durationOf(it, playlists) }
+            val known = streams.mapIndexed { i, stream -> durations[i]?.let { stream.copy(duration = it) } ?: stream }
+            if (duration == null) return PageVideoMatch(null, known)
+            val fitting = durations.map { it?.let { d -> fits(d, duration) } }
             if (fitting.count { it == true } == 1 && fitting.none { it == null }) {
                 return PageVideoMatch(streams[fitting.indexOf(true)])
             }
             //those that last as long as the media first
-            return PageVideoMatch(null, streams.indices.sortedBy { if (fitting[it] == true) 0 else 1 }.map { streams[it] })
+            return PageVideoMatch(null, known.indices.sortedBy { if (fitting[it] == true) 0 else 1 }.map { known[it] },
+                known.filterIndexed { i, _ -> fitting[i] == true }.map { it.url }.toSet())
         }
 
         private fun fits(a: Double, b: Double) = kotlin.math.abs(a - b) <= maxOf(2.0, 0.01 * maxOf(a, b))

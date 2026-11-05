@@ -51,4 +51,32 @@
     <color name="ds_accent">#48A0FF</color>
     <color name="ds_danger">#C5221F</color>
     <color name="ds_scrim">#52000000</color>
+    <!--
+    The dark values of the tokens that differ, also in the light theme: the overlays of the players over a video
+    (ThemeOverlay.TVBro.Video) and the night theme (values-night) take them
+    -->
+    <color name="ds_dark_bg_page">#343A3C</color>
+    <color name="ds_dark_bg_chrome">#272727</color>
+    <color name="ds_dark_surface">#1B1B1B</color>
+    <color name="ds_dark_surface_focused">#343A3C</color>
+    <color name="ds_dark_tab">#272727</color>
+    <color name="ds_dark_menu">#2F2F2F</color>
+    <color name="ds_dark_control">#323940</color>
+    <color name="ds_dark_control_focused">#003E4F</color>
+    <color name="ds_dark_control_selected">#5A5A5A</color>
+    <color name="ds_dark_line">#4E4E4E</color>
+    <color name="ds_dark_line_strong">#5A5A5A</color>
+    <color name="ds_dark_divider">#343A3C</color>
+    <color name="ds_dark_ink">#F8F9FA</color>
+    <color name="ds_dark_ink_faint">#BBBBBB</color>
+    <color name="ds_dark_icon">#FDFDFD</color>
+    <color name="ds_dark_on_badge">#1B1B1B</color>
+    <color name="ds_dark_danger">#FF8A80</color>
+    <!-- The video under the overlays: dimmed under a spinner (45%) and an error (60%), the gradient under the seek bar -->
+    <color name="ds_video_dim">#73000000</color>
+    <color name="ds_video_dim_strong">#99000000</color>
+    <color name="ds_video_scrim_middle">#99000000</color>
+    <color name="ds_video_scrim_bottom">#E0000000</color>
+    <!-- the ring of the spinner over a video, under its arc -->
+    <color name="ds_video_spinner_track">#38FFFFFF</color>
 </resources>

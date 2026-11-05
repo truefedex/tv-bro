@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The spinner over a video until it plays: a faint ring and an arc of the selected color going round it -->
+<rotate xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fromDegrees="0"
+    android:toDegrees="1080"
+    android:pivotX="50%"
+    android:pivotY="50%">
+    <layer-list>
+        <item>
+            <shape android:shape="ring" android:innerRadius="22dp" android:thickness="4dp" android:useLevel="false">
+                <solid android:color="?attr/tbColorDsVideoSpinnerTrack" />
+            </shape>
+        </item>
+        <item>
+            <shape android:shape="ring" android:innerRadius="22dp" android:thickness="4dp" android:useLevel="false">
+                <gradient
+                    android:type="sweep"
+                    android:startColor="@android:color/transparent"
+                    android:endColor="?attr/tbColorDsSelected" />
+            </shape>
+        </item>
+    </layer-list>
+</rotate>
