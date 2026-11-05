@@ -3,15 +3,17 @@ package com.phlox.tvwebbrowser.activity.main
 import android.net.Uri
 import android.text.format.DateUtils
 import com.phlox.tvwebbrowser.webengine.PageVideo
-import kotlin.math.roundToLong
 
-/** The caption of a row of the videos of the page: the kind, the server, the size and the duration */
+/**
+ * The caption of a row of the videos of the page: the kind, the server, the size and the duration (in whole seconds
+ * counted down, as the seek bar and the players of sites tell them)
+ */
 object PageVideoRowText {
     fun caption(video: PageVideo): String = listOfNotNull(
         kind(video),
         Uri.parse(video.url).host,
         if (video.width != null && video.height != null) "${video.width}×${video.height}" else null,
-        video.duration?.let { DateUtils.formatElapsedTime(it.roundToLong()) },
+        video.duration?.let { DateUtils.formatElapsedTime(it.toLong()) },
     ).joinToString(" · ")
 
     /**
@@ -55,7 +57,7 @@ object PageVideoRowText {
     fun choiceCaption(video: PageVideo): String = listOfNotNull(
         kind(video),
         video.height?.let { "${it}p" },
-        video.duration?.let { DateUtils.formatElapsedTime(it.roundToLong()) },
+        video.duration?.let { DateUtils.formatElapsedTime(it.toLong()) },
         Uri.parse(video.url).host,
     ).joinToString(" · ")
 

@@ -8,6 +8,7 @@ import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.SurfaceView
 import android.view.View
 import android.view.ViewParent
 import android.widget.FrameLayout
@@ -68,6 +69,8 @@ class PlayerScreenView @JvmOverloads constructor(
          * (null for another video)
          */
         fun onClosed(exit: Exit, position: Double?)
+        /** The first frame of a video [show] opened is on the screen (not of one that fails before it) */
+        fun onFirstFrame()
         /** Starts the picture-in-picture window of the player handed to [PictureInPicturePlayback] */
         fun openPictureInPicture()
         /** Which player the site of the page chose for its fullscreen videos; null for a page without a site */
@@ -153,6 +156,11 @@ class PlayerScreenView @JvmOverloads constructor(
     init {
         visibility = GONE
         showPageUnder(false)
+        //above the surface an engine draws its pages into (GeckoView): surfaces of the same layer are stacked in the
+        //order they were made in, and the engine makes its own again when the activity comes back (picture-in-picture)
+        (vb.vPlayer.videoSurfaceView as? SurfaceView)?.setZOrderMediaOverlay(true)
+        //a surface only while a video is shown (see close)
+        vb.vPlayer.isVisible = false
         //the screen stays on while the player is shown
         vb.vPlayer.keepScreenOn = true
         vb.btnBack.setOnClickListener { close(if (pageMedia) Exit.SITE_PLAYER else Exit.BACK) }
@@ -228,6 +236,8 @@ class PlayerScreenView @JvmOverloads constructor(
 
     private fun showScreen(video: PageVideo, pageMedia: Boolean, title: String?, site: String?) {
         visibility = VISIBLE
+        //a new surface, without the frames of the video before
+        vb.vPlayer.isVisible = true
         backCallback.isEnabled = true
         this.pageMedia = pageMedia
         this.title = title?.takeIf { it.isNotBlank() } ?: ExternalVideoPlayer.title(video)
@@ -287,6 +297,7 @@ class PlayerScreenView @JvmOverloads constructor(
         keys.setFullscreen(false)
         keys.setMedia(null)
         vb.vPlayer.player = null
+        hideSurface()
         frameRates.restore()
         player = NativePlayer(context)
         PictureInPicturePlayback.start(playing)
@@ -314,10 +325,20 @@ class PlayerScreenView @JvmOverloads constructor(
         keys.setMedia(null)
         vb.vPlayer.player = null
         player.release()
+        hideSurface()
         frameRates.restore()
         visibility = GONE
         backCallback.isEnabled = false
         callback.onClosed(exit, position)
+    }
+
+    /**
+     * The surface goes with the video: PlayerView hides its SurfaceView with it, which drops the surface. Under a
+     * hidden parent it would only be hidden, and show the last frame of this video again under the next one, until
+     * its first frame (or under the error, if it never comes).
+     */
+    private fun hideSurface() {
+        vb.vPlayer.isVisible = false
     }
 
     private fun hideError() {
@@ -349,7 +370,10 @@ class PlayerScreenView @JvmOverloads constructor(
             close(Exit.FAILED)
             return
         }
-        if (state.firstFrame && pageUnder) showPageUnder(false)
+        if (state.firstFrame && pageUnder) {
+            showPageUnder(false)
+            callback.onFirstFrame()
+        }
         if (state.videoHeight != captionHeight) {
             captionHeight = state.videoHeight
             vb.vOsd.setInfo(title, caption(state.video, state.videoHeight, site))

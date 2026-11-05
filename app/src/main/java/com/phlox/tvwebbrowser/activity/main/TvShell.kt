@@ -84,7 +84,6 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlin.math.roundToLong
 
 /**
  * The TV look: the bar above the page (its row of buttons and the address, and the tabs; opened and
@@ -303,7 +302,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
      * Plays the [video] in the built-in player from [startPosition] seconds: the bar closes and the page pauses its
      * media (the player plays it instead). A page in fullscreen stays so under the player: [pageMedia] (the video the
      * page plays) goes back to it from where the player is. [auto]: the rules opened it ([PlayerChoice]), and the
-     * page gets the video back if it does not start. The first few times a toast tells what the player is for.
+     * page gets the video back if it does not start. The first few times a toast tells what the player is for, once
+     * the video shows ([PlayerScreenView.Callback.onFirstFrame]).
      */
     private fun openBuiltInPlayer(video: PageVideo, startPosition: Double, pageMedia: Boolean, auto: Boolean = false) {
         //one video at a time: it ends the picture-in-picture window
@@ -311,11 +311,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         coverPageWithPlayer()
         val state = controller.currentTabState.value
         vb.vPlayerScreen.show(video, startPosition, pageMedia, auto, title = state.title, site = state.host)
-        val config = AppContext.provideConfig()
-        if (config.builtInPlayerIntroShown < Config.BUILT_IN_PLAYER_INTRO_TIMES) {
-            config.builtInPlayerIntroShown++
-            NotificationView.show(vb.rlRoot, R.drawable.ic_play_circle, activity.getString(R.string.player_opened), top = true)
-        }
     }
 
     /** The bar closes and the page pauses its media before the player shows */
@@ -376,6 +371,14 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             }
             //in fullscreen the fullscreen view of the page kept the focus (the view of the engine is hidden behind it)
             if (!fullscreen) engine?.getView()?.requestFocus()
+        }
+
+        //the intro tells what the player gives: when it plays (not over the error of a video that does not start)
+        override fun onFirstFrame() {
+            val config = AppContext.provideConfig()
+            if (config.builtInPlayerIntroShown >= Config.BUILT_IN_PLAYER_INTRO_TIMES) return
+            config.builtInPlayerIntroShown++
+            NotificationView.show(vb.rlRoot, R.drawable.ic_play_circle, activity.getString(R.string.player_opened), top = true)
         }
 
         override fun openPictureInPicture() = PictureInPictureActivity.start(activity)
@@ -734,7 +737,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             }
         }
         vb.vVideoChoice.open(PlayerPanelView.Page(activity.getString(R.string.videos_on_page),
-            activity.getString(R.string.choose_video_caption, DateUtils.formatElapsedTime(position.roundToLong())), rows,
+            activity.getString(R.string.choose_video_caption, DateUtils.formatElapsedTime(position.toLong())), rows,
             activity.getString(R.string.choose_video_stay)))
         videoChoiceBackCallback.isEnabled = true
         return true

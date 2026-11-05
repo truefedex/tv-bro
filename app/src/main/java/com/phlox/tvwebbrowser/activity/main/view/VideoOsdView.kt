@@ -151,7 +151,8 @@ class VideoOsdView @JvmOverloads constructor(context: Context, attrs: AttributeS
     companion object {
         private const val TICK_MS = 250L
 
-        private fun format(seconds: Double): String = DateUtils.formatElapsedTime(seconds.roundToLong())
+        /** In whole seconds counted down, as the players of sites tell them (the same numbers after a handoff) */
+        private fun format(seconds: Double): String = DateUtils.formatElapsedTime(seconds.toLong())
 
         /** "+2:30", "−0:30", "+1:02:00" (with the minus sign; the minutes or hours without a leading zero) */
         private fun signed(seconds: Double): String {
