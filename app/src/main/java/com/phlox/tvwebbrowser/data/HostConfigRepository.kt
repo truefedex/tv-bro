@@ -6,9 +6,9 @@ import com.phlox.tvwebbrowser.model.dao.HostsDao
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Settings of hosts: the popup blocking level, the ads blocking, the site view and the favicon file. The looked up
- * configs are kept in memory (also the absence of one), so the main thread reads them without the database.
- * Each setting is written to its own column: one writer does not overwrite another's setting.
+ * Settings of hosts: the popup blocking level, the ads blocking, the site view, the player of fullscreen videos and
+ * the favicon file. The looked up configs are kept in memory (also the absence of one), so the main thread reads them
+ * without the database. Each setting is written to its own column: one writer does not overwrite another's setting.
  */
 class HostConfigRepository(private val dao: HostsDao) {
     /** [config] is null if the host has no config */
@@ -22,6 +22,8 @@ class HostConfigRepository(private val dao: HostsDao) {
      */
     private val adBlockSettings = ConcurrentHashMap<String, Boolean>()
     private val desktopViewSettings = ConcurrentHashMap<String, Boolean>()
+    /** The player of fullscreen videos: decided on the main thread when a video goes fullscreen, so in memory too */
+    private val builtInPlayerSettings = ConcurrentHashMap<String, Boolean>()
     @Volatile
     private var siteSettingsLoaded = false
 
@@ -45,12 +47,13 @@ class HostConfigRepository(private val dao: HostsDao) {
         reload(host)
     }
 
-    /** Loads [adBlockSetting]s and [desktopViewSetting]s, once */
+    /** Loads [adBlockSetting]s, [desktopViewSetting]s and [builtInPlayerSetting]s, once */
     suspend fun loadSiteSettings() {
         if (siteSettingsLoaded) return
         //settings changed while loading are newer
         dao.adBlockSettings().forEach { adBlockSettings.putIfAbsent(it.hostName, it.adblock) }
         dao.desktopViewSettings().forEach { desktopViewSettings.putIfAbsent(it.hostName, it.desktopView) }
+        dao.builtInPlayerSettings().forEach { builtInPlayerSettings.putIfAbsent(it.hostName, it.builtInPlayer) }
         siteSettingsLoaded = true
     }
 
@@ -83,6 +86,22 @@ class HostConfigRepository(private val dao: HostsDao) {
     suspend fun setDesktopView(host: String, desktopView: Boolean?) {
         if (desktopView == null) desktopViewSettings.remove(host) else desktopViewSettings[host] = desktopView
         dao.setDesktopView(host, desktopView)
+        reload(host)
+    }
+
+    /**
+     * The player of fullscreen videos of the host (true: the built-in one, false: the site's); null if it has none
+     * (or [loadSiteSettings] was not done yet)
+     */
+    fun builtInPlayerSetting(host: String): Boolean? = builtInPlayerSettings[host]
+
+    /**
+     * Sets the player of fullscreen videos of the host, null to follow the default. [builtInPlayerSetting] gives the
+     * new value right away, before the write is done.
+     */
+    suspend fun setBuiltInPlayer(host: String, builtInPlayer: Boolean?) {
+        if (builtInPlayer == null) builtInPlayerSettings.remove(host) else builtInPlayerSettings[host] = builtInPlayer
+        dao.setBuiltInPlayer(host, builtInPlayer)
         reload(host)
     }
 

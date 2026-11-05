@@ -341,6 +341,15 @@
     <string name="site_player">Player do site</string>
     <string name="player_opened">Vídeo aberto no player do TV Bro: mais fluido e na resolução total da tela</string>
     <string name="player_fallback">O vídeo continuará no player do site</string>
+    <string name="player_for_site">Player para este site</string>
+    <string name="player_for_site_default">Padrão</string>
+    <string name="player_for_site_site">Site</string>
+    <string name="player_default_built_in">Agora: player do TV Bro</string>
+    <string name="player_default_site">Agora: player do site</string>
+    <string name="built_in_player_summary">Mais fluido, na resolução total da tela</string>
+    <string name="site_player_summary">Botões do site, controle pelo cursor</string>
+    <string name="settings_video_player">Player de vídeos</string>
+    <string name="settings_video_player_summary">Para vídeos em tela cheia. Cada site pode ter o seu nas configurações de vídeo</string>
     <string name="player_error">Não é possível reproduzir este vídeo</string>
     <string name="player_back_to_page">Voltar à página</string>
     <string name="page_video_hint">Assistir no player do TV Bro</string>

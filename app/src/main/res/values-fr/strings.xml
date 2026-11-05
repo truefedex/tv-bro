@@ -341,6 +341,15 @@
     <string name="site_player">Lecteur du site</string>
     <string name="player_opened">Vidéo ouverte dans le lecteur TV Bro : plus fluide et dans la pleine résolution de l’écran</string>
     <string name="player_fallback">La vidéo continuera dans le lecteur du site</string>
+    <string name="player_for_site">Lecteur pour ce site</string>
+    <string name="player_for_site_default">Par défaut</string>
+    <string name="player_for_site_site">Site</string>
+    <string name="player_default_built_in">Actuellement : lecteur TV Bro</string>
+    <string name="player_default_site">Actuellement : lecteur du site</string>
+    <string name="built_in_player_summary">Plus fluide, dans la pleine résolution de l’écran</string>
+    <string name="site_player_summary">Boutons du site, contrôle au curseur</string>
+    <string name="settings_video_player">Lecteur des vidéos</string>
+    <string name="settings_video_player_summary">Pour les vidéos en plein écran. Chaque site peut avoir le sien dans les paramètres vidéo</string>
     <string name="player_error">Impossible de lire cette vidéo</string>
     <string name="player_back_to_page">Retour à la page</string>
     <string name="page_video_hint">Regarder dans le lecteur TV Bro</string>

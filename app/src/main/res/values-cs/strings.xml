@@ -351,6 +351,15 @@
     <string name="site_player">Přehrávač webu</string>
     <string name="player_opened">Video se otevřelo v přehrávači TV Bro: plynuleji a v plném rozlišení obrazovky</string>
     <string name="player_fallback">Video bude pokračovat v přehrávači webu</string>
+    <string name="player_for_site">Přehrávač pro tento web</string>
+    <string name="player_for_site_default">Výchozí</string>
+    <string name="player_for_site_site">Web</string>
+    <string name="player_default_built_in">Nyní: přehrávač TV Bro</string>
+    <string name="player_default_site">Nyní: přehrávač webu</string>
+    <string name="built_in_player_summary">Plynuleji, v plném rozlišení obrazovky</string>
+    <string name="site_player_summary">Tlačítka webu, ovládání kurzorem</string>
+    <string name="settings_video_player">Přehrávač videí</string>
+    <string name="settings_video_player_summary">Pro videa na celou obrazovku. Každý web může mít vlastní v nastavení videa</string>
     <string name="player_error">Toto video nelze přehrát</string>
     <string name="player_back_to_page">Zpět na stránku</string>
     <string name="page_video_hint">Sledovat v přehrávači TV Bro</string>

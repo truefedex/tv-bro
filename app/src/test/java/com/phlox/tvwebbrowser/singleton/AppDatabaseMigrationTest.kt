@@ -121,7 +121,7 @@ class AppDatabaseMigrationTest {
         assertEquals(1, runBlocking { db.historyDao().count() })
 
         val sqlDb = db.openHelper.readableDatabase
-        assertEquals(26, sqlDb.version)
+        assertEquals(27, sqlDb.version)
         sqlDb.query("PRAGMA table_info(tabs)").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
             val columns = ArrayList<String>()
@@ -344,5 +344,30 @@ class AppDatabaseMigrationTest {
         runBlocking { db.hostsDao().setDesktopView("example.com", true) }
         assertEquals(listOf(HostsDao.DesktopViewSetting("example.com", true)),
             runBlocking { db.hostsDao().desktopViewSettings() })
+    }
+
+    @Test
+    fun migrate26To27AddsThePlayerOfHosts() {
+        createDatabase(26) { db ->
+            db.insert("hosts", null, ContentValues().apply {
+                put("id", 1L)
+                put("host_name", "example.com")
+                put("popup_block_level", 0)
+                put("favicon", "example.png")
+                put("adblock", 0)
+                put("desktop_view", 1)
+            })
+        }
+
+        val db = openMigrated()
+        val host = runBlocking { db.hostsDao().findByHostName("example.com") }!!
+        //the videos of the host follow the default
+        assertNull(host.builtInPlayer)
+        assertEquals(true, host.desktopView)
+        assertEquals(false, host.adblock)
+        assertEquals("example.png", host.favicon)
+        runBlocking { db.hostsDao().setBuiltInPlayer("example.com", false) }
+        assertEquals(listOf(HostsDao.BuiltInPlayerSetting("example.com", false)),
+            runBlocking { db.hostsDao().builtInPlayerSettings() })
     }
 }

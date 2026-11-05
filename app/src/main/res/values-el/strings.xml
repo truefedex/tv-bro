@@ -331,6 +331,15 @@
     <string name="site_player">Πρόγραμμα αναπαραγωγής ιστότοπου</string>
     <string name="player_opened">Το βίντεο άνοιξε στο πρόγραμμα αναπαραγωγής TV Bro: πιο ομαλά και στην πλήρη ανάλυση της οθόνης</string>
     <string name="player_fallback">Το βίντεο θα συνεχιστεί στο πρόγραμμα αναπαραγωγής του ιστότοπου</string>
+    <string name="player_for_site">Πρόγραμμα αναπαραγωγής για αυτόν τον ιστότοπο</string>
+    <string name="player_for_site_default">Προεπιλογή</string>
+    <string name="player_for_site_site">Ιστότοπος</string>
+    <string name="player_default_built_in">Τώρα: πρόγραμμα αναπαραγωγής TV Bro</string>
+    <string name="player_default_site">Τώρα: πρόγραμμα αναπαραγωγής του ιστότοπου</string>
+    <string name="built_in_player_summary">Πιο ομαλά, στην πλήρη ανάλυση της οθόνης</string>
+    <string name="site_player_summary">Κουμπιά του ιστότοπου, έλεγχος με τον δείκτη</string>
+    <string name="settings_video_player">Πρόγραμμα αναπαραγωγής βίντεο</string>
+    <string name="settings_video_player_summary">Για βίντεο σε πλήρη οθόνη. Κάθε ιστότοπος μπορεί να έχει το δικό του στις ρυθμίσεις βίντεο</string>
     <string name="player_error">Δεν είναι δυνατή η αναπαραγωγή αυτού του βίντεο</string>
     <string name="player_back_to_page">Επιστροφή στη σελίδα</string>
     <string name="page_video_hint">Παρακολούθηση στο πρόγραμμα αναπαραγωγής TV Bro</string>

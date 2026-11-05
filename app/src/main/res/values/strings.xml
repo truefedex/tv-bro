@@ -285,6 +285,21 @@
     <string name="player_opened">Video opened in TV Bro player: smoother and in the full resolution of the screen</string>
     <!-- a toast when the built-in player that opened by itself could not start: the page plays the video on -->
     <string name="player_fallback">The video will continue in the site player</string>
+    <!-- the video settings of the built-in player: which player gets the fullscreen videos of the site of the page -->
+    <string name="player_for_site">Player for this site</string>
+    <!-- its options; the default one tells what the default is now (player_default_built_in, player_default_site) -->
+    <string name="player_for_site_default">Default</string>
+    <!-- the short values of the row: the built-in player, the player of the site -->
+    <string name="player_for_site_built_in" translatable="false">TV Bro</string>
+    <string name="player_for_site_site">Site</string>
+    <string name="player_default_built_in">Now: TV Bro player</string>
+    <string name="player_default_site">Now: site player</string>
+    <!-- under the options: what each player is good for -->
+    <string name="built_in_player_summary">Smoother, in the full resolution of the screen</string>
+    <string name="site_player_summary">Site buttons, cursor control</string>
+    <!-- Settings, Sites, Videos: the default of player_for_site (built_in_player or site_player) -->
+    <string name="settings_video_player">Player for videos</string>
+    <string name="settings_video_player_summary">For videos in fullscreen. Each site can have its own in the video settings</string>
     <!-- the built-in player -->
     <string name="player_error">This video can not be played</string>
     <string name="player_back_to_page">Back to the page</string>

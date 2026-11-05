@@ -499,6 +499,24 @@ class BrowserController : ActiveModel() {
     val defaultDesktopView: Boolean get() = config.defaultDesktopView ?: interfaceDesktopView
 
     /**
+     * Whether the videos that pages of the [host] put in fullscreen go to the built-in player: its own setting
+     * ([builtInPlayerSetting]), else the default ([com.phlox.tvwebbrowser.Config.builtInPlayerByDefault])
+     */
+    fun prefersBuiltInPlayer(host: String): Boolean =
+        builtInPlayerSetting(host) ?: config.builtInPlayerByDefault
+
+    /** The player of fullscreen videos the [host] chose: true the built-in one, false its own, null the default */
+    fun builtInPlayerSetting(host: String): Boolean? =
+        if (host.isEmpty()) null else hostConfigs.builtInPlayerSetting(host)
+
+    /**
+     * Sets the player of fullscreen videos of the [host], null for the default; [prefersBuiltInPlayer] gives it at
+     * once. @return the write, which is not cancelled with the model
+     */
+    fun setBuiltInPlayer(host: String, builtInPlayer: Boolean?): Job =
+        TVBro.container.appScope.launch { hostConfigs.setBuiltInPlayer(host, builtInPlayer) }
+
+    /**
      * Tabs get the new default view or User-Agent (settings of all sites); the current tab loads again if its view
      * changed
      */

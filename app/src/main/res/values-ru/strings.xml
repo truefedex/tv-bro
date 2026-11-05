@@ -350,6 +350,15 @@
   <string name="site_player">Плеер сайта</string>
   <string name="player_opened">Видео открыто в плеере TV Bro: плавнее и в полном разрешении экрана</string>
   <string name="player_fallback">Видео продолжится в плеере сайта</string>
+  <string name="player_for_site">Плеер для этого сайта</string>
+  <string name="player_for_site_default">По умолчанию</string>
+  <string name="player_for_site_site">Сайт</string>
+  <string name="player_default_built_in">Сейчас: плеер TV Bro</string>
+  <string name="player_default_site">Сейчас: плеер сайта</string>
+  <string name="built_in_player_summary">Плавнее, в полном разрешении экрана</string>
+  <string name="site_player_summary">Кнопки сайта, управление курсором</string>
+  <string name="settings_video_player">Плеер для видео</string>
+  <string name="settings_video_player_summary">Для видео на весь экран. Для сайта можно выбрать свой в настройках видео</string>
   <string name="player_error">Не удаётся воспроизвести это видео</string>
   <string name="player_back_to_page">Назад на страницу</string>
   <string name="page_video_hint">Смотреть в плеере TV Bro</string>

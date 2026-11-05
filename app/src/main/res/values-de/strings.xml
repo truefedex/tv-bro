@@ -329,6 +329,15 @@
   <string name="site_player">Player der Website</string>
   <string name="player_opened">Video im TV Bro Player geöffnet: flüssiger und in voller Bildschirmauflösung</string>
   <string name="player_fallback">Das Video läuft im Player der Website weiter</string>
+  <string name="player_for_site">Player für diese Website</string>
+  <string name="player_for_site_default">Standard</string>
+  <string name="player_for_site_site">Website</string>
+  <string name="player_default_built_in">Derzeit: TV Bro Player</string>
+  <string name="player_default_site">Derzeit: Player der Website</string>
+  <string name="built_in_player_summary">Flüssiger, in voller Bildschirmauflösung</string>
+  <string name="site_player_summary">Schaltflächen der Website, Steuerung mit dem Cursor</string>
+  <string name="settings_video_player">Player für Videos</string>
+  <string name="settings_video_player_summary">Für Videos im Vollbild. Jede Website kann in den Videoeinstellungen einen eigenen haben</string>
   <string name="player_error">Dieses Video kann nicht abgespielt werden</string>
   <string name="player_back_to_page">Zurück zur Seite</string>
   <string name="page_video_hint">Im TV Bro Player ansehen</string>

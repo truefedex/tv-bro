@@ -108,6 +108,27 @@ class HostConfigRepositoryTest {
     }
 
     @Test
+    fun playerSettingsOfAllHostsAreLoadedAndStoredWithTheOtherSettings() = runBlocking {
+        db.hostsDao().setBuiltInPlayer("a.com", false)
+        db.hostsDao().setDesktopView("a.com", true)
+        assertNull(repository.builtInPlayerSetting("a.com"))
+        repository.loadSiteSettings()
+        assertEquals(false, repository.builtInPlayerSetting("a.com"))
+        assertEquals(true, repository.desktopViewSetting("a.com"))
+
+        repository.setBuiltInPlayer("b.com", true)
+        assertEquals(true, repository.builtInPlayerSetting("b.com"))
+        assertEquals(true, db.hostsDao().findByHostName("b.com")!!.builtInPlayer)
+        //back to the default: the other settings of the host stay
+        repository.setBuiltInPlayer("a.com", null)
+        assertNull(repository.builtInPlayerSetting("a.com"))
+        val stored = db.hostsDao().findByHostName("a.com")!!
+        assertNull(stored.builtInPlayer)
+        assertEquals(true, stored.desktopView)
+        assertEquals(listOf(HostsDao.BuiltInPlayerSetting("b.com", true)), db.hostsDao().builtInPlayerSettings())
+    }
+
+    @Test
     fun configWrittenByAnotherRepositoryIsNotLost() = runBlocking {
         //like FaviconsPool and the popup blocking menu writing at the same time
         val other = HostConfigRepository(db.hostsDao())

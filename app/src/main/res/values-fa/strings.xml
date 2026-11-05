@@ -330,6 +330,15 @@
   <string name="site_player">پخش‌کننده سایت</string>
   <string name="player_opened">ویدیو در پخش‌کننده TV Bro باز شد: روان‌تر و با وضوح کامل صفحه</string>
   <string name="player_fallback">ویدیو در پخش‌کننده سایت ادامه می‌یابد</string>
+  <string name="player_for_site">پخش‌کننده برای این سایت</string>
+  <string name="player_for_site_default">پیش‌فرض</string>
+  <string name="player_for_site_site">سایت</string>
+  <string name="player_default_built_in">اکنون: پخش‌کننده TV Bro</string>
+  <string name="player_default_site">اکنون: پخش‌کننده سایت</string>
+  <string name="built_in_player_summary">روان‌تر، با وضوح کامل صفحه</string>
+  <string name="site_player_summary">دکمه‌های سایت، کنترل با نشانگر</string>
+  <string name="settings_video_player">پخش‌کننده ویدیوها</string>
+  <string name="settings_video_player_summary">برای ویدیوهای تمام‌صفحه. هر سایت می‌تواند در تنظیمات ویدیو پخش‌کننده خودش را داشته باشد</string>
   <string name="player_error">این ویدیو قابل پخش نیست</string>
   <string name="player_back_to_page">بازگشت به صفحه</string>
   <string name="page_video_hint">تماشا در پخش‌کننده TV Bro</string>

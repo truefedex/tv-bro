@@ -39,7 +39,9 @@ import kotlinx.coroutines.launch
  * seeks, on play and pause and while paused, with the plate at the top: the title, and under it the name of the
  * player, the height of the video track, the kind and the server); Down and the Menu key (where it reaches
  * the app) open the menu of the quality, the audio track, the subtitles, the speed ([PlayerTracks]) and the repeat
- * of the video (not for live streams, off for each video), each with its options, and the seek bar tells it
+ * of the video (not for live streams, off for each video), each with its options, then picture-in-picture, the player
+ * of the fullscreen videos of the site of the page ([SitePlayer]: the default, this one or the site's, which takes the
+ * video back to the page) and another app, and the seek bar tells it
  * ("↓ Video settings"). For the video of the page ([show] with pageMedia) Up gives it back to the page from where
  * the player is ("↑ Site player"); the page stays in fullscreen under the player meanwhile. Back closes the menu,
  * then the player ([Callback.onClosed] tells the page how, [Exit]). The player takes the focus only for the menu and
@@ -67,6 +69,19 @@ class PlayerScreenView @JvmOverloads constructor(
         fun onClosed(exit: Exit, position: Double?)
         /** Starts the picture-in-picture window of the player handed to [PictureInPicturePlayback] */
         fun openPictureInPicture()
+        /** Which player the site of the page chose for its fullscreen videos; null for a page without a site */
+        fun sitePlayer(): SitePlayer?
+        /** The site of the page chooses [builtIn] (true: this player, false: its own, null: the default) */
+        fun setSitePlayer(builtIn: Boolean?)
+    }
+
+    /**
+     * The player of the fullscreen videos of the site ([host]): [setting] true the built-in one, false its own, null
+     * the default ([byDefault]: true the built-in one)
+     */
+    data class SitePlayer(val host: String, val setting: Boolean?, val byDefault: Boolean) {
+        /** The player its videos get */
+        val builtIn: Boolean get() = setting ?: byDefault
     }
 
     /** How the player closed: what the page does with its video then */
@@ -429,7 +444,39 @@ class PlayerScreenView @JvmOverloads constructor(
                 enterPictureInPicture()
             }
         }
+        //the player of the fullscreen videos of the site: for the video of the page only
+        val site = if (pageMedia) callback.sitePlayer() else null
+        if (site != null) {
+            val value = when (site.setting) {
+                null -> context.getString(R.string.player_for_site_default)
+                true -> context.getString(R.string.player_for_site_built_in)
+                false -> context.getString(R.string.player_for_site_site)
+            }
+            rows += PopupMenuView.Item(R.drawable.ic_globe,
+                context.getString(R.string.player_menu_row, context.getString(R.string.player_for_site), value)) {
+                showSitePlayerOptions(site)
+            }
+        }
+        rows += PopupMenuView.Item(R.drawable.ic_open_in_new, context.getString(R.string.open_in_external_application)) {
+            if (callback.openInOtherApp(state.video)) close(Exit.ELSEWHERE)
+        }
         showOptions(rows, 0)
+    }
+
+    /**
+     * Default, this player, the player of the site; the choice is kept for the site, and a choice that gives its videos
+     * to the site takes this one back to the page, from the same second
+     */
+    private fun showSitePlayerOptions(site: SitePlayer) {
+        val options = listOf(null, true, false)
+        val labels = listOf(context.getString(R.string.player_for_site_default), context.getString(R.string.built_in_player),
+            context.getString(R.string.site_player))
+        showOptions(options.mapIndexed { i, option ->
+            PopupMenuView.Item(R.drawable.ic_check, labels[i], checked = option == site.setting) {
+                callback.setSitePlayer(option)
+                if (!(option ?: site.byDefault)) close(Exit.SITE_PLAYER)
+            }
+        }, options.indexOf(site.setting))
     }
 
     private fun showOptions(items: List<PopupMenuView.Item>, focusIndex: Int) {

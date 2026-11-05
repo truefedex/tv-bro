@@ -350,6 +350,15 @@
   <string name="site_player">Odtwarzacz strony</string>
   <string name="player_opened">Film otwarto w odtwarzaczu TV Bro: płynniej i w pełnej rozdzielczości ekranu</string>
   <string name="player_fallback">Film będzie kontynuowany w odtwarzaczu strony</string>
+  <string name="player_for_site">Odtwarzacz dla tej strony</string>
+  <string name="player_for_site_default">Domyślny</string>
+  <string name="player_for_site_site">Strona</string>
+  <string name="player_default_built_in">Teraz: odtwarzacz TV Bro</string>
+  <string name="player_default_site">Teraz: odtwarzacz strony</string>
+  <string name="built_in_player_summary">Płynniej, w pełnej rozdzielczości ekranu</string>
+  <string name="site_player_summary">Przyciski strony, sterowanie kursorem</string>
+  <string name="settings_video_player">Odtwarzacz filmów</string>
+  <string name="settings_video_player_summary">Dla filmów na pełnym ekranie. Każda strona może mieć własny w ustawieniach wideo</string>
   <string name="player_error">Nie można odtworzyć tego filmu</string>
   <string name="player_back_to_page">Wróć do strony</string>
   <string name="page_video_hint">Oglądaj w odtwarzaczu TV Bro</string>

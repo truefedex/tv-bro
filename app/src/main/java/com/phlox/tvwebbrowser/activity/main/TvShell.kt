@@ -369,6 +369,18 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         }
 
         override fun openPictureInPicture() = PictureInPictureActivity.start(activity)
+
+        override fun sitePlayer(): PlayerScreenView.SitePlayer? {
+            val host = controller.currentTabState.value.host.ifEmpty { return null }
+            return PlayerScreenView.SitePlayer(host, controller.builtInPlayerSetting(host),
+                AppContext.provideConfig().builtInPlayerByDefault)
+        }
+
+        override fun setSitePlayer(builtIn: Boolean?) {
+            val host = controller.currentTabState.value.host.ifEmpty { return }
+            controller.setBuiltInPlayer(host, builtIn)
+            playerChoice.builtInPlayerPreferred = controller.prefersBuiltInPlayer(host)
+        }
     }
 
     override fun onMediaCommand(command: MediaCommand): Boolean = vb.vPlayerScreen.mediaCommand(command)
@@ -534,6 +546,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         //the player that covered the page closed with Back or went elsewhere: the page left fullscreen
         if (!fullscreen && !vb.vPlayerScreen.isOpen) videoMode.suspended = false
         videoMode.setFullscreen(fullscreen)
+        //the default may have changed in the settings meanwhile
+        playerChoice.builtInPlayerPreferred = controller.prefersBuiltInPlayer(controller.currentTabState.value.host)
         playerChoice.setFullscreen(fullscreen)
         updatePageCovered()
     }
@@ -1053,6 +1067,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         //once per page: the tab and its address without the fragment
         val page = if (state.hasTab && state.url.isNotEmpty()) "${state.tabIdentity}|${state.url.substringBefore('#')}" else null
         pageVideoHint.setPage(page)
+        playerChoice.builtInPlayerPreferred = controller.prefersBuiltInPlayer(state.host)
         playerChoice.setPage(page)
         if (tabChanged) {
             onRenderedTabChanged()

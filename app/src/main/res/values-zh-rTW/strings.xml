@@ -320,6 +320,15 @@
     <string name="site_player">網站播放器</string>
     <string name="player_opened">影片已在 TV Bro 播放器中開啟：更流暢，並以螢幕的完整解析度播放</string>
     <string name="player_fallback">影片將在網站播放器中繼續播放</string>
+    <string name="player_for_site">此網站的播放器</string>
+    <string name="player_for_site_default">預設</string>
+    <string name="player_for_site_site">網站</string>
+    <string name="player_default_built_in">目前：TV Bro 播放器</string>
+    <string name="player_default_site">目前：網站播放器</string>
+    <string name="built_in_player_summary">更流暢，以螢幕的完整解析度播放</string>
+    <string name="site_player_summary">網站的按鈕，用游標控制</string>
+    <string name="settings_video_player">影片播放器</string>
+    <string name="settings_video_player_summary">用於全螢幕影片。每個網站可在影片設定中選擇自己的播放器</string>
     <string name="player_error">無法播放此影片</string>
     <string name="player_back_to_page">返回頁面</string>
     <string name="page_video_hint">在 TV Bro 播放器中觀看</string>

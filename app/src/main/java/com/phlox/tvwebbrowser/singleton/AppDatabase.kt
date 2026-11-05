@@ -17,7 +17,7 @@ import com.phlox.tvwebbrowser.model.util.Converters
     HistoryItem::class, TabEntity::class,
     HostConfig::class, PairedDevice::class
                      ],
-    version = 26, exportSchema = true)
+    version = 27, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
@@ -257,6 +257,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_26_27 = object : Migration(26, 27) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                //the player of fullscreen videos (built-in or the site's) becomes a setting of the host
+                db.execSQL("ALTER TABLE `hosts` ADD `built_in_player` INTEGER")
+            }
+        }
+
         private fun createHostsTable(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS `hosts` (`host_name` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `popup_block_level` INTEGER)")
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `hosts_name_idx` ON `hosts` (`host_name`)")
@@ -301,7 +308,7 @@ abstract class AppDatabase : RoomDatabase() {
             MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14,
             MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19,
             MIGRATION_19_20, MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24,
-            MIGRATION_24_25, MIGRATION_25_26
+            MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27
         )
 
         /**

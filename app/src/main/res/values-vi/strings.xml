@@ -320,6 +320,15 @@
   <string name="site_player">Trình phát của trang</string>
   <string name="player_opened">Video đã mở trong trình phát TV Bro: mượt hơn và ở độ phân giải đầy đủ của màn hình</string>
   <string name="player_fallback">Video sẽ tiếp tục trong trình phát của trang</string>
+  <string name="player_for_site">Trình phát cho trang này</string>
+  <string name="player_for_site_default">Mặc định</string>
+  <string name="player_for_site_site">Trang</string>
+  <string name="player_default_built_in">Hiện tại: trình phát TV Bro</string>
+  <string name="player_default_site">Hiện tại: trình phát của trang</string>
+  <string name="built_in_player_summary">Mượt hơn, ở độ phân giải đầy đủ của màn hình</string>
+  <string name="site_player_summary">Nút của trang, điều khiển bằng con trỏ</string>
+  <string name="settings_video_player">Trình phát video</string>
+  <string name="settings_video_player_summary">Cho video toàn màn hình. Mỗi trang có thể có trình phát riêng trong cài đặt video</string>
   <string name="player_error">Không thể phát video này</string>
   <string name="player_back_to_page">Quay lại trang</string>
   <string name="page_video_hint">Xem trong trình phát TV Bro</string>
