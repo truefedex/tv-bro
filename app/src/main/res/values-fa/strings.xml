@@ -327,6 +327,7 @@
   <string name="built_in_player">پخش‌کننده داخلی</string>
   <string name="player_menu_hint">تنظیمات ویدیو</string>
   <string name="video_osd_cursor">نشانگر</string>
+  <string name="site_player">پخش‌کننده سایت</string>
   <string name="built_in_player_intro">ویدیو اکنون به‌جای پخش‌کننده صفحه در پخش‌کننده خود TV Bro پخش می‌شود: روان‌تر، با وضوح کامل تلویزیون شما و با بار کمتر روی دستگاه.\n\nبرای تنظیمات ویدیو ↓ را بزنید: کیفیت، صدا، زیرنویس، سرعت و تکرار.</string>
   <string name="player_error">این ویدیو قابل پخش نیست</string>
   <string name="player_back_to_page">بازگشت به صفحه</string>

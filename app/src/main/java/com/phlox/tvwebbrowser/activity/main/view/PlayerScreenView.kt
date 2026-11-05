@@ -2,9 +2,12 @@ package com.phlox.tvwebbrowser.activity.main.view
 
 import android.app.Activity
 import android.content.Context
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewParent
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
@@ -36,12 +39,15 @@ import kotlinx.coroutines.launch
  * player, the height of the video track, the kind and the server); Down and the Menu key (where it reaches
  * the app) open the menu of the quality, the audio track, the subtitles, the speed ([PlayerTracks]) and the repeat
  * of the video (not for live streams, off for each video), each with its options, and the seek bar tells it
- * ("↓ Video settings"); Up does nothing. Back closes the menu, then the player; [onClosed] gives the focus back to
- * the page. When the playback fails, the error offers the video to another app and the way back. Until the user
- * chooses "Don't show again" ([Config.builtInPlayerHintSuppress]), a dialog tells what the player is for when it
- * opens, the video paused meanwhile. Where the device has picture-in-picture ([PictureInPictureSupport]), the menu
- * and the PiP key of remotes hand the playing video to a picture-in-picture window over the browser
- * ([enterPictureInPicture], [PictureInPicturePlayback]), and it comes back here when the window is expanded ([adopt]).
+ * ("↓ Video settings"). For the video of the page ([show] with pageMedia) Up gives it back to the page from where
+ * the player is ("↑ Site player"); the page stays in fullscreen under the player meanwhile. Back closes the menu,
+ * then the player ([Callback.onClosed] tells the page how, [Exit]). The player takes the focus only for the menu and
+ * the error, and gives it back to the view that had it (the fullscreen view of the page). When the playback fails,
+ * the error offers the video to another app and the way back. Until the user chooses "Don't show again"
+ * ([Config.builtInPlayerHintSuppress]), a dialog tells what the player is for when it opens, the video paused
+ * meanwhile. Where the device has picture-in-picture ([PictureInPictureSupport]), the menu and the PiP key of remotes
+ * hand the playing video to a picture-in-picture window over the browser ([enterPictureInPicture],
+ * [PictureInPicturePlayback]), and it comes back here when the window is expanded ([adopt]).
  */
 class PlayerScreenView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -51,9 +57,25 @@ class PlayerScreenView @JvmOverloads constructor(
         fun cookies(url: String): String?
         /** Opens the video in another app; false if there is none */
         fun openInOtherApp(video: PageVideo): Boolean
-        fun onClosed()
+        /**
+         * The player closed ([exit]); [position] is where it was, in seconds, when it played the video of the page
+         * (null for another video)
+         */
+        fun onClosed(exit: Exit, position: Double?)
         /** Starts the picture-in-picture window of the player handed to [PictureInPicturePlayback] */
         fun openPictureInPicture()
+    }
+
+    /** How the player closed: what the page does with its video then */
+    enum class Exit {
+        /** Back (and Back to the page of the error): the page leaves fullscreen, its video waits where the player was */
+        BACK,
+        /** Up: the page plays its video on from where the player was */
+        SITE_PLAYER,
+        /** The video went on in the picture-in-picture window or in another app: the page leaves fullscreen */
+        ELSEWHERE,
+        /** The screen went away (the activity ends, or the picture-in-picture window gives its player back) */
+        CLOSED,
     }
 
     private val vb = ViewPlayerScreenBinding.inflate(LayoutInflater.from(context), this)
@@ -68,9 +90,14 @@ class PlayerScreenView @JvmOverloads constructor(
 
     val isOpen: Boolean get() = isVisible
 
+    /** The video is the one the page plays: Up gives it back to the page */
+    private var pageMedia = false
+    /** The view that had the focus before the menu or the error took it (the fullscreen view of the page) */
+    private var focusBefore: View? = null
+
     val backCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
-            if (vb.vMenu.isOpen) vb.vMenu.hide() else close()
+            if (vb.vMenu.isOpen) vb.vMenu.hide() else close(Exit.BACK)
         }
     }
 
@@ -87,7 +114,7 @@ class PlayerScreenView @JvmOverloads constructor(
         }
 
         override fun onUpDown(down: Boolean): Boolean {
-            if (down) showMenu()
+            if (down) showMenu() else if (pageMedia) close(Exit.SITE_PLAYER)
             return true
         }
     }).apply { hint = context.getString(R.string.player_menu_hint) }
@@ -97,11 +124,12 @@ class PlayerScreenView @JvmOverloads constructor(
         setBackgroundColor(android.graphics.Color.BLACK)
         //the screen stays on while the player is shown
         vb.vPlayer.keepScreenOn = true
-        vb.btnBack.setOnClickListener { close() }
+        vb.btnBack.setOnClickListener { close(Exit.BACK) }
         vb.btnOtherApp.setOnClickListener {
             val video = player.state.value?.video ?: return@setOnClickListener
-            if (callback.openInOtherApp(video)) close()
+            if (callback.openInOtherApp(video)) close(Exit.ELSEWHERE)
         }
+        vb.vMenu.onHide = ::restoreFocus
     }
 
     fun attach(scope: LifecycleCoroutineScope, callback: Callback) {
@@ -109,9 +137,12 @@ class PlayerScreenView @JvmOverloads constructor(
         this.callback = callback
     }
 
-    /** Plays [video] from [startPosition] seconds */
-    fun show(video: PageVideo, startPosition: Double = 0.0) {
-        showScreen(video)
+    /**
+     * Plays [video] from [startPosition] seconds; [pageMedia]: it is the video the page plays (Up gives it back
+     * to the page from where the player is)
+     */
+    fun show(video: PageVideo, startPosition: Double = 0.0, pageMedia: Boolean = false) {
+        showScreen(video, pageMedia)
         val config = AppContext.provideConfig()
         matchFrameRate = config.matchFrameRate
         player.open(video, callback.cookies(video.url), startPosition, ownFrameRate = matchFrameRate)
@@ -120,7 +151,7 @@ class PlayerScreenView @JvmOverloads constructor(
     }
 
     /** Shows [player], a video that plays already (back from the picture-in-picture window), without the intro */
-    fun adopt(player: NativePlayer) {
+    fun adopt(player: NativePlayer, pageMedia: Boolean = false) {
         val video = player.state.value?.video
         if (video == null) {
             player.release()
@@ -129,25 +160,50 @@ class PlayerScreenView @JvmOverloads constructor(
         if (isOpen) close()
         this.player.release()
         this.player = player
-        showScreen(video)
+        showScreen(video, pageMedia)
         matchFrameRate = player.ownFrameRate
         bindPlayer()
     }
 
-    private fun showScreen(video: PageVideo) {
+    private fun showScreen(video: PageVideo, pageMedia: Boolean) {
         visibility = VISIBLE
         backCallback.isEnabled = true
+        this.pageMedia = pageMedia
+        keys.upHint = if (pageMedia) context.getString(R.string.site_player) else null
         vb.tvTitle.text = ExternalVideoPlayer.title(video)
         captionHeight = null
         vb.tvCaption.text = PageVideoRowText.playerCaption(context.getString(R.string.built_in_player), video, null)
     }
 
+    /** The player never takes the focus while it plays: the page keeps it (the menu and the error take it) */
     private fun bindPlayer() {
         vb.vPlayer.player = player.exoPlayer
         keys.setFullscreen(true)
         stateJob?.cancel()
         stateJob = scope.launch { player.state.collect { render(it) } }
-        requestFocus()
+    }
+
+    /** Before the menu or the error takes the focus: the view that has it gets it back when they are gone */
+    private fun keepFocus() {
+        if (focusBefore != null) return
+        focusBefore = rootView.findFocus()?.takeUnless { it.isInside(this) }
+    }
+
+    /** The menu or the error is gone: the focus goes back to where it was, if they are both gone */
+    private fun restoreFocus() {
+        if (vb.vMenu.isOpen || vb.llError.isVisible) return
+        val view = focusBefore ?: return
+        focusBefore = null
+        if (view.isAttachedToWindow && view.isShown) view.requestFocus()
+    }
+
+    private fun View.isInside(group: View): Boolean {
+        var parent: ViewParent? = parent
+        while (parent != null) {
+            if (parent === group) return true
+            parent = parent.parent
+        }
+        return false
     }
 
     /**
@@ -167,15 +223,20 @@ class PlayerScreenView @JvmOverloads constructor(
         frameRates.restore()
         player = NativePlayer(context)
         PictureInPicturePlayback.start(playing)
+        hideError()
         visibility = GONE
         backCallback.isEnabled = false
-        callback.onClosed()
+        callback.onClosed(Exit.ELSEWHERE, null)
         callback.openPictureInPicture()
     }
 
-    fun close() {
+    /** Closes the player; the page does with its video what [exit] says */
+    fun close(exit: Exit = Exit.CLOSED) {
         if (!isOpen) return
+        //where the page goes on with its video (the state is gone with the player)
+        val position = if (pageMedia) player.state.value?.media?.positionAt(SystemClock.elapsedRealtime()) else null
         vb.vMenu.hide()
+        hideError()
         stateJob?.cancel()
         stateJob = null
         keys.setFullscreen(false)
@@ -185,7 +246,13 @@ class PlayerScreenView @JvmOverloads constructor(
         frameRates.restore()
         visibility = GONE
         backCallback.isEnabled = false
-        callback.onClosed()
+        callback.onClosed(exit, position)
+    }
+
+    private fun hideError() {
+        if (!vb.llError.isVisible) return
+        vb.llError.isVisible = false
+        restoreFocus()
     }
 
     /** The activity is paused: so is the video, and the display gets its mode back */
@@ -231,8 +298,14 @@ class PlayerScreenView @JvmOverloads constructor(
         val error = state.error
         val showError = error != null
         if (showError != vb.llError.isVisible) {
-            vb.llError.isVisible = showError
-            if (showError) vb.btnOtherApp.requestFocus() else requestFocus()
+            if (showError) {
+                vb.vMenu.hide()
+                keepFocus()
+                vb.llError.isVisible = true
+                vb.btnOtherApp.requestFocus()
+            } else {
+                hideError()
+            }
         }
         if (error != null) vb.tvError.text = describe(error)
     }
@@ -325,6 +398,7 @@ class PlayerScreenView @JvmOverloads constructor(
     }
 
     private fun showOptions(items: List<PopupMenuView.Item>, focusIndex: Int) {
+        keepFocus()
         vb.vMenu.show(vb.vMenuAnchor, items, alignEnd = true, width = R.dimen.player_menu_width,
             focusIndex = focusIndex.coerceAtLeast(0))
     }

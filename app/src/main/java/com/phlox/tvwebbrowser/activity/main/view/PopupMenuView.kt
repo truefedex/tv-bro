@@ -94,9 +94,13 @@ class PopupMenuView @JvmOverloads constructor(
         }
     }
 
+    /** Called when the menu is closed, before its anchor gets the focus back */
+    var onHide: (() -> Unit)? = null
+
     override fun onHidden() {
         activatedAnchor?.isActivated = false
         activatedAnchor = null
+        onHide?.invoke()
     }
 
     companion object {

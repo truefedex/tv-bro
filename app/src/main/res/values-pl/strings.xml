@@ -347,6 +347,7 @@
   <string name="built_in_player">Wbudowany odtwarzacz</string>
   <string name="player_menu_hint">Ustawienia wideo</string>
   <string name="video_osd_cursor">Kursor</string>
+  <string name="site_player">Odtwarzacz strony</string>
   <string name="built_in_player_intro">Film odtwarza się teraz we własnym odtwarzaczu TV Bro zamiast w odtwarzaczu strony: płynniej, w pełnej rozdzielczości telewizora i przy mniejszym obciążeniu urządzenia.\n\nNaciśnij ↓, aby otworzyć ustawienia wideo: jakość, dźwięk, napisy, prędkość i powtarzanie.</string>
   <string name="player_error">Nie można odtworzyć tego filmu</string>
   <string name="player_back_to_page">Wróć do strony</string>

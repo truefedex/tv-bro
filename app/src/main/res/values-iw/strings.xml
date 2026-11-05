@@ -347,6 +347,7 @@
   <string name="built_in_player">נגן מובנה</string>
   <string name="player_menu_hint">הגדרות וידאו</string>
   <string name="video_osd_cursor">סמן</string>
+  <string name="site_player">נגן האתר</string>
   <string name="built_in_player_intro">הווידאו מתנגן עכשיו בנגן של TV Bro במקום בנגן של הדף: חלק יותר, ברזולוציה המלאה של הטלוויזיה ועם פחות עומס על המכשיר.\n\nלחצו ↓ להגדרות הווידאו: איכות, שמע, כתוביות, מהירות וחזרה.</string>
   <string name="player_error">לא ניתן לנגן את הסרטון הזה</string>
   <string name="player_back_to_page">חזרה לדף</string>

@@ -338,6 +338,7 @@
     <string name="built_in_player">Player integrado</string>
     <string name="player_menu_hint">Configurações de vídeo</string>
     <string name="video_osd_cursor">Cursor</string>
+    <string name="site_player">Player do site</string>
     <string name="built_in_player_intro">O vídeo agora é reproduzido no player do TV Bro em vez do player da página: mais suave, na resolução total da sua TV e com menos carga no dispositivo.\n\nPressione ↓ para as configurações de vídeo: qualidade, áudio, legendas, velocidade e repetição.</string>
     <string name="player_error">Não é possível reproduzir este vídeo</string>
     <string name="player_back_to_page">Voltar à página</string>

@@ -347,6 +347,7 @@
   <string name="built_in_player">Встроенный плеер</string>
   <string name="player_menu_hint">Настройки видео</string>
   <string name="video_osd_cursor">Курсор</string>
+  <string name="site_player">Плеер сайта</string>
   <string name="built_in_player_intro">Видео теперь играет в собственном плеере TV Bro, а не в плеере страницы: плавнее, в полном разрешении телевизора и с меньшей нагрузкой на устройство.\n\nНажмите ↓, чтобы открыть настройки видео: качество, звук, субтитры, скорость и повтор.</string>
   <string name="player_error">Не удаётся воспроизвести это видео</string>
   <string name="player_back_to_page">Назад на страницу</string>

@@ -264,9 +264,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private val videosCallback = object : VideosPanelView.Callback {
         //the video the page plays goes on from where it is
         override fun play(video: PageVideo) {
-            //by address: the list may tell more about it than its frame
-            val playing = video.url == mediaVideo?.url || mediaVideoChoices.any { it.url == video.url }
-            openBuiltInPlayer(video, if (playing) mediaPosition() else 0.0)
+            val playing = isPageMedia(video)
+            openBuiltInPlayer(video, if (playing) mediaPosition() else 0.0, pageMedia = playing)
         }
 
         override fun openInOtherApp(video: PageVideo) {
@@ -289,31 +288,39 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         return opened
     }
 
+    /** The [video] is the one the media of the page plays (by address: the list may tell more about it than its frame) */
+    private fun isPageMedia(video: PageVideo): Boolean =
+        video.url == mediaVideo?.url || mediaVideoChoices.any { it.url == video.url }
+
+    /** The engine of the shown tab, if it has one yet (back from the picture-in-picture window to a new activity) */
+    private val currentEngine get() = controller.currentTab.value?.takeIf { it.isWebEngineCreated }?.webEngine
+
     /**
-     * Plays the [video] in the built-in player from [startPosition] seconds: the bar closes, the page leaves
-     * fullscreen and pauses its media (the player plays it instead)
+     * Plays the [video] in the built-in player from [startPosition] seconds: the bar closes and the page pauses its
+     * media (the player plays it instead). A page in fullscreen stays so under the player: [pageMedia] (the video the
+     * page plays) goes back to it from where the player is.
      */
-    private fun openBuiltInPlayer(video: PageVideo, startPosition: Double) {
+    private fun openBuiltInPlayer(video: PageVideo, startPosition: Double, pageMedia: Boolean) {
         //one video at a time: it ends the picture-in-picture window
         PictureInPicturePlayback.end()
         coverPageWithPlayer()
-        vb.vPlayerScreen.show(video, startPosition)
+        vb.vPlayerScreen.show(video, startPosition, pageMedia)
     }
 
-    /** The bar closes, the page leaves fullscreen and pauses its media, before the player shows */
+    /** The bar closes and the page pauses its media before the player shows */
     private fun coverPageWithPlayer() {
         vb.vVideosPanel.hide()
         hideMenuOverlay()
-        //the tabs may not be loaded yet (back from the picture-in-picture window to a new activity)
-        val engine = controller.currentTab.value?.takeIf { it.isWebEngineCreated }?.webEngine
-        engine?.mediaPlayback?.pausePlayback()
-        if (fullscreen) engine?.hideFullscreenView()
+        //the keys and the seek bar are the player's: before the pause, which would show the bar of the page
+        videoMode.suspended = true
+        currentEngine?.mediaPlayback?.pausePlayback()
     }
 
     override fun showPictureInPicturePlayer(): Boolean {
         val player = PictureInPicturePlayback.takeBack() ?: return true
         coverPageWithPlayer()
-        vb.vPlayerScreen.adopt(player)
+        val video = player.state.value?.video
+        vb.vPlayerScreen.adopt(player, pageMedia = video != null && isPageMedia(video))
         return true
     }
 
@@ -322,8 +329,28 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
         override fun openInOtherApp(video: PageVideo): Boolean = this@TvShell.openInOtherApp(video)
 
-        override fun onClosed() {
-            controller.currentTab.value?.webEngine?.getView()?.requestFocus()
+        override fun onClosed(exit: PlayerScreenView.Exit, position: Double?) {
+            //the activity ends, or the player of the picture-in-picture window takes the place of this one
+            if (exit == PlayerScreenView.Exit.CLOSED) return
+            val engine = currentEngine
+            val media = engine?.mediaPlayback
+            when (exit) {
+                PlayerScreenView.Exit.SITE_PLAYER -> {
+                    position?.let { media?.seekTo(it) }
+                    media?.resumePlayback()
+                }
+                PlayerScreenView.Exit.BACK -> position?.let { media?.seekTo(it) }
+                else -> {}
+            }
+            val leaveFullscreen = fullscreen && (exit == PlayerScreenView.Exit.BACK || exit == PlayerScreenView.Exit.ELSEWHERE)
+            if (leaveFullscreen) {
+                //the video mode of the page stays off until fullscreen is gone: no seek bar meanwhile
+                engine?.hideFullscreenView()
+            } else {
+                videoMode.suspended = false
+            }
+            //in fullscreen the fullscreen view of the page kept the focus (the view of the engine is hidden behind it)
+            if (!fullscreen) engine?.getView()?.requestFocus()
         }
 
         override fun openPictureInPicture() = PictureInPictureActivity.start(activity)
@@ -489,6 +516,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     override fun onFullscreenChanged(fullscreen: Boolean) {
         this.fullscreen = fullscreen
         if (fullscreen) findInPage.close()
+        //the player that covered the page closed with Back or went elsewhere: the page left fullscreen
+        if (!fullscreen && !vb.vPlayerScreen.isOpen) videoMode.suspended = false
         videoMode.setFullscreen(fullscreen)
         updatePageCovered()
     }
@@ -597,7 +626,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     /** The video of the fullscreen view goes on in the built-in player, from where it is; false if its stream is not known */
     private fun openMediaVideoInPlayer(): Boolean {
         val video = mediaVideo ?: return false
-        openBuiltInPlayer(video, mediaPosition())
+        openBuiltInPlayer(video, mediaPosition(), pageMedia = true)
         return true
     }
 

@@ -317,6 +317,7 @@
   <string name="built_in_player">内置播放器</string>
   <string name="player_menu_hint">视频设置</string>
   <string name="video_osd_cursor">光标</string>
+  <string name="site_player">网站播放器</string>
   <string name="built_in_player_intro">视频现在在 TV Bro 自己的播放器中播放，而不是网页的播放器：更流畅，以电视的完整分辨率播放，设备负载更低。\n\n按 ↓ 打开视频设置：画质、音频、字幕、速度和循环播放。</string>
   <string name="player_error">无法播放此视频</string>
   <string name="player_back_to_page">返回页面</string>

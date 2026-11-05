@@ -338,6 +338,7 @@
     <string name="built_in_player">Lecteur intégré</string>
     <string name="player_menu_hint">Paramètres vidéo</string>
     <string name="video_osd_cursor">Curseur</string>
+    <string name="site_player">Lecteur du site</string>
     <string name="built_in_player_intro">La vidéo est maintenant lue dans le lecteur de TV Bro au lieu de celui de la page : plus fluide, dans la pleine résolution de votre téléviseur et avec moins de charge pour l\'appareil.\n\nAppuyez sur ↓ pour les paramètres vidéo : qualité, audio, sous-titres, vitesse et répétition.</string>
     <string name="player_error">Impossible de lire cette vidéo</string>
     <string name="player_back_to_page">Retour à la page</string>

@@ -48,6 +48,12 @@ function tvBroWatchMedia(send) {
         return pick(mediaIn(document)) || (lastPlayed && lastPlayed.isConnected ? lastPlayed : null);
     }
 
+    // a page may refuse to play: its promise is rejected
+    function play(m) {
+        var p = m.play();
+        if (p && p.catch) p.catch(function() {});
+    }
+
     function seek(m, position) {
         var end = isFinite(m.duration) ? m.duration : Infinity;
         m.currentTime = Math.max(0, Math.min(end, position));
@@ -61,12 +67,10 @@ function tvBroWatchMedia(send) {
         var seconds = parseFloat(parts[1]);
         switch (parts[0]) {
             case 'toggle':
-                if (m.paused || m.ended) {
-                    var p = m.play();
-                    if (p && p.catch) p.catch(function() {});
-                } else {
-                    m.pause();
-                }
+                if (m.paused || m.ended) play(m); else m.pause();
+                break;
+            case 'play':
+                play(m);
                 break;
             case 'pause':
                 m.pause();

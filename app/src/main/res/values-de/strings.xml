@@ -326,6 +326,7 @@
   <string name="built_in_player">Integrierter Player</string>
   <string name="player_menu_hint">Videoeinstellungen</string>
   <string name="video_osd_cursor">Cursor</string>
+  <string name="site_player">Player der Website</string>
   <string name="built_in_player_intro">Das Video läuft jetzt im eigenen Player von TV Bro statt im Player der Seite: flüssiger, in der vollen Auflösung deines Fernsehers und mit weniger Last für das Gerät.\n\nDrücke ↓ für die Videoeinstellungen: Qualität, Ton, Untertitel, Geschwindigkeit und Wiederholen.</string>
   <string name="player_error">Dieses Video kann nicht abgespielt werden</string>
   <string name="player_back_to_page">Zurück zur Seite</string>

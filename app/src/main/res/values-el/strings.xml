@@ -328,6 +328,7 @@
     <string name="built_in_player">Ενσωματωμένο πρόγραμμα αναπαραγωγής</string>
     <string name="player_menu_hint">Ρυθμίσεις βίντεο</string>
     <string name="video_osd_cursor">Δείκτης</string>
+    <string name="site_player">Πρόγραμμα αναπαραγωγής ιστότοπου</string>
     <string name="built_in_player_intro">Το βίντεο παίζει τώρα στο πρόγραμμα αναπαραγωγής του TV Bro αντί για αυτό της σελίδας: πιο ομαλά, στην πλήρη ανάλυση της τηλεόρασής σας και με λιγότερο φόρτο για τη συσκευή.\n\nΠατήστε ↓ για τις ρυθμίσεις βίντεο: ποιότητα, ήχος, υπότιτλοι, ταχύτητα και επανάληψη.</string>
     <string name="player_error">Δεν είναι δυνατή η αναπαραγωγή αυτού του βίντεο</string>
     <string name="player_back_to_page">Επιστροφή στη σελίδα</string>

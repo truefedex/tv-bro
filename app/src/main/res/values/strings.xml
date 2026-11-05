@@ -279,6 +279,7 @@
     <string name="player_menu_hint">Video settings</string>
     <!-- on the seek bar of a fullscreen video, after the key cap of Up: it shows the cursor for the controls of the page -->
     <string name="video_osd_cursor">Cursor</string>
+    <string name="site_player">Site player</string>
     <!-- the built-in player -->
     <string name="player_error">This video can not be played</string>
     <!-- the dialog when the built-in player opens (its title is built_in_player) -->

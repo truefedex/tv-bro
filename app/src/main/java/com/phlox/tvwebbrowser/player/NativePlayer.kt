@@ -119,6 +119,7 @@ class NativePlayer(context: Context) {
     fun mediaCommand(command: MediaCommand) {
         when (command) {
             MediaCommand.TOGGLE -> togglePlayback()
+            MediaCommand.PLAY -> play()
             MediaCommand.STOP, MediaCommand.PAUSE -> pause()
             MediaCommand.REWIND -> seekBy(-VideoModeController.STEP)
             MediaCommand.FAST_FORWARD -> seekBy(VideoModeController.STEP)

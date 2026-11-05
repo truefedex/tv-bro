@@ -284,6 +284,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         webView?.mediaCommand(MediaCommand.PAUSE)
     }
 
+    override fun resumePlayback() {
+        webView?.mediaCommand(MediaCommand.PLAY)
+    }
+
     override fun find(text: String) {
         if (text.isEmpty()) {
             clearFind()
