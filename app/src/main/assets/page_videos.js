@@ -4,11 +4,14 @@
 // {videos: [{url, element, type, width, height, duration}], subtitles: [{url, lang, label, showing}], title, page,
 // ua}; an empty list when the frame goes. The subtitles of the frame are the <track> files of its media elements
 // (showing: the engine draws them now; players that draw them themselves leave them hidden), those the configuration
-// of a PlayerJS player lists, and the subtitle files the page loads (the one loaded last counts as shown). The app decides which addresses are videos: here only the candidates are picked, the media elements
-// (their addresses, and the files they load) and the manifests of streams the page loads: by the extension
-// (.m3u8, .mpd), or by the type of the response where the engine tells it (contentType of Resource Timing:
-// empty for other sites unless the request passed CORS, as players load manifests), then reported as type.
-function tvBroWatchPageVideos(send) {
+// of a PlayerJS player lists, and the subtitle files the page loads (the one loaded last counts as shown). The app
+// decides which addresses are videos: here only the candidates are picked, the media elements (their addresses, and
+// the files they load) and the manifests of streams the page loads: by the extension (.m3u8, .mpd), or by the type
+// of the response where the engine tells it (contentType of Resource Timing: empty for other sites unless the
+// request passed CORS, as players load manifests), then reported as type. With frames (WebView, which runs no
+// scripts in frames of about:blank and about:srcdoc, where many players write themselves) the same-origin frames
+// inside that have no scripts of the app count as part of this frame (see media_controls.js).
+function tvBroWatchPageVideos(send, frames) {
     var MAX = 50;
     var STREAM_TYPES = /^(application|audio)\/(vnd\.apple\.mpegurl|x-mpegurl|mpegurl|dash\+xml)$/i;
     var found = {};
@@ -65,8 +68,36 @@ function tvBroWatchPageVideos(send) {
         send(message);
     }
 
+    // the windows of the frames inside without scripts of the app (they set tvBroMediaCommand), nested too
+    function childWindows() {
+        var result = [];
+        if (!frames) return result;
+        (function walk(doc) {
+            var list = doc.querySelectorAll('iframe, frame');
+            for (var i = 0; i < list.length; i++) {
+                try {
+                    var w = list[i].contentWindow;
+                    if (!w || !w.document || w.tvBroMediaCommand) continue;
+                    result.push(w);
+                    walk(w.document);
+                } catch (e) {} // another origin: its own scripts run there
+            }
+        })(document);
+        return result;
+    }
+
+    function documents() {
+        return [document].concat(childWindows().map(function(w) { return w.document; }));
+    }
+
+    function all(selector) {
+        return documents().reduce(function(list, doc) {
+            return list.concat(Array.prototype.slice.call(doc.querySelectorAll(selector)));
+        }, []);
+    }
+
     function scanElements() {
-        var videos = document.querySelectorAll('video');
+        var videos = all('video');
         var tracks = [];
         for (var i = 0; i < videos.length; i++) {
             var v = videos[i];
@@ -100,6 +131,11 @@ function tvBroWatchPageVideos(send) {
             if (!url || !/^https?:/i.test(url) || found.length >= MAX) return;
             found.push({url: url, label: label ? String(label) : null, lang: lang ? String(lang) : null, showing: !!showing});
         }
+        [page].concat(childWindows()).forEach(function(page) { scanPlayersOf(page, put); });
+        apiSubtitles = found;
+    }
+
+    function scanPlayersOf(page, put) {
         try {
             if (typeof page.jwplayer == 'function') {
                 var jw = page.jwplayer();
@@ -132,7 +168,6 @@ function tvBroWatchPageVideos(send) {
                 }
             }
         } catch (e) {}
-        apiSubtitles = found;
     }
 
     // the subtitles of the frame: the <track> files, those of the configuration of its player, those it loaded;
@@ -169,7 +204,7 @@ function tvBroWatchPageVideos(send) {
     var configsScanned = false;
     function scanPlayerConfigs() {
         if (configsScanned && configSubtitles.length) return;
-        var scripts = document.querySelectorAll('script:not([src])');
+        var scripts = all('script:not([src])');
         var found = [];
         for (var i = 0; i < scripts.length; i++) {
             var text = scripts[i].textContent;
@@ -235,11 +270,36 @@ function tvBroWatchPageVideos(send) {
         try { performance.getEntriesByType('resource').forEach(onResource); } catch (e2) {}
     }
     // media events do not bubble, but the window gets them while they are captured
-    ['loadedmetadata', 'durationchange', 'play', 'emptied'].forEach(function(type) {
-        window.addEventListener(type, function(e) {
-            if (e.target && e.target.tagName == 'VIDEO') scanElements();
-        }, true);
-    });
+    function onVideoEvent(e) {
+        if (e.target && e.target.tagName == 'VIDEO') scanElements();
+    }
+    function listen(w) {
+        ['loadedmetadata', 'durationchange', 'play', 'emptied'].forEach(function(type) {
+            w.addEventListener(type, onVideoEvent, true);
+        });
+    }
+    listen(window);
+    if (frames) {
+        // the frames without scripts: their listeners again now and then (a page that writes a frame anew drops
+        // them; the same listener is added only once), and the files they loaded since (their own timelines)
+        var resourcesSeen = typeof WeakMap == 'function' ? new WeakMap() : null;
+        setInterval(function() {
+            var windows = childWindows();
+            if (!windows.length || !resourcesSeen) return;
+            windows.forEach(function(w) {
+                listen(w);
+                try {
+                    var entries = w.performance.getEntriesByType('resource');
+                    var seen = resourcesSeen.get(w) || 0;
+                    // a timeline that was cleared (another document in the frame) starts again
+                    if (entries.length < seen) seen = 0;
+                    for (var i = seen; i < entries.length; i++) onResource(entries[i]);
+                    resourcesSeen.set(w, entries.length);
+                } catch (e) {}
+            });
+            scanElements();
+        }, 1000);
+    }
     document.addEventListener('DOMContentLoaded', scanElements);
     window.addEventListener('load', scanElements);
     // a frame that goes away (or into the back-forward cache) has no videos for the app

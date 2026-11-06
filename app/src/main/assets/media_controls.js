@@ -3,8 +3,10 @@
 // there). tvBroWatchMedia(send) reports the state of the media of the frame that the commands go to as a JSON
 // string to send ({media: false} when it has none) and returns the function that runs a command; the app sends
 // each command to the frame that shows a video in fullscreen, else to the one that plays. Without send (old
-// WebViews: the main frame only) it reports nothing and only runs commands.
-function tvBroWatchMedia(send) {
+// WebViews: the main frame only) it reports nothing and only runs commands. With frames (WebView, which runs no
+// scripts in frames of about:blank and about:srcdoc, where many players write themselves) the media of the
+// same-origin frames inside that have no scripts of the app count as media of this frame.
+function tvBroWatchMedia(send, frames) {
     var lastPlayed = null;
     var lastState = '';
     // the media that met encrypted data: the page plays it with DRM, often before it sets its mediaKeys
@@ -14,15 +16,56 @@ function tvBroWatchMedia(send) {
         return !m.paused && !m.ended;
     }
 
-    function fullscreenElement() {
-        var e = document.fullscreenElement || document.webkitFullscreenElement;
-        // an ancestor frame sees the iframe as its fullscreen element: the frame inside holds the media
-        return e && e.tagName != 'IFRAME' && e.tagName != 'FRAME' ? e : null;
+    // the window of a frame element that has no scripts of the app (they set tvBroMediaCommand), null otherwise
+    function scriptlessWindow(frame) {
+        try {
+            var w = frame.contentWindow;
+            return w && w.document && !w.tvBroMediaCommand ? w : null;
+        } catch (e) {
+            return null; // another origin: its own scripts run there
+        }
     }
 
+    // those windows inside this one, also nested in each other
+    function childWindows() {
+        var result = [];
+        if (!frames) return result;
+        (function walk(doc) {
+            var list = doc.querySelectorAll('iframe, frame');
+            for (var i = 0; i < list.length; i++) {
+                var w = scriptlessWindow(list[i]);
+                if (!w) continue;
+                result.push(w);
+                walk(w.document);
+            }
+        })(document);
+        return result;
+    }
+
+    function fullscreenIn(doc) {
+        var e = doc.fullscreenElement || doc.webkitFullscreenElement;
+        if (!e) return null;
+        if (e.tagName != 'IFRAME' && e.tagName != 'FRAME') return e;
+        // an ancestor frame sees the iframe as its fullscreen element: the frame inside holds the media, and
+        // tells it itself unless it has no scripts
+        var w = frames && scriptlessWindow(e);
+        return w ? fullscreenIn(w.document) : null;
+    }
+
+    function fullscreenElement() {
+        return fullscreenIn(document);
+    }
+
+    // (by the tag: media of another frame are not instances of the classes of this one)
     function mediaIn(root) {
-        if (root instanceof HTMLMediaElement) return [root];
+        if (root.tagName == 'VIDEO' || root.tagName == 'AUDIO') return [root];
         return Array.prototype.slice.call(root.querySelectorAll('video, audio'));
+    }
+
+    function allMedia() {
+        return childWindows().reduce(function(list, w) {
+            return list.concat(mediaIn(w.document));
+        }, mediaIn(document));
     }
 
     function area(m) {
@@ -47,7 +90,7 @@ function tvBroWatchMedia(send) {
         var m = fs && pick(mediaIn(fs));
         if (m) return m;
         if (lastPlayed && lastPlayed.isConnected && isPlaying(lastPlayed)) return lastPlayed;
-        return pick(mediaIn(document)) || (lastPlayed && lastPlayed.isConnected ? lastPlayed : null);
+        return pick(allMedia()) || (lastPlayed && lastPlayed.isConnected ? lastPlayed : null);
     }
 
     // a page may refuse to play: its promise is rejected
@@ -143,18 +186,31 @@ function tvBroWatchMedia(send) {
 
     if (!send) return command;
     // media events do not bubble, but the window gets them while they are captured
-    ['play', 'pause', 'ended', 'emptied', 'seeked', 'playing', 'waiting', 'ratechange', 'durationchange',
-            'loadedmetadata', 'volumechange', 'timeupdate', 'encrypted'].forEach(function(type) {
-        window.addEventListener(type, function(e) {
-            if (!(e.target instanceof HTMLMediaElement)) return;
-            if (type == 'play') lastPlayed = e.target;
-            if (type == 'encrypted' && encrypted) encrypted.add(e.target);
-            if (type == 'timeupdate') reportTime(); else report();
-        }, true);
-    });
-    ['fullscreenchange', 'webkitfullscreenchange'].forEach(function(type) {
-        window.addEventListener(type, report, true);
-    });
+    var MEDIA_EVENTS = ['play', 'pause', 'ended', 'emptied', 'seeked', 'playing', 'waiting', 'ratechange',
+        'durationchange', 'loadedmetadata', 'volumechange', 'timeupdate', 'encrypted'];
+    function onMediaEvent(e) {
+        var t = e.target;
+        if (!t || (t.tagName != 'VIDEO' && t.tagName != 'AUDIO')) return;
+        if (e.type == 'play') lastPlayed = t;
+        if (e.type == 'encrypted' && encrypted) encrypted.add(t);
+        if (e.type == 'timeupdate') reportTime(); else report();
+    }
+    function listen(w) {
+        MEDIA_EVENTS.forEach(function(type) { w.addEventListener(type, onMediaEvent, true); });
+        ['fullscreenchange', 'webkitfullscreenchange'].forEach(function(type) {
+            w.addEventListener(type, report, true);
+        });
+    }
+    listen(window);
+    if (frames) {
+        // the frames without scripts come and go, and a page that writes one anew (document.open) drops its
+        // listeners: they are added again now and then (the same listener is added only once)
+        setInterval(function() {
+            var windows = childWindows();
+            windows.forEach(listen);
+            if (windows.length) reportTime();
+        }, 1000);
+    }
     // a frame that goes away (or into the back-forward cache) has no media for the app
     window.addEventListener('pagehide', function() {
         post(JSON.stringify({media: false}));
