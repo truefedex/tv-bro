@@ -252,6 +252,10 @@ function tvBroWatchPageVideos(send, frames) {
             add(entry.name, false, null, type.toLowerCase());
         } else if (/\.(m3u8|mpd)$/.test(path)) {
             add(entry.name, false, null);
+        } else if (type && /^(application|text)\/xml$/i.test(type) &&
+                (entry.initiatorType == 'fetch' || entry.initiatorType == 'xmlhttprequest')) {
+            // maybe the manifest of a DASH stream without its extension and type (player-venom): the app reads it
+            add(entry.name, false, null, type.toLowerCase());
         } else if (entry.initiatorType == 'video') {
             add(entry.name, true, null);
         } else if (isSubtitleFile(entry.name, path) && /^https?:/i.test(entry.name)) {

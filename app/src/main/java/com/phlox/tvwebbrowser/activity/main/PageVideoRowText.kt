@@ -64,7 +64,7 @@ object PageVideoRowText {
     /** HLS, DASH, or the extension of a file (MP4); null for a file without one */
     fun kind(video: PageVideo): String? = when (video.kind) {
         PageVideo.Kind.HLS -> "HLS"
-        PageVideo.Kind.DASH -> "DASH"
+        PageVideo.Kind.DASH, PageVideo.Kind.XML -> "DASH"
         PageVideo.Kind.FILE -> Uri.parse(video.url).lastPathSegment?.substringAfterLast('.', "")
             ?.takeIf { it.isNotEmpty() && it.length <= 4 }?.uppercase()
     }

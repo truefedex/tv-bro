@@ -24,13 +24,20 @@ data class PageVideo(
     /** The subtitle files of the media elements of its frame (the stream often carries none itself) */
     val subtitles: List<PageSubtitle> = emptyList(),
 ) {
-    enum class Kind { FILE, HLS, DASH }
+    enum class Kind {
+        FILE, HLS, DASH,
+        /**
+         * An XML file the page fetched, which may be the manifest of a DASH stream without its extension and type: the
+         * engine reads it ([HlsPlaylists]), and [PageVideoList] gives it as [DASH] only if it is one, else never
+         */
+        XML
+    }
 
     /** The MIME type players know it by */
     val mimeType: String
         get() = when (kind) {
             Kind.HLS -> "application/x-mpegURL"
-            Kind.DASH -> "application/dash+xml"
+            Kind.DASH, Kind.XML -> "application/dash+xml"
             Kind.FILE -> PageVideoUrls.fileMimeType(url)
         }
 }
@@ -123,7 +130,7 @@ data class PageVideoMatch(val video: PageVideo?, val choices: List<PageVideo> = 
             val media = when (val playlist = playlists(stream.url)) {
                 is HlsPlaylist.Media -> listOf(playlist)
                 is HlsPlaylist.Master -> playlist.playlists.mapNotNull { playlists(it) as? HlsPlaylist.Media }
-                null -> emptyList()
+                HlsPlaylist.Dash, null -> emptyList()
             }
             return media.firstOrNull { it.ended && it.duration > 0 }?.duration
         }
@@ -141,6 +148,7 @@ object PageVideoUrls {
         "flv" to "video/x-flv", "3gp" to "video/3gpp")
     private val HLS_TYPES = setOf("application/vnd.apple.mpegurl", "application/x-mpegurl", "audio/mpegurl",
         "audio/x-mpegurl")
+    private val XML_TYPES = setOf("application/xml", "text/xml")
 
     /**
      * The kind of the video at the http(s) [url], null if it is none: the manifests of HLS and DASH, by the
@@ -158,6 +166,7 @@ object PageVideoUrls {
             extension == "mpd" -> PageVideo.Kind.DASH
             //what a media element plays is a file, whatever its address looks like
             fromMediaElement -> PageVideo.Kind.FILE
+            mime in XML_TYPES -> PageVideo.Kind.XML
             else -> null
         }
     }
@@ -238,7 +247,7 @@ class PageVideoList<F : Any>(private val limit: Int = 50, private val playlists:
 
     fun videos(): List<PageVideo> {
         val byUrl = LinkedHashMap<String, PageVideo>()
-        for (video in frames.values.flatten()) {
+        for (video in resolved(frames.values.flatten())) {
             val known = byUrl[video.url]
             byUrl[video.url] = if (known == null) video else merge(known, video)
         }
@@ -246,16 +255,25 @@ class PageVideoList<F : Any>(private val limit: Int = 50, private val playlists:
     }
 
     /** The videos one frame reported, the variants of an HLS stream as one */
-    fun videosOf(frame: F): List<PageVideo> = withoutVariants(frames[frame] ?: emptyList())
+    fun videosOf(frame: F): List<PageVideo> = withoutVariants(resolved(frames[frame] ?: emptyList()))
 
     /**
-     * The HLS playlists to read ([HlsPlaylists]) where the addresses leave the streams of a frame unclear: all
-     * of those of each frame that has more than one stream by its addresses (a master with qualities that lie
-     * elsewhere, or another stream, an ad, whose duration tells it apart)
+     * The files to read ([HlsPlaylists]): the XML files the frames fetched (DASH manifests or not), and the HLS
+     * playlists where the addresses leave the streams of a frame unclear: all of those of each frame that has more
+     * than one stream by its addresses (a master with qualities that lie elsewhere, or another stream, an ad, whose
+     * duration tells it apart)
      */
     fun unclearStreams(): List<PageVideo> = frames.values.flatMap { videos ->
-        val streams = withoutVariants(videos).count { it.kind != PageVideo.Kind.FILE }
-        if (streams > 1) videos.filter { it.kind == PageVideo.Kind.HLS } else emptyList()
+        val xml = videos.filter { it.kind == PageVideo.Kind.XML }
+        val streams = withoutVariants(resolved(videos)).count { it.kind != PageVideo.Kind.FILE }
+        xml + if (streams > 1) videos.filter { it.kind == PageVideo.Kind.HLS } else emptyList()
+    }
+
+    /** The XML files that were read: the DASH manifests among them as DASH, the others left out */
+    private fun resolved(videos: List<PageVideo>): List<PageVideo> = videos.mapNotNull { video ->
+        if (video.kind != PageVideo.Kind.XML) video
+        else if (playlists(video.url) == HlsPlaylist.Dash) video.copy(kind = PageVideo.Kind.DASH)
+        else null
     }
 
     private fun withoutVariants(videos: List<PageVideo>): List<PageVideo> {

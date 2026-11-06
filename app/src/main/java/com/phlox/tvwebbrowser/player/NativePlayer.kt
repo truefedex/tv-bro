@@ -243,7 +243,7 @@ class NativePlayer(context: Context) {
         /** Streams by their manifests; files by what the server says */
         fun mimeType(kind: PageVideo.Kind): String? = when (kind) {
             PageVideo.Kind.HLS -> MimeTypes.APPLICATION_M3U8
-            PageVideo.Kind.DASH -> MimeTypes.APPLICATION_MPD
+            PageVideo.Kind.DASH, PageVideo.Kind.XML -> MimeTypes.APPLICATION_MPD
             PageVideo.Kind.FILE -> null
         }
 
