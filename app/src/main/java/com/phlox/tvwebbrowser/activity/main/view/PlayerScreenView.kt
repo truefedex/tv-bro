@@ -64,6 +64,8 @@ class PlayerScreenView @JvmOverloads constructor(
         fun cookies(url: String): String?
         /** Opens the video in another app; false if there is none */
         fun openInOtherApp(video: PageVideo): Boolean
+        /** Downloads the video, a file ([PageVideo.Kind.FILE]: streams are no files to download) */
+        fun download(video: PageVideo)
         /**
          * The player closed ([exit]); [position] is where it was, in seconds, when it played the video of the page
          * (null for another video)
@@ -502,6 +504,12 @@ class PlayerScreenView @JvmOverloads constructor(
         rows += PlayerPanelView.Row(R.drawable.ic_open_in_new, context.getString(R.string.player_open_in_other_app),
             dividerBefore = site == null) {
             if (callback.openInOtherApp(state.video)) close(Exit.ELSEWHERE)
+        }
+        //the player plays on while the file downloads
+        if (state.video.kind == PageVideo.Kind.FILE) {
+            rows += PlayerPanelView.Row(R.drawable.ic_downloads, context.getString(R.string.download)) {
+                callback.download(state.video)
+            }
         }
         return PlayerPanelView.Page(context.getString(R.string.player_menu_hint), caption(state.video, state.videoHeight, null),
             rows, context.getString(R.string.player_panel_close), focus.coerceIn(0, rows.lastIndex))

@@ -277,10 +277,12 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
         override fun copyLink(video: PageVideo) = host.copyToClipboard(video.url)
 
-        override fun download(video: PageVideo) {
-            val cookies = controller.currentTab.value?.webEngine?.getCookies(video.url)
-            host.download(DownloadRequest.forLink(video.url, video.pageUrl ?: "", video.userAgent, cookies))
-        }
+        override fun download(video: PageVideo) = downloadVideo(video)
+    }
+
+    private fun downloadVideo(video: PageVideo) {
+        val cookies = controller.currentTab.value?.webEngine?.getCookies(video.url)
+        host.download(DownloadRequest.forLink(video.url, video.pageUrl ?: "", video.userAgent, cookies))
     }
 
     /** In a player app chosen in the dialog of Android; @return false if there is none (the user is told) */
@@ -336,6 +338,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         override fun cookies(url: String): String? = controller.currentTab.value?.webEngine?.getCookies(url)
 
         override fun openInOtherApp(video: PageVideo): Boolean = this@TvShell.openInOtherApp(video)
+
+        override fun download(video: PageVideo) = downloadVideo(video)
 
         override fun onClosed(exit: PlayerScreenView.Exit, position: Double?) {
             //the activity ends, or the player of the picture-in-picture window takes the place of this one
@@ -435,10 +439,11 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     /** Toasts tell when downloads end; the panel is not opened by itself (it would take the remote from the page) */
     private fun onDownloadEvent(event: DownloadEvent) {
         when (event) {
+            //over the player at the top: its seek bar is at the bottom, and its layer is above the toasts there
             is DownloadEvent.Completed -> NotificationView.show(vb.rlRoot, R.drawable.ic_downloads,
-                activity.getString(R.string.download_complete_named, event.item.filename))
+                activity.getString(R.string.download_complete_named, event.item.filename), top = vb.vPlayerScreen.isOpen)
             is DownloadEvent.Failed -> NotificationView.show(vb.rlRoot, R.drawable.ic_error,
-                activity.getString(R.string.download_failed_named, event.item.filename))
+                activity.getString(R.string.download_failed_named, event.item.filename), top = vb.vPlayerScreen.isOpen)
         }
     }
 
@@ -1133,7 +1138,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun onDownloadStarted(download: Download) {
         NotificationView.show(vb.rlRoot, R.drawable.ic_downloads,
-            activity.getString(R.string.downloading_named_file, download.filename))
+            activity.getString(R.string.downloading_named_file, download.filename), top = vb.vPlayerScreen.isOpen)
     }
 
     override fun showContextMenu(
