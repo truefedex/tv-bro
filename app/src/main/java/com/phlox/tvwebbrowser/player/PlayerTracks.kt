@@ -59,14 +59,17 @@ object PlayerTracks {
     }
 
     /** The audio tracks; empty when there is only one */
-    fun audioTracks(tracks: Tracks, texts: Texts): List<Option> {
+    fun audioTracks(tracks: Tracks, parameters: TrackSelectionParameters, texts: Texts): List<Option> {
         val groups = groups(tracks, C.TRACK_TYPE_AUDIO)
         if (groups.size < 2) return emptyList()
+        //the choice of the user, before the player has applied it to its tracks
+        val chosen = parameters.overrides.values.firstOrNull { it.type == C.TRACK_TYPE_AUDIO }
         return groups.mapIndexed { i, group ->
             val format = group.getTrackFormat(0)
             val label = listOfNotNull(trackName(format) ?: texts.track(i + 1), channels(format.channelCount))
                 .joinToString(" · ")
-            Option(label, group.isSelected, Choice.Group(group.mediaTrackGroup))
+            val selected = if (chosen != null) chosen.mediaTrackGroup == group.mediaTrackGroup else group.isSelected
+            Option(label, selected, Choice.Group(group.mediaTrackGroup))
         }
     }
 

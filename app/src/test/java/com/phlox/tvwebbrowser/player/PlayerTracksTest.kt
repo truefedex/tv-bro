@@ -60,10 +60,19 @@ class PlayerTracksTest {
         val en = group(0, audio("en", 6))
         val uk = group(null, audio("uk", 2))
         val unknown = group(null, audio(null, 2))
-        val options = PlayerTracks.audioTracks(Tracks(listOf(en, uk, unknown)), texts)
+        val options = PlayerTracks.audioTracks(Tracks(listOf(en, uk, unknown)), params, texts)
         assertEquals(listOf("English · 5.1", "Українська · 2.0", "Track 3 · 2.0"), options.map { it.label })
         assertEquals(listOf(true, false, false), options.map { it.selected })
-        assertTrue(PlayerTracks.audioTracks(Tracks(listOf(en)), texts).isEmpty())
+        assertTrue(PlayerTracks.audioTracks(Tracks(listOf(en)), params, texts).isEmpty())
+    }
+
+    @Test
+    fun theAudioTrackChosenIsCheckedBeforeThePlayerSwitchesToIt() {
+        val en = group(0, audio("en", 6))
+        val uk = group(null, audio("uk", 2))
+        val chosen = params.buildUpon().setOverrideForType(TrackSelectionOverride(uk.mediaTrackGroup, 0)).build()
+        val options = PlayerTracks.audioTracks(Tracks(listOf(en, uk)), chosen, texts)
+        assertEquals(listOf(false, true), options.map { it.selected })
     }
 
     @Test

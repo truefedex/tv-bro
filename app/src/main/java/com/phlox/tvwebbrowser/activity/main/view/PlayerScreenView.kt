@@ -472,7 +472,7 @@ class PlayerScreenView @JvmOverloads constructor(
             }
         }
         tracks(R.drawable.ic_quality, R.string.player_quality, C.TRACK_TYPE_VIDEO, PlayerTracks.qualities(state.tracks, parameters, texts))
-        tracks(R.drawable.ic_audio_track, R.string.player_audio, C.TRACK_TYPE_AUDIO, PlayerTracks.audioTracks(state.tracks, texts))
+        tracks(R.drawable.ic_audio_track, R.string.player_audio, C.TRACK_TYPE_AUDIO, PlayerTracks.audioTracks(state.tracks, parameters, texts))
         tracks(R.drawable.ic_subtitles, R.string.player_subtitles, C.TRACK_TYPE_TEXT,
             PlayerTracks.subtitles(state.tracks, parameters, texts))
         val speed = player.speed
