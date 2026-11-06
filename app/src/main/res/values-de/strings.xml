@@ -372,6 +372,7 @@
   <string name="player_repeat_off">Aus</string>
   <string name="player_picture_in_picture">Bild-im-Bild</string>
   <string name="player_track">Spur %d</string>
+  <string name="player_captions_in_video">Untertitel im Video</string>
   <string name="err_no_video_player">Keine Videoplayer-App installiert, zum Beispiel VLC oder MX Player</string>
   <plurals name="videos_on_page_count">
     <item quantity="one">Videos auf der Seite, %d gefunden</item>

@@ -394,6 +394,7 @@
     <string name="player_repeat_off">Vyp.</string>
     <string name="player_picture_in_picture">Obraz v obraze</string>
     <string name="player_track">Stopa %d</string>
+    <string name="player_captions_in_video">Titulky ve videu</string>
     <string name="err_no_video_player">Není nainstalován žádný přehrávač videa, například VLC nebo MX Player</string>
     <plurals name="videos_on_page_count">
         <item quantity="one">Videa na stránce, nalezeno: %d</item>

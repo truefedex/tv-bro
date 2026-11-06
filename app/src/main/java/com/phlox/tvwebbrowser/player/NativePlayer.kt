@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -102,7 +103,9 @@ class NativePlayer(context: Context) {
         this.player = player
         if (ownFrameRate) player.videoChangeFrameRateStrategy = C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_OFF
         player.addListener(listener)
-        val item = MediaItem.Builder().setUri(video.url).setMimeType(mimeType(video.kind)).build()
+        val item = MediaItem.Builder().setUri(video.url).setMimeType(mimeType(video.kind))
+            .setSubtitleConfigurations(subtitleConfigurations(video))
+            .build()
         player.setMediaItem(item, (startPosition * 1000).toLong().coerceAtLeast(0))
         player.playWhenReady = true
         player.prepare()
@@ -242,6 +245,19 @@ class NativePlayer(context: Context) {
             PageVideo.Kind.HLS -> MimeTypes.APPLICATION_M3U8
             PageVideo.Kind.DASH -> MimeTypes.APPLICATION_MPD
             PageVideo.Kind.FILE -> null
+        }
+
+        /**
+         * The subtitle files of the page ([PageVideo.subtitles], WebVTT as `<track>` files are), loaded with the
+         * headers of the video; the one the page shows now is chosen at the start, the others wait for the menu
+         */
+        fun subtitleConfigurations(video: PageVideo): List<MediaItem.SubtitleConfiguration> = video.subtitles.map {
+            MediaItem.SubtitleConfiguration.Builder(it.url.toUri())
+                .setMimeType(MimeTypes.TEXT_VTT)
+                .setLanguage(it.language)
+                .setLabel(it.label)
+                .setSelectionFlags(if (it.showing) C.SELECTION_FLAG_DEFAULT else 0)
+                .build()
         }
     }
 }

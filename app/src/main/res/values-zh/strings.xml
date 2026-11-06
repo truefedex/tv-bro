@@ -363,6 +363,7 @@
   <string name="player_repeat_off">关闭</string>
   <string name="player_picture_in_picture">画中画</string>
   <string name="player_track">音轨 %d</string>
+  <string name="player_captions_in_video">视频内嵌字幕</string>
   <string name="err_no_video_player">未安装视频播放器应用，例如 VLC 或 MX Player</string>
   <plurals name="videos_on_page_count">
     <item quantity="other">页面中的视频，找到 %d 个</item>

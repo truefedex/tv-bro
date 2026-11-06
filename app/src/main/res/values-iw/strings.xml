@@ -393,6 +393,7 @@
   <string name="player_repeat_off">כבוי</string>
   <string name="player_picture_in_picture">תמונה בתוך תמונה</string>
   <string name="player_track">רצועה %d</string>
+  <string name="player_captions_in_video">כתוביות בתוך הסרטון</string>
   <string name="err_no_video_player">לא מותקנת אפליקציה לנגינת וידאו, למשל VLC או MX Player</string>
   <plurals name="videos_on_page_count">
     <item quantity="one">סרטונים בדף, נמצא אחד</item>

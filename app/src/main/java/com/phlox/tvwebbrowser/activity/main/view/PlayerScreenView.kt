@@ -434,7 +434,8 @@ class PlayerScreenView @JvmOverloads constructor(
         return event.keyCode in SWALLOWED_KEYS
     }
 
-    private val texts = PlayerTracks.Texts(context.getString(R.string.player_auto), context.getString(R.string.player_off)) {
+    private val texts = PlayerTracks.Texts(context.getString(R.string.player_auto), context.getString(R.string.player_off),
+        context.getString(R.string.player_captions_in_video)) {
         context.getString(R.string.player_track, it)
     }
 

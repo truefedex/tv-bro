@@ -393,6 +393,7 @@
   <string name="player_repeat_off">Выкл.</string>
   <string name="player_picture_in_picture">Картинка в картинке</string>
   <string name="player_track">Дорожка %d</string>
+  <string name="player_captions_in_video">Субтитры в видео</string>
   <string name="err_no_video_player">Не установлен ни один видеоплеер, например VLC или MX Player</string>
   <plurals name="videos_on_page_count">
     <item quantity="one">Видео на странице, найдено: %d</item>

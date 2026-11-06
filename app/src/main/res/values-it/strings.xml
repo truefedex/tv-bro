@@ -383,6 +383,7 @@
   <string name="player_repeat_off">Disattivo</string>
   <string name="player_picture_in_picture">Picture in picture</string>
   <string name="player_track">Traccia %d</string>
+  <string name="player_captions_in_video">Sottotitoli nel video</string>
   <string name="err_no_video_player">Nessuna app di riproduzione video installata, ad esempio VLC o MX Player</string>
   <plurals name="videos_on_page_count">
     <item quantity="one">Video della pagina, %d trovato</item>

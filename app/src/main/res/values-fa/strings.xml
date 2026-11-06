@@ -373,6 +373,7 @@
   <string name="player_repeat_off">خاموش</string>
   <string name="player_picture_in_picture">تصویر در تصویر</string>
   <string name="player_track">قطعه %d</string>
+  <string name="player_captions_in_video">زیرنویس داخل ویدیو</string>
   <string name="err_no_video_player">هیچ برنامه پخش ویدیویی نصب نیست، مثلاً VLC یا MX Player</string>
   <plurals name="videos_on_page_count">
     <item quantity="one">ویدیوهای صفحه، %d مورد یافت شد</item>

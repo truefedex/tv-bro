@@ -374,6 +374,7 @@
     <string name="player_repeat_off">Ανενεργή</string>
     <string name="player_picture_in_picture">Εικόνα σε εικόνα</string>
     <string name="player_track">Κομμάτι %d</string>
+    <string name="player_captions_in_video">Υπότιτλοι στο βίντεο</string>
     <string name="err_no_video_player">Δεν υπάρχει εγκατεστημένη εφαρμογή αναπαραγωγής βίντεο, για παράδειγμα VLC ή MX Player</string>
     <plurals name="videos_on_page_count">
         <item quantity="one">Βίντεο στη σελίδα, βρέθηκε %d</item>

@@ -7,6 +7,8 @@ import androidx.media3.common.TrackGroup
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
+import com.phlox.tvwebbrowser.webengine.PageSubtitle
+import com.phlox.tvwebbrowser.webengine.PageVideo
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -73,6 +75,39 @@ class PlayerTracksTest {
         assertEquals(listOf(false, false, true), options.map { it.selected })
         val off = params.buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true).build()
         assertEquals(listOf(true, false, false), PlayerTracks.subtitles(Tracks(listOf(en, de)), off, texts).map { it.selected })
+    }
+
+    @Test
+    fun theCaptionChannelOfTheVideoHasANameAndComesAfterTheFilesOfThePage() {
+        //the one Media3 adds to an HLS stream of MPEG-TS that declares no captions, then the <track> of the page
+        val channel = group(null, Format.Builder().setSampleMimeType(MimeTypes.APPLICATION_CEA608).build())
+        val page = group(null, Format.Builder().setSampleMimeType(MimeTypes.TEXT_VTT).setLabel("English").build())
+        val unnamed = group(null, Format.Builder().setSampleMimeType(MimeTypes.TEXT_VTT).build())
+        val named = PlayerTracks.Texts("Auto", "Off", "Captions in the video") { "Track $it" }
+        val options = PlayerTracks.subtitles(Tracks(listOf(channel, page, unnamed)), params, named)
+        assertEquals(listOf("Off", "English", "Track 1", "Captions in the video"), options.map { it.label })
+    }
+
+    @Test
+    fun chosenSubtitlesAreSelectedBeforeThePlayerAppliesThem() {
+        val off = group(null, text("en"))
+        val chosen = params.buildUpon().setOverrideForType(TrackSelectionOverride(off.mediaTrackGroup, 0)).build()
+        assertEquals(listOf(false, true), PlayerTracks.subtitles(Tracks(listOf(off)), chosen, texts).map { it.selected })
+    }
+
+    @Test
+    fun theSubtitlesOfThePageGoToThePlayerAsWebVtt() {
+        val video = PageVideo("https://cdn.example.com/film/master.m3u8", PageVideo.Kind.HLS, subtitles = listOf(
+            PageSubtitle("https://cdn.example.com/cc/en.vtt", "en", "English"),
+            PageSubtitle("https://cdn.example.com/cc/uk.vtt", showing = true)))
+        val configurations = NativePlayer.subtitleConfigurations(video)
+        assertEquals(listOf("https://cdn.example.com/cc/en.vtt", "https://cdn.example.com/cc/uk.vtt"),
+            configurations.map { it.uri.toString() })
+        assertEquals(listOf(MimeTypes.TEXT_VTT, MimeTypes.TEXT_VTT), configurations.map { it.mimeType })
+        assertEquals(listOf("en", null), configurations.map { it.language })
+        assertEquals(listOf("English", null), configurations.map { it.label })
+        //the one the page shows is chosen at the start
+        assertEquals(listOf(0, C.SELECTION_FLAG_DEFAULT), configurations.map { it.selectionFlags })
     }
 
     @Test

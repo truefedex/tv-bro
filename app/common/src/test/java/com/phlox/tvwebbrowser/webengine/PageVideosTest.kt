@@ -69,6 +69,15 @@ class PageVideosTest {
     }
 
     @Test
+    fun theSubtitlesOfTheFrameThatHasThemStay() {
+        val subtitles = listOf(PageSubtitle("https://cdn.com/en.vtt", "en"))
+        val list = PageVideoList<String>()
+        list.onFrameVideos("top", listOf(PageVideo("https://cdn.com/2.m3u8", Kind.HLS)))
+        list.onFrameVideos("player", listOf(PageVideo("https://cdn.com/2.m3u8", Kind.HLS, subtitles = subtitles)))
+        assertEquals(subtitles, list.videos().single().subtitles)
+    }
+
+    @Test
     fun aFrameReportReplacesItsVideosAndTheOrderStays() {
         val list = PageVideoList<String>()
         list.onFrameVideos("a", listOf(PageVideo("https://a.com/1.m3u8", Kind.HLS)))

@@ -341,6 +341,7 @@
     <string name="player_repeat_off">Off</string>
     <string name="player_picture_in_picture">Picture in picture</string>
     <string name="player_track">Track %d</string>
+    <string name="player_captions_in_video">Captions in the video</string>
     <string name="err_no_video_player">No video player app is installed, for example VLC or MX Player</string>
     <plurals name="videos_on_page_count">
         <item quantity="one">Videos on the page, %d found</item>

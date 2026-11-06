@@ -384,6 +384,7 @@
     <string name="player_repeat_off">Desativado</string>
     <string name="player_picture_in_picture">Picture-in-picture</string>
     <string name="player_track">Faixa %d</string>
+    <string name="player_captions_in_video">Legendas do vídeo</string>
     <string name="err_no_video_player">Nenhum aplicativo de vídeo instalado, por exemplo VLC ou MX Player</string>
     <plurals name="videos_on_page_count">
         <item quantity="one">Vídeos da página, %d encontrado</item>

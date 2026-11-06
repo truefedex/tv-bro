@@ -21,6 +21,8 @@ data class PageVideo(
     val height: Int? = null,
     /** Seconds; null when unknown or endless */
     val duration: Double? = null,
+    /** The subtitle files of the media elements of its frame (the stream often carries none itself) */
+    val subtitles: List<PageSubtitle> = emptyList(),
 ) {
     enum class Kind { FILE, HLS, DASH }
 
@@ -32,6 +34,20 @@ data class PageVideo(
             Kind.FILE -> PageVideoUrls.fileMimeType(url)
         }
 }
+
+/**
+ * A subtitle file of a media element of the page (a `<track>`, which is WebVTT): many players keep the subtitles
+ * apart from the stream, so other players get them only this way
+ */
+data class PageSubtitle(
+    val url: String,
+    /** Its language (BCP 47), if the page tells it */
+    val language: String? = null,
+    /** Its name in the menu of the page */
+    val label: String? = null,
+    /** The engine shows it now (players that draw subtitles themselves keep their tracks hidden) */
+    val showing: Boolean = false,
+)
 
 /** A [WebEngine] that finds the videos of its page ([pageVideos]) */
 interface PageVideosSupport {
@@ -248,17 +264,23 @@ class PageVideoList<F : Any>(private val limit: Int = 50, private val playlists:
     /** What one frame does not tell about a video, another one may */
     private fun merge(a: PageVideo, b: PageVideo) = a.copy(
         title = a.title ?: b.title, pageUrl = a.pageUrl ?: b.pageUrl, userAgent = a.userAgent ?: b.userAgent,
-        width = a.width ?: b.width, height = a.height ?: b.height, duration = a.duration ?: b.duration)
+        width = a.width ?: b.width, height = a.height ?: b.height, duration = a.duration ?: b.duration,
+        subtitles = a.subtitles.ifEmpty { b.subtitles })
 }
 
 /** The reports of page_videos.js, the script both engines run in every frame */
 object PageVideoReports {
-    /** The videos of the frame of the [report]; addresses that are no videos ([PageVideoUrls]) are left out */
+    /**
+     * The videos of the frame of the [report]; addresses that are no videos ([PageVideoUrls]) are left out. The
+     * subtitles of the frame go with each of them: the page plays a stream it loads through a media element, and
+     * which one is not told here
+     */
     fun parse(report: JSONObject): List<PageVideo> {
         val items = report.optJSONArray("videos") ?: return emptyList()
         val title = report.optString("title").ifBlank { null }
         val page = report.optString("page").ifBlank { null }
         val userAgent = report.optString("ua").ifBlank { null }
+        val subtitles = subtitles(report)
         return (0 until items.length()).mapNotNull { i ->
             val item = items.optJSONObject(i) ?: return@mapNotNull null
             val url = item.optString("url")
@@ -267,7 +289,22 @@ object PageVideoReports {
             PageVideo(url, kind, title, page, userAgent,
                 width = item.optInt("width").takeIf { it > 0 },
                 height = item.optInt("height").takeIf { it > 0 },
-                duration = item.optDouble("duration").takeIf { it.isFinite() && it > 0 })
+                duration = item.optDouble("duration").takeIf { it.isFinite() && it > 0 },
+                subtitles = subtitles)
         }
     }
+
+    private fun subtitles(report: JSONObject): List<PageSubtitle> {
+        val items = report.optJSONArray("subtitles") ?: return emptyList()
+        return (0 until items.length()).mapNotNull { i ->
+            val item = items.optJSONObject(i) ?: return@mapNotNull null
+            val url = item.optString("url").takeIf { it.startsWith("http://") || it.startsWith("https://") }
+                ?: return@mapNotNull null
+            PageSubtitle(url, item.optNullableString("lang"), item.optNullableString("label"), item.optBoolean("showing"))
+        }.distinctBy { it.url }
+    }
+
+    /** JSON null and blank strings as null (optString gives "null" for a JSON null) */
+    private fun JSONObject.optNullableString(name: String): String? =
+        if (isNull(name)) null else optString(name).ifBlank { null }
 }

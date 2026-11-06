@@ -1,8 +1,9 @@
 // The videos of a frame that other apps can play (see PageVideos.kt), for both engines: WebView runs it
 // with media_controls.js in every frame, GeckoView in the content script of its extension (the build
 // copies it there). tvBroWatchPageVideos(send) reports the videos of the frame as a JSON string to send:
-// {videos: [{url, element, type, width, height, duration}], title, page, ua}; an empty list when the frame
-// goes. The app decides which addresses are videos: here only the candidates are picked, the media elements
+// {videos: [{url, element, type, width, height, duration}], subtitles: [{url, lang, label, showing}], title, page,
+// ua}; an empty list when the frame goes. The subtitles are the <track> files (WebVTT) of the media elements of the
+// frame (players that draw them themselves leave them hidden; showing: the engine draws them now). The app decides which addresses are videos: here only the candidates are picked, the media elements
 // (their addresses, and the files they load) and the manifests of streams the page loads: by the extension
 // (.m3u8, .mpd), or by the type of the response where the engine tells it (contentType of Resource Timing:
 // empty for other sites unless the request passed CORS, as players load manifests), then reported as type.
@@ -11,6 +12,9 @@ function tvBroWatchPageVideos(send) {
     var STREAM_TYPES = /^(application|audio)\/(vnd\.apple\.mpegurl|x-mpegurl|mpegurl|dash\+xml)$/i;
     var found = {};
     var order = [];
+    var subtitles = [];
+    // the text tracks of the media elements watched for new tracks and modes
+    var watchedTracks = typeof WeakSet == 'function' ? new WeakSet() : null;
     var timer = null;
     var lastSent = '';
 
@@ -52,6 +56,7 @@ function tvBroWatchPageVideos(send) {
         timer = null;
         var message = JSON.stringify({
             videos: order.map(function(url) { return found[url]; }),
+            subtitles: subtitles,
             title: document.title, page: location.href, ua: navigator.userAgent
         });
         if (message == lastSent) return;
@@ -61,12 +66,37 @@ function tvBroWatchPageVideos(send) {
 
     function scanElements() {
         var videos = document.querySelectorAll('video');
+        var tracks = [];
         for (var i = 0; i < videos.length; i++) {
             var v = videos[i];
             var info = {width: v.videoWidth, height: v.videoHeight, duration: v.duration};
             add(v.currentSrc || v.src, true, info);
             var sources = v.querySelectorAll('source');
             for (var j = 0; j < sources.length; j++) add(sources[j].src, true, null);
+            scanTracks(v, tracks);
+        }
+        if (JSON.stringify(tracks) != JSON.stringify(subtitles)) {
+            subtitles = tracks;
+            schedule();
+        }
+    }
+
+    // the subtitle files of the element; a track added later or turned on or off scans again
+    function scanTracks(v, tracks) {
+        var elements = v.querySelectorAll('track');
+        for (var i = 0; i < elements.length && tracks.length < MAX; i++) {
+            var t = elements[i];
+            var kind = (t.kind || 'subtitles').toLowerCase();
+            if (kind != 'subtitles' && kind != 'captions') continue;
+            if (!/^https?:/i.test(t.src) || tracks.some(function(s) { return s.url == t.src; })) continue;
+            tracks.push({url: t.src, lang: t.srclang || null, label: t.label || null,
+                showing: !!(t.track && t.track.mode == 'showing')});
+        }
+        var list = v.textTracks;
+        if (list && list.addEventListener && watchedTracks && !watchedTracks.has(list)) {
+            watchedTracks.add(list);
+            list.addEventListener('addtrack', scanElements);
+            list.addEventListener('change', scanElements);
         }
     }
 
