@@ -337,7 +337,8 @@
   <string name="built_in_player_summary">Flüssiger, in voller Bildschirmauflösung</string>
   <string name="site_player_summary">Schaltflächen der Website, Steuerung mit dem Cursor</string>
   <string name="settings_video_player">Player für Videos</string>
-  <string name="settings_video_player_summary">Für Videos im Vollbild. Jede Website kann in den Videoeinstellungen einen eigenen haben</string>
+  <string name="settings_video_player_summary">Für Videos im Vollbild. Jede Website kann in den Website-Einstellungen einen eigenen haben</string>
+  <string name="video_player_s">Player für Videos (%s)</string>
   <string name="video_live">Live</string>
   <string name="player_panel_close">Schließen</string>
   <string name="player_panel_back">Zurück zu den Videoeinstellungen</string>

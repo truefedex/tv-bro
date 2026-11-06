@@ -349,7 +349,8 @@
     <string name="built_in_player_summary">Plus fluide, dans la pleine résolution de l’écran</string>
     <string name="site_player_summary">Boutons du site, contrôle au curseur</string>
     <string name="settings_video_player">Lecteur des vidéos</string>
-    <string name="settings_video_player_summary">Pour les vidéos en plein écran. Chaque site peut avoir le sien dans les paramètres vidéo</string>
+    <string name="settings_video_player_summary">Pour les vidéos en plein écran. Chaque site peut avoir le sien dans les paramètres du site</string>
+    <string name="video_player_s">Lecteur des vidéos (%s)</string>
     <string name="video_live">En direct</string>
     <string name="player_panel_close">Fermer</string>
     <string name="player_panel_back">Vers les paramètres vidéo</string>

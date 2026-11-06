@@ -338,7 +338,8 @@
   <string name="built_in_player_summary">روان‌تر، با وضوح کامل صفحه</string>
   <string name="site_player_summary">دکمه‌های سایت، کنترل با نشانگر</string>
   <string name="settings_video_player">پخش‌کننده ویدیوها</string>
-  <string name="settings_video_player_summary">برای ویدیوهای تمام‌صفحه. هر سایت می‌تواند در تنظیمات ویدیو پخش‌کننده خودش را داشته باشد</string>
+  <string name="settings_video_player_summary">برای ویدیوهای تمام‌صفحه. هر سایت می‌تواند در تنظیمات سایت پخش‌کننده خودش را داشته باشد</string>
+  <string name="video_player_s">پخش‌کننده ویدیوها (%s)</string>
   <string name="video_live">زنده</string>
   <string name="player_panel_close">بستن</string>
   <string name="player_panel_back">بازگشت به تنظیمات ویدیو</string>

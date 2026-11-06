@@ -24,10 +24,11 @@ import com.phlox.tvwebbrowser.common.R as CommonR
 /**
  * The settings of the site of the current page: its host and the state of its connection, ad blocking
  * (On/Off with the ads blocked on the page), the popup blocking level (with the pop-ups blocked), the site
- * view (desktop or mobile) and, apart at the bottom, Clear site data. Its variant (the `siteSettingsVariant`
- * attribute) says where it is: the TV site panel, the phone site sheet (the same parts in sections, at
- * touch sizes), or the site section of the phone menu sheet (a header that opens the site sheet, rows
- * without icons, no Clear site data).
+ * view (desktop or mobile), on TV the player of its fullscreen videos (the TV Bro player or the site's) and,
+ * apart at the bottom, Clear site data. Its variant (the `siteSettingsVariant` attribute) says where it is:
+ * the TV site panel, the phone site sheet (the same parts in sections, at touch sizes, without the player), or
+ * the site section of the phone menu sheet (a header that opens the site sheet, rows without icons, no Clear
+ * site data).
  */
 class SiteSettingsView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -39,6 +40,8 @@ class SiteSettingsView @JvmOverloads constructor(
         fun choosePopupBlockLevel()
         /** Opens the choice of the site view, desktop or mobile; the page reloads */
         fun chooseSiteView()
+        /** Opens the choice of the player of the videos the site puts in fullscreen (TV only: the panel has the row) */
+        fun chooseSitePlayer() {}
         /** Asks whether to clear the data of the site; the page reloads */
         fun clearSiteData()
         /** The header of the menu variant: opens the site sheet */
@@ -59,13 +62,17 @@ class SiteSettingsView @JvmOverloads constructor(
     /** The first row, ad blocking: it gets the focus when the TV panel opens */
     val firstRow: View get() = vb.llAdBlock
 
-    private val rows get() = listOf(vb.llAdBlock, vb.llPopups, vb.llSiteView, vb.llClearData)
-    private val rowIcons get() = listOf(vb.ivAdBlock, vb.ivPopups, vb.ivSiteView, vb.ivClearData)
-    private val rowTexts get() = listOf(vb.llAdBlockText, vb.llPopupsText, vb.llSiteViewText, vb.llClearDataText)
-    private val titles get() = listOf(vb.tvAdBlockTitle, vb.tvPopupsTitle, vb.tvSiteViewTitle, vb.tvClearDataTitle)
-    private val captions get() = listOf(vb.tvAdBlockCount, vb.tvPopupsCount, vb.tvSiteViewCaption, vb.tvClearDataCaption)
-    private val values get() = listOf(vb.tvAdBlockValue, vb.tvPopupsValue, vb.tvSiteViewValue)
-    private val chevrons get() = listOf(vb.ivPopupsChevron, vb.ivSiteViewChevron)
+    /** In the order of the panel */
+    private val rows get() = listOf(vb.llAdBlock, vb.llPopups, vb.llSiteView, vb.llPlayer, vb.llClearData)
+    private val rowIcons get() = listOf(vb.ivAdBlock, vb.ivPopups, vb.ivSiteView, vb.ivPlayer, vb.ivClearData)
+    private val rowTexts get() = listOf(vb.llAdBlockText, vb.llPopupsText, vb.llSiteViewText, vb.llPlayerText,
+        vb.llClearDataText)
+    private val titles get() = listOf(vb.tvAdBlockTitle, vb.tvPopupsTitle, vb.tvSiteViewTitle, vb.tvPlayerTitle,
+        vb.tvClearDataTitle)
+    private val captions get() = listOf(vb.tvAdBlockCount, vb.tvPopupsCount, vb.tvSiteViewCaption, vb.tvPlayerCaption,
+        vb.tvClearDataCaption)
+    private val values get() = listOf(vb.tvAdBlockValue, vb.tvPopupsValue, vb.tvSiteViewValue, vb.tvPlayerValue)
+    private val chevrons get() = listOf(vb.ivPopupsChevron, vb.ivSiteViewChevron, vb.ivPlayerChevron)
 
     init {
         orientation = VERTICAL
@@ -73,6 +80,7 @@ class SiteSettingsView @JvmOverloads constructor(
         vb.llAdBlock.setOnClickListener { callback?.toggleAdBlock() }
         vb.llPopups.setOnClickListener { callback?.choosePopupBlockLevel() }
         vb.llSiteView.setOnClickListener { callback?.chooseSiteView() }
+        vb.llPlayer.setOnClickListener { callback?.chooseSitePlayer() }
         vb.llClearData.setOnClickListener { callback?.clearSiteData() }
         vb.llMenuHeader.setOnClickListener { callback?.openSiteSettings() }
         when (variant) {
@@ -100,14 +108,22 @@ class SiteSettingsView @JvmOverloads constructor(
         vb.llSiteView.visibility = siteView
         vb.tvSiteViewValue.text = resources.getStringArray(R.array.site_views)[siteViewPosition(state.desktopView)]
         vb.tvSiteViewCaption.setText(if (state.siteViewIsDefault) R.string.site_view_default else R.string.site_view_of_site)
+        //the TV Bro player is the one of the TV interface
+        val player = if (variant == Variant.PANEL && state.host.isNotEmpty()) VISIBLE else GONE
+        vb.vPlayerSeparator.visibility = player
+        vb.llPlayer.visibility = player
+        vb.tvPlayerValue.setText(if (state.builtInPlayer) R.string.player_for_site_built_in else R.string.player_for_site_site)
+        vb.tvPlayerCaption.setText(if (state.builtInPlayerIsDefault) R.string.site_view_default else R.string.site_view_of_site)
         val clearData = if (state.siteDataClearable && variant != Variant.MENU) VISIBLE else GONE
         //the site sheet sets it apart in a section of its own instead
         vb.vClearDataSeparator.visibility = if (variant == Variant.PANEL) clearData else GONE
         vb.llClearData.visibility = clearData
-        //the focus goes through the shown rows only
-        val lastAbove = if (state.siteViewAvailable) vb.llSiteView else vb.llPopups
-        vb.llPopups.nextFocusDownId = if (state.siteViewAvailable) R.id.llSiteView else R.id.llClearData
-        vb.llClearData.nextFocusUpId = lastAbove.id
+        //the focus goes through the shown rows only, and stays at the first and the last
+        val shown = rows.filter { it.visibility == VISIBLE }
+        shown.forEachIndexed { i, row ->
+            row.nextFocusUpId = (shown.getOrNull(i - 1) ?: row).id
+            row.nextFocusDownId = (shown.getOrNull(i + 1) ?: row).id
+        }
     }
 
     /** "Connection is secure" with a lock, or the warning sign in the danger color and the reason */
@@ -161,7 +177,7 @@ class SiteSettingsView @JvmOverloads constructor(
     private fun applyTouchRows(@DimenRes rowHeight: Int, @DimenRes titleSize: Int, @DimenRes gap: Int) {
         for (row in rows) {
             row.updateLayoutParams { height = px(rowHeight) }
-            val end = if (row == vb.llPopups || row == vb.llSiteView) R.dimen.ds_phone_site_row_padding_end else
+            val end = if (row == vb.llPopups || row == vb.llSiteView || row == vb.llPlayer) R.dimen.ds_phone_site_row_padding_end else
                 R.dimen.ds_phone_site_row_padding_start
             row.setPaddingRelative(px(R.dimen.ds_phone_site_row_padding_start), 0, px(end), 0)
         }

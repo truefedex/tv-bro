@@ -349,7 +349,8 @@
     <string name="built_in_player_summary">Mais fluido, na resolução total da tela</string>
     <string name="site_player_summary">Botões do site, controle pelo cursor</string>
     <string name="settings_video_player">Player de vídeos</string>
-    <string name="settings_video_player_summary">Para vídeos em tela cheia. Cada site pode ter o seu nas configurações de vídeo</string>
+    <string name="settings_video_player_summary">Para vídeos em tela cheia. Cada site pode ter o seu nas configurações do site</string>
+    <string name="video_player_s">Player de vídeos (%s)</string>
     <string name="video_live">Ao vivo</string>
     <string name="player_panel_close">Fechar</string>
     <string name="player_panel_back">Para as configurações de vídeo</string>

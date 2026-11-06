@@ -349,7 +349,8 @@
     <string name="built_in_player_summary">Más fluido, con la resolución completa de la pantalla</string>
     <string name="site_player_summary">Botones del sitio, control con el cursor</string>
     <string name="settings_video_player">Reproductor de vídeos</string>
-    <string name="settings_video_player_summary">Para los vídeos a pantalla completa. Cada sitio puede tener el suyo en los ajustes de vídeo</string>
+    <string name="settings_video_player_summary">Para los vídeos a pantalla completa. Cada sitio puede tener el suyo en los ajustes del sitio</string>
+    <string name="video_player_s">Reproductor de vídeos (%s)</string>
     <string name="video_live">En directo</string>
     <string name="player_panel_close">Cerrar</string>
     <string name="player_panel_back">A los ajustes de vídeo</string>

@@ -299,7 +299,8 @@
     <string name="site_player_summary">Site buttons, cursor control</string>
     <!-- Settings, Sites, Videos: the default of player_for_site (built_in_player or site_player) -->
     <string name="settings_video_player">Player for videos</string>
-    <string name="settings_video_player_summary">For videos in fullscreen. Each site can have its own in the video settings</string>
+    <string name="settings_video_player_summary">For videos in fullscreen. Each site can have its own in the site settings</string>
+    <string name="video_player_s">Player for videos (%s)</string>
     <string name="video_live">Live</string>
     <string name="player_panel_close">Close</string>
     <string name="player_panel_back">To video settings</string>

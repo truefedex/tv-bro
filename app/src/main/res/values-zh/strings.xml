@@ -328,7 +328,8 @@
   <string name="built_in_player_summary">更流畅，以屏幕的完整分辨率播放</string>
   <string name="site_player_summary">网站的按钮，用光标控制</string>
   <string name="settings_video_player">视频播放器</string>
-  <string name="settings_video_player_summary">用于全屏视频。每个网站可在视频设置中选择自己的播放器</string>
+  <string name="settings_video_player_summary">用于全屏视频。每个网站可在网站设置中选择自己的播放器</string>
+  <string name="video_player_s">视频播放器（%s）</string>
   <string name="video_live">直播</string>
   <string name="player_panel_close">关闭</string>
   <string name="player_panel_back">返回视频设置</string>

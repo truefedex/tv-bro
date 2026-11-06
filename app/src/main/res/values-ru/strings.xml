@@ -358,7 +358,8 @@
   <string name="built_in_player_summary">Плавнее, в полном разрешении экрана</string>
   <string name="site_player_summary">Кнопки сайта, управление курсором</string>
   <string name="settings_video_player">Плеер для видео</string>
-  <string name="settings_video_player_summary">Для видео на весь экран. Для сайта можно выбрать свой в настройках видео</string>
+  <string name="settings_video_player_summary">Для видео на весь экран. Для сайта можно выбрать свой в настройках сайта</string>
+  <string name="video_player_s">Плеер для видео (%s)</string>
   <string name="video_live">В эфире</string>
   <string name="player_panel_close">Закрыть</string>
   <string name="player_panel_back">К настройкам видео</string>

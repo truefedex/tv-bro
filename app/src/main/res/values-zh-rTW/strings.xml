@@ -328,7 +328,8 @@
     <string name="built_in_player_summary">更流暢，以螢幕的完整解析度播放</string>
     <string name="site_player_summary">網站的按鈕，用游標控制</string>
     <string name="settings_video_player">影片播放器</string>
-    <string name="settings_video_player_summary">用於全螢幕影片。每個網站可在影片設定中選擇自己的播放器</string>
+    <string name="settings_video_player_summary">用於全螢幕影片。每個網站可在網站設定中選擇自己的播放器</string>
+    <string name="video_player_s">影片播放器（%s）</string>
     <string name="video_live">直播</string>
     <string name="player_panel_close">關閉</string>
     <string name="player_panel_back">返回影片設定</string>

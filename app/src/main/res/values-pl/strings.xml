@@ -358,7 +358,8 @@
   <string name="built_in_player_summary">Płynniej, w pełnej rozdzielczości ekranu</string>
   <string name="site_player_summary">Przyciski strony, sterowanie kursorem</string>
   <string name="settings_video_player">Odtwarzacz filmów</string>
-  <string name="settings_video_player_summary">Dla filmów na pełnym ekranie. Każda strona może mieć własny w ustawieniach wideo</string>
+  <string name="settings_video_player_summary">Dla filmów na pełnym ekranie. Każda strona może mieć własny w ustawieniach witryny</string>
+  <string name="video_player_s">Odtwarzacz filmów (%s)</string>
   <string name="video_live">Na żywo</string>
   <string name="player_panel_close">Zamknij</string>
   <string name="player_panel_back">Do ustawień wideo</string>

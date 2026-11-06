@@ -359,7 +359,8 @@
     <string name="built_in_player_summary">Plynuleji, v plném rozlišení obrazovky</string>
     <string name="site_player_summary">Tlačítka webu, ovládání kurzorem</string>
     <string name="settings_video_player">Přehrávač videí</string>
-    <string name="settings_video_player_summary">Pro videa na celou obrazovku. Každý web může mít vlastní v nastavení videa</string>
+    <string name="settings_video_player_summary">Pro videa na celou obrazovku. Každý web může mít vlastní v nastavení webu</string>
+    <string name="video_player_s">Přehrávač videí (%s)</string>
     <string name="video_live">Živě</string>
     <string name="player_panel_close">Zavřít</string>
     <string name="player_panel_back">Zpět do nastavení videa</string>

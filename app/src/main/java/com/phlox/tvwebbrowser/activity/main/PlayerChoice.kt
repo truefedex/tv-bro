@@ -105,6 +105,14 @@ class PlayerChoice(private val host: Host, private val now: () -> Long) {
         keptByPage = true
     }
 
+    /**
+     * The site chose its player anew (its site settings): the choice applies to the next video in fullscreen, also on
+     * a page that kept its videos
+     */
+    fun siteChoiceChanged() {
+        keptByPage = false
+    }
+
     private fun update() {
         val media = media
         if (!fullscreen || media == null || !media.fullscreen) {

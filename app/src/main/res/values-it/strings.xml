@@ -348,7 +348,8 @@
   <string name="built_in_player_summary">Più fluido, alla piena risoluzione dello schermo</string>
   <string name="site_player_summary">Pulsanti del sito, controllo col cursore</string>
   <string name="settings_video_player">Player dei video</string>
-  <string name="settings_video_player_summary">Per i video a schermo intero. Ogni sito può averne uno suo nelle impostazioni video</string>
+  <string name="settings_video_player_summary">Per i video a schermo intero. Ogni sito può averne uno suo nelle impostazioni del sito</string>
+  <string name="video_player_s">Player dei video (%s)</string>
   <string name="video_live">In diretta</string>
   <string name="player_panel_close">Chiudi</string>
   <string name="player_panel_back">Alle impostazioni video</string>

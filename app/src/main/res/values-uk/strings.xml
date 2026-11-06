@@ -358,7 +358,8 @@
   <string name="built_in_player_summary">Плавніше, у повній роздільній здатності екрана</string>
   <string name="site_player_summary">Кнопки сайту, керування курсором</string>
   <string name="settings_video_player">Плеєр для відео</string>
-  <string name="settings_video_player_summary">Для відео на весь екран. Для сайту можна вибрати свій у налаштуваннях відео</string>
+  <string name="settings_video_player_summary">Для відео на весь екран. Для сайту можна вибрати свій у налаштуваннях сайту</string>
+  <string name="video_player_s">Плеєр для відео (%s)</string>
   <string name="video_live">В ефірі</string>
   <string name="player_panel_close">Закрити</string>
   <string name="player_panel_back">До налаштувань відео</string>

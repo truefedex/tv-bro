@@ -151,6 +151,24 @@ class PlayerChoiceTest {
     }
 
     @Test
+    fun aPlayerChosenInTheSiteSettingsAppliesOnThePageThatKeptItsVideos() {
+        //the site leaves its videos to its own player, and the page kept its video (Up from the built-in player)
+        choice.builtInPlayerPreferred = false
+        goFullscreen()
+        choice.keepPagePlayer()
+        choice.setFullscreen(false)
+        //the setting alone leaves the page its videos
+        choice.builtInPlayerPreferred = true
+        choice.setFullscreen(true)
+        assertEquals(emptyList<Pair<String, Double>>(), opened)
+        choice.setFullscreen(false)
+        //chosen in the site settings: the next fullscreen of the same page goes to the built-in player
+        choice.siteChoiceChanged()
+        choice.setFullscreen(true)
+        assertEquals(listOf(stream.url to 725.0), opened)
+    }
+
+    @Test
     fun nothingOpensWhileTheBuiltInPlayerIsOpen() {
         goFullscreen()
         choice.playerOpen = true

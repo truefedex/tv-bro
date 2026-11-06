@@ -908,7 +908,28 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
         override fun chooseSiteView() = host.chooseSiteView()
 
+        override fun chooseSitePlayer() = this@TvShell.chooseSitePlayer()
+
         override fun clearSiteData() = host.clearSiteData()
+    }
+
+    /**
+     * Player for videos in the site panel: the TV Bro player or the site's own for the videos the site puts in
+     * fullscreen, chosen as the site view is (no reload: it applies to the next video in fullscreen, also on this page)
+     */
+    private fun chooseSitePlayer() {
+        val state = controller.currentTabState.value
+        val host = state.host.ifEmpty { return }
+        val players = arrayOf(activity.getString(R.string.built_in_player), activity.getString(R.string.site_player))
+        AlertDialog.Builder(activity)
+            .setTitle(activity.getString(R.string.video_player_s, host))
+            .setSingleChoiceItems(players, if (state.builtInPlayer) 0 else 1) { dialog, position ->
+                controller.setSitePlayer(host, builtIn = position == 0)
+                playerChoice.builtInPlayerPreferred = controller.prefersBuiltInPlayer(host)
+                playerChoice.siteChoiceChanged()
+                dialog.dismiss()
+            }
+            .show()
     }
 
     override fun initiateVoiceSearch() = host.commands.startVoiceSearch()

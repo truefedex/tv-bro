@@ -31,6 +31,10 @@ data class CurrentTabState(
     val desktopView: Boolean = false,
     /** The site view is the default for all sites, not a setting of this site */
     val siteViewIsDefault: Boolean = true,
+    /** The videos the site puts in fullscreen go to the built-in player (TV), not to its own */
+    val builtInPlayer: Boolean = true,
+    /** That player is the default for all sites, not a setting of this site */
+    val builtInPlayerIsDefault: Boolean = true,
     /** The engine can clear the data of the site */
     val siteDataClearable: Boolean = false
 )

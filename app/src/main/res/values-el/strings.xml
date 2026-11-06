@@ -339,7 +339,8 @@
     <string name="built_in_player_summary">Πιο ομαλά, στην πλήρη ανάλυση της οθόνης</string>
     <string name="site_player_summary">Κουμπιά του ιστότοπου, έλεγχος με τον δείκτη</string>
     <string name="settings_video_player">Πρόγραμμα αναπαραγωγής βίντεο</string>
-    <string name="settings_video_player_summary">Για βίντεο σε πλήρη οθόνη. Κάθε ιστότοπος μπορεί να έχει το δικό του στις ρυθμίσεις βίντεο</string>
+    <string name="settings_video_player_summary">Για βίντεο σε πλήρη οθόνη. Κάθε ιστότοπος μπορεί να έχει το δικό του στις ρυθμίσεις ιστοτόπου</string>
+    <string name="video_player_s">Πρόγραμμα αναπαραγωγής βίντεο (%s)</string>
     <string name="video_live">Ζωντανά</string>
     <string name="player_panel_close">Κλείσιμο</string>
     <string name="player_panel_back">Πίσω στις ρυθμίσεις βίντεο</string>

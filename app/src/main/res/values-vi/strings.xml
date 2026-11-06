@@ -328,7 +328,8 @@
   <string name="built_in_player_summary">Mượt hơn, ở độ phân giải đầy đủ của màn hình</string>
   <string name="site_player_summary">Nút của trang, điều khiển bằng con trỏ</string>
   <string name="settings_video_player">Trình phát video</string>
-  <string name="settings_video_player_summary">Cho video toàn màn hình. Mỗi trang có thể có trình phát riêng trong cài đặt video</string>
+  <string name="settings_video_player_summary">Cho video toàn màn hình. Mỗi trang có thể có trình phát riêng trong cài đặt trang web</string>
+  <string name="video_player_s">Trình phát video (%s)</string>
   <string name="video_live">Trực tiếp</string>
   <string name="player_panel_close">Đóng</string>
   <string name="player_panel_back">Về cài đặt video</string>

@@ -358,7 +358,8 @@
   <string name="built_in_player_summary">חלק יותר, ברזולוציה המלאה של המסך</string>
   <string name="site_player_summary">כפתורי האתר, שליטה בסמן</string>
   <string name="settings_video_player">נגן לסרטונים</string>
-  <string name="settings_video_player_summary">לסרטונים במסך מלא. לכל אתר אפשר לבחור נגן משלו בהגדרות הווידאו</string>
+  <string name="settings_video_player_summary">לסרטונים במסך מלא. לכל אתר אפשר לבחור נגן משלו בהגדרות האתר</string>
+  <string name="video_player_s">נגן לסרטונים (%s)</string>
   <string name="video_live">שידור חי</string>
   <string name="player_panel_close">סגירה</string>
   <string name="player_panel_back">חזרה להגדרות הווידאו</string>
