@@ -248,12 +248,12 @@ class NativePlayer(context: Context) {
         }
 
         /**
-         * The subtitle files of the page ([PageVideo.subtitles], WebVTT as `<track>` files are), loaded with the
+         * The subtitle files of the page ([PageVideo.subtitles], of the type their extension tells), loaded with the
          * headers of the video; the one the page shows now is chosen at the start, the others wait for the menu
          */
         fun subtitleConfigurations(video: PageVideo): List<MediaItem.SubtitleConfiguration> = video.subtitles.map {
             MediaItem.SubtitleConfiguration.Builder(it.url.toUri())
-                .setMimeType(MimeTypes.TEXT_VTT)
+                .setMimeType(it.mimeType)
                 .setLanguage(it.language)
                 .setLabel(it.label)
                 .setSelectionFlags(if (it.showing) C.SELECTION_FLAG_DEFAULT else 0)

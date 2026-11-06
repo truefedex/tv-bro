@@ -99,11 +99,11 @@ class PlayerTracksTest {
     fun theSubtitlesOfThePageGoToThePlayerAsWebVtt() {
         val video = PageVideo("https://cdn.example.com/film/master.m3u8", PageVideo.Kind.HLS, subtitles = listOf(
             PageSubtitle("https://cdn.example.com/cc/en.vtt", "en", "English"),
-            PageSubtitle("https://cdn.example.com/cc/uk.vtt", showing = true)))
+            PageSubtitle("https://cdn.example.com/cc/uk.srt", showing = true)))
         val configurations = NativePlayer.subtitleConfigurations(video)
-        assertEquals(listOf("https://cdn.example.com/cc/en.vtt", "https://cdn.example.com/cc/uk.vtt"),
+        assertEquals(listOf("https://cdn.example.com/cc/en.vtt", "https://cdn.example.com/cc/uk.srt"),
             configurations.map { it.uri.toString() })
-        assertEquals(listOf(MimeTypes.TEXT_VTT, MimeTypes.TEXT_VTT), configurations.map { it.mimeType })
+        assertEquals(listOf(MimeTypes.TEXT_VTT, MimeTypes.APPLICATION_SUBRIP), configurations.map { it.mimeType })
         assertEquals(listOf("en", null), configurations.map { it.language })
         assertEquals(listOf("English", null), configurations.map { it.label })
         //the one the page shows is chosen at the start

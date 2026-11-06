@@ -36,8 +36,8 @@ data class PageVideo(
 }
 
 /**
- * A subtitle file of a media element of the page (a `<track>`, which is WebVTT): many players keep the subtitles
- * apart from the stream, so other players get them only this way
+ * A subtitle file of the page: a `<track>` of a media element, one the configuration of its player lists (PlayerJS),
+ * or one it loaded. Many players keep the subtitles apart from the stream, so other players get them only this way
  */
 data class PageSubtitle(
     val url: String,
@@ -45,9 +45,18 @@ data class PageSubtitle(
     val language: String? = null,
     /** Its name in the menu of the page */
     val label: String? = null,
-    /** The engine shows it now (players that draw subtitles themselves keep their tracks hidden) */
+    /** Shown now: by the engine, or the file the page loaded last (players load them when they are turned on) */
     val showing: Boolean = false,
-)
+) {
+    /** By the extension: SubRip, SSA/ASS, TTML; else WebVTT, as `<track>` files are */
+    val mimeType: String
+        get() = when (url.substringBefore('?').substringBefore('#').substringAfterLast('.', "").lowercase()) {
+            "srt" -> "application/x-subrip"
+            "ass", "ssa" -> "text/x-ssa"
+            "ttml", "dfxp" -> "application/ttml+xml"
+            else -> "text/vtt"
+        }
+}
 
 /** A [WebEngine] that finds the videos of its page ([pageVideos]) */
 interface PageVideosSupport {

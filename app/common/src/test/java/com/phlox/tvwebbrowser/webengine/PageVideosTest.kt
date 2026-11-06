@@ -69,6 +69,16 @@ class PageVideosTest {
     }
 
     @Test
+    fun subtitleFilesAreOfTheTypeOfTheirExtension() {
+        assertEquals("text/vtt", PageSubtitle("https://a.com/en.vtt?t=1").mimeType)
+        assertEquals("application/x-subrip", PageSubtitle("https://a.com/en.SRT").mimeType)
+        assertEquals("text/x-ssa", PageSubtitle("https://a.com/en.ass#x").mimeType)
+        assertEquals("application/ttml+xml", PageSubtitle("https://a.com/en.dfxp").mimeType)
+        //a <track> file is WebVTT whatever its address
+        assertEquals("text/vtt", PageSubtitle("https://a.com/subtitle?id=5").mimeType)
+    }
+
+    @Test
     fun theSubtitlesOfTheFrameThatHasThemStay() {
         val subtitles = listOf(PageSubtitle("https://cdn.com/en.vtt", "en"))
         val list = PageVideoList<String>()
