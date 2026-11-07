@@ -12,3 +12,4 @@
 * Updated dependencies
 * Target latest Android versions
 * Bugfixes and optimizations
+* v3.0.x: multiple usability and bug fixes
