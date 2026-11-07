@@ -47,7 +47,7 @@ class SettingsNavigator(
     enum class Key {
         SEARCH_ENGINE, SEARCH_URL, HOME_PAGE, HOME_PAGE_URL, HOME_PAGE_LINKS, HOME_PAGE_BOOKMARKS_FOLDER,
         CHANNEL_BOOKMARKS, CHANNEL_BOOKMARKS_SOURCE, CHANNEL_TABS, CHANNEL_DOWNLOADS,
-        SITE_VIEW, USER_AGENT, USER_AGENT_STRING, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_HINT,
+        SITE_VIEW, USER_AGENT, USER_AGENT_STRING, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_PLAYER, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_CACHE, ENGINE_DEBUG, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD,
@@ -129,6 +129,8 @@ class SettingsNavigator(
         fun setCustomFilterList(url: String)
         /** Downloads all enabled lists; false when one could not be downloaded */
         suspend fun updateFilterLists(): Boolean
+        /** Fullscreen videos go to the built-in player by themselves, unless a site chose otherwise (TV only) */
+        var builtInPlayerByDefault: Boolean
         /** A hint about a found video that starts to play in the page (TV only) */
         var pageVideoHint: Boolean
 
@@ -335,6 +337,9 @@ class SettingsNavigator(
         const val HOME_PAGE_FOLDER_CHOSEN = 1
 
         /** Positions of the default site views */
+        /** The options of the player of fullscreen videos */
+        const val VIDEO_PLAYER_BUILT_IN = 0
+        const val VIDEO_PLAYER_SITE = 1
         const val SITE_VIEW_AUTO = 0
         const val SITE_VIEW_DESKTOP_OPTION = 1
         const val SITE_VIEW_MOBILE_OPTION = 2
@@ -472,6 +477,7 @@ class SettingsNavigator(
                 }
                 else -> return
             }
+            Key.VIDEO_PLAYER -> store.builtInPlayerByDefault = index == VIDEO_PLAYER_BUILT_IN
             Key.SITE_VIEW -> store.defaultDesktopView = when (index) {
                 SITE_VIEW_DESKTOP_OPTION -> true
                 SITE_VIEW_MOBILE_OPTION -> false
@@ -920,8 +926,12 @@ class SettingsNavigator(
         if (store.adBlockEnabled) sections += Section(string(R.string.settings_group_filter_lists), filterListRows())
         //the built-in player and its hint are on TV only
         if (tvUi) {
-            sections += Section(string(R.string.settings_group_videos), listOf(Row.Toggle(Key.VIDEO_HINT,
-                string(R.string.settings_video_hint), string(R.string.settings_video_hint_summary), store.pageVideoHint)))
+            sections += Section(string(R.string.settings_group_videos), listOf(
+                Row.Choice(Key.VIDEO_PLAYER, string(R.string.settings_video_player), string(R.string.settings_video_player_summary),
+                    listOf(string(R.string.built_in_player), string(R.string.site_player)),
+                    if (store.builtInPlayerByDefault) VIDEO_PLAYER_BUILT_IN else VIDEO_PLAYER_SITE, segmented = true),
+                Row.Toggle(Key.VIDEO_HINT, string(R.string.settings_video_hint), string(R.string.settings_video_hint_summary),
+                    store.pageVideoHint)))
         }
         return sections
     }

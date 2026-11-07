@@ -18,7 +18,7 @@ import kotlin.math.min
  * video mode leaves fullscreen (the fullscreen callback of the activity, below [backCallback]). The seek bar
  * ([Osd]) shows on seeks, on play and pause and while the video is paused, and for a while when the video mode
  * starts or a [hint] comes (longer with a hint); it tells what Up ([upHint]) and Down ([hint]) do. Media keys
- * keep working through the shortcuts.
+ * keep working through the shortcuts. While the built-in player covers the video ([suspended]) the mode is off.
  */
 class VideoModeController(private val host: Host) {
     interface Host {
@@ -72,6 +72,18 @@ class VideoModeController(private val host: Host) {
             if (field == value) return
             field = value
             renderOsd()
+        }
+
+    /**
+     * The built-in player covers the video: the keys and the seek bar are its own, and the cursor stays as it is
+     * (hidden, or given back by Up or Down) until the video mode goes on
+     */
+    var suspended = false
+        set(value) {
+            if (field == value) return
+            field = value
+            swallowedKeys.clear()
+            update()
         }
 
     /** Hides the cursor that Up or Down gave back, while there is a video in fullscreen */
@@ -233,7 +245,7 @@ class VideoModeController(private val host: Host) {
 
     /** Follows a change of the fullscreen view, the media or the cursor */
     private fun update() {
-        val hasVideo = fullscreen && media?.fullscreen == true
+        val hasVideo = fullscreen && media?.fullscreen == true && !suspended
         val active = hasVideo && !cursorRequested
         backCallback.isEnabled = hasVideo && cursorRequested
         if (active != isActive) {
@@ -244,7 +256,7 @@ class VideoModeController(private val host: Host) {
                 showOsd(if (hint != null) HINT_SHOWN_MS else OSD_SHOWN_MS)
             } else {
                 endSeek(apply = true)
-                if (fullscreen && cursorRequested) host.showCursor()
+                if (fullscreen && cursorRequested && !suspended) host.showCursor()
             }
             host.onActiveChanged(active)
         }

@@ -90,6 +90,7 @@ class SettingsNavigatorTest {
             return true
         }
         override var pageVideoHint = true
+        override var builtInPlayerByDefault = true
         override var interfaceMode = Config.InterfaceMode.AUTO
         override var theme = Config.Theme.SYSTEM
         override var supportsDarkening = true
@@ -366,6 +367,20 @@ class SettingsNavigatorTest {
         assertTrue(row<Row.Toggle>(Key.MATCH_FRAME_RATE).checked)
         navigator(tvUi = false).show(Category.APPEARANCE)
         assertFalse(Key.MATCH_FRAME_RATE in keys())
+    }
+
+    @Test
+    fun thePlayerOfFullscreenVideosIsOnTvOnlyAndTheBuiltInOneByDefault() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.SITES)
+        val choice = row<Row.Choice>(Key.VIDEO_PLAYER)
+        assertEquals(SettingsNavigator.VIDEO_PLAYER_BUILT_IN, choice.selected)
+        assertTrue(choice.segmented)
+        navigator.choose(Key.VIDEO_PLAYER, SettingsNavigator.VIDEO_PLAYER_SITE)
+        assertFalse(store.builtInPlayerByDefault)
+        assertEquals(SettingsNavigator.VIDEO_PLAYER_SITE, row<Row.Choice>(Key.VIDEO_PLAYER).selected)
+        navigator(tvUi = false).show(Category.SITES)
+        assertFalse(Key.VIDEO_PLAYER in keys())
     }
 
     @Test

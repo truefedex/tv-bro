@@ -63,6 +63,13 @@ interface BrowserShell {
      */
     fun dispatchKeyEvent(event: KeyEvent): Boolean = false
 
+    /**
+     * The video takes the D-pad (the video mode, the built-in player): the joystick motion of game controllers, whose
+     * D-pad is mostly a hat, then goes to the platform, which makes D-pad keys of it ([dispatchKeyEvent] gets them),
+     * not to the views, where the cursor of the page would take it ([com.phlox.tvwebbrowser.utils.JoystickDpadRouter])
+     */
+    fun takesDpad(): Boolean = false
+
     /** A media key of the remote (play/pause, stop, rewind, fast forward) before the page gets it; @return true if taken */
     fun onMediaCommand(command: MediaCommand): Boolean = false
 

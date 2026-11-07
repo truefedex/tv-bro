@@ -48,6 +48,7 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.singleton.shortcuts.ShortcutMgr
 import com.phlox.tvwebbrowser.sync.SyncLink
 import com.phlox.tvwebbrowser.utils.BackNavigationEventsAdapter
+import com.phlox.tvwebbrowser.utils.JoystickDpadRouter
 import com.phlox.tvwebbrowser.utils.OverlayBackInvokedCallback
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.VoiceSearchHelper
@@ -710,6 +711,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         val localCallback = window.callback
+        //the D-pad of a game controller (a hat) controls the video as the one of a remote does
+        val joystickRouter = JoystickDpadRouter({ shell.takesDpad() }, localCallback::dispatchGenericMotionEvent)
         window.callback = object : Window.Callback by localCallback {
             override fun dispatchKeyEvent(event: KeyEvent): Boolean {
                 //Log.d(TAG, "dispatchKeyEvent event: $event")
@@ -739,7 +742,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
                 if (backNavigationEventsAdapter.dispatchGenericMotionEvent(event)) {
                     return true
                 }
-                return localCallback.dispatchGenericMotionEvent(event)
+                return joystickRouter.dispatch(event)
             }
         }
     }

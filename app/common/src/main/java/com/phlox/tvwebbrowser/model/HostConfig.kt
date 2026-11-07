@@ -23,6 +23,12 @@ class HostConfig(
     /** Pages of this host load as on a desktop computer (true) or a phone (false); null if it follows the default */
     @ColumnInfo(name = "desktop_view")
     var desktopView: Boolean? = null
+    /**
+     * Videos of this host put in fullscreen go to the built-in player (true) or stay in the player of the site
+     * (false); null if they follow the default
+     */
+    @ColumnInfo(name = "built_in_player")
+    var builtInPlayer: Boolean? = null
 
     companion object {
         const val POPUP_BLOCK_NONE = 0

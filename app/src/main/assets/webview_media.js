@@ -5,10 +5,11 @@
     if (window.tvBroMediaCommand) return;
     var channel = window.tvBroMedia;
     var send = channel ? function(message) { channel.postMessage(message); } : null;
-    window.tvBroMediaCommand = tvBroWatchMedia(send);
+    // WebView runs no scripts in frames of about:blank and about:srcdoc: these take the media of such frames inside
+    window.tvBroMediaCommand = tvBroWatchMedia(send, !!channel);
     if (!channel) return;
     channel.onmessage = function(e) {
         window.tvBroMediaCommand(e.data);
     };
-    tvBroWatchPageVideos(send);
+    tvBroWatchPageVideos(send, true);
 })();

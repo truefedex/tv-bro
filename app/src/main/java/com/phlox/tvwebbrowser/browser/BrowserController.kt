@@ -499,6 +499,38 @@ class BrowserController : ActiveModel() {
     val defaultDesktopView: Boolean get() = config.defaultDesktopView ?: interfaceDesktopView
 
     /**
+     * Whether the videos that pages of the [host] put in fullscreen go to the built-in player: its own setting
+     * ([builtInPlayerSetting]), else the default ([com.phlox.tvwebbrowser.Config.builtInPlayerByDefault])
+     */
+    fun prefersBuiltInPlayer(host: String): Boolean =
+        builtInPlayerSetting(host) ?: config.builtInPlayerByDefault
+
+    /** The player of fullscreen videos the [host] chose: true the built-in one, false its own, null the default */
+    fun builtInPlayerSetting(host: String): Boolean? =
+        if (host.isEmpty()) null else hostConfigs.builtInPlayerSetting(host)
+
+    /**
+     * Sets the player of fullscreen videos of the [host], null for the default; [prefersBuiltInPlayer] gives it at
+     * once. @return the write, which is not cancelled with the model
+     */
+    fun setBuiltInPlayer(host: String, builtInPlayer: Boolean?): Job {
+        //the in-memory setting changes right away (the scope runs at once on the main thread)
+        val write = TVBro.container.appScope.launch { hostConfigs.setBuiltInPlayer(host, builtInPlayer) }
+        publishState()
+        return write
+    }
+
+    /**
+     * Sets the player of fullscreen videos of the [host] as the site settings choose it: a host keeps its own
+     * setting only while it differs from the default one (as with [setSiteView]). @return the write
+     */
+    fun setSitePlayer(host: String, builtIn: Boolean): Job =
+        setBuiltInPlayer(host, if (builtIn == config.builtInPlayerByDefault) null else builtIn)
+
+    /** The default player of fullscreen videos changed: the site settings show it */
+    fun onDefaultPlayerChanged() = publishState()
+
+    /**
      * Tabs get the new default view or User-Agent (settings of all sites); the current tab loads again if its view
      * changed
      */
@@ -692,6 +724,8 @@ class BrowserController : ActiveModel() {
             siteViewAvailable = tab.webEngine.siteView != null,
             desktopView = isDesktopView(tab.url),
             siteViewIsDefault = hostNameOf(tab)?.let { hostConfigs.desktopViewSetting(it) } == null,
+            builtInPlayer = prefersBuiltInPlayer(hostNameOf(tab) ?: ""),
+            builtInPlayerIsDefault = hostNameOf(tab)?.let { hostConfigs.builtInPlayerSetting(it) } == null,
             siteDataClearable = WebEngineFactory.supportsSiteDataClearing()
         )
     }

@@ -20,6 +20,12 @@ interface HostsDao {
         @ColumnInfo(name = "desktop_view") val desktopView: Boolean
     )
 
+    /** The player of fullscreen videos of a host that has one */
+    data class BuiltInPlayerSetting(
+        @ColumnInfo(name = "host_name") val hostName: String,
+        @ColumnInfo(name = "built_in_player") val builtInPlayer: Boolean
+    )
+
     @Query("SELECT * FROM hosts WHERE host_name = :name")
     suspend fun findByHostName(name: String): HostConfig?
 
@@ -28,6 +34,9 @@ interface HostsDao {
 
     @Query("SELECT host_name, desktop_view FROM hosts WHERE desktop_view IS NOT NULL")
     suspend fun desktopViewSettings(): List<DesktopViewSetting>
+
+    @Query("SELECT host_name, built_in_player FROM hosts WHERE built_in_player IS NOT NULL")
+    suspend fun builtInPlayerSettings(): List<BuiltInPlayerSetting>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIfAbsent(item: HostConfig): Long
@@ -43,6 +52,9 @@ interface HostsDao {
 
     @Query("UPDATE hosts SET desktop_view = :desktopView WHERE host_name = :host")
     suspend fun updateDesktopView(host: String, desktopView: Boolean?)
+
+    @Query("UPDATE hosts SET built_in_player = :builtInPlayer WHERE host_name = :host")
+    suspend fun updateBuiltInPlayer(host: String, builtInPlayer: Boolean?)
 
     @Transaction
     suspend fun setPopupBlockLevel(host: String, level: Int?) {
@@ -66,5 +78,11 @@ interface HostsDao {
     suspend fun setDesktopView(host: String, desktopView: Boolean?) {
         insertIfAbsent(HostConfig(host))
         updateDesktopView(host, desktopView)
+    }
+
+    @Transaction
+    suspend fun setBuiltInPlayer(host: String, builtInPlayer: Boolean?) {
+        insertIfAbsent(HostConfig(host))
+        updateBuiltInPlayer(host, builtInPlayer)
     }
 }

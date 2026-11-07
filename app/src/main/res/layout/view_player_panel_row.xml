@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+A row of a panel over a video (PlayerPanelView.Row): its glyph (the check of the chosen option, or room for it), the
+title with a badge, a caption under it, the value at the end and the chevron of a row that opens more choices
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/player_panel_row_gap"
+    android:minHeight="@dimen/player_panel_row_height"
+    android:paddingStart="@dimen/player_panel_row_padding"
+    android:paddingEnd="@dimen/player_panel_row_padding"
+    android:background="@drawable/ds_video_row_bg"
+    android:focusable="true"
+    android:clickable="true"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    tools:theme="@style/ThemeOverlay.TVBro.Video">
+
+    <ImageView
+        android:id="@+id/ivIcon"
+        android:layout_width="@dimen/player_panel_row_icon"
+        android:layout_height="@dimen/player_panel_row_icon"
+        android:importantForAccessibility="no"
+        app:tint="?attr/tbColorDsIcon"
+        tools:src="@drawable/ic_speed" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/player_panel_row_padding"
+        android:paddingTop="@dimen/player_panel_row_padding_y"
+        android:paddingBottom="@dimen/player_panel_row_padding_y"
+        android:orientation="vertical">
+
+        <!-- as wide as the title and its badge: a long title gives way and ellipsizes, the badge stays after it -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="@dimen/player_panel_text_row"
+                android:textColor="?attr/tbColorDsInk"
+                android:singleLine="true"
+                android:ellipsize="end"
+                tools:text="Speed" />
+
+            <TextView
+                android:id="@+id/tvBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/player_panel_badge_height"
+                android:layout_marginStart="@dimen/player_panel_badge_gap"
+                android:paddingStart="@dimen/player_panel_badge_padding"
+                android:paddingEnd="@dimen/player_panel_badge_padding"
+                android:gravity="center"
+                android:background="@drawable/ds_video_badge_bg"
+                android:textSize="@dimen/player_panel_text_badge"
+                android:textColor="?attr/tbColorDsInk"
+                android:singleLine="true"
+                android:visibility="gone"
+                tools:text="Same length"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/player_panel_row_gap"
+            android:textSize="@dimen/player_panel_text_row_caption"
+            android:textColor="?attr/tbColorDsInkFaint"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:visibility="gone"
+            tools:text="HLS · 1080p · 22:32 · cdn.example"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/player_panel_row_padding"
+        android:textSize="@dimen/player_panel_text_row"
+        android:textColor="?attr/tbColorDsInk"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:maxWidth="160dp"
+        android:visibility="gone"
+        tools:text="1×"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/ivChevron"
+        android:layout_width="@dimen/player_panel_chevron"
+        android:layout_height="@dimen/player_panel_chevron"
+        android:layout_marginStart="@dimen/player_panel_badge_gap"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_chevron_right"
+        android:visibility="gone"
+        app:tint="?attr/tbColorDsIcon"
+        tools:visibility="visible" />
+</LinearLayout>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+A row of a panel over a video (the video settings, the choice of a stream): focused (with the focus ring, which the
+dark fill alone does not tell from across the room), the chosen option (selected), else the panel shows through
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_control" />
+            <solid android:color="?attr/tbColorDsControlFocused" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
+        </shape>
+    </item>
+    <item android:state_hovered="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_control" />
+            <solid android:color="?attr/tbColorDsControlFocused" />
+            <stroke android:color="?attr/tbColorDsFocus" android:width="@dimen/ds_focus_outline" />
+        </shape>
+    </item>
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_control" />
+            <solid android:color="?attr/tbColorDsControlSelected" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/ds_radius_control" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+</selector>

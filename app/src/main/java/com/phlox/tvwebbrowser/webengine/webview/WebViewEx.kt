@@ -109,6 +109,12 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private val mediaControls = WebViewMediaControls(this, { callback.onMediaStateChanged(it) },
         { callback.onPageVideosChanged(it) }, { callback.onMediaVideoChanged(it) })
     private val elementHiding = WebViewElementHiding(this) { requestPageUrl ?: currentOriginalUrl }
+
+    init {
+        //Widevine of sites that ask for more than the L3 of WebView
+        WebViewWidevine.install(this)
+    }
+
     private val pagePermissions = WebViewPagePermissions(object : WebViewPagePermissions.Host {
         override fun hasAndroidPermission(permission: String): Boolean =
             ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED

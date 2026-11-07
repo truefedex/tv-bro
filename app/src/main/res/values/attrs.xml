@@ -102,6 +102,14 @@
     <attr name="tbColorDsDanger" format="color" />
     <!-- Behind sheets (32% black) -->
     <attr name="tbColorDsScrim" format="color" />
+    <!-- The video under the overlays of the players: under a spinner, under an error -->
+    <attr name="tbColorDsVideoDim" format="color" />
+    <attr name="tbColorDsVideoDimStrong" format="color" />
+    <!-- The gradient under the seek bar of a video: transparent at its top, these at its middle and bottom -->
+    <attr name="tbColorDsVideoScrimMiddle" format="color" />
+    <attr name="tbColorDsVideoScrimBottom" format="color" />
+    <!-- The ring of the spinner over a video, under its arc of the selected color -->
+    <attr name="tbColorDsVideoSpinnerTrack" format="color" />
     <!--
     Sizes of the rows of the settings screens: the TV values are in Theme.TVBro, the phone ones in
     ThemeOverlay.TVBro.Settings.Phone, which the phone page lays over its rows

@@ -22,11 +22,20 @@ sealed class HlsPlaylist {
     /** A media playlist: its segments last [duration] seconds; [ended]: it is all of the video (no live stream) */
     data class Media(val duration: Double, val ended: Boolean) : HlsPlaylist()
 
+    /**
+     * Not HLS: the manifest of a DASH stream (MPD), which an XML file the page fetched may be
+     * ([PageVideo.Kind.XML])
+     */
+    data object Dash : HlsPlaylist()
+
     companion object {
         private val URI_ATTRIBUTE = Regex("""URI="([^"]*)"""")
+        /** The root element of a DASH manifest, after the XML declaration and comments */
+        private val MPD_ROOT = Regex("""^\s*(<\?xml[^>]*\?>\s*)?(<!--.*?-->\s*)*<(\w+:)?MPD[\s>]""", RegexOption.DOT_MATCHES_ALL)
 
-        /** The playlist at [url] with the [text]; null if it is none */
+        /** The playlist at [url] with the [text] (or a DASH manifest); null if it is none */
         fun parse(text: String, url: String): HlsPlaylist? {
+            if (MPD_ROOT.containsMatchIn(text.removePrefix("﻿").take(4096))) return Dash
             val lines = text.lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.toList()
             if (lines.firstOrNull()?.removePrefix("﻿")?.startsWith("#EXTM3U") != true) return null
             val playlists = LinkedHashSet<String>()
@@ -86,7 +95,8 @@ class HlsPlaylists(
     fun read(videos: List<PageVideo>) {
         for (video in videos) {
             val url = video.url
-            if (video.kind != PageVideo.Kind.HLS || url in known || url in jobs) continue
+            if (video.kind != PageVideo.Kind.HLS && video.kind != PageVideo.Kind.XML) continue
+            if (url in known || url in jobs) continue
             if (known.size + jobs.size >= limit) return
             //started once it is kept: a scope that runs it at once finishes it here
             val job = scope.launch(start = CoroutineStart.LAZY) {

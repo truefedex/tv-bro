@@ -1,7 +1,10 @@
 package com.phlox.tvwebbrowser.player
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
+import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -51,6 +54,8 @@ class NativePlayer(context: Context) {
         val videoHeight: Int? = null,
         /** Width to height of the picture shown (with the shape of its pixels); null while unknown */
         val aspectRatio: Float? = null,
+        /** A frame of the video was shown since it opened */
+        val firstFrame: Boolean = false,
     )
 
     private var player: ExoPlayer? = null
@@ -58,6 +63,15 @@ class NativePlayer(context: Context) {
     /** Null while no video is open */
     val state: StateFlow<State?> = _state.asStateFlow()
     private var video: PageVideo? = null
+    private var firstFrame = false
+    private val handler = Handler(Looper.getMainLooper())
+    /** The player tells no event while it only loads on: the state is told again now and then for the part loaded */
+    private val refresh = object : Runnable {
+        override fun run() {
+            update()
+            if (player != null) handler.postDelayed(this, REFRESH_MS)
+        }
+    }
 
     /** The ExoPlayer of the open video, for the view that shows it; null while no video is open */
     val exoPlayer: Player? get() = player
@@ -75,6 +89,7 @@ class NativePlayer(context: Context) {
         release()
         this.video = video
         this.ownFrameRate = ownFrameRate
+        firstFrame = false
         val headers = ExternalVideoPlayer.headers(video, cookies)
         val http = DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
@@ -88,11 +103,15 @@ class NativePlayer(context: Context) {
         this.player = player
         if (ownFrameRate) player.videoChangeFrameRateStrategy = C.VIDEO_CHANGE_FRAME_RATE_STRATEGY_OFF
         player.addListener(listener)
-        val item = MediaItem.Builder().setUri(video.url).setMimeType(mimeType(video.kind)).build()
+        val item = MediaItem.Builder().setUri(video.url).setMimeType(mimeType(video.kind))
+            .setSubtitleConfigurations(subtitleConfigurations(video))
+            .build()
         player.setMediaItem(item, (startPosition * 1000).toLong().coerceAtLeast(0))
         player.playWhenReady = true
         player.prepare()
         update()
+        handler.removeCallbacks(refresh)
+        handler.postDelayed(refresh, REFRESH_MS)
     }
 
     fun togglePlayback() {
@@ -119,6 +138,7 @@ class NativePlayer(context: Context) {
     fun mediaCommand(command: MediaCommand) {
         when (command) {
             MediaCommand.TOGGLE -> togglePlayback()
+            MediaCommand.PLAY -> play()
             MediaCommand.STOP, MediaCommand.PAUSE -> pause()
             MediaCommand.REWIND -> seekBy(-VideoModeController.STEP)
             MediaCommand.FAST_FORWARD -> seekBy(VideoModeController.STEP)
@@ -172,6 +192,7 @@ class NativePlayer(context: Context) {
 
     /** Stops the playback and frees the decoders; [state] becomes null */
     fun release() {
+        handler.removeCallbacks(refresh)
         player?.removeListener(listener)
         player?.release()
         player = null
@@ -180,7 +201,10 @@ class NativePlayer(context: Context) {
     }
 
     private val listener = object : Player.Listener {
-        override fun onEvents(player: Player, events: Player.Events) = update()
+        override fun onEvents(player: Player, events: Player.Events) {
+            if (events.contains(Player.EVENT_RENDERED_FIRST_FRAME)) firstFrame = true
+            update()
+        }
     }
 
     private fun update() {
@@ -197,6 +221,8 @@ class NativePlayer(context: Context) {
                 fullscreen = true,
                 rate = if (player.isPlaying) player.playbackParameters.speed.toDouble() else 0.0,
                 at = SystemClock.elapsedRealtime(),
+                live = player.isCurrentMediaItemLive,
+                buffered = duration?.let { player.bufferedPosition / 1000.0 },
             ),
             buffering = player.playbackState == Player.STATE_BUFFERING,
             ended = ended,
@@ -206,17 +232,32 @@ class NativePlayer(context: Context) {
             videoHeight = (player as? ExoPlayer)?.videoFormat?.height?.takeIf { it > 0 },
             aspectRatio = player.videoSize.takeIf { it.width > 0 && it.height > 0 }
                 ?.let { it.width * it.pixelWidthHeightRatio / it.height },
+            firstFrame = firstFrame,
         )
     }
 
     companion object {
         private const val USER_AGENT = "User-Agent"
+        private const val REFRESH_MS = 1000L
 
         /** Streams by their manifests; files by what the server says */
         fun mimeType(kind: PageVideo.Kind): String? = when (kind) {
             PageVideo.Kind.HLS -> MimeTypes.APPLICATION_M3U8
-            PageVideo.Kind.DASH -> MimeTypes.APPLICATION_MPD
+            PageVideo.Kind.DASH, PageVideo.Kind.XML -> MimeTypes.APPLICATION_MPD
             PageVideo.Kind.FILE -> null
+        }
+
+        /**
+         * The subtitle files of the page ([PageVideo.subtitles], of the type their extension tells), loaded with the
+         * headers of the video; the one the page shows now is chosen at the start, the others wait for the menu
+         */
+        fun subtitleConfigurations(video: PageVideo): List<MediaItem.SubtitleConfiguration> = video.subtitles.map {
+            MediaItem.SubtitleConfiguration.Builder(it.url.toUri())
+                .setMimeType(it.mimeType)
+                .setLanguage(it.language)
+                .setLabel(it.label)
+                .setSelectionFlags(if (it.showing) C.SELECTION_FLAG_DEFAULT else 0)
+                .build()
         }
     }
 }

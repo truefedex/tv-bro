@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A badge over a video: a live stream on the seek bar, the stream of the same length in the choice of a video -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="4dp" />
+    <solid android:color="?attr/tbColorDsControl" />
+</shape>

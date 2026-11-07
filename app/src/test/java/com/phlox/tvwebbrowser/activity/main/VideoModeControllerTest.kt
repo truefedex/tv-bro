@@ -236,6 +236,50 @@ class VideoModeControllerTest {
     }
 
     @Test
+    fun theBuiltInPlayerOverTheVideoTakesItsKeysAndItsBar() {
+        enter()
+        video.suspended = true
+        assertFalse(video.isActive)
+        assertNull(osd)
+        assertFalse(press(KeyEvent.KEYCODE_DPAD_LEFT))
+        assertFalse(press(KeyEvent.KEYCODE_DPAD_CENTER))
+        //the page pauses under the player: its bar does not show over it
+        video.setMedia(media(playing = false))
+        assertNull(osd)
+        assertFalse(video.backCallback.isEnabled)
+        assertFalse(calls.contains("showCursor"))
+        //the player closed (Up): the video mode goes on, with its bar
+        video.suspended = false
+        assertTrue(video.isActive)
+        assertNotNull(osd)
+        assertEquals("hideCursor", calls.last())
+        assertTrue(press(KeyEvent.KEYCODE_DPAD_RIGHT))
+    }
+
+    @Test
+    fun theCursorGivenBackStaysUnderThePlayer() {
+        enter()
+        press(KeyEvent.KEYCODE_DPAD_UP)
+        assertEquals("showCursor", calls.last())
+        video.suspended = true
+        assertFalse(video.backCallback.isEnabled)
+        video.suspended = false
+        //the cursor is still there: Back hides it again
+        assertFalse(video.isActive)
+        assertTrue(video.backCallback.isEnabled)
+        assertEquals("showCursor", calls.last())
+    }
+
+    @Test
+    fun theUpOfAKeyThatOpenedThePlayerIsNotKeptForLater() {
+        enter()
+        //Down opens the player: its up goes to the player, not to the video mode
+        assertTrue(video.dispatchKeyEvent(key(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN)))
+        video.suspended = true
+        assertFalse(video.dispatchKeyEvent(key(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_DOWN)))
+    }
+
+    @Test
     fun leavingFullscreenEndsTheVideoMode() {
         enter()
         press(KeyEvent.KEYCODE_DPAD_UP)

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The round button of the seek bar of a video, with the glyph of what OK does -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="?attr/tbColorDsControl" />
+</shape>

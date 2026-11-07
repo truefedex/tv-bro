@@ -21,15 +21,47 @@ data class PageVideo(
     val height: Int? = null,
     /** Seconds; null when unknown or endless */
     val duration: Double? = null,
+    /** The subtitle files of the media elements of its frame (the stream often carries none itself) */
+    val subtitles: List<PageSubtitle> = emptyList(),
 ) {
-    enum class Kind { FILE, HLS, DASH }
+    enum class Kind {
+        FILE, HLS, DASH,
+        /**
+         * An XML file the page fetched, which may be the manifest of a DASH stream without its extension and type: the
+         * engine reads it ([HlsPlaylists]), and [PageVideoList] gives it as [DASH] only if it is one, else never
+         */
+        XML
+    }
 
     /** The MIME type players know it by */
     val mimeType: String
         get() = when (kind) {
             Kind.HLS -> "application/x-mpegURL"
-            Kind.DASH -> "application/dash+xml"
+            Kind.DASH, Kind.XML -> "application/dash+xml"
             Kind.FILE -> PageVideoUrls.fileMimeType(url)
+        }
+}
+
+/**
+ * A subtitle file of the page: a `<track>` of a media element, one the configuration of its player lists (PlayerJS),
+ * or one it loaded. Many players keep the subtitles apart from the stream, so other players get them only this way
+ */
+data class PageSubtitle(
+    val url: String,
+    /** Its language (BCP 47), if the page tells it */
+    val language: String? = null,
+    /** Its name in the menu of the page */
+    val label: String? = null,
+    /** Shown now: by the engine, or the file the page loaded last (players load them when they are turned on) */
+    val showing: Boolean = false,
+) {
+    /** By the extension: SubRip, SSA/ASS, TTML; else WebVTT, as `<track>` files are */
+    val mimeType: String
+        get() = when (url.substringBefore('?').substringBefore('#').substringAfterLast('.', "").lowercase()) {
+            "srt" -> "application/x-subrip"
+            "ass", "ssa" -> "text/x-ssa"
+            "ttml", "dfxp" -> "application/ttml+xml"
+            else -> "text/vtt"
         }
 }
 
@@ -54,9 +86,11 @@ data class MediaSource(
 
 /**
  * The video of the page a media element plays: [video] when it is known, else the [choices] it may be (the
- * streams of its frame, the likeliest first), so the user can pick it
+ * streams of its frame, the likeliest first, with the durations their playlists tell), so the user can pick it;
+ * [sameLength]: the addresses of the choices that last as long as the media
  */
-data class PageVideoMatch(val video: PageVideo?, val choices: List<PageVideo> = emptyList()) {
+data class PageVideoMatch(val video: PageVideo?, val choices: List<PageVideo> = emptyList(),
+                          val sameLength: Set<String> = emptySet()) {
     companion object {
         val NONE = PageVideoMatch(null)
 
@@ -73,13 +107,16 @@ data class PageVideoMatch(val video: PageVideo?, val choices: List<PageVideo> = 
             if (!source.mse) return NONE
             val streams = frameVideos.filter { it.kind != PageVideo.Kind.FILE }
             if (streams.size <= 1) return PageVideoMatch(streams.singleOrNull())
-            if (duration == null) return PageVideoMatch(null, streams)
-            val fitting = streams.map { stream -> durationOf(stream, playlists)?.let { fits(it, duration) } }
+            val durations = streams.map { durationOf(it, playlists) }
+            val known = streams.mapIndexed { i, stream -> durations[i]?.let { stream.copy(duration = it) } ?: stream }
+            if (duration == null) return PageVideoMatch(null, known)
+            val fitting = durations.map { it?.let { d -> fits(d, duration) } }
             if (fitting.count { it == true } == 1 && fitting.none { it == null }) {
                 return PageVideoMatch(streams[fitting.indexOf(true)])
             }
             //those that last as long as the media first
-            return PageVideoMatch(null, streams.indices.sortedBy { if (fitting[it] == true) 0 else 1 }.map { streams[it] })
+            return PageVideoMatch(null, known.indices.sortedBy { if (fitting[it] == true) 0 else 1 }.map { known[it] },
+                known.filterIndexed { i, _ -> fitting[i] == true }.map { it.url }.toSet())
         }
 
         private fun fits(a: Double, b: Double) = kotlin.math.abs(a - b) <= maxOf(2.0, 0.01 * maxOf(a, b))
@@ -93,7 +130,7 @@ data class PageVideoMatch(val video: PageVideo?, val choices: List<PageVideo> = 
             val media = when (val playlist = playlists(stream.url)) {
                 is HlsPlaylist.Media -> listOf(playlist)
                 is HlsPlaylist.Master -> playlist.playlists.mapNotNull { playlists(it) as? HlsPlaylist.Media }
-                null -> emptyList()
+                HlsPlaylist.Dash, null -> emptyList()
             }
             return media.firstOrNull { it.ended && it.duration > 0 }?.duration
         }
@@ -111,6 +148,7 @@ object PageVideoUrls {
         "flv" to "video/x-flv", "3gp" to "video/3gpp")
     private val HLS_TYPES = setOf("application/vnd.apple.mpegurl", "application/x-mpegurl", "audio/mpegurl",
         "audio/x-mpegurl")
+    private val XML_TYPES = setOf("application/xml", "text/xml")
 
     /**
      * The kind of the video at the http(s) [url], null if it is none: the manifests of HLS and DASH, by the
@@ -128,6 +166,7 @@ object PageVideoUrls {
             extension == "mpd" -> PageVideo.Kind.DASH
             //what a media element plays is a file, whatever its address looks like
             fromMediaElement -> PageVideo.Kind.FILE
+            mime in XML_TYPES -> PageVideo.Kind.XML
             else -> null
         }
     }
@@ -208,7 +247,7 @@ class PageVideoList<F : Any>(private val limit: Int = 50, private val playlists:
 
     fun videos(): List<PageVideo> {
         val byUrl = LinkedHashMap<String, PageVideo>()
-        for (video in frames.values.flatten()) {
+        for (video in resolved(frames.values.flatten())) {
             val known = byUrl[video.url]
             byUrl[video.url] = if (known == null) video else merge(known, video)
         }
@@ -216,16 +255,25 @@ class PageVideoList<F : Any>(private val limit: Int = 50, private val playlists:
     }
 
     /** The videos one frame reported, the variants of an HLS stream as one */
-    fun videosOf(frame: F): List<PageVideo> = withoutVariants(frames[frame] ?: emptyList())
+    fun videosOf(frame: F): List<PageVideo> = withoutVariants(resolved(frames[frame] ?: emptyList()))
 
     /**
-     * The HLS playlists to read ([HlsPlaylists]) where the addresses leave the streams of a frame unclear: all
-     * of those of each frame that has more than one stream by its addresses (a master with qualities that lie
-     * elsewhere, or another stream, an ad, whose duration tells it apart)
+     * The files to read ([HlsPlaylists]): the XML files the frames fetched (DASH manifests or not), and the HLS
+     * playlists where the addresses leave the streams of a frame unclear: all of those of each frame that has more
+     * than one stream by its addresses (a master with qualities that lie elsewhere, or another stream, an ad, whose
+     * duration tells it apart)
      */
     fun unclearStreams(): List<PageVideo> = frames.values.flatMap { videos ->
-        val streams = withoutVariants(videos).count { it.kind != PageVideo.Kind.FILE }
-        if (streams > 1) videos.filter { it.kind == PageVideo.Kind.HLS } else emptyList()
+        val xml = videos.filter { it.kind == PageVideo.Kind.XML }
+        val streams = withoutVariants(resolved(videos)).count { it.kind != PageVideo.Kind.FILE }
+        xml + if (streams > 1) videos.filter { it.kind == PageVideo.Kind.HLS } else emptyList()
+    }
+
+    /** The XML files that were read: the DASH manifests among them as DASH, the others left out */
+    private fun resolved(videos: List<PageVideo>): List<PageVideo> = videos.mapNotNull { video ->
+        if (video.kind != PageVideo.Kind.XML) video
+        else if (playlists(video.url) == HlsPlaylist.Dash) video.copy(kind = PageVideo.Kind.DASH)
+        else null
     }
 
     private fun withoutVariants(videos: List<PageVideo>): List<PageVideo> {
@@ -243,17 +291,23 @@ class PageVideoList<F : Any>(private val limit: Int = 50, private val playlists:
     /** What one frame does not tell about a video, another one may */
     private fun merge(a: PageVideo, b: PageVideo) = a.copy(
         title = a.title ?: b.title, pageUrl = a.pageUrl ?: b.pageUrl, userAgent = a.userAgent ?: b.userAgent,
-        width = a.width ?: b.width, height = a.height ?: b.height, duration = a.duration ?: b.duration)
+        width = a.width ?: b.width, height = a.height ?: b.height, duration = a.duration ?: b.duration,
+        subtitles = a.subtitles.ifEmpty { b.subtitles })
 }
 
 /** The reports of page_videos.js, the script both engines run in every frame */
 object PageVideoReports {
-    /** The videos of the frame of the [report]; addresses that are no videos ([PageVideoUrls]) are left out */
+    /**
+     * The videos of the frame of the [report]; addresses that are no videos ([PageVideoUrls]) are left out. The
+     * subtitles of the frame go with each of them: the page plays a stream it loads through a media element, and
+     * which one is not told here
+     */
     fun parse(report: JSONObject): List<PageVideo> {
         val items = report.optJSONArray("videos") ?: return emptyList()
         val title = report.optString("title").ifBlank { null }
         val page = report.optString("page").ifBlank { null }
         val userAgent = report.optString("ua").ifBlank { null }
+        val subtitles = subtitles(report)
         return (0 until items.length()).mapNotNull { i ->
             val item = items.optJSONObject(i) ?: return@mapNotNull null
             val url = item.optString("url")
@@ -262,7 +316,22 @@ object PageVideoReports {
             PageVideo(url, kind, title, page, userAgent,
                 width = item.optInt("width").takeIf { it > 0 },
                 height = item.optInt("height").takeIf { it > 0 },
-                duration = item.optDouble("duration").takeIf { it.isFinite() && it > 0 })
+                duration = item.optDouble("duration").takeIf { it.isFinite() && it > 0 },
+                subtitles = subtitles)
         }
     }
+
+    private fun subtitles(report: JSONObject): List<PageSubtitle> {
+        val items = report.optJSONArray("subtitles") ?: return emptyList()
+        return (0 until items.length()).mapNotNull { i ->
+            val item = items.optJSONObject(i) ?: return@mapNotNull null
+            val url = item.optString("url").takeIf { it.startsWith("http://") || it.startsWith("https://") }
+                ?: return@mapNotNull null
+            PageSubtitle(url, item.optNullableString("lang"), item.optNullableString("label"), item.optBoolean("showing"))
+        }.distinctBy { it.url }
+    }
+
+    /** JSON null and blank strings as null (optString gives "null" for a JSON null) */
+    private fun JSONObject.optNullableString(name: String): String? =
+        if (isNull(name)) null else optString(name).ifBlank { null }
 }

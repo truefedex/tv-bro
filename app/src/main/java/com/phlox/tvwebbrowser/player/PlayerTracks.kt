@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser.player
 
 import androidx.media3.common.C
 import androidx.media3.common.Format
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
@@ -13,8 +14,11 @@ import java.util.Locale
  * then each quality from the highest), the audio tracks and the subtitles (Off, then each language).
  */
 object PlayerTracks {
-    /** The texts the options need (localized by the caller) */
-    class Texts(val auto: String, val off: String, val track: (Int) -> String)
+    /**
+     * The texts the options need (localized by the caller); [captions]: a caption channel of the video itself
+     * (CEA-608/708), which has no name
+     */
+    class Texts(val auto: String, val off: String, val captions: String = off, val track: (Int) -> String)
 
     data class Option(val label: String, val selected: Boolean, val choice: Choice)
 
@@ -55,28 +59,44 @@ object PlayerTracks {
     }
 
     /** The audio tracks; empty when there is only one */
-    fun audioTracks(tracks: Tracks, texts: Texts): List<Option> {
+    fun audioTracks(tracks: Tracks, parameters: TrackSelectionParameters, texts: Texts): List<Option> {
         val groups = groups(tracks, C.TRACK_TYPE_AUDIO)
         if (groups.size < 2) return emptyList()
+        //the choice of the user, before the player has applied it to its tracks
+        val chosen = parameters.overrides.values.firstOrNull { it.type == C.TRACK_TYPE_AUDIO }
         return groups.mapIndexed { i, group ->
             val format = group.getTrackFormat(0)
             val label = listOfNotNull(trackName(format) ?: texts.track(i + 1), channels(format.channelCount))
                 .joinToString(" · ")
-            Option(label, group.isSelected, Choice.Group(group.mediaTrackGroup))
+            val selected = if (chosen != null) chosen.mediaTrackGroup == group.mediaTrackGroup else group.isSelected
+            Option(label, selected, Choice.Group(group.mediaTrackGroup))
         }
     }
 
-    /** Off and the subtitles; empty when there are none */
+    /**
+     * Off and the subtitles; empty when there are none. The caption channels of the video come last: an HLS stream
+     * of MPEG-TS that declares none gets one from Media3 all the same (it may be in the video), mostly empty, while
+     * the files of the page have names
+     */
     fun subtitles(tracks: Tracks, parameters: TrackSelectionParameters, texts: Texts): List<Option> {
-        val groups = groups(tracks, C.TRACK_TYPE_TEXT)
+        val groups = groups(tracks, C.TRACK_TYPE_TEXT).sortedBy { isCaptionChannel(it.getTrackFormat(0)) }
         if (groups.isEmpty()) return emptyList()
         val disabled = C.TRACK_TYPE_TEXT in parameters.disabledTrackTypes
-        val options = groups.mapIndexed { i, group ->
-            Option(trackName(group.getTrackFormat(0)) ?: texts.track(i + 1), !disabled && group.isSelected,
-                Choice.Group(group.mediaTrackGroup))
+        //the choice of the user, before the player has applied it to its tracks
+        val chosen = parameters.overrides.values.firstOrNull { it.type == C.TRACK_TYPE_TEXT }
+        var unnamed = 0
+        val options = groups.map { group ->
+            val format = group.getTrackFormat(0)
+            val label = trackName(format) ?: if (isCaptionChannel(format)) texts.captions else texts.track(++unnamed)
+            val selected = if (chosen != null) chosen.mediaTrackGroup == group.mediaTrackGroup else group.isSelected
+            Option(label, !disabled && selected, Choice.Group(group.mediaTrackGroup))
         }
         return listOf(Option(texts.off, options.none { it.selected }, Choice.Off)) + options
     }
+
+    /** Captions carried in the video stream itself (CEA-608/708) */
+    private fun isCaptionChannel(format: Format): Boolean =
+        format.sampleMimeType == MimeTypes.APPLICATION_CEA608 || format.sampleMimeType == MimeTypes.APPLICATION_CEA708
 
     /** "1080p", with the bitrate when [withBitrate] ("1080p · 4.5 Mbps") */
     fun qualityLabel(format: Format, withBitrate: Boolean): String {

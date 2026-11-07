@@ -37,7 +37,12 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         const val CURSOR_PHYSICS_PERCENT_MAX = 200
         const val INCOGNITO_MODE_KEY = "incognito_mode"
         const val INCOGNITO_MODE_HINT_SUPPRESS_KEY = "incognito_mode_hint_suppress"
+        /** "Don't show again" of the dialog that told about the built-in player before its toast ([builtInPlayerIntroShown]) */
         const val BUILT_IN_PLAYER_HINT_SUPPRESS_KEY = "built_in_player_hint_suppress"
+        const val BUILT_IN_PLAYER_INTRO_SHOWN_KEY = "built_in_player_intro_shown"
+        const val BUILT_IN_PLAYER_BY_DEFAULT_KEY = "built_in_player_by_default"
+        /** The toast about the built-in player shows the first times it opens */
+        const val BUILT_IN_PLAYER_INTRO_TIMES = 3
         const val DIRECT_NAVIGATION_MODE_HINT_SUPPRESS_KEY = "direct_navigation_mode_hint_suppress"
         const val HOME_PAGE_MODE = "home_page_mode"
         const val HOME_PAGE_SUGGESTIONS_MODE = "home_page_suggestions_mode"
@@ -118,11 +123,25 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
             prefs.edit().putBoolean(INCOGNITO_MODE_HINT_SUPPRESS_KEY, value).apply()
         }
 
-    /** The dialog about the built-in player no longer shows when it opens ("Don't show again") */
-    var builtInPlayerHintSuppress: Boolean
-        get() = prefs.getBoolean(BUILT_IN_PLAYER_HINT_SUPPRESS_KEY, false)
+    /**
+     * How many times the toast about the built-in player showed when it opened; it shows the first
+     * [BUILT_IN_PLAYER_INTRO_TIMES] times. Users who chose "Don't show again" for the dialog it replaced know the player.
+     */
+    var builtInPlayerIntroShown: Int
+        get() = if (prefs.getBoolean(BUILT_IN_PLAYER_HINT_SUPPRESS_KEY, false)) BUILT_IN_PLAYER_INTRO_TIMES
+            else prefs.getInt(BUILT_IN_PLAYER_INTRO_SHOWN_KEY, 0)
         set(value) {
-            prefs.edit().putBoolean(BUILT_IN_PLAYER_HINT_SUPPRESS_KEY, value).apply()
+            prefs.edit().putInt(BUILT_IN_PLAYER_INTRO_SHOWN_KEY, value).apply()
+        }
+
+    /**
+     * Videos that pages put in fullscreen go to the built-in player by themselves (true) or stay in the player of the
+     * site (false), on TV; a site may have its own choice ([com.phlox.tvwebbrowser.model.HostConfig.builtInPlayer])
+     */
+    var builtInPlayerByDefault: Boolean
+        get() = prefs.getBoolean(BUILT_IN_PLAYER_BY_DEFAULT_KEY, true)
+        set(value) {
+            prefs.edit().putBoolean(BUILT_IN_PLAYER_BY_DEFAULT_KEY, value).apply()
         }
 
     var directNavigationModeHintSuppress: Boolean

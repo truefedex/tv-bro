@@ -11,56 +11,93 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.utils.themeColor
 
 /**
- * The progress line of the seek bar of the video mode: the part played in the accent color and a thumb
- * where the video is, or where a seek goes (then a mark stays where the video is).
+ * The progress of the seek bar of a video: the line, the part loaded, the part played in the selected color and the
+ * thumb where the video is (smaller while it plays). While a seek goes, the thumb (bigger, with the focus ring) is
+ * where it goes, the line between where the video is and there is lighter, and a mark stays where the video is.
  */
 class VideoProgressView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
     View(context, attrs) {
-    private var progress = 0f
-    private var playedMark: Float? = null
-    private val onToast = context.themeColor(R.attr.tbColorDsOnToast)
-    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ColorUtils.setAlphaComponent(onToast, TRACK_ALPHA)
-    }
-    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = context.themeColor(R.attr.tbColorDsAccent) }
-    private val thumbPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = onToast }
-    private val markPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ColorUtils.setAlphaComponent(onToast, MARK_ALPHA)
-    }
+    private var position = 0f
+    private var buffered: Float? = null
+    private var target: Float? = null
+    private var playing = false
+    private val ink = context.themeColor(R.attr.tbColorDsInk)
+    private val selected = context.themeColor(R.attr.tbColorDsSelected)
+    private val thumbColor = context.themeColor(R.attr.tbColorDsOnToast)
+    private val trackPaint = paint(ColorUtils.setAlphaComponent(ink, TRACK_ALPHA))
+    private val bufferedPaint = paint(ColorUtils.setAlphaComponent(ink, BUFFERED_ALPHA))
+    private val playedPaint = paint(selected)
+    private val previewPaint = paint(ColorUtils.setAlphaComponent(selected, PREVIEW_ALPHA))
+    private val thumbPaint = paint(thumbColor)
+    private val markPaint = paint(ColorUtils.setAlphaComponent(thumbColor, MARK_ALPHA))
+    private val ringPaint = paint(context.themeColor(R.attr.tbColorDsFocus))
     private val lineHeight = resources.getDimension(R.dimen.video_osd_line_height)
-    private val thumbRadius = resources.getDimension(R.dimen.video_osd_thumb_radius)
+    private val thumbPlaying = resources.getDimension(R.dimen.video_osd_thumb_radius_playing)
+    private val thumbPaused = resources.getDimension(R.dimen.video_osd_thumb_radius)
+    private val thumbSeek = resources.getDimension(R.dimen.video_osd_thumb_radius_seek)
+    private val ring = resources.getDimension(R.dimen.video_osd_thumb_ring)
+    private val markRadius = resources.getDimension(R.dimen.video_osd_mark_radius)
     private val rect = RectF()
 
-    /** [progress] and [playedMark] (where the video is while a seek goes elsewhere) are parts of the duration */
-    fun setProgress(progress: Float, playedMark: Float?) {
-        val p = progress.coerceIn(0f, 1f)
-        val m = playedMark?.coerceIn(0f, 1f)
-        if (p == this.progress && m == this.playedMark) return
-        this.progress = p
-        this.playedMark = m
+    private fun paint(color: Int) = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
+
+    /**
+     * Parts of the duration: [position] where the video is, [buffered] how far it is loaded (null if unknown),
+     * [target] where a seek goes (null while none goes); [playing]: the thumb is smaller while the video plays
+     */
+    fun setProgress(position: Float, buffered: Float?, target: Float?, playing: Boolean) {
+        val p = position.coerceIn(0f, 1f)
+        val b = buffered?.coerceIn(0f, 1f)
+        val t = target?.coerceIn(0f, 1f)
+        if (p == this.position && b == this.buffered && t == this.target && playing == this.playing) return
+        this.position = p
+        this.buffered = b
+        this.target = t
+        this.playing = playing
         invalidate()
     }
 
+    /** The line between the thumbs at the ends (the one while paused fits in the view) */
+    private val lineLeft get() = paddingLeft + thumbPaused
+    private val lineRight get() = width - paddingRight - thumbPaused
+
+    private fun xOf(part: Float) = lineLeft + (lineRight - lineLeft) * part
+
+    /** Where the thumb is, from the start of the view: where a seek goes, else where the video is */
+    fun thumbX(): Float = xOf(target ?: position)
+
+    /** The top of the line, from the top of the view */
+    fun lineTop(): Float = height / 2f - lineHeight / 2
+
     override fun onDraw(canvas: Canvas) {
-        val left = paddingLeft + thumbRadius
-        val right = width - paddingRight - thumbRadius
-        if (right <= left) return
+        if (lineRight <= lineLeft) return
         val cy = height / 2f
         val radius = lineHeight / 2
-        rect.set(left, cy - radius, right, cy + radius)
-        canvas.drawRoundRect(rect, radius, radius, trackPaint)
-        val x = left + (right - left) * progress
-        rect.set(left, cy - radius, x, cy + radius)
-        canvas.drawRoundRect(rect, radius, radius, fillPaint)
-        playedMark?.let { mark ->
-            val mx = left + (right - left) * mark
-            canvas.drawCircle(mx, cy, thumbRadius / 2, markPaint)
+        fun segment(from: Float, to: Float, paint: Paint) {
+            if (to <= from) return
+            rect.set(xOf(from), cy - radius, xOf(to), cy + radius)
+            canvas.drawRoundRect(rect, radius, radius, paint)
         }
-        canvas.drawCircle(x, cy, thumbRadius, thumbPaint)
+        segment(0f, 1f, trackPaint)
+        buffered?.let { segment(0f, it, bufferedPaint) }
+        val target = target
+        if (target == null) {
+            segment(0f, position, playedPaint)
+            canvas.drawCircle(xOf(position), cy, if (playing) thumbPlaying else thumbPaused, thumbPaint)
+            return
+        }
+        //a seek: played up to the nearer of the two, the way between them lighter, a mark where the video is
+        segment(0f, minOf(position, target), playedPaint)
+        segment(minOf(position, target), maxOf(position, target), previewPaint)
+        canvas.drawCircle(xOf(position), cy, markRadius, markPaint)
+        canvas.drawCircle(xOf(target), cy, thumbSeek + ring, ringPaint)
+        canvas.drawCircle(xOf(target), cy, thumbSeek, thumbPaint)
     }
 
     companion object {
-        private const val TRACK_ALPHA = 0x4D
-        private const val MARK_ALPHA = 0xB3
+        private const val TRACK_ALPHA = 0x3D
+        private const val BUFFERED_ALPHA = 0x6B
+        private const val PREVIEW_ALPHA = 0x73
+        private const val MARK_ALPHA = 0xCC
     }
 }

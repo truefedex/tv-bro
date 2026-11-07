@@ -41,7 +41,7 @@ class MediaFrames<F : Any> {
 
 /** The commands of media_controls.js (see tvBroWatchMedia) */
 enum class MediaCommand(val js: String) {
-    TOGGLE("toggle"), PAUSE("pause"), STOP("stop"), REWIND("rewind"), FAST_FORWARD("forward");
+    TOGGLE("toggle"), PLAY("play"), PAUSE("pause"), STOP("stop"), REWIND("rewind"), FAST_FORWARD("forward");
 
     companion object {
         fun seekTo(position: Double) = "seekTo:$position"
@@ -63,6 +63,9 @@ object MediaReports {
             rate = json.optDouble("rate", 1.0).takeIf { it.isFinite() } ?: 1.0,
             muted = json.optBoolean("muted"),
             at = now,
+            live = json.optBoolean("live"),
+            drm = json.optBoolean("drm"),
+            source = if (json.isNull("source")) null else json.optString("source").ifEmpty { null },
         )
     }
 

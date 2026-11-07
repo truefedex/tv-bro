@@ -60,6 +60,11 @@
         <item name="tbColorDsAccent">@color/ds_accent</item>
         <item name="tbColorDsDanger">@color/ds_danger</item>
         <item name="tbColorDsScrim">@color/ds_scrim</item>
+        <item name="tbColorDsVideoDim">@color/ds_video_dim</item>
+        <item name="tbColorDsVideoDimStrong">@color/ds_video_dim_strong</item>
+        <item name="tbColorDsVideoScrimMiddle">@color/ds_video_scrim_middle</item>
+        <item name="tbColorDsVideoScrimBottom">@color/ds_video_scrim_bottom</item>
+        <item name="tbColorDsVideoSpinnerTrack">@color/ds_video_spinner_track</item>
         <item name="alertDialogTheme">@style/ThemeOverlay.TVBro.Dialog.Alert</item>
         <item name="tbSettingsRowMinHeight">@dimen/ds_settings_row_min_height</item>
         <item name="tbSettingsRowPadding">@dimen/ds_settings_row_padding</item>
@@ -69,6 +74,30 @@
         <item name="tbSettingsGroupSize">@dimen/ds_text_settings_group</item>
         <item name="tbSettingsControlHeight">@dimen/ds_settings_control_height</item>
         <item name="tbSettingsRowBackground">@drawable/ds_settings_row_bg</item>
+    </style>
+
+    <!--
+    The overlays of the players over a video (the seek bar of the video mode, the built-in player, its panels, the choice
+    of a stream): always the dark tokens, also in the light theme, set with android:theme on their views
+    -->
+    <style name="ThemeOverlay.TVBro.Video" parent="">
+        <item name="tbColorDsBgPage">@color/ds_dark_bg_page</item>
+        <item name="tbColorDsBgChrome">@color/ds_dark_bg_chrome</item>
+        <item name="tbColorDsSurface">@color/ds_dark_surface</item>
+        <item name="tbColorDsSurfaceFocused">@color/ds_dark_surface_focused</item>
+        <item name="tbColorDsTab">@color/ds_dark_tab</item>
+        <item name="tbColorDsMenu">@color/ds_dark_menu</item>
+        <item name="tbColorDsControl">@color/ds_dark_control</item>
+        <item name="tbColorDsControlFocused">@color/ds_dark_control_focused</item>
+        <item name="tbColorDsControlSelected">@color/ds_dark_control_selected</item>
+        <item name="tbColorDsLine">@color/ds_dark_line</item>
+        <item name="tbColorDsLineStrong">@color/ds_dark_line_strong</item>
+        <item name="tbColorDsDivider">@color/ds_dark_divider</item>
+        <item name="tbColorDsInk">@color/ds_dark_ink</item>
+        <item name="tbColorDsInkFaint">@color/ds_dark_ink_faint</item>
+        <item name="tbColorDsIcon">@color/ds_dark_icon</item>
+        <item name="tbColorDsOnBadge">@color/ds_dark_on_badge</item>
+        <item name="tbColorDsDanger">@color/ds_dark_danger</item>
     </style>
 
     <!-- The rows of the phone settings page: bigger touch targets and text, the pressed look -->

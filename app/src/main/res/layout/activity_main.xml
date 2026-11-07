@@ -225,13 +225,14 @@
         android:elevation="7dp"
         android:visibility="gone" />
 
-    <!-- the built-in player, over the whole window and the bar -->
+    <!-- the built-in player, over the whole window and the bar, in the dark tokens -->
     <com.phlox.tvwebbrowser.activity.main.view.PlayerScreenView
         android:id="@+id/vPlayerScreen"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:elevation="7.5dp"
-        android:outlineProvider="none" />
+        android:outlineProvider="none"
+        android:theme="@style/ThemeOverlay.TVBro.Video" />
 
     <!-- the menus of the bookmarks and downloads panels, above them -->
     <com.phlox.tvwebbrowser.activity.main.view.PopupMenuView
@@ -250,17 +251,25 @@
         android:clipToPadding="false"
         />
 
-    <!-- the seek bar of the video mode, over the fullscreen video -->
+    <!-- the seek bar of the video mode, across the bottom of the fullscreen video, in the dark tokens -->
     <com.phlox.tvwebbrowser.activity.main.view.VideoOsdView
         android:id="@+id/vVideoOsd"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/video_osd_height"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="@dimen/video_osd_margin_x"
-        android:layout_marginEnd="@dimen/video_osd_margin_x"
-        android:layout_marginBottom="@dimen/video_osd_margin_bottom"
         android:elevation="16dp"
+        android:outlineProvider="none"
+        android:theme="@style/ThemeOverlay.TVBro.Video"
         android:visibility="gone" />
+
+    <!-- the choice among the streams the fullscreen video may be, over it, then the built-in player -->
+    <com.phlox.tvwebbrowser.activity.main.view.PlayerPanelView
+        android:id="@+id/vVideoChoice"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="17dp"
+        android:outlineProvider="none"
+        android:theme="@style/ThemeOverlay.TVBro.Video" />
 
     <ProgressBar
         android:id="@+id/progressBarGeneric"

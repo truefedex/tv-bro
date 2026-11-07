@@ -250,7 +250,7 @@ In the TV site panel the focus does not leave its rows.
         style="@style/Widget.TVBro.PanelRow"
         android:id="@+id/llSiteView"
         android:nextFocusUp="@+id/llPopups"
-        android:nextFocusDown="@+id/llClearData"
+        android:nextFocusDown="@+id/llPlayer"
         android:nextFocusLeft="@+id/llSiteView"
         android:nextFocusRight="@+id/llSiteView">
 
@@ -303,6 +303,70 @@ In the TV site panel the focus does not leave its rows.
           android:id="@+id/ivSiteViewChevron"
           android:src="@drawable/ic_chevron_right" />
     </LinearLayout>
+
+    <View
+        style="@style/Widget.TVBro.MenuSeparator"
+        android:id="@+id/vPlayerSeparator" />
+
+    <!-- TV only: the player of the videos the site puts in fullscreen, the TV Bro player or its own; the caption
+    tells whether it is the default or set for this site -->
+    <LinearLayout
+        style="@style/Widget.TVBro.PanelRow"
+        android:id="@+id/llPlayer"
+        android:nextFocusUp="@+id/llSiteView"
+        android:nextFocusDown="@+id/llClearData"
+        android:nextFocusLeft="@+id/llPlayer"
+        android:nextFocusRight="@+id/llPlayer">
+
+      <ImageView
+          style="@style/Widget.TVBro.MenuIcon"
+          android:id="@+id/ivPlayer"
+          android:src="@drawable/ic_play_circle" />
+
+      <LinearLayout
+          android:id="@+id/llPlayerText"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginStart="@dimen/ds_panel_icon_text"
+          android:orientation="vertical">
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuItem"
+            android:id="@+id/tvPlayerTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/tbColorDsInk"
+            android:text="@string/settings_video_player" />
+
+        <TextView
+            style="@style/Widget.TVBro.Text.MenuCaption"
+            android:id="@+id/tvPlayerCaption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/tbColorDsInk"
+            android:singleLine="true"
+            tools:text="@string/site_view_default" />
+      </LinearLayout>
+
+      <TextView
+          style="@style/Widget.TVBro.Text.MenuItem"
+          android:id="@+id/tvPlayerValue"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="@dimen/ds_panel_icon_text"
+          android:maxWidth="@dimen/ds_panel_value_max_width"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:singleLine="true"
+          android:ellipsize="end"
+          tools:text="TV Bro" />
+
+      <ImageView
+          style="@style/Widget.TVBro.MenuIcon"
+          android:id="@+id/ivPlayerChevron"
+          android:src="@drawable/ic_chevron_right" />
+    </LinearLayout>
   </LinearLayout>
 
   <!-- the panel sets Clear site data apart with a thicker divider, the site sheet in a section of its own;
@@ -316,7 +380,7 @@ In the TV site panel the focus does not leave its rows.
   <LinearLayout
       style="@style/Widget.TVBro.PanelRow"
       android:id="@+id/llClearData"
-      android:nextFocusUp="@+id/llSiteView"
+      android:nextFocusUp="@+id/llPlayer"
       android:nextFocusDown="@+id/llClearData"
       android:nextFocusLeft="@+id/llClearData"
       android:nextFocusRight="@+id/llClearData">

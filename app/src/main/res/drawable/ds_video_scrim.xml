@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Under the seek bar of a video: from clear at the top of its band to dark at the bottom of the screen -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="@android:color/transparent"
+        android:centerColor="?attr/tbColorDsVideoScrimMiddle"
+        android:endColor="?attr/tbColorDsVideoScrimBottom" />
+</shape>

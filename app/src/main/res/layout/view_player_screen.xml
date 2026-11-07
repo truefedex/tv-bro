@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-The built-in player over the whole window (PlayerScreenView): the video (a SurfaceView of the PlayerView, with the
-subtitles), the title and the seek bar while they show, the buffering, the error with its buttons and the menu of
-the tracks (under the anchor at the top end).
+The built-in player over the whole window (PlayerScreenView), in the dark tokens of ThemeOverlay.TVBro.Video: the video
+(a SurfaceView of the PlayerView, with the subtitles; the page shows through, dimmed, until its first frame), the
+spinner, the seek bar with the title and the caption, the error card with its buttons, and the panel of the video
+settings at the end of the screen.
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:parentTag="android.widget.FrameLayout">
+    tools:parentTag="android.widget.FrameLayout"
+    tools:theme="@style/ThemeOverlay.TVBro.Video">
 
   <androidx.media3.ui.PlayerView
       android:id="@+id/vPlayer"
@@ -19,121 +21,100 @@ the tracks (under the anchor at the top end).
       app:show_buffering="never"
       android:focusable="false" />
 
-  <!-- while the seek bar shows: the title of the video, and under it the player, the height of its track, the kind
-       and the server -->
-  <LinearLayout
-      android:id="@+id/llTitle"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_gravity="top|start"
-      android:layout_marginStart="@dimen/video_osd_margin_x"
-      android:layout_marginTop="@dimen/player_title_margin_top"
-      android:layout_marginEnd="@dimen/video_osd_margin_x"
-      android:orientation="vertical"
-      android:padding="@dimen/video_osd_padding"
-      android:background="@drawable/ds_toast_bg"
-      android:visibility="gone"
-      tools:visibility="visible">
-
-    <TextView
-        style="@style/Widget.TVBro.Text.Toast"
-        android:id="@+id/tvTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-medium"
-        android:textColor="?attr/tbColorDsOnToast"
-        android:singleLine="true"
-        android:ellipsize="end"
-        tools:text="Big Buck Bunny" />
-
-    <TextView
-        style="@style/Widget.TVBro.Text.Caption"
-        android:id="@+id/tvCaption"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="?attr/tbColorDsOnToast"
-        android:singleLine="true"
-        android:ellipsize="end"
-        tools:text="HLS · test-streams.mux.dev" />
-  </LinearLayout>
+  <!-- until the first frame of the video: the paused page shows through it, dimmed, under the spinner -->
+  <View
+      android:id="@+id/vStartScrim"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="?attr/tbColorDsVideoDim"
+      android:visibility="gone" />
 
   <ProgressBar
       android:id="@+id/pbBuffering"
-      style="?android:attr/progressBarStyleLarge"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
+      android:layout_width="@dimen/player_spinner_size"
+      android:layout_height="@dimen/player_spinner_size"
       android:layout_gravity="center"
+      android:indeterminate="true"
+      android:indeterminateDrawable="@drawable/ds_video_spinner"
+      android:indeterminateDuration="1600"
       android:visibility="gone" />
 
   <com.phlox.tvwebbrowser.activity.main.view.VideoOsdView
       android:id="@+id/vOsd"
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
+      android:layout_height="@dimen/video_osd_height"
       android:layout_gravity="bottom"
-      android:layout_marginStart="@dimen/video_osd_margin_x"
-      android:layout_marginEnd="@dimen/video_osd_margin_x"
-      android:layout_marginBottom="@dimen/player_osd_margin_bottom"
       android:visibility="gone" />
 
-  <!-- the playback stopped: what happened, and the ways on -->
-  <LinearLayout
-      android:id="@+id/llError"
-      android:layout_width="@dimen/player_error_width"
-      android:layout_height="wrap_content"
-      android:layout_gravity="center"
-      android:orientation="vertical"
-      android:padding="@dimen/video_osd_padding"
-      android:background="@drawable/ds_menu_bg"
+  <!-- the playback stopped: the video dimmed, what happened and why, and the ways on -->
+  <FrameLayout
+      android:id="@+id/flError"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="?attr/tbColorDsVideoDimStrong"
+      android:clickable="true"
       android:visibility="gone"
       tools:visibility="visible">
 
-    <TextView
-        style="@style/Widget.TVBro.Text.MenuItem"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-medium"
-        android:textColor="?attr/tbColorDsInk"
-        android:text="@string/player_error" />
-
-    <TextView
-        style="@style/Widget.TVBro.Text.MenuCaption"
-        android:id="@+id/tvError"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/ds_space_icon_text"
-        android:textColor="?attr/tbColorDsInk"
-        tools:text="ERROR_CODE_IO_BAD_HTTP_STATUS" />
-
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/player_error_width"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/ds_space_gutter"
-        android:orientation="horizontal">
+        android:layout_gravity="center"
+        android:padding="@dimen/player_error_padding"
+        android:background="@drawable/ds_video_card_bg"
+        android:elevation="@dimen/player_panel_elevation"
+        android:orientation="vertical">
+
+      <ImageView
+          android:layout_width="@dimen/player_error_icon_plate"
+          android:layout_height="@dimen/player_error_icon_plate"
+          android:padding="11dp"
+          android:background="@drawable/ds_video_icon_circle_bg"
+          android:importantForAccessibility="no"
+          android:src="@drawable/ic_videocam_off"
+          app:tint="?attr/tbColorDsIcon" />
 
       <TextView
-          style="@style/Widget.TVBro.TextButton.Ds"
-          android:id="@+id/btnOtherApp"
-          android:text="@string/open_in_external_application" />
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="@dimen/player_error_title_margin"
+          android:textSize="@dimen/player_error_text_title"
+          android:fontFamily="sans-serif-medium"
+          android:textColor="?attr/tbColorDsInk"
+          android:text="@string/player_error" />
 
       <TextView
-          style="@style/Widget.TVBro.TextButton.Ds"
-          android:id="@+id/btnBack"
-          android:layout_marginStart="@dimen/ds_space_icon_text"
-          android:text="@string/player_back_to_page" />
+          android:id="@+id/tvError"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="@dimen/video_osd_live_gap"
+          android:textSize="@dimen/player_error_text_reason"
+          android:textColor="?attr/tbColorDsInk"
+          tools:text="The video server refused access (HTTP 403)" />
+
+      <LinearLayout
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="@dimen/player_error_buttons_margin"
+          android:orientation="horizontal">
+
+        <!-- the video of the page goes on in the player of the site; another video: back to the page -->
+        <TextView
+            style="@style/Widget.TVBro.Button.Video"
+            android:id="@+id/btnBack"
+            android:text="@string/player_watch_on_site" />
+
+        <TextView
+            style="@style/Widget.TVBro.Button.Video"
+            android:id="@+id/btnOtherApp"
+            android:layout_marginStart="@dimen/player_error_button_gap"
+            android:text="@string/player_open_in_other_app" />
+      </LinearLayout>
     </LinearLayout>
-  </LinearLayout>
+  </FrameLayout>
 
-  <!-- the menu of the tracks opens under it, its end at the end of the anchor -->
-  <View
-      android:id="@+id/vMenuAnchor"
-      android:layout_width="1dp"
-      android:layout_height="0dp"
-      android:layout_gravity="top|end"
-      android:layout_marginTop="@dimen/player_title_margin_top"
-      android:layout_marginEnd="@dimen/video_osd_margin_x" />
-
-  <com.phlox.tvwebbrowser.activity.main.view.PopupMenuView
-      android:id="@+id/vMenu"
+  <com.phlox.tvwebbrowser.activity.main.view.PlayerPanelView
+      android:id="@+id/vPanel"
       android:layout_width="match_parent"
       android:layout_height="match_parent" />
 </merge>

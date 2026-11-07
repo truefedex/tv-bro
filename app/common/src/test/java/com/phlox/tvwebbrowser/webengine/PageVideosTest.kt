@@ -69,6 +69,53 @@ class PageVideosTest {
     }
 
     @Test
+    fun anXmlFileIsAVideoOnlyOnceItWasReadAsADashManifest() {
+        //player-venom (gidonline): a DASH manifest fetched as application/xml without .mpd, and VAST ads beside it
+        val manifest = "https://cdn.example/x-en-x/khw4RGL3Ya8ck"
+        val vast = "https://ads.example/load-xml/?id=5758&roll=pre"
+        assertEquals(Kind.XML, PageVideoUrls.kindOf(manifest, false, "application/xml"))
+        assertEquals(Kind.XML, PageVideoUrls.kindOf(vast, false, "text/xml; charset=utf-8"))
+        //what a media element plays stays a file
+        assertEquals(Kind.FILE, PageVideoUrls.kindOf(manifest, true, "application/xml"))
+        val read = HashMap<String, HlsPlaylist?>()
+        val list = PageVideoList<String>(playlists = { read[it] })
+        list.onFrameVideos("player", listOf(PageVideo(manifest, Kind.XML), PageVideo(vast, Kind.XML)))
+        assertEquals(emptyList<PageVideo>(), list.videos())
+        assertEquals(listOf(manifest, vast), list.unclearStreams().map { it.url })
+        read[manifest] = HlsPlaylist.parse("""<?xml version="1.0" encoding="utf-8"?>
+            <!-- made by a packager -->
+            <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static"><Period/></MPD>""", manifest)
+        read[vast] = HlsPlaylist.parse("""<?xml version="1.0"?><VAST version="3.0"><Ad/></VAST>""", vast)
+        assertEquals(listOf(PageVideo(manifest, Kind.DASH)), list.videos())
+        assertEquals(listOf(PageVideo(manifest, Kind.DASH)), list.videosOf("player"))
+    }
+
+    @Test
+    fun aManifestWithAPrefixOfItsNamespaceIsDash() {
+        assertEquals(HlsPlaylist.Dash, HlsPlaylist.parse("<mpd:MPD xmlns:mpd=\"urn:mpeg:dash:schema:mpd:2011\">", "https://a.com/x"))
+        assertEquals(null, HlsPlaylist.parse("<html><body>MPD</body></html>", "https://a.com/x"))
+    }
+
+    @Test
+    fun subtitleFilesAreOfTheTypeOfTheirExtension() {
+        assertEquals("text/vtt", PageSubtitle("https://a.com/en.vtt?t=1").mimeType)
+        assertEquals("application/x-subrip", PageSubtitle("https://a.com/en.SRT").mimeType)
+        assertEquals("text/x-ssa", PageSubtitle("https://a.com/en.ass#x").mimeType)
+        assertEquals("application/ttml+xml", PageSubtitle("https://a.com/en.dfxp").mimeType)
+        //a <track> file is WebVTT whatever its address
+        assertEquals("text/vtt", PageSubtitle("https://a.com/subtitle?id=5").mimeType)
+    }
+
+    @Test
+    fun theSubtitlesOfTheFrameThatHasThemStay() {
+        val subtitles = listOf(PageSubtitle("https://cdn.com/en.vtt", "en"))
+        val list = PageVideoList<String>()
+        list.onFrameVideos("top", listOf(PageVideo("https://cdn.com/2.m3u8", Kind.HLS)))
+        list.onFrameVideos("player", listOf(PageVideo("https://cdn.com/2.m3u8", Kind.HLS, subtitles = subtitles)))
+        assertEquals(subtitles, list.videos().single().subtitles)
+    }
+
+    @Test
     fun aFrameReportReplacesItsVideosAndTheOrderStays() {
         val list = PageVideoList<String>()
         list.onFrameVideos("a", listOf(PageVideo("https://a.com/1.m3u8", Kind.HLS)))
