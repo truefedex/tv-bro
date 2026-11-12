@@ -41,6 +41,7 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         const val CURSOR_PHYSICS_PERCENT_MAX = 200
         const val INCOGNITO_MODE_KEY = "incognito_mode"
         const val INCOGNITO_MODE_HINT_SUPPRESS_KEY = "incognito_mode_hint_suppress"
+        const val INCOGNITO_END_PENDING_KEY = "incognito_end_pending"
         /** "Don't show again" of the dialog that told about the built-in player before its toast ([builtInPlayerIntroShown]) */
         const val BUILT_IN_PLAYER_HINT_SUPPRESS_KEY = "built_in_player_hint_suppress"
         const val BUILT_IN_PLAYER_INTRO_SHOWN_KEY = "built_in_player_intro_shown"
@@ -148,6 +149,17 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         @SuppressLint("ApplySharedPref")
         set(value) {
             prefs.edit().putBoolean(INCOGNITO_MODE_KEY, value).commit()
+        }
+
+    /**
+     * The kids profile ended an incognito session of the main profile ([incognitoMode] is off again): its
+     * tabs and the data of its pages are still to be deleted, by the next browser process of the main profile
+     */
+    var incognitoEndPending: Boolean
+        get() = prefs.getBoolean(INCOGNITO_END_PENDING_KEY, false)
+        @SuppressLint("ApplySharedPref")
+        set(value) {
+            prefs.edit().putBoolean(INCOGNITO_END_PENDING_KEY, value).commit()
         }
 
     var incognitoModeHintSuppress: Boolean

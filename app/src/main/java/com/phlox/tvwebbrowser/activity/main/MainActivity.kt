@@ -39,6 +39,7 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.AppProcesses
 import com.phlox.tvwebbrowser.send.LegacySync
 import com.phlox.tvwebbrowser.send.SendSettings
 import com.phlox.tvwebbrowser.channels.HomeChannels
@@ -76,6 +77,7 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 import kotlin.system.exitProcess
 
@@ -211,7 +213,11 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         uiMode = UiModeSelector.select(this, config.interfaceMode)
         if (space != BrowserSpace.KIDS && !coldStartHandled) {
             coldStartHandled = true
-            if (!isSameSession(intent)) profileLock.onMainColdStart()
+            //the browser of the incognito mode runs (a link of another app came while it was shown): the main
+            //profile is open, and leaving the screen locks it as usual
+            if (!isSameSession(intent) && !AppProcesses.isRunning(this, AppProcesses.INCOGNITO_SUFFIX)) {
+                profileLock.onMainColdStart()
+            }
         }
         val wanted = wantedSpace()
         Log.d(TAG, "onCreate space: $space, wanted: $wanted")
@@ -250,7 +256,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         when (space) {
             BrowserSpace.INCOGNITO -> WebEngineFactory.prepareIncognitoProcess()
             BrowserSpace.KIDS -> WebEngineFactory.prepareKidsProcess()
-            BrowserSpace.MAIN -> {}
+            BrowserSpace.MAIN -> deleteEndedIncognito()
         }
         ActivityResults.reset()
         AppSettingsStore.rememberStartupValues(config)
@@ -380,11 +386,48 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         get() = uiMode == UiMode.TV && WebEngineFactory.supportsKidsProfile()
 
     /** Where the browser is to be now: the kids profile unless its PIN was entered, else incognito or not */
-    private fun wantedSpace(): BrowserSpace = when {
-        kidsProfileAvailable && profileLock.kidsActive -> BrowserSpace.KIDS
+    private fun wantedSpace(): BrowserSpace {
+        //another process may have changed the settings (the incognito mode) since this one read them
+        getSharedPreferences(TVBro.MAIN_PREFS_NAME, MODE_MULTI_PROCESS)
+        if (kidsProfileAvailable && profileLock.kidsActive) {
+            endIncognitoForKids()
+            return BrowserSpace.KIDS
+        }
         //never on in the process of the kids profile: leaving it goes through the main activity
-        config.incognitoMode -> BrowserSpace.INCOGNITO
-        else -> BrowserSpace.MAIN
+        return if (config.incognitoMode) BrowserSpace.INCOGNITO else BrowserSpace.MAIN
+    }
+
+    /**
+     * The kids profile takes the screen: an incognito session of the main profile ends, so the PIN opens the
+     * main profile and not that session. Its tabs and the data of its pages are deleted by the next browser
+     * process of the main profile ([deleteEndedIncognito]): only that one has its database, and the kids
+     * profile may come first.
+     */
+    private fun endIncognitoForKids() {
+        if (!config.incognitoMode) return
+        config.incognitoEndPending = true
+        config.incognitoMode = false
+    }
+
+    /** Deletes what an incognito session that the kids profile ended left ([endIncognitoForKids]) */
+    private fun deleteEndedIncognito() {
+        if (!config.incognitoEndPending) return
+        val app = applicationContext
+        val container = TVBro.container
+        container.tabWrites.enqueue {
+            AppProcesses.end(app, AppProcesses.INCOGNITO_SUFFIX)
+            val tabs = container.data.tabs.load(incognito = true)
+            container.data.tabs.deleteAll(incognito = true)
+            withContext(Dispatchers.IO) {
+                for (tab in tabs) container.tabFiles.removeFiles(tab.wvStateFileName, tab.thumbnailHash)
+            }
+            try {
+                WebEngineFactory.deleteIncognitoData()
+            } catch (e: Exception) {
+                Log.e(TAG, "deleteEndedIncognito", e)
+            }
+            config.incognitoEndPending = false
+        }
     }
 
     /** The browser activity of the [space] is in a task of the app (also when the system ended its process) */

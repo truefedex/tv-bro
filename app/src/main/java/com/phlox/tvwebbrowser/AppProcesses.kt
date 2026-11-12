@@ -1,7 +1,10 @@
 package com.phlox.tvwebbrowser
 
+import android.app.ActivityManager
 import android.app.Application
+import android.content.Context
 import android.os.Build
+import android.os.Process
 import android.util.Log
 import java.io.File
 import java.io.IOException
@@ -50,6 +53,22 @@ object AppProcesses {
     fun isKids(processName: String, packageName: String): Boolean = processName == packageName + KIDS_SUFFIX
 
     fun isCurrentKids(app: Application): Boolean = isKids(currentName(app), app.packageName)
+
+    /** The process of the app with the [suffix] runs */
+    fun isRunning(context: Context, suffix: String): Boolean {
+        val name = context.packageName + suffix
+        return context.getSystemService(ActivityManager::class.java)?.runningAppProcesses.orEmpty()
+            .any { it.processName == name }
+    }
+
+    /** Ends the process of the app with the [suffix] if it runs (not this one) */
+    fun end(context: Context, suffix: String) {
+        val name = context.packageName + suffix
+        val processes = context.getSystemService(ActivityManager::class.java)?.runningAppProcesses.orEmpty()
+        for (process in processes) {
+            if (process.processName == name && process.pid != Process.myPid()) Process.killProcess(process.pid)
+        }
+    }
 
     /** The name of this process; "" if it can not be read */
     private fun currentName(app: Application): String {

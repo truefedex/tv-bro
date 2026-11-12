@@ -1,8 +1,6 @@
 package com.phlox.tvwebbrowser.profile
 
-import android.app.ActivityManager
 import android.content.Context
-import android.os.Process
 import android.util.Log
 import com.phlox.tvwebbrowser.AppContainer
 import com.phlox.tvwebbrowser.AppProcesses
@@ -25,7 +23,7 @@ object KidsProfileData {
 
     suspend fun delete(context: Context) {
         val app = context.applicationContext
-        endKidsProcess(app)
+        AppProcesses.end(app, AppProcesses.KIDS_SUFFIX)
         withContext(Dispatchers.IO) {
             app.deleteDatabase(AppDatabase.KIDS_DATABASE_NAME)
             //the lock file Room keeps next to the copy of a database
@@ -37,14 +35,6 @@ object KidsProfileData {
             WebEngineFactory.deleteKidsData(app)
         } catch (e: Exception) {
             Log.e(TAG, "The engine could not delete the data of the kids profile", e)
-        }
-    }
-
-    private fun endKidsProcess(context: Context) {
-        val name = context.packageName + AppProcesses.KIDS_SUFFIX
-        val processes = context.getSystemService(ActivityManager::class.java)?.runningAppProcesses.orEmpty()
-        for (process in processes) {
-            if (process.processName == name && process.pid != Process.myPid()) Process.killProcess(process.pid)
         }
     }
 }
