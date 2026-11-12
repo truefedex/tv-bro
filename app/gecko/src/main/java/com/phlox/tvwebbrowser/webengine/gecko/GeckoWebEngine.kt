@@ -82,6 +82,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     MediaPlaybackSupport, PageVideosSupport, FindInPageSupport, CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
+        /** The session context (a container) of the pages of the kids profile; never change it: it names their data */
+        private const val KIDS_CONTEXT_ID = "kids"
         /** Changes with the files of the extension: it is installed again then */
         private const val APP_WEB_EXTENSION_VERSION = BuildConfig.WEB_EXTENSION_HASH
         /** The home page is a page of the extension: its files are copied there at build time */
@@ -89,6 +91,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         private val LOCAL_HOME_PAGE_REGEX = Regex("^moz-extension://[^/]+/home/index\\.html([?#].*)?$")
         val TAG: String = GeckoWebEngine::class.java.simpleName
         lateinit var runtime: GeckoRuntime
+        private val isRuntimeInitialized: Boolean get() = this::runtime.isInitialized
         var appWebExtension = ObservableValue<WebExtension?>(null)
         var weakRefToSingleGeckoView: WeakReference<GeckoViewWithVirtualCursor?> = WeakReference(null)
         val uiHandler = Handler(Looper.getMainLooper())
@@ -219,6 +222,13 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                 }
 
                 override fun supportsSiteDataClearing(): Boolean = true
+
+                override fun supportsKidsProfile(): Boolean = true
+
+                //the settings, where it is asked, show only after the runtime started
+                override suspend fun deleteKidsData(context: Context) {
+                    if (isRuntimeInitialized) runtime.storageController.clearDataForSessionContext(KIDS_CONTEXT_ID)
+                }
 
                 override suspend fun clearSiteData(context: Context, host: String, kinds: Set<SiteDataKind>) {
                     //not the permissions (SITE_DATA has them) and not the history
@@ -401,6 +411,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE)
             .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
             .useTrackingProtection(AppContext.provideConfig().trackingProtection)
+            //a container of its own: the cookies, the storage and the cache of the kids profile
+            .apply { if (AppContext.kidsProfile) contextId(KIDS_CONTEXT_ID) }
             .build()
         )
         session.navigationDelegate = navigationDelegate

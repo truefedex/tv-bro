@@ -17,6 +17,11 @@ import java.io.File
  * Application-wide objects that live as long as the process.
  */
 class AppContainer(context: Context) {
+    companion object {
+        /** Where the files of the tabs of the kids profile are, in the files and cache directories */
+        const val KIDS_DIR = "kids"
+    }
+
     private val appContext = context.applicationContext
 
     /** For work that must not be cancelled when an activity or a model is destroyed */
@@ -29,7 +34,11 @@ class AppContainer(context: Context) {
     val downloadService by lazy { DownloadServiceClient(appContext) }
 
     /** Engine states and thumbnails of tabs */
-    val tabFiles = TabFilesStore(context.filesDir, context.cacheDir)
+    val tabFiles = if (AppContext.kidsProfile) {
+        TabFilesStore(File(context.filesDir, KIDS_DIR), File(context.cacheDir, KIDS_DIR))
+    } else {
+        TabFilesStore(context.filesDir, context.cacheDir)
+    }
 
     /** The ad blocker of the browser processes (started by TVBro; never in the process of downloads) */
     val adBlock by lazy {
@@ -38,7 +47,13 @@ class AppContainer(context: Context) {
         })
     }
 
-    private val createdDatabase by lazy { AppDatabase.create(appContext) }
+    /**
+     * The kids profile keeps its tabs, history, bookmarks and site settings in a database of its own, so
+     * nothing of the main profile can be read there, whatever the query
+     */
+    private val createdDatabase by lazy {
+        AppDatabase.create(appContext, if (AppContext.kidsProfile) AppDatabase.KIDS_DATABASE_NAME else AppDatabase.DATABASE_NAME)
+    }
 
     /** Opened (and migrated) on the first use */
     val database: AppDatabase

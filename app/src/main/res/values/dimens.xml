@@ -444,4 +444,10 @@
     <dimen name="player_panel_text_row">14sp</dimen>
     <dimen name="player_panel_text_row_caption">12sp</dimen>
     <dimen name="player_panel_text_badge">11sp</dimen>
+
+    <!-- The dialog of the PIN of the kids profile -->
+    <dimen name="ds_pin_dot_size">14dp</dimen>
+    <dimen name="ds_pin_dot_stroke">2dp</dimen>
+    <dimen name="ds_pin_key_size">52dp</dimen>
+    <dimen name="ds_pin_key_gap">8dp</dimen>
 </resources>

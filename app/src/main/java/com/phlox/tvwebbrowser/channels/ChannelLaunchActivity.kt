@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.utils.DownloadFileActions
 import com.phlox.tvwebbrowser.utils.DownloadFiles
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +38,13 @@ class ChannelLaunchActivity : ComponentActivity() {
         val secret = existingSecret(this)
         if (id <= 0L || token == null || secret == null || token != tokenOf(this, id, secret)) {
             Log.w(TAG, "A link to download $id without a valid token")
+            finish()
+            return
+        }
+        //a tile left on the home screen while the main profile is locked opens no file of it: the browser
+        //shows the kids profile instead
+        if (ProfileLock.get(this).kidsActive) {
+            startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             finish()
             return
         }

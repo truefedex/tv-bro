@@ -613,4 +613,47 @@
   <string name="settings_support_author">Den Autor unterstützen</string>
   <string name="settings_license">Lizenz</string>
   <string name="settings_privacy_policy">Datenschutzerklärung</string>
+
+  <!-- The kids profile and its PIN -->
+  <string name="profile_kids">Kinderprofil</string>
+  <string name="profile_main">Hauptprofil</string>
+  <string name="profile_not_available">Im Kinderprofil nicht verfügbar</string>
+  <string name="pin_enter">PIN eingeben</string>
+  <string name="pin_choose_title">PIN festlegen</string>
+  <string name="pin_choose">Vier Ziffern. Die PIN öffnet das Hauptprofil.</string>
+  <string name="pin_repeat">PIN noch einmal eingeben</string>
+  <string name="pin_mismatch">Die PINs stimmen nicht überein. Bitte neu festlegen.</string>
+  <string name="pin_wait">Zu viele falsche Versuche. Erneut möglich in %s</string>
+  <string name="pin_forgot">PIN vergessen? Nur das Löschen der Daten von TV Bro in den Geräteeinstellungen entfernt sie, zusammen mit allem, was der Browser speichert.</string>
+  <string name="settings_kids_on">An, das Hauptprofil ist durch eine PIN geschützt</string>
+  <string name="settings_kids_about">Was ist das</string>
+  <string name="settings_kids_about_summary">Ein Profil für Kinder mit eigenen Lesezeichen, eigenem Verlauf, eigenen Tabs und Anmeldungen. Was das Hauptprofil speichert (die Websites, bei denen man angemeldet ist, der Verlauf, die Einstellungen), bleibt hinter einer PIN. Das Kinderprofil hat keine Einstellungen, keine Downloads, keinen Inkognito-Modus und keine anderen Apps.\n\nEs schützt nur TV Bro, nicht andere Apps oder die Geräteeinstellungen. Eine vergessene PIN entfernt nur das Löschen der Daten von TV Bro.</string>
+  <string name="settings_kids_enable_summary">TV Bro öffnet sich im Kinderprofil; das Hauptprofil fragt nach einer PIN</string>
+  <string name="settings_kids_open">Kinderprofil öffnen</string>
+  <string name="settings_kids_open_summary">Die Rückkehr ins Hauptprofil (im Menü der Leiste) fragt nach der PIN</string>
+  <string name="settings_kids_lock">Hauptprofil sperren</string>
+  <string name="settings_kids_lock_summary">Wann TV Bro ins Kinderprofil zurückkehrt, nachdem es den Bildschirm verlassen hat</string>
+  <string name="settings_kids_lock_immediately">Sofort</string>
+  <string name="settings_kids_lock_5">Nach 5 Minuten</string>
+  <string name="settings_kids_lock_30">Nach 30 Minuten</string>
+  <string name="settings_kids_lock_manual">Nur über das Menü</string>
+  <string name="settings_kids_pin">PIN</string>
+  <string name="settings_kids_pin_summary">Öffnet das Hauptprofil</string>
+  <string name="settings_kids_pin_change">Ändern</string>
+  <string name="settings_kids_disable">Kinderprofil ausschalten</string>
+  <string name="settings_kids_disable_summary">Dann ist nichts gesperrt; seine Lesezeichen, sein Verlauf und seine Anmeldungen bleiben auf dem Gerät</string>
+  <string name="settings_kids_disable_button">Ausschalten</string>
+  <string name="settings_kids_disable_confirm">Kinderprofil ausschalten? TV Bro fragt dann nicht mehr nach der PIN.</string>
+  <string name="settings_kids_enabled">Das Kinderprofil ist an: TV Bro öffnet sich ab jetzt darin</string>
+  <string name="settings_kids_pin_changed">PIN geändert</string>
+  <string name="settings_channels_kids">Kanäle sind aus</string>
+  <string name="settings_channels_kids_summary">Sie würden zeigen, was das Hauptprofil speichert, daher sind sie aus, solange das Kinderprofil an ist</string>
+  <string name="settings_kids_delete_data">Daten des Kinderprofils löschen</string>
+  <string name="settings_kids_delete_data_summary">Seine Lesezeichen, seinen Verlauf, seine Tabs und Anmeldungen auf Websites</string>
+  <string name="settings_kids_delete_data_confirm">Lesezeichen, Verlauf, Tabs und Anmeldungen des Kinderprofils löschen? Das kann nicht rückgängig gemacht werden.</string>
+  <string name="settings_kids_data_deleted">Die Daten des Kinderprofils wurden gelöscht</string>
+  <plurals name="pin_wrong_tries_left">
+    <item quantity="one">Falsche PIN. Noch %d Versuch bis zu einer Pause</item>
+    <item quantity="other">Falsche PIN. Noch %d Versuche bis zu einer Pause</item>
+  </plurals>
 </resources>

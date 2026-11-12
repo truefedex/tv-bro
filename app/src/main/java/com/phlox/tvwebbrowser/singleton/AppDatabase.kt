@@ -315,6 +315,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         const val DATABASE_NAME = "main.db"
+        /** The database of the kids profile (see `AppContainer`) */
+        const val KIDS_DATABASE_NAME = "kids.db"
 
         internal val MIGRATIONS = arrayOf(
             MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9,
@@ -326,12 +328,14 @@ abstract class AppDatabase : RoomDatabase() {
 
         /**
          * Queries on the main thread are not allowed: the repositories suspend. The download service
-         * writes the database from its own process, so the other processes are told about changes.
+         * writes the database from its own process, so the other processes are told about changes. The
+         * database of the kids profile is opened by its process only: told of nothing, it does not bind the
+         * invalidation service of Room, which runs in the main process and would start it.
          */
-        fun create(context: Context): AppDatabase =
-            Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
+        fun create(context: Context, name: String = DATABASE_NAME): AppDatabase =
+            Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, name)
                 .addMigrations(*MIGRATIONS)
-                .enableMultiInstanceInvalidation()
+                .apply { if (name != KIDS_DATABASE_NAME) enableMultiInstanceInvalidation() }
                 .build()
 
         @Volatile

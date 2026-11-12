@@ -15,11 +15,13 @@ object AppProcesses {
     private const val TAG = "AppProcesses"
     /** The process of `IncognitoModeMainActivity` (see the manifest) */
     const val INCOGNITO_SUFFIX = ":incognito"
+    /** The process of `KidsProfileMainActivity`: the browser in the kids profile */
+    const val KIDS_SUFFIX = ":kids"
     /** The process of `DownloadService` (see the manifest) */
     const val DOWNLOADS_SUFFIX = ":downloads"
 
     enum class Kind {
-        /** The browser, normal or incognito: everything is initialized */
+        /** The browser, normal, incognito or of the kids profile: everything is initialized */
         BROWSER,
         /** The download service: the database and the notification channel */
         DOWNLOADS,
@@ -36,13 +38,18 @@ object AppProcesses {
         val prefix = "$packageName:"
         if (!processName.startsWith(prefix)) return Kind.BROWSER
         return when (":" + processName.substring(prefix.length)) {
-            INCOGNITO_SUFFIX -> Kind.BROWSER
+            INCOGNITO_SUFFIX, KIDS_SUFFIX -> Kind.BROWSER
             DOWNLOADS_SUFFIX -> Kind.DOWNLOADS
             else -> Kind.OTHER
         }
     }
 
     fun currentKind(app: Application): Kind = kindOf(currentName(app), app.packageName)
+
+    /** The process is the browser of the kids profile */
+    fun isKids(processName: String, packageName: String): Boolean = processName == packageName + KIDS_SUFFIX
+
+    fun isCurrentKids(app: Application): Boolean = isKids(currentName(app), app.packageName)
 
     /** The name of this process; "" if it can not be read */
     private fun currentName(app: Application): String {

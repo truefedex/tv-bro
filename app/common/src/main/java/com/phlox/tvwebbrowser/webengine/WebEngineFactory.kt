@@ -43,6 +43,24 @@ interface WebEngineProviderCallback {
     /** Leaving the incognito mode, after its tabs are closed */
     suspend fun deleteIncognitoData() {}
 
+    /**
+     * The engine can keep the data of the pages of the kids profile (cookies, storage, cache) apart from
+     * those of the main profile, on this device
+     */
+    fun supportsKidsProfile(): Boolean = false
+
+    /** Called in the process of the kids profile ([com.phlox.tvwebbrowser.AppContext.kidsProfile]) before the engine is initialized */
+    fun prepareKidsProcess() {}
+
+    /**
+     * Deletes the data of the pages of the kids profile (cookies, storage, cache), from another process than
+     * the one of the kids profile, which is not running then
+     */
+    suspend fun deleteKidsData(context: Context) {}
+
+    /** The process is about to be killed: what the engine keeps in memory for a while (cookies) goes to the disk */
+    fun flushData() {}
+
     /** The engine could not create a view for a tab (for example the system WebView is broken) */
     fun onViewCreationFailed(activity: Activity, error: Throwable) {}
 
@@ -113,6 +131,20 @@ object WebEngineFactory {
 
     fun prepareIncognitoProcess() {
         selectedProvider()?.callback?.prepareIncognitoProcess()
+    }
+
+    fun supportsKidsProfile(): Boolean = selectedProvider()?.callback?.supportsKidsProfile() == true
+
+    fun prepareKidsProcess() {
+        selectedProvider()?.callback?.prepareKidsProcess()
+    }
+
+    fun flushData() {
+        selectedProvider()?.callback?.flushData()
+    }
+
+    suspend fun deleteKidsData(context: Context) {
+        selectedProvider()?.callback?.deleteKidsData(context)
     }
 
     suspend fun clearIncognitoBrowsingData(context: Context) {

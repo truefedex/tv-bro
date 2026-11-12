@@ -139,8 +139,12 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         ALL
     }
 
+    /**
+     * Never on in the process of the kids profile, whose pages, tabs and history are not those of the
+     * incognito mode: the mode waits there for the main profile to come back
+     */
     var incognitoMode: Boolean
-        get() = prefs.getBoolean(INCOGNITO_MODE_KEY, false)
+        get() = !AppContext.kidsProfile && prefs.getBoolean(INCOGNITO_MODE_KEY, false)
         @SuppressLint("ApplySharedPref")
         set(value) {
             prefs.edit().putBoolean(INCOGNITO_MODE_KEY, value).commit()

@@ -18,6 +18,8 @@ import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import androidx.core.view.isVisible
+import com.phlox.tvwebbrowser.profile.ProfilePolicy
 import com.phlox.tvwebbrowser.activity.main.AddressSuggestions
 import com.phlox.tvwebbrowser.browser.DownloadsModel
 import com.phlox.tvwebbrowser.browser.SiteConnection
@@ -218,6 +220,12 @@ class ActionBar @JvmOverloads constructor(
         }
 
         vb.ibIncognito.isActivated = incognitoMode
+        //the kids profile has no downloads and no incognito mode
+        val policy = ProfilePolicy.current
+        vb.flDownloads.isVisible = policy.downloads
+        vb.vDownloadsSeparator.isVisible = policy.downloads
+        vb.ibIncognito.isVisible = policy.incognito
+        vb.vIncognitoSeparator.isVisible = policy.incognito
 
         vb.ibSite.setOnClickListener { callback?.showSitePanel() }
         vb.flUrl.setOnClickListener { startEditing(selectAllLater = true) }

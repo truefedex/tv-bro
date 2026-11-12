@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.activity.main.BrowserSpace
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 
 //Same as MainActivity but runs in separate process
@@ -13,6 +14,8 @@ class IncognitoModeMainActivity: MainActivity() {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
     }
+
+    override val space: BrowserSpace get() = BrowserSpace.INCOGNITO
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate")

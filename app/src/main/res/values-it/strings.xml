@@ -628,4 +628,48 @@
   <string name="settings_support_author">Sostieni l\'autore</string>
   <string name="settings_license">Licenza</string>
   <string name="settings_privacy_policy">Informativa sulla privacy</string>
+
+  <!-- The kids profile and its PIN -->
+  <string name="profile_kids">Profilo bambini</string>
+  <string name="profile_main">Profilo principale</string>
+  <string name="profile_not_available">Non disponibile nel profilo bambini</string>
+  <string name="pin_enter">Inserisci il PIN</string>
+  <string name="pin_choose_title">Scegli un PIN</string>
+  <string name="pin_choose">Quattro cifre. Il PIN apre il profilo principale.</string>
+  <string name="pin_repeat">Inserisci di nuovo il PIN</string>
+  <string name="pin_mismatch">I PIN non coincidono. Scegline uno di nuovo.</string>
+  <string name="pin_wait">Troppi tentativi errati. Riprova tra %s</string>
+  <string name="pin_forgot">PIN dimenticato? Lo rimuove solo la cancellazione dei dati di TV Bro nelle impostazioni del dispositivo, insieme a tutto ciò che il browser conserva.</string>
+  <string name="settings_kids_on">Attivo, il profilo principale è protetto da un PIN</string>
+  <string name="settings_kids_about">Che cos\'è</string>
+  <string name="settings_kids_about_summary">Un profilo per bambini con propri preferiti, cronologia, schede e accessi. Ciò che conserva il profilo principale (i siti a cui hai effettuato l\'accesso, la tua cronologia, le impostazioni) resta protetto da un PIN. Il profilo bambini non ha impostazioni, download, modalità Incognito né altre app.\n\nProtegge solo TV Bro, non altre app né le impostazioni del dispositivo. Un PIN dimenticato si rimuove solo cancellando i dati di TV Bro.</string>
+  <string name="settings_kids_enable_summary">TV Bro si aprirà nel profilo bambini; quello principale chiederà un PIN</string>
+  <string name="settings_kids_open">Apri il profilo bambini</string>
+  <string name="settings_kids_open_summary">Il ritorno al profilo principale (nel menu della barra) chiede il PIN</string>
+  <string name="settings_kids_lock">Blocca il profilo principale</string>
+  <string name="settings_kids_lock_summary">Quando TV Bro torna al profilo bambini dopo aver lasciato lo schermo</string>
+  <string name="settings_kids_lock_immediately">Subito</string>
+  <string name="settings_kids_lock_5">Dopo 5 minuti</string>
+  <string name="settings_kids_lock_30">Dopo 30 minuti</string>
+  <string name="settings_kids_lock_manual">Solo dal menu</string>
+  <string name="settings_kids_pin">PIN</string>
+  <string name="settings_kids_pin_summary">Apre il profilo principale</string>
+  <string name="settings_kids_pin_change">Cambia</string>
+  <string name="settings_kids_disable">Disattiva il profilo bambini</string>
+  <string name="settings_kids_disable_summary">Non sarà più bloccato niente; i suoi preferiti, la cronologia e gli accessi restano sul dispositivo</string>
+  <string name="settings_kids_disable_button">Disattiva</string>
+  <string name="settings_kids_disable_confirm">Disattivare il profilo bambini? TV Bro non chiederà più il PIN.</string>
+  <string name="settings_kids_enabled">Il profilo bambini è attivo: da ora TV Bro si apre al suo interno</string>
+  <string name="settings_kids_pin_changed">PIN cambiato</string>
+  <string name="settings_channels_kids">I canali sono disattivati</string>
+  <string name="settings_channels_kids_summary">Mostrerebbero ciò che conserva il profilo principale, quindi sono disattivati finché il profilo bambini è attivo</string>
+  <string name="settings_kids_delete_data">Elimina i dati del profilo bambini</string>
+  <string name="settings_kids_delete_data_summary">I suoi preferiti, la cronologia, le schede e gli accessi ai siti</string>
+  <string name="settings_kids_delete_data_confirm">Eliminare preferiti, cronologia, schede e accessi del profilo bambini? L\'operazione non può essere annullata.</string>
+  <string name="settings_kids_data_deleted">I dati del profilo bambini sono stati eliminati</string>
+  <plurals name="pin_wrong_tries_left">
+    <item quantity="one">PIN errato. Resta %d tentativo prima di una pausa</item>
+    <item quantity="many">PIN errato. Restano %d tentativi prima di una pausa</item>
+    <item quantity="other">PIN errato. Restano %d tentativi prima di una pausa</item>
+  </plurals>
 </resources>

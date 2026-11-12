@@ -10,6 +10,7 @@ import androidx.annotation.VisibleForTesting
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.profile.ProfileLock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -62,6 +63,12 @@ object HomeChannels {
         }
     }
 
+    /**
+     * The kids profile is on: the channels show nothing of the main profile then (its pages, its files, which
+     * a tile opens without the PIN), so all of them are deleted, also by a sync of the downloads process
+     */
+    fun kidsProfileOn(context: Context): Boolean = ProfileLock.get(context).enabled
+
     fun isEnabled(config: Config, kind: ChannelKind): Boolean = when (kind) {
         ChannelKind.BOOKMARKS -> config.channelBookmarks
         ChannelKind.TABS -> config.channelTabs
@@ -106,9 +113,10 @@ object HomeChannels {
         val config = AppContext.provideConfig()
         val sources by lazy { sourcesFactory(context) }
         val result = HashMap<ChannelKind, Long>()
+        val kidsProfile = kidsProfileOn(context)
         for (kind in kinds) {
             try {
-                if (mode == Mode.FULL && !isEnabled(config, kind)) {
+                if (kidsProfile || (mode == Mode.FULL && !isEnabled(config, kind))) {
                     if (publisher.delete(kind) > 0) Log.i(TAG, "deleted the channel of ${kind.id}")
                     ChannelPosters.cleanup(context, kind, emptyList())
                     continue

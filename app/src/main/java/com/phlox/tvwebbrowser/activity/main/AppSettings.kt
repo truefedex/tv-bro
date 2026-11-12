@@ -12,6 +12,9 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.profile.KidsProfileData
+import com.phlox.tvwebbrowser.profile.PinDialog
+import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutKeyDialog
 import com.phlox.tvwebbrowser.browser.BrowserController
@@ -48,8 +51,42 @@ import kotlinx.coroutines.withContext
 class AppSettingsStore(
     private val activity: AppCompatActivity,
     private val settingsModel: SettingsModel,
-    private val controller: BrowserController
+    private val controller: BrowserController,
+    kidsProfileAvailable: Boolean = false
 ) : SettingsNavigator.Store {
+    override val kidsProfile: SettingsNavigator.KidsProfile? = if (!kidsProfileAvailable) null else {
+        object : SettingsNavigator.KidsProfile {
+            private val lock = ProfileLock.get(activity)
+            override val enabled: Boolean get() = lock.enabled
+            override var lockDelay: ProfileLock.LockDelay
+                get() = lock.lockDelay
+                set(value) { lock.lockDelay = value }
+            override fun enable(pin: String) {
+                val wasEnabled = lock.enabled
+                lock.enable(pin)
+                if (!wasEnabled) syncChannels()
+            }
+
+            override fun disable() {
+                lock.disable()
+                syncChannels()
+            }
+
+            override val hasData: Boolean get() = KidsProfileData.exists(activity)
+
+            override suspend fun deleteData() = KidsProfileData.delete(activity)
+
+            /** The channels of the home screen are off while the kids profile is on ([HomeChannels.kidsProfileOn]) */
+            private fun syncChannels() {
+                val context = activity.applicationContext
+                TVBro.container.appScope.launch {
+                    TVBro.container.tabWrites.awaitPending()
+                    HomeChannels.sync(context)
+                }
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "AppSettingsStore"
         private const val BROWSABLE_CHECK_DELAY = 1000L
@@ -364,8 +401,12 @@ class SettingsShellCallback(
     private val activity get() = host.activity
 
     override val store: SettingsNavigator.Store by lazy {
-        AppSettingsStore(activity, host.settingsModel, host.controller)
+        AppSettingsStore(activity, host.settingsModel, host.controller, host.kidsProfileAvailable)
     }
+
+    override fun choosePin(onChosen: (String?) -> Unit) = PinDialog.choose(activity, onChosen)
+
+    override fun openKidsProfile() = host.switchProfile()
 
     override fun showMessage(@DrawableRes icon: Int, message: String) = showMessage.invoke(icon, message)
 

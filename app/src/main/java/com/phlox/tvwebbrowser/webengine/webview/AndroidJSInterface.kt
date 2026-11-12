@@ -31,6 +31,8 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
     @JavascriptInterface
     fun setSearchEngine(engine: String, customSearchEngineURL: String) {
         if (!isHomePage()) return
+        //a setting of the app: the kids profile changes none
+        if (AppContext.kidsProfile) return
         AppContext.provideConfig().searchEngineURL.value = customSearchEngineURL
     }
 

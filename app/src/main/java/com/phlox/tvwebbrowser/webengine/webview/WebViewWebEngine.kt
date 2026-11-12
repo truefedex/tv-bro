@@ -599,6 +599,17 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     WebViewIncognitoData.prepareIncognitoProcess()
                 }
 
+                override fun supportsKidsProfile(): Boolean = WebViewKidsData.isSupported
+
+                override suspend fun deleteKidsData(context: Context) = WebViewKidsData.deleteData(context)
+
+                //WebView writes cookies to the disk up to half a minute after they are set
+                override fun flushData() = android.webkit.CookieManager.getInstance().flush()
+
+                override fun prepareKidsProcess() {
+                    WebViewKidsData.prepareKidsProcess()
+                }
+
                 override suspend fun clearIncognitoBrowsingData(context: Context) {
                     WebViewIncognitoData.clearBrowsingData(context)
                 }

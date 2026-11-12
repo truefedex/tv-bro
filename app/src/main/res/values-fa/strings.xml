@@ -614,4 +614,47 @@
   <string name="settings_support_author">حمایت از نویسنده</string>
   <string name="settings_license">مجوز</string>
   <string name="settings_privacy_policy">سیاست حفظ حریم خصوصی</string>
+
+  <!-- The kids profile and its PIN -->
+  <string name="profile_kids">نمایه کودک</string>
+  <string name="profile_main">نمایه اصلی</string>
+  <string name="profile_not_available">در نمایه کودک در دسترس نیست</string>
+  <string name="pin_enter">پین را وارد کنید</string>
+  <string name="pin_choose_title">یک پین انتخاب کنید</string>
+  <string name="pin_choose">چهار رقم. پین نمایه اصلی را باز می‌کند.</string>
+  <string name="pin_repeat">پین را یک بار دیگر وارد کنید</string>
+  <string name="pin_mismatch">پین‌ها یکسان نیستند. دوباره یکی انتخاب کنید.</string>
+  <string name="pin_wait">تلاش‌های نادرست بیش از حد. %s دیگر دوباره امتحان کنید</string>
+  <string name="pin_forgot">پین را فراموش کرده‌اید؟ فقط پاک کردن داده‌های TV Bro در تنظیمات دستگاه آن را حذف می‌کند، همراه با همه چیزهایی که مرورگر نگه می‌دارد.</string>
+  <string name="settings_kids_on">روشن، نمایه اصلی پشت پین است</string>
+  <string name="settings_kids_about">این چیست</string>
+  <string name="settings_kids_about_summary">نمایه‌ای برای کودکان با نشانک‌ها، تاریخچه، زبانه‌ها و ورودهای خودش. آنچه نمایه اصلی نگه می‌دارد (سایت‌هایی که در آن‌ها وارد شده‌اید، تاریخچه شما، تنظیمات) پشت یک پین می‌ماند. نمایه کودک تنظیمات، بارگیری، حالت ناشناس یا برنامه‌های دیگر ندارد.\n\nفقط از TV Bro محافظت می‌کند، نه از برنامه‌های دیگر یا تنظیمات دستگاه. پین فراموش‌شده فقط با پاک کردن داده‌های TV Bro حذف می‌شود.</string>
+  <string name="settings_kids_enable_summary">TV Bro در نمایه کودک باز می‌شود؛ نمایه اصلی پین می‌خواهد</string>
+  <string name="settings_kids_open">باز کردن نمایه کودک</string>
+  <string name="settings_kids_open_summary">بازگشت به نمایه اصلی (در منوی نوار) پین می‌خواهد</string>
+  <string name="settings_kids_lock">قفل کردن نمایه اصلی</string>
+  <string name="settings_kids_lock_summary">وقتی TV Bro پس از رفتن از صفحه به نمایه کودک برمی‌گردد</string>
+  <string name="settings_kids_lock_immediately">بی‌درنگ</string>
+  <string name="settings_kids_lock_5">پس از ۵ دقیقه</string>
+  <string name="settings_kids_lock_30">پس از ۳۰ دقیقه</string>
+  <string name="settings_kids_lock_manual">فقط از منو</string>
+  <string name="settings_kids_pin">پین</string>
+  <string name="settings_kids_pin_summary">نمایه اصلی را باز می‌کند</string>
+  <string name="settings_kids_pin_change">تغییر</string>
+  <string name="settings_kids_disable">خاموش کردن نمایه کودک</string>
+  <string name="settings_kids_disable_summary">دیگر چیزی قفل نیست؛ نشانک‌ها، تاریخچه و ورودهای آن روی دستگاه می‌مانند</string>
+  <string name="settings_kids_disable_button">خاموش کردن</string>
+  <string name="settings_kids_disable_confirm">نمایه کودک خاموش شود؟ TV Bro دیگر پین نمی‌خواهد.</string>
+  <string name="settings_kids_enabled">نمایه کودک روشن است: TV Bro از این پس در آن باز می‌شود</string>
+  <string name="settings_kids_pin_changed">پین تغییر کرد</string>
+  <string name="settings_channels_kids">کانال‌ها خاموش هستند</string>
+  <string name="settings_channels_kids_summary">آن‌ها آنچه نمایه اصلی نگه می‌دارد را نشان می‌دادند، پس تا وقتی نمایه کودک روشن است خاموش هستند</string>
+  <string name="settings_kids_delete_data">حذف داده‌های نمایه کودک</string>
+  <string name="settings_kids_delete_data_summary">نشانک‌ها، تاریخچه، زبانه‌ها و ورودهای آن به سایت‌ها</string>
+  <string name="settings_kids_delete_data_confirm">نشانک‌ها، تاریخچه، زبانه‌ها و ورودهای نمایه کودک حذف شوند؟ این کار برگشت‌پذیر نیست.</string>
+  <string name="settings_kids_data_deleted">داده‌های نمایه کودک حذف شد</string>
+  <plurals name="pin_wrong_tries_left">
+    <item quantity="one">پین نادرست. %d تلاش تا توقف باقی مانده</item>
+    <item quantity="other">پین نادرست. %d تلاش تا توقف باقی مانده</item>
+  </plurals>
 </resources>

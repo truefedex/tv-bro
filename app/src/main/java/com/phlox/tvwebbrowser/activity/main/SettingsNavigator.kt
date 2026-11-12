@@ -9,6 +9,7 @@ import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
 import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.net.ProxySettings
+import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
 import kotlinx.coroutines.CoroutineScope
@@ -39,6 +40,8 @@ class SettingsNavigator(
         SITES(R.string.settings_sites, R.drawable.ic_globe),
         APPEARANCE(R.string.settings_appearance, R.drawable.ic_appearance),
         REMOTE(R.string.settings_remote, R.drawable.ic_remote),
+        /** Only where there is a kids profile ([Store.kidsProfile]) */
+        KIDS(R.string.profile_kids, R.drawable.ic_child),
         ADVANCED(R.string.settings_advanced, R.drawable.ic_code),
         ABOUT(R.string.settings_about, R.drawable.ic_info)
     }
@@ -52,7 +55,22 @@ class SettingsNavigator(
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_CACHE, ENGINE_DEBUG, HISTORY_RETENTION, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
-        LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, NOTICE
+        LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, NOTICE,
+        KIDS_ABOUT, KIDS_ENABLE, KIDS_OPEN, KIDS_LOCK_DELAY, KIDS_PIN, KIDS_DISABLE, KIDS_DELETE_DATA
+    }
+
+    /** The kids profile as the settings change it (see [ProfileLock]) */
+    interface KidsProfile {
+        /** On: a PIN is set and the main profile is locked behind it */
+        val enabled: Boolean
+        var lockDelay: ProfileLock.LockDelay
+        /** Turns the profile on with the [pin], or changes its PIN */
+        fun enable(pin: String)
+        fun disable()
+        /** The profile keeps data on the device (it was used) */
+        val hasData: Boolean
+        /** Deletes its tabs, history, bookmarks, site settings and the data of its pages; it stays on or off */
+        suspend fun deleteData()
     }
 
     /** The values that are read when the app starts: changing one needs a restart */
@@ -84,6 +102,9 @@ class SettingsNavigator(
      */
     interface Store {
         val startupValues: StartupValues
+
+        /** null where there is no kids profile (the phone interface, an engine that can not keep its data apart) */
+        val kidsProfile: KidsProfile? get() = null
 
         /** The address of the search engine, with [query] in place of the words */
         var searchEngineUrl: String
@@ -216,6 +237,10 @@ class SettingsNavigator(
         fun startUpdate()
         /** Restarts the app to apply the settings marked [Row.restart] */
         fun restart()
+        /** Lets the user choose a PIN (typed twice); [onChosen] gets null when the user cancels */
+        fun choosePin(onChosen: (String?) -> Unit) = onChosen(null)
+        /** Closes the screen and shows the browser in the kids profile */
+        fun openKidsProfile() {}
     }
 
     /** What the settings screens need from their shell */
@@ -231,6 +256,8 @@ class SettingsNavigator(
         fun showNotice(notice: ThirdPartyNotices.Notice, open: (String) -> Unit)
         fun startUpdate()
         fun restart()
+        fun choosePin(onChosen: (String?) -> Unit) = onChosen(null)
+        fun openKidsProfile() {}
     }
 
     /** A folder of bookmarks the channel of the home screen can show; [path] is "A / B" */
@@ -408,7 +435,9 @@ class SettingsNavigator(
     private var bookmarkFolders: List<BookmarkFolder>? = null
 
     /** The categories of this interface */
-    val categories: List<Category> get() = Category.entries.filter { it != Category.REMOTE || tvUi }
+    val categories: List<Category> get() = Category.entries.filter {
+        (it != Category.REMOTE || tvUi) && (it != Category.KIDS || store.kidsProfile != null)
+    }
 
     /**
      * Opens the settings at the [category]: on TV the first one if not given, on the phone the list of
@@ -510,6 +539,7 @@ class SettingsNavigator(
             Key.INTERFACE -> store.interfaceMode = Config.InterfaceMode.entries[index]
             Key.THEME -> store.theme = Config.Theme.entries[index]
             Key.HISTORY_RETENTION -> store.historyRetention = Config.HistoryRetention.entries[index]
+            Key.KIDS_LOCK_DELAY -> store.kidsProfile?.lockDelay = ProfileLock.LockDelay.entries.getOrNull(index) ?: return
             Key.PROXY_TYPE -> {
                 val type = ProxySettings.Type.entries.getOrNull(index) ?: return
                 if (type == store.proxyType) return
@@ -733,6 +763,35 @@ class SettingsNavigator(
                     host.showMessage(R.drawable.ic_check, context.getString(R.string.settings_web_cache_cleared))
                 }
                 Key.UPDATE -> if (updates?.newVersion != null) host.startUpdate()
+                Key.KIDS_ENABLE, Key.KIDS_PIN -> {
+                    val kids = store.kidsProfile ?: return
+                    val change = kids.enabled
+                    host.choosePin { pin ->
+                        if (pin != null) {
+                            kids.enable(pin)
+                            host.showMessage(R.drawable.ic_lock,
+                                string(if (change) R.string.settings_kids_pin_changed else R.string.settings_kids_enabled))
+                            render()
+                        }
+                    }
+                }
+                Key.KIDS_OPEN -> host.openKidsProfile()
+                Key.KIDS_DELETE_DATA -> host.confirm(string(R.string.profile_kids), string(R.string.settings_kids_delete_data_confirm),
+                    string(R.string.delete)) { yes ->
+                    val kids = store.kidsProfile
+                    if (yes && kids != null) scope.launch {
+                        kids.deleteData()
+                        host.showMessage(R.drawable.ic_delete, string(R.string.settings_kids_data_deleted))
+                        render()
+                    }
+                }
+                Key.KIDS_DISABLE -> host.confirm(string(R.string.profile_kids), string(R.string.settings_kids_disable_confirm),
+                    string(R.string.settings_kids_disable_button)) { yes ->
+                    if (yes) {
+                        store.kidsProfile?.disable()
+                        render()
+                    }
+                }
                 else -> {}
             }
         }
@@ -785,6 +844,7 @@ class SettingsNavigator(
             context.getString(R.string.settings_summary_interface, interfaceOptions()[store.interfaceMode.ordinal]),
             context.getString(R.string.settings_summary_theme, themeOptions()[store.theme.ordinal]))
         Category.REMOTE -> string(R.string.settings_summary_remote)
+        Category.KIDS -> string(if (store.kidsProfile?.enabled == true) R.string.settings_kids_on else R.string.settings_off)
         Category.ADVANCED -> store.proxy?.takeIf { store.supportsProxy }
             ?.let { context.getString(R.string.settings_summary_proxy_s, proxyAddress(it)) }
             ?: string(R.string.settings_summary_advanced)
@@ -823,6 +883,7 @@ class SettingsNavigator(
         Category.SITES -> sitesSections()
         Category.APPEARANCE -> appearanceSections()
         Category.REMOTE -> remoteSections()
+        Category.KIDS -> kidsSections()
         Category.ADVANCED -> advancedSections()
         Category.ABOUT -> aboutSections()
     }
@@ -875,6 +936,11 @@ class SettingsNavigator(
 
     /** The channels of the Android TV home screen */
     private fun channelRows(): List<Row> {
+        //they would show what the main profile keeps
+        if (store.kidsProfile?.enabled == true) {
+            return listOf(Row.Info(Key.CHANNEL_BOOKMARKS, string(R.string.settings_channels_kids),
+                string(R.string.settings_channels_kids_summary)))
+        }
         val rows = arrayListOf<Row>(Row.Toggle(Key.CHANNEL_BOOKMARKS, string(R.string.settings_channel_bookmarks),
             string(R.string.settings_channel_bookmarks_summary), store.channelBookmarks))
         if (store.channelBookmarks) {
@@ -1059,6 +1125,40 @@ class SettingsNavigator(
         return listOf(Section(string(R.string.settings_group_cursor), cursor),
             Section(string(R.string.settings_group_keys), keys))
     }
+
+    /** Off: what the profile is and Turn on. On: the way into it, when the main one is locked, the PIN, Turn off. */
+    private fun kidsSections(): List<Section> {
+        val kids = store.kidsProfile ?: return emptyList()
+        val about = Row.Info(Key.KIDS_ABOUT, string(R.string.settings_kids_about), string(R.string.settings_kids_about_summary))
+        if (!kids.enabled) {
+            return listOf(Section(null, listOf(
+                Row.Action(Key.KIDS_ENABLE, string(R.string.profile_kids), string(R.string.settings_kids_enable_summary),
+                    string(R.string.settings_turn_on)),
+                deleteDataRow(kids),
+                about
+            ).filterNotNull()))
+        }
+        val delays = listOf(string(R.string.settings_kids_lock_immediately), string(R.string.settings_kids_lock_5),
+            string(R.string.settings_kids_lock_30), string(R.string.settings_kids_lock_manual))
+        return listOf(Section(null, listOf(
+            Row.Action(Key.KIDS_OPEN, string(R.string.settings_kids_open), string(R.string.settings_kids_open_summary),
+                string(R.string.open)),
+            Row.Choice(Key.KIDS_LOCK_DELAY, string(R.string.settings_kids_lock), string(R.string.settings_kids_lock_summary),
+                delays, kids.lockDelay.ordinal, segmented = false),
+            Row.Action(Key.KIDS_PIN, string(R.string.settings_kids_pin), string(R.string.settings_kids_pin_summary),
+                string(R.string.settings_kids_pin_change)),
+            Row.Action(Key.KIDS_DISABLE, string(R.string.settings_kids_disable), string(R.string.settings_kids_disable_summary),
+                string(R.string.settings_kids_disable_button)),
+            deleteDataRow(kids),
+            about
+        ).filterNotNull()))
+    }
+
+    /** While the profile is on, or off with its data left on the device */
+    private fun deleteDataRow(kids: KidsProfile): Row? =
+        if (!kids.enabled && !kids.hasData) null
+        else Row.Action(Key.KIDS_DELETE_DATA, string(R.string.settings_kids_delete_data),
+            string(R.string.settings_kids_delete_data_summary), string(R.string.delete))
 
     private fun advancedSections(): List<Section> {
         val sections = arrayListOf(Section(null, listOf(

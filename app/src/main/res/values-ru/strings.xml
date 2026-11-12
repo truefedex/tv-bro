@@ -642,4 +642,49 @@
   <string name="settings_support_author">Поддержать автора</string>
   <string name="settings_license">Лицензия</string>
   <string name="settings_privacy_policy">Политика конфиденциальности</string>
+
+  <!-- The kids profile and its PIN -->
+  <string name="profile_kids">Детский профиль</string>
+  <string name="profile_main">Основной профиль</string>
+  <string name="profile_not_available">Недоступно в детском профиле</string>
+  <string name="pin_enter">Введите PIN</string>
+  <string name="pin_choose_title">Придумайте PIN</string>
+  <string name="pin_choose">Четыре цифры. PIN открывает основной профиль.</string>
+  <string name="pin_repeat">Введите PIN ещё раз</string>
+  <string name="pin_mismatch">PIN не совпал. Придумайте его заново.</string>
+  <string name="pin_wait">Слишком много неверных попыток. Повторите через %s</string>
+  <string name="pin_forgot">Забыли PIN? Его убирает только очистка данных TV Bro в настройках устройства, вместе со всем, что хранит браузер.</string>
+  <string name="settings_kids_on">Включён, основной профиль под PIN</string>
+  <string name="settings_kids_about">Что это</string>
+  <string name="settings_kids_about_summary">Профиль для детей со своими закладками, историей, вкладками и входами на сайты. То, что хранит основной профиль (сайты, где вы вошли, ваша история, настройки), остаётся под PIN. В детском профиле нет настроек, загрузок, режима инкогнито и других приложений.\n\nОн защищает только TV Bro, а не другие приложения и настройки устройства. Забытый PIN убирает только очистка данных TV Bro.</string>
+  <string name="settings_kids_enable_summary">TV Bro будет открываться в детском профиле; основной спросит PIN</string>
+  <string name="settings_kids_open">Открыть детский профиль</string>
+  <string name="settings_kids_open_summary">Возврат в основной профиль (в меню панели) спросит PIN</string>
+  <string name="settings_kids_lock">Блокировать основной профиль</string>
+  <string name="settings_kids_lock_summary">Когда TV Bro возвращается в детский профиль после ухода с экрана</string>
+  <string name="settings_kids_lock_immediately">Сразу</string>
+  <string name="settings_kids_lock_5">Через 5 минут</string>
+  <string name="settings_kids_lock_30">Через 30 минут</string>
+  <string name="settings_kids_lock_manual">Только из меню</string>
+  <string name="settings_kids_pin">PIN</string>
+  <string name="settings_kids_pin_summary">Открывает основной профиль</string>
+  <string name="settings_kids_pin_change">Изменить</string>
+  <string name="settings_kids_disable">Выключить детский профиль</string>
+  <string name="settings_kids_disable_summary">Блокировки не будет; его закладки, история и входы на сайты останутся на устройстве</string>
+  <string name="settings_kids_disable_button">Выключить</string>
+  <string name="settings_kids_disable_confirm">Выключить детский профиль? TV Bro больше не будет спрашивать PIN.</string>
+  <string name="settings_kids_enabled">Детский профиль включён: TV Bro теперь открывается в нём</string>
+  <string name="settings_kids_pin_changed">PIN изменён</string>
+  <string name="settings_channels_kids">Каналы выключены</string>
+  <string name="settings_channels_kids_summary">Они показывали бы то, что хранит основной профиль, поэтому выключены, пока включён детский профиль</string>
+  <string name="settings_kids_delete_data">Удалить данные детского профиля</string>
+  <string name="settings_kids_delete_data_summary">Его закладки, историю, вкладки и входы на сайты</string>
+  <string name="settings_kids_delete_data_confirm">Удалить закладки, историю, вкладки и входы на сайты детского профиля? Это нельзя отменить.</string>
+  <string name="settings_kids_data_deleted">Данные детского профиля удалены</string>
+  <plurals name="pin_wrong_tries_left">
+    <item quantity="one">Неверный PIN. До паузы осталась %d попытка</item>
+    <item quantity="few">Неверный PIN. До паузы осталось %d попытки</item>
+    <item quantity="many">Неверный PIN. До паузы осталось %d попыток</item>
+    <item quantity="other">Неверный PIN. До паузы осталось %d попытки</item>
+  </plurals>
 </resources>

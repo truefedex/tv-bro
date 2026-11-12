@@ -600,4 +600,46 @@
   <string name="settings_support_author">Ủng hộ tác giả</string>
   <string name="settings_license">Giấy phép</string>
   <string name="settings_privacy_policy">Chính sách quyền riêng tư</string>
+
+  <!-- The kids profile and its PIN -->
+  <string name="profile_kids">Hồ sơ trẻ em</string>
+  <string name="profile_main">Hồ sơ chính</string>
+  <string name="profile_not_available">Không có trong hồ sơ trẻ em</string>
+  <string name="pin_enter">Nhập mã PIN</string>
+  <string name="pin_choose_title">Chọn mã PIN</string>
+  <string name="pin_choose">Bốn chữ số. Mã PIN mở hồ sơ chính.</string>
+  <string name="pin_repeat">Nhập lại mã PIN</string>
+  <string name="pin_mismatch">Hai mã PIN không khớp. Hãy chọn lại.</string>
+  <string name="pin_wait">Nhập sai quá nhiều lần. Thử lại sau %s</string>
+  <string name="pin_forgot">Quên mã PIN? Chỉ có xóa dữ liệu của TV Bro trong cài đặt của thiết bị mới xóa được nó, cùng với mọi thứ trình duyệt lưu giữ.</string>
+  <string name="settings_kids_on">Bật, hồ sơ chính được bảo vệ bằng mã PIN</string>
+  <string name="settings_kids_about">Đây là gì</string>
+  <string name="settings_kids_about_summary">Một hồ sơ cho trẻ em với dấu trang, lịch sử, thẻ và thông tin đăng nhập riêng. Những gì hồ sơ chính lưu giữ (các trang web bạn đã đăng nhập, lịch sử của bạn, cài đặt) được bảo vệ bằng mã PIN. Hồ sơ trẻ em không có cài đặt, tải xuống, chế độ ẩn danh hay ứng dụng khác.\n\nNó chỉ bảo vệ TV Bro, không bảo vệ các ứng dụng khác hay cài đặt của thiết bị. Mã PIN bị quên chỉ được xóa bằng cách xóa dữ liệu của TV Bro.</string>
+  <string name="settings_kids_enable_summary">TV Bro sẽ mở trong hồ sơ trẻ em; hồ sơ chính sẽ hỏi mã PIN</string>
+  <string name="settings_kids_open">Mở hồ sơ trẻ em</string>
+  <string name="settings_kids_open_summary">Quay lại hồ sơ chính (trong menu của thanh) sẽ hỏi mã PIN</string>
+  <string name="settings_kids_lock">Khóa hồ sơ chính</string>
+  <string name="settings_kids_lock_summary">Khi nào TV Bro quay lại hồ sơ trẻ em sau khi rời khỏi màn hình</string>
+  <string name="settings_kids_lock_immediately">Ngay lập tức</string>
+  <string name="settings_kids_lock_5">Sau 5 phút</string>
+  <string name="settings_kids_lock_30">Sau 30 phút</string>
+  <string name="settings_kids_lock_manual">Chỉ từ menu</string>
+  <string name="settings_kids_pin">Mã PIN</string>
+  <string name="settings_kids_pin_summary">Mở hồ sơ chính</string>
+  <string name="settings_kids_pin_change">Đổi</string>
+  <string name="settings_kids_disable">Tắt hồ sơ trẻ em</string>
+  <string name="settings_kids_disable_summary">Khi đó không còn gì bị khóa; dấu trang, lịch sử và thông tin đăng nhập của nó vẫn ở trên thiết bị</string>
+  <string name="settings_kids_disable_button">Tắt</string>
+  <string name="settings_kids_disable_confirm">Tắt hồ sơ trẻ em? TV Bro sẽ không hỏi mã PIN nữa.</string>
+  <string name="settings_kids_enabled">Hồ sơ trẻ em đã bật: từ giờ TV Bro mở trong hồ sơ này</string>
+  <string name="settings_kids_pin_changed">Đã đổi mã PIN</string>
+  <string name="settings_channels_kids">Các kênh đã tắt</string>
+  <string name="settings_channels_kids_summary">Chúng sẽ hiển thị những gì hồ sơ chính lưu giữ, nên được tắt khi hồ sơ trẻ em đang bật</string>
+  <string name="settings_kids_delete_data">Xóa dữ liệu của hồ sơ trẻ em</string>
+  <string name="settings_kids_delete_data_summary">Dấu trang, lịch sử, thẻ và thông tin đăng nhập trang web của nó</string>
+  <string name="settings_kids_delete_data_confirm">Xóa dấu trang, lịch sử, thẻ và thông tin đăng nhập của hồ sơ trẻ em? Không thể hoàn tác.</string>
+  <string name="settings_kids_data_deleted">Đã xóa dữ liệu của hồ sơ trẻ em</string>
+  <plurals name="pin_wrong_tries_left">
+    <item quantity="other">Sai mã PIN. Còn %d lần thử trước khi tạm dừng</item>
+  </plurals>
 </resources>

@@ -642,4 +642,49 @@
   <string name="settings_support_author">Wesprzyj autora</string>
   <string name="settings_license">Licencja</string>
   <string name="settings_privacy_policy">Polityka prywatności</string>
+
+  <!-- The kids profile and its PIN -->
+  <string name="profile_kids">Profil dziecka</string>
+  <string name="profile_main">Profil główny</string>
+  <string name="profile_not_available">Niedostępne w profilu dziecka</string>
+  <string name="pin_enter">Wpisz PIN</string>
+  <string name="pin_choose_title">Wybierz PIN</string>
+  <string name="pin_choose">Cztery cyfry. PIN otwiera profil główny.</string>
+  <string name="pin_repeat">Wpisz PIN jeszcze raz</string>
+  <string name="pin_mismatch">Kody PIN się różnią. Wybierz PIN ponownie.</string>
+  <string name="pin_wait">Zbyt wiele błędnych prób. Spróbuj ponownie za %s</string>
+  <string name="pin_forgot">Nie pamiętasz kodu PIN? Usuwa go tylko wyczyszczenie danych TV Bro w ustawieniach urządzenia, razem ze wszystkim, co przechowuje przeglądarka.</string>
+  <string name="settings_kids_on">Włączony, profil główny chroni PIN</string>
+  <string name="settings_kids_about">Co to jest</string>
+  <string name="settings_kids_about_summary">Profil dla dzieci z własnymi zakładkami, historią, kartami i logowaniami. To, co przechowuje profil główny (witryny, na których jesteś zalogowany, twoja historia, ustawienia), pozostaje za kodem PIN. Profil dziecka nie ma ustawień, pobierania, trybu incognito ani innych aplikacji.\n\nChroni tylko TV Bro, a nie inne aplikacje czy ustawienia urządzenia. Zapomniany PIN usuwa tylko wyczyszczenie danych TV Bro.</string>
+  <string name="settings_kids_enable_summary">TV Bro będzie się otwierać w profilu dziecka; profil główny zapyta o PIN</string>
+  <string name="settings_kids_open">Otwórz profil dziecka</string>
+  <string name="settings_kids_open_summary">Powrót do profilu głównego (w menu paska) wymaga kodu PIN</string>
+  <string name="settings_kids_lock">Blokuj profil główny</string>
+  <string name="settings_kids_lock_summary">Kiedy TV Bro wraca do profilu dziecka po zniknięciu z ekranu</string>
+  <string name="settings_kids_lock_immediately">Od razu</string>
+  <string name="settings_kids_lock_5">Po 5 minutach</string>
+  <string name="settings_kids_lock_30">Po 30 minutach</string>
+  <string name="settings_kids_lock_manual">Tylko z menu</string>
+  <string name="settings_kids_pin">PIN</string>
+  <string name="settings_kids_pin_summary">Otwiera profil główny</string>
+  <string name="settings_kids_pin_change">Zmień</string>
+  <string name="settings_kids_disable">Wyłącz profil dziecka</string>
+  <string name="settings_kids_disable_summary">Nic nie będzie zablokowane; jego zakładki, historia i logowania zostaną na urządzeniu</string>
+  <string name="settings_kids_disable_button">Wyłącz</string>
+  <string name="settings_kids_disable_confirm">Wyłączyć profil dziecka? TV Bro nie będzie już pytać o PIN.</string>
+  <string name="settings_kids_enabled">Profil dziecka jest włączony: TV Bro od teraz otwiera się w nim</string>
+  <string name="settings_kids_pin_changed">PIN zmieniony</string>
+  <string name="settings_channels_kids">Kanały są wyłączone</string>
+  <string name="settings_channels_kids_summary">Pokazywałyby to, co przechowuje profil główny, dlatego są wyłączone, gdy profil dziecka jest włączony</string>
+  <string name="settings_kids_delete_data">Usuń dane profilu dziecka</string>
+  <string name="settings_kids_delete_data_summary">Jego zakładki, historię, karty i logowania w witrynach</string>
+  <string name="settings_kids_delete_data_confirm">Usunąć zakładki, historię, karty i logowania profilu dziecka? Tego nie można cofnąć.</string>
+  <string name="settings_kids_data_deleted">Dane profilu dziecka zostały usunięte</string>
+  <plurals name="pin_wrong_tries_left">
+    <item quantity="one">Błędny PIN. Do przerwy została %d próba</item>
+    <item quantity="few">Błędny PIN. Do przerwy zostały %d próby</item>
+    <item quantity="many">Błędny PIN. Do przerwy zostało %d prób</item>
+    <item quantity="other">Błędny PIN. Do przerwy zostało %d próby</item>
+  </plurals>
 </resources>

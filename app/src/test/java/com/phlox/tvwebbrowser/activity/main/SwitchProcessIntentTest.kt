@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.activity.main
 import android.content.Intent
 import android.net.Uri
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
+import com.phlox.tvwebbrowser.activity.KidsProfileMainActivity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -28,7 +29,7 @@ class SwitchProcessIntentTest {
         val source = viewIntent("https://example.com/page?q=1")
             .putExtra("com.phlox.tvwebbrowser.EXTRA_OPEN_IN_SAME_TAB", true)
 
-        val intent = MainActivity.switchProcessIntent(context, true, source, 1234)
+        val intent = MainActivity.switchProcessIntent(context, BrowserSpace.INCOGNITO, source, 1234)
 
         assertEquals(IncognitoModeMainActivity::class.java.name, intent.component?.className)
         assertEquals(Intent.ACTION_VIEW, intent.action)
@@ -43,7 +44,7 @@ class SwitchProcessIntentTest {
     fun syncLinkGoesToTheNormalActivity() {
         val url = "https://tvbro.phlox.dev/sync#v=1&a=192.168.1.2&p=8000&s=secret"
 
-        val intent = MainActivity.switchProcessIntent(context, false, viewIntent(url), 1234)
+        val intent = MainActivity.switchProcessIntent(context, BrowserSpace.MAIN, viewIntent(url), 1234)
 
         assertEquals(MainActivity::class.java.name, intent.component?.className)
         assertEquals(url, intent.dataString)
@@ -55,7 +56,7 @@ class SwitchProcessIntentTest {
         val source = Intent(Intent.ACTION_VIEW)
             .setDataAndType(Uri.parse("https://example.com/video.mp4"), "video/mp4")
 
-        val intent = MainActivity.switchProcessIntent(context, true, source, 1234)
+        val intent = MainActivity.switchProcessIntent(context, BrowserSpace.INCOGNITO, source, 1234)
 
         assertEquals(Uri.parse("https://example.com/video.mp4"), intent.data)
         assertEquals("video/mp4", intent.type)
@@ -66,7 +67,7 @@ class SwitchProcessIntentTest {
     fun pidOfThisProcessWins() {
         val source = viewIntent("https://example.com").putExtra(MainActivity.KEY_PROCESS_ID_TO_KILL, 42)
 
-        val intent = MainActivity.switchProcessIntent(context, true, source, 1234)
+        val intent = MainActivity.switchProcessIntent(context, BrowserSpace.INCOGNITO, source, 1234)
 
         assertEquals(1234, intent.getIntExtra(MainActivity.KEY_PROCESS_ID_TO_KILL, -1))
     }
@@ -74,11 +75,33 @@ class SwitchProcessIntentTest {
     /** Toggling incognito does not open the link the activity was started with again */
     @Test
     fun toggleForwardsNothing() {
-        val intent = MainActivity.switchProcessIntent(context, true, null, 1234)
+        val intent = MainActivity.switchProcessIntent(context, BrowserSpace.INCOGNITO, null, 1234)
 
         assertEquals(IncognitoModeMainActivity::class.java.name, intent.component?.className)
         assertNull(intent.action)
         assertNull(intent.data)
+        assertEquals(1234, intent.getIntExtra(MainActivity.KEY_PROCESS_ID_TO_KILL, -1))
+        assertStartsNewTask(intent)
+    }
+
+    /** The activity that only passes an intent on leaves the browser of the other process as it is */
+    @Test
+    fun passingOnKeepsTheTaskOfTheOtherActivity() {
+        val intent = MainActivity.switchProcessIntent(context, BrowserSpace.KIDS, viewIntent("https://example.com/"), 1234,
+            clearTask = false)
+
+        assertTrue(intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK != 0)
+        assertEquals(0, intent.flags and Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        assertEquals(Uri.parse("https://example.com/"), intent.data)
+    }
+
+    /** A link opened by another app while the kids profile is shown opens in its process */
+    @Test
+    fun linkGoesToTheKidsProfileActivity() {
+        val intent = MainActivity.switchProcessIntent(context, BrowserSpace.KIDS, viewIntent("https://example.com/"), 1234)
+
+        assertEquals(KidsProfileMainActivity::class.java.name, intent.component?.className)
+        assertEquals(Uri.parse("https://example.com/"), intent.data)
         assertEquals(1234, intent.getIntExtra(MainActivity.KEY_PROCESS_ID_TO_KILL, -1))
         assertStartsNewTask(intent)
     }

@@ -53,7 +53,8 @@ class AppHomePagePortDelegate(val port: WebExtension.Port, val webEngine: GeckoW
                     val data = msgJson.getJSONObject("data")
                     val engine = data.getString("engine")
                     val customSearchEngineURL = data.getString("customSearchEngineURL")
-                    AppContext.provideConfig().searchEngineURL.value = customSearchEngineURL
+                    //a setting of the app: the kids profile changes none
+                    if (!AppContext.kidsProfile) AppContext.provideConfig().searchEngineURL.value = customSearchEngineURL
                 }
                 "onEditBookmark" -> {
                     val index = msgJson.getInt("data")

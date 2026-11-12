@@ -701,4 +701,47 @@
     <string name="settings_license">License</string>
     <string name="settings_privacy_policy">Privacy policy</string>
     <string name="speak_now">Speak now</string>
+
+    <!-- The kids profile and its PIN -->
+    <string name="profile_kids">Kids profile</string>
+    <string name="profile_main">Main profile</string>
+    <string name="profile_not_available">Not available in the kids profile</string>
+    <string name="pin_enter">Enter the PIN</string>
+    <string name="pin_choose_title">Choose a PIN</string>
+    <string name="pin_choose">Four digits. The PIN opens the main profile.</string>
+    <string name="pin_repeat">Enter the PIN once more</string>
+    <string name="pin_mismatch">The PINs are not the same. Choose one again.</string>
+    <string name="pin_wait">Too many wrong tries. Try again in %s</string>
+    <string name="pin_forgot">Forgot the PIN? Clearing the data of TV Bro in the settings of the device removes it, with everything the browser keeps.</string>
+    <string name="settings_kids_on">On, the main profile is behind a PIN</string>
+    <string name="settings_kids_about">What it is</string>
+    <string name="settings_kids_about_summary">A profile for children with its own bookmarks, history, tabs and sign-ins. What the main profile keeps (the sites you are signed in to, your history, the settings) stays behind a PIN. The kids profile has no settings, downloads, incognito mode or other apps.\n\nIt protects TV Bro only, not other apps or the settings of the device. A forgotten PIN is removed only by clearing the data of TV Bro.</string>
+    <string name="settings_kids_enable_summary">TV Bro will open in the kids profile; the main one asks for a PIN</string>
+    <string name="settings_kids_open">Open the kids profile</string>
+    <string name="settings_kids_open_summary">Coming back to the main profile (in the menu of the bar) asks for the PIN</string>
+    <string name="settings_kids_lock">Lock the main profile</string>
+    <string name="settings_kids_lock_summary">When TV Bro goes back to the kids profile after it leaves the screen</string>
+    <string name="settings_kids_lock_immediately">At once</string>
+    <string name="settings_kids_lock_5">After 5 minutes</string>
+    <string name="settings_kids_lock_30">After 30 minutes</string>
+    <string name="settings_kids_lock_manual">Only from the menu</string>
+    <string name="settings_kids_pin">PIN</string>
+    <string name="settings_kids_pin_summary">Opens the main profile</string>
+    <string name="settings_kids_pin_change">Change</string>
+    <string name="settings_kids_disable">Turn the kids profile off</string>
+    <string name="settings_kids_disable_summary">Nothing is locked then; its bookmarks, history and sign-ins stay on the device</string>
+    <string name="settings_kids_disable_button">Turn off</string>
+    <string name="settings_kids_disable_confirm">Turn the kids profile off? TV Bro will not ask for the PIN any more.</string>
+    <string name="settings_kids_enabled">The kids profile is on: TV Bro opens in it from now on</string>
+    <string name="settings_kids_pin_changed">PIN changed</string>
+    <string name="settings_channels_kids">Channels are off</string>
+    <string name="settings_channels_kids_summary">They would show what the main profile keeps, so they are off while the kids profile is on</string>
+    <string name="settings_kids_delete_data">Delete the data of the kids profile</string>
+    <string name="settings_kids_delete_data_summary">Its bookmarks, history, tabs and sign-ins to sites</string>
+    <string name="settings_kids_delete_data_confirm">Delete the bookmarks, history, tabs and sign-ins of the kids profile? This can not be undone.</string>
+    <string name="settings_kids_data_deleted">The data of the kids profile are deleted</string>
+    <plurals name="pin_wrong_tries_left">
+        <item quantity="one">Wrong PIN. %d try left before a pause</item>
+        <item quantity="other">Wrong PIN. %d tries left before a pause</item>
+    </plurals>
 </resources>

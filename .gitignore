@@ -9,4 +9,5 @@
 *.hprof
 /buildSrc/build
 /docs/adblock-plan.md
+/docs/kids-profile-plan.md
 /tools/adblock-corpus/*.tsv

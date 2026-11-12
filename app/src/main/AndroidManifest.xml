@@ -135,6 +135,15 @@
             android:label="@string/app_name_short"
             android:launchMode="singleTask"
             android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize" />
+        <!-- the browser in the kids profile: a process of its own, where the pages keep their data apart
+             (see WebEngineProviderCallback.prepareKidsProcess) and the app has its own database -->
+        <activity android:name=".activity.KidsProfileMainActivity"
+            android:process=":kids"
+            android:exported="false"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name_short"
+            android:launchMode="singleTask"
+            android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize" />
         <!-- the built-in player in a picture-in-picture window (see PictureInPicturePlayback): a task of its own,
              so the browser stays usable behind it and closing the window leaves the browser alone; one per
              process of the browser, since the player is handed over in memory -->

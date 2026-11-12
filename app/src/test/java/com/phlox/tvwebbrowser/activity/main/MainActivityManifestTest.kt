@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.activity.main
 import android.content.ComponentName
 import android.content.pm.ActivityInfo
 import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
+import com.phlox.tvwebbrowser.activity.KidsProfileMainActivity
 import com.phlox.tvwebbrowser.activity.IncognitoPictureInPictureActivity
 import com.phlox.tvwebbrowser.activity.PictureInPictureActivity
 import org.junit.Assert.assertEquals
@@ -34,6 +35,15 @@ class MainActivityManifestTest {
     @Test
     fun incognitoActivityHandlesTheSameChanges() {
         assertEquals(configChanges(MainActivity::class.java), configChanges(IncognitoModeMainActivity::class.java))
+    }
+
+    /** Only the main activity can be started by other apps: it sends the intent to the profile shown */
+    @Test
+    fun kidsProfileActivityIsTheBrowserOfItsOwnProcess() {
+        val kids = context.packageManager.getActivityInfo(ComponentName(context, KidsProfileMainActivity::class.java), 0)
+        assertEquals(configChanges(MainActivity::class.java), kids.configChanges)
+        assertEquals(ActivityInfo.LAUNCH_SINGLE_TASK, kids.launchMode)
+        assertEquals(false, kids.exported)
     }
 
     private fun info(activity: Class<*>): ActivityInfo =

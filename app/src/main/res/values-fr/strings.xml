@@ -629,4 +629,48 @@
     <string name="settings_support_author">Soutenir l’auteur</string>
     <string name="settings_license">Licence</string>
     <string name="settings_privacy_policy">Politique de confidentialité</string>
+
+    <!-- The kids profile and its PIN -->
+    <string name="profile_kids">Profil enfant</string>
+    <string name="profile_main">Profil principal</string>
+    <string name="profile_not_available">Indisponible dans le profil enfant</string>
+    <string name="pin_enter">Saisissez le code PIN</string>
+    <string name="pin_choose_title">Choisissez un code PIN</string>
+    <string name="pin_choose">Quatre chiffres. Le code PIN ouvre le profil principal.</string>
+    <string name="pin_repeat">Saisissez le code PIN une nouvelle fois</string>
+    <string name="pin_mismatch">Les codes PIN ne correspondent pas. Choisissez-en un à nouveau.</string>
+    <string name="pin_wait">Trop d\'essais erronés. Réessayez dans %s</string>
+    <string name="pin_forgot">Code PIN oublié ? Seul l\'effacement des données de TV Bro dans les paramètres de l\'appareil le supprime, avec tout ce que le navigateur conserve.</string>
+    <string name="settings_kids_on">Activé, le profil principal est protégé par un code PIN</string>
+    <string name="settings_kids_about">De quoi s\'agit-il</string>
+    <string name="settings_kids_about_summary">Un profil pour les enfants, avec ses propres favoris, historique, onglets et connexions. Ce que conserve le profil principal (les sites où vous êtes connecté, votre historique, les paramètres) reste protégé par un code PIN. Le profil enfant n\'a ni paramètres, ni téléchargements, ni navigation privée, ni autres applications.\n\nIl protège uniquement TV Bro, pas les autres applications ni les paramètres de l\'appareil. Seul l\'effacement des données de TV Bro supprime un code PIN oublié.</string>
+    <string name="settings_kids_enable_summary">TV Bro s\'ouvrira dans le profil enfant ; le profil principal demandera un code PIN</string>
+    <string name="settings_kids_open">Ouvrir le profil enfant</string>
+    <string name="settings_kids_open_summary">Le retour au profil principal (dans le menu de la barre) demande le code PIN</string>
+    <string name="settings_kids_lock">Verrouiller le profil principal</string>
+    <string name="settings_kids_lock_summary">Quand TV Bro revient au profil enfant après avoir quitté l\'écran</string>
+    <string name="settings_kids_lock_immediately">Tout de suite</string>
+    <string name="settings_kids_lock_5">Après 5 minutes</string>
+    <string name="settings_kids_lock_30">Après 30 minutes</string>
+    <string name="settings_kids_lock_manual">Depuis le menu seulement</string>
+    <string name="settings_kids_pin">Code PIN</string>
+    <string name="settings_kids_pin_summary">Ouvre le profil principal</string>
+    <string name="settings_kids_pin_change">Modifier</string>
+    <string name="settings_kids_disable">Désactiver le profil enfant</string>
+    <string name="settings_kids_disable_summary">Plus rien n\'est verrouillé ; ses favoris, son historique et ses connexions restent sur l\'appareil</string>
+    <string name="settings_kids_disable_button">Désactiver</string>
+    <string name="settings_kids_disable_confirm">Désactiver le profil enfant ? TV Bro ne demandera plus le code PIN.</string>
+    <string name="settings_kids_enabled">Le profil enfant est activé : TV Bro s\'ouvre désormais dedans</string>
+    <string name="settings_kids_pin_changed">Code PIN modifié</string>
+    <string name="settings_channels_kids">Les chaînes sont désactivées</string>
+    <string name="settings_channels_kids_summary">Elles montreraient ce que conserve le profil principal, elles sont donc désactivées tant que le profil enfant est activé</string>
+    <string name="settings_kids_delete_data">Supprimer les données du profil enfant</string>
+    <string name="settings_kids_delete_data_summary">Ses favoris, son historique, ses onglets et ses connexions aux sites</string>
+    <string name="settings_kids_delete_data_confirm">Supprimer les favoris, l\'historique, les onglets et les connexions du profil enfant ? Cette action est irréversible.</string>
+    <string name="settings_kids_data_deleted">Les données du profil enfant ont été supprimées</string>
+    <plurals name="pin_wrong_tries_left">
+        <item quantity="one">Code PIN incorrect. Encore %d essai avant une pause</item>
+        <item quantity="many">Code PIN incorrect. Encore %d essais avant une pause</item>
+        <item quantity="other">Code PIN incorrect. Encore %d essais avant une pause</item>
+    </plurals>
 </resources>

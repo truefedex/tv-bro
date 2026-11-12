@@ -629,4 +629,48 @@
     <string name="settings_support_author">Apoyar al autor</string>
     <string name="settings_license">Licencia</string>
     <string name="settings_privacy_policy">Política de privacidad</string>
+
+    <!-- The kids profile and its PIN -->
+    <string name="profile_kids">Perfil infantil</string>
+    <string name="profile_main">Perfil principal</string>
+    <string name="profile_not_available">No disponible en el perfil infantil</string>
+    <string name="pin_enter">Introduce el PIN</string>
+    <string name="pin_choose_title">Elige un PIN</string>
+    <string name="pin_choose">Cuatro dígitos. El PIN abre el perfil principal.</string>
+    <string name="pin_repeat">Introduce el PIN otra vez</string>
+    <string name="pin_mismatch">Los PIN no coinciden. Elige uno de nuevo.</string>
+    <string name="pin_wait">Demasiados intentos fallidos. Vuelve a intentarlo en %s</string>
+    <string name="pin_forgot">¿Has olvidado el PIN? Solo lo elimina borrar los datos de TV Bro en los ajustes del dispositivo, junto con todo lo que guarda el navegador.</string>
+    <string name="settings_kids_on">Activado, el perfil principal está protegido con un PIN</string>
+    <string name="settings_kids_about">Qué es</string>
+    <string name="settings_kids_about_summary">Un perfil para niños con sus propios marcadores, historial, pestañas e inicios de sesión. Lo que guarda el perfil principal (los sitios en los que has iniciado sesión, tu historial, los ajustes) queda protegido con un PIN. El perfil infantil no tiene ajustes, descargas, modo incógnito ni otras aplicaciones.\n\nSolo protege TV Bro, no otras aplicaciones ni los ajustes del dispositivo. Un PIN olvidado solo se elimina borrando los datos de TV Bro.</string>
+    <string name="settings_kids_enable_summary">TV Bro se abrirá en el perfil infantil; el principal pedirá un PIN</string>
+    <string name="settings_kids_open">Abrir el perfil infantil</string>
+    <string name="settings_kids_open_summary">Volver al perfil principal (en el menú de la barra) pide el PIN</string>
+    <string name="settings_kids_lock">Bloquear el perfil principal</string>
+    <string name="settings_kids_lock_summary">Cuándo vuelve TV Bro al perfil infantil después de salir de la pantalla</string>
+    <string name="settings_kids_lock_immediately">Al instante</string>
+    <string name="settings_kids_lock_5">Tras 5 minutos</string>
+    <string name="settings_kids_lock_30">Tras 30 minutos</string>
+    <string name="settings_kids_lock_manual">Solo desde el menú</string>
+    <string name="settings_kids_pin">PIN</string>
+    <string name="settings_kids_pin_summary">Abre el perfil principal</string>
+    <string name="settings_kids_pin_change">Cambiar</string>
+    <string name="settings_kids_disable">Desactivar el perfil infantil</string>
+    <string name="settings_kids_disable_summary">Ya no habrá nada bloqueado; sus marcadores, historial e inicios de sesión se quedan en el dispositivo</string>
+    <string name="settings_kids_disable_button">Desactivar</string>
+    <string name="settings_kids_disable_confirm">¿Desactivar el perfil infantil? TV Bro ya no pedirá el PIN.</string>
+    <string name="settings_kids_enabled">El perfil infantil está activado: TV Bro se abre en él a partir de ahora</string>
+    <string name="settings_kids_pin_changed">PIN cambiado</string>
+    <string name="settings_channels_kids">Los canales están desactivados</string>
+    <string name="settings_channels_kids_summary">Mostrarían lo que guarda el perfil principal, así que están desactivados mientras el perfil infantil esté activado</string>
+    <string name="settings_kids_delete_data">Borrar los datos del perfil infantil</string>
+    <string name="settings_kids_delete_data_summary">Sus marcadores, historial, pestañas e inicios de sesión en sitios</string>
+    <string name="settings_kids_delete_data_confirm">¿Borrar los marcadores, el historial, las pestañas y los inicios de sesión del perfil infantil? No se puede deshacer.</string>
+    <string name="settings_kids_data_deleted">Se han borrado los datos del perfil infantil</string>
+    <plurals name="pin_wrong_tries_left">
+        <item quantity="one">PIN incorrecto. Queda %d intento antes de una pausa</item>
+        <item quantity="many">PIN incorrecto. Quedan %d intentos antes de una pausa</item>
+        <item quantity="other">PIN incorrecto. Quedan %d intentos antes de una pausa</item>
+    </plurals>
 </resources>

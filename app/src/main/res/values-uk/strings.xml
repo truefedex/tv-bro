@@ -642,4 +642,49 @@
   <string name="settings_support_author">Підтримати автора</string>
   <string name="settings_license">Ліцензія</string>
   <string name="settings_privacy_policy">Політика конфіденційності</string>
+
+  <!-- The kids profile and its PIN -->
+  <string name="profile_kids">Дитячий профіль</string>
+  <string name="profile_main">Основний профіль</string>
+  <string name="profile_not_available">Недоступно в дитячому профілі</string>
+  <string name="pin_enter">Введіть PIN</string>
+  <string name="pin_choose_title">Придумайте PIN</string>
+  <string name="pin_choose">Чотири цифри. PIN відкриває основний профіль.</string>
+  <string name="pin_repeat">Введіть PIN ще раз</string>
+  <string name="pin_mismatch">PIN не збігся. Придумайте його знову.</string>
+  <string name="pin_wait">Забагато невдалих спроб. Повторіть через %s</string>
+  <string name="pin_forgot">Забули PIN? Його прибирає лише очищення даних TV Bro в налаштуваннях пристрою, разом з усім, що зберігає браузер.</string>
+  <string name="settings_kids_on">Увімкнено, основний профіль під PIN</string>
+  <string name="settings_kids_about">Що це</string>
+  <string name="settings_kids_about_summary">Профіль для дітей зі своїми закладками, історією, вкладками та входами на сайти. Те, що зберігає основний профіль (сайти, де ви ввійшли, ваша історія, налаштування), залишається під PIN. У дитячому профілі немає налаштувань, завантажень, режиму інкогніто та інших застосунків.\n\nВін захищає лише TV Bro, а не інші застосунки та налаштування пристрою. Забутий PIN прибирає лише очищення даних TV Bro.</string>
+  <string name="settings_kids_enable_summary">TV Bro відкриватиметься в дитячому профілі; основний запитає PIN</string>
+  <string name="settings_kids_open">Відкрити дитячий профіль</string>
+  <string name="settings_kids_open_summary">Повернення в основний профіль (у меню панелі) запитає PIN</string>
+  <string name="settings_kids_lock">Блокувати основний профіль</string>
+  <string name="settings_kids_lock_summary">Коли TV Bro повертається в дитячий профіль після того, як зникає з екрана</string>
+  <string name="settings_kids_lock_immediately">Одразу</string>
+  <string name="settings_kids_lock_5">Через 5 хвилин</string>
+  <string name="settings_kids_lock_30">Через 30 хвилин</string>
+  <string name="settings_kids_lock_manual">Лише з меню</string>
+  <string name="settings_kids_pin">PIN</string>
+  <string name="settings_kids_pin_summary">Відкриває основний профіль</string>
+  <string name="settings_kids_pin_change">Змінити</string>
+  <string name="settings_kids_disable">Вимкнути дитячий профіль</string>
+  <string name="settings_kids_disable_summary">Блокування не буде; його закладки, історія та входи на сайти залишаться на пристрої</string>
+  <string name="settings_kids_disable_button">Вимкнути</string>
+  <string name="settings_kids_disable_confirm">Вимкнути дитячий профіль? TV Bro більше не питатиме PIN.</string>
+  <string name="settings_kids_enabled">Дитячий профіль увімкнено: TV Bro тепер відкривається в ньому</string>
+  <string name="settings_kids_pin_changed">PIN змінено</string>
+  <string name="settings_channels_kids">Канали вимкнено</string>
+  <string name="settings_channels_kids_summary">Вони показували б те, що зберігає основний профіль, тому вимкнені, поки ввімкнено дитячий профіль</string>
+  <string name="settings_kids_delete_data">Видалити дані дитячого профілю</string>
+  <string name="settings_kids_delete_data_summary">Його закладки, історію, вкладки та входи на сайти</string>
+  <string name="settings_kids_delete_data_confirm">Видалити закладки, історію, вкладки та входи на сайти дитячого профілю? Це не можна скасувати.</string>
+  <string name="settings_kids_data_deleted">Дані дитячого профілю видалено</string>
+  <plurals name="pin_wrong_tries_left">
+    <item quantity="one">Невірний PIN. До паузи залишилася %d спроба</item>
+    <item quantity="few">Невірний PIN. До паузи залишилося %d спроби</item>
+    <item quantity="many">Невірний PIN. До паузи залишилося %d спроб</item>
+    <item quantity="other">Невірний PIN. До паузи залишилося %d спроби</item>
+  </plurals>
 </resources>

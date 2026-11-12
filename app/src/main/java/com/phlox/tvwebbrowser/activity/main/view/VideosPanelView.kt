@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.profile.ProfilePolicy
 import com.phlox.tvwebbrowser.browser.StreamDownloads
 import com.phlox.tvwebbrowser.activity.main.PageVideoRowText
 import com.phlox.tvwebbrowser.databinding.ViewPageVideoRowBinding
@@ -119,11 +120,15 @@ class VideosPanelView @JvmOverloads constructor(
     }
 
     private fun showRowMenu(video: PageVideo, anchor: View) {
+        //the kids profile opens no other apps and downloads nothing
+        val policy = ProfilePolicy.current
         val items = mutableListOf(
-            PopupMenuView.Item(R.drawable.ic_play, context.getString(R.string.play_in_built_in_player)) { callback.play(video) },
-            PopupMenuView.Item(R.drawable.ic_open_in_new, context.getString(R.string.open_in_external_application)) { callback.openInOtherApp(video) },
-            PopupMenuView.Item(R.drawable.ic_link, context.getString(R.string.copy_link)) { callback.copyLink(video) })
-        if (video.kind == PageVideo.Kind.FILE || StreamDownloads.isDownloadable(video)) {
+            PopupMenuView.Item(R.drawable.ic_play, context.getString(R.string.play_in_built_in_player)) { callback.play(video) })
+        if (policy.externalApps) {
+            items += PopupMenuView.Item(R.drawable.ic_open_in_new, context.getString(R.string.open_in_external_application)) { callback.openInOtherApp(video) }
+        }
+        items += PopupMenuView.Item(R.drawable.ic_link, context.getString(R.string.copy_link)) { callback.copyLink(video) }
+        if (policy.downloads && (video.kind == PageVideo.Kind.FILE || StreamDownloads.isDownloadable(video))) {
             items += PopupMenuView.Item(R.drawable.ic_downloads, context.getString(R.string.download)) { callback.download(video) }
         }
         menu.show(anchor, items, alignEnd = true)

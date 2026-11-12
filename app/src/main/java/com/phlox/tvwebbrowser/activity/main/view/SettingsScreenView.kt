@@ -196,5 +196,12 @@ class SettingsScreenView @JvmOverloads constructor(
         }
 
         override fun restart() = callback.restart()
+
+        override fun choosePin(onChosen: (String?) -> Unit) = callback.choosePin(onChosen)
+
+        override fun openKidsProfile() {
+            hide()
+            callback.openKidsProfile()
+        }
     }
 }

@@ -643,4 +643,49 @@
     <string name="settings_support_author">Podpořit autora</string>
     <string name="settings_license">Licence</string>
     <string name="settings_privacy_policy">Zásady ochrany osobních údajů</string>
+
+    <!-- The kids profile and its PIN -->
+    <string name="profile_kids">Dětský profil</string>
+    <string name="profile_main">Hlavní profil</string>
+    <string name="profile_not_available">V dětském profilu není dostupné</string>
+    <string name="pin_enter">Zadejte PIN</string>
+    <string name="pin_choose_title">Zvolte PIN</string>
+    <string name="pin_choose">Čtyři číslice. PIN otevírá hlavní profil.</string>
+    <string name="pin_repeat">Zadejte PIN ještě jednou</string>
+    <string name="pin_mismatch">PIN se neshodují. Zvolte ho znovu.</string>
+    <string name="pin_wait">Příliš mnoho chybných pokusů. Zkuste to znovu za %s</string>
+    <string name="pin_forgot">Zapomněli jste PIN? Odstraní ho jen vymazání dat TV Bro v nastavení zařízení, spolu se vším, co prohlížeč uchovává.</string>
+    <string name="settings_kids_on">Zapnuto, hlavní profil je za PIN</string>
+    <string name="settings_kids_about">Co to je</string>
+    <string name="settings_kids_about_summary">Profil pro děti s vlastními záložkami, historií, kartami a přihlášeními. Co uchovává hlavní profil (weby, kde jste přihlášeni, vaše historie, nastavení), zůstává za PIN. Dětský profil nemá nastavení, stahování, anonymní režim ani jiné aplikace.\n\nChrání jen TV Bro, ne jiné aplikace nebo nastavení zařízení. Zapomenutý PIN odstraní jen vymazání dat TV Bro.</string>
+    <string name="settings_kids_enable_summary">TV Bro se bude otevírat v dětském profilu; hlavní profil se zeptá na PIN</string>
+    <string name="settings_kids_open">Otevřít dětský profil</string>
+    <string name="settings_kids_open_summary">Návrat do hlavního profilu (v nabídce lišty) se zeptá na PIN</string>
+    <string name="settings_kids_lock">Zamknout hlavní profil</string>
+    <string name="settings_kids_lock_summary">Kdy se TV Bro vrátí do dětského profilu poté, co zmizí z obrazovky</string>
+    <string name="settings_kids_lock_immediately">Hned</string>
+    <string name="settings_kids_lock_5">Po 5 minutách</string>
+    <string name="settings_kids_lock_30">Po 30 minutách</string>
+    <string name="settings_kids_lock_manual">Jen z nabídky</string>
+    <string name="settings_kids_pin">PIN</string>
+    <string name="settings_kids_pin_summary">Otevírá hlavní profil</string>
+    <string name="settings_kids_pin_change">Změnit</string>
+    <string name="settings_kids_disable">Vypnout dětský profil</string>
+    <string name="settings_kids_disable_summary">Nic pak nebude zamčené; jeho záložky, historie a přihlášení zůstanou v zařízení</string>
+    <string name="settings_kids_disable_button">Vypnout</string>
+    <string name="settings_kids_disable_confirm">Vypnout dětský profil? TV Bro se už nebude ptát na PIN.</string>
+    <string name="settings_kids_enabled">Dětský profil je zapnutý: TV Bro se od teď otevírá v něm</string>
+    <string name="settings_kids_pin_changed">PIN změněn</string>
+    <string name="settings_channels_kids">Kanály jsou vypnuté</string>
+    <string name="settings_channels_kids_summary">Ukazovaly by, co uchovává hlavní profil, proto jsou vypnuté, dokud je zapnutý dětský profil</string>
+    <string name="settings_kids_delete_data">Smazat data dětského profilu</string>
+    <string name="settings_kids_delete_data_summary">Jeho záložky, historii, karty a přihlášení na webech</string>
+    <string name="settings_kids_delete_data_confirm">Smazat záložky, historii, karty a přihlášení dětského profilu? Nelze to vrátit zpět.</string>
+    <string name="settings_kids_data_deleted">Data dětského profilu jsou smazána</string>
+    <plurals name="pin_wrong_tries_left">
+        <item quantity="one">Chybný PIN. Do pauzy zbývá %d pokus</item>
+        <item quantity="few">Chybný PIN. Do pauzy zbývají %d pokusy</item>
+        <item quantity="many">Chybný PIN. Do pauzy zbývá %d pokusu</item>
+        <item quantity="other">Chybný PIN. Do pauzy zbývá %d pokusů</item>
+    </plurals>
 </resources>

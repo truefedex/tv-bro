@@ -47,6 +47,10 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
             instance.needRestartMainActivityAfterExitingProcess = restartMainActivity
         }
 
+        /** The browser activity finishes to start again in a new process (settings that need a restart) */
+        val restartsMainActivity: Boolean
+            get() = instance.needToExitProcessAfterMainActivityFinish && instance.needRestartMainActivityAfterExitingProcess
+
         const val CHANNEL_ID_DOWNLOADS: String = "downloads"
         const val MAIN_PREFS_NAME = "main.xml"
         val TAG = TVBro::class.simpleName
@@ -78,6 +82,8 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
             Log.i(TAG, "onCreate: not a process of the app, nothing to initialize")
             return
         }
+        //before the container: the kids profile has a database and files of its own
+        AppContext.kidsProfile = AppProcesses.isCurrentKids(this)
         container = AppContainer(this)
 
         AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_MULTI_PROCESS),
@@ -183,7 +189,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
                     Log.i(TAG, "onActivityDestroyed: restarting main activity")
                     val intent = Intent(this@TVBro, MainActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    startActivity(intent)
+                    startActivity(MainActivity.markSameSession(intent))
                 }
                 exitProcess(0)
             }
