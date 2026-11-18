@@ -320,9 +320,17 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
         }
     }
 
+    /** The UI covers the page (the TV bar is open): the cursor is not drawn */
+    var hidden = false
+        set(value) {
+            if (field == value) return
+            field = value
+            surface.postInvalidate()
+        }
+
     /** The cursor is drawn on the surface */
     val drawsCursor: Boolean
-        get() = grabMode || !isCursorDisappear
+        get() = !hidden && (grabMode || !isCursorDisappear)
 
     fun dispatchDraw(canvas: Canvas) {
         if (drawsCursor) {

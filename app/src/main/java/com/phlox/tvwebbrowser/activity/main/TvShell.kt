@@ -80,10 +80,7 @@ import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
 import com.phlox.tvwebbrowser.activity.main.view.VideosPanelView
 import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -94,8 +91,6 @@ import kotlinx.coroutines.launch
 class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Callback {
     companion object {
         private val TAG = TvShell::class.java.simpleName
-        /** How long the bar waits for the built-in home page when the browser starts */
-        private const val HOME_PAGE_FILL_TIMEOUT_MS = 3000L
     }
 
     private val activity = host.activity
@@ -123,13 +118,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     private val displayThumbnailRunnable = object : Runnable {
         var tabState: BrowserTab? = null
-        override fun run() {
-            tabState?.let {
-                lifecycleScope.launch(Dispatchers.Main) {
-                    displayThumbnail(it)
-                }
-            }
-        }
+        override fun run() = displayThumbnail(tabState)
     }
 
     private val tabsListener = object : Listener {
@@ -1096,18 +1085,22 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.rlRoot.viewTreeObserver.addOnPreDrawListener(pageCoveredDrawListener)
 
         //TV screens do not rotate, but large screens may ignore the requested orientation:
-        //the thumbnail under the open menu has the height of the screen it was shown on
+        //the picture of a tab under the open menu has the height of the screen it was shown on
         vb.flWebViewContainer.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
             if (bottom - top != oldBottom - oldTop && vb.rlActionBar.isVisible) {
-                vb.root.post { fitThumbnailUnderMenu() }
+                vb.root.post { fitPageUnderMenu() }
             }
         }
     }
 
-    private fun fitThumbnailUnderMenu() {
-        if (!vb.rlActionBar.isVisible || !vb.ivMiniatures.isVisible) return
+    /** The page (or the picture of a previewed tab) is under the open bar */
+    private fun fitPageUnderMenu() {
+        if (!vb.rlActionBar.isVisible || menuOverlayCapture != null || menuOverlayClosing) return
+        val barHeight = vb.rlActionBar.height.toFloat()
+        vb.flWebViewContainer.animate().cancel()
+        vb.flWebViewContainer.translationY = barHeight
         vb.ivMiniatures.layoutParams = vb.ivMiniatures.layoutParams.apply { height = vb.flWebViewContainer.height }
-        vb.ivMiniatures.translationY = vb.rlActionBar.height.toFloat()
+        vb.ivMiniatures.translationY = barHeight
     }
 
     private fun tabByTitleIndex(index: Int) =
@@ -1129,19 +1122,8 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     override fun onTabsLoaded() {
         val currentTab = controller.currentTab.value
         //a restored tab has the url the alias loaded
-        val config = AppContext.provideConfig()
-        if (currentTab == null) {
+        if (currentTab == null || HomePageUrl.isHomePage(currentTab.url, AppContext.provideConfig())) {
             showMenuOverlay()
-        } else if (HomePageUrl.isHomePage(currentTab.url, config)) {
-            if (HomePageUrl.resolve(currentTab.url, config) == Config.HOME_PAGE_URL) {
-                //the bar shows a picture of the page: the built-in one is taken once its bookmarks are there
-                lifecycleScope.launch {
-                    withTimeoutOrNull(HOME_PAGE_FILL_TIMEOUT_MS) { filledHomePage.first { it == currentTab } }
-                    if (!vb.rlActionBar.isVisible && controller.currentTab.value == currentTab) showMenuOverlay()
-                }
-            } else {
-                showMenuOverlay()
-            }
         }
         val texts = pendingTexts.toList()
         pendingTexts.clear()
@@ -1278,11 +1260,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         when (event) {
             is BrowserUiEvent.Progress -> showProgress(event.value)
             is BrowserUiEvent.TabUpdated -> vb.vTabs.onTabUpdated(event.tab)
-            is BrowserUiEvent.ThumbnailUpdated -> {
-                if (vb.rlActionBar.isVisible && event.tab == controller.currentTab.value) {
-                    lifecycleScope.launch { displayThumbnail(event.tab) }
-                }
-            }
             is BrowserUiEvent.PopupBlocked -> {
                 val msg = activity.getString(if (event.newTab) R.string.new_tab_blocked else R.string.popup_dialog_blocked)
                 NotificationView.show(vb.rlRoot, R.drawable.ic_block_popups, msg)
@@ -1293,7 +1270,6 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 }
             }
             is BrowserUiEvent.HomePageSearchBarLocated -> {
-                filledHomePage.value = event.tab
                 //only for a tab the user opened from the bar, so a page reload does not move the cursor
                 if (event.tab == tabForSearchBarCursor) {
                     tabForSearchBarCursor = null
@@ -1380,18 +1356,22 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
      * instead of giving the focus to the address
      */
     private fun showMenuOverlay(onShown: (() -> Unit)? = null) {
-        //the bar shows a picture of the page: its search ends
+        //the bar covers the page: its search ends
         findInPage.close()
         vb.vActionBar.cancelEditing()
         menuOverlayCapture?.cancel()
         menuOverlayCapture = null
+        menuOverlayClosing = false
+        //a bar that was sliding away does not end hidden
+        vb.flWebViewContainer.animate().cancel()
 
         //the bar is open at once (its back callback, the panels), but shows only once the picture of the page is
-        //taken: it may be taken from the screen, where nothing may cover the page
+        //taken (for the previews of the tabs): it may be taken from the screen, where nothing may cover the page
         vb.rlActionBar.animate().cancel()
         vb.rlActionBar.visibility = View.VISIBLE
         vb.rlActionBar.translationY = -vb.rlActionBar.height.toFloat()
         vb.rlActionBar.alpha = 0f
+        coverPage(true)
 
         val currentTab = controller.currentTab.value
         if (currentTab == null) {
@@ -1406,19 +1386,31 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             }
             menuOverlayCapture = null
             revealMenuOverlay(onShown)
-            displayThumbnail(currentTab)
         }
     }
-
-    /** The tab whose built-in home page got its bookmarks and search engine last */
-    private val filledHomePage = MutableStateFlow<BrowserTab?>(null)
 
     /** Taking the picture of the page for the bar that opens, see [showMenuOverlay] */
     private var menuOverlayCapture: Job? = null
 
+    /** The bar slides away */
+    private var menuOverlayClosing = false
+
+    /**
+     * While the bar is open the page stays live under it (its loads, Back and Forward of the bar show at once),
+     * but takes no focus and shows no cursor
+     */
+    private fun coverPage(covered: Boolean) {
+        vb.flWebViewContainer.descendantFocusability =
+            if (covered) ViewGroup.FOCUS_BLOCK_DESCENDANTS else ViewGroup.FOCUS_BEFORE_DESCENDANTS
+        if (covered) vb.flWebViewContainer.findFocus()?.clearFocus()
+        for (tab in controller.tabsStates) {
+            if (tab.isWebEngineCreated) tab.webEngine.virtualCursor?.setCursorHidden(covered && tab.selected)
+        }
+    }
+
     private fun revealMenuOverlay(onShown: (() -> Unit)?) {
-        vb.ivMiniatures.visibility = View.VISIBLE
-        vb.flWebViewContainer.visibility = View.INVISIBLE
+        showPreview(tabByTitleIndex(vb.vTabs.current))
+        val barHeight = vb.rlActionBar.height.toFloat()
 
         vb.rlActionBar.animate()
                 .translationY(0f)
@@ -1430,40 +1422,68 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 }
                 .start()
 
+        //the page slides down under the bar, the picture of a previewed tab with it
         vb.ivMiniatures.layoutParams = vb.ivMiniatures.layoutParams.apply { this.height = vb.flWebViewContainer.height }
-        vb.ivMiniatures.translationY = 0f
-        vb.ivMiniatures.animate()
-                .translationY(vb.rlActionBar.height.toFloat())
-                .setDuration(300)
-                .setInterpolator(DecelerateInterpolator())
-                .start()
+        for (view in listOf(vb.flWebViewContainer, vb.ivMiniatures)) {
+            view.animate().cancel()
+            view.translationY = 0f
+            view.animate()
+                    .translationY(barHeight)
+                    .setDuration(300)
+                    .setInterpolator(DecelerateInterpolator())
+                    .start()
+        }
     }
 
-    private suspend fun displayThumbnail(currentTab: BrowserTab?) {
-        if (currentTab != null) {
-            if (tabByTitleIndex(vb.vTabs.current) != currentTab) return
-            vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
-            vb.ivMiniatures.visibility = View.VISIBLE
-            val thumbnail = controller.loadThumbnail(currentTab)
-            if (thumbnail != null) {
-                vb.ivMiniatures.setImageBitmap(thumbnail)
-            } else {
+    /** The tab strip of the open bar went to [tab], see [showPreview] */
+    private fun displayThumbnail(tab: BrowserTab?) {
+        if (!vb.rlActionBar.isVisible || menuOverlayClosing || menuOverlayCapture != null) return
+        if (tabByTitleIndex(vb.vTabs.current) != tab) return
+        showPreview(tab)
+    }
+
+    /**
+     * Shows the tab the tab strip of the open bar is at under it: the live page of the current tab, the picture of
+     * another one (its engine is not switched), the placeholder for a new tab
+     */
+    private fun showPreview(tab: BrowserTab?) {
+        when {
+            tab == null -> {
+                vb.llMiniaturePlaceholder.visibility = View.VISIBLE
                 vb.ivMiniatures.setImageResource(0)
+                vb.ivMiniatures.visibility = View.INVISIBLE
+                vb.flWebViewContainer.visibility = View.INVISIBLE
             }
-        } else {
-            vb.llMiniaturePlaceholder.visibility = View.VISIBLE
-            vb.ivMiniatures.setImageResource(0)
-            vb.ivMiniatures.visibility = View.INVISIBLE
+            tab == controller.currentTab.value -> {
+                vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
+                vb.ivMiniatures.setImageResource(0)
+                vb.ivMiniatures.visibility = View.INVISIBLE
+                vb.flWebViewContainer.visibility = View.VISIBLE
+            }
+            else -> {
+                vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
+                vb.flWebViewContainer.visibility = View.INVISIBLE
+                vb.ivMiniatures.visibility = View.VISIBLE
+                vb.ivMiniatures.setImageResource(0)
+                lifecycleScope.launch {
+                    val thumbnail = controller.loadThumbnail(tab)
+                    if (tabByTitleIndex(vb.vTabs.current) == tab && vb.ivMiniatures.isVisible) {
+                        vb.ivMiniatures.setImageBitmap(thumbnail)
+                    }
+                }
+            }
         }
     }
 
     private fun hideMenuOverlay() {
-        if (vb.rlActionBar.visibility == View.INVISIBLE) {
+        if (vb.rlActionBar.visibility == View.INVISIBLE || menuOverlayClosing) {
             return
         }
         //closed before it showed: it does not show
         menuOverlayCapture?.cancel()
         menuOverlayCapture = null
+        menuOverlayClosing = true
+        uiHandler.removeCallbacks(displayThumbnailRunnable)
         //the suggestions go with the editing at once, not when the bar is gone
         vb.vActionBar.cancelEditing()
         vb.vSitePanel.hide()
@@ -1480,27 +1500,24 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 .alpha(0f)
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
-                .withEndAction {
-                    vb.rlActionBar.visibility = View.INVISIBLE
-                }
                 .start()
 
-        if (vb.llMiniaturePlaceholder.visibility == View.VISIBLE) {
-            vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
-            vb.ivMiniatures.visibility = View.VISIBLE
-        }
-
-        vb.ivMiniatures.translationY = vb.rlActionBar.height.toFloat()
-        vb.ivMiniatures.animate()
+        //the page of the current tab comes back from under the bar, also when another tab was previewed
+        vb.llMiniaturePlaceholder.visibility = View.INVISIBLE
+        vb.ivMiniatures.animate().cancel()
+        vb.ivMiniatures.visibility = View.INVISIBLE
+        vb.ivMiniatures.setImageResource(0)
+        vb.flWebViewContainer.visibility = View.VISIBLE
+        vb.flWebViewContainer.animate().cancel()
+        vb.flWebViewContainer.animate()
                 .translationY(0f)
                 .setDuration(300)
                 .setInterpolator(DecelerateInterpolator())
                 .withEndAction {
-                    vb.ivMiniatures.visibility = View.INVISIBLE
+                    menuOverlayClosing = false
                     vb.rlActionBar.visibility = View.INVISIBLE
-                    vb.ivMiniatures.setImageResource(0)
                     returnToCurrentTab()
-                    vb.flWebViewContainer.visibility = View.VISIBLE
+                    coverPage(false)
                     if (findInPage.isOpen) vb.vFindBar.focusField() else focusPage()
                 }
                 .start()
