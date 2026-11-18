@@ -266,6 +266,11 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     override val cursorModes: StateFlow<CursorModes> = _cursorModes.asStateFlow()
     lateinit var session: GeckoSession
     var callback: WebEngineCallbacks? = null
+    /**
+     * The page that opened this session as a window at no web address (about:blank), until its first web page
+     * loads: that address is checked as a popup ([com.phlox.tvwebbrowser.webengine.EngineAdBlocker.shouldBlockPopup])
+     */
+    var popupOpener: String? = null
     val navigationDelegate = MyNavigationDelegate(this)
     val progressDelegate = MyProgressDelegate(this)
     val promptDelegate = MyPromptDelegate(this)
@@ -569,6 +574,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
 
     override fun loadUrl(url: String) {
         Log.d(TAG, "loadUrl($url)")
+        //what the user loads is no popup of the page that opened the window
+        popupOpener = null
         applyTrackingProtection()
         if (!session.isOpen) {
             session.open(runtime)

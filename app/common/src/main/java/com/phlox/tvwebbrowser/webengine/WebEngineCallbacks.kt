@@ -23,6 +23,11 @@ interface TabEngineEvents {
     fun onPageCertificateError(url: String?)
     fun onBlockedAd(uri: String)
     fun onBlockedDialog(newTab: Boolean)
+    /**
+     * The first page of this tab, a window a page opened, was blocked as a popup
+     * ([EngineAdBlocker.shouldBlockPopup]): the tab closes and the one that opened it is shown again
+     */
+    fun onPopupPageBlocked()
     fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View?
     fun closeWindow(internalRepresentation: Any)
     fun onVisited(url: String)

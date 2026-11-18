@@ -32,6 +32,23 @@ class AppEngineAdBlocker(
         return engine.match(urlString, host, page?.toString(), page?.host, types) == MatchResult.BLOCK
     }
 
+    override fun shouldBlockPopup(url: Uri, openerUrl: Uri?): Boolean {
+        val engine = service.engine ?: return false
+        if (!isWebUrl(url) || !isEnabledOn(openerUrl)) return false
+        val opener = openerUrl?.takeIf(::isWebUrl)
+        val urlString = url.toString()
+        //a window taking the user to an ad site is as a page taking the tab there
+        return engine.match(urlString, url.host!!, opener?.toString(), opener?.host, ResourceType.POPUP) == MatchResult.BLOCK ||
+                engine.matchNavigation(urlString, url.host!!, opener?.toString(), opener?.host) == MatchResult.BLOCK
+    }
+
+    override fun shouldCancelNavigation(url: Uri, pageUrl: Uri?): Boolean {
+        val engine = service.engine ?: return false
+        if (!isWebUrl(url) || !isEnabledOn(pageUrl)) return false
+        val page = pageUrl?.takeIf(::isWebUrl)
+        return engine.matchNavigation(url.toString(), url.host!!, page?.toString(), page?.host) == MatchResult.BLOCK
+    }
+
     /**
      * The page whose filters apply in a document: the document, or for a frame of about:blank, about:srcdoc,
      * data: or blob: the page of the tab that made it (its ads would else be of no site, and no third-party or

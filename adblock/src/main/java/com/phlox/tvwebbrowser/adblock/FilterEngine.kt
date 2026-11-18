@@ -251,6 +251,51 @@ class FilterEngine internal constructor(
         return if (important >= 0) important else allow
     }
 
+    /**
+     * Whether to cancel a navigation of a tab that its page started (a script, a link, a redirect; not an address
+     * the user typed) to [url]: a filter of pages (`$document`) blocks it, and so does a filter of a whole host
+     * without options (`||ads.example^`, as the strict blocking of uBlock Origin) when the host is of another site
+     * than the page (ads take the tab away to their sites). The exceptions of the page and of the target page,
+     * and the exceptions without type options let it go.
+     *
+     * @param pageUrl the page the tab shows; null if none (then only `$document` filters apply)
+     * @return a [MatchResult]
+     */
+    fun matchNavigation(url: String, host: String, pageUrl: String?, pageHost: String?): Int = try {
+        matchNavigationFilter(url, host, pageUrl, pageHost).let { if (it == NO_FILTER) MatchResult.NONE else resultOf(it) }
+    } catch (e: RuntimeException) {
+        errorCount.incrementAndGet()
+        MatchResult.NONE
+    }
+
+    /** The id of the filter that decides about the navigation (as [matchNavigation]), as [matchFilter] */
+    fun matchNavigationFilter(url: String, host: String, pageUrl: String?, pageHost: String?): Int {
+        val s = scratch.get()!!
+        s.prepare(url, host, pageHost)
+        val block = findWhere(s, tables[Tables.BLOCK]) { id, f -> blocksNavigation(s, id, f) }
+        if (block < 0) return NO_FILTER
+        if (tables[Tables.PAGE].filterCount > 0) {
+            if (pageUrl != null && pageHost != null &&
+                pageExceptions(s.page, pageUrl, pageHost) and ResourceType.DOCUMENT != 0) return PAGE_EXCEPTION
+            if (pageExceptions(s.page, url, host) and ResourceType.DOCUMENT != 0) return PAGE_EXCEPTION
+        }
+        if (flags[block] and FilterFlags.IMPORTANT != 0) return block
+        val allow = findWhere(s, tables[Tables.ALLOW]) { _, f ->
+            f and FilterFlags.TYPES == ResourceType.DEFAULT || f and ResourceType.DOCUMENT != 0
+        }
+        if (allow < 0) return block
+        val important = findWhere(s, tables[Tables.IMPORTANT]) { id, f -> blocksNavigation(s, id, f) }
+        return if (important >= 0) important else allow
+    }
+
+    private fun blocksNavigation(s: Scratch, id: Int, f: Int): Boolean {
+        if (f and ResourceType.DOCUMENT != 0) return true
+        if (f and FilterFlags.HOST_ONLY == 0 || f and FilterFlags.TYPES != ResourceType.DEFAULT || domainRefs[id] >= 0) {
+            return false
+        }
+        return s.thirdParty(psl) == true
+    }
+
     /** The line of a filter, when the compiler kept them ([FilterCompiler] keepTexts) */
     fun filterText(id: Int): String? = when {
         id == PAGE_EXCEPTION -> "(page exception)"
@@ -295,12 +340,16 @@ class FilterEngine internal constructor(
     }
 
     /** The first filter of the [table] matching the prepared request, -1 if none */
-    private fun find(s: Scratch, table: IndexTable, types: Int): Int {
+    private fun find(s: Scratch, table: IndexTable, types: Int): Int =
+        findWhere(s, table) { _, f -> f and types and FilterFlags.TYPES != 0 }
+
+    /** The first filter of the [table] that [accept]s (its id and flags) and matches the prepared request */
+    private inline fun findWhere(s: Scratch, table: IndexTable, accept: (Int, Int) -> Boolean): Int {
         if (table.filterCount == 0) return -1
         var found = -1
         forEachCandidate(s, table) { id, position ->
             val f = flags[id]
-            if (f and types and FilterFlags.TYPES != 0 && checkOptions(s, id, f) && matchesPattern(s, id, f, position)) {
+            if (accept(id, f) && checkOptions(s, id, f) && matchesPattern(s, id, f, position)) {
                 found = id
                 true
             } else {
@@ -468,8 +517,8 @@ class FilterEngine internal constructor(
         const val NO_FILTER = -1
         const val PAGE_EXCEPTION = -2
         /** Bits of [pageExceptions] (besides [ResourceType.DOCUMENT]) */
-        const val ELEMHIDE = 1 shl 12
-        const val GENERICHIDE = 1 shl 13
+        const val ELEMHIDE = 1 shl 13
+        const val GENERICHIDE = 1 shl 14
         private const val MAX_REGEX_URL_LENGTH = 4096
         private const val SELECTORS_PER_RULE = 50
         private const val HIDE_DECLARATION = "{display:none!important}\n"

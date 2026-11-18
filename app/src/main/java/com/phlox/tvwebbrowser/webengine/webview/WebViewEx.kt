@@ -99,6 +99,13 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
      */
     @Volatile
     private var requestPageUrl: Uri? = null
+    /**
+     * The page that opened this view as a window, until its first web page is asked for: that address is checked
+     * as a popup ([com.phlox.tvwebbrowser.webengine.EngineAdBlocker.shouldBlockPopup]). Read on the threads of
+     * WebView.
+     */
+    @Volatile
+    var popupOpener: Uri? = null
     /** The error page of the main frame load that failed: written over the error page of WebView when it loads */
     private var pendingErrorPage: PendingErrorPage? = null
     /** The url and the threat type of the last Safe Browsing hit of the main frame, for its error page */
@@ -162,6 +169,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun isDialogsBlockingEnabled(): Boolean
         fun onBlockedAd(url: Uri)
         fun onBlockedDialog(newTab: Boolean)
+        fun onPopupPageBlocked()
         fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
         fun closeWindow(window: WebView)
         fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long)
@@ -364,6 +372,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
             override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
                 val webView = callback.onCreateWindow(isDialog, isUserGesture) ?: return false
+                //WebView tells the address of the window only when it loads
+                webView.popupOpener = view.url?.toUri()
                 (resultMsg.obj as WebView.WebViewTransport).webView = webView
                 resultMsg.sendToTarget()
                 return true
@@ -379,6 +389,14 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 Log.d(TAG, "shouldOverrideUrlLoading url: ${request.url}")
                 val url = request.url.toString()
                 if (callback.shouldOverrideUrlLoading(url)) return true
+                //the app's own loads do not come here: this is the page (a script, a link, a redirect). The page
+                //is the one that started: view.url is already the address of this navigation
+                if (request.isForMainFrame &&
+                    WebEngineFactory.adBlocker?.shouldCancelNavigation(request.url, currentOriginalUrl) == true) {
+                    Log.d(TAG, "Cancelled navigation to an ad: ${request.url}")
+                    callback.onBlockedAd(request.url)
+                    return true
+                }
                 //the page of another site may need another view; the User-Agent of a navigation is chosen
                 //when it starts, so it starts again (POST requests and redirects do not come here,
                 //the browser core loads such pages again after they start)
@@ -418,14 +436,20 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 //every tab asks, also one in the background (its callbacks are not set then)
                 val blocker = WebEngineFactory.adBlocker ?: return super.shouldInterceptRequest(view, request)
                 val isMainFrame = request.isForMainFrame
+                val opener = popupOpener
+                if (isMainFrame && opener != null && request.url.scheme.let { it == "http" || it == "https" }) {
+                    popupOpener = null
+                    if (blocker.shouldBlockPopup(request.url, opener)) {
+                        uiHandler.post { callback.onPopupPageBlocked() }
+                        return blockedResponse()
+                    }
+                }
                 if (isMainFrame) requestPageUrl = request.url
                 val page = if (isMainFrame) request.url else requestPageUrl ?: currentPageUrl
                 val ad = blocker.shouldBlock(request.url, null, request.requestHeaders["Accept"], isMainFrame, page, page)
                 return if (ad) {
                     uiHandler.post { callback.onBlockedAd(request.url) }
-                    val response = WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
-                    response.setStatusCodeAndReasonPhrase(403, "Blocked")
-                    response
+                    blockedResponse()
                 } else super.shouldInterceptRequest(view, request)
             }
 
@@ -609,6 +633,13 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         if (virtualCursorMode && DPADNavigationEventsAdapter.isNavigationGenericMotionSource(event.source))
             return false
         return super.dispatchGenericMotionEvent(event)
+    }
+
+    /** The answer to a blocked request: empty, 403 */
+    private fun blockedResponse(): WebResourceResponse {
+        val response = WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
+        response.setStatusCodeAndReasonPhrase(403, "Blocked")
+        return response
     }
 
     private fun showCertificateErrorPage(error: SslError) {

@@ -18,7 +18,7 @@ import java.util.zip.CRC32
  */
 internal object EngineFile {
     /** Raise it whenever what is written changes: older files are compiled again from the lists */
-    const val FORMAT_VERSION = 2
+    const val FORMAT_VERSION = 3
     private const val MAGIC = 0x41425654 // "TVBA" in little-endian bytes
     private const val HEADER_SIZE = 32
     private const val KIND_BYTES = 1

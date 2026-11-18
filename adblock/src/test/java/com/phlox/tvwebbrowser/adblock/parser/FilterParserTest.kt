@@ -211,8 +211,20 @@ class FilterParserTest {
         assertEquals("option:redirect", skipReason("||ads.example.com/ga.js\$script,redirect=google-analytics.com/ga.js"))
         assertEquals("option:csp", skipReason("||example.com^\$csp=script-src 'self'"))
         assertEquals("option:removeparam", skipReason("\$removeparam=utm_source"))
-        assertEquals("option:popup", skipReason("||ads.example.com^\$popup"))
+        assertEquals("option:popunder", skipReason("||ads.example.com^\$popunder"))
         assertEquals("option:badfilter", skipReason("||ads.example.com^\$badfilter"))
+    }
+
+    @Test
+    fun popupFiltersApplyOnlyToPopups() {
+        assertEquals(ResourceType.POPUP, network("||ads.example.com^\$popup,third-party").types)
+        assertEquals(ResourceType.POPUP, network("@@||example.com^\$popup").types)
+        assertEquals(ResourceType.POPUP or ResourceType.SCRIPT, network("||ads.example.com^\$popup,script").types)
+        //"~popup" changes nothing: filters apply to popups only with "popup"
+        assertEquals(ResourceType.DEFAULT, network("||ads.example.com^\$~popup").types)
+        assertEquals(0, network("||ads.example.com^").types and ResourceType.POPUP)
+        //a filter of the popups of a site needs no pattern
+        assertEquals(ResourceType.POPUP, network("\$popup,domain=example.com").types)
     }
 
     @Test

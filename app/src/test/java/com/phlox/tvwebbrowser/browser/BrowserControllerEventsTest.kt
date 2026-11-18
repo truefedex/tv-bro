@@ -702,6 +702,37 @@ class BrowserControllerEventsTest {
     }
 
     @Test
+    fun blockedPopupPageClosesItsTabAndShowsTheOpener() {
+        val a = open("https://a.com/")
+        val b = open("https://b.com/")
+        controller.changeTab(a)
+        a.callback.onCreateWindow(dialog = false, userGesture = true)
+        val windowTab = controller.tabsStates[1]
+        assertSame(windowTab, controller.currentTab.value)
+        events.clear()
+        windowTab.callback.onPopupPageBlocked()
+        assertEquals(listOf(a, b), controller.tabsStates.toList())
+        assertSame(a, controller.currentTab.value)
+        assertEquals(1, state.blockedPopups)
+        assertEquals(listOf<BrowserUiEvent>(BrowserUiEvent.PopupBlocked(true)), events.filterIsInstance<BrowserUiEvent.PopupBlocked>())
+    }
+
+    @Test
+    fun blockedPopupOfAClosedOpenerShowsTheNextTab() {
+        val a = open("https://a.com/")
+        val b = open("https://b.com/")
+        controller.changeTab(a)
+        a.callback.onOpenInNewTabRequested("about:blank", navigateImmediately = false)
+        val popup = controller.tabsStates[1]
+        controller.closeTab(a)
+        assertNull(popup.openerTab)
+        controller.changeTab(popup)
+        popup.callback.onPopupPageBlocked()
+        assertEquals(listOf(b), controller.tabsStates.toList())
+        assertSame(b, controller.currentTab.value)
+    }
+
+    @Test
     fun pageCanOpenATabAfterItsOwn() {
         val a = open("https://a.com/")
         val b = open("https://b.com/")

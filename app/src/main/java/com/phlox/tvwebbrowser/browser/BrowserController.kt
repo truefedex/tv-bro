@@ -228,7 +228,11 @@ class BrowserController : ActiveModel() {
                 tab.webEngine.onDetachFromWindow(completely = true, destroyTab = true)
             }
         }
-        tabsStates.removeAll(tabs.toSet())
+        val removed = tabs.toSet()
+        tabsStates.removeAll(removed)
+        for (tab in tabsStates) {
+            if (tab.openerTab in removed) tab.openerTab = null
+        }
         writes.enqueue {
             for (tab in tabs) {
                 //the id and the file names are final here: earlier writes of the tab are done
@@ -362,6 +366,8 @@ class BrowserController : ActiveModel() {
         val webView = host.createTabView(tab) ?: return null
         val currentTab = currentTab.value ?: return null
         val index = tabsStates.indexOf(currentTab) + 1
+        Log.d(TAG, "openWindowTab: index: $index")
+        tab.openerTab = currentTab
         tabsStates.add(index, tab)
         changeTab(tab)
         return webView
@@ -843,6 +849,7 @@ class BrowserController : ActiveModel() {
 
         override fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine? {
             val newTab = openInNewTabAfterCurrent(url, navigateImmediately) ?: return null
+            newTab.openerTab = tab
             sendUiEvent(BrowserUiEvent.TabOpenedByPage)
             return newTab.webEngine
         }
@@ -994,7 +1001,20 @@ class BrowserController : ActiveModel() {
             sendUiEvent(BrowserUiEvent.PopupBlocked(newTab))
         }
 
+        override fun onPopupPageBlocked() {
+            Log.d(TAG, "onPopupPageBlocked")
+            if (tab !in tabsStates) return
+            //the opener first, so that closing the popup shows no other tab on the way
+            val opener = tab.openerTab?.takeIf { it in tabsStates }
+            if (opener != null) changeTab(opener)
+            closeTab(tab)
+            if (opener != null) opener.blockedPopups++
+            publishState()
+            sendUiEvent(BrowserUiEvent.PopupBlocked(true))
+        }
+
         override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View? {
+            Log.d(TAG, "onCreateWindow: dialog: $dialog, userGesture: $userGesture")
             if (policies.shouldBlockNewWindow(dialog, userGesture)) {
                 onBlockedDialog(!dialog)
                 return null
@@ -1004,6 +1024,7 @@ class BrowserController : ActiveModel() {
 
         override fun closeWindow(internalRepresentation: Any) {
             val tabToClose = findTabBySession(internalRepresentation) ?: return
+            Log.d(TAG, "closeWindow: ${tabToClose.url}")
             closeTab(tabToClose)
             sendUiEvent(BrowserUiEvent.TabClosedByPage)
         }

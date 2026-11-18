@@ -158,6 +158,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             return
         }
         applySiteView(url)
+        //what the user loads is no popup of the page that opened the window
+        webView?.popupOpener = null
         webView?.loadUrl(url)
     }
 
@@ -524,6 +526,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
         override fun onBlockedDialog(newTab: Boolean) {
             callback?.onBlockedDialog(newTab)
+        }
+
+        override fun onPopupPageBlocked() {
+            callback?.onPopupPageBlocked()
         }
 
         override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx? {

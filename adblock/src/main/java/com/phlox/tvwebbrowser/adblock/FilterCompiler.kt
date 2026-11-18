@@ -233,7 +233,7 @@ class FilterCompiler(private val keepTexts: Boolean = false) {
          * Raise it whenever the compiler gives other arrays for the same lists (the parser too): apps mix it
          * into the fingerprint of their lists, so an engine file of an older compiler is built again.
          */
-        const val VERSION = 5
+        const val VERSION = 6
 
         private const val KEY_NONE = 0
         private const val KEY_HOST = 1

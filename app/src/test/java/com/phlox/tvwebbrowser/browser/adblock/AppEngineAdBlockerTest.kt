@@ -44,6 +44,7 @@ class AppEngineAdBlockerTest {
         val fetcher = AdBlockServiceTest.FakeFetcher()
         fetcher.lists[FilterListCatalog.find(FilterListCatalog.EASYLIST)!!.url] = listOf(
             "||ads.example.net^", "||img.example.net^\$image", "*\$ping,third-party", "||bad.example^\$document",
+            "||pop.example^\$popup,third-party",
             "site.com##.site-ad", "##.ad-box", "##[data-ad]",
         ).joinToString("\n")
         fetcher.lists[FilterListCatalog.find(FilterListCatalog.EASYPRIVACY)!!.url] = "! none\n"
@@ -150,5 +151,48 @@ class AppEngineAdBlockerTest {
         assertTrue(gecko("https://bad.example/", "main_frame", document = "https://bad.example/"))
         assertFalse(webView("https://ads.example.net/", accept = "text/html", page = "https://ads.example.net/", mainFrame = true))
         assertTrue(blocker.blocksPages)
+    }
+
+    private fun navigation(url: String, page: String? = "https://site.com/") =
+        blocker.shouldCancelNavigation(Uri.parse(url), page?.let(Uri::parse))
+
+    @Test
+    fun pagesCanNotTakeTheTabToAdSites() {
+        assertTrue(navigation("https://ads.example.net/?click=1"))
+        assertTrue(navigation("https://bad.example/"))
+        assertFalse(navigation("https://img.example.net/"))
+        assertFalse(navigation("https://cdn.example.org/"))
+        //not from the home page, and not where ads are shown
+        assertFalse(navigation("https://ads.example.net/", page = Config.HOME_PAGE_URL))
+        runBlocking { TVBro.container.data.hostConfigs.setAdBlock("site.com", false) }
+        assertFalse(navigation("https://ads.example.net/"))
+        assertTrue(navigation("https://ads.example.net/", page = "https://other.com/"))
+    }
+
+    private fun popup(url: String, opener: String? = "https://site.com/") =
+        blocker.shouldBlockPopup(Uri.parse(url), opener?.let(Uri::parse))
+
+    @Test
+    fun popupsAreBlockedByPopupFiltersAndThoseOfAdSites() {
+        assertTrue(popup("https://pop.example/go?id=1"))
+        //first-party to the page that opened it
+        assertFalse(popup("https://pop.example/next", opener = "https://www.pop.example/"))
+        //a window of an ad site too
+        assertTrue(popup("https://ads.example.net/?click=1"))
+        assertTrue(popup("https://bad.example/"))
+        assertFalse(popup("https://img.example.net/"))
+        assertFalse(popup("about:blank"))
+        //but not a request of the site of popups
+        assertFalse(webView("https://pop.example/a.js"))
+    }
+
+    @Test
+    fun popupsFollowTheSettingOfTheOpener() {
+        runBlocking { TVBro.container.data.hostConfigs.setAdBlock("site.com", false) }
+        assertFalse(popup("https://pop.example/go"))
+        assertTrue(popup("https://pop.example/go", opener = "https://other.com/"))
+        assertFalse(popup("https://pop.example/go", opener = Config.HOME_PAGE_URL))
+        config.adBlockEnabled = false
+        assertFalse(popup("https://pop.example/go", opener = "https://other.com/"))
     }
 }
