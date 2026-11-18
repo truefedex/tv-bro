@@ -647,14 +647,14 @@ class BrowserController : ActiveModel() {
     }
 
     /**
-     * Gives the engine of the tab the view of its host and the User-Agent of the user (it takes effect with the
-     * next load).
+     * Gives the engine of the tab the view of the host of [url] (its page by default) and the User-Agent of the
+     * user (it takes effect with the next load).
      * @return true if the view changed
      */
-    private fun applySiteView(tab: BrowserTab): Boolean {
+    private fun applySiteView(tab: BrowserTab, url: String = tab.url): Boolean {
         if (!tab.isWebEngineCreated) return false
         val siteView = tab.webEngine.siteView ?: return false
-        val desktop = isDesktopView(tab.url)
+        val desktop = isDesktopView(url)
         val userAgent = config.userAgent
         if (siteView.desktopView == desktop && siteView.userAgentOverride == userAgent) return false
         siteView.desktopView = desktop
@@ -927,8 +927,10 @@ class BrowserController : ActiveModel() {
             tab.blockedPopups = 0
             tab.loading = true
             //a page that came in the view of another host (going back, a redirect) loads again in its own,
-            //once: hosts redirecting to each other by the view must not reload forever
-            if (!siteViewCorrected && applySiteView(tab)) {
+            //once: hosts redirecting to each other by the view must not reload forever. The view is that of the
+            //page that starts: GeckoView still tells the page before it as its url until the new one commits, and
+            //a reload then would load that page again in place of the new one
+            if (!siteViewCorrected && applySiteView(tab, url ?: tab.url)) {
                 siteViewCorrected = true
                 tab.webEngine.reload()
             } else {

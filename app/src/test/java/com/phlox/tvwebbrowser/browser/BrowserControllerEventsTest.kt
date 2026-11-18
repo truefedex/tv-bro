@@ -581,6 +581,18 @@ class BrowserControllerEventsTest {
     }
 
     @Test
+    fun aPageOfAnotherViewStartingBeforeItCommitsIsNotLoadedAgain() {
+        val tab = open(Config.HOME_PAGE_URL)
+        assertTrue(tab.fakeEngine.desktopView)
+        //the home page searches Qwant: GeckoView switched the view for it and still tells the home page as its url
+        tab.fakeEngine.desktopView = false
+        tab.fakeEngine.log.clear()
+        tab.callback.onPageStarted("https://www.qwant.com/?q=tv")
+        assertFalse(tab.fakeEngine.desktopView)
+        assertEquals(emptyList<String>(), tab.fakeEngine.log)
+    }
+
+    @Test
     fun titleUpdatesTheTabAndTheHistory() {
         val tab = open("https://a.com/")
         events.clear()
