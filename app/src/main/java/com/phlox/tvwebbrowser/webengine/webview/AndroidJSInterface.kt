@@ -76,11 +76,6 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
             fileName = finalFileName, mimeType = mimetype, base64BlobData = base64BlobData))
     }
 
-    @JavascriptInterface
-    fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
-        onHomePage { callback -> callback.markBookmarkRecommendationAsUseful(bookmarkOrder) }
-    }
-
     /**
      * Runs [action] on the main thread if the page of the view is the home page. Calls of the page come on a
      * thread of WebView, and a page loaded from the cache (going back to it while another page loads) calls

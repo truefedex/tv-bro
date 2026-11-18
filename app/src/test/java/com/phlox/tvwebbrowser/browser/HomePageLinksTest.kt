@@ -207,18 +207,4 @@ class HomePageLinksTest {
         assertEquals(listOf("https://b.com/"), links.links.value.map { it.url })
         assertEquals(listOf("https://b.com/"), db.favoritesDao().getHomePageBookmarks().map { it.url })
     }
-
-    @Test
-    fun onlyTemporaryRecommendationsAreMarkedAsUseful() = runBlocking {
-        val permanent = bookmark("permanent", 0)
-        permanent.id = db.favoritesDao().insert(permanent)
-        val recommendation = bookmark("recommendation", 1, validUntil = Date(System.currentTimeMillis() + 100000))
-        recommendation.id = db.favoritesDao().insert(recommendation)
-        links.load()
-
-        links.markRecommendationAsUseful(0)
-        links.markRecommendationAsUseful(1)
-        assertFalse(db.favoritesDao().getById(permanent.id)!!.useful)
-        assertTrue(db.favoritesDao().getById(recommendation.id)!!.useful)
-    }
 }

@@ -1043,10 +1043,6 @@ class BrowserController : ActiveModel() {
 
         override fun getHomePageLinks(): List<HomePageLink> = homePageLinks.links.value
 
-        override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
-            modelScope.launch { homePageLinks.markRecommendationAsUseful(bookmarkOrder) }
-        }
-
         override fun onHomePageSearchBarLocated(x: Int, y: Int) {
             sendUiEvent(BrowserUiEvent.HomePageSearchBarLocated(tab, x, y))
         }

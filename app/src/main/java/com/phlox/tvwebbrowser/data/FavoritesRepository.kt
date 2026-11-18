@@ -374,8 +374,6 @@ class FavoritesRepository(private val dao: FavoritesDao) {
 
     suspend fun delete(id: Long) = dao.delete(id)
 
-    suspend fun markAsUseful(id: Long) = dao.markAsUseful(id)
-
     /** The order of a new home page bookmark: after the others */
     suspend fun nextHomePageOrder(): Int = (dao.maxHomePageOrder() ?: -1) + 1
 }

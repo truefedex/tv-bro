@@ -86,13 +86,6 @@ class HomePageLinks(
         load()
     }
 
-    suspend fun markRecommendationAsUseful(bookmarkOrder: Int) {
-        val link = _links.value.find { it.order == bookmarkOrder } ?: return
-        val favoriteId = link.favoriteId ?: return
-        if (link.validUntil == null) return
-        favorites.markAsUseful(favoriteId)
-    }
-
     private fun initialBookmarksSuggestions(): List<FavoriteItem>? {
         //There was loading of default bookmarks from app's home page (with affiliate links).
         // Now its just hardcoded. I left them as json array just for convenience to copy the same
