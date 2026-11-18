@@ -28,6 +28,7 @@ import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.TabEngineEvents
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
@@ -80,10 +81,10 @@ class BrowserController : ActiveModel() {
     var viewHost: TabViewHost? = null
     /**
      * The site view of sites without their own: the activity sets it from the interface it shows
-     * (desktop on TV, mobile on phones)
+     * (tablet on TV, mobile on phones)
      */
     @Volatile
-    var interfaceDesktopView = true
+    var interfaceSiteView = SiteView.TABLET
 
     private val _currentTabState = MutableStateFlow(CurrentTabState())
     val currentTabState: StateFlow<CurrentTabState> = _currentTabState.asStateFlow()
@@ -511,19 +512,19 @@ class BrowserController : ActiveModel() {
     }
 
     /**
-     * Whether pages of the [url]'s host load in the desktop view: its own setting or the default.
+     * The view pages of the [url]'s host load in: its own setting or the default.
      * Can be called from any thread.
      */
-    fun isDesktopView(url: String): Boolean {
-        val host = hostNameOf(url) ?: return defaultDesktopView
-        return hostConfigs.desktopViewSetting(host) ?: defaultDesktopViewOf(host)
+    fun siteViewOf(url: String): SiteView {
+        val host = hostNameOf(url) ?: return defaultSiteView
+        return hostConfigs.siteViewSetting(host) ?: defaultSiteViewOf(host)
     }
 
     /** The site view of sites without their own: the setting, or the one of the interface */
-    val defaultDesktopView: Boolean get() = config.defaultDesktopView ?: interfaceDesktopView
+    val defaultSiteView: SiteView get() = config.defaultSiteView ?: interfaceSiteView
 
     /** The view of the [host] while it has no setting of its own: that of [SiteViewDefaults], else the default */
-    fun defaultDesktopViewOf(host: String): Boolean = SiteViewDefaults.desktopView(host) ?: defaultDesktopView
+    fun defaultSiteViewOf(host: String): SiteView = SiteViewDefaults.siteView(host) ?: defaultSiteView
 
     /**
      * Whether the videos that pages of the [host] put in fullscreen go to the built-in player: its own setting
@@ -575,11 +576,11 @@ class BrowserController : ActiveModel() {
      * A host keeps its own setting only while it differs from the default one.
      * @return the write of the setting; null if the tab's url has no host
      */
-    fun setSiteView(tab: BrowserTab, desktop: Boolean): Job? {
+    fun setSiteView(tab: BrowserTab, view: SiteView): Job? {
         val host = hostNameOf(tab) ?: return null
-        val setting = if (desktop == defaultDesktopViewOf(host)) null else desktop
+        val setting = if (view == defaultSiteViewOf(host)) null else view
         //the in-memory setting changes right away, the write is not cancelled with the model
-        val write = TVBro.container.appScope.launch { hostConfigs.setDesktopView(host, setting) }
+        val write = TVBro.container.appScope.launch { hostConfigs.setSiteView(host, setting) }
         if (applySiteView(tab) && tab == currentTab.value) {
             tab.webEngine.reload()
         }
@@ -660,10 +661,10 @@ class BrowserController : ActiveModel() {
     private fun applySiteView(tab: BrowserTab, url: String = tab.url): Boolean {
         if (!tab.isWebEngineCreated) return false
         val siteView = tab.webEngine.siteView ?: return false
-        val desktop = isDesktopView(url)
+        val view = siteViewOf(url)
         val userAgent = config.userAgent
-        if (siteView.desktopView == desktop && siteView.userAgentOverride == userAgent) return false
-        siteView.desktopView = desktop
+        if (siteView.view == view && siteView.userAgentOverride == userAgent) return false
+        siteView.view = view
         siteView.userAgentOverride = userAgent
         return true
     }
@@ -815,8 +816,8 @@ class BrowserController : ActiveModel() {
             popupBlockLevel = findHostConfig(tab)?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE,
             connection = connectionOf(tab),
             siteViewAvailable = tab.webEngine.siteView != null,
-            desktopView = isDesktopView(tab.url),
-            siteViewIsDefault = hostNameOf(tab)?.let { hostConfigs.desktopViewSetting(it) } == null,
+            siteView = siteViewOf(tab.url),
+            siteViewIsDefault = hostNameOf(tab)?.let { hostConfigs.siteViewSetting(it) } == null,
             builtInPlayer = prefersBuiltInPlayer(hostNameOf(tab) ?: ""),
             builtInPlayerIsDefault = hostNameOf(tab)?.let { hostConfigs.builtInPlayerSetting(it) } == null,
             siteDataClearable = WebEngineFactory.supportsSiteDataClearing()

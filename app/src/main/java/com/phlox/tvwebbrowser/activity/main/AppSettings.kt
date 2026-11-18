@@ -32,6 +32,7 @@ import com.phlox.tvwebbrowser.utils.DownloadFolder
 import com.phlox.tvwebbrowser.utils.launchForResult
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -183,10 +184,10 @@ class AppSettingsStore(
         }
     }
 
-    override var defaultDesktopView: Boolean?
-        get() = config.defaultDesktopView
+    override var defaultSiteView: SiteView?
+        get() = config.defaultSiteView
         set(value) {
-            config.defaultDesktopView = value
+            config.defaultSiteView = value
             controller.onSiteViewSettingsChanged()
         }
     override var userAgent: String?

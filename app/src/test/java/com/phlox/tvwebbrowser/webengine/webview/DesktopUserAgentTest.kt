@@ -55,4 +55,18 @@ class DesktopUserAgentTest {
         assertEquals("Mozilla/5.0 (Linux; Model) AppleWebKit/600 Safari/600",
             DesktopUserAgent.from("Mozilla/5.0 (Linux; Android 7.1.2; Model; wv) AppleWebKit/600 Mobile Safari/600"))
     }
+
+    @Test
+    fun webViewGetsTheTabletChromeOfItsVersion() {
+        val tv = "Mozilla/5.0 (Linux; Android 9; SHIELD Android TV Build/PPR1.180610.011; wv) AppleWebKit/537.36 " +
+            "(KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.179 Mobile Safari/537.36"
+        assertEquals("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) " +
+            "Chrome/124.0.0.0 Safari/537.36", TabletUserAgent.from(tv))
+    }
+
+    @Test
+    fun otherUserAgentsKeepAndroidInTheTabletView() {
+        assertEquals("Mozilla/5.0 (Linux; Android 7.1.2; Model) AppleWebKit/600 Safari/600",
+            TabletUserAgent.from("Mozilla/5.0 (Linux; Android 7.1.2; Model; wv) AppleWebKit/600 Mobile Safari/600"))
+    }
 }

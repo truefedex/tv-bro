@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.SiteView
 
 /**
  * The settings of the app. [credentialsPrefs] keeps the secrets (the login of the proxy): its file is left out
@@ -19,7 +20,9 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         /** The host of the search engine [CUSTOM_SEARCH_SUGGEST_URL_KEY] was given for */
         const val CUSTOM_SEARCH_SUGGEST_HOST_KEY = "custom_search_suggest_host"
         const val HOME_PAGE_KEY = "home_page"
-        const val DEFAULT_SITE_VIEW_KEY = "default_desktop_view"
+        /** The default site view of older versions: true for desktop, false for mobile */
+        const val LEGACY_DEFAULT_SITE_VIEW_KEY = "default_desktop_view"
+        const val DEFAULT_SITE_VIEW_KEY = "default_site_view"
         const val USER_AGENT_KEY = "user_agent"
         /** In the User-Agents of old versions, which should not be kept */
         private const val LEGACY_USER_AGENT_PREFIX = "TV Bro/1.0 "
@@ -430,14 +433,20 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         }
 
     /**
-     * The site view of sites without their own: true for desktop, false for mobile; null follows the
-     * interface (desktop on TV, mobile on phones). Can be read from any thread.
+     * The site view of sites without their own; null follows the interface (tablet on TV, mobile on phones).
+     * The choice of older versions (desktop or mobile) is kept. Can be read from any thread.
      */
-    var defaultDesktopView: Boolean?
-        get() = if (prefs.contains(DEFAULT_SITE_VIEW_KEY)) prefs.getBoolean(DEFAULT_SITE_VIEW_KEY, true) else null
+    var defaultSiteView: SiteView?
+        get() = when {
+            prefs.contains(DEFAULT_SITE_VIEW_KEY) -> SiteView.ofCode(prefs.getInt(DEFAULT_SITE_VIEW_KEY, -1))
+            prefs.contains(LEGACY_DEFAULT_SITE_VIEW_KEY) ->
+                if (prefs.getBoolean(LEGACY_DEFAULT_SITE_VIEW_KEY, true)) SiteView.DESKTOP else SiteView.MOBILE
+            else -> null
+        }
         set(value) {
-            if (value == null) prefs.edit().remove(DEFAULT_SITE_VIEW_KEY).apply()
-            else prefs.edit().putBoolean(DEFAULT_SITE_VIEW_KEY, value).apply()
+            val editor = prefs.edit().remove(LEGACY_DEFAULT_SITE_VIEW_KEY)
+            if (value == null) editor.remove(DEFAULT_SITE_VIEW_KEY) else editor.putInt(DEFAULT_SITE_VIEW_KEY, value.code)
+            editor.apply()
         }
 
     /**

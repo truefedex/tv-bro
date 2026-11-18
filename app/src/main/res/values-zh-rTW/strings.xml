@@ -239,6 +239,7 @@
     <string name="default_site_view">預設網站檢視</string>
     <array name="site_views">
         <item>電腦版</item>
+        <item>平板版</item>
         <item>行動版</item>
     </array>
     <string name="site_settings_of">%s 的設定</string>
@@ -487,8 +488,9 @@
     <string name="settings_group_site_view">網站檢視</string>
     <string name="settings_auto">自動</string>
     <string name="settings_desktop">電腦版</string>
+    <string name="settings_tablet">平板版</string>
     <string name="settings_mobile">行動版</string>
-    <string name="settings_site_view_summary_tv">適用於沒有個別設定的網站。自動：在電視上為電腦版</string>
+    <string name="settings_site_view_summary_tv">適用於沒有個別設定的網站。自動：在電視上為平板版</string>
     <string name="settings_site_view_summary_phone">適用於沒有個別設定的網站。自動：在手機上為行動版</string>
     <string name="settings_user_agent">User-Agent</string>
     <string name="settings_user_agent_summary">瀏覽器向網站表明身分的方式。自動：依網站檢視</string>

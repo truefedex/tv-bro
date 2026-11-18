@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
+import com.phlox.tvwebbrowser.webengine.SiteView
 import android.graphics.Bitmap
 import android.os.Looper
 import androidx.room.Room
@@ -349,32 +350,58 @@ class BrowserControllerEventsTest {
 
     @Test
     fun siteViewFollowsTheInterfaceByDefault() {
-        controller.interfaceDesktopView = false
+        controller.interfaceSiteView = SiteView.MOBILE
         val tab = open("https://a.com/")
-        assertFalse(tab.fakeEngine.desktopView)
-        assertFalse(state.desktopView)
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
+        assertEquals(SiteView.MOBILE, state.siteView)
         assertTrue(state.siteViewIsDefault)
-        controller.interfaceDesktopView = true
+        controller.interfaceSiteView = SiteView.TABLET
         controller.navigate("https://b.com/")
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
+    }
+
+    @Test
+    fun hostsCanHaveEachOfTheThreeViews() {
+        val tab = open("https://a.com/")
+        assertEquals(SiteView.TABLET, state.siteView)
+        awaitWrite(controller.setSiteView(tab, SiteView.DESKTOP))
+        assertEquals(SiteView.DESKTOP, tab.fakeEngine.view)
+        assertEquals(SiteView.DESKTOP, state.siteView)
+        assertEquals(SiteView.DESKTOP.code, runBlocking { db.hostsDao().findByHostName("a.com") }!!.siteView)
+        awaitWrite(controller.setSiteView(tab, SiteView.MOBILE))
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
+        assertEquals(SiteView.MOBILE.code, runBlocking { db.hostsDao().findByHostName("a.com") }!!.siteView)
+    }
+
+    @Test
+    fun defaultSiteViewOfOlderVersionsIsKept() {
+        config.prefs.edit().putBoolean(Config.LEGACY_DEFAULT_SITE_VIEW_KEY, true).commit()
+        assertEquals(SiteView.DESKTOP, config.defaultSiteView)
+        config.prefs.edit().putBoolean(Config.LEGACY_DEFAULT_SITE_VIEW_KEY, false).commit()
+        assertEquals(SiteView.MOBILE, config.defaultSiteView)
+        config.defaultSiteView = SiteView.TABLET
+        assertEquals(SiteView.TABLET, config.defaultSiteView)
+        assertFalse(config.prefs.contains(Config.LEGACY_DEFAULT_SITE_VIEW_KEY))
+        config.defaultSiteView = null
+        assertNull(config.defaultSiteView)
     }
 
     @Test
     fun siteViewOfAHostIsKeptOnlyWhileItDiffersFromTheDefault() {
         val tab = open("https://a.com/")
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         tab.fakeEngine.log.clear()
-        awaitWrite(controller.setSiteView(tab, desktop = false))
-        assertFalse(tab.fakeEngine.desktopView)
+        awaitWrite(controller.setSiteView(tab, SiteView.MOBILE))
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
         assertEquals(listOf("reload"), tab.fakeEngine.log)
-        assertFalse(state.desktopView)
+        assertEquals(SiteView.MOBILE, state.siteView)
         assertFalse(state.siteViewIsDefault)
-        assertEquals(false, runBlocking { db.hostsDao().findByHostName("a.com") }!!.desktopView)
+        assertEquals(SiteView.MOBILE.code, runBlocking { db.hostsDao().findByHostName("a.com") }!!.siteView)
 
-        awaitWrite(controller.setSiteView(tab, desktop = true))
-        assertTrue(tab.fakeEngine.desktopView)
+        awaitWrite(controller.setSiteView(tab, SiteView.TABLET))
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         assertTrue(state.siteViewIsDefault)
-        assertNull(runBlocking { db.hostsDao().findByHostName("a.com") }!!.desktopView)
+        assertNull(runBlocking { db.hostsDao().findByHostName("a.com") }!!.siteView)
     }
 
     /** Runs the main looper until the page zoom of the [host] is written */
@@ -463,39 +490,39 @@ class BrowserControllerEventsTest {
     @Test
     fun qwantGetsTheMobileViewUntilTheUserChoosesAnother() {
         val tab = open("https://www.qwant.com/?q=tv")
-        assertFalse(tab.fakeEngine.desktopView)
-        assertFalse(state.desktopView)
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
+        assertEquals(SiteView.MOBILE, state.siteView)
         assertTrue(state.siteViewIsDefault)
-        awaitWrite(controller.setSiteView(tab, desktop = true))
-        assertTrue(tab.fakeEngine.desktopView)
+        awaitWrite(controller.setSiteView(tab, SiteView.DESKTOP))
+        assertEquals(SiteView.DESKTOP, tab.fakeEngine.view)
         assertFalse(state.siteViewIsDefault)
-        assertEquals(true, runBlocking { db.hostsDao().findByHostName("www.qwant.com") }!!.desktopView)
+        assertEquals(SiteView.DESKTOP.code, runBlocking { db.hostsDao().findByHostName("www.qwant.com") }!!.siteView)
         //back to the view of the list: no setting of its own
-        awaitWrite(controller.setSiteView(tab, desktop = false))
-        assertFalse(tab.fakeEngine.desktopView)
+        awaitWrite(controller.setSiteView(tab, SiteView.MOBILE))
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
         assertTrue(state.siteViewIsDefault)
     }
 
     @Test
     fun theListOfSiteViewsTakesSubdomains() {
-        assertEquals(false, SiteViewDefaults.desktopView("qwant.com"))
-        assertEquals(false, SiteViewDefaults.desktopView("WWW.Qwant.com."))
-        assertNull(SiteViewDefaults.desktopView("notqwant.com"))
-        assertNull(SiteViewDefaults.desktopView("qwant.com.example.org"))
-        assertNull(SiteViewDefaults.desktopView("com"))
+        assertEquals(SiteView.MOBILE, SiteViewDefaults.siteView("qwant.com"))
+        assertEquals(SiteView.MOBILE, SiteViewDefaults.siteView("WWW.Qwant.com."))
+        assertNull(SiteViewDefaults.siteView("notqwant.com"))
+        assertNull(SiteViewDefaults.siteView("qwant.com.example.org"))
+        assertNull(SiteViewDefaults.siteView("com"))
     }
 
     @Test
     fun defaultSiteViewSettingWinsOverTheInterface() {
         val tab = open("https://a.com/")
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         tab.fakeEngine.log.clear()
-        config.defaultDesktopView = false
+        config.defaultSiteView = SiteView.MOBILE
         controller.onSiteViewSettingsChanged()
-        assertFalse(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
         assertEquals(listOf("reload"), tab.fakeEngine.log)
-        assertFalse(state.desktopView)
-        config.defaultDesktopView = null
+        assertEquals(SiteView.MOBILE, state.siteView)
+        config.defaultSiteView = null
     }
 
     @Test
@@ -513,7 +540,7 @@ class BrowserControllerEventsTest {
             assertEquals(listOf("reload"), current.fakeEngine.log)
             assertFalse("reload" in first.fakeEngine.log)
             //the site view stays
-            assertTrue(current.fakeEngine.desktopView)
+            assertEquals(SiteView.TABLET, current.fakeEngine.view)
         } finally {
             config.userAgent = null
         }
@@ -535,7 +562,7 @@ class BrowserControllerEventsTest {
         FakeWebEngine.clearedSites.clear()
         FakeWebEngine.clearedKinds.clear()
         val tab = open("https://www.a.com/page")
-        runBlocking { db.hostsDao().setDesktopView("www.a.com", false) }
+        runBlocking { db.hostsDao().setSiteView("www.a.com", SiteView.MOBILE.code) }
         tab.fakeEngine.log.clear()
         runBlocking { controller.clearSiteData(tab) }
         assertEquals(listOf("www.a.com"), FakeWebEngine.clearedSites)
@@ -543,7 +570,7 @@ class BrowserControllerEventsTest {
         assertEquals(listOf("reload"), tab.fakeEngine.log)
         assertTrue(state.siteDataClearable)
         //the settings of the site stay
-        assertEquals(false, runBlocking { db.hostsDao().findByHostName("www.a.com") }!!.desktopView)
+        assertEquals(SiteView.MOBILE.code, runBlocking { db.hostsDao().findByHostName("www.a.com") }!!.siteView)
     }
 
     @Test
@@ -566,29 +593,29 @@ class BrowserControllerEventsTest {
     @Test
     fun pageInTheViewOfAnotherHostLoadsAgainOnce() {
         val tab = open("https://a.com/")
-        awaitWrite(controller.setSiteView(tab, desktop = false))
+        awaitWrite(controller.setSiteView(tab, SiteView.MOBILE))
         //going back to a page of another host, which the engine did not switch the view for
         tab.fakeEngine.loadedUrls += "https://b.com/"
         tab.fakeEngine.log.clear()
         tab.callback.onPageStarted("https://b.com/")
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         assertEquals(listOf("reload"), tab.fakeEngine.log)
         //the page loaded again redirects back by its view: no second reload
         tab.fakeEngine.loadedUrls += "https://a.com/"
         tab.callback.onPageStarted("https://a.com/")
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         assertEquals(listOf("reload"), tab.fakeEngine.log)
     }
 
     @Test
     fun aPageOfAnotherViewStartingBeforeItCommitsIsNotLoadedAgain() {
         val tab = open(Config.HOME_PAGE_URL)
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         //the home page searches Qwant: GeckoView switched the view for it and still tells the home page as its url
-        tab.fakeEngine.desktopView = false
+        tab.fakeEngine.view = SiteView.MOBILE
         tab.fakeEngine.log.clear()
         tab.callback.onPageStarted("https://www.qwant.com/?q=tv")
-        assertFalse(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
         assertEquals(emptyList<String>(), tab.fakeEngine.log)
     }
 

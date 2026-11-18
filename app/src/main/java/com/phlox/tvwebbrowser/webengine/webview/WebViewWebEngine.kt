@@ -26,6 +26,7 @@ import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.LoadErrorKind
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
@@ -93,18 +94,18 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         get() = webView?.settings?.userAgentString
 
     /** The view of the host, as the core sets it */
-    private var hostDesktopView = false
+    private var hostView = SiteView.MOBILE
     /** The view the WebView has: the one of the host, except on pages that need the mobile view */
-    private var appliedDesktopView = false
+    private var appliedView = SiteView.MOBILE
     /** The User-Agent of the user the WebView has: none on pages that need the mobile view */
     private var appliedUserAgent: String? = null
     /** The view was corrected when a page started, so the page loaded again */
     private var siteViewCorrected = false
 
-    override var desktopView: Boolean
-        get() = hostDesktopView
+    override var view: SiteView
+        get() = hostView
         set(value) {
-            hostDesktopView = value
+            hostView = value
             applySiteView(webView?.url)
         }
 
@@ -121,19 +122,19 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
      */
     private fun applySiteView(url: String?): Boolean {
         val mobilePage = MobileViewPages.matches(url)
-        val desktop = hostDesktopView && !mobilePage
+        val view = if (mobilePage) SiteView.MOBILE else hostView
         val userAgent = if (mobilePage) null else userAgentOverride
-        if (desktop == appliedDesktopView && userAgent == appliedUserAgent) return false
-        appliedDesktopView = desktop
+        if (view == appliedView && userAgent == appliedUserAgent) return false
+        appliedView = view
         appliedUserAgent = userAgent
-        webView?.setSiteView(desktop, userAgent)
+        webView?.setSiteView(view, userAgent)
         applyPointerMode()
         return true
     }
 
-    /** The cursor is a mouse for pages in the desktop view, a finger for the others */
+    /** The cursor is a mouse for pages in a wide view (desktop, tablet), a finger in the mobile one */
     private fun applyPointerMode() {
-        cursorLayout?.cursorDrawerDelegate?.pointerMode = if (appliedDesktopView) PointerMode.MOUSE else PointerMode.TOUCH
+        cursorLayout?.cursorDrawerDelegate?.pointerMode = if (appliedView.wide) PointerMode.MOUSE else PointerMode.TOUCH
     }
 
     override fun saveState(): Any {
@@ -222,7 +223,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     override fun getOrCreateView(activityContext: Context): View {
         if (webView == null) {
             val webView = WebViewEx(activityContext, webViewCallback, jsInterface)
-            if (appliedDesktopView || appliedUserAgent != null) webView.setSiteView(appliedDesktopView, appliedUserAgent)
+            if (appliedView != SiteView.MOBILE || appliedUserAgent != null) webView.setSiteView(appliedView, appliedUserAgent)
             cursorLayout = CursorLayout(activityContext).apply {
                 addView(webView)
                 cursorDrawerDelegate.callback = this@WebViewWebEngine
@@ -488,7 +489,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         }
 
         override fun switchSiteView(url: String): Boolean {
-            hostDesktopView = callback?.isDesktopView(url) ?: return false
+            hostView = callback?.siteViewOf(url) ?: return false
             return applySiteView(url)
         }
 

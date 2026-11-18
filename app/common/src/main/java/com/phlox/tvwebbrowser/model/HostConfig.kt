@@ -20,9 +20,12 @@ class HostConfig(
     var favicon: String? = null
     /** Ads blocking on this host; null if it follows the global setting */
     var adblock: Boolean? = null
-    /** Pages of this host load as on a desktop computer (true) or a phone (false); null if it follows the default */
+    /**
+     * The view pages of this host load in, the [com.phlox.tvwebbrowser.webengine.SiteView.code] (the column kept
+     * its name of when it was true for desktop and false for mobile); null if it follows the default
+     */
     @ColumnInfo(name = "desktop_view")
-    var desktopView: Boolean? = null
+    var siteView: Int? = null
     /**
      * Videos of this host put in fullscreen go to the built-in player (true) or stay in the player of the site
      * (false); null if they follow the default

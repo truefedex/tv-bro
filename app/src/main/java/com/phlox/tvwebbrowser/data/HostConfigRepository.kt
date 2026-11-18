@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.data
 import android.util.LruCache
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.dao.HostsDao
+import com.phlox.tvwebbrowser.webengine.SiteView
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -21,7 +22,7 @@ class HostConfigRepository(private val dao: HostsDao) {
      * threads when requests start, before a config of the page's host could be loaded, so all are in memory.
      */
     private val adBlockSettings = ConcurrentHashMap<String, Boolean>()
-    private val desktopViewSettings = ConcurrentHashMap<String, Boolean>()
+    private val siteViewSettings = ConcurrentHashMap<String, SiteView>()
     /** The player of fullscreen videos: decided on the main thread when a video goes fullscreen, so in memory too */
     private val builtInPlayerSettings = ConcurrentHashMap<String, Boolean>()
     /** The page zoom: the scripts of pages ask for it on the threads of the engines when a page starts */
@@ -49,12 +50,15 @@ class HostConfigRepository(private val dao: HostsDao) {
         reload(host)
     }
 
-    /** Loads [adBlockSetting]s, [desktopViewSetting]s, [builtInPlayerSetting]s and [pageZoomSetting]s, once */
+    /** Loads [adBlockSetting]s, [siteViewSetting]s, [builtInPlayerSetting]s and [pageZoomSetting]s, once */
     suspend fun loadSiteSettings() {
         if (siteSettingsLoaded) return
         //settings changed while loading are newer
         dao.adBlockSettings().forEach { adBlockSettings.putIfAbsent(it.hostName, it.adblock) }
-        dao.desktopViewSettings().forEach { desktopViewSettings.putIfAbsent(it.hostName, it.desktopView) }
+        dao.siteViewSettings().forEach { setting ->
+            //a view of a newer version is no setting
+            SiteView.ofCode(setting.siteView)?.let { siteViewSettings.putIfAbsent(setting.hostName, it) }
+        }
         dao.builtInPlayerSettings().forEach { builtInPlayerSettings.putIfAbsent(it.hostName, it.builtInPlayer) }
         dao.pageZoomSettings().forEach { pageZoomSettings.putIfAbsent(it.hostName, it.pageZoom) }
         siteSettingsLoaded = true
@@ -77,18 +81,18 @@ class HostConfigRepository(private val dao: HostsDao) {
     }
 
     /**
-     * The site view setting of the host (true: desktop); null if it has none (or [loadSiteSettings] was
-     * not done yet). Can be called from any thread.
+     * The site view setting of the host; null if it has none (or [loadSiteSettings] was not done yet).
+     * Can be called from any thread.
      */
-    fun desktopViewSetting(host: String): Boolean? = desktopViewSettings[host]
+    fun siteViewSetting(host: String): SiteView? = siteViewSettings[host]
 
     /**
-     * Sets the site view of the host, null to follow the default. [desktopViewSetting] gives the new value
+     * Sets the site view of the host, null to follow the default. [siteViewSetting] gives the new value
      * right away, before the write is done.
      */
-    suspend fun setDesktopView(host: String, desktopView: Boolean?) {
-        if (desktopView == null) desktopViewSettings.remove(host) else desktopViewSettings[host] = desktopView
-        dao.setDesktopView(host, desktopView)
+    suspend fun setSiteView(host: String, siteView: SiteView?) {
+        if (siteView == null) siteViewSettings.remove(host) else siteViewSettings[host] = siteView
+        dao.setSiteView(host, siteView?.code)
         reload(host)
     }
 

@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.singleton
 
+import com.phlox.tvwebbrowser.webengine.SiteView
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
@@ -330,13 +331,13 @@ class AppDatabaseMigrationTest {
 
         val db = openMigrated()
         val host = runBlocking { db.hostsDao().findByHostName("example.com") }!!
-        assertNull(host.desktopView)
+        assertNull(host.siteView)
         assertEquals(0, host.popupBlockLevel)
         assertEquals("example.png", host.favicon)
         assertEquals(false, host.adblock)
-        runBlocking { db.hostsDao().setDesktopView("example.com", true) }
-        assertEquals(listOf(HostsDao.DesktopViewSetting("example.com", true)),
-            runBlocking { db.hostsDao().desktopViewSettings() })
+        runBlocking { db.hostsDao().setSiteView("example.com", SiteView.DESKTOP.code) }
+        assertEquals(listOf(HostsDao.SiteViewSetting("example.com", SiteView.DESKTOP.code)),
+            runBlocking { db.hostsDao().siteViewSettings() })
     }
 
     @Test
@@ -356,7 +357,7 @@ class AppDatabaseMigrationTest {
         val host = runBlocking { db.hostsDao().findByHostName("example.com") }!!
         //the videos of the host follow the default
         assertNull(host.builtInPlayer)
-        assertEquals(true, host.desktopView)
+        assertEquals(SiteView.DESKTOP.code, host.siteView)
         assertEquals(false, host.adblock)
         assertEquals("example.png", host.favicon)
         runBlocking { db.hostsDao().setBuiltInPlayer("example.com", false) }
@@ -437,7 +438,7 @@ class AppDatabaseMigrationTest {
         val host = runBlocking { db.hostsDao().findByHostName("example.com") }!!
         //the pages of the host keep their size
         assertNull(host.pageZoom)
-        assertEquals(true, host.desktopView)
+        assertEquals(SiteView.DESKTOP.code, host.siteView)
         assertEquals(false, host.builtInPlayer)
         assertEquals(false, host.adblock)
         runBlocking { db.hostsDao().setPageZoom("example.com", 80) }

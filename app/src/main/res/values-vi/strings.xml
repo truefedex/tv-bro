@@ -239,6 +239,7 @@
   <string name="default_site_view">Chế độ xem trang web mặc định</string>
   <array name="site_views">
     <item>Máy tính</item>
+    <item>Máy tính bảng</item>
     <item>Di động</item>
   </array>
   <string name="site_settings_of">Cài đặt của %s</string>
@@ -487,8 +488,9 @@
   <string name="settings_group_site_view">Chế độ xem trang web</string>
   <string name="settings_auto">Tự động</string>
   <string name="settings_desktop">Máy tính</string>
+  <string name="settings_tablet">Máy tính bảng</string>
   <string name="settings_mobile">Di động</string>
-  <string name="settings_site_view_summary_tv">Cho các trang web không có lựa chọn riêng. Tự động: máy tính trên TV</string>
+  <string name="settings_site_view_summary_tv">Cho các trang web không có lựa chọn riêng. Tự động: máy tính bảng trên TV</string>
   <string name="settings_site_view_summary_phone">Cho các trang web không có lựa chọn riêng. Tự động: di động trên điện thoại</string>
   <string name="settings_user_agent">User-Agent</string>
   <string name="settings_user_agent_summary">Cách trình duyệt tự giới thiệu với các trang web. Tự động: theo chế độ xem trang</string>

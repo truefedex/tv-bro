@@ -11,6 +11,7 @@ import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
+import com.phlox.tvwebbrowser.webengine.SiteView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -120,7 +121,7 @@ class SettingsNavigator(
         var channelDownloads: Boolean
 
         /** null follows the interface */
-        var defaultDesktopView: Boolean?
+        var defaultSiteView: SiteView?
         /** The User-Agent of all sites; null (Auto) follows the site view */
         var userAgent: String?
         var allowAutoplayMedia: Boolean
@@ -353,13 +354,12 @@ class SettingsNavigator(
         const val VIDEO_PLAYER_SITE = 1
         const val SITE_VIEW_AUTO = 0
         const val SITE_VIEW_DESKTOP_OPTION = 1
-        const val SITE_VIEW_MOBILE_OPTION = 2
+        const val SITE_VIEW_TABLET_OPTION = 2
+        const val SITE_VIEW_MOBILE_OPTION = 3
+        /** The views of the options after Auto */
+        private val SITE_VIEW_OPTIONS = listOf(SiteView.DESKTOP, SiteView.TABLET, SiteView.MOBILE)
 
-        fun siteViewOption(desktop: Boolean?) = when (desktop) {
-            null -> SITE_VIEW_AUTO
-            true -> SITE_VIEW_DESKTOP_OPTION
-            false -> SITE_VIEW_MOBILE_OPTION
-        }
+        fun siteViewOption(view: SiteView?) = if (view == null) SITE_VIEW_AUTO else SITE_VIEW_OPTIONS.indexOf(view) + 1
 
         /**
          * The User-Agents of browsers the user can choose, by their names. Their versions are fixed: update them
@@ -491,11 +491,7 @@ class SettingsNavigator(
                 else -> return
             }
             Key.VIDEO_PLAYER -> store.builtInPlayerByDefault = index == VIDEO_PLAYER_BUILT_IN
-            Key.SITE_VIEW -> store.defaultDesktopView = when (index) {
-                SITE_VIEW_DESKTOP_OPTION -> true
-                SITE_VIEW_MOBILE_OPTION -> false
-                else -> null
-            }
+            Key.SITE_VIEW -> store.defaultSiteView = SITE_VIEW_OPTIONS.getOrNull(index - 1)
             Key.USER_AGENT -> when (index) {
                 USER_AGENT_CUSTOM -> customUserAgentChosen = userAgentOption(store.userAgent) != USER_AGENT_CUSTOM
                 in 1..USER_AGENT_PRESETS.size -> {
@@ -780,7 +776,7 @@ class SettingsNavigator(
             context.resources.getStringArray(R.array.home_page_modes)[store.homePageMode.ordinal])
         Category.SITES -> context.getString(R.string.settings_summary_two,
             string(if (store.adBlockEnabled) R.string.settings_summary_ads_blocked else R.string.settings_summary_ads_shown),
-            context.getString(R.string.settings_summary_site_view, siteViewOptions()[siteViewOption(store.defaultDesktopView)]))
+            context.getString(R.string.settings_summary_site_view, siteViewOptions()[siteViewOption(store.defaultSiteView)]))
         Category.APPEARANCE -> context.getString(R.string.settings_summary_two,
             context.getString(R.string.settings_summary_interface, interfaceOptions()[store.interfaceMode.ordinal]),
             context.getString(R.string.settings_summary_theme, themeOptions()[store.theme.ordinal]))
@@ -795,7 +791,7 @@ class SettingsNavigator(
         Config.SearchEnginesTitles.dropLast(1) + string(R.string.settings_custom_url)
 
     private fun siteViewOptions() = listOf(string(R.string.settings_auto), string(R.string.settings_desktop),
-        string(R.string.settings_mobile))
+        string(R.string.settings_tablet), string(R.string.settings_mobile))
 
     private fun userAgentOptions() = listOf(string(R.string.settings_auto)) + USER_AGENT_PRESETS.map { it.first } +
         string(R.string.settings_user_agent_custom)
@@ -956,7 +952,7 @@ class SettingsNavigator(
         val siteView = listOf(
             Row.Choice(Key.SITE_VIEW, string(R.string.default_site_view),
                 string(if (tvUi) R.string.settings_site_view_summary_tv else R.string.settings_site_view_summary_phone),
-                siteViewOptions(), siteViewOption(store.defaultDesktopView), segmented = true)
+                siteViewOptions(), siteViewOption(store.defaultSiteView), segmented = false)
         ) + userAgentRows() + Row.Toggle(Key.AUTOPLAY, string(R.string.settings_autoplay),
             string(R.string.settings_autoplay_summary), store.allowAutoplayMedia)
         val adBlock = arrayListOf<Row>(Row.Toggle(Key.AD_BLOCK, string(R.string.settings_block_ads),

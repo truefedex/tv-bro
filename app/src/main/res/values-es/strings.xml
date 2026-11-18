@@ -254,6 +254,7 @@
     <string name="default_site_view">Vista predeterminada de los sitios</string>
     <array name="site_views">
         <item>Ordenador</item>
+        <item>Tableta</item>
         <item>Móvil</item>
     </array>
     <string name="site_settings_of">Ajustes de %s</string>
@@ -514,8 +515,9 @@
     <string name="settings_group_site_view">Vista del sitio</string>
     <string name="settings_auto">Automática</string>
     <string name="settings_desktop">Ordenador</string>
+    <string name="settings_tablet">Tableta</string>
     <string name="settings_mobile">Móvil</string>
-    <string name="settings_site_view_summary_tv">Para los sitios sin elección propia. Automática: ordenador en una TV</string>
+    <string name="settings_site_view_summary_tv">Para los sitios sin elección propia. Automática: tableta en una TV</string>
     <string name="settings_site_view_summary_phone">Para los sitios sin elección propia. Automática: móvil en un teléfono</string>
     <string name="settings_user_agent">User-Agent</string>
     <string name="settings_user_agent_summary">Cómo se presenta el navegador a los sitios. Automático: según la vista del sitio</string>

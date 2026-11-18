@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.browser
 import android.content.Intent
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.HostConfig
+import com.phlox.tvwebbrowser.webengine.SiteView
 
 /**
  * What the UI shows about the current tab.
@@ -25,10 +26,10 @@ data class CurrentTabState(
     /** Popup blocking of the site, one of HostConfig.POPUP_BLOCK_* */
     val popupBlockLevel: Int = HostConfig.DEFAULT_BLOCK_POPUPS_VALUE,
     val connection: SiteConnection = SiteConnection.NONE,
-    /** The engine can show the site as on a desktop computer or a phone */
+    /** The engine can show the site in each [SiteView] */
     val siteViewAvailable: Boolean = false,
-    /** The site loads in the desktop view */
-    val desktopView: Boolean = false,
+    /** The view the site loads in */
+    val siteView: SiteView = SiteView.MOBILE,
     /** The site view is the default for all sites, not a setting of this site */
     val siteViewIsDefault: Boolean = true,
     /** The videos the site puts in fullscreen go to the built-in player (TV), not to its own */

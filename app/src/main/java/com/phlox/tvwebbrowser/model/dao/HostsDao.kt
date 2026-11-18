@@ -15,9 +15,10 @@ interface HostsDao {
     )
 
     /** The site view setting of a host that has one */
-    data class DesktopViewSetting(
+    data class SiteViewSetting(
         @ColumnInfo(name = "host_name") val hostName: String,
-        @ColumnInfo(name = "desktop_view") val desktopView: Boolean
+        /** [com.phlox.tvwebbrowser.webengine.SiteView.code] */
+        @ColumnInfo(name = "desktop_view") val siteView: Int
     )
 
     /** The player of fullscreen videos of a host that has one */
@@ -39,7 +40,7 @@ interface HostsDao {
     suspend fun adBlockSettings(): List<AdBlockSetting>
 
     @Query("SELECT host_name, desktop_view FROM hosts WHERE desktop_view IS NOT NULL")
-    suspend fun desktopViewSettings(): List<DesktopViewSetting>
+    suspend fun siteViewSettings(): List<SiteViewSetting>
 
     @Query("SELECT host_name, built_in_player FROM hosts WHERE built_in_player IS NOT NULL")
     suspend fun builtInPlayerSettings(): List<BuiltInPlayerSetting>
@@ -59,8 +60,8 @@ interface HostsDao {
     @Query("UPDATE hosts SET adblock = :adblock WHERE host_name = :host")
     suspend fun updateAdBlock(host: String, adblock: Boolean?)
 
-    @Query("UPDATE hosts SET desktop_view = :desktopView WHERE host_name = :host")
-    suspend fun updateDesktopView(host: String, desktopView: Boolean?)
+    @Query("UPDATE hosts SET desktop_view = :siteView WHERE host_name = :host")
+    suspend fun updateSiteView(host: String, siteView: Int?)
 
     @Query("UPDATE hosts SET built_in_player = :builtInPlayer WHERE host_name = :host")
     suspend fun updateBuiltInPlayer(host: String, builtInPlayer: Boolean?)
@@ -87,9 +88,9 @@ interface HostsDao {
     }
 
     @Transaction
-    suspend fun setDesktopView(host: String, desktopView: Boolean?) {
+    suspend fun setSiteView(host: String, siteView: Int?) {
         insertIfAbsent(HostConfig(host))
-        updateDesktopView(host, desktopView)
+        updateSiteView(host, siteView)
     }
 
     @Transaction

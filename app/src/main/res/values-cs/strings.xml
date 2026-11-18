@@ -261,6 +261,7 @@
     <string name="default_site_view">Výchozí zobrazení webů</string>
     <array name="site_views">
         <item>Počítačové</item>
+        <item>Tabletové</item>
         <item>Mobilní</item>
     </array>
     <string name="site_settings_of">Nastavení %s</string>
@@ -527,8 +528,9 @@
     <string name="settings_group_site_view">Zobrazení webů</string>
     <string name="settings_auto">Auto</string>
     <string name="settings_desktop">Počítačové</string>
+    <string name="settings_tablet">Tabletové</string>
     <string name="settings_mobile">Mobilní</string>
-    <string name="settings_site_view_summary_tv">Pro weby bez vlastní volby. Auto: počítačové na televizoru</string>
+    <string name="settings_site_view_summary_tv">Pro weby bez vlastní volby. Auto: tabletové na televizoru</string>
     <string name="settings_site_view_summary_phone">Pro weby bez vlastní volby. Auto: mobilní v telefonu</string>
     <string name="settings_user_agent">User-Agent</string>
     <string name="settings_user_agent_summary">Jak se prohlížeč představuje webům. Auto: podle zobrazení webu</string>

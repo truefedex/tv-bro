@@ -19,9 +19,9 @@ import org.json.JSONObject
 internal class WebViewPageZoom(private val webView: WebView) {
     private val documentStart = WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)
 
-    /** Pages load in the desktop view; read by the bridge on a thread of WebView */
+    /** Pages load in a wide view (desktop, tablet); read by the bridge on a thread of WebView */
     @Volatile
-    var desktopView = false
+    var wideView = false
 
     init {
         webView.addJavascriptInterface(Bridge(), BRIDGE)
@@ -58,7 +58,7 @@ internal class WebViewPageZoom(private val webView: WebView) {
     }
 
     private fun settings(zoom: Int): String =
-        JSONObject().put("zoom", zoom).put("desktopWidth", if (desktopView) DESKTOP_WIDTH else 0).toString()
+        JSONObject().put("zoom", zoom).put("desktopWidth", if (wideView) DESKTOP_WIDTH else 0).toString()
 
     /** What the script asks; any page can call it, it only tells the zoom of a page */
     private inner class Bridge {

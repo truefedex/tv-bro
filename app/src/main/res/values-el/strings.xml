@@ -247,6 +247,7 @@
     <string name="default_site_view">Προεπιλεγμένη προβολή ιστοτόπων</string>
     <array name="site_views">
         <item>Υπολογιστή</item>
+        <item>Τάμπλετ</item>
         <item>Κινητού</item>
     </array>
     <string name="site_settings_of">Ρυθμίσεις του %s</string>
@@ -501,8 +502,9 @@
     <string name="settings_group_site_view">Προβολή ιστοτόπων</string>
     <string name="settings_auto">Αυτόματα</string>
     <string name="settings_desktop">Υπολογιστή</string>
+    <string name="settings_tablet">Τάμπλετ</string>
     <string name="settings_mobile">Κινητού</string>
-    <string name="settings_site_view_summary_tv">Για ιστοτόπους χωρίς δική τους επιλογή. Αυτόματα: υπολογιστή σε τηλεόραση</string>
+    <string name="settings_site_view_summary_tv">Για ιστοτόπους χωρίς δική τους επιλογή. Αυτόματα: τάμπλετ σε τηλεόραση</string>
     <string name="settings_site_view_summary_phone">Για ιστοτόπους χωρίς δική τους επιλογή. Αυτόματα: κινητού σε τηλέφωνο</string>
     <string name="settings_user_agent">User-Agent</string>
     <string name="settings_user_agent_summary">Πώς συστήνεται ο περιηγητής στους ιστοτόπους. Αυτόματα: ανάλογα με την προβολή του ιστοτόπου</string>

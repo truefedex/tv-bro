@@ -54,6 +54,7 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.webengine.MediaCommand
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideo
@@ -112,7 +113,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private var safeBrowsingThreat: Pair<String, Int>? = null
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
-    private val desktopView = DesktopView(this)
+    private val siteViewUserAgent = SiteViewUserAgent(this)
     private val pageZoom = WebViewPageZoom(this)
     private val mediaControls = WebViewMediaControls(this, { callback.onMediaStateChanged(it) },
         { callback.onPageVideosChanged(it) }, { callback.onMediaVideoChanged(it) })
@@ -652,12 +653,12 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     }
 
     /**
-     * Pages load as on a desktop computer or as on a phone, with the [userAgent] in place of the one of the view
-     * if not null; takes effect with the next load
+     * Pages load in the [view], with the [userAgent] in place of the one of the view if not null; takes effect
+     * with the next load
      */
-    fun setSiteView(desktop: Boolean, userAgent: String?) {
-        desktopView.apply(desktop, userAgent)
-        pageZoom.desktopView = desktop
+    fun setSiteView(view: SiteView, userAgent: String?) {
+        siteViewUserAgent.apply(view, userAgent)
+        pageZoom.wideView = view.wide
     }
 
     /** Gives the page shown the [zoom] (see [com.phlox.tvwebbrowser.webengine.PageZoom]) at once */

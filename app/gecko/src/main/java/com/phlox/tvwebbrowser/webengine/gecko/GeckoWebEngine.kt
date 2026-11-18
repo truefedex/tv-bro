@@ -15,6 +15,7 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
@@ -96,6 +97,13 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         val uiHandler = Handler(Looper.getMainLooper())
         /** The width of the layout of a desktop page in CSS pixels, that of the desktop viewport of GeckoView */
         private const val DESKTOP_WIDTH = 980
+        /**
+         * The User-Agent of the tablet view: the one of GeckoView (Firefox for Android) with "Tablet" in place of
+         * "Mobile", as Firefox on Android tablets sends it
+         */
+        private val TABLET_USER_AGENT: String by lazy {
+            GeckoSession.getDefaultUserAgent().replace("; Mobile;", "; Tablet;")
+        }
         private const val ZOOM_REPLY_TIMEOUT_MS = 500L
         /** The time GeckoView takes to settle the zoom after a pinch */
         private const val PINCH_SETTLE_MS = 300L
@@ -422,27 +430,40 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         get() = navigationDelegate.locationURL
     override val stateFilePrefix: String
         get() = "gecko:"
-    /** The one of the user; GeckoView gives its own User-Agent only asynchronously */
+    /**
+     * The one of the user or of the tablet view; GeckoView gives its own User-Agent only asynchronously
+     */
     override val userAgentString: String?
-        get() = userAgentOverride
-
-    override var userAgentOverride: String?
         get() = session.settings.userAgentOverride
+
+    override var userAgentOverride: String? = null
         set(value) {
-            if (value != userAgentOverride) session.settings.userAgentOverride = value
+            field = value
+            applyUserAgentOverride()
         }
 
-    /** The desktop User-Agent and viewport of GeckoView; a change takes effect with the next load */
-    override var desktopView: Boolean
-        get() = session.settings.userAgentMode == GeckoSessionSettings.USER_AGENT_MODE_DESKTOP
+    /**
+     * The User-Agent and viewport modes of GeckoView: desktop for the desktop view; mobile for the others, where
+     * the tablet view has a User-Agent of its own ([TABLET_USER_AGENT]) and gets the width of the desktop view from
+     * page_zoom.js. A change takes effect with the next load.
+     */
+    override var view: SiteView = SiteView.MOBILE
         set(value) {
-            if (value == desktopView) return
-            session.settings.userAgentMode = if (value) GeckoSessionSettings.USER_AGENT_MODE_DESKTOP else
-                GeckoSessionSettings.USER_AGENT_MODE_MOBILE
+            if (value == field) return
+            field = value
+            session.settings.userAgentMode = if (value == SiteView.DESKTOP) GeckoSessionSettings.USER_AGENT_MODE_DESKTOP
+                else GeckoSessionSettings.USER_AGENT_MODE_MOBILE
+            applyUserAgentOverride()
             applyViewportMode()
             //the view is shared by all tabs: only the attached one sets its cursor
             if (callback != null) applyPointerMode()
         }
+
+    /** The User-Agent of the user, else that of the tablet view in it */
+    private fun applyUserAgentOverride() {
+        val userAgent = userAgentOverride ?: if (view == SiteView.TABLET) TABLET_USER_AGENT else null
+        if (userAgent != session.settings.userAgentOverride) session.settings.userAgentOverride = userAgent
+    }
 
     /** The page zoom of the page shown or loading */
     private var pageZoomValue = PageZoom.DEFAULT
@@ -452,7 +473,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
      * mobile viewport, where page_zoom.js writes the width of the desktop view with the zoom
      */
     private fun applyViewportMode() {
-        val mode = if (desktopView && pageZoomValue == PageZoom.DEFAULT) GeckoSessionSettings.VIEWPORT_MODE_DESKTOP else
+        val mode = if (view == SiteView.DESKTOP && pageZoomValue == PageZoom.DEFAULT) GeckoSessionSettings.VIEWPORT_MODE_DESKTOP else
             GeckoSessionSettings.VIEWPORT_MODE_MOBILE
         if (session.settings.viewportMode != mode) session.settings.viewportMode = mode
     }
@@ -464,16 +485,16 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     }
 
     /**
-     * What page_zoom.js of the top frame gets: the zoom of the page and, in the desktop view without the desktop
-     * viewport (also for a page that went there in the history with the viewport of another), the width of the
-     * desktop view
+     * What page_zoom.js of the top frame gets: the zoom of the page and, in a wide view (desktop, tablet) without
+     * the desktop viewport (also for a page that went there in the history with the viewport of another), the width
+     * of the desktop view
      */
     fun pageZoomSettings(zoom: Int): JSONObject = JSONObject().put("zoom", zoom).put("desktopWidth",
-        if (desktopView && session.settings.viewportMode == GeckoSessionSettings.VIEWPORT_MODE_MOBILE) DESKTOP_WIDTH else 0)
+        if (view.wide && session.settings.viewportMode == GeckoSessionSettings.VIEWPORT_MODE_MOBILE) DESKTOP_WIDTH else 0)
 
-    /** The cursor is a mouse for pages in the desktop view, a finger for the others */
+    /** The cursor is a mouse for pages in a wide view (desktop, tablet), a finger in the mobile one */
     private fun applyPointerMode() {
-        webView?.cursorDrawerDelegate?.pointerMode = if (desktopView) PointerMode.MOUSE else PointerMode.TOUCH
+        webView?.cursorDrawerDelegate?.pointerMode = if (view.wide) PointerMode.MOUSE else PointerMode.TOUCH
     }
 
     init {

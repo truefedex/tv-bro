@@ -49,8 +49,8 @@ interface TabEngineEvents {
 interface EnginePolicies {
     fun isDialogsBlockingEnabled(): Boolean
     fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean
-    /** The pages of the [url]'s host load in the desktop view (see [SiteViewSupport]) */
-    fun isDesktopView(url: String): Boolean
+    /** The view the pages of the [url]'s host load in (see [SiteViewSupport]) */
+    fun siteViewOf(url: String): SiteView
 }
 
 /**

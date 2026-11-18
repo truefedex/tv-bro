@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
+import com.phlox.tvwebbrowser.webengine.SiteView
 import android.content.Context
 import android.graphics.Bitmap
 import android.view.View
@@ -43,7 +44,7 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport, PageZoomS
     var parent: ViewGroup? = null
     var engineView: View? = null
     var canGoBackValue = false
-    override var desktopView = false
+    override var view = SiteView.MOBILE
     override var userAgentOverride: String? = null
 
     override val url: String? get() = loadedUrls.lastOrNull()

@@ -1,7 +1,8 @@
 package com.phlox.tvwebbrowser.activity.main
 
-/** Positions of the site views in R.array.site_views */
-const val SITE_VIEW_DESKTOP = 0
-const val SITE_VIEW_MOBILE = 1
+import com.phlox.tvwebbrowser.webengine.SiteView
 
-fun siteViewPosition(desktop: Boolean): Int = if (desktop) SITE_VIEW_DESKTOP else SITE_VIEW_MOBILE
+/** The site views in the order of R.array.site_views */
+val SITE_VIEWS = listOf(SiteView.DESKTOP, SiteView.TABLET, SiteView.MOBILE)
+
+fun siteViewPosition(view: SiteView): Int = SITE_VIEWS.indexOf(view)

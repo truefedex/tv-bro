@@ -105,13 +105,13 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
         //headers of the request it follows, the User-Agent too, so it starts again, once: hosts redirecting
         //to each other by the view must not do it forever (the browser core then loads the page again once)
         if (request.uri.startsWith("http:") || request.uri.startsWith("https:")) {
-            val desktop = callback.isDesktopView(request.uri)
-            if (desktop != webEngine.desktopView) {
+            val view = callback.siteViewOf(request.uri)
+            if (view != webEngine.view) {
                 if (!request.isRedirect) {
-                    webEngine.desktopView = desktop
+                    webEngine.view = view
                 } else if (!redirectRestarted) {
                     redirectRestarted = true
-                    webEngine.desktopView = desktop
+                    webEngine.view = view
                     session.loadUri(request.uri)
                     return GeckoResult.deny()
                 }

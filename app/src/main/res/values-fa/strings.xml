@@ -246,6 +246,7 @@
   <string name="default_site_view">نمای پیش‌فرض سایت‌ها</string>
   <array name="site_views">
     <item>رایانه</item>
+    <item>تبلت</item>
     <item>موبایل</item>
   </array>
   <string name="site_settings_of">تنظیمات %s</string>
@@ -500,8 +501,9 @@
   <string name="settings_group_site_view">نمای سایت</string>
   <string name="settings_auto">خودکار</string>
   <string name="settings_desktop">رایانه</string>
+  <string name="settings_tablet">تبلت</string>
   <string name="settings_mobile">موبایل</string>
-  <string name="settings_site_view_summary_tv">برای سایت‌هایی که انتخاب خودشان را ندارند. خودکار: رایانه در تلویزیون</string>
+  <string name="settings_site_view_summary_tv">برای سایت‌هایی که انتخاب خودشان را ندارند. خودکار: تبلت در تلویزیون</string>
   <string name="settings_site_view_summary_phone">برای سایت‌هایی که انتخاب خودشان را ندارند. خودکار: موبایل در تلفن</string>
   <string name="settings_user_agent">User-Agent</string>
   <string name="settings_user_agent_summary">مرورگر چگونه خود را به سایت‌ها معرفی می‌کند. خودکار: مطابق نمای سایت</string>
