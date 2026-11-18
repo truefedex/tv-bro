@@ -120,6 +120,7 @@
   <string name="media_rewind">Przewiń do tyłu</string>
   <string name="media_fast_forward">Przewiń do przodu</string>
   <string name="find_in_page">Znajdź na stronie</string>
+  <string name="zoom_percent">Powiększenie: %d%%</string>
   <string name="find_in_page_previous">Poprzednie wystąpienie</string>
   <string name="find_in_page_next">Następne wystąpienie</string>
   <string name="find_in_page_close">Zamknij wyszukiwanie na stronie</string>

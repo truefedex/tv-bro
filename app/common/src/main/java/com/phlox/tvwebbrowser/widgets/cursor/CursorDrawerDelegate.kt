@@ -444,12 +444,14 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
         }
     }
 
-    fun tryZoomIn() {
-        pinchZoom.start(zoomIn = true)
+    /** [onEnd] is called when the fingers are lifted, not if another pinch is in progress */
+    fun tryZoomIn(onEnd: (() -> Unit)? = null) {
+        pinchZoom.start(zoomIn = true, onEnd)
     }
 
-    fun tryZoomOut() {
-        pinchZoom.start(zoomIn = false)
+    /** [onEnd] is called when the fingers are lifted, not if another pinch is in progress */
+    fun tryZoomOut(onEnd: (() -> Unit)? = null) {
+        pinchZoom.start(zoomIn = false, onEnd)
     }
 
     fun animateAppearing() {

@@ -122,6 +122,7 @@
     <string name="media_rewind">Retour rapide</string>
     <string name="media_fast_forward">Avance rapide</string>
     <string name="find_in_page">Rechercher dans la page</string>
+    <string name="zoom_percent">Zoom : %d %%</string>
     <string name="find_in_page_previous">Résultat précédent</string>
     <string name="find_in_page_next">Résultat suivant</string>
     <string name="find_in_page_close">Fermer la recherche dans la page</string>

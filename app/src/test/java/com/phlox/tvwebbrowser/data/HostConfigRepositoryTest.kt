@@ -129,6 +129,26 @@ class HostConfigRepositoryTest {
     }
 
     @Test
+    fun pageZoomsOfAllHostsAreLoadedAndStoredWithTheOtherSettings() = runBlocking {
+        db.hostsDao().setPageZoom("a.com", 80)
+        db.hostsDao().setDesktopView("a.com", true)
+        assertNull(repository.pageZoomSetting("a.com"))
+        repository.loadSiteSettings()
+        assertEquals(80, repository.pageZoomSetting("a.com"))
+
+        repository.setPageZoom("b.com", 67)
+        assertEquals(67, repository.pageZoomSetting("b.com"))
+        assertEquals(67, db.hostsDao().findByHostName("b.com")!!.pageZoom)
+        //back to 100%: the other settings of the host stay
+        repository.setPageZoom("a.com", null)
+        assertNull(repository.pageZoomSetting("a.com"))
+        val stored = db.hostsDao().findByHostName("a.com")!!
+        assertNull(stored.pageZoom)
+        assertEquals(true, stored.desktopView)
+        assertEquals(listOf(HostsDao.PageZoomSetting("b.com", 67)), db.hostsDao().pageZoomSettings())
+    }
+
+    @Test
     fun configWrittenByAnotherRepositoryIsNotLost() = runBlocking {
         //like FaviconsPool and the popup blocking menu writing at the same time
         val other = HostConfigRepository(db.hostsDao())

@@ -120,6 +120,7 @@
   <string name="media_rewind">הרצה אחורה במדיה</string>
   <string name="media_fast_forward">הרצה קדימה במדיה</string>
   <string name="find_in_page">חיפוש בדף</string>
+  <string name="zoom_percent">זום: %d%%</string>
   <string name="find_in_page_previous">ההתאמה הקודמת</string>
   <string name="find_in_page_next">ההתאמה הבאה</string>
   <string name="find_in_page_close">סגירת החיפוש בדף</string>

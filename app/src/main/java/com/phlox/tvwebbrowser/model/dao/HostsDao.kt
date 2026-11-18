@@ -26,6 +26,12 @@ interface HostsDao {
         @ColumnInfo(name = "built_in_player") val builtInPlayer: Boolean
     )
 
+    /** The page zoom of a host that has one */
+    data class PageZoomSetting(
+        @ColumnInfo(name = "host_name") val hostName: String,
+        @ColumnInfo(name = "page_zoom") val pageZoom: Int
+    )
+
     @Query("SELECT * FROM hosts WHERE host_name = :name")
     suspend fun findByHostName(name: String): HostConfig?
 
@@ -37,6 +43,9 @@ interface HostsDao {
 
     @Query("SELECT host_name, built_in_player FROM hosts WHERE built_in_player IS NOT NULL")
     suspend fun builtInPlayerSettings(): List<BuiltInPlayerSetting>
+
+    @Query("SELECT host_name, page_zoom FROM hosts WHERE page_zoom IS NOT NULL")
+    suspend fun pageZoomSettings(): List<PageZoomSetting>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIfAbsent(item: HostConfig): Long
@@ -55,6 +64,9 @@ interface HostsDao {
 
     @Query("UPDATE hosts SET built_in_player = :builtInPlayer WHERE host_name = :host")
     suspend fun updateBuiltInPlayer(host: String, builtInPlayer: Boolean?)
+
+    @Query("UPDATE hosts SET page_zoom = :pageZoom WHERE host_name = :host")
+    suspend fun updatePageZoom(host: String, pageZoom: Int?)
 
     @Transaction
     suspend fun setPopupBlockLevel(host: String, level: Int?) {
@@ -84,5 +96,11 @@ interface HostsDao {
     suspend fun setBuiltInPlayer(host: String, builtInPlayer: Boolean?) {
         insertIfAbsent(HostConfig(host))
         updateBuiltInPlayer(host, builtInPlayer)
+    }
+
+    @Transaction
+    suspend fun setPageZoom(host: String, pageZoom: Int?) {
+        insertIfAbsent(HostConfig(host))
+        updatePageZoom(host, pageZoom)
     }
 }

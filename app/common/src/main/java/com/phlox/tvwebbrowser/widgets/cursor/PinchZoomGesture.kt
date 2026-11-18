@@ -16,13 +16,15 @@ import android.view.View
 class PinchZoomGesture(private val surface: View, private val target: PointerTarget) {
     private var startTime = 0L
     private var zoomIn = true
+    private var onEnd: (() -> Unit)? = null
 
-    /** Does nothing while another pinch is in progress */
-    fun start(zoomIn: Boolean) {
+    /** Does nothing while another pinch is in progress; [onEnd] is called when the fingers are lifted */
+    fun start(zoomIn: Boolean, onEnd: (() -> Unit)? = null) {
         if (startTime != 0L) {
             return
         }
         this.zoomIn = zoomIn
+        this.onEnd = onEnd
         startTime = SystemClock.uptimeMillis()
         val (start1, start2) = startPoints()
         dispatch(MotionEvent.ACTION_DOWN, 1, start1, start2, startTime)
@@ -50,6 +52,7 @@ class PinchZoomGesture(private val surface: View, private val target: PointerTar
                 dispatch(MotionEvent.ACTION_POINTER_2_UP, 2, end1, end2, now)
                 dispatch(MotionEvent.ACTION_UP, 1, end1, end2, now)
                 startTime = 0
+                onEnd?.also { onEnd = null }?.invoke()
             }
         }
     }

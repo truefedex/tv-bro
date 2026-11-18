@@ -1048,6 +1048,14 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         vb.vAddressSuggestions.onHighlightChanged = { addressSuggestionsBackCallback.isEnabled = it >= 0 }
         vb.vFindBar.callback = findBarCallback
         vb.vSitePanel.callback = sitePanelCallback
+        //each step tells the zoom it gave the page
+        vb.vCursorMenu.onZoom = { tab, zoomIn ->
+            val onZoom = { zoom: Int ->
+                showMessage(if (zoomIn) R.drawable.ic_zoom_in else R.drawable.ic_zoom_out,
+                    activity.getString(R.string.zoom_percent, zoom))
+            }
+            if (zoomIn) controller.zoomIn(tab, onZoom) else controller.zoomOut(tab, onZoom)
+        }
         vb.vTabMenu.callback = tabMenuCallback
         vb.vBookmarksPanel.attach(lifecycleScope, vb.vPopupMenu, bookmarksCallback)
         vb.vDownloadsPanel.attach(lifecycleScope, vb.vPopupMenu, downloadsCallback) { showAllDownloads(it) }

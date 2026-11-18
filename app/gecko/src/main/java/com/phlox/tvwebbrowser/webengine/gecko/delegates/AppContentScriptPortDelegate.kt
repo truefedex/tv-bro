@@ -6,6 +6,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import com.phlox.tvwebbrowser.webengine.MediaReports
+import com.phlox.tvwebbrowser.webengine.PageZoom
 import com.phlox.tvwebbrowser.webengine.PageVideoReports
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
@@ -18,6 +19,7 @@ import java.util.concurrent.Executors
 /**
  * The port of the content script of one frame (each frame connects its own): it reports the media of the
  * frame (media_controls.js) and its videos (page_videos.js) as JSON strings, and gets the media commands.
+ * The top frame asks for the zoom of its page (page_zoom.js), which makes its port the one of the page.
  */
 class AppContentScriptPortDelegate(val port: WebExtension.Port, val webEngine: GeckoWebEngine): WebExtension.PortDelegate {
 
@@ -30,6 +32,14 @@ class AppContentScriptPortDelegate(val port: WebExtension.Port, val webEngine: G
         }
         when {
             json.has("hidingStyles") || json.has("genericHiding") -> answerHiding(json, port)
+            json.has("pageZoomRequest") -> {
+                webEngine.onTopFrame(port)
+                val zoom = WebEngineFactory.pageZooms?.zoomOf(json.getString("pageZoomRequest")) ?: PageZoom.DEFAULT
+                val settings = webEngine.pageZoomSettings(zoom)
+                if (zoom != PageZoom.DEFAULT || settings.optInt("desktopWidth") > 0) port.postMessage(JSONObject().put("pageZoom", settings))
+            }
+            json.has("zoomReply") -> webEngine.onZoomReply(json.getInt("zoomReply"), json.optBoolean("zoomedIn"),
+                json.optDouble("visualZoom").takeIf { it > 0 })
             //the background script blocked a request of this tab
             json.has("blockedUrl") -> webEngine.callback?.onBlockedAd(json.getString("blockedUrl"))
             json.has("videos") -> webEngine.onFrameVideos(port, PageVideoReports.parse(json))
@@ -75,6 +85,7 @@ class AppContentScriptPortDelegate(val port: WebExtension.Port, val webEngine: G
         //the frame is gone
         webEngine.onFrameVideos(port, emptyList())
         webEngine.onFrameMedia(port, null, null)
+        webEngine.onFrameGone(port)
         if (webEngine.appContentScriptPortDelegate == this) webEngine.appContentScriptPortDelegate = null
     }
 

@@ -10,13 +10,14 @@ import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
+import com.phlox.tvwebbrowser.webengine.PageZoomSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
 
 /**
  * Web engine that only records what is done with it.
  */
-class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport {
+class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport, PageZoomSupport {
     companion object {
         val provider = WebEngineProvider("Fake", object : WebEngineProviderCallback {
             override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {}
@@ -57,9 +58,21 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport {
     override fun canGoForward(): Boolean = false
     override fun goForward() { log += "goForward" }
     override fun canZoomIn(): Boolean = false
-    override fun zoomIn() {}
+    override fun zoomIn() { log += "zoomIn" }
     override fun canZoomOut(): Boolean = false
-    override fun zoomOut() {}
+    override fun zoomOut() { log += "zoomOut" }
+    /** The user zoomed in past the width of the page (a pinch) */
+    var zoomedIn = false
+    /** The page zooms given to the page shown */
+    val pageZooms = ArrayList<Int>()
+    override fun applyPageZoom(zoom: Int) { pageZooms += zoom }
+    override fun isZoomedIn(callback: (Boolean) -> Unit) = callback(zoomedIn)
+    /** The zoom of the page relative to its width a pinch leaves; null when the page does not tell */
+    var visualZoom: Double? = 1.0
+    override fun zoomVisually(zoomIn: Boolean, onDone: (Double?) -> Unit) {
+        if (zoomIn) zoomIn() else zoomOut()
+        onDone(visualZoom)
+    }
     override fun zoomBy(zoomBy: Float) {}
     override fun evaluateJavascript(script: String) {}
     override fun setNetworkAvailable(connected: Boolean) {}

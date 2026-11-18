@@ -120,6 +120,7 @@
   <string name="media_rewind">Tua lại phương tiện</string>
   <string name="media_fast_forward">Tua nhanh phương tiện</string>
   <string name="find_in_page">Tìm trong trang</string>
+  <string name="zoom_percent">Thu phóng: %d%%</string>
   <string name="find_in_page_previous">Kết quả trước</string>
   <string name="find_in_page_next">Kết quả tiếp theo</string>
   <string name="find_in_page_close">Đóng tìm trong trang</string>

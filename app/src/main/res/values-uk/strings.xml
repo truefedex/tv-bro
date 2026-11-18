@@ -120,6 +120,7 @@
   <string name="media_rewind">Перемотка назад</string>
   <string name="media_fast_forward">Перемотка вперед</string>
   <string name="find_in_page">Знайти на сторінці</string>
+  <string name="zoom_percent">Масштаб: %d%%</string>
   <string name="find_in_page_previous">Попередній збіг</string>
   <string name="find_in_page_next">Наступний збіг</string>
   <string name="find_in_page_close">Закрити пошук на сторінці</string>

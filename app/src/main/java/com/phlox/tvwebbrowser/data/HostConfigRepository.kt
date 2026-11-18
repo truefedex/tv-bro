@@ -6,8 +6,8 @@ import com.phlox.tvwebbrowser.model.dao.HostsDao
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Settings of hosts: the popup blocking level, the ads blocking, the site view, the player of fullscreen videos and
- * the favicon file. The looked up configs are kept in memory (also the absence of one), so the main thread reads them
+ * Settings of hosts: the popup blocking level, the ads blocking, the site view, the player of fullscreen videos, the
+ * page zoom and the favicon file. The looked up configs are kept in memory (also the absence of one), so the main thread reads them
  * without the database. Each setting is written to its own column: one writer does not overwrite another's setting.
  */
 class HostConfigRepository(private val dao: HostsDao) {
@@ -24,6 +24,8 @@ class HostConfigRepository(private val dao: HostsDao) {
     private val desktopViewSettings = ConcurrentHashMap<String, Boolean>()
     /** The player of fullscreen videos: decided on the main thread when a video goes fullscreen, so in memory too */
     private val builtInPlayerSettings = ConcurrentHashMap<String, Boolean>()
+    /** The page zoom: the scripts of pages ask for it on the threads of the engines when a page starts */
+    private val pageZoomSettings = ConcurrentHashMap<String, Int>()
     @Volatile
     private var siteSettingsLoaded = false
 
@@ -47,13 +49,14 @@ class HostConfigRepository(private val dao: HostsDao) {
         reload(host)
     }
 
-    /** Loads [adBlockSetting]s, [desktopViewSetting]s and [builtInPlayerSetting]s, once */
+    /** Loads [adBlockSetting]s, [desktopViewSetting]s, [builtInPlayerSetting]s and [pageZoomSetting]s, once */
     suspend fun loadSiteSettings() {
         if (siteSettingsLoaded) return
         //settings changed while loading are newer
         dao.adBlockSettings().forEach { adBlockSettings.putIfAbsent(it.hostName, it.adblock) }
         dao.desktopViewSettings().forEach { desktopViewSettings.putIfAbsent(it.hostName, it.desktopView) }
         dao.builtInPlayerSettings().forEach { builtInPlayerSettings.putIfAbsent(it.hostName, it.builtInPlayer) }
+        dao.pageZoomSettings().forEach { pageZoomSettings.putIfAbsent(it.hostName, it.pageZoom) }
         siteSettingsLoaded = true
     }
 
@@ -102,6 +105,22 @@ class HostConfigRepository(private val dao: HostsDao) {
     suspend fun setBuiltInPlayer(host: String, builtInPlayer: Boolean?) {
         if (builtInPlayer == null) builtInPlayerSettings.remove(host) else builtInPlayerSettings[host] = builtInPlayer
         dao.setBuiltInPlayer(host, builtInPlayer)
+        reload(host)
+    }
+
+    /**
+     * The page zoom of the host in percent; null if it has none (or [loadSiteSettings] was not done yet).
+     * Can be called from any thread.
+     */
+    fun pageZoomSetting(host: String): Int? = pageZoomSettings[host]
+
+    /**
+     * Sets the page zoom of the host, null for 100%. [pageZoomSetting] gives the new value right away, before the
+     * write is done.
+     */
+    suspend fun setPageZoom(host: String, pageZoom: Int?) {
+        if (pageZoom == null) pageZoomSettings.remove(host) else pageZoomSettings[host] = pageZoom
+        dao.setPageZoom(host, pageZoom)
         reload(host)
     }
 

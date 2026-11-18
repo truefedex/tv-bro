@@ -29,6 +29,12 @@ class HostConfig(
      */
     @ColumnInfo(name = "built_in_player")
     var builtInPlayer: Boolean? = null
+    /**
+     * The zoom of the pages of this host in percent, below 100 to show more of them (their layout gets wider);
+     * null for 100
+     */
+    @ColumnInfo(name = "page_zoom")
+    var pageZoom: Int? = null
 
     companion object {
         const val POPUP_BLOCK_NONE = 0

@@ -91,6 +91,7 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
                     return GeckoResult.deny()
                 }
             }
+            webEngine.onPageZoomOf(request.uri)
         }
 
         return GeckoResult.allow()

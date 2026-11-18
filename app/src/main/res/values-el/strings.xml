@@ -122,6 +122,7 @@
     <string name="media_rewind">Γρήγορη επιστροφή</string>
     <string name="media_fast_forward">Γρήγορη προώθηση</string>
     <string name="find_in_page">Εύρεση στη σελίδα</string>
+    <string name="zoom_percent">Ζουμ: %d%%</string>
     <string name="find_in_page_previous">Προηγούμενο αποτέλεσμα</string>
     <string name="find_in_page_next">Επόμενο αποτέλεσμα</string>
     <string name="find_in_page_close">Κλείσιμο εύρεσης στη σελίδα</string>

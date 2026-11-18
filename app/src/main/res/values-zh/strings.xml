@@ -120,6 +120,7 @@
   <string name="media_rewind">快退</string>
   <string name="media_fast_forward">快进</string>
   <string name="find_in_page">在网页中查找</string>
+  <string name="zoom_percent">缩放：%d%%</string>
   <string name="find_in_page_previous">上一个匹配项</string>
   <string name="find_in_page_next">下一个匹配项</string>
   <string name="find_in_page_close">关闭网页查找</string>

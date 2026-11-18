@@ -106,6 +106,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
     private val desktopView = DesktopView(this)
+    private val pageZoom = WebViewPageZoom(this)
     private val mediaControls = WebViewMediaControls(this, { callback.onMediaStateChanged(it) },
         { callback.onPageVideosChanged(it) }, { callback.onMediaVideoChanged(it) })
     private val elementHiding = WebViewElementHiding(this) { requestPageUrl ?: currentOriginalUrl }
@@ -436,6 +437,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 requestPageUrl = currentOriginalUrl
                 mediaControls.onPageStarted()
                 elementHiding.onPageStarted()
+                pageZoom.onPageStarted()
                 callback.onPageStarted(url)
             }
 
@@ -451,6 +453,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 evaluateJavascript(getGenericJSInjects(), null)
                 mediaControls.onPageFinished()
                 elementHiding.onPageFinished()
+                pageZoom.onPageFinished()
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
@@ -621,7 +624,16 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
      * Pages load as on a desktop computer or as on a phone, with the [userAgent] in place of the one of the view
      * if not null; takes effect with the next load
      */
-    fun setSiteView(desktop: Boolean, userAgent: String?) = desktopView.apply(desktop, userAgent)
+    fun setSiteView(desktop: Boolean, userAgent: String?) {
+        desktopView.apply(desktop, userAgent)
+        pageZoom.desktopView = desktop
+    }
+
+    /** Gives the page shown the [zoom] (see [com.phlox.tvwebbrowser.webengine.PageZoom]) at once */
+    fun applyPageZoom(zoom: Int) = pageZoom.apply(zoom)
+
+    /** Tells the zoom of the page relative to its width once a zoom just started has settled */
+    fun visualZoom(callback: (Double?) -> Unit) = pageZoom.visualZoom(callback)
 
     override fun loadUrl(url: String) {
         when {

@@ -120,7 +120,7 @@ class AppDatabaseMigrationTest {
         assertEquals(1, runBlocking { db.historyDao().count() })
 
         val sqlDb = db.openHelper.readableDatabase
-        assertEquals(29, sqlDb.version)
+        assertEquals(30, sqlDb.version)
         sqlDb.query("PRAGMA table_info(tabs)").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
             val columns = ArrayList<String>()
@@ -418,5 +418,30 @@ class AppDatabaseMigrationTest {
         db.openHelper.readableDatabase.query("SELECT name FROM sqlite_master WHERE name = 'paired_devices'").use {
             assertEquals(0, it.count)
         }
+    }
+
+    @Test
+    fun migrate29To30AddsThePageZoomOfHosts() {
+        createDatabase(29) { db ->
+            db.insert("hosts", null, ContentValues().apply {
+                put("id", 1L)
+                put("host_name", "example.com")
+                put("popup_block_level", 0)
+                put("adblock", 0)
+                put("desktop_view", 1)
+                put("built_in_player", 0)
+            })
+        }
+
+        val db = openMigrated()
+        val host = runBlocking { db.hostsDao().findByHostName("example.com") }!!
+        //the pages of the host keep their size
+        assertNull(host.pageZoom)
+        assertEquals(true, host.desktopView)
+        assertEquals(false, host.builtInPlayer)
+        assertEquals(false, host.adblock)
+        runBlocking { db.hostsDao().setPageZoom("example.com", 80) }
+        assertEquals(listOf(HostsDao.PageZoomSetting("example.com", 80)),
+            runBlocking { db.hostsDao().pageZoomSettings() })
     }
 }

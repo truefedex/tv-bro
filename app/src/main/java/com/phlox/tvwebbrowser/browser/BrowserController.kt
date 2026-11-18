@@ -32,6 +32,9 @@ import com.phlox.tvwebbrowser.webengine.TabEngineEvents
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import com.phlox.tvwebbrowser.webengine.PageZoom
+import com.phlox.tvwebbrowser.webengine.PageZoomSupport
+import com.phlox.tvwebbrowser.webengine.pageZoom
 import com.phlox.tvwebbrowser.webengine.siteView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -43,6 +46,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 /**
  * Browser core: owns the tabs (their list, the current one, their persistence) and
@@ -575,6 +579,71 @@ class BrowserController : ActiveModel() {
         }
         publishState()
         return write
+    }
+
+    /**
+     * Zooms the page of the tab out: as a pinch does while the user zoomed in past the width of the page, else to
+     * the next smaller page zoom of its host ([PageZoom]), which the page gets at once and the next pages of the
+     * host when they load. [onZoom] is told the zoom in percent after it (also when the page zoom is the smallest
+     * already): the page zoom times that of the pinch, which the engine tells once it has settled.
+     */
+    fun zoomOut(tab: BrowserTab, onZoom: (Int) -> Unit) {
+        val engine = tab.webEngine
+        val support = engine.pageZoom
+        val host = pageHostOf(tab)
+        if (support == null || host == null) {
+            engine.zoomOut()
+            return
+        }
+        support.isZoomedIn { zoomedIn ->
+            if (zoomedIn) {
+                zoomVisually(support, host, zoomIn = false, onZoom)
+                return@isZoomedIn
+            }
+            val zoom = PageZoom.smaller(pageZoomOf(host))
+            if (zoom != null) setPageZoom(tab, host, zoom)
+            onZoom(zoom ?: pageZoomOf(host))
+        }
+    }
+
+    /**
+     * Zooms the page of the tab in: to the next bigger page zoom of its host while it is below 100%, else as a
+     * pinch does. [onZoom] is told the zoom in percent after it (see [zoomOut]).
+     */
+    fun zoomIn(tab: BrowserTab, onZoom: (Int) -> Unit) {
+        val engine = tab.webEngine
+        val support = engine.pageZoom
+        val host = pageHostOf(tab)
+        if (support == null || host == null) {
+            engine.zoomIn()
+            return
+        }
+        val zoom = PageZoom.bigger(pageZoomOf(host))
+        if (zoom == null) {
+            zoomVisually(support, host, zoomIn = true, onZoom)
+            return
+        }
+        setPageZoom(tab, host, zoom)
+        onZoom(zoom)
+    }
+
+    /** The pinch of the engine, told as the page zoom of the [host] times its own (the page may not tell it) */
+    private fun zoomVisually(support: PageZoomSupport, host: String, zoomIn: Boolean, onZoom: (Int) -> Unit) {
+        support.zoomVisually(zoomIn) { visualZoom ->
+            if (visualZoom != null) onZoom((pageZoomOf(host) * visualZoom).roundToInt())
+        }
+    }
+
+    /** The host of the page the engine shows (its scripts ask for the zoom of that one) */
+    private fun pageHostOf(tab: BrowserTab): String? =
+        hostNameOf((if (tab.isWebEngineCreated) tab.webEngine.url else null) ?: tab.url)
+
+    private fun pageZoomOf(host: String): Int = hostConfigs.pageZoomSetting(host) ?: PageZoom.DEFAULT
+
+    private fun setPageZoom(tab: BrowserTab, host: String, zoom: Int) {
+        //the in-memory setting changes right away, the write is not cancelled with the model
+        TVBro.container.appScope.launch { hostConfigs.setPageZoom(host, zoom.takeIf { it != PageZoom.DEFAULT }) }
+        tab.webEngine.pageZoom?.applyPageZoom(zoom)
     }
 
     /**

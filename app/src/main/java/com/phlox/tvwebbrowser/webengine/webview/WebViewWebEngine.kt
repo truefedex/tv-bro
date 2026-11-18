@@ -32,6 +32,7 @@ import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
+import com.phlox.tvwebbrowser.webengine.PageZoomSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
 import com.phlox.tvwebbrowser.webengine.CursorModes
@@ -52,7 +53,7 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 
 
-class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, SiteViewSupport,
+class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, SiteViewSupport, PageZoomSupport,
     MediaPlaybackSupport, PageVideosSupport, FindInPageSupport, CursorDrawerDelegate.Callback {
     private var webView: WebViewEx? = null
     internal var callback: WebEngineCallbacks? = null
@@ -186,6 +187,21 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
     override fun zoomBy(zoomBy: Float) {
         webView?.zoomBy(zoomBy)
+    }
+
+    override fun applyPageZoom(zoom: Int) {
+        webView?.applyPageZoom(zoom)
+    }
+
+    /** WebView zooms out (a pinch) as far as the page fits the screen */
+    override fun isZoomedIn(callback: (Boolean) -> Unit) {
+        callback(webView?.canZoomOut() ?: false)
+    }
+
+    override fun zoomVisually(zoomIn: Boolean, onDone: (Double?) -> Unit) {
+        val webView = webView ?: return onDone(null)
+        if (zoomIn) webView.zoomIn() else webView.zoomOut()
+        webView.visualZoom(onDone)
     }
 
     override fun evaluateJavascript(script: String) {

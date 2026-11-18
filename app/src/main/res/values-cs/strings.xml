@@ -122,6 +122,7 @@
     <string name="media_rewind">Přetočit zpět</string>
     <string name="media_fast_forward">Přetočit vpřed</string>
     <string name="find_in_page">Najít na stránce</string>
+    <string name="zoom_percent">Přiblížení: %d %%</string>
     <string name="find_in_page_previous">Předchozí shoda</string>
     <string name="find_in_page_next">Další shoda</string>
     <string name="find_in_page_close">Zavřít hledání na stránce</string>

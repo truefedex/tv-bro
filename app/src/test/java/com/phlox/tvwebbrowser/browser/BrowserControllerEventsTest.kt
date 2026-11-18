@@ -10,6 +10,7 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
+import com.phlox.tvwebbrowser.webengine.PageZoom
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
@@ -25,6 +26,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -373,6 +375,89 @@ class BrowserControllerEventsTest {
         assertTrue(tab.fakeEngine.desktopView)
         assertTrue(state.siteViewIsDefault)
         assertNull(runBlocking { db.hostsDao().findByHostName("a.com") }!!.desktopView)
+    }
+
+    /** Runs the main looper until the page zoom of the [host] is written */
+    private fun awaitPageZoom(host: String, zoom: Int?) {
+        val deadline = System.currentTimeMillis() + 5000
+        while (runBlocking { db.hostsDao().findByHostName(host) }?.pageZoom != zoom) {
+            assertTrue("page zoom $zoom of $host not written", System.currentTimeMillis() < deadline)
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(1)
+        }
+    }
+
+    @Test
+    fun zoomOutGoesBelowTheWidthOfThePageWithThePageZoomOfItsHost() {
+        val tab = open("https://a.com/page")
+        val told = ArrayList<Int>()
+        //zoomed in: the engine zooms out first, and tells how far it is zoomed in then
+        tab.fakeEngine.zoomedIn = true
+        tab.fakeEngine.visualZoom = 1.25
+        controller.zoomOut(tab) { told += it }
+        assertEquals(listOf("zoomOut"), tab.fakeEngine.log.filter { it.startsWith("zoom") })
+        assertEquals(listOf(125), told)
+        told.clear()
+        //at the width of the page: the page zoom of the host steps down
+        tab.fakeEngine.zoomedIn = false
+        controller.zoomOut(tab) { told += it }
+        controller.zoomOut(tab) { told += it }
+        assertEquals(listOf(90, 80), told)
+        assertEquals(listOf(90, 80), tab.fakeEngine.pageZooms)
+        awaitPageZoom("a.com", 80)
+        //other pages of the host ask for it
+        assertEquals(80, WebEngineFactory.pageZooms?.zoomOf("https://a.com/other"))
+        assertEquals(PageZoom.DEFAULT, WebEngineFactory.pageZooms?.zoomOf("https://b.com/"))
+        //the smallest stays and is told again
+        repeat(PageZoom.STEPS.size) { controller.zoomOut(tab) { told += it } }
+        assertEquals(PageZoom.STEPS.first(), told.last())
+        assertEquals(PageZoom.STEPS.first(), tab.fakeEngine.pageZooms.last())
+    }
+
+    @Test
+    fun zoomInGivesThePageItsWidthBackBeforeTheEngineZoomsIn() {
+        val tab = open("https://a.com/")
+        val told = ArrayList<Int>()
+        controller.zoomOut(tab) { told += it }
+        awaitPageZoom("a.com", 90)
+        tab.fakeEngine.log.clear()
+        controller.zoomIn(tab) { told += it }
+        assertEquals(listOf(90, 100), told)
+        assertEquals(listOf(90, 100), tab.fakeEngine.pageZooms)
+        //100% is no setting of the host
+        awaitPageZoom("a.com", null)
+        assertEquals(emptyList<String>(), tab.fakeEngine.log.filter { it.startsWith("zoom") })
+        //at 100% the engine zooms in and tells its zoom
+        tab.fakeEngine.visualZoom = 1.5
+        controller.zoomIn(tab) { told += it }
+        assertEquals(listOf("zoomIn"), tab.fakeEngine.log.filter { it.startsWith("zoom") })
+        assertEquals(listOf(90, 100, 150), told)
+        //a page that does not tell its zoom: nothing is told
+        tab.fakeEngine.visualZoom = null
+        controller.zoomIn(tab) { told += it }
+        assertEquals(listOf(90, 100, 150), told)
+    }
+
+    @Test
+    fun aPinchOfAZoomedOutPageIsToldWithThePageZoom() {
+        val tab = open("https://a.com/")
+        val told = ArrayList<Int>()
+        controller.zoomOut(tab) { told += it }
+        controller.zoomOut(tab) { told += it }
+        awaitPageZoom("a.com", 80)
+        //zoomed in at 80% (with fingers, on a phone): zooming out tells the zoom of both
+        tab.fakeEngine.zoomedIn = true
+        tab.fakeEngine.visualZoom = 1.5
+        controller.zoomOut(tab) { told += it }
+        assertEquals(listOf(90, 80, 120), told)
+    }
+
+    @Test
+    fun theHomePageHasNoPageZoom() {
+        val tab = open(Config.HOME_PAGE_URL)
+        controller.zoomOut(tab) { fail("the home page has no page zoom") }
+        assertEquals(listOf("zoomOut"), tab.fakeEngine.log.filter { it.startsWith("zoom") })
+        assertEquals(emptyList<Int>(), tab.fakeEngine.pageZooms)
     }
 
     @Test

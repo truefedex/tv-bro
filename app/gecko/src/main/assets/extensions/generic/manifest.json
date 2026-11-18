@@ -17,6 +17,7 @@
         "page_videos.js",
         "media_controls.js",
         "element_hiding.js",
+        "page_zoom.js",
         "content.js"
       ],
       "run_at": "document_start",

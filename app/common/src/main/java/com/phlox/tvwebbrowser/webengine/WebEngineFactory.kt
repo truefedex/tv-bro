@@ -84,6 +84,10 @@ object WebEngineFactory {
     @Volatile
     var adBlocker: EngineAdBlocker? = null
 
+    /** Set by the app in the browser processes; null leaves all pages at 100% */
+    @Volatile
+    var pageZooms: EnginePageZooms? = null
+
     fun registerProvider(provider: WebEngineProvider) {
         val registered = registeredProvider
         check(registered == null || registered.name == provider.name) {

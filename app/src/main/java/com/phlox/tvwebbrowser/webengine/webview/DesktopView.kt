@@ -2,20 +2,17 @@ package com.phlox.tvwebbrowser.webengine.webview
 
 import android.webkit.WebSettings
 import android.webkit.WebView
-import androidx.webkit.ScriptHandler
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import java.net.URI
 
 /**
  * The desktop view of WebView: a desktop User-Agent (and client hints) built from the system one, so the
- * Chrome version stays current, and a wide viewport for pages that ask for the width of the device.
- * The mobile view is the system's own.
+ * Chrome version stays current. The wide viewport for pages that ask for the width of the device is written by
+ * [WebViewPageZoom] with the zoom of the page. The mobile view is the system's own.
  */
 internal class DesktopView(private val webView: WebView) {
-    private var viewportScript: ScriptHandler? = null
     /** The client hints of the system, kept before the first change */
     private var systemUserAgentMetadata: UserAgentMetadata? = null
 
@@ -33,11 +30,6 @@ internal class DesktopView(private val webView: WebView) {
         settings.userAgentString = userAgent ?: if (desktop) DesktopUserAgent.from(systemUserAgent(webView)) else null
         if (system != null) {
             WebSettingsCompat.setUserAgentMetadata(settings, if (desktop) desktopMetadata(system) else system)
-        }
-        viewportScript?.remove()
-        viewportScript = null
-        if (desktop && WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
-            viewportScript = WebViewCompat.addDocumentStartJavaScript(webView, WIDE_VIEWPORT_SCRIPT, setOf("*"))
         }
     }
 
@@ -61,29 +53,6 @@ internal class DesktopView(private val webView: WebView) {
 
         private fun systemUserAgent(webView: WebView): String =
             systemUserAgent ?: WebSettings.getDefaultUserAgent(webView.context).also { systemUserAgent = it }
-
-        /**
-         * Pages that set their viewport to the width of the device get the width of a desktop page, as in
-         * the desktop view of Chrome. Screens about as wide as that (TVs) keep the viewports of pages.
-         */
-        private const val WIDE_VIEWPORT_SCRIPT = """(function () {
-  var WIDE = 'width=980';
-  if (screen.width >= 960) return;
-  function widen() {
-    var metas = document.querySelectorAll('meta[name="viewport" i]');
-    for (var i = 0; i < metas.length; i++) {
-      if (metas[i].getAttribute('content') !== WIDE) metas[i].setAttribute('content', WIDE);
-    }
-  }
-  var options = {childList: true, subtree: true, attributes: true, attributeFilter: ['content']};
-  var observer = new MutationObserver(widen);
-  observer.observe(document, options);
-  document.addEventListener('DOMContentLoaded', function () {
-    widen();
-    observer.disconnect();
-    if (document.head) observer.observe(document.head, options);
-  });
-})();"""
     }
 }
 

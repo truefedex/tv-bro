@@ -445,6 +445,7 @@
     <string name="media_rewind">Rewind media</string>
     <string name="media_fast_forward">Fast-forward media</string>
     <string name="find_in_page">Find in page</string>
+    <string name="zoom_percent">Zoom: %d%%</string>
     <string name="find_in_page_previous">Previous match</string>
     <string name="find_in_page_next">Next match</string>
     <string name="find_in_page_close">Close Find in page</string>

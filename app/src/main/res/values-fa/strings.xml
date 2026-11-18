@@ -120,6 +120,7 @@
   <string name="media_rewind">عقب بردن رسانه</string>
   <string name="media_fast_forward">جلو بردن سریع رسانه</string>
   <string name="find_in_page">یافتن در صفحه</string>
+  <string name="zoom_percent">بزرگ‌نمایی: %d%%</string>
   <string name="find_in_page_previous">مورد قبلی</string>
   <string name="find_in_page_next">مورد بعدی</string>
   <string name="find_in_page_close">بستن یافتن در صفحه</string>
