@@ -841,7 +841,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         _findResult.value = null
     }
 
-    override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
+    override suspend fun renderThumbnail(bitmap: Bitmap?, onScreen: Boolean): Bitmap? {
         return webView?.renderThumbnail(bitmap)
     }
 

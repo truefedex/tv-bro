@@ -328,8 +328,18 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         _findResult.value = null
     }
 
-    override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
-        return webView?.renderThumbnail(bitmap)
+    override suspend fun renderThumbnail(bitmap: Bitmap?, onScreen: Boolean): Bitmap? {
+        val view = webView ?: return null
+        //WebView draws a page it showed again at once (going back to it while another page loads) squashed in
+        //software until it loads again, while the screen shows it right
+        if (onScreen) {
+            val window = callback?.getActivity()?.window
+            if (window != null) {
+                WebViewScreenCapture.capture(view, cursorLayout, window, bitmap)?.let { return it }
+            }
+            if (webView !== view) return null
+        }
+        return view.renderThumbnail(bitmap)
     }
 
     override fun onAttachToWindow(callback: WebEngineCallbacks, parent: ViewGroup) {

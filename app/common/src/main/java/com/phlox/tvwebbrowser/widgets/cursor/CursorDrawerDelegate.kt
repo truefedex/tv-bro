@@ -320,8 +320,12 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
         }
     }
 
+    /** The cursor is drawn on the surface */
+    val drawsCursor: Boolean
+        get() = grabMode || !isCursorDisappear
+
     fun dispatchDraw(canvas: Canvas) {
-        if (grabMode || !isCursorDisappear) {
+        if (drawsCursor) {
             val grab = when {
                 !grabMode -> CursorRenderer.Grab.NONE
                 grabScrolls -> CursorRenderer.Grab.SCROLL

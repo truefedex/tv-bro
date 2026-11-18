@@ -1364,21 +1364,41 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     private fun showMenuOverlay(onShown: (() -> Unit)? = null) {
         //the bar shows a picture of the page: its search ends
         findInPage.close()
-        vb.ivMiniatures.visibility = View.VISIBLE
-        vb.flWebViewContainer.visibility = View.INVISIBLE
-        val currentTab = controller.currentTab.value
-        if (currentTab != null) {
-            lifecycleScope.launch {
-                currentTab.webEngine.renderThumbnail(currentTab.thumbnail)?.let { currentTab.updateThumbnail(it) }
-                displayThumbnail(currentTab)
-            }
-        }
-
         vb.vActionBar.cancelEditing()
+        menuOverlayCapture?.cancel()
+        menuOverlayCapture = null
 
+        //the bar is open at once (its back callback, the panels), but shows only once the picture of the page is
+        //taken: it may be taken from the screen, where nothing may cover the page
+        vb.rlActionBar.animate().cancel()
         vb.rlActionBar.visibility = View.VISIBLE
         vb.rlActionBar.translationY = -vb.rlActionBar.height.toFloat()
         vb.rlActionBar.alpha = 0f
+
+        val currentTab = controller.currentTab.value
+        if (currentTab == null) {
+            revealMenuOverlay(onShown)
+            return
+        }
+        val pageShown = vb.flWebViewContainer.isVisible
+        menuOverlayCapture = lifecycleScope.launch {
+            if (currentTab.isWebEngineCreated) {
+                currentTab.webEngine.renderThumbnail(currentTab.thumbnail, onScreen = pageShown)
+                    ?.let { currentTab.updateThumbnail(it) }
+            }
+            menuOverlayCapture = null
+            revealMenuOverlay(onShown)
+            displayThumbnail(currentTab)
+        }
+    }
+
+    /** Taking the picture of the page for the bar that opens, see [showMenuOverlay] */
+    private var menuOverlayCapture: Job? = null
+
+    private fun revealMenuOverlay(onShown: (() -> Unit)?) {
+        vb.ivMiniatures.visibility = View.VISIBLE
+        vb.flWebViewContainer.visibility = View.INVISIBLE
+
         vb.rlActionBar.animate()
                 .translationY(0f)
                 .alpha(1f)
@@ -1420,6 +1440,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         if (vb.rlActionBar.visibility == View.INVISIBLE) {
             return
         }
+        //closed before it showed: it does not show
+        menuOverlayCapture?.cancel()
+        menuOverlayCapture = null
         //the suggestions go with the editing at once, not when the bar is gone
         vb.vActionBar.cancelEditing()
         vb.vSitePanel.hide()

@@ -87,7 +87,7 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport, PageZoomS
     override fun onPause() { log += "pause" }
     override fun hideFullscreenView() {}
     override fun togglePlayback() {}
-    override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? = null
+    override suspend fun renderThumbnail(bitmap: Bitmap?, onScreen: Boolean): Bitmap? = null
 
     override fun onAttachToWindow(callback: WebEngineCallbacks, parent: ViewGroup) {
         log += "attach"

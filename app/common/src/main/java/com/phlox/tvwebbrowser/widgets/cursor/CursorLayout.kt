@@ -101,9 +101,21 @@ class CursorLayout @JvmOverloads constructor(context: Context, attrs: AttributeS
     override val wheelScrollFactor: Float
         get() = ViewConfigurationCompat.getScaledVerticalScrollFactor(ViewConfiguration.get(context), context)
 
+    /** The page is drawn without the cursor (a picture of the screen is taken), see [drawsCursor] */
+    var cursorHidden = false
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidate()
+        }
+
+    /** The cursor is on the screen now */
+    val drawsCursor: Boolean
+        get() = !isInEditMode && !willNotDraw() && !cursorHidden && cursorDrawerDelegate.drawsCursor
+
     override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)
-        if (isInEditMode || willNotDraw()) {
+        if (isInEditMode || willNotDraw() || cursorHidden) {
             return
         }
 
