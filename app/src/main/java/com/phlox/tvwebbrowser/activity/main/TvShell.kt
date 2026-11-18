@@ -30,6 +30,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.browser.HomePageUrl
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.R
@@ -81,6 +82,8 @@ import com.phlox.tvwebbrowser.widgets.NotificationView
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -91,6 +94,8 @@ import kotlinx.coroutines.launch
 class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Callback {
     companion object {
         private val TAG = TvShell::class.java.simpleName
+        /** How long the bar waits for the built-in home page when the browser starts */
+        private const val HOME_PAGE_FILL_TIMEOUT_MS = 3000L
     }
 
     private val activity = host.activity
@@ -1123,8 +1128,20 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     override fun onTabsLoaded() {
         val currentTab = controller.currentTab.value
-        if (currentTab == null || currentTab.url == settingsModel.homePage) {
+        //a restored tab has the url the alias loaded
+        val config = AppContext.provideConfig()
+        if (currentTab == null) {
             showMenuOverlay()
+        } else if (HomePageUrl.isHomePage(currentTab.url, config)) {
+            if (HomePageUrl.resolve(currentTab.url, config) == Config.HOME_PAGE_URL) {
+                //the bar shows a picture of the page: the built-in one is taken once its bookmarks are there
+                lifecycleScope.launch {
+                    withTimeoutOrNull(HOME_PAGE_FILL_TIMEOUT_MS) { filledHomePage.first { it == currentTab } }
+                    if (!vb.rlActionBar.isVisible && controller.currentTab.value == currentTab) showMenuOverlay()
+                }
+            } else {
+                showMenuOverlay()
+            }
         }
         val texts = pendingTexts.toList()
         pendingTexts.clear()
@@ -1276,6 +1293,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
                 }
             }
             is BrowserUiEvent.HomePageSearchBarLocated -> {
+                filledHomePage.value = event.tab
                 //only for a tab the user opened from the bar, so a page reload does not move the cursor
                 if (event.tab == tabForSearchBarCursor) {
                     tabForSearchBarCursor = null
@@ -1391,6 +1409,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             displayThumbnail(currentTab)
         }
     }
+
+    /** The tab whose built-in home page got its bookmarks and search engine last */
+    private val filledHomePage = MutableStateFlow<BrowserTab?>(null)
 
     /** Taking the picture of the page for the bar that opens, see [showMenuOverlay] */
     private var menuOverlayCapture: Job? = null
