@@ -101,7 +101,7 @@ class SettingsNavigatorTest {
             filterListUpdates++
             return true
         }
-        override var pageVideoHint = true
+        override var pageVideoHint = false
         override var builtInPlayerByDefault = true
         override var interfaceMode = Config.InterfaceMode.AUTO
         override var theme = Config.Theme.SYSTEM
@@ -481,13 +481,13 @@ class SettingsNavigatorTest {
     }
 
     @Test
-    fun theHintAboutVideosIsOnTvOnlyAndOnByDefault() {
+    fun theHintAboutVideosIsOnTvOnlyAndOffByDefault() {
         val navigator = navigator(tvUi = true)
         navigator.show(Category.SITES)
-        assertTrue(row<Row.Toggle>(Key.VIDEO_HINT).checked)
-        navigator.toggle(Key.VIDEO_HINT)
-        assertFalse(store.pageVideoHint)
         assertFalse(row<Row.Toggle>(Key.VIDEO_HINT).checked)
+        navigator.toggle(Key.VIDEO_HINT)
+        assertTrue(store.pageVideoHint)
+        assertTrue(row<Row.Toggle>(Key.VIDEO_HINT).checked)
         navigator(tvUi = false).show(Category.SITES)
         assertFalse(Key.VIDEO_HINT in keys())
     }
