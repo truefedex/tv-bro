@@ -120,6 +120,7 @@
   <string name="media_rewind">הרצה אחורה במדיה</string>
   <string name="media_fast_forward">הרצה קדימה במדיה</string>
   <string name="find_in_page">חיפוש בדף</string>
+  <string name="zoom_percent">זום: %d%%</string>
   <string name="find_in_page_previous">ההתאמה הקודמת</string>
   <string name="find_in_page_next">ההתאמה הבאה</string>
   <string name="find_in_page_close">סגירת החיפוש בדף</string>
@@ -259,6 +260,7 @@
   <string name="default_site_view">תצוגת ברירת המחדל של אתרים</string>
   <array name="site_views">
     <item>מחשב</item>
+    <item>טאבלט</item>
     <item>נייד</item>
   </array>
   <string name="site_settings_of">הגדרות של %s</string>
@@ -525,8 +527,9 @@
   <string name="settings_group_site_view">תצוגת אתרים</string>
   <string name="settings_auto">אוטומטי</string>
   <string name="settings_desktop">מחשב</string>
+  <string name="settings_tablet">טאבלט</string>
   <string name="settings_mobile">נייד</string>
-  <string name="settings_site_view_summary_tv">לאתרים בלי בחירה משלהם. אוטומטי: מחשב בטלוויזיה</string>
+  <string name="settings_site_view_summary_tv">לאתרים בלי בחירה משלהם. אוטומטי: טאבלט בטלוויזיה</string>
   <string name="settings_site_view_summary_phone">לאתרים בלי בחירה משלהם. אוטומטי: נייד בטלפון</string>
   <string name="settings_user_agent">User-Agent</string>
   <string name="settings_user_agent_summary">איך הדפדפן מציג את עצמו לאתרים. אוטומטי: לפי תצוגת האתר</string>

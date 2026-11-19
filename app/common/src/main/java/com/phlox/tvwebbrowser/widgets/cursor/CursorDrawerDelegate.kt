@@ -320,8 +320,20 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
         }
     }
 
+    /** The UI covers the page (the TV bar is open): the cursor is not drawn */
+    var hidden = false
+        set(value) {
+            if (field == value) return
+            field = value
+            surface.postInvalidate()
+        }
+
+    /** The cursor is drawn on the surface */
+    val drawsCursor: Boolean
+        get() = !hidden && (grabMode || !isCursorDisappear)
+
     fun dispatchDraw(canvas: Canvas) {
-        if (grabMode || !isCursorDisappear) {
+        if (drawsCursor) {
             val grab = when {
                 !grabMode -> CursorRenderer.Grab.NONE
                 grabScrolls -> CursorRenderer.Grab.SCROLL
@@ -444,12 +456,14 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
         }
     }
 
-    fun tryZoomIn() {
-        pinchZoom.start(zoomIn = true)
+    /** [onEnd] is called when the fingers are lifted, not if another pinch is in progress */
+    fun tryZoomIn(onEnd: (() -> Unit)? = null) {
+        pinchZoom.start(zoomIn = true, onEnd)
     }
 
-    fun tryZoomOut() {
-        pinchZoom.start(zoomIn = false)
+    /** [onEnd] is called when the fingers are lifted, not if another pinch is in progress */
+    fun tryZoomOut(onEnd: (() -> Unit)? = null) {
+        pinchZoom.start(zoomIn = false, onEnd)
     }
 
     fun animateAppearing() {

@@ -1,11 +1,15 @@
 package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Base64
 import android.util.Log
+import androidx.core.net.toUri
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.webengine.LoadErrorKind
 import com.phlox.tvwebbrowser.webengine.LoadErrorPage
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
 import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
@@ -17,6 +21,7 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
         val TAG: String = MyNavigationDelegate::class.java.simpleName
     }
 
+    private val handler = Handler(Looper.getMainLooper())
     var canGoBack = false
     var canGoForward = false
     var locationURL: String? = null
@@ -71,7 +76,27 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
             return GeckoResult.deny()
         }
 
+        //the first web page of a window opened at about:blank
+        val opener = webEngine.popupOpener
+        if (opener != null && isWebUrl(request.uri)) {
+            webEngine.popupOpener = null
+            if (shouldBlockPopup(request.uri, opener)) {
+                //not while GeckoView asks: the tab and its session close
+                handler.post { webEngine.callback?.onPopupPageBlocked() }
+                return GeckoResult.deny()
+            }
+        }
+
         if (callback.shouldOverrideUrlLoading(request.uri)) {
+            return GeckoResult.deny()
+        }
+
+        //the page takes the tab away (a script, a link, a redirect), not a load of the app
+        if (!request.isDirectNavigation && request.target == GeckoSession.NavigationDelegate.TARGET_WINDOW_CURRENT &&
+            isWebUrl(request.uri) && WebEngineFactory.adBlocker?.shouldCancelNavigation(request.uri.toUri(),
+                webEngine.url?.takeIf { isWebUrl(it) }?.toUri()) == true) {
+            Log.d(TAG, "Cancelled navigation to an ad: ${request.uri}")
+            callback.onBlockedAd(request.uri)
             return GeckoResult.deny()
         }
 
@@ -80,17 +105,18 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
         //headers of the request it follows, the User-Agent too, so it starts again, once: hosts redirecting
         //to each other by the view must not do it forever (the browser core then loads the page again once)
         if (request.uri.startsWith("http:") || request.uri.startsWith("https:")) {
-            val desktop = callback.isDesktopView(request.uri)
-            if (desktop != webEngine.desktopView) {
+            val view = callback.siteViewOf(request.uri)
+            if (view != webEngine.view) {
                 if (!request.isRedirect) {
-                    webEngine.desktopView = desktop
+                    webEngine.view = view
                 } else if (!redirectRestarted) {
                     redirectRestarted = true
-                    webEngine.desktopView = desktop
+                    webEngine.view = view
                     session.loadUri(request.uri)
                     return GeckoResult.deny()
                 }
             }
+            webEngine.onPageZoomOf(request.uri)
         }
 
         return GeckoResult.allow()
@@ -121,13 +147,21 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
             callback.onBlockedDialog(true)
             return null
         }
-        val engine = webEngine.callback?.onOpenInNewTabRequested(uri, false)
-        return if (engine == null) {
-            null
-        } else {
-            GeckoResult.fromValue((engine as GeckoWebEngine).session)
+        val opener = webEngine.url
+        if (isWebUrl(uri) && shouldBlockPopup(uri, opener)) {
+            callback.onBlockedDialog(true)
+            return null
         }
+        val engine = webEngine.callback?.onOpenInNewTabRequested(uri, false) as GeckoWebEngine? ?: return null
+        //a window opened at about:blank gets its address later
+        if (!isWebUrl(uri)) engine.popupOpener = opener ?: ""
+        return GeckoResult.fromValue(engine.session)
     }
+
+    private fun isWebUrl(url: String) = url.startsWith("http:") || url.startsWith("https:")
+
+    private fun shouldBlockPopup(url: String, opener: String?): Boolean =
+        WebEngineFactory.adBlocker?.shouldBlockPopup(url.toUri(), opener?.takeIf { it.isNotEmpty() }?.toUri()) == true
 
     override fun onLoadError(
         session: GeckoSession, uri: String?, error: WebRequestError

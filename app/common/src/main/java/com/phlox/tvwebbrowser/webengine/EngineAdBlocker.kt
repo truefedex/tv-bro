@@ -20,6 +20,22 @@ interface EngineAdBlocker {
     fun shouldBlock(url: Uri, type: String?, acceptHeader: String?, isMainFrame: Boolean, documentUrl: Uri?,
                     topUrl: Uri?): Boolean
 
+    /**
+     * Whether to block a window (tab) a page opens at [url] (`$popup` filters): asked with the first address of
+     * the window, which an engine knows only when it loads (WebView, a window opened at about:blank).
+     *
+     * @param openerUrl the page that opened it, whose site setting applies; null if not known
+     */
+    fun shouldBlockPopup(url: Uri, openerUrl: Uri?): Boolean
+
+    /**
+     * Whether to cancel a navigation of a tab to [url] that its page started (a script, a link, a redirect; not a
+     * url the app loads): ads take the tab away to their sites. The page stays as it is.
+     *
+     * @param pageUrl the page the tab shows, whose site setting applies; null if none
+     */
+    fun shouldCancelNavigation(url: Uri, pageUrl: Uri?): Boolean
+
     /** Whether some filters block pages themselves: engines that can leave main frames unchecked must check them */
     val blocksPages: Boolean
 

@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
@@ -26,12 +27,14 @@ import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.LoadErrorKind
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
 import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
+import com.phlox.tvwebbrowser.webengine.PageZoomSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
 import com.phlox.tvwebbrowser.webengine.CursorModes
@@ -52,7 +55,7 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 
 
-class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, SiteViewSupport,
+class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, SiteViewSupport, PageZoomSupport,
     MediaPlaybackSupport, PageVideosSupport, FindInPageSupport, CursorDrawerDelegate.Callback {
     private var webView: WebViewEx? = null
     internal var callback: WebEngineCallbacks? = null
@@ -92,18 +95,18 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         get() = webView?.settings?.userAgentString
 
     /** The view of the host, as the core sets it */
-    private var hostDesktopView = false
+    private var hostView = SiteView.MOBILE
     /** The view the WebView has: the one of the host, except on pages that need the mobile view */
-    private var appliedDesktopView = false
+    private var appliedView = SiteView.MOBILE
     /** The User-Agent of the user the WebView has: none on pages that need the mobile view */
     private var appliedUserAgent: String? = null
     /** The view was corrected when a page started, so the page loaded again */
     private var siteViewCorrected = false
 
-    override var desktopView: Boolean
-        get() = hostDesktopView
+    override var view: SiteView
+        get() = hostView
         set(value) {
-            hostDesktopView = value
+            hostView = value
             applySiteView(webView?.url)
         }
 
@@ -119,20 +122,30 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
      * @return true if the view changed
      */
     private fun applySiteView(url: String?): Boolean {
+        if (!changesSiteView(url, hostView)) return false
         val mobilePage = MobileViewPages.matches(url)
-        val desktop = hostDesktopView && !mobilePage
+        val view = if (mobilePage) SiteView.MOBILE else hostView
         val userAgent = if (mobilePage) null else userAgentOverride
-        if (desktop == appliedDesktopView && userAgent == appliedUserAgent) return false
-        appliedDesktopView = desktop
+        Log.d("WebViewWebEngine", "Site view of $url: $appliedView -> $view, " +
+            "User-Agent of the user ${appliedUserAgent != null} -> ${userAgent != null}")
+        appliedView = view
         appliedUserAgent = userAgent
-        webView?.setSiteView(desktop, userAgent)
+        webView?.setSiteView(view, userAgent)
         applyPointerMode()
         return true
     }
 
-    /** The cursor is a mouse for pages in the desktop view, a finger for the others */
+    /** Whether [applySiteView] would change the view of the WebView for [url] with the [host] view */
+    private fun changesSiteView(url: String?, host: SiteView): Boolean {
+        val mobilePage = MobileViewPages.matches(url)
+        val view = if (mobilePage) SiteView.MOBILE else host
+        val userAgent = if (mobilePage) null else userAgentOverride
+        return view != appliedView || userAgent != appliedUserAgent
+    }
+
+    /** The cursor is a mouse for pages in a wide view (desktop, tablet), a finger in the mobile one */
     private fun applyPointerMode() {
-        cursorLayout?.cursorDrawerDelegate?.pointerMode = if (appliedDesktopView) PointerMode.MOUSE else PointerMode.TOUCH
+        cursorLayout?.cursorDrawerDelegate?.pointerMode = if (appliedView.wide) PointerMode.MOUSE else PointerMode.TOUCH
     }
 
     override fun saveState(): Any {
@@ -157,6 +170,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             return
         }
         applySiteView(url)
+        //what the user loads is no popup of the page that opened the window
+        webView?.popupOpener = null
         webView?.loadUrl(url)
     }
 
@@ -188,6 +203,21 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         webView?.zoomBy(zoomBy)
     }
 
+    override fun applyPageZoom(zoom: Int) {
+        webView?.applyPageZoom(zoom)
+    }
+
+    /** WebView zooms out (a pinch) as far as the page fits the screen */
+    override fun isZoomedIn(callback: (Boolean) -> Unit) {
+        callback(webView?.canZoomOut() ?: false)
+    }
+
+    override fun zoomVisually(zoomIn: Boolean, onDone: (Double?) -> Unit) {
+        val webView = webView ?: return onDone(null)
+        if (zoomIn) webView.zoomIn() else webView.zoomOut()
+        webView.visualZoom(onDone)
+    }
+
     override fun evaluateJavascript(script: String) {
         webView?.evaluateJavascript(script, null)
     }
@@ -204,7 +234,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     override fun getOrCreateView(activityContext: Context): View {
         if (webView == null) {
             val webView = WebViewEx(activityContext, webViewCallback, jsInterface)
-            if (appliedDesktopView || appliedUserAgent != null) webView.setSiteView(appliedDesktopView, appliedUserAgent)
+            if (appliedView != SiteView.MOBILE || appliedUserAgent != null) webView.setSiteView(appliedView, appliedUserAgent)
             cursorLayout = CursorLayout(activityContext).apply {
                 addView(webView)
                 cursorDrawerDelegate.callback = this@WebViewWebEngine
@@ -309,8 +339,18 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         _findResult.value = null
     }
 
-    override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
-        return webView?.renderThumbnail(bitmap)
+    override suspend fun renderThumbnail(bitmap: Bitmap?, onScreen: Boolean): Bitmap? {
+        val view = webView ?: return null
+        //WebView draws a page it showed again at once (going back to it while another page loads) squashed in
+        //software until it loads again, while the screen shows it right
+        if (onScreen) {
+            val window = callback?.getActivity()?.window
+            if (window != null) {
+                WebViewScreenCapture.capture(view, cursorLayout, window, bitmap)?.let { return it }
+            }
+            if (webView !== view) return null
+        }
+        return view.renderThumbnail(bitmap)
     }
 
     override fun onAttachToWindow(callback: WebEngineCallbacks, parent: ViewGroup) {
@@ -469,8 +509,13 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             return callback?.shouldOverrideUrlLoading(url) ?: false
         }
 
+        override fun changesSiteView(url: String): Boolean {
+            val host = callback?.siteViewOf(url) ?: return false
+            return changesSiteView(url, host)
+        }
+
         override fun switchSiteView(url: String): Boolean {
-            hostDesktopView = callback?.isDesktopView(url) ?: return false
+            hostView = callback?.siteViewOf(url) ?: return false
             return applySiteView(url)
         }
 
@@ -508,6 +553,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
         override fun onBlockedDialog(newTab: Boolean) {
             callback?.onBlockedDialog(newTab)
+        }
+
+        override fun onPopupPageBlocked() {
+            callback?.onPopupPageBlocked()
         }
 
         override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx? {

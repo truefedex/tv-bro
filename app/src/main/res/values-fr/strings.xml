@@ -122,6 +122,7 @@
     <string name="media_rewind">Retour rapide</string>
     <string name="media_fast_forward">Avance rapide</string>
     <string name="find_in_page">Rechercher dans la page</string>
+    <string name="zoom_percent">Zoom : %d %%</string>
     <string name="find_in_page_previous">Résultat précédent</string>
     <string name="find_in_page_next">Résultat suivant</string>
     <string name="find_in_page_close">Fermer la recherche dans la page</string>
@@ -253,6 +254,7 @@
     <string name="default_site_view">Affichage des sites par défaut</string>
     <array name="site_views">
         <item>Ordinateur</item>
+        <item>Tablette</item>
         <item>Mobile</item>
     </array>
     <string name="site_settings_of">Paramètres de %s</string>
@@ -513,8 +515,9 @@
     <string name="settings_group_site_view">Affichage des sites</string>
     <string name="settings_auto">Auto</string>
     <string name="settings_desktop">Ordinateur</string>
+    <string name="settings_tablet">Tablette</string>
     <string name="settings_mobile">Mobile</string>
-    <string name="settings_site_view_summary_tv">Pour les sites sans choix propre. Auto : ordinateur sur une TV</string>
+    <string name="settings_site_view_summary_tv">Pour les sites sans choix propre. Auto : tablette sur une TV</string>
     <string name="settings_site_view_summary_phone">Pour les sites sans choix propre. Auto : mobile sur un téléphone</string>
     <string name="settings_user_agent">User-Agent</string>
     <string name="settings_user_agent_summary">Comment le navigateur se présente aux sites. Auto : selon l’affichage du site</string>

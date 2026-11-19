@@ -7,8 +7,11 @@ plugins {
 /** The built-in home page of the app; GeckoView shows it as a page of the extension */
 val homePageDir: File = rootProject.file("app/src/main/assets/pages/home")
 val webExtensionDir: File = file("src/main/assets/extensions/generic")
-/** The scripts of every frame shared with the WebView engine (the media of the frame, its videos, element hiding) */
-val sharedScripts: List<File> = listOf("media_controls.js", "page_videos.js", "element_hiding.js").map {
+/**
+ * The scripts of every frame shared with the WebView engine (the media of the frame, its videos, element hiding,
+ * the zoom of the page)
+ */
+val sharedScripts: List<File> = listOf("media_controls.js", "page_videos.js", "element_hiding.js", "page_zoom.js").map {
     rootProject.file("app/src/main/assets/$it")
 }
 

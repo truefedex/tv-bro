@@ -1,6 +1,0 @@
-* Some crashes fixed
-* Do not log temporary history in incognito mode (even temporary)
-* Trick to make play/pause remote media button work (experimental)
-* Fixed one problem of not opening magnet links on Android 11 and below
-* Fixed downloading in private folder problem on Android 12
-* Dropped support of Android 5.x

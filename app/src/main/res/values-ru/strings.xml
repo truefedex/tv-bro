@@ -120,6 +120,7 @@
   <string name="media_rewind">Перемотка назад</string>
   <string name="media_fast_forward">Перемотка вперёд</string>
   <string name="find_in_page">Найти на странице</string>
+  <string name="zoom_percent">Масштаб: %d%%</string>
   <string name="find_in_page_previous">Предыдущее совпадение</string>
   <string name="find_in_page_next">Следующее совпадение</string>
   <string name="find_in_page_close">Закрыть поиск на странице</string>
@@ -259,6 +260,7 @@
   <string name="default_site_view">Вид сайтов по умолчанию</string>
   <array name="site_views">
     <item>Компьютерный</item>
+    <item>Планшетный</item>
     <item>Мобильный</item>
   </array>
   <string name="site_settings_of">Настройки %s</string>
@@ -525,8 +527,9 @@
   <string name="settings_group_site_view">Вид сайтов</string>
   <string name="settings_auto">Авто</string>
   <string name="settings_desktop">Компьютерный</string>
+  <string name="settings_tablet">Планшетный</string>
   <string name="settings_mobile">Мобильный</string>
-  <string name="settings_site_view_summary_tv">Для сайтов без собственного выбора. Авто: компьютерный на телевизоре</string>
+  <string name="settings_site_view_summary_tv">Для сайтов без собственного выбора. Авто: планшетный на телевизоре</string>
   <string name="settings_site_view_summary_phone">Для сайтов без собственного выбора. Авто: мобильный на телефоне</string>
   <string name="settings_user_agent">User-Agent</string>
   <string name="settings_user_agent_summary">Как браузер представляется сайтам. Авто: по виду сайта</string>

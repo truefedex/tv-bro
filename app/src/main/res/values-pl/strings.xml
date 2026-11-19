@@ -120,6 +120,7 @@
   <string name="media_rewind">Przewiń do tyłu</string>
   <string name="media_fast_forward">Przewiń do przodu</string>
   <string name="find_in_page">Znajdź na stronie</string>
+  <string name="zoom_percent">Powiększenie: %d%%</string>
   <string name="find_in_page_previous">Poprzednie wystąpienie</string>
   <string name="find_in_page_next">Następne wystąpienie</string>
   <string name="find_in_page_close">Zamknij wyszukiwanie na stronie</string>
@@ -259,6 +260,7 @@
   <string name="default_site_view">Domyślny widok witryn</string>
   <array name="site_views">
     <item>Komputerowy</item>
+    <item>Tabletowy</item>
     <item>Mobilny</item>
   </array>
   <string name="site_settings_of">Ustawienia %s</string>
@@ -525,8 +527,9 @@
   <string name="settings_group_site_view">Widok witryn</string>
   <string name="settings_auto">Auto</string>
   <string name="settings_desktop">Komputerowy</string>
+  <string name="settings_tablet">Tabletowy</string>
   <string name="settings_mobile">Mobilny</string>
-  <string name="settings_site_view_summary_tv">Dla witryn bez własnego wyboru. Auto: komputerowy na telewizorze</string>
+  <string name="settings_site_view_summary_tv">Dla witryn bez własnego wyboru. Auto: tabletowy na telewizorze</string>
   <string name="settings_site_view_summary_phone">Dla witryn bez własnego wyboru. Auto: mobilny na telefonie</string>
   <string name="settings_user_agent">User-Agent</string>
   <string name="settings_user_agent_summary">Jak przeglądarka przedstawia się witrynom. Auto: zgodnie z widokiem witryny</string>

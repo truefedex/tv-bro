@@ -68,6 +68,7 @@ import com.phlox.tvwebbrowser.utils.activemodel.ActiveModelsRepository
 import com.phlox.tvwebbrowser.utils.sameDay
 import com.phlox.tvwebbrowser.utils.themeColor
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.player.PictureInPicturePlayback
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
@@ -272,7 +273,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         requestedOrientation = shell.screenOrientation
         setContentView(shell.root)
         controller.viewHost = tabViewHost
-        controller.interfaceDesktopView = uiMode == UiMode.TV
+        controller.interfaceSiteView = if (uiMode == UiMode.TV) SiteView.TABLET else SiteView.MOBILE
 
         config.theme.subscribe(this.lifecycle, false) {
             when (it) {
@@ -501,8 +502,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         if (state.host.isEmpty()) return
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.site_view_s, state.host))
-            .setSingleChoiceItems(R.array.site_views, siteViewPosition(state.desktopView)) { dialog, position ->
-                controller.setSiteView(tab, desktop = position == SITE_VIEW_DESKTOP)
+            .setSingleChoiceItems(R.array.site_views, siteViewPosition(state.siteView)) { dialog, position ->
+                controller.setSiteView(tab, SITE_VIEWS[position])
                 dialog.dismiss()
             }
             .show()

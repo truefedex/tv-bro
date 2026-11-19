@@ -1,3 +1,0 @@
-* Various bugfixes and update for GeckoView engine
-* Localization updates
-* It was decided to leave support for WebView engine and recommend it for weaker devices

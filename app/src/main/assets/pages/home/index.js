@@ -5,6 +5,8 @@ var searchEngineUrlMap = {
         "ddg": "https://duckduckgo.com/?q=[query]",
         "yandex": "https://yandex.com/search/?text=[query]",
         "startpage": "https://www.startpage.com/sp/search?query=[query]",
+        //the app sends the address it searches with (with the partner ID of Qwant) when the engine is chosen
+        "qwant": "https://www.qwant.com/?q=[query]&t=web",
         "custom": ""
     };
 var recommendationsToDisplay = [];
@@ -25,8 +27,7 @@ if (!window.TVBro && typeof browser !== "undefined" && browser.runtime && browse
         onHomePageLoaded: function (searchBarX, searchBarY) {
             postToApp("onHomePageLoaded", { searchBarX: searchBarX, searchBarY: searchBarY });
         },
-        requestFavicon: function (url) { postToApp("requestFavicon", url); },
-        markBookmarkRecommendationAsUseful: function (index) { postToApp("markBookmarkRecommendationAsUseful", index); }
+        requestFavicon: function (url) { postToApp("requestFavicon", url); }
     };
     appPort.onMessage.addListener(function (message) {
         switch (message.action) {
@@ -75,9 +76,6 @@ function onSuggestionClicked(index) {
     var bookmark = null;
     if (homePageLinksMode === "BOOKMARKS" && window.hasOwnProperty( "TVBro" )) {
         bookmark = recommendationsToDisplay.find(function (b) { return b.order === index; });
-        if (bookmark && TVBro.hasOwnProperty("markBookmarkRecommendationAsUseful")) {
-            TVBro.markBookmarkRecommendationAsUseful(index);
-        }
     } else {
         if (index >= recommendationsToDisplay.length) return;
         bookmark = recommendationsToDisplay[index];

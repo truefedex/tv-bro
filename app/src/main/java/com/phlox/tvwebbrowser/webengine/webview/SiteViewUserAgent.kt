@@ -2,20 +2,19 @@ package com.phlox.tvwebbrowser.webengine.webview
 
 import android.webkit.WebSettings
 import android.webkit.WebView
-import androidx.webkit.ScriptHandler
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import com.phlox.tvwebbrowser.webengine.SiteView
 import java.net.URI
 
 /**
- * The desktop view of WebView: a desktop User-Agent (and client hints) built from the system one, so the
- * Chrome version stays current, and a wide viewport for pages that ask for the width of the device.
- * The mobile view is the system's own.
+ * The User-Agent (and client hints) of each [SiteView] in WebView, built from the system one, so the Chrome version
+ * stays current: Chrome of a desktop ([DesktopUserAgent]) or of an Android tablet ([TabletUserAgent]); the mobile
+ * view is the system's own. The wide viewport of the desktop and tablet views for pages that ask for the width of
+ * the device is written by [WebViewPageZoom] with the zoom of the page.
  */
-internal class DesktopView(private val webView: WebView) {
-    private var viewportScript: ScriptHandler? = null
+internal class SiteViewUserAgent(private val webView: WebView) {
     /** The client hints of the system, kept before the first change */
     private var systemUserAgentMetadata: UserAgentMetadata? = null
 
@@ -23,22 +22,37 @@ internal class DesktopView(private val webView: WebView) {
      * @param userAgent the User-Agent the user chose in place of the one of the view, null for the one of the
      * view. The client hints still follow the view: WebView can not be told to drop them once they were set.
      */
-    fun apply(desktop: Boolean, userAgent: String?) {
+    fun apply(view: SiteView, userAgent: String?) {
         val settings = webView.settings
         //the metadata of the system is kept before the User-Agent changes, which may change what WebView gives
         val metadataSupported = WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)
         val system = if (!metadataSupported) null else systemUserAgentMetadata
             ?: WebSettingsCompat.getUserAgentMetadata(settings).also { systemUserAgentMetadata = it }
         //null gives the system User-Agent back
-        settings.userAgentString = userAgent ?: if (desktop) DesktopUserAgent.from(systemUserAgent(webView)) else null
+        settings.userAgentString = userAgent ?: when (view) {
+            SiteView.DESKTOP -> DesktopUserAgent.from(systemUserAgent(webView))
+            SiteView.TABLET -> TabletUserAgent.from(systemUserAgent(webView))
+            SiteView.MOBILE -> null
+        }
         if (system != null) {
-            WebSettingsCompat.setUserAgentMetadata(settings, if (desktop) desktopMetadata(system) else system)
+            WebSettingsCompat.setUserAgentMetadata(settings, when (view) {
+                SiteView.DESKTOP -> desktopMetadata(system)
+                SiteView.TABLET -> tabletMetadata(system)
+                SiteView.MOBILE -> system
+            })
         }
-        viewportScript?.remove()
-        viewportScript = null
-        if (desktop && WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
-            viewportScript = WebViewCompat.addDocumentStartJavaScript(webView, WIDE_VIEWPORT_SCRIPT, setOf("*"))
+    }
+
+    /** What Chrome on an Android tablet gives: the platform of the system, not a phone, no model */
+    private fun tabletMetadata(system: UserAgentMetadata): UserAgentMetadata {
+        val builder = UserAgentMetadata.Builder(system)
+            .setBrandVersionList(DesktopUserAgent.brands(system.brandVersionList))
+            .setModel("")
+            .setMobile(false)
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA_FORM_FACTORS)) {
+            builder.setFormFactors(listOf("Tablet"))
         }
+        return builder.build()
     }
 
     private fun desktopMetadata(system: UserAgentMetadata): UserAgentMetadata {
@@ -61,29 +75,6 @@ internal class DesktopView(private val webView: WebView) {
 
         private fun systemUserAgent(webView: WebView): String =
             systemUserAgent ?: WebSettings.getDefaultUserAgent(webView.context).also { systemUserAgent = it }
-
-        /**
-         * Pages that set their viewport to the width of the device get the width of a desktop page, as in
-         * the desktop view of Chrome. Screens about as wide as that (TVs) keep the viewports of pages.
-         */
-        private const val WIDE_VIEWPORT_SCRIPT = """(function () {
-  var WIDE = 'width=980';
-  if (screen.width >= 960) return;
-  function widen() {
-    var metas = document.querySelectorAll('meta[name="viewport" i]');
-    for (var i = 0; i < metas.length; i++) {
-      if (metas[i].getAttribute('content') !== WIDE) metas[i].setAttribute('content', WIDE);
-    }
-  }
-  var options = {childList: true, subtree: true, attributes: true, attributeFilter: ['content']};
-  var observer = new MutationObserver(widen);
-  observer.observe(document, options);
-  document.addEventListener('DOMContentLoaded', function () {
-    widen();
-    observer.disconnect();
-    if (document.head) observer.observe(document.head, options);
-  });
-})();"""
     }
 }
 
@@ -132,6 +123,28 @@ internal object DesktopUserAgent {
         //not Chromium: only the signs of a phone and of WebView go away
         return systemUserAgent
             .replace(Regex("""Android [\d.]+;\s*"""), "")
+            .replace("; wv", "")
+            .replace(" Mobile", "")
+    }
+}
+
+/**
+ * The User-Agent of the tablet view: what Chrome on an Android tablet sends (the reduced User-Agent of Chrome, without
+ * "Mobile"), with the major version of the system Chrome. Sites mostly give it their desktop pages, and anti-bot
+ * checks (Cloudflare Turnstile) take it, as it says Android as everything else of WebView does; they refuse a
+ * desktop one.
+ */
+internal object TabletUserAgent {
+    private val CHROME_VERSION = Regex("""Chrome/(\d+)""")
+
+    fun from(systemUserAgent: String): String {
+        val major = CHROME_VERSION.find(systemUserAgent)?.groupValues?.get(1)
+        if (major != null) {
+            return "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) " +
+                "Chrome/$major.0.0.0 Safari/537.36"
+        }
+        //not Chromium: only the signs of a phone and of WebView go away
+        return systemUserAgent
             .replace("; wv", "")
             .replace(" Mobile", "")
     }

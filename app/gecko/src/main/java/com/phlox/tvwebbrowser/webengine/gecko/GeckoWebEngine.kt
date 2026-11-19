@@ -15,6 +15,7 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineProvider
@@ -22,6 +23,8 @@ import com.phlox.tvwebbrowser.webengine.WebEngineProviderCallback
 import com.phlox.tvwebbrowser.webengine.EngineSpecificSetting
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
+import com.phlox.tvwebbrowser.webengine.PageZoom
+import com.phlox.tvwebbrowser.webengine.PageZoomSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
 import com.phlox.tvwebbrowser.webengine.CursorModes
@@ -78,7 +81,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, SiteViewSupport,
+class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, SiteViewSupport, PageZoomSupport,
     MediaPlaybackSupport, PageVideosSupport, FindInPageSupport, CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
@@ -95,6 +98,18 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         var appWebExtension = ObservableValue<WebExtension?>(null)
         var weakRefToSingleGeckoView: WeakReference<GeckoViewWithVirtualCursor?> = WeakReference(null)
         val uiHandler = Handler(Looper.getMainLooper())
+        /** The width of the layout of a desktop page in CSS pixels, that of the desktop viewport of GeckoView */
+        private const val DESKTOP_WIDTH = 980
+        /**
+         * The User-Agent of the tablet view: the one of GeckoView (Firefox for Android) with "Tablet" in place of
+         * "Mobile", as Firefox on Android tablets sends it
+         */
+        private val TABLET_USER_AGENT: String by lazy {
+            GeckoSession.getDefaultUserAgent().replace("; Mobile;", "; Tablet;")
+        }
+        private const val ZOOM_REPLY_TIMEOUT_MS = 500L
+        /** The time GeckoView takes to settle the zoom after a pinch */
+        private const val PINCH_SETTLE_MS = 300L
 
         @UiThread
         fun initialize(context: Context, webViewContainer: ViewGroup) {
@@ -269,6 +284,11 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     override val cursorModes: StateFlow<CursorModes> = _cursorModes.asStateFlow()
     lateinit var session: GeckoSession
     var callback: WebEngineCallbacks? = null
+    /**
+     * The page that opened this session as a window at no web address (about:blank), until its first web page
+     * loads: that address is checked as a popup ([com.phlox.tvwebbrowser.webengine.EngineAdBlocker.shouldBlockPopup])
+     */
+    var popupOpener: String? = null
     val navigationDelegate = MyNavigationDelegate(this)
     val progressDelegate = MyProgressDelegate(this)
     val promptDelegate = MyPromptDelegate(this)
@@ -336,6 +356,51 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         _mediaState.value = mediaFrames.targetMedia() ?: sessionState
     }
 
+    /** The port of the content script of the top frame (the page), which gets the zoom of the page */
+    private var topFramePort: WebExtension.Port? = null
+    /** The questions of the zoom of the page waiting for the top frame (zoomed in, the zoom), by their ids */
+    private val zoomCallbacks = HashMap<Int, (Boolean, Double?) -> Unit>()
+    private var zoomRequests = 0
+
+    /** The content script of the top frame of a new document connected */
+    fun onTopFrame(port: WebExtension.Port) {
+        topFramePort = port
+    }
+
+    /** The content script of a frame disconnected */
+    fun onFrameGone(port: WebExtension.Port) {
+        if (topFramePort == port) topFramePort = null
+    }
+
+    /** The top frame told the zoom of the page relative to its width, and whether the user zoomed in */
+    fun onZoomReply(request: Int, zoomedIn: Boolean, visualZoom: Double?) {
+        zoomCallbacks.remove(request)?.invoke(zoomedIn, visualZoom)
+    }
+
+    /** Asks the top frame; a page that does not answer soon (still loading) counts as not zoomed in */
+    private fun askZoom(callback: (zoomedIn: Boolean, visualZoom: Double?) -> Unit) {
+        val port = topFramePort ?: return callback(false, null)
+        val request = ++zoomRequests
+        zoomCallbacks[request] = callback
+        port.postMessage(JSONObject().put("zoomRequest", request))
+        uiHandler.postDelayed({ onZoomReply(request, false, null) }, ZOOM_REPLY_TIMEOUT_MS)
+    }
+
+    override fun applyPageZoom(zoom: Int) {
+        pageZoomValue = zoom
+        applyViewportMode()
+        topFramePort?.postMessage(JSONObject().put("pageZoom", pageZoomSettings(zoom)))
+    }
+
+    override fun isZoomedIn(callback: (Boolean) -> Unit) = askZoom { zoomedIn, _ -> callback(zoomedIn) }
+
+    /** The pinch of the cursor; the page is asked once GeckoView has settled after the fingers are lifted */
+    override fun zoomVisually(zoomIn: Boolean, onDone: (Double?) -> Unit) {
+        val cursor = webView?.cursorDrawerDelegate ?: return onDone(null)
+        val onEnd: () -> Unit = { uiHandler.postDelayed({ askZoom { _, visualZoom -> onDone(visualZoom) } }, PINCH_SETTLE_MS) }
+        if (zoomIn) cursor.tryZoomIn(onEnd) else cursor.tryZoomOut(onEnd)
+    }
+
     /** Sends the command to the content script of the frame with the media; false if no frame has media */
     private fun sendToFrame(command: String): Boolean {
         val port = mediaFrames.target() ?: return false
@@ -375,32 +440,71 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         get() = navigationDelegate.locationURL
     override val stateFilePrefix: String
         get() = "gecko:"
-    /** The one of the user; GeckoView gives its own User-Agent only asynchronously */
+    /**
+     * The one of the user or of the tablet view; GeckoView gives its own User-Agent only asynchronously
+     */
     override val userAgentString: String?
-        get() = userAgentOverride
-
-    override var userAgentOverride: String?
         get() = session.settings.userAgentOverride
+
+    override var userAgentOverride: String? = null
         set(value) {
-            if (value != userAgentOverride) session.settings.userAgentOverride = value
+            field = value
+            applyUserAgentOverride()
         }
 
-    /** The desktop User-Agent and viewport of GeckoView; a change takes effect with the next load */
-    override var desktopView: Boolean
-        get() = session.settings.userAgentMode == GeckoSessionSettings.USER_AGENT_MODE_DESKTOP
+    /**
+     * The User-Agent and viewport modes of GeckoView: desktop for the desktop view; mobile for the others, where
+     * the tablet view has a User-Agent of its own ([TABLET_USER_AGENT]) and gets the width of the desktop view from
+     * page_zoom.js. A change takes effect with the next load.
+     */
+    override var view: SiteView = SiteView.MOBILE
         set(value) {
-            if (value == desktopView) return
-            session.settings.userAgentMode = if (value) GeckoSessionSettings.USER_AGENT_MODE_DESKTOP else
-                GeckoSessionSettings.USER_AGENT_MODE_MOBILE
-            session.settings.viewportMode = if (value) GeckoSessionSettings.VIEWPORT_MODE_DESKTOP else
-                GeckoSessionSettings.VIEWPORT_MODE_MOBILE
+            if (value == field) return
+            field = value
+            session.settings.userAgentMode = if (value == SiteView.DESKTOP) GeckoSessionSettings.USER_AGENT_MODE_DESKTOP
+                else GeckoSessionSettings.USER_AGENT_MODE_MOBILE
+            applyUserAgentOverride()
+            applyViewportMode()
             //the view is shared by all tabs: only the attached one sets its cursor
             if (callback != null) applyPointerMode()
         }
 
-    /** The cursor is a mouse for pages in the desktop view, a finger for the others */
+    /** The User-Agent of the user, else that of the tablet view in it */
+    private fun applyUserAgentOverride() {
+        val userAgent = userAgentOverride ?: if (view == SiteView.TABLET) TABLET_USER_AGENT else null
+        if (userAgent != session.settings.userAgentOverride) session.settings.userAgentOverride = userAgent
+    }
+
+    /** The page zoom of the page shown or loading */
+    private var pageZoomValue = PageZoom.DEFAULT
+
+    /**
+     * The desktop viewport of GeckoView ignores the viewport of the page, so a page zoomed out ([PageZoom]) gets the
+     * mobile viewport, where page_zoom.js writes the width of the desktop view with the zoom
+     */
+    private fun applyViewportMode() {
+        val mode = if (view == SiteView.DESKTOP && pageZoomValue == PageZoom.DEFAULT) GeckoSessionSettings.VIEWPORT_MODE_DESKTOP else
+            GeckoSessionSettings.VIEWPORT_MODE_MOBILE
+        if (session.settings.viewportMode != mode) session.settings.viewportMode = mode
+    }
+
+    /** A page of the [url] is to load: it gets the viewport of its page zoom */
+    fun onPageZoomOf(url: String) {
+        pageZoomValue = WebEngineFactory.pageZooms?.zoomOf(url) ?: PageZoom.DEFAULT
+        applyViewportMode()
+    }
+
+    /**
+     * What page_zoom.js of the top frame gets: the zoom of the page and, in a wide view (desktop, tablet) without
+     * the desktop viewport (also for a page that went there in the history with the viewport of another), the width
+     * of the desktop view
+     */
+    fun pageZoomSettings(zoom: Int): JSONObject = JSONObject().put("zoom", zoom).put("desktopWidth",
+        if (view.wide && session.settings.viewportMode == GeckoSessionSettings.VIEWPORT_MODE_MOBILE) DESKTOP_WIDTH else 0)
+
+    /** The cursor is a mouse for pages in a wide view (desktop, tablet), a finger in the mobile one */
     private fun applyPointerMode() {
-        webView?.cursorDrawerDelegate?.pointerMode = if (desktopView) PointerMode.MOUSE else PointerMode.TOUCH
+        webView?.cursorDrawerDelegate?.pointerMode = if (view.wide) PointerMode.MOUSE else PointerMode.TOUCH
     }
 
     init {
@@ -489,6 +593,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             if (!session.isOpen) {
                 session.open(runtime)
             }
+            onPageZoomOf(tab.url)
             session.restoreState(savedInstanceState)
         } else {
             throw IllegalArgumentException("savedInstanceState is not SessionState")
@@ -502,6 +607,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
 
     override fun loadUrl(url: String) {
         Log.d(TAG, "loadUrl($url)")
+        //what the user loads is no popup of the page that opened the window
+        popupOpener = null
         applyTrackingProtection()
         if (!session.isOpen) {
             session.open(runtime)
@@ -515,6 +622,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             }
             return
         }
+        onPageZoomOf(url)
         session.loadUri(url)
     }
 
@@ -745,7 +853,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         _findResult.value = null
     }
 
-    override suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap? {
+    override suspend fun renderThumbnail(bitmap: Bitmap?, onScreen: Boolean): Bitmap? {
         return webView?.renderThumbnail(bitmap)
     }
 

@@ -23,11 +23,15 @@ interface TabEngineEvents {
     fun onPageCertificateError(url: String?)
     fun onBlockedAd(uri: String)
     fun onBlockedDialog(newTab: Boolean)
+    /**
+     * The first page of this tab, a window a page opened, was blocked as a popup
+     * ([EngineAdBlocker.shouldBlockPopup]): the tab closes and the one that opened it is shown again
+     */
+    fun onPopupPageBlocked()
     fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View?
     fun closeWindow(internalRepresentation: Any)
     fun onVisited(url: String)
     fun getHomePageLinks(): List<HomePageLink>
-    fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int)
     /** The built-in home page has loaded; its search bar is at [x], [y] (pixels of the engine view) */
     fun onHomePageSearchBarLocated(x: Int, y: Int)
     /**
@@ -44,8 +48,8 @@ interface TabEngineEvents {
 interface EnginePolicies {
     fun isDialogsBlockingEnabled(): Boolean
     fun shouldBlockNewWindow(dialog: Boolean, userGesture: Boolean): Boolean
-    /** The pages of the [url]'s host load in the desktop view (see [SiteViewSupport]) */
-    fun isDesktopView(url: String): Boolean
+    /** The view the pages of the [url]'s host load in (see [SiteViewSupport]) */
+    fun siteViewOf(url: String): SiteView
 }
 
 /**

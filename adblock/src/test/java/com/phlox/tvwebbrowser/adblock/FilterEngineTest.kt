@@ -248,6 +248,70 @@ class FilterEngineTest {
     }
 
     @Test
+    fun popupsAreBlockedOnlyByPopupFilters() {
+        val e = compile("||ads.example.net^", "||pop.example^\$popup,third-party", "\$popup,domain=bad-opener.com",
+            "@@||pop.example/ok^\$popup")
+        val popup = ResourceType.POPUP
+        assertEquals(NONE, e.check("https://ads.example.net/", types = popup))
+        assertEquals(BLOCK, e.check("https://pop.example/go?id=1", page = "https://example.com/", types = popup))
+        //third-party to the page that opened it
+        assertEquals(NONE, e.check("https://pop.example/go", page = "https://www.pop.example/", types = popup))
+        assertEquals(ALLOW, e.check("https://pop.example/ok", page = "https://example.com/", types = popup))
+        assertEquals(BLOCK, e.check("https://any.example.org/", page = "https://www.bad-opener.com/", types = popup))
+        assertEquals(NONE, e.check("https://any.example.org/", page = "https://good.com/", types = popup))
+        //the requests and pages of those sites are not popups
+        assertEquals(NONE, e.check("https://pop.example/go.js"))
+        assertEquals(NONE, e.check("https://pop.example/", page = null, types = ResourceType.DOCUMENT))
+        assertEquals(NONE, e.check("https://any.example.org/a.js", page = "https://bad-opener.com/"))
+    }
+
+    @Test
+    fun pageExceptionAllowsPopupsOfThePage() {
+        val e = compile("||pop.example^\$popup", "@@||example.com^\$document")
+        assertEquals(ALLOW, e.check("https://pop.example/", page = "https://example.com/", types = ResourceType.POPUP))
+        assertEquals(BLOCK, e.check("https://pop.example/", page = "https://other.com/", types = ResourceType.POPUP))
+    }
+
+    private fun FilterEngine.navigation(url: String, page: String? = "https://site.com/") =
+        matchNavigation(url, TestPsl.host(url), page, page?.let(TestPsl::host))
+
+    @Test
+    fun navigationsToOtherSitesAreCancelledByWholeHostFilters() {
+        val e = compile("||ads.example.net^", "||bad.example^\$document", "/banner/*", "||cdn.example.org^\$script",
+            "||tracker.example^\$third-party", "||only.example^\$domain=other.com", "||pop.example^\$popup")
+        assertEquals(BLOCK, e.navigation("https://ads.example.net/?click=1"))
+        assertEquals(BLOCK, e.navigation("https://go.ads.example.net/"))
+        assertEquals(BLOCK, e.navigation("https://bad.example/"))
+        //not within the site itself, which the user may have opened
+        assertEquals(NONE, e.navigation("https://ads.example.net/next", page = "https://ads.example.net/"))
+        assertEquals(BLOCK, e.navigation("https://bad.example/next", page = "https://bad.example/"))
+        //without a page only the filters of pages
+        assertEquals(NONE, e.navigation("https://ads.example.net/", page = null))
+        //the party is that of the page (ad servers are mostly listed as third-party)
+        assertEquals(BLOCK, e.navigation("https://tracker.example/"))
+        //filters with other options or a path are of requests
+        assertEquals(NONE, e.navigation("https://x.com/banner/1"))
+        assertEquals(NONE, e.navigation("https://cdn.example.org/"))
+        assertEquals(NONE, e.navigation("https://only.example/", page = "https://other.com/"))
+        assertEquals(NONE, e.navigation("https://pop.example/"))
+    }
+
+    @Test
+    fun navigationExceptions() {
+        val e = compile("||ads.example.net^", "@@||ads.example.net/ok^", "@@||ads.example.net/img^\$image",
+            "@@||good.com^\$document", "||strict.example^\$important", "@@||strict.example^")
+        assertEquals(ALLOW, e.navigation("https://ads.example.net/ok"))
+        //an exception of other requests does not let the page load
+        assertEquals(BLOCK, e.navigation("https://ads.example.net/img"))
+        assertEquals(ALLOW, e.navigation("https://ads.example.net/", page = "https://good.com/"))
+        assertEquals(BLOCK, e.navigation("https://strict.example/"))
+        //an exception of the target page
+        val target = compile("||ads.example.net^", "@@||ads.example.net/landing^\$document")
+        assertEquals(ALLOW, target.navigation("https://ads.example.net/landing"))
+        assertEquals(BLOCK, target.navigation("https://ads.example.net/other"))
+    }
+
+    @Test
     fun filtersAreFoundByTheirTokens() {
         val e = compile("||example.org/ads/banner", "/adframe.", "-advert-")
         assertEquals(BLOCK, e.check("https://example.org/ads/banner.gif"))

@@ -1,5 +1,7 @@
 package com.phlox.tvwebbrowser.browser.search
 
+import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.utils.FaviconExtractor
 import org.json.JSONArray
@@ -20,7 +22,10 @@ import java.util.Locale
  */
 class SearchSuggestClient(
     private val open: (URL) -> URLConnection = { AppProxy.open(it) },
-    private val language: () -> String = { Locale.getDefault().toLanguageTag() }
+    private val language: () -> String = { Locale.getDefault().toLanguageTag() },
+    private val suggestLang: () -> String = {
+        SearchEngines.suggestLang(Locale.getDefault(), RegionDetector.country(AppContext.get()))
+    }
 ) {
     /**
      * The suggestions of the engine at [template] (with [SearchEngines.QUERY]) for the [query]; blocks
@@ -29,7 +34,11 @@ class SearchSuggestClient(
      */
     fun fetch(template: String, query: String): List<String> {
         if (!SearchEngines.isSuggestUrl(template)) throw IOException("Not an address of suggestions")
-        val url = URL(template.replace(SearchEngines.QUERY, URLEncoder.encode(query, "UTF-8")))
+        var filled = template.replace(SearchEngines.QUERY, URLEncoder.encode(query, "UTF-8"))
+        if (filled.contains(Config.SUGGEST_LANG)) {
+            filled = filled.replace(Config.SUGGEST_LANG, URLEncoder.encode(suggestLang(), "UTF-8"))
+        }
+        val url = URL(filled)
         val connection = open(url)
         try {
             connection.connectTimeout = TIMEOUT_MS

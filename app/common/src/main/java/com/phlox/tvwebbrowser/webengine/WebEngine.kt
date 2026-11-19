@@ -51,7 +51,11 @@ interface WebEngine {
     fun onPause()
     fun hideFullscreenView()
     fun togglePlayback()
-    suspend fun renderThumbnail(bitmap: Bitmap?): Bitmap?
+    /**
+     * A picture of the page (into [bitmap] when it fits). [onScreen]: the page is shown and the caller covers it
+     * right after, so the engine may take what the screen shows (nothing else may cover the page meanwhile)
+     */
+    suspend fun renderThumbnail(bitmap: Bitmap?, onScreen: Boolean = false): Bitmap?
     /**
      * At this point of time web view should be already created but not attached to window
      */

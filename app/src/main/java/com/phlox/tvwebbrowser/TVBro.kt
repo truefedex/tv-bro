@@ -5,12 +5,16 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.browser.ProxySetup
 import com.phlox.tvwebbrowser.browser.adblock.AppEngineAdBlocker
+import com.phlox.tvwebbrowser.browser.search.DefaultSearchEngine
+import com.phlox.tvwebbrowser.webengine.EnginePageZooms
+import com.phlox.tvwebbrowser.webengine.PageZoom
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
@@ -98,12 +102,15 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
             return
         }
 
-        val maxThreadsInOfflineJobsPool = Runtime.getRuntime().availableProcessors()
+        DefaultSearchEngine.applyOnce(AppContext.provideConfig(), this)
+
+        val maxThreadsInOfflineJobsPool =Runtime.getRuntime().availableProcessors()
         threadPool = ThreadPoolExecutor(0, maxThreadsInOfflineJobsPool, 20,
                 TimeUnit.SECONDS, ArrayBlockingQueue(maxThreadsInOfflineJobsPool))
 
         initWebEngineStuff()
         initAdBlocking()
+        initPageZooms()
 
         clearUpdateFilesAfterAppUpdate()
 
@@ -135,6 +142,19 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         val config = AppContext.provideConfig()
         container.adBlock.start(scheduleUpdates = Build.FINGERPRINT != "robolectric")
         WebEngineFactory.adBlocker = AppEngineAdBlocker(container.adBlock, container.data.hostConfigs, config)
+    }
+
+    /**
+     * The scripts of pages ask for the zoom of their host (see PageZoom), once per page: the repository is taken
+     * each time, it is made again when tests replace the database
+     */
+    private fun initPageZooms() {
+        WebEngineFactory.pageZooms = EnginePageZooms { url ->
+            val uri = Uri.parse(url)
+            val host = uri.host
+            if ((uri.scheme != "http" && uri.scheme != "https") || host.isNullOrEmpty()) PageZoom.DEFAULT
+            else container.data.hostConfigs.pageZoomSetting(host) ?: PageZoom.DEFAULT
+        }
     }
 
     private fun initWebEngineStuff() {

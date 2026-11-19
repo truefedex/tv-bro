@@ -21,4 +21,11 @@ object HomePageUrl {
             }
         }
     }
+
+    /** The [url] of a tab is the home page: the alias it was opened with, or the page the alias loads */
+    fun isHomePage(url: String?, config: Config): Boolean {
+        if (url == null) return false
+        val homePage = config.homePage
+        return url == homePage || url == Config.HOME_URL_ALIAS || url == resolve(homePage, config)
+    }
 }

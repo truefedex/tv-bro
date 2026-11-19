@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.data
 
+import com.phlox.tvwebbrowser.webengine.SiteView
 import androidx.room.Room
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.model.dao.HostsDao
@@ -79,42 +80,42 @@ class HostConfigRepositoryTest {
     }
 
     @Test
-    fun desktopViewSettingsOfAllHostsAreLoaded() = runBlocking {
-        db.hostsDao().setDesktopView("a.com", true)
-        db.hostsDao().setDesktopView("b.com", false)
+    fun siteViewSettingsOfAllHostsAreLoaded() = runBlocking {
+        db.hostsDao().setSiteView("a.com", SiteView.DESKTOP.code)
+        db.hostsDao().setSiteView("b.com", SiteView.MOBILE.code)
         db.hostsDao().setAdBlock("c.com", false)
-        assertNull(repository.desktopViewSetting("a.com"))
+        assertNull(repository.siteViewSetting("a.com"))
         repository.loadSiteSettings()
-        assertEquals(true, repository.desktopViewSetting("a.com"))
-        assertEquals(false, repository.desktopViewSetting("b.com"))
-        assertNull(repository.desktopViewSetting("c.com"))
+        assertEquals(SiteView.DESKTOP, repository.siteViewSetting("a.com"))
+        assertEquals(SiteView.MOBILE, repository.siteViewSetting("b.com"))
+        assertNull(repository.siteViewSetting("c.com"))
         assertEquals(false, repository.adBlockSetting("c.com"))
     }
 
     @Test
-    fun desktopViewSettingIsStoredWithTheOtherSettings() = runBlocking {
+    fun siteViewSettingIsStoredWithTheOtherSettings() = runBlocking {
         repository.setAdBlock("a.com", false)
-        repository.setDesktopView("a.com", true)
-        assertEquals(true, repository.desktopViewSetting("a.com"))
+        repository.setSiteView("a.com", SiteView.DESKTOP)
+        assertEquals(SiteView.DESKTOP, repository.siteViewSetting("a.com"))
         val stored = db.hostsDao().findByHostName("a.com")!!
-        assertEquals(true, stored.desktopView)
+        assertEquals(SiteView.DESKTOP.code, stored.siteView)
         assertEquals(false, stored.adblock)
 
-        repository.setDesktopView("a.com", null)
-        assertNull(repository.desktopViewSetting("a.com"))
-        assertNull(db.hostsDao().findByHostName("a.com")!!.desktopView)
+        repository.setSiteView("a.com", null)
+        assertNull(repository.siteViewSetting("a.com"))
+        assertNull(db.hostsDao().findByHostName("a.com")!!.siteView)
         assertEquals(false, repository.adBlockSetting("a.com"))
-        assertEquals(emptyList<HostsDao.DesktopViewSetting>(), db.hostsDao().desktopViewSettings())
+        assertEquals(emptyList<HostsDao.SiteViewSetting>(), db.hostsDao().siteViewSettings())
     }
 
     @Test
     fun playerSettingsOfAllHostsAreLoadedAndStoredWithTheOtherSettings() = runBlocking {
         db.hostsDao().setBuiltInPlayer("a.com", false)
-        db.hostsDao().setDesktopView("a.com", true)
+        db.hostsDao().setSiteView("a.com", SiteView.DESKTOP.code)
         assertNull(repository.builtInPlayerSetting("a.com"))
         repository.loadSiteSettings()
         assertEquals(false, repository.builtInPlayerSetting("a.com"))
-        assertEquals(true, repository.desktopViewSetting("a.com"))
+        assertEquals(SiteView.DESKTOP, repository.siteViewSetting("a.com"))
 
         repository.setBuiltInPlayer("b.com", true)
         assertEquals(true, repository.builtInPlayerSetting("b.com"))
@@ -124,8 +125,28 @@ class HostConfigRepositoryTest {
         assertNull(repository.builtInPlayerSetting("a.com"))
         val stored = db.hostsDao().findByHostName("a.com")!!
         assertNull(stored.builtInPlayer)
-        assertEquals(true, stored.desktopView)
+        assertEquals(SiteView.DESKTOP.code, stored.siteView)
         assertEquals(listOf(HostsDao.BuiltInPlayerSetting("b.com", true)), db.hostsDao().builtInPlayerSettings())
+    }
+
+    @Test
+    fun pageZoomsOfAllHostsAreLoadedAndStoredWithTheOtherSettings() = runBlocking {
+        db.hostsDao().setPageZoom("a.com", 80)
+        db.hostsDao().setSiteView("a.com", SiteView.DESKTOP.code)
+        assertNull(repository.pageZoomSetting("a.com"))
+        repository.loadSiteSettings()
+        assertEquals(80, repository.pageZoomSetting("a.com"))
+
+        repository.setPageZoom("b.com", 67)
+        assertEquals(67, repository.pageZoomSetting("b.com"))
+        assertEquals(67, db.hostsDao().findByHostName("b.com")!!.pageZoom)
+        //back to 100%: the other settings of the host stay
+        repository.setPageZoom("a.com", null)
+        assertNull(repository.pageZoomSetting("a.com"))
+        val stored = db.hostsDao().findByHostName("a.com")!!
+        assertNull(stored.pageZoom)
+        assertEquals(SiteView.DESKTOP.code, stored.siteView)
+        assertEquals(listOf(HostsDao.PageZoomSetting("b.com", 67)), db.hostsDao().pageZoomSettings())
     }
 
     @Test

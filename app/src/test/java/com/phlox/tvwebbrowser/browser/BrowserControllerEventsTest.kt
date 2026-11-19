@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
+import com.phlox.tvwebbrowser.webengine.SiteView
 import android.graphics.Bitmap
 import android.os.Looper
 import androidx.room.Room
@@ -10,6 +11,7 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
+import com.phlox.tvwebbrowser.webengine.PageZoom
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
@@ -25,6 +27,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -347,45 +350,190 @@ class BrowserControllerEventsTest {
 
     @Test
     fun siteViewFollowsTheInterfaceByDefault() {
-        controller.interfaceDesktopView = false
+        controller.interfaceSiteView = SiteView.MOBILE
         val tab = open("https://a.com/")
-        assertFalse(tab.fakeEngine.desktopView)
-        assertFalse(state.desktopView)
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
+        assertEquals(SiteView.MOBILE, state.siteView)
         assertTrue(state.siteViewIsDefault)
-        controller.interfaceDesktopView = true
+        controller.interfaceSiteView = SiteView.TABLET
         controller.navigate("https://b.com/")
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
+    }
+
+    @Test
+    fun hostsCanHaveEachOfTheThreeViews() {
+        val tab = open("https://a.com/")
+        assertEquals(SiteView.TABLET, state.siteView)
+        awaitWrite(controller.setSiteView(tab, SiteView.DESKTOP))
+        assertEquals(SiteView.DESKTOP, tab.fakeEngine.view)
+        assertEquals(SiteView.DESKTOP, state.siteView)
+        assertEquals(SiteView.DESKTOP.code, runBlocking { db.hostsDao().findByHostName("a.com") }!!.siteView)
+        awaitWrite(controller.setSiteView(tab, SiteView.MOBILE))
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
+        assertEquals(SiteView.MOBILE.code, runBlocking { db.hostsDao().findByHostName("a.com") }!!.siteView)
+    }
+
+    @Test
+    fun defaultSiteViewOfOlderVersionsIsKept() {
+        config.prefs.edit().putBoolean(Config.LEGACY_DEFAULT_SITE_VIEW_KEY, true).commit()
+        assertEquals(SiteView.DESKTOP, config.defaultSiteView)
+        config.prefs.edit().putBoolean(Config.LEGACY_DEFAULT_SITE_VIEW_KEY, false).commit()
+        assertEquals(SiteView.MOBILE, config.defaultSiteView)
+        config.defaultSiteView = SiteView.TABLET
+        assertEquals(SiteView.TABLET, config.defaultSiteView)
+        assertFalse(config.prefs.contains(Config.LEGACY_DEFAULT_SITE_VIEW_KEY))
+        config.defaultSiteView = null
+        assertNull(config.defaultSiteView)
     }
 
     @Test
     fun siteViewOfAHostIsKeptOnlyWhileItDiffersFromTheDefault() {
         val tab = open("https://a.com/")
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         tab.fakeEngine.log.clear()
-        awaitWrite(controller.setSiteView(tab, desktop = false))
-        assertFalse(tab.fakeEngine.desktopView)
+        awaitWrite(controller.setSiteView(tab, SiteView.MOBILE))
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
         assertEquals(listOf("reload"), tab.fakeEngine.log)
-        assertFalse(state.desktopView)
+        assertEquals(SiteView.MOBILE, state.siteView)
         assertFalse(state.siteViewIsDefault)
-        assertEquals(false, runBlocking { db.hostsDao().findByHostName("a.com") }!!.desktopView)
+        assertEquals(SiteView.MOBILE.code, runBlocking { db.hostsDao().findByHostName("a.com") }!!.siteView)
 
-        awaitWrite(controller.setSiteView(tab, desktop = true))
-        assertTrue(tab.fakeEngine.desktopView)
+        awaitWrite(controller.setSiteView(tab, SiteView.TABLET))
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         assertTrue(state.siteViewIsDefault)
-        assertNull(runBlocking { db.hostsDao().findByHostName("a.com") }!!.desktopView)
+        assertNull(runBlocking { db.hostsDao().findByHostName("a.com") }!!.siteView)
+    }
+
+    @Test
+    fun windowTabStartsInTheViewOfItsOpener() {
+        //its first page, mostly of the opener's site, then does not start again in another view
+        val a = open("https://a.com/")
+        awaitWrite(controller.setSiteView(a, SiteView.DESKTOP))
+        a.callback.onCreateWindow(dialog = false, userGesture = true)
+        val windowTab = controller.tabsStates[1]
+        assertEquals("", windowTab.url)
+        assertEquals(SiteView.DESKTOP, windowTab.fakeEngine.view)
+    }
+
+    /** Runs the main looper until the page zoom of the [host] is written */
+    private fun awaitPageZoom(host: String, zoom: Int?) {
+        val deadline = System.currentTimeMillis() + 5000
+        while (runBlocking { db.hostsDao().findByHostName(host) }?.pageZoom != zoom) {
+            assertTrue("page zoom $zoom of $host not written", System.currentTimeMillis() < deadline)
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(1)
+        }
+    }
+
+    @Test
+    fun zoomOutGoesBelowTheWidthOfThePageWithThePageZoomOfItsHost() {
+        val tab = open("https://a.com/page")
+        val told = ArrayList<Int>()
+        //zoomed in: the engine zooms out first, and tells how far it is zoomed in then
+        tab.fakeEngine.zoomedIn = true
+        tab.fakeEngine.visualZoom = 1.25
+        controller.zoomOut(tab) { told += it }
+        assertEquals(listOf("zoomOut"), tab.fakeEngine.log.filter { it.startsWith("zoom") })
+        assertEquals(listOf(125), told)
+        told.clear()
+        //at the width of the page: the page zoom of the host steps down
+        tab.fakeEngine.zoomedIn = false
+        controller.zoomOut(tab) { told += it }
+        controller.zoomOut(tab) { told += it }
+        assertEquals(listOf(90, 80), told)
+        assertEquals(listOf(90, 80), tab.fakeEngine.pageZooms)
+        awaitPageZoom("a.com", 80)
+        //other pages of the host ask for it
+        assertEquals(80, WebEngineFactory.pageZooms?.zoomOf("https://a.com/other"))
+        assertEquals(PageZoom.DEFAULT, WebEngineFactory.pageZooms?.zoomOf("https://b.com/"))
+        //the smallest stays and is told again
+        repeat(PageZoom.STEPS.size) { controller.zoomOut(tab) { told += it } }
+        assertEquals(PageZoom.STEPS.first(), told.last())
+        assertEquals(PageZoom.STEPS.first(), tab.fakeEngine.pageZooms.last())
+    }
+
+    @Test
+    fun zoomInGivesThePageItsWidthBackBeforeTheEngineZoomsIn() {
+        val tab = open("https://a.com/")
+        val told = ArrayList<Int>()
+        controller.zoomOut(tab) { told += it }
+        awaitPageZoom("a.com", 90)
+        tab.fakeEngine.log.clear()
+        controller.zoomIn(tab) { told += it }
+        assertEquals(listOf(90, 100), told)
+        assertEquals(listOf(90, 100), tab.fakeEngine.pageZooms)
+        //100% is no setting of the host
+        awaitPageZoom("a.com", null)
+        assertEquals(emptyList<String>(), tab.fakeEngine.log.filter { it.startsWith("zoom") })
+        //at 100% the engine zooms in and tells its zoom
+        tab.fakeEngine.visualZoom = 1.5
+        controller.zoomIn(tab) { told += it }
+        assertEquals(listOf("zoomIn"), tab.fakeEngine.log.filter { it.startsWith("zoom") })
+        assertEquals(listOf(90, 100, 150), told)
+        //a page that does not tell its zoom: nothing is told
+        tab.fakeEngine.visualZoom = null
+        controller.zoomIn(tab) { told += it }
+        assertEquals(listOf(90, 100, 150), told)
+    }
+
+    @Test
+    fun aPinchOfAZoomedOutPageIsToldWithThePageZoom() {
+        val tab = open("https://a.com/")
+        val told = ArrayList<Int>()
+        controller.zoomOut(tab) { told += it }
+        controller.zoomOut(tab) { told += it }
+        awaitPageZoom("a.com", 80)
+        //zoomed in at 80% (with fingers, on a phone): zooming out tells the zoom of both
+        tab.fakeEngine.zoomedIn = true
+        tab.fakeEngine.visualZoom = 1.5
+        controller.zoomOut(tab) { told += it }
+        assertEquals(listOf(90, 80, 120), told)
+    }
+
+    @Test
+    fun theHomePageHasNoPageZoom() {
+        val tab = open(Config.HOME_PAGE_URL)
+        controller.zoomOut(tab) { fail("the home page has no page zoom") }
+        assertEquals(listOf("zoomOut"), tab.fakeEngine.log.filter { it.startsWith("zoom") })
+        assertEquals(emptyList<Int>(), tab.fakeEngine.pageZooms)
+    }
+
+    @Test
+    fun qwantGetsTheMobileViewUntilTheUserChoosesAnother() {
+        val tab = open("https://www.qwant.com/?q=tv")
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
+        assertEquals(SiteView.MOBILE, state.siteView)
+        assertTrue(state.siteViewIsDefault)
+        awaitWrite(controller.setSiteView(tab, SiteView.DESKTOP))
+        assertEquals(SiteView.DESKTOP, tab.fakeEngine.view)
+        assertFalse(state.siteViewIsDefault)
+        assertEquals(SiteView.DESKTOP.code, runBlocking { db.hostsDao().findByHostName("www.qwant.com") }!!.siteView)
+        //back to the view of the list: no setting of its own
+        awaitWrite(controller.setSiteView(tab, SiteView.MOBILE))
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
+        assertTrue(state.siteViewIsDefault)
+    }
+
+    @Test
+    fun theListOfSiteViewsTakesSubdomains() {
+        assertEquals(SiteView.MOBILE, SiteViewDefaults.siteView("qwant.com"))
+        assertEquals(SiteView.MOBILE, SiteViewDefaults.siteView("WWW.Qwant.com."))
+        assertNull(SiteViewDefaults.siteView("notqwant.com"))
+        assertNull(SiteViewDefaults.siteView("qwant.com.example.org"))
+        assertNull(SiteViewDefaults.siteView("com"))
     }
 
     @Test
     fun defaultSiteViewSettingWinsOverTheInterface() {
         val tab = open("https://a.com/")
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         tab.fakeEngine.log.clear()
-        config.defaultDesktopView = false
+        config.defaultSiteView = SiteView.MOBILE
         controller.onSiteViewSettingsChanged()
-        assertFalse(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
         assertEquals(listOf("reload"), tab.fakeEngine.log)
-        assertFalse(state.desktopView)
-        config.defaultDesktopView = null
+        assertEquals(SiteView.MOBILE, state.siteView)
+        config.defaultSiteView = null
     }
 
     @Test
@@ -403,7 +551,7 @@ class BrowserControllerEventsTest {
             assertEquals(listOf("reload"), current.fakeEngine.log)
             assertFalse("reload" in first.fakeEngine.log)
             //the site view stays
-            assertTrue(current.fakeEngine.desktopView)
+            assertEquals(SiteView.TABLET, current.fakeEngine.view)
         } finally {
             config.userAgent = null
         }
@@ -425,7 +573,7 @@ class BrowserControllerEventsTest {
         FakeWebEngine.clearedSites.clear()
         FakeWebEngine.clearedKinds.clear()
         val tab = open("https://www.a.com/page")
-        runBlocking { db.hostsDao().setDesktopView("www.a.com", false) }
+        runBlocking { db.hostsDao().setSiteView("www.a.com", SiteView.MOBILE.code) }
         tab.fakeEngine.log.clear()
         runBlocking { controller.clearSiteData(tab) }
         assertEquals(listOf("www.a.com"), FakeWebEngine.clearedSites)
@@ -433,7 +581,7 @@ class BrowserControllerEventsTest {
         assertEquals(listOf("reload"), tab.fakeEngine.log)
         assertTrue(state.siteDataClearable)
         //the settings of the site stay
-        assertEquals(false, runBlocking { db.hostsDao().findByHostName("www.a.com") }!!.desktopView)
+        assertEquals(SiteView.MOBILE.code, runBlocking { db.hostsDao().findByHostName("www.a.com") }!!.siteView)
     }
 
     @Test
@@ -456,18 +604,30 @@ class BrowserControllerEventsTest {
     @Test
     fun pageInTheViewOfAnotherHostLoadsAgainOnce() {
         val tab = open("https://a.com/")
-        awaitWrite(controller.setSiteView(tab, desktop = false))
+        awaitWrite(controller.setSiteView(tab, SiteView.MOBILE))
         //going back to a page of another host, which the engine did not switch the view for
         tab.fakeEngine.loadedUrls += "https://b.com/"
         tab.fakeEngine.log.clear()
         tab.callback.onPageStarted("https://b.com/")
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         assertEquals(listOf("reload"), tab.fakeEngine.log)
         //the page loaded again redirects back by its view: no second reload
         tab.fakeEngine.loadedUrls += "https://a.com/"
         tab.callback.onPageStarted("https://a.com/")
-        assertTrue(tab.fakeEngine.desktopView)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
         assertEquals(listOf("reload"), tab.fakeEngine.log)
+    }
+
+    @Test
+    fun aPageOfAnotherViewStartingBeforeItCommitsIsNotLoadedAgain() {
+        val tab = open(Config.HOME_PAGE_URL)
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
+        //the home page searches Qwant: GeckoView switched the view for it and still tells the home page as its url
+        tab.fakeEngine.view = SiteView.MOBILE
+        tab.fakeEngine.log.clear()
+        tab.callback.onPageStarted("https://www.qwant.com/?q=tv")
+        assertEquals(SiteView.MOBILE, tab.fakeEngine.view)
+        assertEquals(emptyList<String>(), tab.fakeEngine.log)
     }
 
     @Test
@@ -577,6 +737,37 @@ class BrowserControllerEventsTest {
         val windowTab = controller.tabsStates[1]
         assertSame(view, windowTab.fakeEngine.engineView)
         assertEquals(listOf(a, windowTab, b), controller.tabsStates.toList())
+    }
+
+    @Test
+    fun blockedPopupPageClosesItsTabAndShowsTheOpener() {
+        val a = open("https://a.com/")
+        val b = open("https://b.com/")
+        controller.changeTab(a)
+        a.callback.onCreateWindow(dialog = false, userGesture = true)
+        val windowTab = controller.tabsStates[1]
+        assertSame(windowTab, controller.currentTab.value)
+        events.clear()
+        windowTab.callback.onPopupPageBlocked()
+        assertEquals(listOf(a, b), controller.tabsStates.toList())
+        assertSame(a, controller.currentTab.value)
+        assertEquals(1, state.blockedPopups)
+        assertEquals(listOf<BrowserUiEvent>(BrowserUiEvent.PopupBlocked(true)), events.filterIsInstance<BrowserUiEvent.PopupBlocked>())
+    }
+
+    @Test
+    fun blockedPopupOfAClosedOpenerShowsTheNextTab() {
+        val a = open("https://a.com/")
+        val b = open("https://b.com/")
+        controller.changeTab(a)
+        a.callback.onOpenInNewTabRequested("about:blank", navigateImmediately = false)
+        val popup = controller.tabsStates[1]
+        controller.closeTab(a)
+        assertNull(popup.openerTab)
+        controller.changeTab(popup)
+        popup.callback.onPopupPageBlocked()
+        assertEquals(listOf(b), controller.tabsStates.toList())
+        assertSame(b, controller.currentTab.value)
     }
 
     @Test

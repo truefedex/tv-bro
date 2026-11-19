@@ -44,6 +44,8 @@ class BrowserTab(var id: Long = 0,
     val isWebEngineCreated: Boolean get() = webEngineHolder.isInitialized()
     var blockedAds = 0
     var blockedPopups = 0
+    /** The tab whose page opened this one (not kept): a blocked popup closes and goes back to it */
+    var openerTab: BrowserTab? = null
     /**
      * The host whose certificate was refused on this tab: its pages stay insecure (also after the user
      * went on despite the error) until the user navigates somewhere or the tab shows another host

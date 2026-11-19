@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.SiteView
 
 /**
  * The settings of the app. [credentialsPrefs] keeps the secrets (the login of the proxy): its file is left out
@@ -19,7 +20,9 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         /** The host of the search engine [CUSTOM_SEARCH_SUGGEST_URL_KEY] was given for */
         const val CUSTOM_SEARCH_SUGGEST_HOST_KEY = "custom_search_suggest_host"
         const val HOME_PAGE_KEY = "home_page"
-        const val DEFAULT_SITE_VIEW_KEY = "default_desktop_view"
+        /** The default site view of older versions: true for desktop, false for mobile */
+        const val LEGACY_DEFAULT_SITE_VIEW_KEY = "default_desktop_view"
+        const val DEFAULT_SITE_VIEW_KEY = "default_site_view"
         const val USER_AGENT_KEY = "user_agent"
         /** In the User-Agents of old versions, which should not be kept */
         private const val LEGACY_USER_AGENT_PREFIX = "TV Bro/1.0 "
@@ -80,11 +83,37 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         /** The prefs of [credentialsPrefs] (the file `credentials.xml`), left out of backups (`backup_rules.xml`) */
         const val CREDENTIALS_PREFS_NAME = "credentials"
 
-        val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Startpage", "Custom")
-        val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "startpage", "custom")
+        /** The pref of the version of [DEFAULT_SEARCH_ENGINE_VERSION] the search engine was last set by */
+        const val DEFAULT_SEARCH_ENGINE_VERSION_KEY = "default_search_engine_v"
+        /** Raised when the default search engine of some users changes, so it is chosen for them again once */
+        const val DEFAULT_SEARCH_ENGINE_VERSION = 1
+
+        /**
+         * The partner ID of Qwant, the `client` parameter of its searches, given to the build (`qwantClientId`):
+         * not in the repository, so forks do not send it; empty in builds without it
+         */
+        val QWANT_CLIENT_ID: String = com.phlox.tvwebbrowser.common.BuildConfig.QWANT_CLIENT_ID
+        /** The build has the partner ID of Qwant: Qwant is the default search engine in the partner countries */
+        val QWANT_PARTNER = QWANT_CLIENT_ID.isNotEmpty()
+        private val QWANT_CLIENT_PARAM = if (QWANT_PARTNER) "&client=$QWANT_CLIENT_ID" else ""
+        /** The address of Qwant's searches without the partner ID */
+        private const val QWANT_SEARCH_URL = "https://www.qwant.com/?q=[query]&t=web"
+
+        val SearchEnginesTitles = arrayOf("Google", "Bing", "Yahoo!", "DuckDuckGo", "Yandex", "Startpage", "Qwant", "Custom")
+        val SearchEnginesNames = arrayOf("google", "bing", "yahoo", "ddg", "yandex", "startpage", "qwant", "custom")
         val SearchEnginesURLs = listOf("https://www.google.com/search?q=[query]", "https://www.bing.com/search?q=[query]",
             "https://search.yahoo.com/search?p=[query]", "https://duckduckgo.com/?q=[query]",
-            "https://yandex.com/search/?text=[query]", "https://www.startpage.com/sp/search?query=[query]", "")
+            "https://yandex.com/search/?text=[query]", "https://www.startpage.com/sp/search?query=[query]",
+            QWANT_SEARCH_URL + QWANT_CLIENT_PARAM, "")
+        const val QWANT_INDEX = 6
+        /**
+         * The page each search engine opens as the home page (the home page mode of the search engine); empty: the
+         * origin of its search address
+         */
+        val SearchEnginesHomeURLs = listOf("", "", "", "", "", "",
+            if (QWANT_PARTNER) "https://www.qwant.com/?client=$QWANT_CLIENT_ID" else "https://www.qwant.com/", "")
+        /** In the addresses of suggestions: the language and the country of the user, as fr_fr ([QWANT_INDEX]) */
+        const val SUGGEST_LANG = "[lang]"
         /**
          * Where each search engine gives the suggestions of a text ("[query]"), as OpenSearch suggestions:
          * a JSON array of the text and the array of the suggestions
@@ -95,17 +124,51 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
             "https://ff.search.yahoo.com/gossip?output=fxjson&command=[query]",
             "https://duckduckgo.com/ac/?q=[query]&type=list",
             "https://suggest.yandex.com/suggest-ff.cgi?part=[query]",
-            "https://www.startpage.com/osuggestions?q=[query]", "")
+            "https://www.startpage.com/osuggestions?q=[query]",
+            //client=opensearch is the format of the answer, not the partner ID
+            "https://api.qwant.com/api/suggest/?q=[query]&client=opensearch&lang=$SUGGEST_LANG", "")
         const val HOME_PAGE_URL = "https://tvbro.phlox.dev/appcontent/home/"
 
         /** The host of the address of a search engine (with "[query]") in lower case, null when it has none */
         fun searchEngineHost(url: String): String? = try {
             //the placeholder is not a legal part of a URI
-            java.net.URI(url.trim().replace("[query]", "q")).host?.lowercase()?.ifEmpty { null }
+            java.net.URI(url.trim().replace("[query]", "q").replace(SUGGEST_LANG, "l")).host?.lowercase()?.ifEmpty { null }
         } catch (e: Exception) {
             null
         }
         //const val HOME_PAGE_URL = "http://10.0.2.2:5000/appcontent/home/"
+
+        /**
+         * The address of an engine of the list for the forms of it the app itself made: Qwant's without the partner
+         * ID (the home page sends it) or with another one (a value of an older build); other addresses as they are
+         */
+        fun canonicalSearchEngineUrl(url: String): String {
+            if (url == QWANT_SEARCH_URL) return SearchEnginesURLs[QWANT_INDEX]
+            val clientPrefix = "$QWANT_SEARCH_URL&client="
+            if (url.startsWith(clientPrefix)) {
+                val client = url.substring(clientPrefix.length)
+                if (client.isNotEmpty() && client.all { it.isLetterOrDigit() || it in "-_." }) {
+                    return SearchEnginesURLs[QWANT_INDEX]
+                }
+            }
+            return url
+        }
+
+        /**
+         * The address of the search engine the built-in home page chose: that of the list for a name of it (the page
+         * knows Qwant without the partner ID), the [url] it sent for the user's own engine
+         */
+        fun searchEngineUrlOfHomePage(engine: String, url: String): String {
+            val index = SearchEnginesNames.indexOf(engine)
+            return if (index >= 0 && SearchEnginesURLs[index].isNotEmpty()) SearchEnginesURLs[index] else url
+        }
+
+        /** The page the search engine of [searchUrl] opens as the home page, null when it has none */
+        fun searchEngineHomeUrl(searchUrl: String): String? {
+            val index = SearchEnginesURLs.indexOf(searchUrl)
+            if (index >= 0 && SearchEnginesHomeURLs[index].isNotEmpty()) return SearchEnginesHomeURLs[index]
+            return """^https?://[^#?/]+""".toRegex().find(searchUrl)?.value
+        }
     }
 
     enum class Theme {
@@ -301,7 +364,37 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
             prefs.edit().putString(HOME_PAGE_KEY, value).apply()
         }
 
-    var searchEngineURL = ObservableStringPreference(SearchEnginesURLs[0], SEARCH_ENGINE_URL_PREF_KEY)
+    var searchEngineURL = object : ObservableValue<String>(SearchEnginesURLs[0]) {
+        override var value: String = canonicalSearchEngineUrl(prefs.getString(SEARCH_ENGINE_URL_PREF_KEY, SearchEnginesURLs[0])!!)
+            set(value) {
+                val url = canonicalSearchEngineUrl(value)
+                prefs.edit().putString(SEARCH_ENGINE_URL_PREF_KEY, url).apply()
+                field = url
+                notifyObservers()
+            }
+    }
+
+    /**
+     * Sets the search engine ([searchEngineURL]) and, while the home page is that of the search engine
+     * ([HomePageMode.SEARCH_ENGINE]), the home page too
+     */
+    fun setSearchEngine(url: String) {
+        searchEngineURL.value = url
+        if (homePageMode == HomePageMode.SEARCH_ENGINE) {
+            homePage = searchEngineHomeUrl(searchEngineURL.value) ?: HOME_URL_ALIAS
+        }
+    }
+
+    /** The user (or the app) has saved a search engine; else [searchEngineURL] is the first of the list */
+    val searchEngineSaved: Boolean
+        get() = prefs.contains(SEARCH_ENGINE_URL_PREF_KEY)
+
+    /** The [DEFAULT_SEARCH_ENGINE_VERSION] the default search engine was last chosen by, 0 never */
+    var defaultSearchEngineVersion: Int
+        get() = prefs.getInt(DEFAULT_SEARCH_ENGINE_VERSION_KEY, 0)
+        set(value) {
+            prefs.edit().putInt(DEFAULT_SEARCH_ENGINE_VERSION_KEY, value).apply()
+        }
 
     /**
      * The text typed into the address field is sent to the search engine, which suggests searches for it
@@ -356,14 +449,20 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         }
 
     /**
-     * The site view of sites without their own: true for desktop, false for mobile; null follows the
-     * interface (desktop on TV, mobile on phones). Can be read from any thread.
+     * The site view of sites without their own; null follows the interface (tablet on TV, mobile on phones).
+     * The choice of older versions (desktop or mobile) is kept. Can be read from any thread.
      */
-    var defaultDesktopView: Boolean?
-        get() = if (prefs.contains(DEFAULT_SITE_VIEW_KEY)) prefs.getBoolean(DEFAULT_SITE_VIEW_KEY, true) else null
+    var defaultSiteView: SiteView?
+        get() = when {
+            prefs.contains(DEFAULT_SITE_VIEW_KEY) -> SiteView.ofCode(prefs.getInt(DEFAULT_SITE_VIEW_KEY, -1))
+            prefs.contains(LEGACY_DEFAULT_SITE_VIEW_KEY) ->
+                if (prefs.getBoolean(LEGACY_DEFAULT_SITE_VIEW_KEY, true)) SiteView.DESKTOP else SiteView.MOBILE
+            else -> null
+        }
         set(value) {
-            if (value == null) prefs.edit().remove(DEFAULT_SITE_VIEW_KEY).apply()
-            else prefs.edit().putBoolean(DEFAULT_SITE_VIEW_KEY, value).apply()
+            val editor = prefs.edit().remove(LEGACY_DEFAULT_SITE_VIEW_KEY)
+            if (value == null) editor.remove(DEFAULT_SITE_VIEW_KEY) else editor.putInt(DEFAULT_SITE_VIEW_KEY, value.code)
+            editor.apply()
         }
 
     /**
@@ -528,14 +627,5 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         val index = SearchEnginesURLs.indexOf(url)
         return if (index != -1 && index < SearchEnginesNames.size)
             SearchEnginesNames[index] else SearchEnginesNames[SearchEnginesNames.size - 1]
-    }
-
-    inner class ObservableStringPreference(default: String, private val prefsKey: String) : ObservableValue<String>(default) {
-        override var value: String = prefs.getString(prefsKey, default)!!
-            set(value) {
-                prefs.edit().putString(prefsKey, value).apply()
-                field = value
-                notifyObservers()
-            }
     }
 }

@@ -1,3 +1,0 @@
-* Engine changing: GeckoView implementation added
-* Home page design updated
-* Startpage added to default search engines list (thanks to felfert)

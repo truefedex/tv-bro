@@ -6,7 +6,9 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.utils.DownloadUtils
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
+import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import org.json.JSONArray
+import org.json.JSONObject
 
 
 class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
@@ -23,40 +25,39 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
 
     @JavascriptInterface
     fun startVoiceSearch() {
-        if (!isHomePage()) return
-        val callback = webEngine.callback ?: return
-        callback.getActivity().runOnUiThread { callback.initiateVoiceSearch() }
+        onHomePage { callback -> callback.initiateVoiceSearch() }
     }
 
     @JavascriptInterface
     fun setSearchEngine(engine: String, customSearchEngineURL: String) {
-        if (!isHomePage()) return
-        //a setting of the app: the kids profile changes none
-        if (AppContext.kidsProfile) return
-        AppContext.provideConfig().searchEngineURL.value = customSearchEngineURL
+        onHomePage {
+            val cfg = AppContext.provideConfig()
+            //a setting of the app: the kids profile changes none, and the page shows the engine again
+            if (!AppContext.kidsProfile) {
+                cfg.setSearchEngine(Config.searchEngineUrlOfHomePage(engine, customSearchEngineURL))
+            }
+            //the page searches with the address it keeps: the one of the app has the partner ID of Qwant
+            val name = JSONObject.quote(cfg.guessSearchEngineName())
+            val url = JSONObject.quote(cfg.searchEngineURL.value)
+            webEngine.evaluateJavascript("applySearchEngine($name, $url)")
+        }
     }
 
     @JavascriptInterface
     fun onEditBookmark(index: Int) {
-        if (!isHomePage()) return
-        val callback = webEngine.callback ?: return
-        callback.getActivity().runOnUiThread { callback.onEditHomePageBookmarkSelected(index) }
+        onHomePage { callback -> callback.onEditHomePageBookmarkSelected(index) }
     }
 
     /** The page reports where its search bar is (device pixels of the view) */
     @JavascriptInterface
     fun onHomePageLoaded(searchBarX: Int, searchBarY: Int) {
         onHomePageLoaded()
-        if (!isHomePage()) return
-        val callback = webEngine.callback ?: return
-        callback.getActivity().runOnUiThread { callback.onHomePageSearchBarLocated(searchBarX, searchBarY) }
+        onHomePage { callback -> callback.onHomePageSearchBarLocated(searchBarX, searchBarY) }
     }
 
     @JavascriptInterface
     fun onHomePageLoaded() {
-        if (!isHomePage()) return
-        val callback = webEngine.callback ?: return
-        callback.getActivity().runOnUiThread {
+        onHomePage { callback ->
             val cfg = AppContext.provideConfig()
             val jsArr = JSONArray()
             for (item in callback.getHomePageLinks()) {
@@ -78,14 +79,22 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
             fileName = finalFileName, mimeType = mimetype, base64BlobData = base64BlobData))
     }
 
-    @JavascriptInterface
-    fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
-        if (!isHomePage()) return
+    /**
+     * Runs [action] on the main thread if the page of the view is the home page. Calls of the page come on a
+     * thread of WebView, and a page loaded from the cache (going back to it while another page loads) calls
+     * before the main thread has its onPageStarted, so `tab.url` still had the page before it then. The url of
+     * the view is the page that committed.
+     */
+    private inline fun onHomePage(crossinline action: (WebEngineCallbacks) -> Unit) {
         val callback = webEngine.callback ?: return
-        callback.getActivity().runOnUiThread { callback.markBookmarkRecommendationAsUseful(bookmarkOrder) }
+        callback.getActivity().runOnUiThread {
+            val current = webEngine.callback ?: return@runOnUiThread
+            if (isHomePage()) action(current)
+        }
     }
 
     private fun isHomePage(): Boolean {
-        return webEngine.tab.url == Config.HOME_PAGE_URL || webEngine.tab.url == Config.HOME_URL_ALIAS
+        val url = webEngine.url ?: webEngine.tab.url
+        return url == Config.HOME_PAGE_URL || url == Config.HOME_URL_ALIAS
     }
 }

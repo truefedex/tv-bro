@@ -36,6 +36,12 @@ class CursorMenuView @JvmOverloads constructor(
     private var lastShowTime = 0L
     private var openAnimator: ValueAnimator? = null
 
+    /**
+     * Zooms the page of the tab in (true) or out, set by the shell: past the steps of the engine's own zoom it
+     * changes the zoom of the page (see BrowserController.zoomOut)
+     */
+    var onZoom: ((tab: BrowserTab, zoomIn: Boolean) -> Unit)? = null
+
     /** Closes the menu on Back while it is shown */
     val backCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
@@ -89,7 +95,7 @@ class CursorMenuView @JvmOverloads constructor(
         vb.btnZoomIn.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 postDelayed({
-                    menuContext?.tab?.webEngine?.zoomIn()
+                    menuContext?.tab?.let { onZoom?.invoke(it, true) }
                     vb.btnGrabMode.requestFocus()
                 }, 100)
             }
@@ -97,7 +103,7 @@ class CursorMenuView @JvmOverloads constructor(
         vb.btnZoomOut.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 postDelayed({
-                    menuContext?.tab?.webEngine?.zoomOut()
+                    menuContext?.tab?.let { onZoom?.invoke(it, false) }
                     vb.btnGrabMode.requestFocus()
                 }, 100)
             }

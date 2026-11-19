@@ -54,6 +54,7 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.webengine.MediaCommand
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.webengine.MediaState
 import com.phlox.tvwebbrowser.webengine.PageVideo
@@ -99,13 +100,21 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
      */
     @Volatile
     private var requestPageUrl: Uri? = null
+    /**
+     * The page that opened this view as a window, until its first web page is asked for: that address is checked
+     * as a popup ([com.phlox.tvwebbrowser.webengine.EngineAdBlocker.shouldBlockPopup]). Read on the threads of
+     * WebView.
+     */
+    @Volatile
+    var popupOpener: Uri? = null
     /** The error page of the main frame load that failed: written over the error page of WebView when it loads */
     private var pendingErrorPage: PendingErrorPage? = null
     /** The url and the threat type of the last Safe Browsing hit of the main frame, for its error page */
     private var safeBrowsingThreat: Pair<String, Int>? = null
     private val uiHandler = Handler(Looper.getMainLooper())
     private val config = AppContext.provideConfig()
-    private val desktopView = DesktopView(this)
+    private val siteViewUserAgent = SiteViewUserAgent(this)
+    private val pageZoom = WebViewPageZoom(this)
     private val mediaControls = WebViewMediaControls(this, { callback.onMediaStateChanged(it) },
         { callback.onPageVideosChanged(it) }, { callback.onMediaVideoChanged(it) })
     private val elementHiding = WebViewElementHiding(this) { requestPageUrl ?: currentOriginalUrl }
@@ -149,9 +158,12 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onReceivedIcon(icon: Bitmap)
         fun requestPermissions(array: Array<String>, geo: Boolean)
         fun shouldOverrideUrlLoading(url: String): Boolean
+        /** Whether the page at [url] needs another site view than the view has (changes nothing) */
+        fun changesSiteView(url: String): Boolean
         /**
-         * The page goes to [url]: gives the view the site view of its host.
-         * @return true if the view changed (the navigation starts again with it)
+         * The page goes to [url]: gives the view the site view of its host. Never call it from a callback of
+         * a navigation that is starting (see [WebViewEx]'s shouldOverrideUrlLoading).
+         * @return true if the view changed
          */
         fun switchSiteView(url: String): Boolean
         fun onPageStarted(url: String?)
@@ -161,6 +173,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun isDialogsBlockingEnabled(): Boolean
         fun onBlockedAd(url: Uri)
         fun onBlockedDialog(newTab: Boolean)
+        fun onPopupPageBlocked()
         fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
         fun closeWindow(window: WebView)
         fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long)
@@ -363,6 +376,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
             override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
                 val webView = callback.onCreateWindow(isDialog, isUserGesture) ?: return false
+                //WebView tells the address of the window only when it loads
+                webView.popupOpener = view.url?.toUri()
                 (resultMsg.obj as WebView.WebViewTransport).webView = webView
                 resultMsg.sendToTarget()
                 return true
@@ -378,12 +393,25 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 Log.d(TAG, "shouldOverrideUrlLoading url: ${request.url}")
                 val url = request.url.toString()
                 if (callback.shouldOverrideUrlLoading(url)) return true
+                //the app's own loads do not come here: this is the page (a script, a link, a redirect). The page
+                //is the one that started: view.url is already the address of this navigation
+                if (request.isForMainFrame &&
+                    WebEngineFactory.adBlocker?.shouldCancelNavigation(request.url, currentOriginalUrl) == true) {
+                    Log.d(TAG, "Cancelled navigation to an ad: ${request.url}")
+                    callback.onBlockedAd(request.url)
+                    return true
+                }
                 //the page of another site may need another view; the User-Agent of a navigation is chosen
                 //when it starts, so it starts again (POST requests and redirects do not come here,
-                //the browser core loads such pages again after they start)
+                //the browser core loads such pages again after they start). The User-Agent changes only after
+                //this returns: while a page loads, WebView reloads it when its User-Agent changes, and a
+                //navigation started in the start of another one ends the process (SIGTRAP of a CHECK of Chromium)
                 if (request.isForMainFrame && !request.isRedirect && request.url.scheme.let { it == "http" || it == "https" } &&
-                    callback.switchSiteView(url)) {
-                    loadUrl(url)
+                    callback.changesSiteView(url)) {
+                    uiHandler.post {
+                        callback.switchSiteView(url)
+                        loadUrl(url)
+                    }
                     return true
                 }
                 return false
@@ -417,14 +445,20 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 //every tab asks, also one in the background (its callbacks are not set then)
                 val blocker = WebEngineFactory.adBlocker ?: return super.shouldInterceptRequest(view, request)
                 val isMainFrame = request.isForMainFrame
+                val opener = popupOpener
+                if (isMainFrame && opener != null && request.url.scheme.let { it == "http" || it == "https" }) {
+                    popupOpener = null
+                    if (blocker.shouldBlockPopup(request.url, opener)) {
+                        uiHandler.post { callback.onPopupPageBlocked() }
+                        return blockedResponse()
+                    }
+                }
                 if (isMainFrame) requestPageUrl = request.url
                 val page = if (isMainFrame) request.url else requestPageUrl ?: currentPageUrl
                 val ad = blocker.shouldBlock(request.url, null, request.requestHeaders["Accept"], isMainFrame, page, page)
                 return if (ad) {
                     uiHandler.post { callback.onBlockedAd(request.url) }
-                    val response = WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
-                    response.setStatusCodeAndReasonPhrase(403, "Blocked")
-                    response
+                    blockedResponse()
                 } else super.shouldInterceptRequest(view, request)
             }
 
@@ -436,6 +470,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 requestPageUrl = currentOriginalUrl
                 mediaControls.onPageStarted()
                 elementHiding.onPageStarted()
+                pageZoom.onPageStarted()
                 callback.onPageStarted(url)
             }
 
@@ -451,6 +486,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 evaluateJavascript(getGenericJSInjects(), null)
                 mediaControls.onPageFinished()
                 elementHiding.onPageFinished()
+                pageZoom.onPageFinished()
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
@@ -608,6 +644,13 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         return super.dispatchGenericMotionEvent(event)
     }
 
+    /** The answer to a blocked request: empty, 403 */
+    private fun blockedResponse(): WebResourceResponse {
+        val response = WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
+        response.setStatusCodeAndReasonPhrase(403, "Blocked")
+        return response
+    }
+
     private fun showCertificateErrorPage(error: SslError) {
         callback.onPageCertificateError(error.url)
         lastSSLError = error
@@ -618,10 +661,19 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     }
 
     /**
-     * Pages load as on a desktop computer or as on a phone, with the [userAgent] in place of the one of the view
-     * if not null; takes effect with the next load
+     * Pages load in the [view], with the [userAgent] in place of the one of the view if not null; takes effect
+     * with the next load
      */
-    fun setSiteView(desktop: Boolean, userAgent: String?) = desktopView.apply(desktop, userAgent)
+    fun setSiteView(view: SiteView, userAgent: String?) {
+        siteViewUserAgent.apply(view, userAgent)
+        pageZoom.wideView = view.wide
+    }
+
+    /** Gives the page shown the [zoom] (see [com.phlox.tvwebbrowser.webengine.PageZoom]) at once */
+    fun applyPageZoom(zoom: Int) = pageZoom.apply(zoom)
+
+    /** Tells the zoom of the page relative to its width once a zoom just started has settled */
+    fun visualZoom(callback: (Double?) -> Unit) = pageZoom.visualZoom(callback)
 
     override fun loadUrl(url: String) {
         when {

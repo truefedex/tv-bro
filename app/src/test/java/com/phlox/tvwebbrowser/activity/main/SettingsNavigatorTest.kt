@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Category
@@ -63,7 +64,7 @@ class SettingsNavigatorTest {
         override suspend fun bookmarkFolders() = folders
         override var channelTabs = false
         override var channelDownloads = false
-        override var defaultDesktopView: Boolean? = null
+        override var defaultSiteView: SiteView? = null
         override var userAgent: String? = null
         override var allowAutoplayMedia = false
         override var adBlockEnabled = true
@@ -343,11 +344,13 @@ class SettingsNavigatorTest {
         navigator.show(Category.SITES)
         assertEquals(SettingsNavigator.SITE_VIEW_AUTO, row<Row.Choice>(Key.SITE_VIEW).selected)
         navigator.choose(Key.SITE_VIEW, SettingsNavigator.SITE_VIEW_MOBILE_OPTION)
-        assertEquals(false, store.defaultDesktopView)
+        assertEquals(SiteView.MOBILE, store.defaultSiteView)
         navigator.choose(Key.SITE_VIEW, SettingsNavigator.SITE_VIEW_DESKTOP_OPTION)
-        assertEquals(true, store.defaultDesktopView)
+        assertEquals(SiteView.DESKTOP, store.defaultSiteView)
         navigator.choose(Key.SITE_VIEW, SettingsNavigator.SITE_VIEW_AUTO)
-        assertNull(store.defaultDesktopView)
+        assertNull(store.defaultSiteView)
+        navigator.choose(Key.SITE_VIEW, SettingsNavigator.SITE_VIEW_TABLET_OPTION)
+        assertEquals(SiteView.TABLET, store.defaultSiteView)
     }
 
     @Test

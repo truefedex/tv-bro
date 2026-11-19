@@ -28,16 +28,11 @@ class SettingsModel : ActiveModel() {
     }//makeObservable(config::keepScreenOn)
 
     fun setSearchEngineURL(url: String) {
-        config.searchEngineURL.value = url
-        if (homePageMode == Config.HomePageMode.SEARCH_ENGINE) {
-            updateHomeAsSearchEngine(url)
-        }
+        config.setSearchEngine(url)
     }
 
     private fun updateHomeAsSearchEngine(url: String) {
-        val regexForUrl = """^https?://[^#?/]+""".toRegex()
-        val homePageUrl = regexForUrl.find(url)?.value ?: Config.HOME_URL_ALIAS
-        homePage = homePageUrl
+        homePage = Config.searchEngineHomeUrl(url) ?: Config.HOME_URL_ALIAS
     }
 
     fun setHomePageProperties(homePageMode: Config.HomePageMode, customHomePageUrl: String?, homePageLinksMode: Config.HomePageLinksMode) {

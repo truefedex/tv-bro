@@ -1,4 +1,0 @@
-* Popup blocking re-implemented (thank you WIStudent for implementation ideas and MR)
-* More options and fix for link context menu (thank you MailYouLater for string-case fix)
-* Several other small bugs fixed
-* Translations updated

@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.gecko.GeckoWebEngine
@@ -53,8 +54,14 @@ class AppHomePagePortDelegate(val port: WebExtension.Port, val webEngine: GeckoW
                     val data = msgJson.getJSONObject("data")
                     val engine = data.getString("engine")
                     val customSearchEngineURL = data.getString("customSearchEngineURL")
-                    //a setting of the app: the kids profile changes none
-                    if (!AppContext.kidsProfile) AppContext.provideConfig().searchEngineURL.value = customSearchEngineURL
+                    val cfg = AppContext.provideConfig()
+                    //a setting of the app: the kids profile changes none, and the page shows the engine again
+                    if (!AppContext.kidsProfile) {
+                        cfg.setSearchEngine(Config.searchEngineUrlOfHomePage(engine, customSearchEngineURL))
+                    }
+                    //the page searches with the address it keeps: the one of the app has the partner ID of Qwant
+                    port.postMessage(pageCall("applySearchEngine",
+                        JSONObject().put("engine", cfg.guessSearchEngineName()).put("url", cfg.searchEngineURL.value)))
                 }
                 "onEditBookmark" -> {
                     val index = msgJson.getInt("data")
@@ -76,11 +83,6 @@ class AppHomePagePortDelegate(val port: WebExtension.Port, val webEngine: GeckoW
                             port.postMessage(msg)
                         }
                     }
-                }
-                "markBookmarkRecommendationAsUseful" -> {
-                    val bookmarkOrder = msgJson.getInt("data")
-                    val callback = webEngine.callback ?: return
-                    callback.markBookmarkRecommendationAsUseful(bookmarkOrder)
                 }
             }
         } catch (e: Exception) {

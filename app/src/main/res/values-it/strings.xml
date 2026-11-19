@@ -120,6 +120,7 @@
   <string name="media_rewind">Riavvolgi</string>
   <string name="media_fast_forward">Avanti veloce</string>
   <string name="find_in_page">Trova nella pagina</string>
+  <string name="zoom_percent">Zoom: %d%%</string>
   <string name="find_in_page_previous">Risultato precedente</string>
   <string name="find_in_page_next">Risultato successivo</string>
   <string name="find_in_page_close">Chiudi la ricerca nella pagina</string>
@@ -252,6 +253,7 @@
   <string name="default_site_view">Visualizzazione predefinita dei siti</string>
   <array name="site_views">
     <item>Desktop</item>
+    <item>Tablet</item>
     <item>Mobile</item>
   </array>
   <string name="site_settings_of">Impostazioni di %s</string>
@@ -512,8 +514,9 @@
   <string name="settings_group_site_view">Visualizzazione dei siti</string>
   <string name="settings_auto">Automatica</string>
   <string name="settings_desktop">Desktop</string>
+  <string name="settings_tablet">Tablet</string>
   <string name="settings_mobile">Mobile</string>
-  <string name="settings_site_view_summary_tv">Per i siti senza una scelta propria. Automatica: desktop su un TV</string>
+  <string name="settings_site_view_summary_tv">Per i siti senza una scelta propria. Automatica: tablet su un TV</string>
   <string name="settings_site_view_summary_phone">Per i siti senza una scelta propria. Automatica: mobile su un telefono</string>
   <string name="settings_user_agent">User-Agent</string>
   <string name="settings_user_agent_summary">Come il browser si presenta ai siti. Automatico: secondo la visualizzazione del sito</string>

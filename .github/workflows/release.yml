@@ -19,6 +19,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Check the partner ID of Qwant
+        env:
+          QWANT_CLIENT_ID: ${{ secrets.QWANT_CLIENT_ID }}
+        run: |
+          if [ -z "$QWANT_CLIENT_ID" ]; then
+            echo "::error::The secret QWANT_CLIENT_ID is not set: releases must carry the partner ID of Qwant"
+            exit 1
+          fi
+
       - uses: actions/checkout@v7
 
       - uses: actions/setup-java@v6
@@ -36,6 +45,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          QWANT_CLIENT_ID: ${{ secrets.QWANT_CLIENT_ID }}
 
       - name: Decode keystore2
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore_ge.jks
@@ -47,6 +57,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          QWANT_CLIENT_ID: ${{ secrets.QWANT_CLIENT_ID }}
 
       - name: Rename artifacts
         run: |

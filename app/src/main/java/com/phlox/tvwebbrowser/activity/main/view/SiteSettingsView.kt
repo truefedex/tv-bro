@@ -106,7 +106,7 @@ class SiteSettingsView @JvmOverloads constructor(
         val siteView = if (state.siteViewAvailable) VISIBLE else GONE
         vb.vSiteViewSeparator.visibility = siteView
         vb.llSiteView.visibility = siteView
-        vb.tvSiteViewValue.text = resources.getStringArray(R.array.site_views)[siteViewPosition(state.desktopView)]
+        vb.tvSiteViewValue.text = resources.getStringArray(R.array.site_views)[siteViewPosition(state.siteView)]
         vb.tvSiteViewCaption.setText(if (state.siteViewIsDefault) R.string.site_view_default else R.string.site_view_of_site)
         //the TV Bro player is the one of the TV interface
         val player = if (variant == Variant.PANEL && state.host.isNotEmpty()) VISIBLE else GONE

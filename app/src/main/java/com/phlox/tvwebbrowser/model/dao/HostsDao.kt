@@ -15,15 +15,22 @@ interface HostsDao {
     )
 
     /** The site view setting of a host that has one */
-    data class DesktopViewSetting(
+    data class SiteViewSetting(
         @ColumnInfo(name = "host_name") val hostName: String,
-        @ColumnInfo(name = "desktop_view") val desktopView: Boolean
+        /** [com.phlox.tvwebbrowser.webengine.SiteView.code] */
+        @ColumnInfo(name = "desktop_view") val siteView: Int
     )
 
     /** The player of fullscreen videos of a host that has one */
     data class BuiltInPlayerSetting(
         @ColumnInfo(name = "host_name") val hostName: String,
         @ColumnInfo(name = "built_in_player") val builtInPlayer: Boolean
+    )
+
+    /** The page zoom of a host that has one */
+    data class PageZoomSetting(
+        @ColumnInfo(name = "host_name") val hostName: String,
+        @ColumnInfo(name = "page_zoom") val pageZoom: Int
     )
 
     @Query("SELECT * FROM hosts WHERE host_name = :name")
@@ -33,10 +40,13 @@ interface HostsDao {
     suspend fun adBlockSettings(): List<AdBlockSetting>
 
     @Query("SELECT host_name, desktop_view FROM hosts WHERE desktop_view IS NOT NULL")
-    suspend fun desktopViewSettings(): List<DesktopViewSetting>
+    suspend fun siteViewSettings(): List<SiteViewSetting>
 
     @Query("SELECT host_name, built_in_player FROM hosts WHERE built_in_player IS NOT NULL")
     suspend fun builtInPlayerSettings(): List<BuiltInPlayerSetting>
+
+    @Query("SELECT host_name, page_zoom FROM hosts WHERE page_zoom IS NOT NULL")
+    suspend fun pageZoomSettings(): List<PageZoomSetting>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIfAbsent(item: HostConfig): Long
@@ -50,11 +60,14 @@ interface HostsDao {
     @Query("UPDATE hosts SET adblock = :adblock WHERE host_name = :host")
     suspend fun updateAdBlock(host: String, adblock: Boolean?)
 
-    @Query("UPDATE hosts SET desktop_view = :desktopView WHERE host_name = :host")
-    suspend fun updateDesktopView(host: String, desktopView: Boolean?)
+    @Query("UPDATE hosts SET desktop_view = :siteView WHERE host_name = :host")
+    suspend fun updateSiteView(host: String, siteView: Int?)
 
     @Query("UPDATE hosts SET built_in_player = :builtInPlayer WHERE host_name = :host")
     suspend fun updateBuiltInPlayer(host: String, builtInPlayer: Boolean?)
+
+    @Query("UPDATE hosts SET page_zoom = :pageZoom WHERE host_name = :host")
+    suspend fun updatePageZoom(host: String, pageZoom: Int?)
 
     @Transaction
     suspend fun setPopupBlockLevel(host: String, level: Int?) {
@@ -75,14 +88,20 @@ interface HostsDao {
     }
 
     @Transaction
-    suspend fun setDesktopView(host: String, desktopView: Boolean?) {
+    suspend fun setSiteView(host: String, siteView: Int?) {
         insertIfAbsent(HostConfig(host))
-        updateDesktopView(host, desktopView)
+        updateSiteView(host, siteView)
     }
 
     @Transaction
     suspend fun setBuiltInPlayer(host: String, builtInPlayer: Boolean?) {
         insertIfAbsent(HostConfig(host))
         updateBuiltInPlayer(host, builtInPlayer)
+    }
+
+    @Transaction
+    suspend fun setPageZoom(host: String, pageZoom: Int?) {
+        insertIfAbsent(HostConfig(host))
+        updatePageZoom(host, pageZoom)
     }
 }

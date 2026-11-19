@@ -28,10 +28,14 @@ import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
+import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.TabEngineEvents
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
+import com.phlox.tvwebbrowser.webengine.PageZoom
+import com.phlox.tvwebbrowser.webengine.PageZoomSupport
+import com.phlox.tvwebbrowser.webengine.pageZoom
 import com.phlox.tvwebbrowser.webengine.siteView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -43,6 +47,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 /**
  * Browser core: owns the tabs (their list, the current one, their persistence) and
@@ -76,10 +81,10 @@ class BrowserController : ActiveModel() {
     var viewHost: TabViewHost? = null
     /**
      * The site view of sites without their own: the activity sets it from the interface it shows
-     * (desktop on TV, mobile on phones)
+     * (tablet on TV, mobile on phones)
      */
     @Volatile
-    var interfaceDesktopView = true
+    var interfaceSiteView = SiteView.TABLET
 
     private val _currentTabState = MutableStateFlow(CurrentTabState())
     val currentTabState: StateFlow<CurrentTabState> = _currentTabState.asStateFlow()
@@ -224,7 +229,11 @@ class BrowserController : ActiveModel() {
                 tab.webEngine.onDetachFromWindow(completely = true, destroyTab = true)
             }
         }
-        tabsStates.removeAll(tabs.toSet())
+        val removed = tabs.toSet()
+        tabsStates.removeAll(removed)
+        for (tab in tabsStates) {
+            if (tab.openerTab in removed) tab.openerTab = null
+        }
         writes.enqueue {
             for (tab in tabs) {
                 //the id and the file names are final here: earlier writes of the tab are done
@@ -358,6 +367,8 @@ class BrowserController : ActiveModel() {
         val webView = host.createTabView(tab) ?: return null
         val currentTab = currentTab.value ?: return null
         val index = tabsStates.indexOf(currentTab) + 1
+        Log.d(TAG, "openWindowTab: index: $index")
+        tab.openerTab = currentTab
         tabsStates.add(index, tab)
         changeTab(tab)
         return webView
@@ -501,16 +512,19 @@ class BrowserController : ActiveModel() {
     }
 
     /**
-     * Whether pages of the [url]'s host load in the desktop view: its own setting or the default.
+     * The view pages of the [url]'s host load in: its own setting or the default.
      * Can be called from any thread.
      */
-    fun isDesktopView(url: String): Boolean {
-        val host = hostNameOf(url) ?: return defaultDesktopView
-        return hostConfigs.desktopViewSetting(host) ?: defaultDesktopView
+    fun siteViewOf(url: String): SiteView {
+        val host = hostNameOf(url) ?: return defaultSiteView
+        return hostConfigs.siteViewSetting(host) ?: defaultSiteViewOf(host)
     }
 
     /** The site view of sites without their own: the setting, or the one of the interface */
-    val defaultDesktopView: Boolean get() = config.defaultDesktopView ?: interfaceDesktopView
+    val defaultSiteView: SiteView get() = config.defaultSiteView ?: interfaceSiteView
+
+    /** The view of the [host] while it has no setting of its own: that of [SiteViewDefaults], else the default */
+    fun defaultSiteViewOf(host: String): SiteView = SiteViewDefaults.siteView(host) ?: defaultSiteView
 
     /**
      * Whether the videos that pages of the [host] put in fullscreen go to the built-in player: its own setting
@@ -562,11 +576,11 @@ class BrowserController : ActiveModel() {
      * A host keeps its own setting only while it differs from the default one.
      * @return the write of the setting; null if the tab's url has no host
      */
-    fun setSiteView(tab: BrowserTab, desktop: Boolean): Job? {
+    fun setSiteView(tab: BrowserTab, view: SiteView): Job? {
         val host = hostNameOf(tab) ?: return null
-        val setting = if (desktop == defaultDesktopView) null else desktop
+        val setting = if (view == defaultSiteViewOf(host)) null else view
         //the in-memory setting changes right away, the write is not cancelled with the model
-        val write = TVBro.container.appScope.launch { hostConfigs.setDesktopView(host, setting) }
+        val write = TVBro.container.appScope.launch { hostConfigs.setSiteView(host, setting) }
         if (applySiteView(tab) && tab == currentTab.value) {
             tab.webEngine.reload()
         }
@@ -575,17 +589,83 @@ class BrowserController : ActiveModel() {
     }
 
     /**
-     * Gives the engine of the tab the view of its host and the User-Agent of the user (it takes effect with the
-     * next load).
+     * Zooms the page of the tab out: as a pinch does while the user zoomed in past the width of the page, else to
+     * the next smaller page zoom of its host ([PageZoom]), which the page gets at once and the next pages of the
+     * host when they load. [onZoom] is told the zoom in percent after it (also when the page zoom is the smallest
+     * already): the page zoom times that of the pinch, which the engine tells once it has settled.
+     */
+    fun zoomOut(tab: BrowserTab, onZoom: (Int) -> Unit) {
+        val engine = tab.webEngine
+        val support = engine.pageZoom
+        val host = pageHostOf(tab)
+        if (support == null || host == null) {
+            engine.zoomOut()
+            return
+        }
+        support.isZoomedIn { zoomedIn ->
+            if (zoomedIn) {
+                zoomVisually(support, host, zoomIn = false, onZoom)
+                return@isZoomedIn
+            }
+            val zoom = PageZoom.smaller(pageZoomOf(host))
+            if (zoom != null) setPageZoom(tab, host, zoom)
+            onZoom(zoom ?: pageZoomOf(host))
+        }
+    }
+
+    /**
+     * Zooms the page of the tab in: to the next bigger page zoom of its host while it is below 100%, else as a
+     * pinch does. [onZoom] is told the zoom in percent after it (see [zoomOut]).
+     */
+    fun zoomIn(tab: BrowserTab, onZoom: (Int) -> Unit) {
+        val engine = tab.webEngine
+        val support = engine.pageZoom
+        val host = pageHostOf(tab)
+        if (support == null || host == null) {
+            engine.zoomIn()
+            return
+        }
+        val zoom = PageZoom.bigger(pageZoomOf(host))
+        if (zoom == null) {
+            zoomVisually(support, host, zoomIn = true, onZoom)
+            return
+        }
+        setPageZoom(tab, host, zoom)
+        onZoom(zoom)
+    }
+
+    /** The pinch of the engine, told as the page zoom of the [host] times its own (the page may not tell it) */
+    private fun zoomVisually(support: PageZoomSupport, host: String, zoomIn: Boolean, onZoom: (Int) -> Unit) {
+        support.zoomVisually(zoomIn) { visualZoom ->
+            if (visualZoom != null) onZoom((pageZoomOf(host) * visualZoom).roundToInt())
+        }
+    }
+
+    /** The host of the page the engine shows (its scripts ask for the zoom of that one) */
+    private fun pageHostOf(tab: BrowserTab): String? =
+        hostNameOf((if (tab.isWebEngineCreated) tab.webEngine.url else null) ?: tab.url)
+
+    private fun pageZoomOf(host: String): Int = hostConfigs.pageZoomSetting(host) ?: PageZoom.DEFAULT
+
+    private fun setPageZoom(tab: BrowserTab, host: String, zoom: Int) {
+        //the in-memory setting changes right away, the write is not cancelled with the model
+        TVBro.container.appScope.launch { hostConfigs.setPageZoom(host, zoom.takeIf { it != PageZoom.DEFAULT }) }
+        tab.webEngine.pageZoom?.applyPageZoom(zoom)
+    }
+
+    /**
+     * Gives the engine of the tab the view of the host of [url] (its page by default; for a window a page opened
+     * that has none yet, the page of its opener, whose site it mostly shows, so its first page does not start
+     * again in another view) and the User-Agent of the user (it takes effect with the next load).
      * @return true if the view changed
      */
-    private fun applySiteView(tab: BrowserTab): Boolean {
+    private fun applySiteView(tab: BrowserTab, url: String = tab.url.ifEmpty { tab.openerTab?.url.orEmpty() }): Boolean {
         if (!tab.isWebEngineCreated) return false
         val siteView = tab.webEngine.siteView ?: return false
-        val desktop = isDesktopView(tab.url)
+        val view = siteViewOf(url)
         val userAgent = config.userAgent
-        if (siteView.desktopView == desktop && siteView.userAgentOverride == userAgent) return false
-        siteView.desktopView = desktop
+        if (siteView.view == view && siteView.userAgentOverride == userAgent) return false
+        siteView.view = view
         siteView.userAgentOverride = userAgent
         return true
     }
@@ -737,8 +817,8 @@ class BrowserController : ActiveModel() {
             popupBlockLevel = findHostConfig(tab)?.popupBlockLevel ?: HostConfig.DEFAULT_BLOCK_POPUPS_VALUE,
             connection = connectionOf(tab),
             siteViewAvailable = tab.webEngine.siteView != null,
-            desktopView = isDesktopView(tab.url),
-            siteViewIsDefault = hostNameOf(tab)?.let { hostConfigs.desktopViewSetting(it) } == null,
+            siteView = siteViewOf(tab.url),
+            siteViewIsDefault = hostNameOf(tab)?.let { hostConfigs.siteViewSetting(it) } == null,
             builtInPlayer = prefersBuiltInPlayer(hostNameOf(tab) ?: ""),
             builtInPlayerIsDefault = hostNameOf(tab)?.let { hostConfigs.builtInPlayerSetting(it) } == null,
             siteDataClearable = WebEngineFactory.supportsSiteDataClearing()
@@ -771,6 +851,7 @@ class BrowserController : ActiveModel() {
 
         override fun onOpenInNewTabRequested(url: String, navigateImmediately: Boolean): WebEngine? {
             val newTab = openInNewTabAfterCurrent(url, navigateImmediately) ?: return null
+            newTab.openerTab = tab
             sendUiEvent(BrowserUiEvent.TabOpenedByPage)
             return newTab.webEngine
         }
@@ -855,8 +936,10 @@ class BrowserController : ActiveModel() {
             tab.blockedPopups = 0
             tab.loading = true
             //a page that came in the view of another host (going back, a redirect) loads again in its own,
-            //once: hosts redirecting to each other by the view must not reload forever
-            if (!siteViewCorrected && applySiteView(tab)) {
+            //once: hosts redirecting to each other by the view must not reload forever. The view is that of the
+            //page that starts: GeckoView still tells the page before it as its url until the new one commits, and
+            //a reload then would load that page again in place of the new one
+            if (!siteViewCorrected && applySiteView(tab, url ?: tab.url)) {
                 siteViewCorrected = true
                 tab.webEngine.reload()
             } else {
@@ -920,7 +1003,20 @@ class BrowserController : ActiveModel() {
             sendUiEvent(BrowserUiEvent.PopupBlocked(newTab))
         }
 
+        override fun onPopupPageBlocked() {
+            Log.d(TAG, "onPopupPageBlocked")
+            if (tab !in tabsStates) return
+            //the opener first, so that closing the popup shows no other tab on the way
+            val opener = tab.openerTab?.takeIf { it in tabsStates }
+            if (opener != null) changeTab(opener)
+            closeTab(tab)
+            if (opener != null) opener.blockedPopups++
+            publishState()
+            sendUiEvent(BrowserUiEvent.PopupBlocked(true))
+        }
+
         override fun onCreateWindow(dialog: Boolean, userGesture: Boolean): View? {
+            Log.d(TAG, "onCreateWindow: dialog: $dialog, userGesture: $userGesture")
             if (policies.shouldBlockNewWindow(dialog, userGesture)) {
                 onBlockedDialog(!dialog)
                 return null
@@ -930,6 +1026,7 @@ class BrowserController : ActiveModel() {
 
         override fun closeWindow(internalRepresentation: Any) {
             val tabToClose = findTabBySession(internalRepresentation) ?: return
+            Log.d(TAG, "closeWindow: ${tabToClose.url}")
             closeTab(tabToClose)
             sendUiEvent(BrowserUiEvent.TabClosedByPage)
         }
@@ -946,10 +1043,6 @@ class BrowserController : ActiveModel() {
         }
 
         override fun getHomePageLinks(): List<HomePageLink> = homePageLinks.links.value
-
-        override fun markBookmarkRecommendationAsUseful(bookmarkOrder: Int) {
-            modelScope.launch { homePageLinks.markRecommendationAsUseful(bookmarkOrder) }
-        }
 
         override fun onHomePageSearchBarLocated(x: Int, y: Int) {
             sendUiEvent(BrowserUiEvent.HomePageSearchBarLocated(tab, x, y))

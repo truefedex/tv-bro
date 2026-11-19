@@ -1,1 +1,0 @@
-* Several bugfixes (handling physical keyboards, page preview rendering)

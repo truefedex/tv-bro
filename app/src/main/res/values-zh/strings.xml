@@ -120,6 +120,7 @@
   <string name="media_rewind">快退</string>
   <string name="media_fast_forward">快进</string>
   <string name="find_in_page">在网页中查找</string>
+  <string name="zoom_percent">缩放：%d%%</string>
   <string name="find_in_page_previous">上一个匹配项</string>
   <string name="find_in_page_next">下一个匹配项</string>
   <string name="find_in_page_close">关闭网页查找</string>
@@ -238,6 +239,7 @@
   <string name="default_site_view">默认网站视图</string>
   <array name="site_views">
     <item>桌面版</item>
+    <item>平板版</item>
     <item>移动版</item>
   </array>
   <string name="site_settings_of">%s 的设置</string>
@@ -486,8 +488,9 @@
   <string name="settings_group_site_view">网站视图</string>
   <string name="settings_auto">自动</string>
   <string name="settings_desktop">桌面版</string>
+  <string name="settings_tablet">平板版</string>
   <string name="settings_mobile">移动版</string>
-  <string name="settings_site_view_summary_tv">适用于没有单独设置的网站。自动：在电视上为桌面版</string>
+  <string name="settings_site_view_summary_tv">适用于没有单独设置的网站。自动：在电视上为平板版</string>
   <string name="settings_site_view_summary_phone">适用于没有单独设置的网站。自动：在手机上为移动版</string>
   <string name="settings_user_agent">User-Agent</string>
   <string name="settings_user_agent_summary">浏览器向网站表明身份的方式。自动：依网站视图</string>

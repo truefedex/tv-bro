@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.browser
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.webengine.EnginePolicies
+import com.phlox.tvwebbrowser.webengine.SiteView
 
 /**
  * Content blocking decisions for the engine of one tab (requests are checked by the global
@@ -26,5 +27,5 @@ class TabPolicies(
         return PopupBlockPolicy.shouldBlockNewWindow(hostConfig?.popupBlockLevel, dialog, userGesture)
     }
 
-    override fun isDesktopView(url: String): Boolean = controller.isDesktopView(url)
+    override fun siteViewOf(url: String): SiteView = controller.siteViewOf(url)
 }

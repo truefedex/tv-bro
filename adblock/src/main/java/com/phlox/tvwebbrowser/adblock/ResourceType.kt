@@ -19,10 +19,15 @@ object ResourceType {
     const val WEBSOCKET = 1 shl 10
     /** The page itself (main frame); filters apply to it only with the `document` option */
     const val DOCUMENT = 1 shl 11
+    /**
+     * A new window (tab) a page opens, checked by its address with the opener as the page; filters apply to it
+     * only with the `popup` option
+     */
+    const val POPUP = 1 shl 12
 
-    /** The types of filters without type options: all except the page itself (as in Adblock Plus) */
+    /** The types of filters without type options: all except the page itself and popups (as in Adblock Plus) */
     const val DEFAULT = (1 shl 11) - 1
-    const val ALL = (1 shl 12) - 1
+    const val ALL = (1 shl 13) - 1
 
     /** The type of a request of the WebExtensions API (`webRequest.ResourceType`, as GeckoView gives it) */
     fun fromWebExtension(type: String?): Int = when (type) {
@@ -101,5 +106,6 @@ object ResourceType {
         "websocket" to WEBSOCKET,
         "document" to DOCUMENT,
         "doc" to DOCUMENT,
+        "popup" to POPUP,
     )
 }

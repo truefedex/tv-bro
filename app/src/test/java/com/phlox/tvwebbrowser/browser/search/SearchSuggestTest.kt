@@ -220,6 +220,31 @@ class SearchSuggestTest {
     }
 
     @Test
+    fun qwantSuggestsInTheLanguageOfTheUser() {
+        val qwant = Config.SearchEnginesURLs[Config.QWANT_INDEX]
+        val template = SearchEngines.suggestUrlOf(qwant, "")!!
+        assertEquals(Config.SearchEnginesSuggestURLs[Config.QWANT_INDEX], template)
+        assertTrue(SearchEngines.isSuggestUrl(template))
+        assertEquals(template, SearchEngines.suggestUrlOf("https://www.qwant.com/?q=[query]&l=fr", ""))
+        val client = SearchSuggestClient(open = { url ->
+            FakeConnection(url, 200, """["car",["carrefour"]]""".toByteArray(), "application/json").also { opened = it }
+        }, suggestLang = { "fr_fr" })
+        assertEquals(listOf("carrefour"), client.fetch(template, "car"))
+        assertEquals("https://api.qwant.com/api/suggest/?q=car&client=opensearch&lang=fr_fr", opened!!.url.toString())
+    }
+
+    @Test
+    fun theEnginesOfTheListHaveTheirHomePages() {
+        assertEquals(Config.SearchEnginesURLs.size, Config.SearchEnginesHomeURLs.size)
+        assertEquals(Config.SearchEnginesURLs.size, Config.SearchEnginesTitles.size)
+        assertEquals(Config.SearchEnginesURLs.size, Config.SearchEnginesNames.size)
+        assertEquals("", Config.SearchEnginesURLs.last())
+        assertEquals("https://www.bing.com", Config.searchEngineHomeUrl(Config.SearchEnginesURLs[1]))
+        assertEquals(Config.SearchEnginesHomeURLs[Config.QWANT_INDEX],
+            Config.searchEngineHomeUrl(Config.SearchEnginesURLs[Config.QWANT_INDEX]))
+    }
+
+    @Test
     fun theUsersEngineHasTheSuggestionsGivenOrThoseOfItsKnownHost() {
         val custom = "https://search.example.com/?q=[query]"
         assertNull(SearchEngines.suggestUrlOf(custom, ""))
