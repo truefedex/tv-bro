@@ -99,6 +99,12 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
 
     //handle long press
     private val longPressRunnable = Runnable {
+        // The view left its window while the key was held (another tab shown, the view dropped):
+        // its keyDispatcherState is null then, and there is no page to show a menu for
+        if (!surface.isAttachedToWindow) {
+            cancelActiveGestures()
+            return@Runnable
+        }
         // End the synthetic pointer stream before clearing state. Otherwise the page still has an
         // active pointer while dpadCenterPressed is false — scroll-hack or the next frame can inject
         // another ACTION_DOWN, which yields ACTION_CANCEL + ACTION_DOWN and a spurious tap.
@@ -108,7 +114,7 @@ class CursorDrawerDelegate(val context: Context, val surface: View, private val 
                 pointer.contextClick(cursorPosition.x, cursorPosition.y)
             }
         }
-        surface.keyDispatcherState.reset(this@CursorDrawerDelegate)
+        surface.keyDispatcherState?.reset(this@CursorDrawerDelegate)
         grabMode = false
         callback?.onLongPress(cursorPosition.x.toInt(), cursorPosition.y.toInt())
     }
