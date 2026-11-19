@@ -106,6 +106,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     override val tabsContainer: ViewGroup get() = vb.flWebViewContainer
     override val screenOrientation: Int get() = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
 
+    //remotes the system takes for keyboards have no Tab to leave a text field
+    override val keyboardArrowsLeaveTextFields: Boolean get() = true
+
     private val progressBarHideRunnable: Runnable = Runnable {
         val anim = AnimationUtils.loadAnimation(activity, android.R.anim.fade_out)
         anim.setAnimationListener(object : BaseAnimationListener() {

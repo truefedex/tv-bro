@@ -63,6 +63,12 @@ interface BrowserShell {
     fun dispatchKeyEvent(event: KeyEvent): Boolean = false
 
     /**
+     * The arrows of keyboards (and of remotes the system takes for keyboards) leave text fields at the ends of
+     * their text, as the D-pad does ([com.phlox.tvwebbrowser.utils.KeyboardArrows]); else they stay in the field
+     */
+    val keyboardArrowsLeaveTextFields: Boolean get() = false
+
+    /**
      * The video takes the D-pad (the video mode, the built-in player): the joystick motion of game controllers, whose
      * D-pad is mostly a hat, then goes to the platform, which makes D-pad keys of it ([dispatchKeyEvent] gets them),
      * not to the views, where the cursor of the page would take it ([com.phlox.tvwebbrowser.utils.JoystickDpadRouter])
