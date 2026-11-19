@@ -9,8 +9,9 @@ import org.mozilla.geckoview.GeckoDisplay.ScreenshotBuilder
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoView
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 
 open class GeckoViewEx @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
@@ -62,13 +63,20 @@ open class GeckoViewEx @JvmOverloads constructor(context: Context, attrs: Attrib
         if (thumbnail == null) {
             return null
         }
-        thumbnail = suspendCoroutine {
+        //Gecko never answers while it has no compositor (its GPU process was killed for memory and the page is not
+        //drawn again): the bar of the TV shell, which opens once the picture is taken, stayed hidden
+        val target: Bitmap = thumbnail
+        return withTimeoutOrNull(SCREENSHOT_TIMEOUT_MS) { capture(screenshotBuilder, target) }
+    }
+
+    private suspend fun capture(screenshotBuilder: ScreenshotBuilder, thumbnail: Bitmap): Bitmap? =
+        suspendCancellableCoroutine {
             val screenshotResult = try {
                 screenshotBuilder.bitmap(thumbnail).capture()
             } catch (e: Throwable) {
                 e.printStackTrace()
                 it.resume(null)
-                return@suspendCoroutine
+                return@suspendCancellableCoroutine
             }
             screenshotResult.then({ bitmap ->
                 Log.d(GeckoWebEngine.TAG, "Screenshot captured")
@@ -80,6 +88,9 @@ open class GeckoViewEx @JvmOverloads constructor(context: Context, attrs: Attrib
                 GeckoResult.fromValue(null)
             })
         }
-        return thumbnail
+
+    companion object {
+        /** How long a thumbnail waits for Gecko to draw the page into it */
+        private const val SCREENSHOT_TIMEOUT_MS = 1000L
     }
 }
