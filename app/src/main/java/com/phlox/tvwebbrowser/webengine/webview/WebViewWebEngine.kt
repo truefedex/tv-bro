@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withTimeoutOrNull
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
@@ -341,6 +342,11 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
     override suspend fun renderThumbnail(bitmap: Bitmap?, onScreen: Boolean): Bitmap? {
         val view = webView ?: return null
+        //A software draw waits for the renderer of the page, blocking the main thread while its scripts run
+        //(ANRs): the thumbnail is taken only once the renderer has drawn the state of the page, else the old one stays
+        if (!view.isAttachedToWindow || !view.isShown) return null
+        withTimeoutOrNull(THUMBNAIL_RENDERER_TIMEOUT_MS) { WebViewScreenCapture.awaitVisualState(view) } ?: return null
+        if (webView !== view || !view.isAttachedToWindow) return null
         //WebView draws a page it showed again at once (going back to it while another page loads) squashed in
         //software until it loads again, while the screen shows it right
         if (onScreen) {
@@ -616,6 +622,9 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     }
 
     companion object {
+        /** How long a thumbnail waits for the renderer of the page to draw what it has */
+        private const val THUMBNAIL_RENDERER_TIMEOUT_MS = 500L
+
         init {
             WebEngineFactory.registerProvider(WebEngineProvider("WebView", object : WebEngineProviderCallback {
                 override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
