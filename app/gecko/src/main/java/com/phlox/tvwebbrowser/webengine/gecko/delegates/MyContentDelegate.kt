@@ -114,24 +114,13 @@ class MyContentDelegate(private val webEngine: GeckoWebEngine): GeckoSession.Con
     }
 
     override fun onCrash(session: GeckoSession) {
-        Log.e(TAG, "Crashed, reopening session")
-        session.open(GeckoWebEngine.runtime)
+        Log.e(TAG, "Content process crashed")
+        webEngine.onContentProcessLost(session)
     }
 
     override fun onKill(session: GeckoSession) {
-        if (webEngine.session != session || !webEngine.tab.selected) {
-            Log.w(TAG, "Background session killed")
-            return
-        }
-
-        Log.e(TAG, "Current session killed, reopening")
-
-        webEngine.session.open(GeckoWebEngine.runtime)
-        webEngine.progressDelegate.sessionState?.let {
-            webEngine.session.restoreState(it)
-        } ?: run {
-            webEngine.url?.let { webEngine.session.loadUri(it) }
-        }
+        Log.e(TAG, "Content process killed")
+        webEngine.onContentProcessLost(session)
     }
 
     override fun onFirstComposite(session: GeckoSession) {
