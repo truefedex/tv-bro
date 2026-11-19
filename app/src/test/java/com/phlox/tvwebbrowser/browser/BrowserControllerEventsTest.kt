@@ -404,6 +404,17 @@ class BrowserControllerEventsTest {
         assertNull(runBlocking { db.hostsDao().findByHostName("a.com") }!!.siteView)
     }
 
+    @Test
+    fun windowTabStartsInTheViewOfItsOpener() {
+        //its first page, mostly of the opener's site, then does not start again in another view
+        val a = open("https://a.com/")
+        awaitWrite(controller.setSiteView(a, SiteView.DESKTOP))
+        a.callback.onCreateWindow(dialog = false, userGesture = true)
+        val windowTab = controller.tabsStates[1]
+        assertEquals("", windowTab.url)
+        assertEquals(SiteView.DESKTOP, windowTab.fakeEngine.view)
+    }
+
     /** Runs the main looper until the page zoom of the [host] is written */
     private fun awaitPageZoom(host: String, zoom: Int?) {
         val deadline = System.currentTimeMillis() + 5000

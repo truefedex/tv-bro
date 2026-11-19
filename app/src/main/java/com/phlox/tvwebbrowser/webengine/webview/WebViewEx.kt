@@ -158,9 +158,12 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onReceivedIcon(icon: Bitmap)
         fun requestPermissions(array: Array<String>, geo: Boolean)
         fun shouldOverrideUrlLoading(url: String): Boolean
+        /** Whether the page at [url] needs another site view than the view has (changes nothing) */
+        fun changesSiteView(url: String): Boolean
         /**
-         * The page goes to [url]: gives the view the site view of its host.
-         * @return true if the view changed (the navigation starts again with it)
+         * The page goes to [url]: gives the view the site view of its host. Never call it from a callback of
+         * a navigation that is starting (see [WebViewEx]'s shouldOverrideUrlLoading).
+         * @return true if the view changed
          */
         fun switchSiteView(url: String): Boolean
         fun onPageStarted(url: String?)
@@ -400,10 +403,15 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                 }
                 //the page of another site may need another view; the User-Agent of a navigation is chosen
                 //when it starts, so it starts again (POST requests and redirects do not come here,
-                //the browser core loads such pages again after they start)
+                //the browser core loads such pages again after they start). The User-Agent changes only after
+                //this returns: while a page loads, WebView reloads it when its User-Agent changes, and a
+                //navigation started in the start of another one ends the process (SIGTRAP of a CHECK of Chromium)
                 if (request.isForMainFrame && !request.isRedirect && request.url.scheme.let { it == "http" || it == "https" } &&
-                    callback.switchSiteView(url)) {
-                    loadUrl(url)
+                    callback.changesSiteView(url)) {
+                    uiHandler.post {
+                        callback.switchSiteView(url)
+                        loadUrl(url)
+                    }
                     return true
                 }
                 return false

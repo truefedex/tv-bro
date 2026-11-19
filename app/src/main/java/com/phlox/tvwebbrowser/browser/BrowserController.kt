@@ -654,11 +654,12 @@ class BrowserController : ActiveModel() {
     }
 
     /**
-     * Gives the engine of the tab the view of the host of [url] (its page by default) and the User-Agent of the
-     * user (it takes effect with the next load).
+     * Gives the engine of the tab the view of the host of [url] (its page by default; for a window a page opened
+     * that has none yet, the page of its opener, whose site it mostly shows, so its first page does not start
+     * again in another view) and the User-Agent of the user (it takes effect with the next load).
      * @return true if the view changed
      */
-    private fun applySiteView(tab: BrowserTab, url: String = tab.url): Boolean {
+    private fun applySiteView(tab: BrowserTab, url: String = tab.url.ifEmpty { tab.openerTab?.url.orEmpty() }): Boolean {
         if (!tab.isWebEngineCreated) return false
         val siteView = tab.webEngine.siteView ?: return false
         val view = siteViewOf(url)

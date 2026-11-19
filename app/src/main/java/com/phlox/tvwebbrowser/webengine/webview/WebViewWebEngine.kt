@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
@@ -121,15 +122,25 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
      * @return true if the view changed
      */
     private fun applySiteView(url: String?): Boolean {
+        if (!changesSiteView(url, hostView)) return false
         val mobilePage = MobileViewPages.matches(url)
         val view = if (mobilePage) SiteView.MOBILE else hostView
         val userAgent = if (mobilePage) null else userAgentOverride
-        if (view == appliedView && userAgent == appliedUserAgent) return false
+        Log.d("WebViewWebEngine", "Site view of $url: $appliedView -> $view, " +
+            "User-Agent of the user ${appliedUserAgent != null} -> ${userAgent != null}")
         appliedView = view
         appliedUserAgent = userAgent
         webView?.setSiteView(view, userAgent)
         applyPointerMode()
         return true
+    }
+
+    /** Whether [applySiteView] would change the view of the WebView for [url] with the [host] view */
+    private fun changesSiteView(url: String?, host: SiteView): Boolean {
+        val mobilePage = MobileViewPages.matches(url)
+        val view = if (mobilePage) SiteView.MOBILE else host
+        val userAgent = if (mobilePage) null else userAgentOverride
+        return view != appliedView || userAgent != appliedUserAgent
     }
 
     /** The cursor is a mouse for pages in a wide view (desktop, tablet), a finger in the mobile one */
@@ -496,6 +507,11 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
         override fun shouldOverrideUrlLoading(url: String): Boolean {
             return callback?.shouldOverrideUrlLoading(url) ?: false
+        }
+
+        override fun changesSiteView(url: String): Boolean {
+            val host = callback?.siteViewOf(url) ?: return false
+            return changesSiteView(url, host)
         }
 
         override fun switchSiteView(url: String): Boolean {
