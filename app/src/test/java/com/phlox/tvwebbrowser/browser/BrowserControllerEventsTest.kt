@@ -619,6 +619,23 @@ class BrowserControllerEventsTest {
     }
 
     @Test
+    fun pageStartingInTheViewOfAnotherHostBeforeItCommitsIsLoadedByItsUrl() {
+        val tab = open("https://a.com/")
+        awaitWrite(controller.setSiteView(tab, SiteView.DESKTOP))
+        //a redirect to another host (Google's /url? links): WebView still tells the page before it as its url,
+        //so a reload would load that one again in place of the redirect's target
+        tab.fakeEngine.log.clear()
+        tab.callback.onPageStarted("https://b.com/")
+        assertEquals(SiteView.TABLET, tab.fakeEngine.view)
+        assertEquals(emptyList<String>(), tab.fakeEngine.log)
+        assertEquals("https://b.com/", tab.fakeEngine.loadedUrls.last())
+        //the page loaded by its url starts in its own view: nothing more
+        tab.callback.onPageStarted("https://b.com/")
+        assertEquals(listOf("https://a.com/", "https://b.com/"), tab.fakeEngine.loadedUrls.takeLast(2))
+        assertEquals(emptyList<String>(), tab.fakeEngine.log)
+    }
+
+    @Test
     fun aPageOfAnotherViewStartingBeforeItCommitsIsNotLoadedAgain() {
         val tab = open(Config.HOME_PAGE_URL)
         assertEquals(SiteView.TABLET, tab.fakeEngine.view)

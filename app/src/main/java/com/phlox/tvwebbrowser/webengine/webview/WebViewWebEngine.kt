@@ -527,10 +527,16 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
         override fun onPageStarted(url: String?) {
             //a page that came in the wrong view (a redirect to or from a page that needs the mobile view, going
-            //back) loads again in its own, once
+            //back) loads again in its own, once. For a redirect WebView (58 at least) still tells the page before
+            //it as its url here: a reload would load that one again, so the page is loaded by its url
             if (!siteViewCorrected && applySiteView(url)) {
                 siteViewCorrected = true
-                webView?.reload()
+                val webView = webView
+                if (url != null && webView?.url != null && webView.url != url) {
+                    webView.loadUrl(url)
+                } else {
+                    webView?.reload()
+                }
             } else {
                 siteViewCorrected = false
             }

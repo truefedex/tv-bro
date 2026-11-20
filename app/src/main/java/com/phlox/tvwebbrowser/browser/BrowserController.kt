@@ -938,10 +938,16 @@ class BrowserController : ActiveModel() {
             //a page that came in the view of another host (going back, a redirect) loads again in its own,
             //once: hosts redirecting to each other by the view must not reload forever. The view is that of the
             //page that starts: GeckoView still tells the page before it as its url until the new one commits, and
-            //a reload then would load that page again in place of the new one
+            //a reload then would load that page again in place of the new one; so does WebView (58 at least) for
+            //a redirect to another host (Google's /url? links), so such a page is loaded by its url
             if (!siteViewCorrected && applySiteView(tab, url ?: tab.url)) {
                 siteViewCorrected = true
-                tab.webEngine.reload()
+                val engineUrl = tab.webEngine.url
+                if (url != null && engineUrl != null && engineUrl != url) {
+                    tab.webEngine.loadUrl(url)
+                } else {
+                    tab.webEngine.reload()
+                }
             } else {
                 siteViewCorrected = false
             }
