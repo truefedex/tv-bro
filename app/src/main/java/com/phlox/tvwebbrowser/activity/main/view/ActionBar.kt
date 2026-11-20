@@ -20,6 +20,7 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.AddressSuggestions
 import com.phlox.tvwebbrowser.browser.DownloadsModel
+import com.phlox.tvwebbrowser.browser.HomePageUrl
 import com.phlox.tvwebbrowser.browser.SiteConnection
 import com.phlox.tvwebbrowser.databinding.ViewActionbarBinding
 import com.phlox.tvwebbrowser.utils.Utils
@@ -304,7 +305,7 @@ class ActionBar @JvmOverloads constructor(
     }
 
     fun setAddressBoxText(text: String) {
-        val newText = if (text == Config.HOME_PAGE_URL) "" else text
+        val newText = if (text == Config.HOME_PAGE_URL || text == HomePageUrl.BLANK_PAGE_URL) "" else text
         if (vb.etUrl.text.toString() != newText) {
             vb.etUrl.setText(newText)
         }

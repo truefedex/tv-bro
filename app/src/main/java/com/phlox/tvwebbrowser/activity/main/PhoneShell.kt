@@ -19,6 +19,7 @@ import com.phlox.tvwebbrowser.activity.main.view.PhoneMenuSheet
 import com.phlox.tvwebbrowser.activity.main.view.PhoneTabSwitcher
 import com.phlox.tvwebbrowser.activity.main.view.ScrollAwayBar
 import com.phlox.tvwebbrowser.activity.main.view.SiteSettingsView
+import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.browser.search.SearchEngineSuggestions
@@ -126,9 +127,7 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
     private val menuCallback = object : PhoneMenuSheet.Callback {
         override fun goForward() = controller.goForward()
 
-        override fun openNewTab() {
-            host.openInNewTab(host.settingsModel.homePage, controller.tabsStates.size)
-        }
+        override fun openNewTab() = this@PhoneShell.openNewTab()
 
         override fun toggleIncognitoMode() = host.toggleIncognitoMode()
 
@@ -248,11 +247,15 @@ class PhoneShell(private val host: BrowserShell.Host) : BrowserShell {
             controller.closeOtherTabs(tab)
         }
 
-        override fun openNewTab() {
-            host.openInNewTab(host.settingsModel.homePage, controller.tabsStates.size)
-        }
+        override fun openNewTab() = this@PhoneShell.openNewTab()
 
         override fun toggleIncognitoMode() = host.toggleIncognitoMode()
+    }
+
+    /** A blank home page has nothing to do on it: the address is edited at once */
+    override fun openNewTab() {
+        host.openInNewTab(host.settingsModel.homePage, controller.tabsStates.size) ?: return
+        if (host.settingsModel.homePageMode == Config.HomePageMode.BLANK) vb.vPhoneBar.startEditing(empty = true)
     }
 
     private val downloadsModel = ActiveModelsRepository.get(DownloadsModel::class, activity)

@@ -105,6 +105,12 @@ interface BrowserShell {
     /** Something the user started will show a page (a new tab, a voice search): hide what covers it */
     fun showPage()
 
+    /**
+     * Opens a new tab with the home page at the end (the New tab hotkey). With a blank home page there is
+     * nothing to do on the page, so the shell offers the address instead.
+     */
+    fun openNewTab()
+
     /** Shows a toast at the bottom center of the window: an [icon] and one line */
     fun showMessage(@DrawableRes icon: Int, message: String)
 

@@ -426,7 +426,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
         override fun newTab() {
             if (tabsLocked()) return
-            openInNewTab(settingsModel.homePage, controller.tabsStates.size)
+            shell.openNewTab()
         }
 
         override fun closeTab() {
