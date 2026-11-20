@@ -271,7 +271,10 @@ class PhoneHistoryView @JvmOverloads constructor(
             val screen = screen ?: return
             val newIcon = !showsFavicon || this.item?.id != item.id || this.item?.url != item.url
             this.item = item
-            showsFavicon = binder.bind(item, screen, views, newIcon) { url -> loadFavicon(item, url) }
+            //loaded once showsFavicon is set: the scope is Main.immediate, so a cached icon comes inside bind
+            var faviconUrl: String? = null
+            showsFavicon = binder.bind(item, screen, views, newIcon) { faviconUrl = it }
+            faviconUrl?.let { loadFavicon(item, it) }
         }
 
         private fun loadFavicon(item: HistoryItem, url: String) {
