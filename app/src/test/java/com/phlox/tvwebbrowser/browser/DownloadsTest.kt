@@ -27,7 +27,6 @@ class DownloadsTest {
             fileName = "given.zip",
             mimeType = "application/zip",
             size = 42,
-            base64BlobData = "data",
             stream = stream,
             operationAfterDownload = Download.OperationAfterDownload.INSTALL
         ).toDownload()
@@ -39,7 +38,6 @@ class DownloadsTest {
         assertEquals("a=1; b=2", download.cookies)
         assertEquals("application/zip", download.mimeType)
         assertEquals(42L, download.size)
-        assertEquals("data", download.base64BlobData)
         assertSame(stream, download.stream)
         assertEquals(Download.OperationAfterDownload.INSTALL, download.operationAfterDownload)
     }

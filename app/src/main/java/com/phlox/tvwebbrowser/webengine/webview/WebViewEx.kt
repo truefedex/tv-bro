@@ -122,6 +122,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     init {
         //Widevine of sites that ask for more than the L3 of WebView
         WebViewWidevine.install(this)
+        //the contents of blob: downloads come from the page
+        WebViewBlobDownloads.install(this)
     }
 
     private val pagePermissions = WebViewPagePermissions(object : WebViewPagePermissions.Host {
@@ -601,14 +603,10 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         webChromeClient = webChromeClient_
 
         setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
-            Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
+            Log.i(TAG, "DownloadListener.onDownloadStart url: $url disposition: $contentDisposition type: $mimetype length: $contentLength")
             //the navigation became a download: the page stays
             requestPageUrl = currentOriginalUrl
-            if (url.startsWith("blob:")) {
-                //nop. we handle this by injected js on onPageFinished
-            } else {
-                callback.onDownloadStart(url, userAgent, contentDisposition, mimetype, contentLength)
-            }
+            callback.onDownloadStart(url, userAgent, contentDisposition, mimetype, contentLength)
         }
 
         addJavascriptInterface(jsInterface, "TVBro")

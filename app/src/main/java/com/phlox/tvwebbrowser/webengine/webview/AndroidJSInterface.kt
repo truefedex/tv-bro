@@ -4,8 +4,6 @@ import android.webkit.JavascriptInterface
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.utils.DownloadUtils
-import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import org.json.JSONArray
 import org.json.JSONObject
@@ -66,14 +64,6 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
             webEngine.evaluateJavascript(
                 "applySearchEngine(\"${cfg.guessSearchEngineName()}\", \"${cfg.searchEngineURL.value}\")")
         }
-    }
-
-    @JavascriptInterface
-    fun takeBlobDownloadData(base64BlobData: String, fileName: String?, url: String, mimetype: String) {
-        val callback = webEngine.callback ?: return
-        val finalFileName = fileName ?: DownloadUtils.guessFileName(url, null, mimetype)
-        callback.onDownloadRequested(DownloadRequest(url = url, referer = webEngine.tab.url, userAgent = "TV Bro",
-            fileName = finalFileName, mimeType = mimetype, base64BlobData = base64BlobData))
     }
 
     /**

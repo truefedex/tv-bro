@@ -10,7 +10,7 @@ import com.phlox.tvwebbrowser.webengine.DownloadRequest
 fun DownloadRequest.toDownload(): Download {
     val fileName = fileName ?: DownloadUtils.guessFileName(url, contentDisposition, mimeType)
     return Download(url, fileName, null, operationAfterDownload,
-        mimeType, referer, userAgent, base64BlobData, stream, size).also {
+        mimeType, referer, userAgent, stream, size).also {
         it.cookies = cookies
         //a response the engine fetched itself can be continued by the download service
         it.resumable = acceptsRanges && size > 0 &&
@@ -23,10 +23,4 @@ fun DownloadRequest.toDownload(): Download {
             it.resumable = true
         }
     }
-}
-
-/** The bytes of a `data:` url (`data:image/png;base64,...`) or of plain base64 data */
-fun decodeBase64Data(data: String): ByteArray {
-    val base64 = if (data.startsWith("data:")) data.substringAfter(',') else data
-    return android.util.Base64.decode(base64, android.util.Base64.DEFAULT)
 }

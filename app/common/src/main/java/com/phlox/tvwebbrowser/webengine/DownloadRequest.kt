@@ -19,9 +19,7 @@ data class DownloadRequest(
     val mimeType: String? = null,
     val contentDisposition: String? = null,
     val size: Long = 0L,
-    /** Content of a blob: url, already read by the page scripts */
-    val base64BlobData: String? = null,
-    /** Content already opened by the engine */
+    /** Content already opened by the engine (a response it fetched, a blob: url the page reads) */
     val stream: InputStream? = null,
     /** The response of the engine tells the server gives byte ranges of the file: it can be resumed */
     val acceptsRanges: Boolean = false,

@@ -580,8 +580,19 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         }
 
         override fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long) {
-            callback?.onDownloadRequested(DownloadRequest(url = url, referer = tab.url, userAgent = userAgent, cookies = getCookies(url),
-                mimeType = mimetype, contentDisposition = contentDisposition, size = contentLength))
+            val callback = callback ?: return
+            if (!url.startsWith("blob:", ignoreCase = true)) {
+                callback.onDownloadRequested(DownloadRequest(url = url, referer = tab.url, userAgent = userAgent,
+                    cookies = getCookies(url), mimeType = mimetype, contentDisposition = contentDisposition, size = contentLength))
+                return
+            }
+            //only the page has the blob; the download fails when no frame gives it
+            val referer = tab.url
+            WebViewBlobDownloads.open(url) { blob, input ->
+                callback.onDownloadRequested(DownloadRequest(url = url, referer = referer, userAgent = userAgent,
+                    fileName = blob?.name, mimeType = blob?.type ?: mimetype, contentDisposition = contentDisposition,
+                    size = blob?.size ?: contentLength, stream = input ?: FailedInputStream("The page did not give $url")))
+            }
         }
 
         override fun onCopyTextToClipboardRequested(url: String) {
