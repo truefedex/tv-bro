@@ -13,6 +13,7 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.activity.main.AddressSuggestions
 import com.phlox.tvwebbrowser.browser.CurrentTabState
+import com.phlox.tvwebbrowser.browser.HomePageUrl
 import com.phlox.tvwebbrowser.databinding.ViewPhoneBarBinding
 
 /**
@@ -103,11 +104,14 @@ class PhoneBar @JvmOverloads constructor(
         vb.llSearchPrompt.visibility = if (!editing && homePage) VISIBLE else GONE
     }
 
-    /** The full address (nothing on the home page), selected, with the keyboard */
-    fun startEditing() {
+    /**
+     * The full address (nothing on the home page), selected, with the keyboard; [empty] for a tab
+     * just opened, before its state is rendered
+     */
+    fun startEditing(empty: Boolean = false) {
         if (editing) return
         editing = true
-        val text = if (homePage) "" else url
+        val text = if (empty || homePage) "" else url
         vb.etUrl.setText(text)
         suggestions?.start(text)
         inlineCompletion?.start()
@@ -158,7 +162,8 @@ class PhoneBar @JvmOverloads constructor(
     }
 
     private fun isHomePage(url: String) =
-        url.isEmpty() || url == Config.HOME_URL_ALIAS || url.startsWith(Config.HOME_PAGE_URL)
+        url.isEmpty() || url == Config.HOME_URL_ALIAS || url.startsWith(Config.HOME_PAGE_URL) ||
+            url == HomePageUrl.BLANK_PAGE_URL
 
     /** The site button: the site settings open from it */
     val siteButton: View get() = vb.ibSite

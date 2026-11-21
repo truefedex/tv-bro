@@ -14,7 +14,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.browser.DownloadItem
-import com.phlox.tvwebbrowser.browser.decodeBase64Data
 import com.phlox.tvwebbrowser.browser.toDownload
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.model.StreamSpec
@@ -26,7 +25,6 @@ import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 
@@ -225,17 +223,8 @@ class DownloadLauncher(
         }
     }
 
-    /** The contents of a download the web engine fetched itself, they can not be fetched again */
-    private fun engineInput(download: Download): InputStream? {
-        download.stream?.let { return it }
-        val blobData = download.base64BlobData ?: return null
-        return try {
-            ByteArrayInputStream(decodeBase64Data(blobData))
-        } catch (e: IllegalArgumentException) {
-            Log.e(TAG, "Wrong blob data of ${download.url}", e)
-            ByteArrayInputStream(ByteArray(0))
-        }
-    }
+    /** The contents of a download the web engine or the page has, they can not be fetched again */
+    private fun engineInput(download: Download): InputStream? = download.stream
 
     /**
      * The read end of a pipe the [input] is copied to, for the service process. If this process

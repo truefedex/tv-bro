@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withTimeoutOrNull
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
@@ -341,6 +342,11 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
     override suspend fun renderThumbnail(bitmap: Bitmap?, onScreen: Boolean): Bitmap? {
         val view = webView ?: return null
+        //A software draw waits for the renderer of the page, blocking the main thread while its scripts run
+        //(ANRs): the thumbnail is taken only once the renderer has drawn the state of the page, else the old one stays
+        if (!view.isAttachedToWindow || !view.isShown) return null
+        withTimeoutOrNull(THUMBNAIL_RENDERER_TIMEOUT_MS) { WebViewScreenCapture.awaitVisualState(view) } ?: return null
+        if (webView !== view || !view.isAttachedToWindow) return null
         //WebView draws a page it showed again at once (going back to it while another page loads) squashed in
         //software until it loads again, while the screen shows it right
         if (onScreen) {
@@ -521,10 +527,16 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
         override fun onPageStarted(url: String?) {
             //a page that came in the wrong view (a redirect to or from a page that needs the mobile view, going
-            //back) loads again in its own, once
+            //back) loads again in its own, once. For a redirect WebView (58 at least) still tells the page before
+            //it as its url here: a reload would load that one again, so the page is loaded by its url
             if (!siteViewCorrected && applySiteView(url)) {
                 siteViewCorrected = true
-                webView?.reload()
+                val webView = webView
+                if (url != null && webView?.url != null && webView.url != url) {
+                    webView.loadUrl(url)
+                } else {
+                    webView?.reload()
+                }
             } else {
                 siteViewCorrected = false
             }
@@ -568,8 +580,19 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         }
 
         override fun onDownloadStart(url: String, userAgent: String, contentDisposition: String, mimetype: String?, contentLength: Long) {
-            callback?.onDownloadRequested(DownloadRequest(url = url, referer = tab.url, userAgent = userAgent, cookies = getCookies(url),
-                mimeType = mimetype, contentDisposition = contentDisposition, size = contentLength))
+            val callback = callback ?: return
+            if (!url.startsWith("blob:", ignoreCase = true)) {
+                callback.onDownloadRequested(DownloadRequest(url = url, referer = tab.url, userAgent = userAgent,
+                    cookies = getCookies(url), mimeType = mimetype, contentDisposition = contentDisposition, size = contentLength))
+                return
+            }
+            //only the page has the blob; the download fails when no frame gives it
+            val referer = tab.url
+            WebViewBlobDownloads.open(url) { blob, input ->
+                callback.onDownloadRequested(DownloadRequest(url = url, referer = referer, userAgent = userAgent,
+                    fileName = blob?.name, mimeType = blob?.type ?: mimetype, contentDisposition = contentDisposition,
+                    size = blob?.size ?: contentLength, stream = input ?: FailedInputStream("The page did not give $url")))
+            }
         }
 
         override fun onCopyTextToClipboardRequested(url: String) {
@@ -616,6 +639,9 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     }
 
     companion object {
+        /** How long a thumbnail waits for the renderer of the page to draw what it has */
+        private const val THUMBNAIL_RENDERER_TIMEOUT_MS = 500L
+
         init {
             WebEngineFactory.registerProvider(WebEngineProvider("WebView", object : WebEngineProviderCallback {
                 override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {

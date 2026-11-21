@@ -122,6 +122,8 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     init {
         //Widevine of sites that ask for more than the L3 of WebView
         WebViewWidevine.install(this)
+        //the contents of blob: downloads come from the page
+        WebViewBlobDownloads.install(this)
     }
 
     private val pagePermissions = WebViewPagePermissions(object : WebViewPagePermissions.Host {
@@ -601,14 +603,10 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         webChromeClient = webChromeClient_
 
         setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
-            Log.i(TAG, "DownloadListener.onDownloadStart url: $url")
+            Log.i(TAG, "DownloadListener.onDownloadStart url: $url disposition: $contentDisposition type: $mimetype length: $contentLength")
             //the navigation became a download: the page stays
             requestPageUrl = currentOriginalUrl
-            if (url.startsWith("blob:")) {
-                //nop. we handle this by injected js on onPageFinished
-            } else {
-                callback.onDownloadStart(url, userAgent, contentDisposition, mimetype, contentLength)
-            }
+            callback.onDownloadStart(url, userAgent, contentDisposition, mimetype, contentLength)
         }
 
         addJavascriptInterface(jsInterface, "TVBro")
@@ -793,8 +791,19 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
 
     fun onFilePicked(resultCode: Int, data: Intent?) {
         //WebView needs the result even if the user cancelled, otherwise the page can not pick files again
-        pickFileCallback?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data))
+        pickFileCallback?.onReceiveValue(pickedFiles(resultCode, data))
         pickFileCallback = null
+    }
+
+    /** parseResult reads only [Intent.getData]: pickers of several files (an input with `multiple`)
+     *  often give the files only in its ClipData, also when one is chosen */
+    private fun pickedFiles(resultCode: Int, data: Intent?): Array<Uri>? {
+        val clip = data?.clipData
+        if (resultCode == android.app.Activity.RESULT_OK && clip != null && clip.itemCount > 0) {
+            val uris = (0 until clip.itemCount).mapNotNull { clip.getItemAt(it).uri }
+            if (uris.isNotEmpty()) return uris.toTypedArray()
+        }
+        return WebChromeClient.FileChooserParams.parseResult(resultCode, data)
     }
 
     fun onPermissionsResult(permissions: Array<String>, grantResults: IntArray, typeGeo: Boolean) {

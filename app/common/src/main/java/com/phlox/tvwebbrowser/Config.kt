@@ -273,7 +273,7 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
 
     /** The TV tells about a found video of the page that starts to play in the page (the hint plate) */
     var pageVideoHint: Boolean
-        get() = prefs.getBoolean(PAGE_VIDEO_HINT_KEY, true)
+        get() = prefs.getBoolean(PAGE_VIDEO_HINT_KEY, false)
         set(value) {
             prefs.edit().putBoolean(PAGE_VIDEO_HINT_KEY, value).apply()
         }

@@ -14,8 +14,8 @@ android {
 
     defaultConfig {
         applicationId = "com.phlox.tvwebbrowser"
-        versionCode = 84
-        versionName = "3.0.6"
+        versionCode = 85
+        versionName = "3.0.7"
     }
 
     signingConfigs {

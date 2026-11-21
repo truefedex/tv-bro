@@ -107,6 +107,9 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     override val tabsContainer: ViewGroup get() = vb.flWebViewContainer
     override val screenOrientation: Int get() = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
 
+    //remotes the system takes for keyboards have no Tab to leave a text field
+    override val keyboardArrowsLeaveTextFields: Boolean get() = true
+
     private val progressBarHideRunnable: Runnable = Runnable {
         val anim = AnimationUtils.loadAnimation(activity, android.R.anim.fade_out)
         anim.setAnimationListener(object : BaseAnimationListener() {
@@ -174,10 +177,32 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
     /** A tab opened with the home page, waiting for the page to put the cursor on its search bar */
     private var tabForSearchBarCursor: BrowserTab? = null
 
-    /** Opens a tab with the home page at [index]; the bar hides, and the cursor goes to the search bar */
+    /**
+     * Opens a tab with the home page at [index]; the bar hides, and the cursor goes to the search bar.
+     * A blank home page has nothing to do on it: the bar stays (or opens) with the focus on the address.
+     */
     private fun openHomeTab(index: Int) {
-        tabForSearchBarCursor = host.openInNewTab(settingsModel.homePage, index)
+        if (settingsModel.homePageMode != Config.HomePageMode.BLANK) {
+            tabForSearchBarCursor = host.openInNewTab(settingsModel.homePage, index)
+            return
+        }
+        val barOpen = vb.rlActionBar.isVisible && !menuOverlayClosing
+        if (!barOpen) showPage()
+        val tab = controller.openInNewTab(settingsModel.homePage, index, navigateImmediately = true) ?: return
+        if (!barOpen) {
+            showMenuOverlay()
+            return
+        }
+        //the strip previews the new tab (it follows the current one): its page is under the bar, covered
+        coverPage(true)
+        //a bar still taking the picture of the page shows the tab and focuses the address once it is in place
+        if (menuOverlayCapture == null) {
+            showPreview(tab)
+            vb.vActionBar.catchFocus()
+        }
     }
+
+    override fun openNewTab() = openHomeTab(controller.tabsStates.size)
 
     /**
      * Closes the tab of the strip, not necessarily the current one. The bar stays open (to close more

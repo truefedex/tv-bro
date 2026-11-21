@@ -56,8 +56,6 @@ class Download() {
     @Ignore
     var refererHeader: String? = null
     @Ignore
-    var base64BlobData: String? = null
-    @Ignore
     var stream: InputStream? = null
 
     enum class OperationAfterDownload {
@@ -92,7 +90,7 @@ class Download() {
     }
 
     constructor(url: String, filename: String, filepath: String?, operationAfterDownload: OperationAfterDownload,
-                mimeType: String?, referer: String?, userAgentString: String?, base64BlobData: String?,
+                mimeType: String?, referer: String?, userAgentString: String?,
                 stream: InputStream?, size: Long = 0L) : this() {
         this.url = url
         this.filename = filename
@@ -102,7 +100,6 @@ class Download() {
         this.referer = referer
         this.refererHeader = referer
         this.userAgentString = userAgentString
-        this.base64BlobData = base64BlobData
         this.stream = stream
         this.size = size
     }

@@ -1,7 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
 import com.phlox.tvwebbrowser.model.Download
-import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -72,13 +71,5 @@ class DownloadsTrackerTest {
             bytesReceived = 40, status = Download.Status.FAILED, mimeType = "application/zip",
             referer = "https://site.com/page", error = Download.Error.CONNECTION, resumable = true), item)
         assertEquals(item, DownloadItem.of(item.toDownload()))
-    }
-
-    @Test
-    fun base64DataIsDecodedWithAnyMimeType() {
-        val expected = "hello".toByteArray()
-        assertArrayEquals(expected, decodeBase64Data("data:text/plain;charset=utf-8;base64,aGVsbG8="))
-        assertArrayEquals(expected, decodeBase64Data("data:;base64,aGVsbG8="))
-        assertArrayEquals(expected, decodeBase64Data("aGVsbG8="))
     }
 }

@@ -63,6 +63,12 @@ interface BrowserShell {
     fun dispatchKeyEvent(event: KeyEvent): Boolean = false
 
     /**
+     * The arrows of keyboards (and of remotes the system takes for keyboards) leave text fields at the ends of
+     * their text, as the D-pad does ([com.phlox.tvwebbrowser.utils.KeyboardArrows]); else they stay in the field
+     */
+    val keyboardArrowsLeaveTextFields: Boolean get() = false
+
+    /**
      * The video takes the D-pad (the video mode, the built-in player): the joystick motion of game controllers, whose
      * D-pad is mostly a hat, then goes to the platform, which makes D-pad keys of it ([dispatchKeyEvent] gets them),
      * not to the views, where the cursor of the page would take it ([com.phlox.tvwebbrowser.utils.JoystickDpadRouter])
@@ -98,6 +104,12 @@ interface BrowserShell {
 
     /** Something the user started will show a page (a new tab, a voice search): hide what covers it */
     fun showPage()
+
+    /**
+     * Opens a new tab with the home page at the end (the New tab hotkey). With a blank home page there is
+     * nothing to do on the page, so the shell offers the address instead.
+     */
+    fun openNewTab()
 
     /** Shows a toast at the bottom center of the window: an [icon] and one line */
     fun showMessage(@DrawableRes icon: Int, message: String)

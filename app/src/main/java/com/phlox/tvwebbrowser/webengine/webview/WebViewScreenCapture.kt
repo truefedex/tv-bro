@@ -15,13 +15,12 @@ import androidx.annotation.RequiresApi
 import androidx.core.graphics.createBitmap
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
 /**
  * A thumbnail of a page from what the window shows ([PixelCopy], Android 8+), without the cursor. WebView draws
  * a page in software (`draw` on a bitmap canvas) wrongly in some states, the screen shows it right.
- * It waits for the page to draw what it has (a few frames, the bar opens that much later).
+ * The caller first waits for the page to draw what it has ([awaitVisualState]); the copy then waits a few frames.
  */
 object WebViewScreenCapture {
     private const val TAG = "WebViewScreenCapture"
@@ -32,9 +31,6 @@ object WebViewScreenCapture {
      */
     private const val FRAMES_BEFORE_COPY = 3
 
-    /** How long the copy waits for the page to draw what it has */
-    private const val VISUAL_STATE_TIMEOUT_MS = 500L
-
     /** The thumbnail ([bitmap] if it fits), or null where the screen can not be copied */
     suspend fun capture(view: WebViewEx, cursorLayout: CursorLayout?, window: Window, bitmap: Bitmap?): Bitmap? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null
@@ -42,7 +38,6 @@ object WebViewScreenCapture {
         val hideCursor = cursorLayout?.drawsCursor == true
         if (hideCursor) cursorLayout.cursorHidden = true
         try {
-            withTimeoutOrNull(VISUAL_STATE_TIMEOUT_MS) { awaitVisualState(view) }
             repeat(FRAMES_BEFORE_COPY) { awaitFrame() }
             if (!view.isAttachedToWindow || !view.isShown) return null
             return copy(view, window, bitmap)
@@ -81,8 +76,8 @@ object WebViewScreenCapture {
         return target
     }
 
-    /** The page has drawn the state its document has now */
-    private suspend fun awaitVisualState(view: WebView) = suspendCancellableCoroutine { continuation ->
+    /** The page has drawn the state its document has now (never for a WebView that is not shown) */
+    suspend fun awaitVisualState(view: WebView) = suspendCancellableCoroutine { continuation ->
         view.postVisualStateCallback(0, object : WebView.VisualStateCallback() {
             override fun onComplete(requestId: Long) {
                 if (continuation.isActive) continuation.resume(Unit)

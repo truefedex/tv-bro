@@ -881,12 +881,48 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             previousSession.setActive(false)
             webView.releaseSession()
         }
+        //a session whose content process died in the background opens again with its page
+        val reopened = !session.isOpen
+        if (reopened) session.open(runtime)
         webView.coverUntilFirstPaint(Color.WHITE)
         webView.setSession(session)
-        if (session.isOpen && previousSession != null && previousSession != session) {
+        if (reopened) {
+            restorePage()
+        } else if (previousSession != null && previousSession != session) {
             Log.d(TAG, "Activating session")
             session.setActive(true)
             session.reload()
+        }
+    }
+
+    /**
+     * The content process of [lostSession] crashed or was killed (for memory), which closes the session. A session
+     * shown in the view opens again with its page and is given to the view anew: the view keeps the display of the
+     * closed one, so the reopened session draws nothing and the view stays covered in white. A background session
+     * stays closed until its tab is attached again ([onAttachToWindow]).
+     */
+    fun onContentProcessLost(lostSession: GeckoSession) {
+        val view = webView
+        if (lostSession != session || view == null || view.session != session) {
+            Log.w(TAG, "Background session lost")
+            return
+        }
+        Log.w(TAG, "Current session lost, reopening")
+        view.releaseSession()
+        if (!session.isOpen) session.open(runtime)
+        view.coverUntilFirstPaint(Color.WHITE)
+        view.setSession(session)
+        restorePage()
+    }
+
+    /** The page of a session opened again: its saved state, else its url */
+    private fun restorePage() {
+        val state = progressDelegate.sessionState
+        if (state != null) {
+            onPageZoomOf(tab.url)
+            session.restoreState(state)
+        } else {
+            url?.let { loadUrl(it) }
         }
     }
 

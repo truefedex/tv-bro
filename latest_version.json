@@ -2,34 +2,34 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v3.0.6",
+      "latestVersionName": "v3.0.7",
       "latestVersionCode": 84,
       "minAPI": 24,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.6/tvbro-3.0.6-generic-geckoExcluded.apk",
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoExcluded.apk",
       "variants": {
         "geckoIncluded": {
           "minAPI": 26,
-          "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.6/tvbro-3.0.6-generic-geckoIncluded-armeabi-v7a.apk",
+          "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-armeabi-v7a.apk",
           "urls": [
-            "https://github.com/truefedex/tv-bro/releases/download/v3.0.6/tvbro-3.0.6-generic-geckoIncluded-arm64-v8a.apk",
-            "https://github.com/truefedex/tv-bro/releases/download/v3.0.6/tvbro-3.0.6-generic-geckoIncluded-x86_64.apk"
+            "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-arm64-v8a.apk",
+            "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-x86_64.apk"
           ]
         }
       }
     },
     {
       "name": "beta",
-      "latestVersionName": "v3.0.6",
+      "latestVersionName": "v3.0.7",
       "latestVersionCode": 84,
       "minAPI": 24,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.6/tvbro-3.0.6-generic-geckoExcluded.apk",
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoExcluded.apk",
       "variants": {
         "geckoIncluded": {
           "minAPI": 26,
-          "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.6/tvbro-3.0.6-generic-geckoIncluded-armeabi-v7a.apk",
+          "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-armeabi-v7a.apk",
           "urls": [
-            "https://github.com/truefedex/tv-bro/releases/download/v3.0.6/tvbro-3.0.6-generic-geckoIncluded-arm64-v8a.apk",
-            "https://github.com/truefedex/tv-bro/releases/download/v3.0.6/tvbro-3.0.6-generic-geckoIncluded-x86_64.apk"
+            "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-arm64-v8a.apk",
+            "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-x86_64.apk"
           ]
         }
       }
@@ -38,9 +38,19 @@
 
   "changelog": [
     {
+      "versionCode": 85,
+      "versionName": "v3.0.7",
+      "changes": "* Bugfixes and minor UI improvements"
+    },
+    {
       "versionCode": 84,
       "versionName": "v3.0.6",
       "changes": "* Bugfixes and minor UI improvements\n* Updated: default user-agent, cursor behavior, adblocker popup and windows blocking"
+    },
+    {
+      "versionCode": 83,
+      "versionName": "v3.0.5",
+      "changes": "* Major redesign\\n* GeckoView based version extracted to separate app variant\\n* Cursor behavior improvements\\n* Mobile/Desktop view for pages\\n* New ad blocker optimized for TV\\n* Resumable downloads, custom downloads folder\\n* Export and import bookmarks, bookmark folders\\n* Embedded optimized video player\\n* Support for HTTP proxy\\n* New languages support\\n* Integrated Qwant and selected as default search engine for several regions\\n* Updated dependencies\\n* Target latest Android versions\\n* Bugfixes, optimizations, many other UI improvements\\n* v3.0.x: multiple usability and bug fixes"
     },
     {
       "versionCode": 69,
@@ -51,26 +61,6 @@
       "versionCode": 68,
       "versionName": "v2.1.5",
       "changes": "* Various bugfixes (anonymous mode crash, clear cache crash, broken mouse etc...)"
-    },
-    {
-      "versionCode": 67,
-      "versionName": "v2.1.4",
-      "changes": "* Contextual menu on long press\n* Direct navigation mode (activated by new contextual menu)\n* Cursor speed, algorithmic darkening, ad-block list and remote debugging is now configurable\n* All dependencies updated \n* Target latest android versions\n* Dropped Android 7.x support (only GeckoView-containing build)\n* Improvement of the Polish translation (thanks to @ChuckMichael)\n* Various bugfixes (thanks to @usman.hafeez for one)\n* v2.1.1-2.1.4 Stabilization (thanks to @V1v1X for testing/reporting about bugs)"
-    },
-    {
-      "versionCode": 61,
-      "versionName": "v2.0.1",
-      "changes": "* Various bugfixes and update for GeckoView engine\n* Localization updates\n* It was decided to leave support for WebView engine and recommend it for weaker devices"
-    },
-    {
-      "versionCode": 60,
-      "versionName": "v2.0.0",
-      "changes": "* Engine changing: GeckoView implementation added\n* Home page design updated\n* Startpage added to default search engines list (thanks to felfert)"
-    },
-    {
-      "versionCode": 59,
-      "versionName": "v1.8.6",
-      "changes": "* Popup blocking re-implemented (thank you WIStudent for implementation ideas and MR)\n* More options and fix for link context menu (thank you MailYouLater for string-case fix)\n* Several other small bugs fixed\n* Translations updated"
     }
   ]
 }

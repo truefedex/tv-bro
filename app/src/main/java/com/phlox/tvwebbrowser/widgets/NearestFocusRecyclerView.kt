@@ -3,7 +3,9 @@ package com.phlox.tvwebbrowser.widgets
 import android.content.Context
 import android.graphics.Rect
 import android.util.AttributeSet
+import android.view.FocusFinder
 import android.view.View
+import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 
@@ -17,6 +19,31 @@ class NearestFocusRecyclerView @JvmOverloads constructor(
 
     init {
         descendantFocusability = FOCUS_AFTER_DESCENDANTS
+    }
+
+    /**
+     * A row the layout manager laid out for the search (past the end of the list in view) comes as the row itself,
+     * and a request of focus with Up gives it to its last focusable view (a button at its end): the view of the row
+     * in line with the focused one gets it instead, as for rows already in view
+     */
+    override fun focusSearch(focused: View?, direction: Int): View? {
+        val result = super.focusSearch(focused, direction)
+        if (focused == null || result !is ViewGroup || result.parent !== this || result.isFocusable ||
+            focused.parent == null || !isAncestorOf(focused)) return result
+        val rect = Rect()
+        focused.getDrawingRect(rect)
+        offsetDescendantRectToMyCoords(focused, rect)
+        offsetRectIntoDescendantCoords(result, rect)
+        return FocusFinder.getInstance().findNextFocusFromRect(result, rect, direction) ?: result
+    }
+
+    private fun isAncestorOf(view: View): Boolean {
+        var parent = view.parent
+        while (parent != null) {
+            if (parent === this) return true
+            parent = parent.parent
+        }
+        return false
     }
 
     override fun onRequestFocusInDescendants(direction: Int, previouslyFocusedRect: Rect?): Boolean {
