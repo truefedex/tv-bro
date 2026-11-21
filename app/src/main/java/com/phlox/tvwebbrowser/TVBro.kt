@@ -102,7 +102,6 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
                 TimeUnit.SECONDS, ArrayBlockingQueue(maxThreadsInOfflineJobsPool))
 
         initWebEngineStuff()
-        initAdBlocking()
         initPageZooms()
 
         clearUpdateFilesAfterAppUpdate()
@@ -130,8 +129,14 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
     }
 
-    /** The engines of all tabs ask the ad blocker; the lists are not updated in unit tests (Robolectric) */
-    private fun initAdBlocking() {
+    /**
+     * Starts what only the browser needs, when its activity is created first: the ad blocker (its engine file,
+     * the updates of its lists), which the engines of all tabs ask. Not when the app starts: the launcher reads the
+     * posters of the home screen channels, a download tile opens a file, the download service runs, without the
+     * browser. The lists are not updated in unit tests (Robolectric).
+     */
+    fun startBrowser() {
+        if (WebEngineFactory.adBlocker != null) return
         val config = AppContext.provideConfig()
         container.adBlock.start(scheduleUpdates = Build.FINGERPRINT != "robolectric")
         //the site settings of the profile shown

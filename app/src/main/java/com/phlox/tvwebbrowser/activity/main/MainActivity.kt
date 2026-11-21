@@ -192,6 +192,7 @@ class MainActivity : AppCompatActivity(), BrowserShell.Host {
         AppContext.kidsProfile = wanted == BrowserSpace.KIDS
         Log.d(TAG, "onCreate space: $space")
 
+        TVBro.instance.startBrowser()
         ActivityResults.reset()
         AppSettingsStore.rememberStartupValues(config)
         lifecycleScope.launch(Dispatchers.IO) { LegacySync.drop(applicationContext, SendSettings(applicationContext, config.prefs)) }
