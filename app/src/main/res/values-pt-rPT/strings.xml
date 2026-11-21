@@ -646,7 +646,7 @@
     <string name="pin_forgot">Esqueceu-se do PIN? Só a limpeza dos dados do TV Bro nas definições do dispositivo o remove, juntamente com tudo o que o navegador guarda.</string>
     <string name="settings_kids_on">Ativado, o perfil principal está protegido por PIN</string>
     <string name="settings_kids_about">O que é</string>
-    <string name="settings_kids_about_summary">Um perfil para crianças com os seus próprios marcadores, histórico, separadores e inícios de sessão. O que o perfil principal guarda (os sites em que tem sessão iniciada, o seu histórico, as definições) fica protegido por um PIN. O perfil infantil não tem definições, transferências, navegação anónima nem outras aplicações.\n\nProtege apenas o TV Bro, não outras aplicações nem as definições do dispositivo. Um PIN esquecido só é removido limpando os dados do TV Bro.</string>
+    <string name="settings_kids_about_summary">Um perfil para crianças com marcadores, histórico, separadores e sessões próprios. O que o perfil principal guarda (os sites em que tem sessão iniciada, o seu histórico, as definições) fica protegido por um PIN. O perfil infantil não tem definições, modo de navegação anónima nem outras apps, e transferências apenas enquanto forem permitidas aqui.\n\nProtege apenas o TV Bro, não outras apps nem as definições do dispositivo. Um PIN esquecido só é removido limpando os dados do TV Bro.</string>
     <string name="settings_kids_enable_summary">O TV Bro vai abrir no perfil infantil; o principal pedirá um PIN</string>
     <string name="settings_kids_open">Abrir o perfil infantil</string>
     <string name="settings_kids_open_summary">Voltar ao perfil principal (no menu da barra) pede o PIN</string>
@@ -668,7 +668,7 @@
     <string name="settings_channels_kids">Os canais estão desativados</string>
     <string name="settings_channels_kids_summary">Mostrariam o que o perfil principal guarda, por isso estão desativados enquanto o perfil infantil estiver ativado</string>
     <string name="settings_kids_delete_data">Eliminar os dados do perfil infantil</string>
-    <string name="settings_kids_delete_data_summary">Os marcadores, o histórico, os separadores e os inícios de sessão dele</string>
+    <string name="settings_kids_delete_data_summary">Os seus marcadores, histórico, separadores, sessões em sites e a lista das suas transferências (os ficheiros ficam)</string>
     <string name="settings_kids_delete_data_confirm">Eliminar os marcadores, o histórico, os separadores e os inícios de sessão do perfil infantil? Não é possível anular.</string>
     <string name="settings_kids_data_deleted">Os dados do perfil infantil foram eliminados</string>
     <plurals name="pin_wrong_tries_left">
@@ -676,4 +676,7 @@
         <item quantity="many">PIN incorreto. Restam %d tentativas antes de uma pausa</item>
         <item quantity="other">PIN incorreto. Restam %d tentativas antes de uma pausa</item>
     </plurals>
+    <string name="settings_kids_downloads">Transferências</string>
+    <string name="settings_kids_downloads_summary">Ficheiros de sites e as apps que se instalam a partir deles. O perfil infantil vê apenas as suas transferências; o perfil principal também as vê</string>
+    <string name="download_of_kids">Perfil infantil</string>
 </resources>

@@ -617,7 +617,7 @@
   <string name="pin_forgot">Quên mã PIN? Chỉ có xóa dữ liệu của TV Bro trong cài đặt của thiết bị mới xóa được nó, cùng với mọi thứ trình duyệt lưu giữ.</string>
   <string name="settings_kids_on">Bật, hồ sơ chính được bảo vệ bằng mã PIN</string>
   <string name="settings_kids_about">Đây là gì</string>
-  <string name="settings_kids_about_summary">Một hồ sơ cho trẻ em với dấu trang, lịch sử, thẻ và thông tin đăng nhập riêng. Những gì hồ sơ chính lưu giữ (các trang web bạn đã đăng nhập, lịch sử của bạn, cài đặt) được bảo vệ bằng mã PIN. Hồ sơ trẻ em không có cài đặt, tải xuống, chế độ ẩn danh hay ứng dụng khác.\n\nNó chỉ bảo vệ TV Bro, không bảo vệ các ứng dụng khác hay cài đặt của thiết bị. Mã PIN bị quên chỉ được xóa bằng cách xóa dữ liệu của TV Bro.</string>
+  <string name="settings_kids_about_summary">Hồ sơ dành cho trẻ em với dấu trang, lịch sử, thẻ và thông tin đăng nhập riêng. Những gì hồ sơ chính lưu giữ (các trang bạn đã đăng nhập, lịch sử của bạn, cài đặt) được bảo vệ bằng mã PIN. Hồ sơ trẻ em không có cài đặt, chế độ ẩn danh hay ứng dụng khác, và chỉ có tải xuống khi được cho phép ở đây.\n\nNó chỉ bảo vệ TV Bro, không bảo vệ ứng dụng khác hay cài đặt của thiết bị. Mã PIN bị quên chỉ được gỡ bằng cách xóa dữ liệu của TV Bro.</string>
   <string name="settings_kids_enable_summary">TV Bro sẽ mở trong hồ sơ trẻ em; hồ sơ chính sẽ hỏi mã PIN</string>
   <string name="settings_kids_open">Mở hồ sơ trẻ em</string>
   <string name="settings_kids_open_summary">Quay lại hồ sơ chính (trong menu của thanh) sẽ hỏi mã PIN</string>
@@ -639,10 +639,13 @@
   <string name="settings_channels_kids">Các kênh đã tắt</string>
   <string name="settings_channels_kids_summary">Chúng sẽ hiển thị những gì hồ sơ chính lưu giữ, nên được tắt khi hồ sơ trẻ em đang bật</string>
   <string name="settings_kids_delete_data">Xóa dữ liệu của hồ sơ trẻ em</string>
-  <string name="settings_kids_delete_data_summary">Dấu trang, lịch sử, thẻ và thông tin đăng nhập trang web của nó</string>
+  <string name="settings_kids_delete_data_summary">Dấu trang, lịch sử, thẻ, thông tin đăng nhập trang web và danh sách tải xuống của nó (các tệp vẫn còn)</string>
   <string name="settings_kids_delete_data_confirm">Xóa dấu trang, lịch sử, thẻ và thông tin đăng nhập của hồ sơ trẻ em? Không thể hoàn tác.</string>
   <string name="settings_kids_data_deleted">Đã xóa dữ liệu của hồ sơ trẻ em</string>
   <plurals name="pin_wrong_tries_left">
     <item quantity="other">Sai mã PIN. Còn %d lần thử trước khi tạm dừng</item>
   </plurals>
+    <string name="settings_kids_downloads">Tải xuống</string>
+    <string name="settings_kids_downloads_summary">Tệp từ các trang web và ứng dụng được cài từ chúng. Hồ sơ trẻ em chỉ thấy các tệp tải xuống của mình; hồ sơ chính cũng thấy chúng</string>
+    <string name="download_of_kids">Hồ sơ trẻ em</string>
 </resources>

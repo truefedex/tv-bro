@@ -46,6 +46,12 @@ class Download() {
      */
     @ColumnInfo(name = "stream")
     var streamSpec: String? = null
+    /**
+     * Started in the kids profile: the kids profile lists only these, the main profile all downloads (the rows are
+     * in its database, see `AppContainer.mainData`)
+     */
+    @ColumnInfo(defaultValue = "0")
+    var kids: Boolean = false
 
     //non-db fields
     @Ignore

@@ -62,6 +62,9 @@ class AppSettingsStore(
             override var lockDelay: ProfileLock.LockDelay
                 get() = lock.lockDelay
                 set(value) { lock.lockDelay = value }
+            override var downloads: Boolean
+                get() = lock.kidsDownloads
+                set(value) { lock.kidsDownloads = value }
             override fun enable(pin: String) {
                 val wasEnabled = lock.enabled
                 lock.enable(pin)

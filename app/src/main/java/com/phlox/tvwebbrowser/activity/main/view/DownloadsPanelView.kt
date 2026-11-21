@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
+import com.phlox.tvwebbrowser.profile.ProfilePolicy
 import android.content.Context
 import android.util.AttributeSet
 import android.view.KeyEvent
@@ -70,7 +71,7 @@ class DownloadsPanelView @JvmOverloads constructor(
                     hide()
                     showAll(focusId)
                 }
-            }, DownloadsNavigator.Look.PANEL)
+            }, DownloadsNavigator.Look.PANEL, ProfilePolicy.current.deviceFiles)
     }
 
     /** Opens the panel under the [anchor] (the Downloads button), its end under the end of [endAlignTo] */

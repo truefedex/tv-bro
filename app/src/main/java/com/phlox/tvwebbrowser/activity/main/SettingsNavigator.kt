@@ -57,7 +57,7 @@ class SettingsNavigator(
         CLEAR_CACHE, ENGINE_DEBUG, HISTORY_RETENTION, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
         LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, NOTICE,
-        KIDS_ABOUT, KIDS_ENABLE, KIDS_OPEN, KIDS_LOCK_DELAY, KIDS_PIN, KIDS_DISABLE, KIDS_DELETE_DATA
+        KIDS_ABOUT, KIDS_ENABLE, KIDS_OPEN, KIDS_LOCK_DELAY, KIDS_DOWNLOADS, KIDS_PIN, KIDS_DISABLE, KIDS_DELETE_DATA
     }
 
     /** The kids profile as the settings change it (see [ProfileLock]) */
@@ -65,6 +65,8 @@ class SettingsNavigator(
         /** On: a PIN is set and the main profile is locked behind it */
         val enabled: Boolean
         var lockDelay: ProfileLock.LockDelay
+        /** The profile may download files and install apps ([ProfileLock.kidsDownloads]) */
+        var downloads: Boolean
         /** Turns the profile on with the [pin], or changes its PIN */
         fun enable(pin: String)
         fun disable()
@@ -601,6 +603,7 @@ class SettingsNavigator(
             Key.MATCH_FRAME_RATE -> store.matchFrameRate = !store.matchFrameRate
             Key.JOYSTICK -> store.joystickNavigation = !store.joystickNavigation
             Key.PROXY -> store.proxyEnabled = !store.proxyEnabled
+            Key.KIDS_DOWNLOADS -> store.kidsProfile?.let { it.downloads = !it.downloads }
             Key.AUTO_UPDATE -> {
                 store.autoCheckUpdates = !store.autoCheckUpdates
                 if (store.autoCheckUpdates && updates == null) checkUpdates(force = false)
@@ -1141,6 +1144,8 @@ class SettingsNavigator(
                 string(R.string.open)),
             Row.Choice(Key.KIDS_LOCK_DELAY, string(R.string.settings_kids_lock), string(R.string.settings_kids_lock_summary),
                 delays, kids.lockDelay.ordinal, segmented = false),
+            Row.Toggle(Key.KIDS_DOWNLOADS, string(R.string.settings_kids_downloads),
+                string(R.string.settings_kids_downloads_summary), kids.downloads),
             Row.Action(Key.KIDS_PIN, string(R.string.settings_kids_pin), string(R.string.settings_kids_pin_summary),
                 string(R.string.settings_kids_pin_change)),
             Row.Action(Key.KIDS_DISABLE, string(R.string.settings_kids_disable), string(R.string.settings_kids_disable_summary),

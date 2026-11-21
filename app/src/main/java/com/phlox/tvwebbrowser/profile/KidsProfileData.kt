@@ -12,7 +12,8 @@ import java.io.File
 
 /**
  * What the kids profile keeps on the device: its database (tabs, history, bookmarks, site settings), the files
- * of its tabs and the data of its pages, which the engine keeps ([WebEngineFactory.deleteKidsData]). Deleted
+ * of its tabs, the data of its pages, which the engine keeps ([WebEngineFactory.deleteKidsData]), and the rows of
+ * its downloads that ended (in the database of the main profile; the files stay: an app may be installed). Deleted
  * from the main profile (Settings), after the pending writes of tabs (the kids profile may have been shown a
  * moment ago), with its database closed.
  */
@@ -27,6 +28,7 @@ object KidsProfileData {
         val container = TVBro.container
         container.tabWrites.awaitPending()
         container.closeKidsDatabase()
+        container.mainData.downloads.deleteEndedOfKids()
         withContext(Dispatchers.IO) {
             app.deleteDatabase(AppDatabase.KIDS_DATABASE_NAME)
             //the lock file Room keeps next to the copy of a database

@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import org.junit.Assert.assertFalse
 import com.phlox.tvwebbrowser.activity.main.DownloadsNavigator.Action
 import com.phlox.tvwebbrowser.activity.main.DownloadsNavigator.Focus
 import com.phlox.tvwebbrowser.activity.main.DownloadsNavigator.Kind
@@ -57,7 +58,7 @@ class DownloadsNavigatorTest {
         override fun freeSpace(): Long? = 12_000L
     }
 
-    private fun navigator(look: Look) = DownloadsNavigator(context, downloads, commands, device,
+    private fun navigator(look: Look, deviceFiles: Boolean = true) = DownloadsNavigator(context, downloads, commands, device,
         CoroutineScope(Dispatchers.Unconfined), object : DownloadsNavigator.Host {
             override fun render(screen: Screen, focus: Focus?) {
                 this@DownloadsNavigatorTest.screen = screen
@@ -69,7 +70,7 @@ class DownloadsNavigatorTest {
                 clearAllAnswer?.let(onConfirm)
             }
             override fun showAll(focusId: Long?) { shownAll = focusId }
-        }, look)
+        }, look, deviceFiles)
 
     private fun item(id: Long, status: Int = Download.Status.DONE, name: String = "file$id.zip", time: Long = id * 1000,
                      url: String = "https://site.com/$name", mimeType: String? = null, resumable: Boolean = false,
@@ -273,5 +274,18 @@ class DownloadsNavigatorTest {
         hasShareApp = false
         navigator.perform(screen.items[1], Action.SHARE)
         assertEquals(context.getString(com.phlox.tvwebbrowser.R.string.no_app_to_share), messages.last())
+    }
+
+    /** The kids profile opens and installs its own downloads, but not the folder of all files nor other apps */
+    @Test
+    fun withoutDeviceFilesThereIsNoFolderAndNoSharing() {
+        val navigator = navigator(Look.SCREEN, deviceFiles = false)
+        val done = item(1)
+        val actions = navigator.actionsOf(done)
+        assertTrue(Action.OPEN in actions)
+        assertFalse(Action.OPEN_FOLDER in actions)
+        assertFalse(Action.SHARE in actions)
+        assertFalse(Action.OPEN_FOLDER in navigator.actionsOf(item(2, name = "app.apk")))
+        assertTrue(Action.INSTALL in navigator.actionsOf(item(3, name = "game.apk")))
     }
 }

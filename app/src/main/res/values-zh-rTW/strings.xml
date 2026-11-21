@@ -617,7 +617,7 @@
     <string name="pin_forgot">忘記 PIN 碼了嗎？只有在裝置設定中清除 TV Bro 的資料才能移除它，瀏覽器保存的所有內容也會一併清除。</string>
     <string name="settings_kids_on">已開啟，主要設定檔受 PIN 碼保護</string>
     <string name="settings_kids_about">這是什麼</string>
-    <string name="settings_kids_about_summary">專為兒童準備的設定檔，擁有自己的書籤、歷史紀錄、分頁和登入資訊。主要設定檔保存的內容（你已登入的網站、你的歷史紀錄、設定）受 PIN 碼保護。兒童設定檔中沒有設定、下載、無痕模式或其他應用程式。\n\n它只保護 TV Bro，不保護其他應用程式或裝置設定。忘記的 PIN 碼只能透過清除 TV Bro 的資料移除。</string>
+    <string name="settings_kids_about_summary">為兒童準備的設定檔，擁有自己的書籤、歷史記錄、分頁和登入。主要設定檔保存的內容（你登入的網站、你的歷史記錄、設定）由 PIN 碼保護。兒童設定檔沒有設定、無痕模式或其他應用程式，只有在這裡允許時才能下載。\n\n它只保護 TV Bro，不保護其他應用程式或裝置設定。忘記的 PIN 碼只能透過清除 TV Bro 的資料來移除。</string>
     <string name="settings_kids_enable_summary">TV Bro 將在兒童設定檔中開啟；主要設定檔需要 PIN 碼</string>
     <string name="settings_kids_open">開啟兒童設定檔</string>
     <string name="settings_kids_open_summary">返回主要設定檔（在工具列選單中）需要 PIN 碼</string>
@@ -639,10 +639,13 @@
     <string name="settings_channels_kids">頻道已關閉</string>
     <string name="settings_channels_kids_summary">頻道會顯示主要設定檔保存的內容，因此在兒童設定檔開啟期間會保持關閉</string>
     <string name="settings_kids_delete_data">刪除兒童設定檔的資料</string>
-    <string name="settings_kids_delete_data_summary">它的書籤、歷史紀錄、分頁和網站登入資訊</string>
+    <string name="settings_kids_delete_data_summary">它的書籤、歷史記錄、分頁、網站登入及其下載清單（檔案保留）</string>
     <string name="settings_kids_delete_data_confirm">要刪除兒童設定檔的書籤、歷史紀錄、分頁和登入資訊嗎？此操作無法復原。</string>
     <string name="settings_kids_data_deleted">兒童設定檔的資料已刪除</string>
     <plurals name="pin_wrong_tries_left">
         <item quantity="other">PIN 碼錯誤。暫停前還可嘗試 %d 次</item>
     </plurals>
+    <string name="settings_kids_downloads">下載</string>
+    <string name="settings_kids_downloads_summary">網站上的檔案以及由此安裝的應用程式。兒童設定檔只能看到自己的下載，主要設定檔也能看到它們</string>
+    <string name="download_of_kids">兒童設定檔</string>
 </resources>

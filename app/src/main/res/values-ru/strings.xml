@@ -659,7 +659,7 @@
   <string name="pin_forgot">Забыли PIN? Его убирает только очистка данных TV Bro в настройках устройства, вместе со всем, что хранит браузер.</string>
   <string name="settings_kids_on">Включён, основной профиль под PIN</string>
   <string name="settings_kids_about">Что это</string>
-  <string name="settings_kids_about_summary">Профиль для детей со своими закладками, историей, вкладками и входами на сайты. То, что хранит основной профиль (сайты, где вы вошли, ваша история, настройки), остаётся под PIN. В детском профиле нет настроек, загрузок, режима инкогнито и других приложений.\n\nОн защищает только TV Bro, а не другие приложения и настройки устройства. Забытый PIN убирает только очистка данных TV Bro.</string>
+  <string name="settings_kids_about_summary">Профиль для детей со своими закладками, историей, вкладками и входами на сайты. То, что хранит основной профиль (сайты, на которых вы вошли, ваша история, настройки), закрыто PIN-кодом. В детском профиле нет настроек, режима инкогнито и других приложений, а загрузки есть, только пока они разрешены здесь.\n\nОн защищает только TV Bro, но не другие приложения и не настройки устройства. Забытый PIN-код убирается только очисткой данных TV Bro.</string>
   <string name="settings_kids_enable_summary">TV Bro будет открываться в детском профиле; основной спросит PIN</string>
   <string name="settings_kids_open">Открыть детский профиль</string>
   <string name="settings_kids_open_summary">Возврат в основной профиль (в меню панели) спросит PIN</string>
@@ -681,7 +681,7 @@
   <string name="settings_channels_kids">Каналы выключены</string>
   <string name="settings_channels_kids_summary">Они показывали бы то, что хранит основной профиль, поэтому выключены, пока включён детский профиль</string>
   <string name="settings_kids_delete_data">Удалить данные детского профиля</string>
-  <string name="settings_kids_delete_data_summary">Его закладки, историю, вкладки и входы на сайты</string>
+  <string name="settings_kids_delete_data_summary">Его закладки, история, вкладки, входы на сайты и список его загрузок (файлы остаются)</string>
   <string name="settings_kids_delete_data_confirm">Удалить закладки, историю, вкладки и входы на сайты детского профиля? Это нельзя отменить.</string>
   <string name="settings_kids_data_deleted">Данные детского профиля удалены</string>
   <plurals name="pin_wrong_tries_left">
@@ -690,4 +690,7 @@
     <item quantity="many">Неверный PIN. До паузы осталось %d попыток</item>
     <item quantity="other">Неверный PIN. До паузы осталось %d попытки</item>
   </plurals>
+    <string name="settings_kids_downloads">Загрузки</string>
+    <string name="settings_kids_downloads_summary">Файлы с сайтов и приложения, которые из них устанавливаются. Детский профиль видит только свои загрузки, основной видит и их</string>
+    <string name="download_of_kids">Детский профиль</string>
 </resources>

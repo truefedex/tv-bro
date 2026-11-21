@@ -121,7 +121,7 @@ class AppDatabaseMigrationTest {
         assertEquals(1, runBlocking { db.historyDao().count() })
 
         val sqlDb = db.openHelper.readableDatabase
-        assertEquals(30, sqlDb.version)
+        assertEquals(31, sqlDb.version)
         sqlDb.query("PRAGMA table_info(tabs)").use { cursor ->
             val nameIndex = cursor.getColumnIndex("name")
             val columns = ArrayList<String>()
@@ -444,5 +444,35 @@ class AppDatabaseMigrationTest {
         runBlocking { db.hostsDao().setPageZoom("example.com", 80) }
         assertEquals(listOf(HostsDao.PageZoomSetting("example.com", 80)),
             runBlocking { db.hostsDao().pageZoomSettings() })
+    }
+
+    @Test
+    fun migrate30To31MarksTheDownloadsOfTheKidsProfile() {
+        createDatabase(30) { db ->
+            db.insert("downloads", null, ContentValues().apply {
+                put("id", 1L)
+                put("time", 1000L)
+                put("filename", "app.apk")
+                put("filepath", "content://media/external/downloads/1")
+                put("url", "https://example.com/app.apk")
+                put("size", 100L)
+                put("bytes_received", 100L)
+                put("status", Download.Status.DONE)
+                put("resumable", 1)
+            })
+        }
+
+        val db = openMigrated()
+        val dao = db.downloadDao()
+        //the downloads before are of the main profile
+        assertEquals(false, runBlocking { dao.get(1) }!!.kids)
+        runBlocking {
+            dao.insert(Download().apply { time = 2000; filename = "kids.apk"; status = Download.Status.DONE; kids = true })
+            dao.insert(Download().apply { time = 3000; filename = "going.apk"; status = Download.Status.IN_PROGRESS; kids = true })
+        }
+        assertEquals(listOf("going.apk", "kids.apk"), runBlocking { dao.observeKids().first() }.map { it.filename })
+        assertEquals(3, runBlocking { dao.observeAll().first() }.size)
+        runBlocking { dao.deleteEndedOfKids() }
+        assertEquals(listOf("going.apk", "app.apk"), runBlocking { dao.observeAll().first() }.map { it.filename })
     }
 }

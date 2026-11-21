@@ -211,4 +211,22 @@ class ProfileLockTest {
         assertTrue(main.settings && main.incognito && main.downloads && main.sendToTv && main.externalApps &&
             main.deleteHistory && main.pictureInPicture && main.appUpdates && main.homeChannels && main.autofill)
     }
+
+    @Test
+    fun kidsDownloadsAreAllowedUntilTurnedOff() {
+        assertTrue(lock.kidsDownloads)
+        lock.kidsDownloads = false
+        assertFalse(lock.kidsDownloads)
+        assertFalse(ProfileLock(store) { clock }.kidsDownloads)
+        lock.kidsDownloads = true
+        assertTrue(lock.kidsDownloads)
+    }
+
+    /** Downloads of the kids profile are its own: the folder of all files and sharing them stay of the main profile */
+    @Test
+    fun theKidsProfileDownloadsOnlyWhileAllowed() {
+        assertTrue(ProfilePolicy(kids = true, kidsDownloads = true).downloads)
+        assertFalse(ProfilePolicy(kids = true, kidsDownloads = true).deviceFiles)
+        assertTrue(ProfilePolicy(kids = false).deviceFiles)
+    }
 }

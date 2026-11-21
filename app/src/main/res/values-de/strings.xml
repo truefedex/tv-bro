@@ -630,7 +630,7 @@
   <string name="pin_forgot">PIN vergessen? Nur das Löschen der Daten von TV Bro in den Geräteeinstellungen entfernt sie, zusammen mit allem, was der Browser speichert.</string>
   <string name="settings_kids_on">An, das Hauptprofil ist durch eine PIN geschützt</string>
   <string name="settings_kids_about">Was ist das</string>
-  <string name="settings_kids_about_summary">Ein Profil für Kinder mit eigenen Lesezeichen, eigenem Verlauf, eigenen Tabs und Anmeldungen. Was das Hauptprofil speichert (die Websites, bei denen man angemeldet ist, der Verlauf, die Einstellungen), bleibt hinter einer PIN. Das Kinderprofil hat keine Einstellungen, keine Downloads, keinen Inkognito-Modus und keine anderen Apps.\n\nEs schützt nur TV Bro, nicht andere Apps oder die Geräteeinstellungen. Eine vergessene PIN entfernt nur das Löschen der Daten von TV Bro.</string>
+  <string name="settings_kids_about_summary">Ein Profil für Kinder mit eigenen Lesezeichen, eigenem Verlauf, eigenen Tabs und Anmeldungen. Was das Hauptprofil speichert (die Websites, bei denen Sie angemeldet sind, Ihr Verlauf, die Einstellungen), liegt hinter einer PIN. Das Kinderprofil hat keine Einstellungen, keinen Inkognito-Modus und keine anderen Apps, und Downloads nur, solange sie hier erlaubt sind.\n\nEs schützt nur TV Bro, nicht andere Apps oder die Einstellungen des Geräts. Eine vergessene PIN wird nur durch das Löschen der Daten von TV Bro entfernt.</string>
   <string name="settings_kids_enable_summary">TV Bro öffnet sich im Kinderprofil; das Hauptprofil fragt nach einer PIN</string>
   <string name="settings_kids_open">Kinderprofil öffnen</string>
   <string name="settings_kids_open_summary">Die Rückkehr ins Hauptprofil (im Menü der Leiste) fragt nach der PIN</string>
@@ -652,11 +652,14 @@
   <string name="settings_channels_kids">Kanäle sind aus</string>
   <string name="settings_channels_kids_summary">Sie würden zeigen, was das Hauptprofil speichert, daher sind sie aus, solange das Kinderprofil an ist</string>
   <string name="settings_kids_delete_data">Daten des Kinderprofils löschen</string>
-  <string name="settings_kids_delete_data_summary">Seine Lesezeichen, seinen Verlauf, seine Tabs und Anmeldungen auf Websites</string>
+  <string name="settings_kids_delete_data_summary">Seine Lesezeichen, sein Verlauf, seine Tabs, Anmeldungen bei Websites und die Liste seiner Downloads (die Dateien bleiben)</string>
   <string name="settings_kids_delete_data_confirm">Lesezeichen, Verlauf, Tabs und Anmeldungen des Kinderprofils löschen? Das kann nicht rückgängig gemacht werden.</string>
   <string name="settings_kids_data_deleted">Die Daten des Kinderprofils wurden gelöscht</string>
   <plurals name="pin_wrong_tries_left">
     <item quantity="one">Falsche PIN. Noch %d Versuch bis zu einer Pause</item>
     <item quantity="other">Falsche PIN. Noch %d Versuche bis zu einer Pause</item>
   </plurals>
+    <string name="settings_kids_downloads">Downloads</string>
+    <string name="settings_kids_downloads_summary">Dateien von Websites und die Apps, die daraus installiert werden. Das Kinderprofil sieht nur seine eigenen Downloads, das Hauptprofil sieht sie auch</string>
+    <string name="download_of_kids">Kinderprofil</string>
 </resources>

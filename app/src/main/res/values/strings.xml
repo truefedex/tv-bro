@@ -718,7 +718,7 @@
     <string name="pin_forgot">Forgot the PIN? Clearing the data of TV Bro in the settings of the device removes it, with everything the browser keeps.</string>
     <string name="settings_kids_on">On, the main profile is behind a PIN</string>
     <string name="settings_kids_about">What it is</string>
-    <string name="settings_kids_about_summary">A profile for children with its own bookmarks, history, tabs and sign-ins. What the main profile keeps (the sites you are signed in to, your history, the settings) stays behind a PIN. The kids profile has no settings, downloads, incognito mode or other apps.\n\nIt protects TV Bro only, not other apps or the settings of the device. A forgotten PIN is removed only by clearing the data of TV Bro.</string>
+    <string name="settings_kids_about_summary">A profile for children with its own bookmarks, history, tabs and sign-ins. What the main profile keeps (the sites you are signed in to, your history, the settings) stays behind a PIN. The kids profile has no settings, incognito mode or other apps, and downloads only while they are allowed here.\n\nIt protects TV Bro only, not other apps or the settings of the device. A forgotten PIN is removed only by clearing the data of TV Bro.</string>
     <string name="settings_kids_enable_summary">TV Bro will open in the kids profile; the main one asks for a PIN</string>
     <string name="settings_kids_open">Open the kids profile</string>
     <string name="settings_kids_open_summary">Coming back to the main profile (in the menu of the bar) asks for the PIN</string>
@@ -740,11 +740,14 @@
     <string name="settings_channels_kids">Channels are off</string>
     <string name="settings_channels_kids_summary">They would show what the main profile keeps, so they are off while the kids profile is on</string>
     <string name="settings_kids_delete_data">Delete the data of the kids profile</string>
-    <string name="settings_kids_delete_data_summary">Its bookmarks, history, tabs and sign-ins to sites</string>
+    <string name="settings_kids_delete_data_summary">Its bookmarks, history, tabs, sign-ins to sites and the list of its downloads (the files stay)</string>
     <string name="settings_kids_delete_data_confirm">Delete the bookmarks, history, tabs and sign-ins of the kids profile? This can not be undone.</string>
     <string name="settings_kids_data_deleted">The data of the kids profile are deleted</string>
     <plurals name="pin_wrong_tries_left">
         <item quantity="one">Wrong PIN. %d try left before a pause</item>
         <item quantity="other">Wrong PIN. %d tries left before a pause</item>
     </plurals>
+    <string name="settings_kids_downloads">Downloads</string>
+    <string name="settings_kids_downloads_summary">Files from sites and the apps they install. The kids profile sees only its own downloads; the main profile sees them too</string>
+    <string name="download_of_kids">Kids profile</string>
 </resources>

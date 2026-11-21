@@ -646,7 +646,7 @@
     <string name="pin_forgot">Code PIN oublié ? Seul l\'effacement des données de TV Bro dans les paramètres de l\'appareil le supprime, avec tout ce que le navigateur conserve.</string>
     <string name="settings_kids_on">Activé, le profil principal est protégé par un code PIN</string>
     <string name="settings_kids_about">De quoi s\'agit-il</string>
-    <string name="settings_kids_about_summary">Un profil pour les enfants, avec ses propres favoris, historique, onglets et connexions. Ce que conserve le profil principal (les sites où vous êtes connecté, votre historique, les paramètres) reste protégé par un code PIN. Le profil enfant n\'a ni paramètres, ni téléchargements, ni navigation privée, ni autres applications.\n\nIl protège uniquement TV Bro, pas les autres applications ni les paramètres de l\'appareil. Seul l\'effacement des données de TV Bro supprime un code PIN oublié.</string>
+    <string name="settings_kids_about_summary">Un profil pour les enfants avec ses propres favoris, historique, onglets et connexions. Ce que garde le profil principal (les sites où vous êtes connecté, votre historique, les paramètres) reste derrière un code PIN. Le profil enfant n\'a ni paramètres, ni mode navigation privée, ni autres applis, et des téléchargements seulement tant qu\'ils sont autorisés ici.\n\nIl protège seulement TV Bro, pas les autres applis ni les paramètres de l\'appareil. Un code PIN oublié ne se retire qu\'en effaçant les données de TV Bro.</string>
     <string name="settings_kids_enable_summary">TV Bro s\'ouvrira dans le profil enfant ; le profil principal demandera un code PIN</string>
     <string name="settings_kids_open">Ouvrir le profil enfant</string>
     <string name="settings_kids_open_summary">Le retour au profil principal (dans le menu de la barre) demande le code PIN</string>
@@ -668,7 +668,7 @@
     <string name="settings_channels_kids">Les chaînes sont désactivées</string>
     <string name="settings_channels_kids_summary">Elles montreraient ce que conserve le profil principal, elles sont donc désactivées tant que le profil enfant est activé</string>
     <string name="settings_kids_delete_data">Supprimer les données du profil enfant</string>
-    <string name="settings_kids_delete_data_summary">Ses favoris, son historique, ses onglets et ses connexions aux sites</string>
+    <string name="settings_kids_delete_data_summary">Ses favoris, son historique, ses onglets, ses connexions aux sites et la liste de ses téléchargements (les fichiers restent)</string>
     <string name="settings_kids_delete_data_confirm">Supprimer les favoris, l\'historique, les onglets et les connexions du profil enfant ? Cette action est irréversible.</string>
     <string name="settings_kids_data_deleted">Les données du profil enfant ont été supprimées</string>
     <plurals name="pin_wrong_tries_left">
@@ -676,4 +676,7 @@
         <item quantity="many">Code PIN incorrect. Encore %d essais avant une pause</item>
         <item quantity="other">Code PIN incorrect. Encore %d essais avant une pause</item>
     </plurals>
+    <string name="settings_kids_downloads">Téléchargements</string>
+    <string name="settings_kids_downloads_summary">Les fichiers des sites et les applis qui s\'en installent. Le profil enfant ne voit que ses propres téléchargements ; le profil principal les voit aussi</string>
+    <string name="download_of_kids">Profil enfant</string>
 </resources>

@@ -617,7 +617,7 @@
   <string name="pin_forgot">忘记了 PIN 码？只有在设备设置中清除 TV Bro 的数据才能移除它，浏览器保存的所有内容也会一并清除。</string>
   <string name="settings_kids_on">已开启，主资料受 PIN 码保护</string>
   <string name="settings_kids_about">这是什么</string>
-  <string name="settings_kids_about_summary">为儿童准备的资料，拥有自己的书签、历史记录、标签页和登录信息。主资料保存的内容（你已登录的网站、你的历史记录、设置）受 PIN 码保护。儿童资料中没有设置、下载、隐身模式或其他应用。\n\n它只保护 TV Bro，不保护其他应用或设备设置。忘记的 PIN 码只能通过清除 TV Bro 的数据移除。</string>
+  <string name="settings_kids_about_summary">为儿童准备的资料，拥有自己的书签、历史记录、标签页和登录。主资料保存的内容（你登录的网站、你的历史记录、设置）由 PIN 码保护。儿童资料没有设置、无痕模式或其他应用，只有在这里允许时才能下载。\n\n它只保护 TV Bro，不保护其他应用或设备设置。忘记的 PIN 码只能通过清除 TV Bro 的数据来移除。</string>
   <string name="settings_kids_enable_summary">TV Bro 将在儿童资料中打开；主资料需要 PIN 码</string>
   <string name="settings_kids_open">打开儿童资料</string>
   <string name="settings_kids_open_summary">返回主资料（在工具栏菜单中）需要 PIN 码</string>
@@ -639,10 +639,13 @@
   <string name="settings_channels_kids">频道已关闭</string>
   <string name="settings_channels_kids_summary">频道会显示主资料保存的内容，因此在儿童资料开启期间处于关闭状态</string>
   <string name="settings_kids_delete_data">删除儿童资料的数据</string>
-  <string name="settings_kids_delete_data_summary">它的书签、历史记录、标签页和网站登录信息</string>
+  <string name="settings_kids_delete_data_summary">它的书签、历史记录、标签页、网站登录及其下载列表（文件保留）</string>
   <string name="settings_kids_delete_data_confirm">要删除儿童资料的书签、历史记录、标签页和登录信息吗？此操作无法撤消。</string>
   <string name="settings_kids_data_deleted">儿童资料的数据已删除</string>
   <plurals name="pin_wrong_tries_left">
     <item quantity="other">PIN 码错误。暂停前还可尝试 %d 次</item>
   </plurals>
+    <string name="settings_kids_downloads">下载</string>
+    <string name="settings_kids_downloads_summary">网站上的文件以及由此安装的应用。儿童资料只能看到自己的下载，主资料也能看到它们</string>
+    <string name="download_of_kids">儿童资料</string>
 </resources>

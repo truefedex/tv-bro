@@ -32,6 +32,11 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
         get() = LockDelay.entries.firstOrNull { it.name == store.get(KEY_LOCK_DELAY) } ?: LockDelay.IMMEDIATELY
         set(value) = store.put(mapOf(KEY_LOCK_DELAY to value.name))
 
+    /** The kids profile may download files and install apps (its own downloads only); on by default */
+    var kidsDownloads: Boolean
+        get() = store.get(KEY_KIDS_DOWNLOADS) != "0"
+        set(value) = store.put(mapOf(KEY_KIDS_DOWNLOADS to if (value) null else "0"))
+
     /** Turns the kids profile on with the [newPin], or changes its PIN; the main profile stays unlocked */
     fun enable(newPin: String) {
         val wasEnabled = enabled
@@ -90,6 +95,7 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
         const val PREFS_NAME = "profile_lock"
         private const val KEY_KIDS_ACTIVE = "kids_active"
         private const val KEY_LOCK_DELAY = "lock_delay"
+        private const val KEY_KIDS_DOWNLOADS = "kids_downloads"
         private const val KEY_MAIN_LEFT_AT = "main_left_at"
 
         @Volatile

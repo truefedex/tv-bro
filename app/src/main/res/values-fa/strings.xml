@@ -631,7 +631,7 @@
   <string name="pin_forgot">پین را فراموش کرده‌اید؟ فقط پاک کردن داده‌های TV Bro در تنظیمات دستگاه آن را حذف می‌کند، همراه با همه چیزهایی که مرورگر نگه می‌دارد.</string>
   <string name="settings_kids_on">روشن، نمایه اصلی پشت پین است</string>
   <string name="settings_kids_about">این چیست</string>
-  <string name="settings_kids_about_summary">نمایه‌ای برای کودکان با نشانک‌ها، تاریخچه، زبانه‌ها و ورودهای خودش. آنچه نمایه اصلی نگه می‌دارد (سایت‌هایی که در آن‌ها وارد شده‌اید، تاریخچه شما، تنظیمات) پشت یک پین می‌ماند. نمایه کودک تنظیمات، بارگیری، حالت ناشناس یا برنامه‌های دیگر ندارد.\n\nفقط از TV Bro محافظت می‌کند، نه از برنامه‌های دیگر یا تنظیمات دستگاه. پین فراموش‌شده فقط با پاک کردن داده‌های TV Bro حذف می‌شود.</string>
+  <string name="settings_kids_about_summary">نمایه‌ای برای کودکان با نشانک‌ها، تاریخچه، زبانه‌ها و ورودهای خودش. آنچه نمایه اصلی نگه می‌دارد (سایت‌هایی که در آن‌ها وارد شده‌اید، تاریخچه شما، تنظیمات) پشت یک PIN می‌ماند. نمایه کودک تنظیمات، حالت ناشناس یا برنامه‌های دیگر ندارد و بارگیری فقط تا وقتی که اینجا اجازه داده شده باشد.\n\nفقط از TV Bro محافظت می‌کند، نه از برنامه‌های دیگر یا تنظیمات دستگاه. PIN فراموش‌شده فقط با پاک کردن داده‌های TV Bro حذف می‌شود.</string>
   <string name="settings_kids_enable_summary">TV Bro در نمایه کودک باز می‌شود؛ نمایه اصلی پین می‌خواهد</string>
   <string name="settings_kids_open">باز کردن نمایه کودک</string>
   <string name="settings_kids_open_summary">بازگشت به نمایه اصلی (در منوی نوار) پین می‌خواهد</string>
@@ -653,11 +653,14 @@
   <string name="settings_channels_kids">کانال‌ها خاموش هستند</string>
   <string name="settings_channels_kids_summary">آن‌ها آنچه نمایه اصلی نگه می‌دارد را نشان می‌دادند، پس تا وقتی نمایه کودک روشن است خاموش هستند</string>
   <string name="settings_kids_delete_data">حذف داده‌های نمایه کودک</string>
-  <string name="settings_kids_delete_data_summary">نشانک‌ها، تاریخچه، زبانه‌ها و ورودهای آن به سایت‌ها</string>
+  <string name="settings_kids_delete_data_summary">نشانک‌ها، تاریخچه، زبانه‌ها، ورود به سایت‌ها و فهرست بارگیری‌هایش (فایل‌ها می‌مانند)</string>
   <string name="settings_kids_delete_data_confirm">نشانک‌ها، تاریخچه، زبانه‌ها و ورودهای نمایه کودک حذف شوند؟ این کار برگشت‌پذیر نیست.</string>
   <string name="settings_kids_data_deleted">داده‌های نمایه کودک حذف شد</string>
   <plurals name="pin_wrong_tries_left">
     <item quantity="one">پین نادرست. %d تلاش تا توقف باقی مانده</item>
     <item quantity="other">پین نادرست. %d تلاش تا توقف باقی مانده</item>
   </plurals>
+    <string name="settings_kids_downloads">بارگیری‌ها</string>
+    <string name="settings_kids_downloads_summary">فایل‌های سایت‌ها و برنامه‌هایی که از آن‌ها نصب می‌شوند. نمایه کودک فقط بارگیری‌های خودش را می‌بیند و نمایه اصلی آن‌ها را هم می‌بیند</string>
+    <string name="download_of_kids">نمایه کودک</string>
 </resources>

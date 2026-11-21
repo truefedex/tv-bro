@@ -192,6 +192,8 @@ class DownloadLauncher(
         //incognito downloads do not keep the page they came from
         download.referer = if (AppContext.provideConfig().incognitoMode) null else referer
         download.status = Download.Status.IN_PROGRESS
+        //of the profile shown now: the kids profile lists only its own
+        download.kids = AppContext.kidsProfile
         //the row is inserted when the service has checked the rows a dead process left, and it outlives
         //the activity: it is the download now
         service.acquire()

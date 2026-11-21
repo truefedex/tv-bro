@@ -659,7 +659,7 @@
   <string name="pin_forgot">שכחת את קוד ה-PIN? רק ניקוי הנתונים של TV Bro בהגדרות המכשיר מסיר אותו, יחד עם כל מה שהדפדפן שומר.</string>
   <string name="settings_kids_on">מופעל, הפרופיל הראשי מוגן בקוד PIN</string>
   <string name="settings_kids_about">מה זה</string>
-  <string name="settings_kids_about_summary">פרופיל לילדים עם סימניות, היסטוריה, כרטיסיות וכניסות משלו. מה שהפרופיל הראשי שומר (האתרים שבהם נכנסת לחשבון, ההיסטוריה שלך, ההגדרות) נשאר מאחורי קוד PIN. בפרופיל הילדים אין הגדרות, הורדות, גלישה בסתר או אפליקציות אחרות.\n\nהוא מגן רק על TV Bro, לא על אפליקציות אחרות או על הגדרות המכשיר. קוד PIN שנשכח מוסר רק בניקוי הנתונים של TV Bro.</string>
+  <string name="settings_kids_about_summary">פרופיל לילדים עם סימניות, היסטוריה, כרטיסיות וכניסות משלו. מה שהפרופיל הראשי שומר (האתרים שבהם נכנסת, ההיסטוריה שלך, ההגדרות) נשאר מאחורי קוד PIN. בפרופיל הילדים אין הגדרות, מצב גלישה בסתר או אפליקציות אחרות, והורדות רק כל עוד הן מותרות כאן.\n\nהוא מגן רק על TV Bro, לא על אפליקציות אחרות או על הגדרות המכשיר. קוד PIN שנשכח מוסר רק במחיקת הנתונים של TV Bro.</string>
   <string name="settings_kids_enable_summary">TV Bro ייפתח בפרופיל הילדים; הפרופיל הראשי ידרוש קוד PIN</string>
   <string name="settings_kids_open">פתח את פרופיל הילדים</string>
   <string name="settings_kids_open_summary">החזרה לפרופיל הראשי (בתפריט של הסרגל) דורשת את קוד ה-PIN</string>
@@ -681,7 +681,7 @@
   <string name="settings_channels_kids">הערוצים כבויים</string>
   <string name="settings_channels_kids_summary">הם היו מציגים את מה שהפרופיל הראשי שומר, ולכן הם כבויים כל עוד פרופיל הילדים מופעל</string>
   <string name="settings_kids_delete_data">מחק את הנתונים של פרופיל הילדים</string>
-  <string name="settings_kids_delete_data_summary">הסימניות, ההיסטוריה, הכרטיסיות והכניסות לאתרים שלו</string>
+  <string name="settings_kids_delete_data_summary">הסימניות, ההיסטוריה, הכרטיסיות, הכניסות לאתרים ורשימת ההורדות שלו (הקבצים נשארים)</string>
   <string name="settings_kids_delete_data_confirm">למחוק את הסימניות, ההיסטוריה, הכרטיסיות והכניסות של פרופיל הילדים? אי אפשר לבטל את הפעולה.</string>
   <string name="settings_kids_data_deleted">הנתונים של פרופיל הילדים נמחקו</string>
   <plurals name="pin_wrong_tries_left">
@@ -690,4 +690,7 @@
     <item quantity="many">קוד PIN שגוי. נותרו %d ניסיונות לפני הפסקה</item>
     <item quantity="other">קוד PIN שגוי. נותרו %d ניסיונות לפני הפסקה</item>
   </plurals>
+    <string name="settings_kids_downloads">הורדות</string>
+    <string name="settings_kids_downloads_summary">קבצים מאתרים והאפליקציות שמותקנות מהם. פרופיל הילדים רואה רק את ההורדות שלו, והפרופיל הראשי רואה גם אותן</string>
+    <string name="download_of_kids">פרופיל ילדים</string>
 </resources>
