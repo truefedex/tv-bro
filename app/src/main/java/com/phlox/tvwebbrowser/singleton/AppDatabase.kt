@@ -334,16 +334,10 @@ abstract class AppDatabase : RoomDatabase() {
             MIGRATION_29_30
         )
 
-        /**
-         * Queries on the main thread are not allowed: the repositories suspend. The download service
-         * writes the database from its own process, so the other processes are told about changes. The
-         * database of the kids profile is opened by its process only: told of nothing, it does not bind the
-         * invalidation service of Room, which runs in the main process and would start it.
-         */
+        /** Queries on the main thread are not allowed: the repositories suspend */
         fun create(context: Context, name: String = DATABASE_NAME): AppDatabase =
             Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, name)
                 .addMigrations(*MIGRATIONS)
-                .apply { if (name != KIDS_DATABASE_NAME) enableMultiInstanceInvalidation() }
                 .build()
 
         @Volatile

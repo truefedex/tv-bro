@@ -248,6 +248,8 @@ class BrowserController : ActiveModel() {
     }
 
     fun onCloseAllTabs(): Job {
+        //of the tabs shown now, whatever the setting is when the write runs
+        val incognito = config.incognitoMode
         val tabsClone = ArrayList(tabsStates)
         for (tab in tabsClone) {
             if (tab.isWebEngineCreated) {
@@ -255,15 +257,30 @@ class BrowserController : ActiveModel() {
             }
         }
         tabsStates.clear()
-        return writes.enqueue { deleteTabs(tabsClone) }
+        return writes.enqueue { deleteTabs(tabsClone, incognito) }
     }
 
-    private suspend fun deleteTabs(tabsClone: List<BrowserTab>) {
+    private suspend fun deleteTabs(tabsClone: List<BrowserTab>, incognito: Boolean) {
         val files = tabsClone.map { it.wvStateFileName to it.thumbnailHash }
-        data.tabs.deleteAll(config.incognitoMode)
+        data.tabs.deleteAll(incognito)
         withContext(Dispatchers.IO) {
             files.forEach { (stateFile, thumbnailName) -> tabFiles.removeFiles(stateFile, thumbnailName) }
         }
+    }
+
+    /**
+     * The model is released (the activity finished, or another space takes the screen): the engines of the tabs
+     * are destroyed (GeckoView closes their sessions), the tabs stay saved
+     */
+    override fun onClear() {
+        currentTab.value = null
+        for (tab in tabsStates) {
+            if (tab.isWebEngineCreated) {
+                tab.webEngine.onDetachFromWindow(completely = true, destroyTab = true)
+            }
+        }
+        tabsStates.clear()
+        viewHost = null
     }
 
     fun onDetachActivity(host: TabViewHost) {

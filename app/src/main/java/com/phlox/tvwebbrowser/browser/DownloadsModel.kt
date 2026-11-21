@@ -122,8 +122,8 @@ class DownloadsTracker {
 }
 
 /**
- * The downloads of the browser processes: the download service (in its own process) writes them
- * to the database, this model observes it.
+ * The downloads: the download service writes them to the database of the main profile, this model observes the
+ * database of the profile shown, so the kids profile, which has none, learns nothing of those of the main one.
  */
 class DownloadsModel : ActiveModel() {
     private val tracker = DownloadsTracker()

@@ -240,6 +240,9 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
 
                 override fun supportsKidsProfile(): Boolean = true
 
+                //private sessions; their data go when the last of them is closed
+                override fun supportsIncognito(): Boolean = true
+
                 //the settings, where it is asked, show only after the runtime started
                 override suspend fun deleteKidsData(context: Context) {
                     if (isRuntimeInitialized) runtime.storageController.clearDataForSessionContext(KIDS_CONTEXT_ID)
@@ -510,7 +513,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     init {
         Log.d(TAG, "init")
         session = GeckoSession(GeckoSessionSettings.Builder()
-            .usePrivateMode(AppContext.provideConfig().incognitoMode)
+            //Gecko deletes the data of private sessions when the last of them is closed
+            .usePrivateMode(tab.incognito)
             //the browser core gives the view of the page's host before it loads
             .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE)
             .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)

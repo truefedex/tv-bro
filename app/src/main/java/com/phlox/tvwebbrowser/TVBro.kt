@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.browser.ProxySetup
+import com.phlox.tvwebbrowser.webengine.webview.WebViewProfiles
 import com.phlox.tvwebbrowser.browser.adblock.AppEngineAdBlocker
 import com.phlox.tvwebbrowser.browser.search.DefaultSearchEngine
 import com.phlox.tvwebbrowser.webengine.EnginePageZooms
@@ -79,28 +80,20 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         instance = this
-        val process = AppProcesses.currentKind(this)
-        if (process == AppProcesses.Kind.OTHER) {
+        if (AppProcesses.currentKind(this) == AppProcesses.Kind.OTHER) {
             //a process of GeckoView: nothing of the app runs there (an isolated one may not even read prefs),
             //and each of them would load its own ad blocker and update its lists
             Log.i(TAG, "onCreate: not a process of the app, nothing to initialize")
             return
         }
-        //before the container: the kids profile has a database and files of its own
-        AppContext.kidsProfile = AppProcesses.isCurrentKids(this)
         container = AppContainer(this)
 
-        AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_MULTI_PROCESS),
-            getSharedPreferences(Config.CREDENTIALS_PREFS_NAME, MODE_MULTI_PROCESS)))
+        AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_PRIVATE),
+            getSharedPreferences(Config.CREDENTIALS_PREFS_NAME, MODE_PRIVATE)))
 
-        val downloadsProcess = process == AppProcesses.Kind.DOWNLOADS
-        ProxySetup.start(AppContext.provideConfig(), browserProcess = !downloadsProcess)
-
-        if (downloadsProcess) {
-            //the process of DownloadService needs the database and the notification channel only
-            initNotificationChannels()
-            return
-        }
+        ProxySetup.start(AppContext.provideConfig())
+        //before anything can load WebView (only files, also harmless in the GeckoView app)
+        WebViewProfiles.deleteDataDirectoriesOfProcesses(this)
 
         DefaultSearchEngine.applyOnce(AppContext.provideConfig(), this)
 
@@ -141,7 +134,8 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
     private fun initAdBlocking() {
         val config = AppContext.provideConfig()
         container.adBlock.start(scheduleUpdates = Build.FINGERPRINT != "robolectric")
-        WebEngineFactory.adBlocker = AppEngineAdBlocker(container.adBlock, container.data.hostConfigs, config)
+        //the site settings of the profile shown
+        WebEngineFactory.adBlocker = AppEngineAdBlocker(container.adBlock, { container.data.hostConfigs }, config)
     }
 
     /**

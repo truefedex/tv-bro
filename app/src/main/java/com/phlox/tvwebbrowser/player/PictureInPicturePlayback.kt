@@ -5,8 +5,7 @@ import com.phlox.tvwebbrowser.webengine.MediaCommand
 import java.lang.ref.WeakReference
 
 /**
- * The built-in player while it plays in a picture-in-picture window (`PictureInPictureActivity`), at most one per
- * process. The screen of the player hands its [NativePlayer] over without releasing it ([start]), the window shows
+ * The built-in player while it plays in a picture-in-picture window (`PictureInPictureActivity`), at most one. The screen of the player hands its [NativePlayer] over without releasing it ([start]), the window shows
  * it; the player goes back to the screen when the window is expanded ([takeBack]), and is released when the window
  * is closed or another video opens in the built-in player ([end]). Main thread only.
  */

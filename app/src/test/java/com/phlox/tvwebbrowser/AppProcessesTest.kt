@@ -1,14 +1,9 @@
 package com.phlox.tvwebbrowser
 
-import android.content.ComponentName
+import android.content.pm.PackageManager
 import com.phlox.tvwebbrowser.AppProcesses.Kind
-import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
-import com.phlox.tvwebbrowser.activity.KidsProfileMainActivity
-import com.phlox.tvwebbrowser.activity.main.MainActivity
-import com.phlox.tvwebbrowser.service.downloads.DownloadService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -19,24 +14,8 @@ class AppProcessesTest {
     private val pkg = "com.phlox.tvwebbrowser.gecko"
 
     @Test
-    fun theBrowserProcessesAreInitialized() {
-        assertEquals(Kind.BROWSER, AppProcesses.kindOf(pkg, pkg))
-        assertEquals(Kind.BROWSER, AppProcesses.kindOf("$pkg:incognito", pkg))
-        assertEquals(Kind.BROWSER, AppProcesses.kindOf("$pkg:kids", pkg))
-    }
-
-    /** Only its process has the database and the pages data of the kids profile */
-    @Test
-    fun onlyTheKidsProcessIsOfTheKidsProfile() {
-        assertTrue(AppProcesses.isKids("$pkg:kids", pkg))
-        for (name in listOf(pkg, "$pkg:incognito", "$pkg:downloads", "$pkg:kids_1", "", "other:kids")) {
-            assertFalse(name, AppProcesses.isKids(name, pkg))
-        }
-    }
-
-    @Test
-    fun theDownloadsProcessIsKnown() {
-        assertEquals(Kind.DOWNLOADS, AppProcesses.kindOf("$pkg:downloads", pkg))
+    fun theProcessOfTheAppIsInitialized() {
+        assertEquals(Kind.APP, AppProcesses.kindOf(pkg, pkg))
     }
 
     @Test
@@ -47,28 +26,26 @@ class AppProcessesTest {
         }
     }
 
-    /** A name that could not be read, or one of another package, must not leave the browser uninitialized */
+    /** A name that could not be read, or one of another package, must not leave the app uninitialized */
     @Test
-    fun unknownNamesAreTakenForTheBrowser() {
-        assertEquals(Kind.BROWSER, AppProcesses.kindOf("", pkg))
-        assertEquals(Kind.BROWSER, AppProcesses.kindOf("java", pkg))
-        assertEquals(Kind.BROWSER, AppProcesses.kindOf("com.phlox.tvwebbrowser", pkg))
+    fun unknownNamesAreTakenForTheApp() {
+        assertEquals(Kind.APP, AppProcesses.kindOf("", pkg))
+        assertEquals(Kind.APP, AppProcesses.kindOf("java", pkg))
+        assertEquals(Kind.APP, AppProcesses.kindOf("com.phlox.tvwebbrowser", pkg))
     }
 
+    /**
+     * Everything of the app runs in its one process: the browser, the downloads, the home screen channels (the
+     * services of GeckoView have processes of their own)
+     */
     @Test
-    fun theSuffixesAreThoseOfTheManifest() {
+    fun theComponentsOfTheAppHaveOneProcess() {
         val context = RuntimeEnvironment.getApplication()
-        val pm = context.packageManager
-        val incognito = pm.getActivityInfo(ComponentName(context, IncognitoModeMainActivity::class.java), 0).processName
-        val downloads = pm.getServiceInfo(ComponentName(context, DownloadService::class.java), 0).processName
-        val browser = pm.getActivityInfo(ComponentName(context, MainActivity::class.java), 0).processName
-        val kids = pm.getActivityInfo(ComponentName(context, KidsProfileMainActivity::class.java), 0).processName
-        assertEquals(context.packageName + AppProcesses.INCOGNITO_SUFFIX, incognito)
-        assertEquals(context.packageName + AppProcesses.KIDS_SUFFIX, kids)
-        assertTrue(AppProcesses.isKids(kids, context.packageName))
-        assertEquals(context.packageName + AppProcesses.DOWNLOADS_SUFFIX, downloads)
-        assertEquals(Kind.BROWSER, AppProcesses.kindOf(browser, context.packageName))
-        assertEquals(Kind.BROWSER, AppProcesses.kindOf(incognito, context.packageName))
-        assertEquals(Kind.DOWNLOADS, AppProcesses.kindOf(downloads, context.packageName))
+        val info = context.packageManager.getPackageInfo(context.packageName,
+            PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or PackageManager.GET_PROVIDERS)
+        val components = info.activities.orEmpty().toList() + info.services.orEmpty() + info.providers.orEmpty()
+        val ours = components.filter { it.name.startsWith("com.phlox.tvwebbrowser.") }
+        assertTrue(ours.size > 5)
+        for (component in ours) assertEquals(component.name, context.packageName, component.processName)
     }
 }

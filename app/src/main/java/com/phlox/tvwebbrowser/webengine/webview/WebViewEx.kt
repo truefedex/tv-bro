@@ -49,6 +49,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.net.AppProxy
@@ -72,7 +73,9 @@ import java.util.UUID
  * Copyright (c) 2016 Fedir Tsapana.
  */
 @SuppressLint("SetJavaScriptEnabled", "ViewConstructor")
-open class WebViewEx(context: Context, val callback: Callback, val jsInterface: AndroidJSInterface) : WebView(context) {
+/** [profile]: the profile of WebView where its pages keep their data ([WebViewProfiles]), null for the default one */
+open class WebViewEx(context: Context, val callback: Callback, val jsInterface: AndroidJSInterface,
+                     val profile: String? = null) : WebView(context) {
     companion object {
         val TAG = WebViewEx::class.java.simpleName
         const val WEB_VIEW_TAG = "TV Bro WebView"
@@ -82,6 +85,9 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         val WIDEVINE_UUID = UUID(-0x121074568629b532L,-0x5c37d8232ae2de13L)
     }
 
+    //the first of all: WebView takes the profile only before anything else is done with the view
+    @Suppress("unused")
+    private val profileSet = profile?.let { WebViewCompat.setProfile(this, it) }
     private var virtualCursorMode: Boolean = true
     private var genericInjects: String? = null
     private var webChromeClient_: WebChromeClient
@@ -115,7 +121,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private val config = AppContext.provideConfig()
     private val siteViewUserAgent = SiteViewUserAgent(this)
     private val pageZoom = WebViewPageZoom(this)
-    private val mediaControls = WebViewMediaControls(this, { callback.onMediaStateChanged(it) },
+    private val mediaControls = WebViewMediaControls(this, WebViewProfiles.cookieManager(profile), { callback.onMediaStateChanged(it) },
         { callback.onPageVideosChanged(it) }, { callback.onMediaVideoChanged(it) })
     private val elementHiding = WebViewElementHiding(this) { requestPageUrl ?: currentOriginalUrl }
 

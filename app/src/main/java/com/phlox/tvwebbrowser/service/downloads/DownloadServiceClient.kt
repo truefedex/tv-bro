@@ -7,16 +7,13 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.os.Message
 import android.os.Messenger
-import android.os.Parcel
-import android.os.Parcelable
-import android.os.ParcelFileDescriptor
 import android.os.RemoteException
 import android.util.Log
 import androidx.annotation.MainThread
-import androidx.core.os.BundleCompat
 
 /**
- * The connection of a browser process to [DownloadService], which runs in its own process.
+ * The connection of the browser to [DownloadService] (in the same process: [DownloadCommands] go in [Message]s
+ * of a [Messenger], which the service handles on its thread; a read end of a pipe in one is the service's).
  * The browser activity keeps it bound ([acquire]/[release]) while it is started and a download is in progress
  * or a downloads screen is shown ([DownloadServiceNeed]); a row a dead process left in progress counts, so
  * the service starts and marks it interrupted. Commands sent while it is not bound wait, and the service is
@@ -90,24 +87,7 @@ class DownloadServiceClient(private val context: Context) {
             pendingCommands.add(message)
             return
         }
-        //the service got its own copy of the pipe
-        BundleCompat.getParcelable(message.data, DownloadCommands.KEY_STREAM, ParcelFileDescriptor::class.java)
-            ?.let { closeSilently(it) }
-    }
-
-    /**
-     * Closes the copy of this process of the read end of a reliable pipe. A plain close would tell
-     * the writer that the reader is gone, and the writer would not leave the status of its end
-     * (complete or failed) for the reader in the service.
-     */
-    private fun closeSilently(readEnd: ParcelFileDescriptor) {
-        val parcel = Parcel.obtain()
-        try {
-            //writing it as a return value closes it without a status
-            readEnd.writeToParcel(parcel, Parcelable.PARCELABLE_WRITE_RETURN_VALUE)
-        } finally {
-            parcel.recycle()
-        }
+        //the service is in this process: the message, with the read end of a pipe, is its own now
     }
 
     private fun bind() {

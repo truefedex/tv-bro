@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
+import android.app.ActivityOptions
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -12,8 +13,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.Process
-import android.app.ActivityManager
 import android.os.SystemClock
 import android.util.Log
 import android.util.TypedValue
@@ -39,12 +38,9 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.TVBro
-import com.phlox.tvwebbrowser.AppProcesses
 import com.phlox.tvwebbrowser.send.LegacySync
 import com.phlox.tvwebbrowser.send.SendSettings
 import com.phlox.tvwebbrowser.channels.HomeChannels
-import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
-import com.phlox.tvwebbrowser.activity.KidsProfileMainActivity
 import com.phlox.tvwebbrowser.profile.PinDialog
 import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.profile.ProfilePolicy
@@ -81,38 +77,24 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
-import kotlin.system.exitProcess
 
 /**
  * The browser screen. It owns what does not depend on the look of the screen (the browser core,
  * intents, navigation, incognito, downloads, keys and Back) and leaves the look to a [BrowserShell].
  */
-open class MainActivity : AppCompatActivity(), BrowserShell.Host {
+class MainActivity : AppCompatActivity(), BrowserShell.Host {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
-        const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
         /**
-         * When the app itself started the activity (it changed the process, or restarts), by
-         * [SystemClock.elapsedRealtime]: the user was just there, so a fresh one does not lock the main profile
+         * When the app itself started the activity (it restarts), by [SystemClock.elapsedRealtime]: the user was
+         * just there, so a fresh process does not lock the main profile
          */
         private const val KEY_SESSION_TIME = "session_time"
         private const val SESSION_TIME_VALID_MS = 60_000L
         /** The start of this process was looked at ([ProfileLock.onMainColdStart]) */
         private var coldStartHandled = false
-        /** Browser activities of this process that show the browser and are not destroyed yet */
-        private var liveActivities = 0
-        /** This process has shown the browser in an activity already */
-        private var hostedBrowser = false
-        /** The browser is going to the activity of another process: this process ends */
-        private var switchingProcess = false
-        /** An engine was initialized in this process: it may hold data that are not on the disk yet */
-        private var engineUsed = false
-
-        private fun activityClassOf(space: BrowserSpace): Class<out MainActivity> = when (space) {
-            BrowserSpace.MAIN -> MainActivity::class.java
-            BrowserSpace.INCOGNITO -> IncognitoModeMainActivity::class.java
-            BrowserSpace.KIDS -> KidsProfileMainActivity::class.java
-        }
+        /** The space the models of the browser activity were made for */
+        private var modelsSpace: BrowserSpace? = null
 
         /** Marks the [intent] as one the app starts its browser activity with (see [KEY_SESSION_TIME]) */
         fun markSameSession(intent: Intent): Intent = intent.putExtra(KEY_SESSION_TIME, SystemClock.elapsedRealtime())
@@ -147,28 +129,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         fun channelTabIntent(context: Context, tabId: Long, url: String): Intent =
             Intent(Intent.ACTION_VIEW, Uri.parse(url), context, MainActivity::class.java).putExtra(EXTRA_TAB_ID, tabId)
 
-        /**
-         * The intent that starts the browser activity of another process (that of the [space]) and makes it
-         * kill this one. [source] (an intent that came to the activity of the wrong process: a link to
-         * open) goes there whole, so it is handled as if it had come there. With [clearTask] the activity is
-         * always a new one, alone in its task; without, one that is there already (the activities are
-         * `singleTask`) only gets the intent ([onNewIntent]) and comes to the front as it is.
-         */
-        internal fun switchProcessIntent(context: Context, space: BrowserSpace, source: Intent?, pidToKill: Int,
-                                         clearTask: Boolean = true): Intent {
-            val intent = Intent(context, activityClassOf(space))
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            if (clearTask) intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            if (source != null) {
-                intent.action = source.action
-                //setData and setType clear each other
-                intent.setDataAndType(source.data, source.type)
-                source.extras?.let { intent.putExtras(it) }
-            }
-            //after the extras: an intent restored from the history may hold the pid of a process gone
-            intent.putExtra(KEY_PROCESS_ID_TO_KILL, pidToKill)
-            return markSameSession(intent)
-        }
     }
 
     private lateinit var uiMode: UiMode
@@ -191,12 +151,15 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     /** Back of a fullscreen page goes to the back callbacks of the screen, not to the fullscreen view of WebView */
     private var fullscreenOverlayBack: OverlayBackInvokedCallback? = null
     protected val config = AppContext.provideConfig()
-    /** Where this activity shows the browser; each space has an activity in a process of its own */
-    protected open val space: BrowserSpace get() = BrowserSpace.MAIN
+    /**
+     * What this activity shows ([wantedSpace] when it was created). Another space takes the screen in a new
+     * activity ([switchSpace]), so the browser core, the engine views and all the models of this one go with it.
+     */
+    private var space = BrowserSpace.MAIN
+    /** Another activity is taking the screen for another space ([switchSpace]) */
+    private var switchingSpace = false
     private val profileLock by lazy { ProfileLock.get(this) }
-    private val policy = ProfilePolicy.current
-    /** This activity is one of [liveActivities] */
-    private var countedAsLive = false
+    private val policy: ProfilePolicy get() = ProfilePolicy.current
     private val voiceSearchHelper = VoiceSearchHelper(this) { icon, message -> shell.showMessage(icon, message) }
     private val downloadLauncher = DownloadLauncher(this,
         onFolderUnavailable = { shell.showMessage(R.drawable.ic_warning, getString(R.string.download_folder_unavailable)) }
@@ -213,53 +176,22 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
         //the kids profile is of the TV interface only
         uiMode = UiModeSelector.select(this, config.interfaceMode)
-        if (space != BrowserSpace.KIDS && !coldStartHandled) {
+        if (!coldStartHandled) {
             coldStartHandled = true
-            //the browser of the incognito mode runs (a link of another app came while it was shown): the main
-            //profile is open, and leaving the screen locks it as usual
-            if (!isSameSession(intent) && !AppProcesses.isRunning(this, AppProcesses.INCOGNITO_SUFFIX)) {
-                profileLock.onMainColdStart()
-            }
+            //the device was switched off while the main profile was shown, or the system ended the process
+            if (!isSameSession(intent)) profileLock.onMainColdStart()
         }
         val wanted = wantedSpace()
-        Log.d(TAG, "onCreate space: $space, wanted: $wanted")
-        if (wanted != space) {
-            //this activity only passes the intent on (the launcher, a link of another app): the browser of
-            //the other process, if it is there, stays as it is and comes to the front. Else the task is
-            //cleared: it may hold the browser of a space that is not to be shown (the incognito mode the
-            //main profile was locked in), which Back in the new one would show again.
-            //Finished first: switchProcess may end this process at once (no tab writes are pending), and the
-            //record of an activity that did not finish stays in the task, under the one this one starts.
-            finish()
-            switchProcess(wanted, intent, clearTask = !hasBrowserActivity(wanted))
-            return
-        }
-        //only of an intent the app has just sent: one restored later holds the pid of a process long gone,
-        //which may be another process of the app by now
-        val pidToKill = if (isSameSession(intent)) intent?.getIntExtra(KEY_PROCESS_ID_TO_KILL, -1) ?: -1 else -1
-        if (pidToKill != -1 && pidToKill != Process.myPid()) {
-            Process.killProcess(pidToKill)
-        }
-        if (liveActivities > 0 || (hostedBrowser && space != BrowserSpace.MAIN)) {
-            //the activity of the main process sent the browser here (a link of another app, the launcher)
-            //while this process has, or just had, its browser activity: that one is destroyed around the
-            //time this one is created, and the browser core and the engine views are still its own. So
-            //the browser starts again in a new process, as on every other switch. The main process shows
-            //the browser again in a new activity only after the old one is gone (the launcher after Back).
-            Log.d(TAG, "onCreate: the process has shown the browser already, starting again")
-            finish()
-            switchProcess(space, intent)
-            return
-        }
-        liveActivities++
-        countedAsLive = true
-        hostedBrowser = true
+        //an incognito session that the kids profile ended, or one the engine can not keep apart any more
+        if (wanted != BrowserSpace.INCOGNITO && config.incognitoMode) dropIncognitoTabs()
+        space = wanted
+        //before the models: they take the data of the profile shown. Those of another space (the system destroyed
+        //the activity while another space came to be wanted) go
+        if (modelsSpace != null && modelsSpace != wanted) ActiveModelsRepository.releaseAll()
+        modelsSpace = wanted
+        AppContext.kidsProfile = wanted == BrowserSpace.KIDS
+        Log.d(TAG, "onCreate space: $space")
 
-        when (space) {
-            BrowserSpace.INCOGNITO -> WebEngineFactory.prepareIncognitoProcess()
-            BrowserSpace.KIDS -> WebEngineFactory.prepareKidsProcess()
-            BrowserSpace.MAIN -> deleteEndedIncognito()
-        }
         ActivityResults.reset()
         AppSettingsStore.rememberStartupValues(config)
         lifecycleScope.launch(Dispatchers.IO) { LegacySync.drop(applicationContext, SendSettings(applicationContext, config.prefs)) }
@@ -349,9 +281,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     override fun closeWindow() {
         Log.d(TAG, "closeWindow")
         lifecycleScope.launch {
-            if (space == BrowserSpace.INCOGNITO) {
-                toggleIncognitoMode(false).join()
-            }
+            if (space == BrowserSpace.INCOGNITO) endIncognito()
             finish()
         }
     }
@@ -371,7 +301,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
             downloadLauncher.downloadAgain(item, engine?.userAgentString, engine?.getCookies(item.url))
         }
 
-        override suspend fun remove(ids: List<Long>) = TVBro.container.data.downloads.delete(ids)
+        override suspend fun remove(ids: List<Long>) = TVBro.container.mainData.downloads.delete(ids)
 
         override fun onScreenShown(shown: Boolean) = downloadLauncher.onScreenShown(shown)
     }
@@ -389,74 +319,85 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
     /** Where the browser is to be now: the kids profile unless its PIN was entered, else incognito or not */
     private fun wantedSpace(): BrowserSpace {
-        //another process may have changed the settings (the incognito mode) since this one read them
-        getSharedPreferences(TVBro.MAIN_PREFS_NAME, MODE_MULTI_PROCESS)
-        if (kidsProfileAvailable && profileLock.kidsActive) {
-            endIncognitoForKids()
-            return BrowserSpace.KIDS
-        }
-        //never on in the process of the kids profile: leaving it goes through the main activity
-        return if (config.incognitoMode) BrowserSpace.INCOGNITO else BrowserSpace.MAIN
+        if (kidsProfileAvailable && profileLock.kidsActive) return BrowserSpace.KIDS
+        //never on while the kids profile is shown: leaving it goes to the main profile
+        return if (config.incognitoMode && WebEngineFactory.supportsIncognito()) BrowserSpace.INCOGNITO else BrowserSpace.MAIN
     }
 
     /**
-     * The kids profile takes the screen: an incognito session of the main profile ends, so the PIN opens the
-     * main profile and not that session. Its tabs and the data of its pages are deleted by the next browser
-     * process of the main profile ([deleteEndedIncognito]): only that one has its database, and the kids
-     * profile may come first.
+     * Deletes the tabs of an incognito session that ended without its activity: the kids profile took the screen
+     * when the process started, or the engine no longer keeps the incognito data apart. The data of its pages
+     * are deleted by the engine too (WebView deletes the profile of the incognito mode when it starts out of it).
      */
-    private fun endIncognitoForKids() {
-        if (!config.incognitoMode) return
-        config.incognitoEndPending = true
+    private fun dropIncognitoTabs() {
         config.incognitoMode = false
-    }
-
-    /** Deletes what an incognito session that the kids profile ended left ([endIncognitoForKids]) */
-    private fun deleteEndedIncognito() {
-        if (!config.incognitoEndPending) return
         val app = applicationContext
         val container = TVBro.container
         container.tabWrites.enqueue {
-            AppProcesses.end(app, AppProcesses.INCOGNITO_SUFFIX)
-            val tabs = container.data.tabs.load(incognito = true)
-            container.data.tabs.deleteAll(incognito = true)
+            val data = container.mainData
+            val tabs = data.tabs.load(incognito = true)
+            data.tabs.deleteAll(incognito = true)
             withContext(Dispatchers.IO) {
-                for (tab in tabs) container.tabFiles.removeFiles(tab.wvStateFileName, tab.thumbnailHash)
+                for (tab in tabs) container.mainTabFiles.removeFiles(tab.wvStateFileName, tab.thumbnailHash)
             }
             try {
-                WebEngineFactory.deleteIncognitoData()
+                WebEngineFactory.clearIncognitoData(app)
             } catch (e: Exception) {
-                Log.e(TAG, "deleteEndedIncognito", e)
+                Log.e(TAG, "dropIncognitoTabs", e)
             }
-            config.incognitoEndPending = false
         }
     }
 
-    /** The browser activity of the [space] is in a task of the app (also when the system ended its process) */
-    private fun hasBrowserActivity(space: BrowserSpace): Boolean {
-        val name = activityClassOf(space).name
-        val tasks = try {
-            getSystemService(ActivityManager::class.java)?.appTasks.orEmpty()
-        } catch (e: SecurityException) {
-            emptyList()
+    /**
+     * Leaving the incognito mode in its activity: its tabs are closed (their rows and files deleted, their engines
+     * destroyed) and the engine deletes the data of their pages
+     */
+    private suspend fun endIncognito() {
+        controller.onCloseAllTabs().join()
+        controller.currentTab.value = null
+        try {
+            WebEngineFactory.clearIncognitoData(this)
+        } catch (e: Exception) {
+            Log.e(TAG, "endIncognito", e)
         }
-        return tasks.any { task ->
-            //a task removed meanwhile throws
-            val info = try { task.taskInfo } catch (e: IllegalArgumentException) { null } ?: return@any false
-            info.baseActivity?.className == name || info.topActivity?.className == name
-        }
+        config.incognitoMode = false
     }
 
-    /** Goes to the activity of the space the browser is to be in; @return false if this is the one */
-    private fun routeToWantedSpace(): Boolean {
+    /** Goes to the space the browser is to be in; @return false if this activity shows it */
+    private fun routeToWantedSpace(forward: Intent? = null): Boolean {
+        if (switchingSpace) return true
         val wanted = wantedSpace()
         if (wanted == space) return false
-        if (!switchingProcess) {
-            //the process is killed without pausing the activity
-            controller.onActivityPause()
-            switchProcess(wanted)
-        }
+        switchSpace(wanted, forward)
         return true
+    }
+
+    /**
+     * Another space takes the screen, in a new activity of this process: the tabs of this one are saved (those of
+     * the incognito mode deleted, [endIncognito]), all the models are released, so the browser core and the engine
+     * views go with them, and the new activity takes the data of its profile ([AppContext.kidsProfile]). [forward]:
+     * an intent that came while another space was wanted (a link of another app), handled there.
+     */
+    private fun switchSpace(target: BrowserSpace, forward: Intent? = null) {
+        if (switchingSpace) return
+        Log.d(TAG, "switchSpace: $space -> $target")
+        switchingSpace = true
+        shell.showBusy(true)
+        //its video is of this space
+        PictureInPicturePlayback.end()
+        controller.onActivityPause()
+        val leavingIncognito = space == BrowserSpace.INCOGNITO && target != BrowserSpace.INCOGNITO
+        val app = applicationContext
+        TVBro.container.appScope.launch {
+            if (leavingIncognito) endIncognito()
+            TVBro.container.tabWrites.awaitPending()
+            ActiveModelsRepository.releaseAll()
+            val intent = if (forward != null) Intent(forward).setClass(app, MainActivity::class.java)
+                else Intent(app, MainActivity::class.java)
+            //a new instance: this one is finishing, so the singleTask activity is not reused
+            finish()
+            startActivity(intent, ActivityOptions.makeCustomAnimation(app, 0, 0).toBundle())
+        }
     }
 
     override fun switchProfile() {
@@ -643,16 +584,15 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         if (::controller.isInitialized) {
             controller.onDetachActivity(tabViewHost)
         }
-        if (countedAsLive) {
-            countedAsLive = false
-            liveActivities--
-        }
         super.onDestroy()
     }
 
     @SuppressLint("MissingSuperCall")
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        //the main profile was away from the screen for too long: it is locked, and the link opens in the kids profile
+        if (space != BrowserSpace.KIDS) profileLock.onMainBackOnScreen()
+        if (routeToWantedSpace(intent)) return
         if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false) && policy.downloads) {
             shell.showAllDownloads(intent.getLongExtra(KEY_DOWNLOAD_ID, 0L).takeIf { it > 0L })
         }
@@ -674,7 +614,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
     private fun loadState() = lifecycleScope.launch(Dispatchers.Main) {
         Log.d(TAG, "loadState")
-        engineUsed = true
         WebEngineFactory.initialize(this@MainActivity, shell.tabsContainer)
 
         shell.showBusy(true)
@@ -844,16 +783,16 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     override fun onStart() {
         super.onStart()
         //the main profile was away from the screen for too long: it is locked
+        //(another space takes the screen in onResume, after a link that came is given to onNewIntent)
         if (space != BrowserSpace.KIDS) profileLock.onMainBackOnScreen()
-        if (routeToWantedSpace()) return
         downloadLauncher.onActivityStarted()
     }
 
     override fun onStop() {
         super.onStop()
         downloadLauncher.onActivityStopped()
-        //the browser left the screen (not for a picker it waits for, not to come back in another process)
-        if (space != BrowserSpace.KIDS && !switchingProcess && !isChangingConfigurations &&
+        //the browser left the screen (not for a picker it waits for, not to come back in another space)
+        if (space != BrowserSpace.KIDS && !switchingSpace && !isChangingConfigurations &&
             !ActivityResults.awaited && !TVBro.restartsMainActivity) {
             profileLock.onMainLeftScreen()
         }
@@ -871,6 +810,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         updateNetworkAvailability()
         cm.registerDefaultNetworkCallback(networkCallback)
+        //the main profile was locked while away (onStart); a link that came meanwhile went with onNewIntent
+        if (routeToWantedSpace()) return
         controller.onActivityResume()
     }
 
@@ -900,47 +841,14 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     }
 
     override fun toggleIncognitoMode() {
+        if (switchingSpace) return
+        if (space == BrowserSpace.INCOGNITO) {
+            switchSpace(BrowserSpace.MAIN)
+            return
+        }
         if (refusedByProfile(policy.incognito)) return
-        toggleIncognitoMode(true)
-    }
-
-    private fun toggleIncognitoMode(andSwitchProcess: Boolean) = lifecycleScope.launch(Dispatchers.Main) {
-        Log.d(TAG, "toggleIncognitoMode andSwitchProcess: $andSwitchProcess")
-        val becomingIncognitoMode = !config.incognitoMode
-        shell.showBusy(true)
-        if (!becomingIncognitoMode) {
-            WebEngineFactory.clearIncognitoBrowsingData(this@MainActivity)
-            controller.onCloseAllTabs().join()
-            controller.currentTab.value = null
-            WebEngineFactory.deleteIncognitoData()
-        }
-        shell.showBusy(false)
-        config.incognitoMode = becomingIncognitoMode
-        if (andSwitchProcess) {
-            if (becomingIncognitoMode) {
-                //the process is killed without pausing the activity
-                controller.onActivityPause()
-            }
-            switchProcess(if (becomingIncognitoMode) BrowserSpace.INCOGNITO else BrowserSpace.MAIN)
-        }
-    }
-
-    /** [intentToForward]: the intent of this activity, when it came to the wrong process; null on a toggle */
-    private fun switchProcess(space: BrowserSpace, intentToForward: Intent? = null, clearTask: Boolean = true) {
-        Log.d(TAG, "switchProcess space: $space")
-        switchingProcess = true
-        val app = applicationContext
-        val intent = switchProcessIntent(app, space, intentToForward, Process.myPid(), clearTask)
-        //a process that has loaded no engine has nothing to keep
-        val engineUsed = engineUsed
-        TVBro.container.appScope.launch {
-            //tabs state saved on activity pause should not be lost
-            TVBro.container.tabWrites.awaitPending()
-            //and the cookies set a moment ago: the process is killed
-            if (engineUsed) WebEngineFactory.flushData()
-            app.startActivity(intent)
-            exitProcess(0)
-        }
+        config.incognitoMode = true
+        switchSpace(BrowserSpace.INCOGNITO)
     }
 
     val onBackPressedCallback = object : OnBackPressedCallback(true) {

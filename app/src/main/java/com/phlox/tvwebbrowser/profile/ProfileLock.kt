@@ -10,9 +10,7 @@ import android.content.SharedPreferences
  * ([LockDelay]). Entering the kids profile never needs the PIN.
  *
  * It is kept in a preferences file of its own, which backups leave out (`backup_rules.xml`): a restored
- * copy with the profile on and no PIN, or with the PIN of another device, would be worse than none. The
- * browser processes replace each other (see `MainActivity`), and each read looks whether another process
- * changed the file, so none of them works with an old copy.
+ * copy with the profile on and no PIN, or with the PIN of another device, would be worse than none.
  */
 class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Long = System::currentTimeMillis) {
     /** When the main profile is locked after the browser left the screen */
@@ -79,7 +77,7 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
     }
 
     /**
-     * A browser process of the main profile starts and nothing tells that the user was just there (the
+     * The process of the app starts and nothing tells that the user was just there (the
      * device was switched off, the process died): the main profile is locked, unless only the user locks it
      */
     fun onMainColdStart() {
@@ -99,16 +97,12 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
 
         fun get(context: Context): ProfileLock = instance ?: synchronized(this) {
             val app = context.applicationContext
-            @Suppress("DEPRECATION")
-            instance ?: ProfileLock(PrefsStore { app.getSharedPreferences(PREFS_NAME, Context.MODE_MULTI_PROCESS) })
+            instance ?: ProfileLock(PrefsStore(app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)))
                 .also { instance = it }
         }
     }
 
-    /** [open] gives the file as it is on the disk now: the system restarts a killed browser process by itself */
-    private class PrefsStore(private val open: () -> SharedPreferences) : ProfilePin.Store {
-        private val prefs: SharedPreferences get() = open()
-
+    private class PrefsStore(private val prefs: SharedPreferences) : ProfilePin.Store {
         override fun get(key: String): String? = prefs.getString(key, null)
 
         override fun put(values: Map<String, String?>) {
@@ -116,7 +110,7 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
             for ((key, value) in values) {
                 if (value == null) editor.remove(key) else editor.putString(key, value)
             }
-            //another process may read it next
+            //written at once: the process may be killed right after a wrong PIN or a lock
             editor.commit()
         }
     }

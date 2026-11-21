@@ -41,12 +41,11 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
 /**
- * Runs the downloads, in its own process (`:downloads`), so that they go on while the browser
- * switches between its normal and incognito processes, and both of them can start downloads.
- * The browser processes bind to it and send [DownloadCommands] through a [Messenger]; the state of
+ * Runs the downloads, whatever space the browser shows (their rows are in the database of the main profile).
+ * The browser binds to it and sends [DownloadCommands] through a [Messenger]; the state of
  * the downloads is written to the database, which the screens observe.
  *
- * While a browser process is bound the service is started too, and it stops itself only when nothing is bound
+ * While the browser is bound the service is started too, and it stops itself only when nothing is bound
  * and nothing runs: a browser sends a command and may unbind right away, before the command is handled; a
  * service that was only bound would then be destroyed with the command, and the next one would take its
  * download for one a dead process left.
@@ -59,7 +58,7 @@ class DownloadService : Service() {
         private const val IDLE_STOP_DELAY = 1000L
     }
 
-    private val repository get() = TVBro.container.data.downloads
+    private val repository get() = TVBro.container.mainData.downloads
     private val scope = MainScope()
     private val executor = Executors.newCachedThreadPool()
     private val handler = Handler(Looper.getMainLooper())
@@ -71,7 +70,7 @@ class DownloadService : Service() {
     private var pendingStarts = 0
     /** Refreshes of the downloads channel of the home screen in progress: the service waits for them */
     private var channelSyncs = 0
-    /** A browser process is bound */
+    /** The browser is bound */
     private var bound = false
     private val stopWhenIdle = Runnable { stopIfIdle() }
     private var destroyed = false
@@ -285,7 +284,7 @@ class DownloadService : Service() {
 
     /**
      * The downloads channel of the TV home screen shows the new file also when the browser is not running.
-     * Only a channel that is there is refreshed: the prefs of this process may be older than the settings.
+     * Only a channel that is there is refreshed: the service never brings back a channel the user turned off.
      */
     private fun refreshHomeChannel() {
         channelSyncs++

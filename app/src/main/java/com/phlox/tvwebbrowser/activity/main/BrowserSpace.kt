@@ -1,9 +1,9 @@
 package com.phlox.tvwebbrowser.activity.main
 
 /**
- * Where the browser runs. Each space has a browser activity in a process of its own (see the manifest),
- * because the engines keep the data of pages per process; the processes replace each other, so only one
- * shows the browser at a time.
+ * What the browser shows, one at a time, in the one process of the app: another space takes the screen in a new
+ * browser activity (`MainActivity.switchSpace`). The engines keep the pages data of the spaces apart (profiles of
+ * WebView, private sessions and a container of GeckoView).
  */
 enum class BrowserSpace {
     /** The main profile */

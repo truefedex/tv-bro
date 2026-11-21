@@ -16,13 +16,10 @@ import kotlinx.coroutines.sync.withLock
 object ProxySetup {
     private val applying = Mutex()
 
-    /**
-     * Called first in each process: browser processes follow the settings, the downloads process gets the
-     * proxy of each download with its command.
-     */
-    fun start(config: Config, browserProcess: Boolean) {
+    /** Called first when the app starts: the app and the engine follow the settings */
+    fun start(config: Config) {
         AppProxy.install()
-        if (browserProcess) AppProxy.settings = config.proxy
+        AppProxy.settings = config.proxy
     }
 
     /**

@@ -16,11 +16,12 @@ import kotlin.coroutines.suspendCoroutine
  * domain the host belongs to, with its subdomains), but only all at once. Otherwise each kind is cleared
  * apart: WebView has no removal of the cookies of one site, so they are expired one by one; the storage of
  * the origins of the host and its subdomains is deleted; and the whole cache (it holds no data of the user)
- * is cleared, as WebView has no cache of one site.
+ * of the profile is cleared, as WebView has no cache of one site. All of it in the profile of WebView of the
+ * tabs shown ([WebViewProfiles]).
  */
 internal object WebViewSiteData {
-    suspend fun clear(context: Context, host: String, kinds: Set<SiteDataKind>) {
-        val storage = WebStorage.getInstance()
+    suspend fun clear(context: Context, host: String, kinds: Set<SiteDataKind>, profile: String?) {
+        val storage = WebViewProfiles.webStorage(profile)
         if (kinds.containsAll(SiteDataKind.ALL) &&
             WebViewFeature.isFeatureSupported(WebViewFeature.DELETE_BROWSING_DATA)) {
             suspendCoroutine { cont ->
@@ -30,7 +31,7 @@ internal object WebViewSiteData {
         }
         val hostOrigins = listOf("https://$host", "http://$host")
         if (SiteDataKind.COOKIES in kinds) {
-            val cookies = CookieManager.getInstance()
+            val cookies = WebViewProfiles.cookieManager(profile)
             for (origin in hostOrigins) {
                 val secure = origin.startsWith("https:")
                 for (expiry in SiteCookies.expiries(host, secure, cookies.getCookie("$origin/"))) {
@@ -46,7 +47,7 @@ internal object WebViewSiteData {
             for (origin in origins) storage.deleteOrigin(origin)
         }
         if (SiteDataKind.CACHE in kinds) {
-            WebView(context).clearCache(true)
+            WebViewProfiles.bareView(context, profile).apply { clearCache(true); destroy() }
         }
     }
 

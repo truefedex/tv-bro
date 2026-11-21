@@ -34,32 +34,26 @@ interface WebEngineProviderCallback {
     fun onThemeSettingUpdated(value: Config.Theme)
     fun getWebEngineVersionString(): String
 
-    /** Called in the incognito process before the engine is initialized */
-    fun prepareIncognitoProcess() {}
+    /**
+     * The engine can keep the data of the pages of incognito tabs (`BrowserTab.incognito`) apart from the others,
+     * on this device
+     */
+    fun supportsIncognito(): Boolean = false
 
-    /** Leaving the incognito mode, before its tabs are closed */
-    suspend fun clearIncognitoBrowsingData(context: Context) {}
-
-    /** Leaving the incognito mode, after its tabs are closed */
-    suspend fun deleteIncognitoData() {}
+    /** Leaving the incognito mode, after its tabs are closed: deletes the data of their pages (cookies, storage, cache) */
+    suspend fun clearIncognitoData(context: Context) {}
 
     /**
-     * The engine can keep the data of the pages of the kids profile (cookies, storage, cache) apart from
-     * those of the main profile, on this device
+     * The engine can keep the data of the pages of the kids profile ([com.phlox.tvwebbrowser.AppContext.kidsProfile]
+     * when the tab is created) apart from those of the main profile, on this device
      */
     fun supportsKidsProfile(): Boolean = false
 
-    /** Called in the process of the kids profile ([com.phlox.tvwebbrowser.AppContext.kidsProfile]) before the engine is initialized */
-    fun prepareKidsProcess() {}
-
     /**
-     * Deletes the data of the pages of the kids profile (cookies, storage, cache), from another process than
-     * the one of the kids profile, which is not running then
+     * Deletes the data of the pages of the kids profile (cookies, storage, cache) while another profile is shown;
+     * the kids profile may have been shown before in this process
      */
     suspend fun deleteKidsData(context: Context) {}
-
-    /** The process is about to be killed: what the engine keeps in memory for a while (cookies) goes to the disk */
-    fun flushData() {}
 
     /** The engine could not create a view for a tab (for example the system WebView is broken) */
     fun onViewCreationFailed(activity: Activity, error: Throwable) {}
@@ -98,11 +92,11 @@ object WebEngineFactory {
     private var registeredProvider: WebEngineProvider? = null
     private lateinit var initializedProvider: WebEngineProvider
 
-    /** Set by the app in the browser processes; null blocks nothing */
+    /** Set by the app; null blocks nothing */
     @Volatile
     var adBlocker: EngineAdBlocker? = null
 
-    /** Set by the app in the browser processes; null leaves all pages at 100% */
+    /** Set by the app; null leaves all pages at 100% */
     @Volatile
     var pageZooms: EnginePageZooms? = null
 
@@ -133,30 +127,16 @@ object WebEngineFactory {
         return registeredProvider
     }
 
-    fun prepareIncognitoProcess() {
-        selectedProvider()?.callback?.prepareIncognitoProcess()
-    }
+    fun supportsIncognito(): Boolean = selectedProvider()?.callback?.supportsIncognito() == true
 
     fun supportsKidsProfile(): Boolean = selectedProvider()?.callback?.supportsKidsProfile() == true
-
-    fun prepareKidsProcess() {
-        selectedProvider()?.callback?.prepareKidsProcess()
-    }
-
-    fun flushData() {
-        selectedProvider()?.callback?.flushData()
-    }
 
     suspend fun deleteKidsData(context: Context) {
         selectedProvider()?.callback?.deleteKidsData(context)
     }
 
-    suspend fun clearIncognitoBrowsingData(context: Context) {
-        selectedProvider()?.callback?.clearIncognitoBrowsingData(context)
-    }
-
-    suspend fun deleteIncognitoData() {
-        selectedProvider()?.callback?.deleteIncognitoData()
+    suspend fun clearIncognitoData(context: Context) {
+        selectedProvider()?.callback?.clearIncognitoData(context)
     }
 
     fun onViewCreationFailed(activity: Activity, error: Throwable) {

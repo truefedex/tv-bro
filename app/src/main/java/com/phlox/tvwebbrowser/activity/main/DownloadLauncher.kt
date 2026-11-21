@@ -29,7 +29,7 @@ import java.io.IOException
 import java.io.InputStream
 
 /**
- * Starts and controls downloads in [DownloadService] (its own process) on behalf of the
+ * Starts and controls downloads in [DownloadService] on behalf of the
  * [activity]: asks for the needed permissions, inserts the database row of a new download and
  * sends the commands. The service is bound while the activity is started and needs it ([DownloadServiceNeed]);
  * commands sent meanwhile bind it until they are delivered. New files go to the folder the user chose
@@ -201,7 +201,7 @@ class DownloadLauncher(
                 try {
                     //later than the start of the service: its check of the rows left does not take it
                     download.time = System.currentTimeMillis()
-                    download.id = TVBro.container.data.downloads.insert(download)
+                    download.id = TVBro.container.mainData.downloads.insert(download)
                     val message = command(DownloadCommands.START, download.id).apply {
                         data.putString(DownloadCommands.KEY_COOKIES, download.cookies)
                         data.putString(DownloadCommands.KEY_REFERER, referer)
@@ -227,8 +227,8 @@ class DownloadLauncher(
     private fun engineInput(download: Download): InputStream? = download.stream
 
     /**
-     * The read end of a pipe the [input] is copied to, for the service process. If this process
-     * dies or the input fails, the service gets an error at the end of the pipe.
+     * The read end of a pipe the [input] is copied to, for the service. If the input fails, the service gets an
+     * error at the end of the pipe.
      */
     private fun pipe(input: InputStream): ParcelFileDescriptor {
         val (readEnd, writeEnd) = ParcelFileDescriptor.createReliablePipe()

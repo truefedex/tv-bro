@@ -9,8 +9,9 @@ class AppContext {
         private var config: Config? = null
 
         /**
-         * This process is the one of the kids profile (set by the application before anything else): its
-         * pages keep their data apart from the main profile, and so does the app (its own database)
+         * The browser shows the kids profile (set by the browser activity before it gets its models; the
+         * profiles replace each other, see `MainActivity`): its pages keep their data apart from the main
+         * profile, and so does the app (its own database, `AppContainer.data`)
          */
         @Volatile
         var kidsProfile: Boolean = false

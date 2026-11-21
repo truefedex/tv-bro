@@ -3,7 +3,7 @@ package com.phlox.tvwebbrowser.profile
 import android.content.Context
 import android.util.Log
 import com.phlox.tvwebbrowser.AppContainer
-import com.phlox.tvwebbrowser.AppProcesses
+import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +13,8 @@ import java.io.File
 /**
  * What the kids profile keeps on the device: its database (tabs, history, bookmarks, site settings), the files
  * of its tabs and the data of its pages, which the engine keeps ([WebEngineFactory.deleteKidsData]). Deleted
- * from the main profile (Settings), so the process of the kids profile is ended first: it would write them again.
+ * from the main profile (Settings), after the pending writes of tabs (the kids profile may have been shown a
+ * moment ago), with its database closed.
  */
 object KidsProfileData {
     private const val TAG = "KidsProfileData"
@@ -23,7 +24,9 @@ object KidsProfileData {
 
     suspend fun delete(context: Context) {
         val app = context.applicationContext
-        AppProcesses.end(app, AppProcesses.KIDS_SUFFIX)
+        val container = TVBro.container
+        container.tabWrites.awaitPending()
+        container.closeKidsDatabase()
         withContext(Dispatchers.IO) {
             app.deleteDatabase(AppDatabase.KIDS_DATABASE_NAME)
             //the lock file Room keeps next to the copy of a database
