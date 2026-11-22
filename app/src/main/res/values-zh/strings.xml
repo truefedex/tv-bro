@@ -648,4 +648,22 @@
     <string name="settings_kids_downloads">下载</string>
     <string name="settings_kids_downloads_summary">网站上的文件以及由此安装的应用。儿童资料只能看到自己的下载，主资料也能看到它们</string>
     <string name="download_of_kids">儿童资料</string>
+    <string name="site_allow_title">允许 %s</string>
+    <string name="site_allow_hour">一小时</string>
+    <string name="site_allow_always">始终</string>
+    <string name="settings_kids_site_filters">网站过滤</string>
+    <string name="settings_kids_site_list">自定义列表</string>
+    <string name="settings_kids_site_list_summary">此地址的列表中的网站也会被拦截，每行一个域名</string>
+    <string name="settings_kids_site_list_hint">网站列表的地址</string>
+    <string name="settings_kids_site_lists">网站列表</string>
+    <string name="settings_kids_site_lists_missing">尚未下载：其中的网站暂不拦截</string>
+    <string name="settings_kids_allowed_sites">已用 PIN 码允许</string>
+    <string name="settings_kids_no_allowed_sites">无。家长可以在网站的拦截页面上用 PIN 码允许它。</string>
+    <string name="settings_kids_allowed_until">直到 %s</string>
+    <string name="settings_kids_allowed_remove">移除</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="other">%s 个网站</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">列表的来源</string>
+    <string name="settings_kids_site_lists_source_summary">HaGeZi 的 DNS 拦截列表（github.com/hagezi/dns-blocklists，GPL-3.0）。TV Bro 从互联网下载它们，每月更新一次。</string>
 </resources>

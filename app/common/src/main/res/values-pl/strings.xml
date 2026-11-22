@@ -19,4 +19,13 @@
   <string name="error_page_network_message">Sprawdź połączenie sieciowe i spróbuj ponownie</string>
   <string name="error_page_generic_title">Nie można otworzyć tej strony</string>
   <string name="error_page_generic_message">Podczas wczytywania tej strony wystąpił błąd</string>
+    <string name="site_blocked_title">Ta strona jest zablokowana</string>
+    <string name="site_blocked_message">Jest na liście stron, których profil dziecka nie otwiera.</string>
+    <string name="site_blocked_category">Kategoria</string>
+    <string name="site_blocked_ask">Zapytaj rodzica</string>
+    <string name="site_category_adult">Treści dla dorosłych</string>
+    <string name="site_category_gambling">Hazard</string>
+    <string name="site_category_threats">Oszustwa i złośliwe oprogramowanie</string>
+    <string name="site_category_bypass">VPN i proxy</string>
+    <string name="site_category_custom">Własna lista</string>
 </resources>

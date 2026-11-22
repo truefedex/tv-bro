@@ -1,5 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.net.AppProxy
 import android.Manifest
 import android.content.pm.PackageManager
@@ -68,6 +70,13 @@ class DownloadLauncher(
     }
 
     fun download(request: DownloadRequest) {
+        //not of a site the site filter blocks (the kids profile; the page may be one a parent allowed)
+        val filter = WebEngineFactory.siteFilter
+        if (filter != null && filter.active && filter.check(Uri.parse(request.url), false,
+                request.referer.takeIf { it.isNotEmpty() }?.let(Uri::parse)) != null) {
+            Utils.showToast(activity, activity.getString(com.phlox.tvwebbrowser.common.R.string.site_blocked_title))
+            return
+        }
         val download = request.toDownload()
         val (folder, unavailable) = chooseFolder()
         //the toast of the started download would replace the warning at once: the warning shows in its place

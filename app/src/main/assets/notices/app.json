@@ -92,6 +92,15 @@
     "note": "The icons of the interface."
   },
   {
+    "id": "hagezi",
+    "name": "HaGeZi's DNS Blocklists",
+    "license": "GNU General Public License 3.0",
+    "licenseFile": "gpl-3.0.txt",
+    "copyright": "Copyright HaGeZi",
+    "url": "https://github.com/hagezi/dns-blocklists",
+    "note": "The lists of sites the kids profile does not open (adult content, gambling, scams and malware, VPNs and proxies). They are not in the app: it downloads them from the internet while the kids profile is on."
+  },
+  {
     "id": "search-engine-logos",
     "name": "Search engine logos",
     "license": "Trademarks of their owners",

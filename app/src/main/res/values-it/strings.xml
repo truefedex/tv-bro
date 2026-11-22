@@ -678,4 +678,23 @@
     <string name="settings_kids_downloads">Download</string>
     <string name="settings_kids_downloads_summary">I file dei siti e le app che vi si installano. Il profilo bambini vede solo i propri download; il profilo principale li vede anche</string>
     <string name="download_of_kids">Profilo bambini</string>
+    <string name="site_allow_title">Consenti %s</string>
+    <string name="site_allow_hour">Per un\'ora</string>
+    <string name="site_allow_always">Sempre</string>
+    <string name="settings_kids_site_filters">Filtri dei siti</string>
+    <string name="settings_kids_site_list">Elenco personale</string>
+    <string name="settings_kids_site_list_summary">Anche i siti di un elenco a questo indirizzo, un dominio per riga</string>
+    <string name="settings_kids_site_list_hint">Indirizzo di un elenco di siti</string>
+    <string name="settings_kids_site_lists">Elenchi di siti</string>
+    <string name="settings_kids_site_lists_missing">Non ancora scaricati: i loro siti non sono ancora bloccati</string>
+    <string name="settings_kids_allowed_sites">Consentiti con il PIN</string>
+    <string name="settings_kids_no_allowed_sites">Nessuno. Dalla pagina di blocco di un sito, un genitore può consentirlo con il PIN.</string>
+    <string name="settings_kids_allowed_until">Fino alle %s</string>
+    <string name="settings_kids_allowed_remove">Rimuovi</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="one">%s sito</item>
+        <item quantity="other">%s siti</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">Da dove vengono gli elenchi</string>
+    <string name="settings_kids_site_lists_source_summary">Le blocklist DNS di HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro le scarica da Internet e le aggiorna una volta al mese.</string>
 </resources>

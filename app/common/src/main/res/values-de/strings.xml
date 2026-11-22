@@ -19,4 +19,13 @@
     <string name="error_page_network_message">Prüfen Sie die Netzwerkverbindung und versuchen Sie es erneut</string>
     <string name="error_page_generic_title">Diese Seite kann nicht geöffnet werden</string>
     <string name="error_page_generic_message">Beim Laden dieser Seite ist ein Fehler aufgetreten</string>
+    <string name="site_blocked_title">Diese Website ist gesperrt</string>
+    <string name="site_blocked_message">Sie steht auf einer Liste von Websites, die das Kinderprofil nicht öffnet.</string>
+    <string name="site_blocked_category">Kategorie</string>
+    <string name="site_blocked_ask">Eltern fragen</string>
+    <string name="site_category_adult">Inhalte für Erwachsene</string>
+    <string name="site_category_gambling">Glücksspiel</string>
+    <string name="site_category_threats">Betrug und Schadsoftware</string>
+    <string name="site_category_bypass">VPNs und Proxys</string>
+    <string name="site_category_custom">Eigene Liste</string>
 </resources>

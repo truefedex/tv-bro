@@ -693,4 +693,25 @@
     <string name="settings_kids_downloads">Загрузки</string>
     <string name="settings_kids_downloads_summary">Файлы с сайтов и приложения, которые из них устанавливаются. Детский профиль видит только свои загрузки, основной видит и их</string>
     <string name="download_of_kids">Детский профиль</string>
+    <string name="site_allow_title">Разрешить %s</string>
+    <string name="site_allow_hour">На час</string>
+    <string name="site_allow_always">Всегда</string>
+    <string name="settings_kids_site_filters">Фильтры сайтов</string>
+    <string name="settings_kids_site_list">Свой список</string>
+    <string name="settings_kids_site_list_summary">Ещё и сайты из списка по этому адресу, по домену в строке</string>
+    <string name="settings_kids_site_list_hint">Адрес списка сайтов</string>
+    <string name="settings_kids_site_lists">Списки сайтов</string>
+    <string name="settings_kids_site_lists_missing">Ещё не загружены: их сайты пока не блокируются</string>
+    <string name="settings_kids_allowed_sites">Разрешены по PIN-коду</string>
+    <string name="settings_kids_no_allowed_sites">Нет. Родитель может разрешить сайт PIN-кодом на его странице блокировки.</string>
+    <string name="settings_kids_allowed_until">До %s</string>
+    <string name="settings_kids_allowed_remove">Убрать</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="one">%s сайт</item>
+        <item quantity="few">%s сайта</item>
+        <item quantity="many">%s сайтов</item>
+        <item quantity="other">%s сайта</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">Откуда списки</string>
+    <string name="settings_kids_site_lists_source_summary">DNS-блоклисты HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro скачивает их из интернета и обновляет раз в месяц.</string>
 </resources>

@@ -1,5 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import com.phlox.tvwebbrowser.browser.sitefilter.SiteFilterService
+import com.phlox.tvwebbrowser.webengine.SiteCategory
 import android.content.Context
 import android.text.format.DateFormat
 import androidx.annotation.DrawableRes
@@ -57,7 +59,9 @@ class SettingsNavigator(
         CLEAR_CACHE, ENGINE_DEBUG, HISTORY_RETENTION, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
         LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, NOTICE,
-        KIDS_ABOUT, KIDS_ENABLE, KIDS_OPEN, KIDS_LOCK_DELAY, KIDS_DOWNLOADS, KIDS_PIN, KIDS_DISABLE, KIDS_DELETE_DATA
+        KIDS_ABOUT, KIDS_ENABLE, KIDS_OPEN, KIDS_LOCK_DELAY, KIDS_DOWNLOADS, KIDS_PIN, KIDS_DISABLE, KIDS_DELETE_DATA,
+        KIDS_SITE_CATEGORY, KIDS_SITE_LIST, KIDS_UPDATE_SITE_LISTS, KIDS_SITE_LISTS_SOURCE, KIDS_ALLOWED_SITE,
+        KIDS_NO_ALLOWED_SITES
     }
 
     /** The kids profile as the settings change it (see [ProfileLock]) */
@@ -67,6 +71,19 @@ class SettingsNavigator(
         var lockDelay: ProfileLock.LockDelay
         /** The profile may download files and install apps ([ProfileLock.kidsDownloads]) */
         var downloads: Boolean
+        /** The categories of sites the profile does not open ([ProfileLock.kidsSiteCategories]) */
+        var siteCategories: Set<SiteCategory>
+        /** The address of the parent's own list of sites; "" for none */
+        var siteListUrl: String
+        /** The lists of sites: how many there are, whether they are downloaded */
+        val siteLists: SiteFilterService.Status
+        /** Gives [siteLists] when they change */
+        val siteListsChanges: Flow<SiteFilterService.Status>
+        /** Downloads the lists again; false if a download failed */
+        suspend fun updateSiteLists(): Boolean
+        /** The sites a parent let in with the PIN, and until when (`Long.MAX_VALUE`: always) */
+        suspend fun allowedSites(): Map<String, Long>
+        suspend fun removeAllowedSite(site: String)
         /** Turns the profile on with the [pin], or changes its PIN */
         fun enable(pin: String)
         fun disable()
@@ -309,11 +326,13 @@ class SettingsNavigator(
             enum class Input { TEXT, NUMBER, PASSWORD }
         }
 
-        /** A button at the end of the row */
+        /** A button at the end of the row; [item] tells apart the actions of one [key] (the allowed sites) */
         data class Action(
             override val key: Key, override val title: String, override val summary: String?,
-            val button: String
-        ) : Row()
+            val button: String, val item: String? = null
+        ) : Row() {
+            override val id: String get() = if (item == null) key.name else key.name + "_" + item
+        }
 
         /** The key of a [shortcut]; the row opens the key capture */
         data class ShortcutKey(
@@ -423,6 +442,9 @@ class SettingsNavigator(
     private var shown = false
     private var updates: Updates? = null
     private var filterListsUpdating = false
+    private var siteListsUpdating = false
+    /** The sites allowed with the PIN, as read when the settings opened or changed (in the database of the kids profile) */
+    private var allowedSites: Map<String, Long> = emptyMap()
     /** The site of the search engine is asked for the address of its suggestions */
     private var detectingSuggestUrl = false
     /** Custom URL was chosen and no address is typed yet */
@@ -458,6 +480,13 @@ class SettingsNavigator(
                 }
             }
         )
+        store.kidsProfile?.let { kids ->
+            jobs += scope.launch { kids.siteListsChanges.collect { if (shown) render() } }
+            jobs += scope.launch {
+                allowedSites = kids.allowedSites()
+                if (shown) render()
+            }
+        }
         //the names of the folders the home page and the bookmarks channel show
         jobs += scope.launch {
             bookmarkFolders = store.bookmarkFolders()
@@ -585,6 +614,13 @@ class SettingsNavigator(
             store.setFilterListEnabled(row.item, !row.checked)
             return
         }
+        if (row.key == Key.KIDS_SITE_CATEGORY && row.item != null) {
+            val kids = store.kidsProfile ?: return
+            val category = SiteCategory.ofId(row.item) ?: return
+            kids.siteCategories = if (row.checked) kids.siteCategories - category else kids.siteCategories + category
+            render()
+            return
+        }
         toggle(row.key)
     }
 
@@ -661,6 +697,11 @@ class SettingsNavigator(
             Key.CUSTOM_LIST -> {
                 if (value == store.filterLists.customUrl) return
                 store.setCustomFilterList(value)
+            }
+            Key.KIDS_SITE_LIST -> {
+                val kids = store.kidsProfile ?: return
+                if (value == kids.siteListUrl) return
+                kids.siteListUrl = value
             }
             Key.PROXY_HOST -> if (!setProxyAddress(value)) return
             Key.PROXY_PORT -> {
@@ -775,6 +816,28 @@ class SettingsNavigator(
                     }
                 }
                 Key.KIDS_OPEN -> host.openKidsProfile()
+                Key.KIDS_UPDATE_SITE_LISTS -> {
+                    val kids = store.kidsProfile ?: return
+                    if (siteListsUpdating || kids.siteLists.updating) return
+                    siteListsUpdating = true
+                    render()
+                    scope.launch {
+                        val ok = kids.updateSiteLists()
+                        siteListsUpdating = false
+                        host.showMessage(if (ok) R.drawable.ic_check else R.drawable.ic_warning,
+                            string(if (ok) R.string.filter_lists_updated else R.string.filter_lists_update_failed))
+                        render()
+                    }
+                }
+                Key.KIDS_ALLOWED_SITE -> {
+                    val kids = store.kidsProfile ?: return
+                    val site = (row as? Row.Action)?.item ?: return
+                    scope.launch {
+                        kids.removeAllowedSite(site)
+                        allowedSites = kids.allowedSites()
+                        render()
+                    }
+                }
                 Key.KIDS_DELETE_DATA -> host.confirm(string(R.string.profile_kids), string(R.string.settings_kids_delete_data_confirm),
                     string(R.string.delete)) { yes ->
                     val kids = store.kidsProfile
@@ -1152,7 +1215,47 @@ class SettingsNavigator(
                 string(R.string.settings_kids_disable_button)),
             deleteDataRow(kids),
             about
-        ).filterNotNull()))
+        ).filterNotNull()), Section(string(R.string.settings_kids_site_filters), siteFilterRows(kids)),
+            Section(string(R.string.settings_kids_allowed_sites), allowedSiteRows()))
+    }
+
+    /** The categories of sites the kids profile does not open, the own list, the state of the lists */
+    private fun siteFilterRows(kids: KidsProfile): List<Row> {
+        val rows = ArrayList<Row>()
+        for (category in SiteCategory.listed) {
+            rows += Row.Toggle(Key.KIDS_SITE_CATEGORY, string(category.title), null, category in kids.siteCategories,
+                item = category.id)
+        }
+        rows += Row.Field(Key.KIDS_SITE_LIST, string(R.string.settings_kids_site_list),
+            string(R.string.settings_kids_site_list_summary), kids.siteListUrl, string(R.string.settings_kids_site_list_hint))
+        val lists = kids.siteLists
+        val state = when {
+            lists.updating || siteListsUpdating -> string(R.string.settings_filter_list_updating)
+            lists.missing > 0 -> string(R.string.settings_kids_site_lists_missing)
+            else -> context.resources.getQuantityString(R.plurals.settings_kids_site_count, lists.domains,
+                java.text.NumberFormat.getIntegerInstance().format(lists.domains)) +
+                " · " + context.getString(R.string.settings_filter_list_updated_s, formatTime(lists.lastUpdate))
+        }
+        val summary = if (lists.failed && !lists.updating) state + " · " + string(R.string.settings_filter_list_failed) else state
+        rows += Row.Action(Key.KIDS_UPDATE_SITE_LISTS, string(R.string.settings_kids_site_lists), summary,
+            string(R.string.update))
+        //where the lists come from (their notice is in About)
+        rows += Row.Info(Key.KIDS_SITE_LISTS_SOURCE, string(R.string.settings_kids_site_lists_source),
+            string(R.string.settings_kids_site_lists_source_summary))
+        return rows
+    }
+
+    /** The sites a parent let in with the PIN, each with Remove */
+    private fun allowedSiteRows(): List<Row> {
+        if (allowedSites.isEmpty()) {
+            return listOf(Row.Info(Key.KIDS_NO_ALLOWED_SITES, string(R.string.settings_kids_no_allowed_sites), null))
+        }
+        return allowedSites.entries.sortedBy { it.key }.map { (site, until) ->
+            Row.Action(Key.KIDS_ALLOWED_SITE, site,
+                if (until == Long.MAX_VALUE) string(R.string.site_allow_always)
+                else context.getString(R.string.settings_kids_allowed_until, formatTime(until)),
+                string(R.string.settings_kids_allowed_remove), item = site)
+        }
     }
 
     /** While the profile is on, or off with its data left on the device */

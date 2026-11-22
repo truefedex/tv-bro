@@ -693,4 +693,23 @@
     <string name="settings_kids_downloads">הורדות</string>
     <string name="settings_kids_downloads_summary">קבצים מאתרים והאפליקציות שמותקנות מהם. פרופיל הילדים רואה רק את ההורדות שלו, והפרופיל הראשי רואה גם אותן</string>
     <string name="download_of_kids">פרופיל ילדים</string>
+    <string name="site_allow_title">לאפשר את %s</string>
+    <string name="site_allow_hour">לשעה</string>
+    <string name="site_allow_always">תמיד</string>
+    <string name="settings_kids_site_filters">מסנני אתרים</string>
+    <string name="settings_kids_site_list">רשימה משלי</string>
+    <string name="settings_kids_site_list_summary">גם האתרים של רשימה בכתובת זו, דומיין בכל שורה</string>
+    <string name="settings_kids_site_list_hint">כתובת של רשימת אתרים</string>
+    <string name="settings_kids_site_lists">רשימות אתרים</string>
+    <string name="settings_kids_site_lists_missing">עוד לא הורדו: האתרים שלהן עוד לא נחסמים</string>
+    <string name="settings_kids_allowed_sites">מותרים בקוד PIN</string>
+    <string name="settings_kids_no_allowed_sites">אין. הורה יכול לאפשר אתר בקוד PIN מדף החסימה שלו.</string>
+    <string name="settings_kids_allowed_until">עד %s</string>
+    <string name="settings_kids_allowed_remove">להסיר</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="one">אתר %s</item>
+        <item quantity="other">%s אתרים</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">מאיפה הרשימות</string>
+    <string name="settings_kids_site_lists_source_summary">רשימות החסימה של HaGeZi ל-DNS ‏(github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro מוריד אותן מהאינטרנט ומעדכן אותן פעם בחודש.</string>
 </resources>

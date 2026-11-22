@@ -693,4 +693,25 @@
     <string name="settings_kids_downloads">Завантаження</string>
     <string name="settings_kids_downloads_summary">Файли із сайтів і застосунки, що з них встановлюються. Дитячий профіль бачить лише свої завантаження, основний бачить і їх</string>
     <string name="download_of_kids">Дитячий профіль</string>
+    <string name="site_allow_title">Дозволити %s</string>
+    <string name="site_allow_hour">На годину</string>
+    <string name="site_allow_always">Завжди</string>
+    <string name="settings_kids_site_filters">Фільтри сайтів</string>
+    <string name="settings_kids_site_list">Власний список</string>
+    <string name="settings_kids_site_list_summary">Також сайти зі списку за цією адресою, по домену в рядку</string>
+    <string name="settings_kids_site_list_hint">Адреса списку сайтів</string>
+    <string name="settings_kids_site_lists">Списки сайтів</string>
+    <string name="settings_kids_site_lists_missing">Ще не завантажені: їхні сайти поки не блокуються</string>
+    <string name="settings_kids_allowed_sites">Дозволені за PIN-кодом</string>
+    <string name="settings_kids_no_allowed_sites">Немає. Батьки можуть дозволити сайт PIN-кодом на його сторінці блокування.</string>
+    <string name="settings_kids_allowed_until">До %s</string>
+    <string name="settings_kids_allowed_remove">Прибрати</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="one">%s сайт</item>
+        <item quantity="few">%s сайти</item>
+        <item quantity="many">%s сайтів</item>
+        <item quantity="other">%s сайту</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">Звідки списки</string>
+    <string name="settings_kids_site_lists_source_summary">DNS-блоклисти HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro завантажує їх з інтернету й оновлює раз на місяць.</string>
 </resources>

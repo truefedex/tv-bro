@@ -55,6 +55,10 @@ object FaviconsPool {
     val faviconExtractor = FaviconExtractor()
     var databaseDelegate: DatabaseDelegate = object : DatabaseDelegate {}
 
+    /** Hosts the site filter blocks now (set by the app): their icons are neither shown nor looked up */
+    @Volatile
+    var isBlocked: (host: String) -> Boolean = { false }
+
     interface DatabaseDelegate {
         /** The favicon file of the host, null if it has none */
         suspend fun findFavicon(host: String): String? = null
@@ -103,7 +107,7 @@ object FaviconsPool {
         } catch (e: Exception) {
             return null
         }
-        if (host.isEmpty()) return null
+        if (host.isEmpty() || isBlocked(host)) return null
         //a provisional icon is shown while onEngineIcon looks at the page
         cache.get(host)?.let { return it.bitmap }
         return load(host, pageUrls)
@@ -117,7 +121,7 @@ object FaviconsPool {
         if (!isHttp(url)) return
         val pageUrl = try { URL(url) } catch (e: Exception) { null } ?: return
         val host = pageUrl.host
-        if (host.isNullOrEmpty()) return
+        if (host.isNullOrEmpty() || isBlocked(host)) return
         val engineIcon = scaleDown(icon)
         val known = cache.get(host)
         if (known != null && known.bitmap.side >= engineIcon.side) return

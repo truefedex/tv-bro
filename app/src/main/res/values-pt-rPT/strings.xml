@@ -679,4 +679,23 @@
     <string name="settings_kids_downloads">Transferências</string>
     <string name="settings_kids_downloads_summary">Ficheiros de sites e as apps que se instalam a partir deles. O perfil infantil vê apenas as suas transferências; o perfil principal também as vê</string>
     <string name="download_of_kids">Perfil infantil</string>
+    <string name="site_allow_title">Permitir %s</string>
+    <string name="site_allow_hour">Durante uma hora</string>
+    <string name="site_allow_always">Sempre</string>
+    <string name="settings_kids_site_filters">Filtros de sites</string>
+    <string name="settings_kids_site_list">Lista própria</string>
+    <string name="settings_kids_site_list_summary">Também os sites de uma lista neste endereço, um domínio por linha</string>
+    <string name="settings_kids_site_list_hint">Endereço de uma lista de sites</string>
+    <string name="settings_kids_site_lists">Listas de sites</string>
+    <string name="settings_kids_site_lists_missing">Ainda não transferidas: os seus sites ainda não são bloqueados</string>
+    <string name="settings_kids_allowed_sites">Permitidos com o PIN</string>
+    <string name="settings_kids_no_allowed_sites">Nenhum. Na página de bloqueio de um site, um encarregado pode permiti-lo com o PIN.</string>
+    <string name="settings_kids_allowed_until">Até %s</string>
+    <string name="settings_kids_allowed_remove">Remover</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="one">%s site</item>
+        <item quantity="other">%s sites</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">De onde vêm as listas</string>
+    <string name="settings_kids_site_lists_source_summary">As listas de bloqueio DNS de HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). O TV Bro transfere-as da internet e atualiza-as uma vez por mês.</string>
 </resources>

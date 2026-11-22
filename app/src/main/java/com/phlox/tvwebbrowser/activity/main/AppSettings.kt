@@ -1,5 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import com.phlox.tvwebbrowser.browser.sitefilter.SiteFilterService
+import com.phlox.tvwebbrowser.webengine.SiteCategory
 import android.content.Intent
 import android.media.tv.TvContract
 import android.util.Log
@@ -65,15 +67,45 @@ class AppSettingsStore(
             override var downloads: Boolean
                 get() = lock.kidsDownloads
                 set(value) { lock.kidsDownloads = value }
+            private val siteFilter get() = TVBro.container.siteFilter
+            override var siteCategories: Set<SiteCategory>
+                get() = lock.kidsSiteCategories
+                set(value) {
+                    lock.kidsSiteCategories = value
+                    siteFilter.onWantedChanged()
+                }
+            override var siteListUrl: String
+                get() = lock.kidsSiteListUrl
+                set(value) {
+                    lock.kidsSiteListUrl = value
+                    siteFilter.onWantedChanged()
+                }
+            override val siteLists: SiteFilterService.Status get() = siteFilter.status.value
+            override val siteListsChanges: Flow<SiteFilterService.Status> get() = siteFilter.status
+            override suspend fun updateSiteLists(): Boolean = siteFilter.update(force = true)
+            override suspend fun allowedSites(): Map<String, Long> {
+                //never creates the database of a profile that was not used
+                if (!lock.enabled || !withContext(Dispatchers.IO) { KidsProfileData.exists(activity) }) return emptyMap()
+                val hosts = TVBro.container.kidsData.hostConfigs
+                hosts.loadSiteSettings()
+                return hosts.allowedSites(System.currentTimeMillis())
+            }
+            override suspend fun removeAllowedSite(site: String) =
+                TVBro.container.kidsData.hostConfigs.setSiteAllowed(site, null, null)
             override fun enable(pin: String) {
                 val wasEnabled = lock.enabled
                 lock.enable(pin)
-                if (!wasEnabled) syncChannels()
+                if (!wasEnabled) {
+                    syncChannels()
+                    //the lists of sites are downloaded now
+                    TVBro.container.siteFilter.onWantedChanged()
+                }
             }
 
             override fun disable() {
                 lock.disable()
                 syncChannels()
+                TVBro.container.siteFilter.onWantedChanged()
             }
 
             override val hasData: Boolean get() = KidsProfileData.exists(activity)

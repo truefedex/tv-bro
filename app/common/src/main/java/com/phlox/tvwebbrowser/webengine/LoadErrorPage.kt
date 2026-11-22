@@ -33,7 +33,7 @@ object LoadErrorPage {
         ))
     }
 
-    private fun template(context: Context): String = template ?: try {
+    internal fun template(context: Context): String = template ?: try {
         context.assets.open(TEMPLATE_FILE).bufferedReader().use { it.readText() }.also { template = it }
     } catch (e: Exception) {
         Log.e(TAG, "Failed to open error page template", e)

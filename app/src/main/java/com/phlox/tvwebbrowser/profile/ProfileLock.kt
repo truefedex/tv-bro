@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.profile
 
+import com.phlox.tvwebbrowser.webengine.SiteCategory
 import android.content.Context
 import android.content.SharedPreferences
 
@@ -31,6 +32,17 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
     var lockDelay: LockDelay
         get() = LockDelay.entries.firstOrNull { it.name == store.get(KEY_LOCK_DELAY) } ?: LockDelay.IMMEDIATELY
         set(value) = store.put(mapOf(KEY_LOCK_DELAY to value.name))
+
+    /** The categories of sites the kids profile does not open ([SiteCategory.CUSTOM] by [kidsSiteListUrl]); all lists by default */
+    var kidsSiteCategories: Set<SiteCategory>
+        get() = store.get(KEY_KIDS_SITE_CATEGORIES)?.split(',')?.mapNotNull { SiteCategory.ofId(it) }?.toSet()
+            ?: SiteCategory.listed.toSet()
+        set(value) = store.put(mapOf(KEY_KIDS_SITE_CATEGORIES to value.joinToString(",") { it.id }))
+
+    /** The address of the parent's own list of sites the kids profile does not open; "" for none */
+    var kidsSiteListUrl: String
+        get() = store.get(KEY_KIDS_SITE_LIST_URL) ?: ""
+        set(value) = store.put(mapOf(KEY_KIDS_SITE_LIST_URL to value.trim().ifEmpty { null }))
 
     /** The kids profile may download files and install apps (its own downloads only); on by default */
     var kidsDownloads: Boolean
@@ -96,6 +108,8 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
         private const val KEY_KIDS_ACTIVE = "kids_active"
         private const val KEY_LOCK_DELAY = "lock_delay"
         private const val KEY_KIDS_DOWNLOADS = "kids_downloads"
+        private const val KEY_KIDS_SITE_CATEGORIES = "kids_site_categories"
+        private const val KEY_KIDS_SITE_LIST_URL = "kids_site_list_url"
         private const val KEY_MAIN_LEFT_AT = "main_left_at"
 
         @Volatile

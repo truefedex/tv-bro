@@ -1,5 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import android.net.Uri
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import android.Manifest
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -356,6 +358,14 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
      * the video shows ([PlayerScreenView.Callback.onFirstFrame]).
      */
     private fun openBuiltInPlayer(video: PageVideo, startPosition: Double, pageMedia: Boolean, auto: Boolean = false) {
+        //the player fetches the video itself: not of a site the site filter blocks
+        val filter = WebEngineFactory.siteFilter
+        if (filter != null && filter.active && filter.check(Uri.parse(video.url), false,
+                controller.currentTab.value?.url?.let(Uri::parse)) != null) {
+            if (!auto) NotificationView.show(vb.rlRoot, R.drawable.ic_video,
+                activity.getString(com.phlox.tvwebbrowser.common.R.string.site_blocked_title))
+            return
+        }
         //one video at a time: it ends the picture-in-picture window
         PictureInPicturePlayback.end()
         coverPageWithPlayer()

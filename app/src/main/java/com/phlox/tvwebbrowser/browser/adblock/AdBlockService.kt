@@ -26,8 +26,8 @@ import java.util.Locale
 import java.util.zip.CRC32
 
 /**
- * The ad blocker of a browser process (normal or incognito; they never run together): the [engine] compiled
- * from the enabled filter lists, its file, and the updates of the lists.
+ * The ad blocker of the app: the [engine] compiled from the enabled filter lists, its file, and the updates of the
+ * lists ([ListUpdates]).
  *
  * Files in [dir]: `lists.json` ([FilterListsStore]), `lists/<id>.txt` (the downloaded lists, kept to build the
  * engine again without the network) and `engine.bin` (the compiled engine, written atomically). The engine is
@@ -85,6 +85,7 @@ class AdBlockService(
     @Volatile
     private var started = false
     private var updating = false
+    private val updates = ListUpdates()
 
     /**
      * Loads the engine (or builds it from the lists if its file is missing or older), then, if
@@ -203,15 +204,15 @@ class AdBlockService(
                 if (only != null && source.id != only) continue
                 val meta = store.meta(source.id)
                 val file = listFile(source.id)
-                if (!force && !isDue(meta, file.exists())) continue
+                if (!force && !updates.isDue(meta, file.exists(), now())) continue
                 val temp = File(listsDir, source.id + ".txt.tmp")
                 try {
                     listsDir.mkdirs()
                     val result = fetcher.fetch(source.url, meta.etag.takeIf { file.exists() },
                         meta.lastModified.takeIf { file.exists() }, temp)
                     if (result is ListFetcher.Result.Downloaded) {
-                        checkList(temp)
-                        replace(temp, file)
+                        ListUpdates.checkList(temp)
+                        ListUpdates.replace(temp, file)
                         meta.etag = result.etag
                         meta.lastModified = result.lastModified
                         downloaded = true
@@ -232,34 +233,6 @@ class AdBlockService(
             setUpdating(false)
         }
         return ok
-    }
-
-    /** Whether the list should be downloaded now: its time came (or it is missing), and not too soon after a failure */
-    private fun isDue(meta: ListMeta, exists: Boolean): Boolean {
-        val time = now()
-        if (meta.failures > 0 && time - meta.lastAttempt < RETRY_DELAYS_MS[minOf(meta.failures, RETRY_DELAYS_MS.size) - 1]) {
-            return false
-        }
-        if (!exists) return true
-        val hours = (meta.expiresHours ?: DEFAULT_INTERVAL_HOURS).coerceIn(MIN_INTERVAL_HOURS, MAX_INTERVAL_HOURS)
-        return time - meta.lastSuccess >= hours * HOUR_MS
-    }
-
-    /** A downloaded file must look like a list, not like the error page of a portal or a server */
-    private fun checkList(file: File) {
-        if (file.length() == 0L) throw IOException("empty list")
-        val start = file.inputStream().use { input ->
-            val bytes = ByteArray(512)
-            val read = input.read(bytes)
-            if (read <= 0) "" else String(bytes, 0, read)
-        }
-        if (start.trimStart().startsWith("<")) throw IOException("not a filter list (HTML)")
-    }
-
-    private fun replace(temp: File, file: File) {
-        if (temp.renameTo(file)) return
-        file.delete()
-        if (!temp.renameTo(file)) throw IOException("can not rename $temp")
     }
 
     private fun rebuild() {
@@ -363,13 +336,8 @@ class AdBlockService(
         const val OLD_LIST_URL_KEY = "adblock_list_url"
         const val OLD_LAST_UPDATE_KEY = "adblock_last_update"
 
-        private const val HOUR_MS = 60 * 60 * 1000L
+        private const val HOUR_MS = ListUpdates.HOUR_MS
         private const val START_DELAY_MS = 30_000L
         private const val CHECK_INTERVAL_MS = 6 * HOUR_MS
-        private const val DEFAULT_INTERVAL_HOURS = 4 * 24
-        private const val MIN_INTERVAL_HOURS = 24
-        private const val MAX_INTERVAL_HOURS = 7 * 24
-        /** After the first, second and further failures in a row */
-        private val RETRY_DELAYS_MS = longArrayOf(HOUR_MS, 6 * HOUR_MS, 24 * HOUR_MS)
     }
 }

@@ -648,4 +648,22 @@
     <string name="settings_kids_downloads">下載</string>
     <string name="settings_kids_downloads_summary">網站上的檔案以及由此安裝的應用程式。兒童設定檔只能看到自己的下載，主要設定檔也能看到它們</string>
     <string name="download_of_kids">兒童設定檔</string>
+    <string name="site_allow_title">允許 %s</string>
+    <string name="site_allow_hour">一小時</string>
+    <string name="site_allow_always">一律</string>
+    <string name="settings_kids_site_filters">網站過濾</string>
+    <string name="settings_kids_site_list">自訂清單</string>
+    <string name="settings_kids_site_list_summary">此位址清單中的網站也會被封鎖，每行一個網域</string>
+    <string name="settings_kids_site_list_hint">網站清單的位址</string>
+    <string name="settings_kids_site_lists">網站清單</string>
+    <string name="settings_kids_site_lists_missing">尚未下載：其中的網站暫不封鎖</string>
+    <string name="settings_kids_allowed_sites">已用 PIN 碼允許</string>
+    <string name="settings_kids_no_allowed_sites">無。家長可以在網站的封鎖頁面上用 PIN 碼允許它。</string>
+    <string name="settings_kids_allowed_until">直到 %s</string>
+    <string name="settings_kids_allowed_remove">移除</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="other">%s 個網站</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">清單的來源</string>
+    <string name="settings_kids_site_lists_source_summary">HaGeZi 的 DNS 封鎖清單（github.com/hagezi/dns-blocklists，GPL-3.0）。TV Bro 從網際網路下載它們，每月更新一次。</string>
 </resources>

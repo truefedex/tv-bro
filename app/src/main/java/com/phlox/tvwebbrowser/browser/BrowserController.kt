@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
+import android.net.Uri
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import com.phlox.tvwebbrowser.browser.sitefilter.AppSiteFilter
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
@@ -150,10 +152,33 @@ class BrowserController : ActiveModel() {
         hostConfigs.loadSiteSettings()
         //the ad blocking engine of its file (a build from the lists goes on in the background)
         TVBro.container.adBlock.awaitLoaded(AD_BLOCK_LOAD_TIMEOUT_MS)
+        //and the site filter, before the tabs of the kids profile load
+        if (AppContext.kidsProfile) TVBro.container.siteFilter.awaitLoaded(AD_BLOCK_LOAD_TIMEOUT_MS)
         //tabs of the previous activity instance may be still saving
         writes.awaitPending()
         tabsStates.replaceAll(data.tabs.load(config.incognitoMode).map(BrowserTab::fromEntity))
         loaded = true
+    }
+
+    /** The site filter blocks the page of [url] now */
+    fun isBlockedSite(url: String): Boolean =
+        WebEngineFactory.siteFilter?.check(Uri.parse(url), true, null) != null
+
+    /**
+     * A parent let the site of [url] in through the site filter, for good or until [until] (a time); the [tab]
+     * loads the page again
+     */
+    fun allowSite(tab: BrowserTab, url: String, until: Long) {
+        val host = Uri.parse(url).host?.takeIf { it.isNotEmpty() } ?: return
+        val filter = WebEngineFactory.siteFilter as? AppSiteFilter ?: return
+        val site = filter.siteOf(host)
+        val write = TVBro.container.appScope.launch {
+            hostConfigs.setSiteAllowed(site, System.currentTimeMillis(), until)
+        }
+        modelScope.launch {
+            write.join()
+            if (tab.isWebEngineCreated) tab.webEngine.loadUrl(url)
+        }
     }
 
     /** The process of a TV may live for weeks: the old visits go at start and then once a day */
@@ -1020,6 +1045,11 @@ class BrowserController : ActiveModel() {
             publishState()
         }
 
+        override fun onAskToAllowSite(url: String) {
+            //only for a page the filter blocks: an ordinary page can not make the PIN come up
+            if (isBlockedSite(url)) sendUiEvent(BrowserUiEvent.AskToAllowSite(tab, url))
+        }
+
         override fun onBlockedDialog(newTab: Boolean) {
             tab.blockedPopups++
             publishState()
@@ -1055,6 +1085,8 @@ class BrowserController : ActiveModel() {
         }
 
         override fun onVisited(url: String) {
+            //the block page of the site filter shows at the address it blocks: no visit
+            if (isBlockedSite(url)) return
             if (!config.incognitoMode) {
                 trimHistoryDaily()
                 //the title of the tab may still be the one of the previous page

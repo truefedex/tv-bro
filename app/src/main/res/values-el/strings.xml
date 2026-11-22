@@ -664,4 +664,23 @@
     <string name="settings_kids_downloads">Λήψεις</string>
     <string name="settings_kids_downloads_summary">Αρχεία από ιστότοπους και οι εφαρμογές που εγκαθίστανται από αυτά. Το παιδικό προφίλ βλέπει μόνο τις δικές του λήψεις, το κύριο τις βλέπει κι αυτές</string>
     <string name="download_of_kids">Παιδικό προφίλ</string>
+    <string name="site_allow_title">Να επιτρέπεται το %s</string>
+    <string name="site_allow_hour">Για μία ώρα</string>
+    <string name="site_allow_always">Πάντα</string>
+    <string name="settings_kids_site_filters">Φίλτρα ιστοτόπων</string>
+    <string name="settings_kids_site_list">Δική μου λίστα</string>
+    <string name="settings_kids_site_list_summary">Και οι ιστότοποι μιας λίστας σε αυτή τη διεύθυνση, ένας τομέας ανά γραμμή</string>
+    <string name="settings_kids_site_list_hint">Διεύθυνση λίστας ιστοτόπων</string>
+    <string name="settings_kids_site_lists">Λίστες ιστοτόπων</string>
+    <string name="settings_kids_site_lists_missing">Δεν έχουν ληφθεί ακόμη: οι ιστότοποί τους δεν αποκλείονται ακόμη</string>
+    <string name="settings_kids_allowed_sites">Επιτρέπονται με το PIN</string>
+    <string name="settings_kids_no_allowed_sites">Κανένας. Ένας γονιός μπορεί να επιτρέψει έναν ιστότοπο με το PIN από τη σελίδα αποκλεισμού του.</string>
+    <string name="settings_kids_allowed_until">Έως %s</string>
+    <string name="settings_kids_allowed_remove">Αφαίρεση</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="one">%s ιστότοπος</item>
+        <item quantity="other">%s ιστότοποι</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">Από πού προέρχονται οι λίστες</string>
+    <string name="settings_kids_site_lists_source_summary">Οι λίστες αποκλεισμού DNS του HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). Το TV Bro τις κατεβάζει από το διαδίκτυο και τις ενημερώνει μία φορά τον μήνα.</string>
 </resources>

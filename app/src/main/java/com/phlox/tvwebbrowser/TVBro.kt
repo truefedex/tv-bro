@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.browser.ProxySetup
+import com.phlox.tvwebbrowser.browser.sitefilter.AppSiteFilter
 import com.phlox.tvwebbrowser.webengine.webview.WebViewProfiles
 import com.phlox.tvwebbrowser.browser.adblock.AppEngineAdBlocker
 import com.phlox.tvwebbrowser.browser.search.DefaultSearchEngine
@@ -131,7 +132,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
 
     /**
      * Starts what only the browser needs, when its activity is created first: the ad blocker (its engine file,
-     * the updates of its lists), which the engines of all tabs ask. Not when the app starts: the launcher reads the
+     * the updates of its lists) and the site filter, which the engines of all tabs ask. Not when the app starts: the launcher reads the
      * posters of the home screen channels, a download tile opens a file, the download service runs, without the
      * browser. The lists are not updated in unit tests (Robolectric).
      */
@@ -141,6 +142,14 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         container.adBlock.start(scheduleUpdates = Build.FINGERPRINT != "robolectric")
         //the site settings of the profile shown
         WebEngineFactory.adBlocker = AppEngineAdBlocker(container.adBlock, { container.data.hostConfigs }, config)
+        //the lists of sites of the kids profile, downloaded only while it is on
+        container.siteFilter.start(scheduleUpdates = Build.FINGERPRINT != "robolectric")
+        val lists = container.siteFilter
+        val siteFilter = AppSiteFilter({ lists.filter }, { lists.mask }, { container.data.hostConfigs },
+            { container.publicSuffixList })
+        WebEngineFactory.siteFilter = siteFilter
+        //the app itself does not ask a blocked site for its icon
+        FaviconsPool.isBlocked = { host -> siteFilter.check(Uri.parse("https://$host/"), true, null) != null }
     }
 
     /**

@@ -663,4 +663,23 @@
     <string name="settings_kids_downloads">بارگیری‌ها</string>
     <string name="settings_kids_downloads_summary">فایل‌های سایت‌ها و برنامه‌هایی که از آن‌ها نصب می‌شوند. نمایه کودک فقط بارگیری‌های خودش را می‌بیند و نمایه اصلی آن‌ها را هم می‌بیند</string>
     <string name="download_of_kids">نمایه کودک</string>
+    <string name="site_allow_title">اجازه به %s</string>
+    <string name="site_allow_hour">برای یک ساعت</string>
+    <string name="site_allow_always">همیشه</string>
+    <string name="settings_kids_site_filters">فیلترهای سایت</string>
+    <string name="settings_kids_site_list">فهرست شخصی</string>
+    <string name="settings_kids_site_list_summary">سایت‌های فهرستی در این نشانی هم، یک دامنه در هر خط</string>
+    <string name="settings_kids_site_list_hint">نشانی فهرست سایت‌ها</string>
+    <string name="settings_kids_site_lists">فهرست‌های سایت</string>
+    <string name="settings_kids_site_lists_missing">هنوز بارگیری نشده‌اند: سایت‌هایشان هنوز مسدود نمی‌شوند</string>
+    <string name="settings_kids_allowed_sites">مجاز با PIN</string>
+    <string name="settings_kids_no_allowed_sites">هیچ‌کدام. والدین می‌توانند از صفحه مسدودشدن یک سایت با PIN به آن اجازه دهند.</string>
+    <string name="settings_kids_allowed_until">تا %s</string>
+    <string name="settings_kids_allowed_remove">حذف</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="one">%s سایت</item>
+        <item quantity="other">%s سایت</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">فهرست‌ها از کجا می‌آیند</string>
+    <string name="settings_kids_site_lists_source_summary">فهرست‌های مسدودسازی DNS هاگزی (github.com/hagezi/dns-blocklists، GPL-3.0). TV Bro آن‌ها را از اینترنت بارگیری می‌کند و ماهی یک بار به‌روز می‌کند.</string>
 </resources>

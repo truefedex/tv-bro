@@ -648,4 +648,22 @@
     <string name="settings_kids_downloads">Tải xuống</string>
     <string name="settings_kids_downloads_summary">Tệp từ các trang web và ứng dụng được cài từ chúng. Hồ sơ trẻ em chỉ thấy các tệp tải xuống của mình; hồ sơ chính cũng thấy chúng</string>
     <string name="download_of_kids">Hồ sơ trẻ em</string>
+    <string name="site_allow_title">Cho phép %s</string>
+    <string name="site_allow_hour">Trong một giờ</string>
+    <string name="site_allow_always">Luôn luôn</string>
+    <string name="settings_kids_site_filters">Bộ lọc trang web</string>
+    <string name="settings_kids_site_list">Danh sách riêng</string>
+    <string name="settings_kids_site_list_summary">Cả các trang trong danh sách ở địa chỉ này, mỗi dòng một tên miền</string>
+    <string name="settings_kids_site_list_hint">Địa chỉ của danh sách trang web</string>
+    <string name="settings_kids_site_lists">Danh sách trang web</string>
+    <string name="settings_kids_site_lists_missing">Chưa tải xuống: các trang của chúng chưa bị chặn</string>
+    <string name="settings_kids_allowed_sites">Được phép bằng mã PIN</string>
+    <string name="settings_kids_no_allowed_sites">Không có. Bố mẹ có thể cho phép một trang bằng mã PIN từ trang chặn của nó.</string>
+    <string name="settings_kids_allowed_until">Đến %s</string>
+    <string name="settings_kids_allowed_remove">Xóa</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="other">%s trang</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">Danh sách lấy từ đâu</string>
+    <string name="settings_kids_site_lists_source_summary">Danh sách chặn DNS của HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro tải chúng từ internet và cập nhật mỗi tháng một lần.</string>
 </resources>

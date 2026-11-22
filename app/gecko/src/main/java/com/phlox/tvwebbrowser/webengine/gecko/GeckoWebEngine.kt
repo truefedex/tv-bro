@@ -15,6 +15,7 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.SiteBlock
 import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -198,7 +199,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         fun isLocalHomePage(url: String): Boolean = LOCAL_HOME_PAGE_REGEX.matches(url)
 
         /** The url as the app knows it: the local home page is [Config.HOME_PAGE_URL] */
-        fun toAppUrl(url: String): String = if (isLocalHomePage(url)) Config.HOME_PAGE_URL else url
+        fun toAppUrl(url: String): String =
+            if (isLocalHomePage(url)) Config.HOME_PAGE_URL else GeckoSiteBlocks.blockedUrlOf(url) ?: url
 
         fun onThemeSettingUpdated(theme: Config.Theme) {
             runtime.settings.preferredColorScheme = theme.toGeckoPreferredColorScheme()
@@ -208,6 +210,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             WebEngineFactory.registerProvider(WebEngineProvider(ENGINE_NAME, object : WebEngineProviderCallback {
                 override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
                     GeckoWebEngine.initialize(context, webViewContainer)
+                    //a browser activity of another profile: the site filter may block pages now, or no more
+                    AppWebExtensionBackgroundPortDelegate.current?.sendConfig()
                     //before the sessions of the tabs load a page
                     AppProxy.settings?.let { GeckoProxyPrefs.apply(it) }
                 }
@@ -644,6 +648,13 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         }
         extensionWaiter = waiter
         appWebExtension.subscribe(waiter, notifyOnSubscribe = false)
+    }
+
+    /** Shows the block page of the site filter in place of the page of [url] ([replace]: of a redirect) */
+    fun showSiteBlockPage(url: String, block: SiteBlock, replace: Boolean) {
+        val loader = GeckoSession.Loader().uri(GeckoSiteBlocks.pageUrl(AppContext.get(), url, block))
+        if (replace) loader.flags(GeckoSession.LOAD_FLAGS_REPLACE_HISTORY)
+        session.load(loader)
     }
 
     /**

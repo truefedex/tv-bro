@@ -45,6 +45,7 @@ import com.phlox.tvwebbrowser.profile.PinDialog
 import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.profile.ProfilePolicy
 import com.phlox.tvwebbrowser.utils.ActivityResults
+import com.phlox.tvwebbrowser.browser.sitefilter.AppSiteFilter
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
@@ -166,6 +167,8 @@ class MainActivity : AppCompatActivity(), BrowserShell.Host {
     ) { shell.onDownloadStarted(it) }
     var openUrlInExternalAppDialog: AlertDialog? = null
     private var tabsLoaded = false
+    /** The PIN dialog of a block page of the site filter is shown */
+    private var askingToAllowSite = false
     /** Url to open that arrived before the tabs were loaded */
     private var pendingIntent: Intent? = null
 
@@ -193,6 +196,8 @@ class MainActivity : AppCompatActivity(), BrowserShell.Host {
         Log.d(TAG, "onCreate space: $space")
 
         TVBro.instance.startBrowser()
+        //the filter of the kids profile is in memory only while it is shown
+        TVBro.container.siteFilter.setShown(wanted == BrowserSpace.KIDS)
         ActivityResults.reset()
         AppSettingsStore.rememberStartupValues(config)
         lifecycleScope.launch(Dispatchers.IO) { LegacySync.drop(applicationContext, SendSettings(applicationContext, config.prefs)) }
@@ -738,7 +743,30 @@ class MainActivity : AppCompatActivity(), BrowserShell.Host {
                 if (!refusedByProfile(policy.externalApps)) askUserAndOpenInExternalApp(event.url, event.intent)
             BrowserUiEvent.NoAppToOpenUrl ->
                 Utils.showToast(applicationContext, getString(R.string.err_no_app_to_handle_url))
+            is BrowserUiEvent.AskToAllowSite -> askToAllowSite(event.tab, event.url)
             else -> shell.onUiEvent(event)
+        }
+    }
+
+    /** The PIN, then for how long the site of [url] is let in through the site filter */
+    private fun askToAllowSite(tab: BrowserTab, url: String) {
+        //one at a time: the button of the page may be pressed again meanwhile
+        if (askingToAllowSite) return
+        val host = Uri.parse(url).host ?: return
+        askingToAllowSite = true
+        //what is let in: the site, with its subdomains
+        val site = (WebEngineFactory.siteFilter as? AppSiteFilter)?.siteOf(host) ?: host
+        PinDialog.ask(this, getString(R.string.site_allow_title, site)) { right ->
+            askingToAllowSite = false
+            if (!right) return@ask
+            val hour = 60 * 60 * 1000L
+            AlertDialog.Builder(this)
+                .setTitle(getString(R.string.site_allow_title, site))
+                .setItems(arrayOf(getString(R.string.site_allow_hour), getString(R.string.site_allow_always))) { _, which ->
+                    controller.allowSite(tab, url, if (which == 0) System.currentTimeMillis() + hour else Long.MAX_VALUE)
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
         }
     }
 

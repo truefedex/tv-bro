@@ -750,4 +750,23 @@
     <string name="settings_kids_downloads">Downloads</string>
     <string name="settings_kids_downloads_summary">Files from sites and the apps they install. The kids profile sees only its own downloads; the main profile sees them too</string>
     <string name="download_of_kids">Kids profile</string>
+    <string name="site_allow_title">Allow %s</string>
+    <string name="site_allow_hour">For an hour</string>
+    <string name="site_allow_always">Always</string>
+    <string name="settings_kids_site_filters">Site filters</string>
+    <string name="settings_kids_site_list">Own list</string>
+    <string name="settings_kids_site_list_summary">Sites of a list at this address too, a domain per line</string>
+    <string name="settings_kids_site_list_hint">Address of a list of sites</string>
+    <string name="settings_kids_site_lists">Lists of sites</string>
+    <string name="settings_kids_site_lists_missing">Not downloaded yet: their sites are not blocked</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="one">%s site</item>
+        <item quantity="other">%s sites</item>
+    </plurals>
+    <string name="settings_kids_allowed_sites">Allowed with the PIN</string>
+    <string name="settings_kids_no_allowed_sites">None. The page of a blocked site lets a parent allow it with the PIN.</string>
+    <string name="settings_kids_allowed_until">Until %s</string>
+    <string name="settings_kids_allowed_remove">Remove</string>
+    <string name="settings_kids_site_lists_source">Where the lists come from</string>
+    <string name="settings_kids_site_lists_source_summary">HaGeZi\'s DNS blocklists (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro downloads them from the internet and updates them once a month.</string>
 </resources>

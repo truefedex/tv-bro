@@ -4,6 +4,7 @@ import android.content.Context
 import com.phlox.tvwebbrowser.adblock.psl.PublicSuffixList
 import com.phlox.tvwebbrowser.browser.TabFilesStore
 import com.phlox.tvwebbrowser.browser.adblock.AdBlockService
+import com.phlox.tvwebbrowser.browser.sitefilter.SiteFilterService
 import com.phlox.tvwebbrowser.data.DataRepositories
 import com.phlox.tvwebbrowser.service.downloads.DownloadServiceClient
 import com.phlox.tvwebbrowser.singleton.AppDatabase
@@ -43,11 +44,19 @@ class AppContainer(context: Context) {
     val tabFiles: TabFilesStore
         get() = if (AppContext.kidsProfile) kidsTabFiles else mainTabFiles
 
+    /** The sites (registrable domains) of hosts, for ad blocking and the site filter; loaded on first use */
+    val publicSuffixList: PublicSuffixList by lazy {
+        PublicSuffixList.load(appContext.assets.open("adblock/psl.txt").use { it.readBytes() })
+    }
+
     /** The ad blocker of the browser (started by TVBro) */
     val adBlock by lazy {
-        AdBlockService(File(appContext.filesDir, "adblock"), appScope, AppContext.provideConfig(), {
-            PublicSuffixList.load(appContext.assets.open("adblock/psl.txt").use { it.readBytes() })
-        })
+        AdBlockService(File(appContext.filesDir, "adblock"), appScope, AppContext.provideConfig(), { publicSuffixList })
+    }
+
+    /** The lists of sites of the site filter of the kids profile (started by TVBro) */
+    val siteFilter by lazy {
+        SiteFilterService(File(appContext.filesDir, "sitefilter"), appScope) { SiteFilterService.wantedOf(appContext) }
     }
 
     /** The database of the main profile: also the downloads, which go on whatever profile is shown */
@@ -81,8 +90,14 @@ class AppContainer(context: Context) {
 
     /** Repositories of the profile shown ([AppContext.kidsProfile]); opens its database on the first use */
     val data: DataRepositories
+        get() = if (AppContext.kidsProfile) kidsData else mainData
+
+    /**
+     * Repositories of the kids profile, whatever profile is shown (its settings in the main profile: the sites a
+     * parent allowed); opens its database on the first use
+     */
+    val kidsData: DataRepositories
         get() {
-            if (!AppContext.kidsProfile) return mainData
             val testDatabase = AppDatabase.instanceForTests
             kidsRepositories?.takeIf { testDatabase == null || it.database === testDatabase }?.let { return it }
             return synchronized(this) {

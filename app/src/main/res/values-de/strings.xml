@@ -662,4 +662,23 @@
     <string name="settings_kids_downloads">Downloads</string>
     <string name="settings_kids_downloads_summary">Dateien von Websites und die Apps, die daraus installiert werden. Das Kinderprofil sieht nur seine eigenen Downloads, das Hauptprofil sieht sie auch</string>
     <string name="download_of_kids">Kinderprofil</string>
+    <string name="site_allow_title">%s erlauben</string>
+    <string name="site_allow_hour">Für eine Stunde</string>
+    <string name="site_allow_always">Immer</string>
+    <string name="settings_kids_site_filters">Website-Filter</string>
+    <string name="settings_kids_site_list">Eigene Liste</string>
+    <string name="settings_kids_site_list_summary">Auch die Websites einer Liste unter dieser Adresse, eine Domain pro Zeile</string>
+    <string name="settings_kids_site_list_hint">Adresse einer Liste von Websites</string>
+    <string name="settings_kids_site_lists">Listen von Websites</string>
+    <string name="settings_kids_site_lists_missing">Noch nicht heruntergeladen: ihre Websites werden noch nicht gesperrt</string>
+    <string name="settings_kids_allowed_sites">Mit der PIN erlaubt</string>
+    <string name="settings_kids_no_allowed_sites">Keine. Auf der Sperrseite einer Website können Eltern sie mit der PIN erlauben.</string>
+    <string name="settings_kids_allowed_until">Bis %s</string>
+    <string name="settings_kids_allowed_remove">Entfernen</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="one">%s Website</item>
+        <item quantity="other">%s Websites</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">Woher die Listen kommen</string>
+    <string name="settings_kids_site_lists_source_summary">HaGeZis DNS-Blocklisten (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro lädt sie aus dem Internet und aktualisiert sie einmal im Monat.</string>
 </resources>

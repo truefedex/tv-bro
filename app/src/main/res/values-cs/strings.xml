@@ -694,4 +694,25 @@
     <string name="settings_kids_downloads">Stahování</string>
     <string name="settings_kids_downloads_summary">Soubory z webů a aplikace, které se z nich instalují. Dětský profil vidí jen svá stahování, hlavní profil je vidí také</string>
     <string name="download_of_kids">Dětský profil</string>
+    <string name="site_allow_title">Povolit %s</string>
+    <string name="site_allow_hour">Na hodinu</string>
+    <string name="site_allow_always">Vždy</string>
+    <string name="settings_kids_site_filters">Filtry webů</string>
+    <string name="settings_kids_site_list">Vlastní seznam</string>
+    <string name="settings_kids_site_list_summary">Také weby ze seznamu na této adrese, jedna doména na řádek</string>
+    <string name="settings_kids_site_list_hint">Adresa seznamu webů</string>
+    <string name="settings_kids_site_lists">Seznamy webů</string>
+    <string name="settings_kids_site_lists_missing">Ještě nestaženy: jejich weby se zatím neblokují</string>
+    <string name="settings_kids_allowed_sites">Povoleno PINem</string>
+    <string name="settings_kids_no_allowed_sites">Žádné. Rodič může web povolit PINem na jeho stránce blokování.</string>
+    <string name="settings_kids_allowed_until">Do %s</string>
+    <string name="settings_kids_allowed_remove">Odebrat</string>
+    <plurals name="settings_kids_site_count">
+        <item quantity="one">%s web</item>
+        <item quantity="few">%s weby</item>
+        <item quantity="many">%s webu</item>
+        <item quantity="other">%s webů</item>
+    </plurals>
+    <string name="settings_kids_site_lists_source">Odkud seznamy jsou</string>
+    <string name="settings_kids_site_lists_source_summary">DNS blocklisty HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro je stahuje z internetu a aktualizuje jednou měsíčně.</string>
 </resources>

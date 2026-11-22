@@ -19,4 +19,13 @@
   <string name="error_page_network_message">اتصال شبکه را بررسی کنید و دوباره تلاش کنید</string>
   <string name="error_page_generic_title">باز کردن این صفحه ممکن نیست</string>
   <string name="error_page_generic_message">هنگام بارگیری این صفحه خطایی رخ داد</string>
+    <string name="site_blocked_title">این سایت مسدود است</string>
+    <string name="site_blocked_message">در فهرست سایت‌هایی است که نمایه کودک باز نمی‌کند.</string>
+    <string name="site_blocked_category">دسته</string>
+    <string name="site_blocked_ask">پرسیدن از والدین</string>
+    <string name="site_category_adult">محتوای بزرگسالان</string>
+    <string name="site_category_gambling">قمار</string>
+    <string name="site_category_threats">کلاهبرداری و بدافزار</string>
+    <string name="site_category_bypass">VPN و پروکسی</string>
+    <string name="site_category_custom">فهرست شخصی</string>
 </resources>

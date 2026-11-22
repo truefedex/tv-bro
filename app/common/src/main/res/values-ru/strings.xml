@@ -19,4 +19,13 @@
   <string name="error_page_network_message">Проверьте подключение к сети и повторите попытку</string>
   <string name="error_page_generic_title">Не удаётся открыть страницу</string>
   <string name="error_page_generic_message">При загрузке страницы произошла ошибка</string>
+    <string name="site_blocked_title">Сайт заблокирован</string>
+    <string name="site_blocked_message">Он есть в списке сайтов, которые детский профиль не открывает.</string>
+    <string name="site_blocked_category">Категория</string>
+    <string name="site_blocked_ask">Спросить родителя</string>
+    <string name="site_category_adult">Контент для взрослых</string>
+    <string name="site_category_gambling">Азартные игры</string>
+    <string name="site_category_threats">Мошенничество и вредоносные сайты</string>
+    <string name="site_category_bypass">VPN и прокси</string>
+    <string name="site_category_custom">Свой список</string>
 </resources>

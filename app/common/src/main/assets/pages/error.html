@@ -75,7 +75,15 @@ main {
     display: none;
     fill: var(--icon);
 }
-/* the glyph of each state: insecure, dangerous, crashed, network, generic */
+/* the button of the block page asks a parent (a lock), the others try again */
+.ask-icon, [data-state="blocked"] .retry-icon {
+    display: none;
+}
+[data-state="blocked"] .ask-icon {
+    display: inline;
+}
+/* the glyph of each state: insecure, dangerous, crashed, network, generic, blocked (the site filter) */
+[data-state="blocked"] .icon-blocked,
 [data-state="insecure"] .icon-insecure,
 [data-state="dangerous"] .icon-dangerous,
 [data-state="network"] .icon-network,
@@ -214,6 +222,7 @@ button:hover, button:focus {
         <svg class="icon-insecure" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
         <svg class="icon-dangerous" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.73 3H8.27L3 8.27v7.46L8.27 21h7.46L21 15.73V8.27L15.73 3zM12 17.3c-.72 0-1.3-.58-1.3-1.3 0-.72.58-1.3 1.3-1.3.72 0 1.3.58 1.3 1.3 0 .72-.58 1.3-1.3 1.3zm1-4.3h-2V7h2v6z"/></svg>
         <svg class="icon-network" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4c-1.48 0-2.85.43-4.01 1.17l1.46 1.46C10.21 6.23 11.08 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3 0 1.13-.64 2.11-1.56 2.62l1.45 1.45C23.16 18.16 24 16.68 24 15c0-2.64-2.05-4.78-4.65-4.96zM3 5.27l2.75 2.74C2.56 8.15 0 10.77 0 14c0 3.31 2.69 6 6 6h11.73l2 2L21 20.73 4.27 4 3 5.27zM7.73 10l8 8H6c-2.21 0-4-1.79-4-4s1.79-4 4-4h1.73z"/></svg>
+        <svg class="icon-blocked" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
         <svg class="icon-error" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
     </div>
     <h1>{{title}}</h1>
@@ -230,7 +239,8 @@ button:hover, button:focus {
     </dl>
     <div class="buttons">
         <button id="retry" type="button" data-url="{{url}}">
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            <svg class="ask-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            <svg class="retry-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
             {{retry}}
         </button>
         <button id="back" type="button" data-home="{{homeUrl}}">
@@ -249,11 +259,16 @@ button:hover, button:focus {
     document.getElementById("hostname-row").hidden = document.getElementById("hostname").textContent === "";
     //going on to a site that is not safe is not offered: going back is the only way out
     retry.hidden = state === "insecure" || state === "dangerous" || retry.dataset.url === "";
-    const primary = retry.hidden ? back : retry;
+    //the block page of the site filter: going back first; its other button asks a parent (a link the app takes)
+    const primary = retry.hidden || state === "blocked" ? back : retry;
     primary.classList.add("primary");
 
     retry.addEventListener("click", function () {
-        location.replace(retry.dataset.url);
+        if (state === "blocked") {
+            location.href = retry.dataset.url;
+        } else {
+            location.replace(retry.dataset.url);
+        }
     });
     back.addEventListener("click", function () {
         if (history.length > 1) {

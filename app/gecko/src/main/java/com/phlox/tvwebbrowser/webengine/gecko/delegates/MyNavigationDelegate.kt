@@ -1,5 +1,8 @@
 package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
+import android.net.Uri
+import com.phlox.tvwebbrowser.webengine.gecko.GeckoSiteBlocks
+import com.phlox.tvwebbrowser.webengine.EngineSiteFilter
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
@@ -67,6 +70,22 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
         )
 
         val callback = webEngine.callback ?: return GeckoResult.deny()
+
+        //Ask a parent of the block page of the site filter
+        EngineSiteFilter.askedUrl(Uri.parse(request.uri))?.let { asked ->
+            callback.onAskToAllowSite(asked)
+            return GeckoResult.deny()
+        }
+
+        //a page the site filter blocks shows the block page in its place (also after a redirect)
+        val siteFilter = WebEngineFactory.siteFilter
+        if (siteFilter != null && siteFilter.active && isWebUrl(request.uri) &&
+            request.target == GeckoSession.NavigationDelegate.TARGET_WINDOW_CURRENT) {
+            siteFilter.check(Uri.parse(request.uri), true, null)?.let { block ->
+                handler.post { webEngine.showSiteBlockPage(request.uri, block, replace = request.isRedirect) }
+                return GeckoResult.deny()
+            }
+        }
 
         //the home page, a page of the app's extension
         if (GeckoWebEngine.isLocalHomePage(request.uri)) {
@@ -150,6 +169,12 @@ class MyNavigationDelegate(private val webEngine: GeckoWebEngine) : GeckoSession
         val opener = webEngine.url
         if (isWebUrl(uri) && shouldBlockPopup(uri, opener)) {
             callback.onBlockedDialog(true)
+            return null
+        }
+        //a window of a site the site filter blocks: a tab that loads it as the app does, so it shows the block page
+        val siteFilter = WebEngineFactory.siteFilter
+        if (siteFilter != null && siteFilter.active && isWebUrl(uri) && siteFilter.check(Uri.parse(uri), true, null) != null) {
+            callback.onOpenInNewTabRequested(uri, true)
             return null
         }
         val engine = webEngine.callback?.onOpenInNewTabRequested(uri, false) as GeckoWebEngine? ?: return null

@@ -566,6 +566,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             callback?.onBlockedAd(url.toString())
         }
 
+        override fun onAskToAllowSite(url: String) {
+            callback?.onAskToAllowSite(url)
+        }
+
         override fun onBlockedDialog(newTab: Boolean) {
             callback?.onBlockedDialog(newTab)
         }

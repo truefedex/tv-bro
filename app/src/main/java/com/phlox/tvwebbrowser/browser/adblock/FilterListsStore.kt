@@ -66,14 +66,7 @@ class FilterListsStore(private val file: File, private val language: String) {
             customUrl = json.optString("customUrl")
             val lists = json.optJSONObject("lists") ?: JSONObject()
             for (id in lists.keys()) {
-                val m = lists.getJSONObject(id)
-                metas[id] = ListMeta(
-                    lastSuccess = m.optLong("lastSuccess"), lastAttempt = m.optLong("lastAttempt"),
-                    failures = m.optInt("failures"), etag = m.optString("etag").ifEmpty { null },
-                    lastModified = m.optString("lastModified").ifEmpty { null },
-                    expiresHours = if (m.has("expiresHours")) m.getInt("expiresHours") else null,
-                    filters = m.optInt("filters"), skipped = m.optInt("skipped"),
-                )
+                metas[id] = ListUpdates.metaOf(lists.getJSONObject(id))
             }
         } catch (e: JSONException) {
             Log.w(TAG, "Bad $file", e)
@@ -85,11 +78,7 @@ class FilterListsStore(private val file: File, private val language: String) {
     fun save() {
         val lists = JSONObject()
         for ((id, m) in metas) {
-            lists.put(id, JSONObject()
-                .put("lastSuccess", m.lastSuccess).put("lastAttempt", m.lastAttempt).put("failures", m.failures)
-                .put("etag", m.etag ?: "").put("lastModified", m.lastModified ?: "")
-                .put("filters", m.filters).put("skipped", m.skipped)
-                .apply { m.expiresHours?.let { put("expiresHours", it) } })
+            lists.put(id, ListUpdates.toJson(m))
         }
         val json = JSONObject().put("enabled", JSONArray(enabled.toList())).put("customUrl", customUrl).put("lists", lists)
         try {

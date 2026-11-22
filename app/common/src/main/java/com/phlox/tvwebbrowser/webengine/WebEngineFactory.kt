@@ -96,6 +96,10 @@ object WebEngineFactory {
     @Volatile
     var adBlocker: EngineAdBlocker? = null
 
+    /** Set by the app; null filters nothing */
+    @Volatile
+    var siteFilter: EngineSiteFilter? = null
+
     /** Set by the app; null leaves all pages at 100% */
     @Volatile
     var pageZooms: EnginePageZooms? = null
