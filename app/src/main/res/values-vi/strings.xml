@@ -657,8 +657,8 @@
     <string name="settings_kids_site_list_hint">Địa chỉ của danh sách trang web</string>
     <string name="settings_kids_site_lists">Danh sách trang web</string>
     <string name="settings_kids_site_lists_missing">Chưa tải xuống: các trang của chúng chưa bị chặn</string>
-    <string name="settings_kids_allowed_sites">Được phép bằng mã PIN</string>
-    <string name="settings_kids_no_allowed_sites">Không có. Bố mẹ có thể cho phép một trang bằng mã PIN từ trang chặn của nó.</string>
+    <string name="settings_kids_allowed_sites">Trang web được phép</string>
+    <string name="settings_kids_no_allowed_sites">Chưa có. Thêm trang web ở trên hoặc cho phép bằng mã PIN trên trang bị chặn.</string>
     <string name="settings_kids_allowed_until">Đến %s</string>
     <string name="settings_kids_allowed_remove">Xóa</string>
     <plurals name="settings_kids_site_count">
@@ -666,4 +666,13 @@
     </plurals>
     <string name="settings_kids_site_lists_source">Danh sách lấy từ đâu</string>
     <string name="settings_kids_site_lists_source_summary">Danh sách chặn DNS của HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro tải chúng từ internet và cập nhật mỗi tháng một lần.</string>
+    <string name="settings_kids_sites">Trang web</string>
+    <string name="settings_kids_sites_filtered">Tất cả trừ trang bị lọc</string>
+    <string name="settings_kids_sites_allowed">Chỉ trang được phép</string>
+    <string name="settings_kids_sites_filtered_summary">Trang của mọi trang web đều mở, trừ các trang trong danh sách bên dưới.</string>
+    <string name="settings_kids_sites_allowed_summary">Chỉ trang của các trang web được phép mới mở, kể cả công cụ tìm kiếm cũng chỉ mở khi được phép.</string>
+    <string name="settings_kids_add_site">Thêm trang web</string>
+    <string name="settings_kids_add_site_summary">Các tên miền con cũng sẽ mở</string>
+    <string name="settings_kids_add_site_invalid">Đây không phải địa chỉ trang web</string>
+    <string name="settings_kids_site_added">Đã cho phép %s</string>
 </resources>

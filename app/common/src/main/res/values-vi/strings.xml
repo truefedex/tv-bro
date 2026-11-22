@@ -28,4 +28,6 @@
     <string name="site_category_threats">Lừa đảo và phần mềm độc hại</string>
     <string name="site_category_bypass">VPN và proxy</string>
     <string name="site_category_custom">Danh sách riêng</string>
+    <string name="site_not_allowed_title">Trang web này không được phép</string>
+    <string name="site_not_allowed_message">Hồ sơ trẻ em chỉ mở các trang web mà cha mẹ đã cho phép.</string>
 </resources>

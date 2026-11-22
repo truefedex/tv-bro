@@ -28,4 +28,6 @@
     <string name="site_category_threats">Truffe e malware</string>
     <string name="site_category_bypass">VPN e proxy</string>
     <string name="site_category_custom">Elenco personale</string>
+    <string name="site_not_allowed_title">Questo sito non è consentito</string>
+    <string name="site_not_allowed_message">Il profilo bambini apre solo i siti consentiti da un genitore.</string>
 </resources>

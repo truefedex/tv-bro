@@ -28,4 +28,6 @@
     <string name="site_category_threats">诈骗和恶意软件</string>
     <string name="site_category_bypass">VPN 和代理</string>
     <string name="site_category_custom">自定义列表</string>
+    <string name="site_not_allowed_title">此网站未被允许</string>
+    <string name="site_not_allowed_message">儿童资料只打开家长允许的网站。</string>
 </resources>

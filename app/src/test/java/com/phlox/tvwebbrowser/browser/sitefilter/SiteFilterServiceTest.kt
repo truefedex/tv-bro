@@ -71,7 +71,7 @@ class SiteFilterServiceTest {
         check(Uri.parse(url), mainFrame, page?.let(Uri::parse))
 
     private fun filterOf(service: SiteFilterService) =
-        AppSiteFilter({ service.filter }, { service.mask }, { hosts }, { psl }, { time }, { kidsShown })
+        AppSiteFilter({ service.filter }, { service.mask }, { service.allowedOnly }, { hosts }, { psl }, { time }, { kidsShown })
 
     @Test
     fun theListsWantedAreDownloadedAndBlockTheirSitesWithSubdomains() = runBlocking {
@@ -242,5 +242,53 @@ class SiteFilterServiceTest {
         time += 23 * 24 * 60 * 60_000L
         service.update(force = false)
         assertEquals(4, fetcher.fetched.size)
+    }
+
+    /** Only allowed: no page of another site opens, lists or not; frames and requests of allowed pages load */
+    @Test
+    fun onlyThePagesOfAllowedSitesOpen() = runBlocking {
+        wanted = SiteFilterService.Wanted(SiteCategory.listed.toSet(), "", allowedOnly = true)
+        val service = service()
+        val filter = filterOf(service)
+        //no list is needed
+        assertTrue(filter.active)
+        assertEquals(SiteBlock(null), filter.blocks("https://news.example/"))
+        hosts.setSiteAllowed("school.example", time, Long.MAX_VALUE)
+        assertNull(filter.blocks("https://www.school.example/lessons"))
+        //an embedded player and the files of a CDN
+        assertNull(filter.blocks("https://player.example/embed/1", false, "https://school.example/"))
+        assertNull(filter.blocks("https://cdn.example/app.js", false, "https://school.example/"))
+        //the lists do nothing in this mode: none is downloaded
+        assertEquals(0L, service.mask)
+        assertTrue(service.update(force = true))
+        assertTrue(fetcher.fetched.isEmpty())
+        assertEquals(0, service.status.value.missing)
+        assertEquals(SiteBlock(null), filter.blocks("https://adult.example/"))
+        //the filtered mode: the web opens again, but for the sites of the lists, which come now
+        wanted = SiteFilterService.Wanted(SiteCategory.listed.toSet(), "")
+        service.onWantedChanged().join()
+        assertNull(filter.blocks("https://news.example/"))
+        assertEquals(SiteBlock(SiteCategory.ADULT), filter.blocks("https://adult.example/"))
+        //back to the allowed sites: the lists stay in the file for the next time, unused
+        wanted = SiteFilterService.Wanted(SiteCategory.listed.toSet(), "", allowedOnly = true)
+        service.onWantedChanged().join()
+        assertEquals(SiteBlock(null), filter.blocks("https://adult.example/"))
+        assertTrue(service.filter!!.has(SiteCategory.ADULT.ordinal))
+        //and with no category, nothing is filtered
+        wanted = SiteFilterService.Wanted(emptySet(), "")
+        service.onWantedChanged().join()
+        assertFalse(filter.active)
+    }
+
+    @Test
+    fun aParentTypesTheSiteToAllow() {
+        assertEquals("example.com", AppSiteFilter.hostOfInput("example.com"))
+        assertEquals("www.example.com", AppSiteFilter.hostOfInput("  https://WWW.Example.com/page?q=1 "))
+        assertEquals("kids.example.co.uk", AppSiteFilter.hostOfInput("kids.example.co.uk:8080"))
+        assertEquals("xn--e1afmkfd.xn--j1amh", AppSiteFilter.hostOfInput("пример.укр"))
+        assertEquals("school.example.co.uk".let { psl.registrableDomain(it) }, "example.co.uk")
+        for (wrong in listOf("", "example", "two words.com", "ftp://example.com", "javascript:alert(1)", "a..b.com")) {
+            assertNull(wrong, AppSiteFilter.hostOfInput(wrong))
+        }
     }
 }

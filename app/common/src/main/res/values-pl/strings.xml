@@ -28,4 +28,6 @@
     <string name="site_category_threats">Oszustwa i złośliwe oprogramowanie</string>
     <string name="site_category_bypass">VPN i proxy</string>
     <string name="site_category_custom">Własna lista</string>
+    <string name="site_not_allowed_title">Ta witryna nie jest dozwolona</string>
+    <string name="site_not_allowed_message">Profil dziecka otwiera tylko witryny, na które zezwolił rodzic.</string>
 </resources>

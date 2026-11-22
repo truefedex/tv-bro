@@ -702,8 +702,8 @@
     <string name="settings_kids_site_list_hint">Адрес списка сайтов</string>
     <string name="settings_kids_site_lists">Списки сайтов</string>
     <string name="settings_kids_site_lists_missing">Ещё не загружены: их сайты пока не блокируются</string>
-    <string name="settings_kids_allowed_sites">Разрешены по PIN-коду</string>
-    <string name="settings_kids_no_allowed_sites">Нет. Родитель может разрешить сайт PIN-кодом на его странице блокировки.</string>
+    <string name="settings_kids_allowed_sites">Разрешённые сайты</string>
+    <string name="settings_kids_no_allowed_sites">Пока нет. Добавьте сайт выше или разрешите его PIN-кодом на странице блокировки.</string>
     <string name="settings_kids_allowed_until">До %s</string>
     <string name="settings_kids_allowed_remove">Убрать</string>
     <plurals name="settings_kids_site_count">
@@ -714,4 +714,13 @@
     </plurals>
     <string name="settings_kids_site_lists_source">Откуда списки</string>
     <string name="settings_kids_site_lists_source_summary">DNS-блоклисты HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro скачивает их из интернета и обновляет раз в месяц.</string>
+    <string name="settings_kids_sites">Сайты</string>
+    <string name="settings_kids_sites_filtered">Все, кроме отфильтрованных</string>
+    <string name="settings_kids_sites_allowed">Только разрешённые</string>
+    <string name="settings_kids_sites_filtered_summary">Открываются страницы всех сайтов, кроме тех, что есть в списках ниже.</string>
+    <string name="settings_kids_sites_allowed_summary">Открываются только страницы разрешённых сайтов, даже поисковая система — только когда её разрешили.</string>
+    <string name="settings_kids_add_site">Добавить сайт</string>
+    <string name="settings_kids_add_site_summary">Его поддомены тоже будут открываться</string>
+    <string name="settings_kids_add_site_invalid">Это не адрес сайта</string>
+    <string name="settings_kids_site_added">%s разрешён</string>
 </resources>

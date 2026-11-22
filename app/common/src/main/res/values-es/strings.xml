@@ -28,4 +28,6 @@
     <string name="site_category_threats">Estafas y malware</string>
     <string name="site_category_bypass">VPN y proxies</string>
     <string name="site_category_custom">Lista propia</string>
+    <string name="site_not_allowed_title">Este sitio no está permitido</string>
+    <string name="site_not_allowed_message">El perfil infantil solo abre los sitios que ha permitido un padre o una madre.</string>
 </resources>

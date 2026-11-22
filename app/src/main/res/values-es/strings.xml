@@ -688,8 +688,8 @@
     <string name="settings_kids_site_list_hint">Dirección de una lista de sitios</string>
     <string name="settings_kids_site_lists">Listas de sitios</string>
     <string name="settings_kids_site_lists_missing">Aún no descargadas: sus sitios aún no se bloquean</string>
-    <string name="settings_kids_allowed_sites">Permitidos con el PIN</string>
-    <string name="settings_kids_no_allowed_sites">Ninguno. Desde la página de bloqueo de un sitio, un adulto puede permitirlo con el PIN.</string>
+    <string name="settings_kids_allowed_sites">Sitios permitidos</string>
+    <string name="settings_kids_no_allowed_sites">Ninguno todavía. Añade un sitio arriba o permítelo con el PIN en su página de bloqueo.</string>
     <string name="settings_kids_allowed_until">Hasta %s</string>
     <string name="settings_kids_allowed_remove">Quitar</string>
     <plurals name="settings_kids_site_count">
@@ -698,4 +698,13 @@
     </plurals>
     <string name="settings_kids_site_lists_source">De dónde vienen las listas</string>
     <string name="settings_kids_site_lists_source_summary">Las listas de bloqueo DNS de HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro las descarga de internet y las actualiza una vez al mes.</string>
+    <string name="settings_kids_sites">Sitios</string>
+    <string name="settings_kids_sites_filtered">Todos menos los filtrados</string>
+    <string name="settings_kids_sites_allowed">Solo permitidos</string>
+    <string name="settings_kids_sites_filtered_summary">Se abren las páginas de todos los sitios, excepto las de las listas de abajo.</string>
+    <string name="settings_kids_sites_allowed_summary">Solo se abren las páginas de los sitios permitidos; ni siquiera un buscador hasta que se permita.</string>
+    <string name="settings_kids_add_site">Añadir un sitio</string>
+    <string name="settings_kids_add_site_summary">También se abren sus subdominios</string>
+    <string name="settings_kids_add_site_invalid">No es la dirección de un sitio</string>
+    <string name="settings_kids_site_added">%s está permitido</string>
 </resources>

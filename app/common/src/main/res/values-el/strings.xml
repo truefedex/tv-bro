@@ -28,4 +28,6 @@
     <string name="site_category_threats">Απάτες και κακόβουλο λογισμικό</string>
     <string name="site_category_bypass">VPN και διακομιστές μεσολάβησης</string>
     <string name="site_category_custom">Δική μου λίστα</string>
+    <string name="site_not_allowed_title">Αυτός ο ιστότοπος δεν επιτρέπεται</string>
+    <string name="site_not_allowed_message">Το παιδικό προφίλ ανοίγει μόνο τους ιστότοπους που επέτρεψε ένας γονέας.</string>
 </resources>

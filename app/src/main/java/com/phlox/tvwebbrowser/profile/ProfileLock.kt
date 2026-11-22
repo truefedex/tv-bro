@@ -44,6 +44,14 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
         get() = store.get(KEY_KIDS_SITE_LIST_URL) ?: ""
         set(value) = store.put(mapOf(KEY_KIDS_SITE_LIST_URL to value.trim().ifEmpty { null }))
 
+    /**
+     * The kids profile opens only the pages of the sites a parent allowed (Ask a parent, Settings), not the rest of
+     * the web; off by default
+     */
+    var kidsAllowedOnly: Boolean
+        get() = store.get(KEY_KIDS_ALLOWED_ONLY) == "1"
+        set(value) = store.put(mapOf(KEY_KIDS_ALLOWED_ONLY to if (value) "1" else null))
+
     /** The kids profile may download files and install apps (its own downloads only); on by default */
     var kidsDownloads: Boolean
         get() = store.get(KEY_KIDS_DOWNLOADS) != "0"
@@ -110,6 +118,7 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
         private const val KEY_KIDS_DOWNLOADS = "kids_downloads"
         private const val KEY_KIDS_SITE_CATEGORIES = "kids_site_categories"
         private const val KEY_KIDS_SITE_LIST_URL = "kids_site_list_url"
+        private const val KEY_KIDS_ALLOWED_ONLY = "kids_allowed_only"
         private const val KEY_MAIN_LEFT_AT = "main_left_at"
 
         @Volatile

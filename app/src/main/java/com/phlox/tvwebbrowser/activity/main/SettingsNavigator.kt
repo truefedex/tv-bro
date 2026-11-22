@@ -61,7 +61,7 @@ class SettingsNavigator(
         LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, NOTICE,
         KIDS_ABOUT, KIDS_ENABLE, KIDS_OPEN, KIDS_LOCK_DELAY, KIDS_DOWNLOADS, KIDS_PIN, KIDS_DISABLE, KIDS_DELETE_DATA,
         KIDS_SITE_CATEGORY, KIDS_SITE_LIST, KIDS_UPDATE_SITE_LISTS, KIDS_SITE_LISTS_SOURCE, KIDS_ALLOWED_SITE,
-        KIDS_NO_ALLOWED_SITES
+        KIDS_NO_ALLOWED_SITES, KIDS_SITES_MODE, KIDS_ADD_SITE
     }
 
     /** The kids profile as the settings change it (see [ProfileLock]) */
@@ -81,8 +81,12 @@ class SettingsNavigator(
         val siteListsChanges: Flow<SiteFilterService.Status>
         /** Downloads the lists again; false if a download failed */
         suspend fun updateSiteLists(): Boolean
+        /** The profile opens only the pages of the allowed sites ([ProfileLock.kidsAllowedOnly]) */
+        var allowedOnly: Boolean
         /** The sites a parent let in with the PIN, and until when (`Long.MAX_VALUE`: always) */
         suspend fun allowedSites(): Map<String, Long>
+        /** Lets the site of the address or host [text] in for good; @return the site, null if [text] is none */
+        suspend fun addAllowedSite(text: String): String?
         suspend fun removeAllowedSite(site: String)
         /** Turns the profile on with the [pin], or changes its PIN */
         fun enable(pin: String)
@@ -376,6 +380,9 @@ class SettingsNavigator(
 
     companion object {
         const val URL_SOURCE = "https://github.com/truefedex/tv-bro"
+        /** The options of [Key.KIDS_SITES_MODE] */
+        private const val SITES_FILTERED = 0
+        private const val SITES_ALLOWED_ONLY = 1
         const val URL_SUPPORT_AUTHOR = "https://donatello.to/truefedex"
         const val URL_WHY_ICON = "https://tv-bro-3546c.web.app/msg001.html"
         const val URL_LICENSE = "https://raw.githubusercontent.com/truefedex/tv-bro/refs/heads/master/LICENSE.md"
@@ -445,6 +452,8 @@ class SettingsNavigator(
     private var siteListsUpdating = false
     /** The sites allowed with the PIN, as read when the settings opened or changed (in the database of the kids profile) */
     private var allowedSites: Map<String, Long> = emptyMap()
+    /** The text of Add a site, kept until its button adds it */
+    private var siteToAdd = ""
     /** The site of the search engine is asked for the address of its suggestions */
     private var detectingSuggestUrl = false
     /** Custom URL was chosen and no address is typed yet */
@@ -567,6 +576,11 @@ class SettingsNavigator(
             Key.THEME -> store.theme = Config.Theme.entries[index]
             Key.HISTORY_RETENTION -> store.historyRetention = Config.HistoryRetention.entries[index]
             Key.KIDS_LOCK_DELAY -> store.kidsProfile?.lockDelay = ProfileLock.LockDelay.entries.getOrNull(index) ?: return
+            Key.KIDS_SITES_MODE -> {
+                val kids = store.kidsProfile ?: return
+                if ((index == SITES_ALLOWED_ONLY) == kids.allowedOnly) return
+                kids.allowedOnly = index == SITES_ALLOWED_ONLY
+            }
             Key.PROXY_TYPE -> {
                 val type = ProxySettings.Type.entries.getOrNull(index) ?: return
                 if (type == store.proxyType) return
@@ -703,6 +717,7 @@ class SettingsNavigator(
                 if (value == kids.siteListUrl) return
                 kids.siteListUrl = value
             }
+            Key.KIDS_ADD_SITE -> if (value != siteToAdd) siteToAdd = value else return
             Key.PROXY_HOST -> if (!setProxyAddress(value)) return
             Key.PROXY_PORT -> {
                 val port = if (value.isEmpty()) 0 else value.toIntOrNull()?.coerceIn(0, 99999) ?: 0
@@ -826,6 +841,22 @@ class SettingsNavigator(
                         siteListsUpdating = false
                         host.showMessage(if (ok) R.drawable.ic_check else R.drawable.ic_warning,
                             string(if (ok) R.string.filter_lists_updated else R.string.filter_lists_update_failed))
+                        render()
+                    }
+                }
+                Key.KIDS_ADD_SITE -> {
+                    val kids = store.kidsProfile ?: return
+                    val text = siteToAdd
+                    if (text.isEmpty()) return
+                    scope.launch {
+                        val site = kids.addAllowedSite(text)
+                        if (site == null) {
+                            host.showMessage(R.drawable.ic_warning, string(R.string.settings_kids_add_site_invalid))
+                            return@launch
+                        }
+                        siteToAdd = ""
+                        allowedSites = kids.allowedSites()
+                        host.showMessage(R.drawable.ic_check, context.getString(R.string.settings_kids_site_added, site))
                         render()
                     }
                 }
@@ -1219,9 +1250,15 @@ class SettingsNavigator(
             Section(string(R.string.settings_kids_allowed_sites), allowedSiteRows()))
     }
 
-    /** The categories of sites the kids profile does not open, the own list, the state of the lists */
+    /** Which sites open; with the lists, the categories of sites the kids profile does not open, the own list, their state */
     private fun siteFilterRows(kids: KidsProfile): List<Row> {
         val rows = ArrayList<Row>()
+        rows += Row.Choice(Key.KIDS_SITES_MODE, string(R.string.settings_kids_sites),
+            string(if (kids.allowedOnly) R.string.settings_kids_sites_allowed_summary else R.string.settings_kids_sites_filtered_summary),
+            listOf(string(R.string.settings_kids_sites_filtered), string(R.string.settings_kids_sites_allowed)),
+            if (kids.allowedOnly) SITES_ALLOWED_ONLY else SITES_FILTERED, segmented = true)
+        //the lists do nothing there: only the pages of allowed sites open, and those load all they ask for
+        if (kids.allowedOnly) return rows
         for (category in SiteCategory.listed) {
             rows += Row.Toggle(Key.KIDS_SITE_CATEGORY, string(category.title), null, category in kids.siteCategories,
                 item = category.id)
@@ -1245,12 +1282,15 @@ class SettingsNavigator(
         return rows
     }
 
-    /** The sites a parent let in with the PIN, each with Remove */
+    /** Add a site, then the sites a parent let in, each with Remove */
     private fun allowedSiteRows(): List<Row> {
+        val add = Row.Field(Key.KIDS_ADD_SITE, string(R.string.settings_kids_add_site),
+            string(R.string.settings_kids_add_site_summary), siteToAdd, string(R.string.settings_kids_add_site_hint),
+            action = string(R.string.add))
         if (allowedSites.isEmpty()) {
-            return listOf(Row.Info(Key.KIDS_NO_ALLOWED_SITES, string(R.string.settings_kids_no_allowed_sites), null))
+            return listOf(add, Row.Info(Key.KIDS_NO_ALLOWED_SITES, string(R.string.settings_kids_no_allowed_sites), null))
         }
-        return allowedSites.entries.sortedBy { it.key }.map { (site, until) ->
+        return listOf(add) + allowedSites.entries.sortedBy { it.key }.map { (site, until) ->
             Row.Action(Key.KIDS_ALLOWED_SITE, site,
                 if (until == Long.MAX_VALUE) string(R.string.site_allow_always)
                 else context.getString(R.string.settings_kids_allowed_until, formatTime(until)),

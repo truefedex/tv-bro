@@ -28,4 +28,6 @@
     <string name="site_category_threats">הונאות ותוכנות זדוניות</string>
     <string name="site_category_bypass">VPN ושרתי פרוקסי</string>
     <string name="site_category_custom">רשימה משלי</string>
+    <string name="site_not_allowed_title">האתר הזה אינו מורשה</string>
+    <string name="site_not_allowed_message">פרופיל הילדים פותח רק אתרים שהורה התיר.</string>
 </resources>

@@ -145,11 +145,12 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         //the lists of sites of the kids profile, downloaded only while it is on
         container.siteFilter.start(scheduleUpdates = Build.FINGERPRINT != "robolectric")
         val lists = container.siteFilter
-        val siteFilter = AppSiteFilter({ lists.filter }, { lists.mask }, { container.data.hostConfigs },
+        val siteFilter = AppSiteFilter({ lists.filter }, { lists.mask }, { lists.allowedOnly }, { container.data.hostConfigs },
             { container.publicSuffixList })
         WebEngineFactory.siteFilter = siteFilter
-        //the app itself does not ask a blocked site for its icon
-        FaviconsPool.isBlocked = { host -> siteFilter.check(Uri.parse("https://$host/"), true, null) != null }
+        //the app itself does not ask a site of the lists for its icon (one only not allowed yet keeps its icon on the
+        //home page)
+        FaviconsPool.isBlocked = { host -> siteFilter.check(Uri.parse("https://$host/"), true, null)?.category != null }
     }
 
     /**

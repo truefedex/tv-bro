@@ -657,8 +657,8 @@
     <string name="settings_kids_site_list_hint">網站清單的位址</string>
     <string name="settings_kids_site_lists">網站清單</string>
     <string name="settings_kids_site_lists_missing">尚未下載：其中的網站暫不封鎖</string>
-    <string name="settings_kids_allowed_sites">已用 PIN 碼允許</string>
-    <string name="settings_kids_no_allowed_sites">無。家長可以在網站的封鎖頁面上用 PIN 碼允許它。</string>
+    <string name="settings_kids_allowed_sites">允許的網站</string>
+    <string name="settings_kids_no_allowed_sites">尚無。在上方新增網站，或在網站的封鎖頁面用 PIN 允許它。</string>
     <string name="settings_kids_allowed_until">直到 %s</string>
     <string name="settings_kids_allowed_remove">移除</string>
     <plurals name="settings_kids_site_count">
@@ -666,4 +666,13 @@
     </plurals>
     <string name="settings_kids_site_lists_source">清單的來源</string>
     <string name="settings_kids_site_lists_source_summary">HaGeZi 的 DNS 封鎖清單（github.com/hagezi/dns-blocklists，GPL-3.0）。TV Bro 從網際網路下載它們，每月更新一次。</string>
+    <string name="settings_kids_sites">網站</string>
+    <string name="settings_kids_sites_filtered">除過濾外全部</string>
+    <string name="settings_kids_sites_allowed">僅允許的</string>
+    <string name="settings_kids_sites_filtered_summary">所有網站的頁面都能開啟，下方清單中的除外。</string>
+    <string name="settings_kids_sites_allowed_summary">只能開啟允許的網站的頁面，連搜尋引擎也要允許後才能開啟。</string>
+    <string name="settings_kids_add_site">新增網站</string>
+    <string name="settings_kids_add_site_summary">其子網域也能開啟</string>
+    <string name="settings_kids_add_site_invalid">這不是網站位址</string>
+    <string name="settings_kids_site_added">已允許 %s</string>
 </resources>

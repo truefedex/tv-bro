@@ -657,8 +657,8 @@
     <string name="settings_kids_site_list_hint">网站列表的地址</string>
     <string name="settings_kids_site_lists">网站列表</string>
     <string name="settings_kids_site_lists_missing">尚未下载：其中的网站暂不拦截</string>
-    <string name="settings_kids_allowed_sites">已用 PIN 码允许</string>
-    <string name="settings_kids_no_allowed_sites">无。家长可以在网站的拦截页面上用 PIN 码允许它。</string>
+    <string name="settings_kids_allowed_sites">允许的网站</string>
+    <string name="settings_kids_no_allowed_sites">暂无。在上方添加网站，或在网站的拦截页面用 PIN 允许它。</string>
     <string name="settings_kids_allowed_until">直到 %s</string>
     <string name="settings_kids_allowed_remove">移除</string>
     <plurals name="settings_kids_site_count">
@@ -666,4 +666,13 @@
     </plurals>
     <string name="settings_kids_site_lists_source">列表的来源</string>
     <string name="settings_kids_site_lists_source_summary">HaGeZi 的 DNS 拦截列表（github.com/hagezi/dns-blocklists，GPL-3.0）。TV Bro 从互联网下载它们，每月更新一次。</string>
+    <string name="settings_kids_sites">网站</string>
+    <string name="settings_kids_sites_filtered">除过滤外全部</string>
+    <string name="settings_kids_sites_allowed">仅允许的</string>
+    <string name="settings_kids_sites_filtered_summary">所有网站的页面都能打开，下方列表中的除外。</string>
+    <string name="settings_kids_sites_allowed_summary">只能打开允许的网站的页面，连搜索引擎也要允许后才能打开。</string>
+    <string name="settings_kids_add_site">添加网站</string>
+    <string name="settings_kids_add_site_summary">其子域名也能打开</string>
+    <string name="settings_kids_add_site_invalid">这不是网站地址</string>
+    <string name="settings_kids_site_added">已允许 %s</string>
 </resources>

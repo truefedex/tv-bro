@@ -2,8 +2,11 @@ package com.phlox.tvwebbrowser.webengine
 
 import android.net.Uri
 
-/** Why the site filter blocks a site: the [category] of the list that has it */
-data class SiteBlock(val category: SiteCategory)
+/**
+ * Why the site filter blocks a site: the [category] of the list that has it; null for a page of a site that is not
+ * among those a parent allowed, while the kids profile opens only those
+ */
+data class SiteBlock(val category: SiteCategory?)
 
 /**
  * The filter of sites (the kids profile), set by the app in [WebEngineFactory.siteFilter] when the browser starts.

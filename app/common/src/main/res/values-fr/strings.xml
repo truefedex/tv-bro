@@ -28,4 +28,6 @@
     <string name="site_category_threats">Arnaques et logiciels malveillants</string>
     <string name="site_category_bypass">VPN et proxys</string>
     <string name="site_category_custom">Liste personnelle</string>
+    <string name="site_not_allowed_title">Ce site n\'est pas autorisé</string>
+    <string name="site_not_allowed_message">Le profil enfant n\'ouvre que les sites autorisés par un parent.</string>
 </resources>

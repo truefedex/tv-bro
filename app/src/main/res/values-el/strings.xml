@@ -673,8 +673,8 @@
     <string name="settings_kids_site_list_hint">Διεύθυνση λίστας ιστοτόπων</string>
     <string name="settings_kids_site_lists">Λίστες ιστοτόπων</string>
     <string name="settings_kids_site_lists_missing">Δεν έχουν ληφθεί ακόμη: οι ιστότοποί τους δεν αποκλείονται ακόμη</string>
-    <string name="settings_kids_allowed_sites">Επιτρέπονται με το PIN</string>
-    <string name="settings_kids_no_allowed_sites">Κανένας. Ένας γονιός μπορεί να επιτρέψει έναν ιστότοπο με το PIN από τη σελίδα αποκλεισμού του.</string>
+    <string name="settings_kids_allowed_sites">Επιτρεπόμενοι ιστότοποι</string>
+    <string name="settings_kids_no_allowed_sites">Κανένας ακόμη. Προσθέστε έναν ιστότοπο παραπάνω ή επιτρέψτε τον με το PIN στη σελίδα αποκλεισμού του.</string>
     <string name="settings_kids_allowed_until">Έως %s</string>
     <string name="settings_kids_allowed_remove">Αφαίρεση</string>
     <plurals name="settings_kids_site_count">
@@ -683,4 +683,13 @@
     </plurals>
     <string name="settings_kids_site_lists_source">Από πού προέρχονται οι λίστες</string>
     <string name="settings_kids_site_lists_source_summary">Οι λίστες αποκλεισμού DNS του HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). Το TV Bro τις κατεβάζει από το διαδίκτυο και τις ενημερώνει μία φορά τον μήνα.</string>
+    <string name="settings_kids_sites">Ιστότοποι</string>
+    <string name="settings_kids_sites_filtered">Όλοι εκτός των φιλτραρισμένων</string>
+    <string name="settings_kids_sites_allowed">Μόνο επιτρεπόμενοι</string>
+    <string name="settings_kids_sites_filtered_summary">Ανοίγουν οι σελίδες όλων των ιστότοπων, εκτός από αυτές των παρακάτω λιστών.</string>
+    <string name="settings_kids_sites_allowed_summary">Ανοίγουν μόνο οι σελίδες των επιτρεπόμενων ιστότοπων, ούτε καν μιας μηχανής αναζήτησης μέχρι να επιτραπεί.</string>
+    <string name="settings_kids_add_site">Προσθήκη ιστότοπου</string>
+    <string name="settings_kids_add_site_summary">Ανοίγουν και οι υποτομείς του</string>
+    <string name="settings_kids_add_site_invalid">Δεν είναι διεύθυνση ιστότοπου</string>
+    <string name="settings_kids_site_added">Ο %s επιτρέπεται</string>
 </resources>

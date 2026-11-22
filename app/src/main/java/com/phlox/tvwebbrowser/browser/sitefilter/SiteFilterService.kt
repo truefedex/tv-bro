@@ -49,10 +49,15 @@ class SiteFilterService(
     private val now: () -> Long = System::currentTimeMillis,
     private val wanted: () -> Wanted,
 ) {
-    /** The categories the profiles block and the address of the own list ("" for none) */
-    data class Wanted(val categories: Set<SiteCategory>, val customUrl: String) {
-        val mask: Long get() = categories.filter { it != SiteCategory.CUSTOM }.fold(0L) { m, c -> m or c.bit } or
-            (if (customUrl.isNotEmpty()) SiteCategory.CUSTOM.bit else 0L)
+    /**
+     * The categories the profiles block, the address of the own list ("" for none) and whether only the sites a
+     * parent allowed open ([allowedOnly]: then no list is wanted, the pages of the allowed sites load all they ask
+     * for, and the categories stay in the file for the filtered mode)
+     */
+    data class Wanted(val categories: Set<SiteCategory>, val customUrl: String, val allowedOnly: Boolean = false) {
+        val mask: Long get() = if (allowedOnly) 0L
+            else categories.filter { it != SiteCategory.CUSTOM }.fold(0L) { m, c -> m or c.bit } or
+                (if (customUrl.isNotEmpty()) SiteCategory.CUSTOM.bit else 0L)
 
         companion object {
             val NONE = Wanted(emptySet(), "")
@@ -80,6 +85,11 @@ class SiteFilterService(
     /** The categories wanted now as a mask of [SiteCategory.bit]s; 0 when nothing is to be blocked */
     @Volatile
     var mask: Long = 0
+        private set
+
+    /** Only the pages of the sites a parent allowed open ([Wanted.allowedOnly]) */
+    @Volatile
+    var allowedOnly: Boolean = false
         private set
 
     private val statusFlow = MutableStateFlow(Status())
@@ -130,6 +140,7 @@ class SiteFilterService(
                 loadMetas()
                 current = wanted()
                 mask = current.mask
+                allowedOnly = current.allowedOnly
                 applyCustomUrl()
                 publish()
             }
@@ -167,6 +178,7 @@ class SiteFilterService(
             if (wanted == current) return@withLock
             current = wanted
             mask = wanted.mask
+            allowedOnly = wanted.allowedOnly
             applyCustomUrl()
             updateLocked(force = false)
         }
@@ -181,6 +193,7 @@ class SiteFilterService(
 
     /** The lists wanted: (id, url, category) */
     private fun sources(): List<Triple<String, String, SiteCategory>> {
+        if (current.allowedOnly) return emptyList()
         val list = current.categories.mapNotNull { c -> c.url?.let { Triple(c.id, it, c) } }.sortedBy { it.third.ordinal }
         return if (current.customUrl.isEmpty()) list
             else list + Triple(SiteCategory.CUSTOM.id, current.customUrl, SiteCategory.CUSTOM)
@@ -365,7 +378,7 @@ class SiteFilterService(
         fun wantedOf(context: Context): Wanted {
             val lock = ProfileLock.get(context)
             if (!lock.enabled) return Wanted.NONE
-            return Wanted(lock.kidsSiteCategories, lock.kidsSiteListUrl)
+            return Wanted(lock.kidsSiteCategories, lock.kidsSiteListUrl, lock.kidsAllowedOnly)
         }
     }
 }

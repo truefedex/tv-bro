@@ -28,4 +28,6 @@
     <string name="site_category_threats">Шахрайство та шкідливі сайти</string>
     <string name="site_category_bypass">VPN і проксі</string>
     <string name="site_category_custom">Власний список</string>
+    <string name="site_not_allowed_title">Цей сайт не дозволено</string>
+    <string name="site_not_allowed_message">Дитячий профіль відкриває лише сайти, які дозволили батьки.</string>
 </resources>

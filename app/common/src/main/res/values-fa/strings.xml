@@ -28,4 +28,6 @@
     <string name="site_category_threats">کلاهبرداری و بدافزار</string>
     <string name="site_category_bypass">VPN و پروکسی</string>
     <string name="site_category_custom">فهرست شخصی</string>
+    <string name="site_not_allowed_title">این سایت مجاز نیست</string>
+    <string name="site_not_allowed_message">نمایهٔ کودک فقط سایت‌هایی را باز می‌کند که والدین مجاز کرده‌اند.</string>
 </resources>

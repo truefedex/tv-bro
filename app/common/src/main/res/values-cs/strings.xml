@@ -28,4 +28,6 @@
     <string name="site_category_threats">Podvody a malware</string>
     <string name="site_category_bypass">VPN a proxy</string>
     <string name="site_category_custom">Vlastní seznam</string>
+    <string name="site_not_allowed_title">Tento web není povolen</string>
+    <string name="site_not_allowed_message">Dětský profil otevírá jen weby, které povolil rodič.</string>
 </resources>

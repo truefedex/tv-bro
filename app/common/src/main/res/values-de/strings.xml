@@ -28,4 +28,6 @@
     <string name="site_category_threats">Betrug und Schadsoftware</string>
     <string name="site_category_bypass">VPNs und Proxys</string>
     <string name="site_category_custom">Eigene Liste</string>
+    <string name="site_not_allowed_title">Diese Website ist nicht erlaubt</string>
+    <string name="site_not_allowed_message">Das Kinderprofil öffnet nur Websites, die ein Elternteil erlaubt hat.</string>
 </resources>

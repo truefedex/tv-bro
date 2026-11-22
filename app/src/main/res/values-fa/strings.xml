@@ -672,8 +672,8 @@
     <string name="settings_kids_site_list_hint">نشانی فهرست سایت‌ها</string>
     <string name="settings_kids_site_lists">فهرست‌های سایت</string>
     <string name="settings_kids_site_lists_missing">هنوز بارگیری نشده‌اند: سایت‌هایشان هنوز مسدود نمی‌شوند</string>
-    <string name="settings_kids_allowed_sites">مجاز با PIN</string>
-    <string name="settings_kids_no_allowed_sites">هیچ‌کدام. والدین می‌توانند از صفحه مسدودشدن یک سایت با PIN به آن اجازه دهند.</string>
+    <string name="settings_kids_allowed_sites">سایت‌های مجاز</string>
+    <string name="settings_kids_no_allowed_sites">هنوز هیچ. سایتی را در بالا اضافه کنید یا با PIN در صفحهٔ مسدودشدنش آن را مجاز کنید.</string>
     <string name="settings_kids_allowed_until">تا %s</string>
     <string name="settings_kids_allowed_remove">حذف</string>
     <plurals name="settings_kids_site_count">
@@ -682,4 +682,13 @@
     </plurals>
     <string name="settings_kids_site_lists_source">فهرست‌ها از کجا می‌آیند</string>
     <string name="settings_kids_site_lists_source_summary">فهرست‌های مسدودسازی DNS هاگزی (github.com/hagezi/dns-blocklists، GPL-3.0). TV Bro آن‌ها را از اینترنت بارگیری می‌کند و ماهی یک بار به‌روز می‌کند.</string>
+    <string name="settings_kids_sites">سایت‌ها</string>
+    <string name="settings_kids_sites_filtered">همه به‌جز فیلترشده‌ها</string>
+    <string name="settings_kids_sites_allowed">فقط مجازها</string>
+    <string name="settings_kids_sites_filtered_summary">صفحه‌های همهٔ سایت‌ها باز می‌شوند، به‌جز سایت‌های فهرست‌های زیر.</string>
+    <string name="settings_kids_sites_allowed_summary">فقط صفحه‌های سایت‌های مجاز باز می‌شوند؛ حتی موتور جست‌وجو تا وقتی مجاز نشده باشد باز نمی‌شود.</string>
+    <string name="settings_kids_add_site">افزودن سایت</string>
+    <string name="settings_kids_add_site_summary">زیردامنه‌هایش هم باز می‌شوند</string>
+    <string name="settings_kids_add_site_invalid">این نشانی یک سایت نیست</string>
+    <string name="settings_kids_site_added">%s مجاز است</string>
 </resources>

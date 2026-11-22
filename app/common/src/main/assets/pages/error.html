@@ -232,9 +232,9 @@ button:hover, button:focus {
             <dt>{{hostnameLabel}}</dt>
             <dd id="hostname">{{hostname}}</dd>
         </div>
-        <div>
+        <div id="code-row">
             <dt>{{errorCodeLabel}}</dt>
-            <dd class="code">{{errorCode}}</dd>
+            <dd class="code" id="code">{{errorCode}}</dd>
         </div>
     </dl>
     <div class="buttons">
@@ -257,6 +257,7 @@ button:hover, button:focus {
     const back = document.getElementById("back");
 
     document.getElementById("hostname-row").hidden = document.getElementById("hostname").textContent === "";
+    document.getElementById("code-row").hidden = document.getElementById("code").textContent === "";
     //going on to a site that is not safe is not offered: going back is the only way out
     retry.hidden = state === "insecure" || state === "dangerous" || retry.dataset.url === "";
     //the block page of the site filter: going back first; its other button asks a parent (a link the app takes)

@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import com.phlox.tvwebbrowser.browser.sitefilter.AppSiteFilter
 import com.phlox.tvwebbrowser.browser.sitefilter.SiteFilterService
 import com.phlox.tvwebbrowser.webengine.SiteCategory
 import android.content.Intent
@@ -89,6 +90,23 @@ class AppSettingsStore(
                 val hosts = TVBro.container.kidsData.hostConfigs
                 hosts.loadSiteSettings()
                 return hosts.allowedSites(System.currentTimeMillis())
+            }
+            override var allowedOnly: Boolean
+                get() = lock.kidsAllowedOnly
+                set(value) {
+                    lock.kidsAllowedOnly = value
+                    siteFilter.onWantedChanged()
+                }
+            override suspend fun addAllowedSite(text: String): String? {
+                if (!lock.enabled) return null
+                val host = AppSiteFilter.hostOfInput(text) ?: return null
+                val (site, hosts) = withContext(Dispatchers.IO) {
+                    //an explicit change: the database of the kids profile is created if it was not used yet
+                    TVBro.container.publicSuffixList.registrableDomain(host) to TVBro.container.kidsData.hostConfigs
+                }
+                hosts.loadSiteSettings()
+                hosts.setSiteAllowed(site, System.currentTimeMillis(), Long.MAX_VALUE)
+                return site
             }
             override suspend fun removeAllowedSite(site: String) =
                 TVBro.container.kidsData.hostConfigs.setSiteAllowed(site, null, null)

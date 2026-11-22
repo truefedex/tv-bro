@@ -702,8 +702,8 @@
     <string name="settings_kids_site_list_hint">Adres listy stron</string>
     <string name="settings_kids_site_lists">Listy stron</string>
     <string name="settings_kids_site_lists_missing">Jeszcze niepobrane: ich strony nie są jeszcze blokowane</string>
-    <string name="settings_kids_allowed_sites">Dozwolone kodem PIN</string>
-    <string name="settings_kids_no_allowed_sites">Brak. Na stronie blokady rodzic może zezwolić na stronę kodem PIN.</string>
+    <string name="settings_kids_allowed_sites">Dozwolone witryny</string>
+    <string name="settings_kids_no_allowed_sites">Na razie brak. Dodaj witrynę powyżej albo zezwól na nią kodem PIN na jej stronie blokady.</string>
     <string name="settings_kids_allowed_until">Do %s</string>
     <string name="settings_kids_allowed_remove">Usuń</string>
     <plurals name="settings_kids_site_count">
@@ -714,4 +714,13 @@
     </plurals>
     <string name="settings_kids_site_lists_source">Skąd są listy</string>
     <string name="settings_kids_site_lists_source_summary">Listy blokowania DNS HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro pobiera je z internetu i aktualizuje raz w miesiącu.</string>
+    <string name="settings_kids_sites">Witryny</string>
+    <string name="settings_kids_sites_filtered">Wszystkie poza filtrowanymi</string>
+    <string name="settings_kids_sites_allowed">Tylko dozwolone</string>
+    <string name="settings_kids_sites_filtered_summary">Otwierają się strony wszystkich witryn poza tymi z list poniżej.</string>
+    <string name="settings_kids_sites_allowed_summary">Otwierają się tylko strony dozwolonych witryn, nawet wyszukiwarka dopiero po zezwoleniu.</string>
+    <string name="settings_kids_add_site">Dodaj witrynę</string>
+    <string name="settings_kids_add_site_summary">Jej subdomeny też się otworzą</string>
+    <string name="settings_kids_add_site_invalid">To nie jest adres witryny</string>
+    <string name="settings_kids_site_added">%s jest dozwolona</string>
 </resources>

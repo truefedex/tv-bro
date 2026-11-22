@@ -688,8 +688,8 @@
     <string name="settings_kids_site_list_hint">Endereço de uma lista de sites</string>
     <string name="settings_kids_site_lists">Listas de sites</string>
     <string name="settings_kids_site_lists_missing">Ainda não transferidas: os seus sites ainda não são bloqueados</string>
-    <string name="settings_kids_allowed_sites">Permitidos com o PIN</string>
-    <string name="settings_kids_no_allowed_sites">Nenhum. Na página de bloqueio de um site, um encarregado pode permiti-lo com o PIN.</string>
+    <string name="settings_kids_allowed_sites">Sites permitidos</string>
+    <string name="settings_kids_no_allowed_sites">Nenhum ainda. Adicione um site acima ou permita-o com o PIN na página de bloqueio.</string>
     <string name="settings_kids_allowed_until">Até %s</string>
     <string name="settings_kids_allowed_remove">Remover</string>
     <plurals name="settings_kids_site_count">
@@ -698,4 +698,13 @@
     </plurals>
     <string name="settings_kids_site_lists_source">De onde vêm as listas</string>
     <string name="settings_kids_site_lists_source_summary">As listas de bloqueio DNS de HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). O TV Bro transfere-as da internet e atualiza-as uma vez por mês.</string>
+    <string name="settings_kids_sites">Sites</string>
+    <string name="settings_kids_sites_filtered">Todos exceto os filtrados</string>
+    <string name="settings_kids_sites_allowed">Só os permitidos</string>
+    <string name="settings_kids_sites_filtered_summary">Abrem-se as páginas de todos os sites, exceto as das listas abaixo.</string>
+    <string name="settings_kids_sites_allowed_summary">Só se abrem as páginas dos sites permitidos, nem sequer um motor de pesquisa até ser permitido.</string>
+    <string name="settings_kids_add_site">Adicionar site</string>
+    <string name="settings_kids_add_site_summary">Os subdomínios também abrem</string>
+    <string name="settings_kids_add_site_invalid">Isto não é o endereço de um site</string>
+    <string name="settings_kids_site_added">%s está permitido</string>
 </resources>

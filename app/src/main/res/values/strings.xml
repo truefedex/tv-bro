@@ -763,10 +763,20 @@
         <item quantity="one">%s site</item>
         <item quantity="other">%s sites</item>
     </plurals>
-    <string name="settings_kids_allowed_sites">Allowed with the PIN</string>
-    <string name="settings_kids_no_allowed_sites">None. The page of a blocked site lets a parent allow it with the PIN.</string>
+    <string name="settings_kids_allowed_sites">Allowed sites</string>
+    <string name="settings_kids_no_allowed_sites">None yet. Add a site above, or allow it with the PIN on its blocked page.</string>
     <string name="settings_kids_allowed_until">Until %s</string>
     <string name="settings_kids_allowed_remove">Remove</string>
     <string name="settings_kids_site_lists_source">Where the lists come from</string>
     <string name="settings_kids_site_lists_source_summary">HaGeZi\'s DNS blocklists (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro downloads them from the internet and updates them once a month.</string>
+    <string name="settings_kids_sites">Sites</string>
+    <string name="settings_kids_sites_filtered">All but the filtered</string>
+    <string name="settings_kids_sites_allowed">Only allowed</string>
+    <string name="settings_kids_sites_filtered_summary">Pages of all sites open, except those of the lists below.</string>
+    <string name="settings_kids_sites_allowed_summary">Only the pages of the allowed sites open, not even those of a search engine until it is allowed.</string>
+    <string name="settings_kids_add_site">Add a site</string>
+    <string name="settings_kids_add_site_summary">Its subdomains open too</string>
+    <string name="settings_kids_add_site_hint" translatable="false">example.com</string>
+    <string name="settings_kids_add_site_invalid">This is not an address of a site</string>
+    <string name="settings_kids_site_added">%s is allowed</string>
 </resources>

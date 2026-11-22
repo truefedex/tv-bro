@@ -703,8 +703,8 @@
     <string name="settings_kids_site_list_hint">Adresa seznamu webů</string>
     <string name="settings_kids_site_lists">Seznamy webů</string>
     <string name="settings_kids_site_lists_missing">Ještě nestaženy: jejich weby se zatím neblokují</string>
-    <string name="settings_kids_allowed_sites">Povoleno PINem</string>
-    <string name="settings_kids_no_allowed_sites">Žádné. Rodič může web povolit PINem na jeho stránce blokování.</string>
+    <string name="settings_kids_allowed_sites">Povolené weby</string>
+    <string name="settings_kids_no_allowed_sites">Zatím žádné. Přidejte web výše nebo ho povolte PINem na jeho stránce blokování.</string>
     <string name="settings_kids_allowed_until">Do %s</string>
     <string name="settings_kids_allowed_remove">Odebrat</string>
     <plurals name="settings_kids_site_count">
@@ -715,4 +715,13 @@
     </plurals>
     <string name="settings_kids_site_lists_source">Odkud seznamy jsou</string>
     <string name="settings_kids_site_lists_source_summary">DNS blocklisty HaGeZi (github.com/hagezi/dns-blocklists, GPL-3.0). TV Bro je stahuje z internetu a aktualizuje jednou měsíčně.</string>
+    <string name="settings_kids_sites">Weby</string>
+    <string name="settings_kids_sites_filtered">Všechny kromě filtrovaných</string>
+    <string name="settings_kids_sites_allowed">Jen povolené</string>
+    <string name="settings_kids_sites_filtered_summary">Otevírají se stránky všech webů kromě těch ze seznamů níže.</string>
+    <string name="settings_kids_sites_allowed_summary">Otevírají se jen stránky povolených webů, i vyhledávač až po povolení.</string>
+    <string name="settings_kids_add_site">Přidat web</string>
+    <string name="settings_kids_add_site_summary">Otevřou se i jeho subdomény</string>
+    <string name="settings_kids_add_site_invalid">Toto není adresa webu</string>
+    <string name="settings_kids_site_added">%s je povolen</string>
 </resources>

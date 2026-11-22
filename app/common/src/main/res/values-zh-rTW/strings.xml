@@ -28,4 +28,6 @@
     <string name="site_category_threats">詐騙和惡意軟體</string>
     <string name="site_category_bypass">VPN 和 Proxy</string>
     <string name="site_category_custom">自訂清單</string>
+    <string name="site_not_allowed_title">此網站未被允許</string>
+    <string name="site_not_allowed_message">兒童設定檔只開啟家長允許的網站。</string>
 </resources>

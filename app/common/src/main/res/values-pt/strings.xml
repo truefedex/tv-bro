@@ -28,4 +28,6 @@
     <string name="site_category_threats">Golpes e malware</string>
     <string name="site_category_bypass">VPNs e proxies</string>
     <string name="site_category_custom">Lista própria</string>
+    <string name="site_not_allowed_title">Este site não é permitido</string>
+    <string name="site_not_allowed_message">O perfil infantil só abre os sites que um responsável permitiu.</string>
 </resources>

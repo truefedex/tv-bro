@@ -28,4 +28,6 @@
     <string name="site_category_threats">Мошенничество и вредоносные сайты</string>
     <string name="site_category_bypass">VPN и прокси</string>
     <string name="site_category_custom">Свой список</string>
+    <string name="site_not_allowed_title">Этот сайт не разрешён</string>
+    <string name="site_not_allowed_message">Детский профиль открывает только сайты, которые разрешили родители.</string>
 </resources>

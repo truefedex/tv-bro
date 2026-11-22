@@ -28,4 +28,6 @@
     <string name="site_category_threats">Scams and malware</string>
     <string name="site_category_bypass">VPNs and proxies</string>
     <string name="site_category_custom">Own list</string>
+    <string name="site_not_allowed_title">This site is not allowed</string>
+    <string name="site_not_allowed_message">The kids profile opens only the sites a parent allowed.</string>
 </resources>
