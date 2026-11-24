@@ -621,7 +621,8 @@
   <!-- The kids profile and its PIN -->
   <string name="profile_kids">نمایه کودک</string>
   <string name="profile_main">نمایه اصلی</string>
-  <string name="profile_not_available">در نمایه کودک در دسترس نیست</string>
+    <string name="who_is_watching">چه کسی تماشا می‌کند؟</string>
+  <string name="profile_not_available">در این نمایه در دسترس نیست</string>
   <string name="pin_enter">پین را وارد کنید</string>
   <string name="pin_choose_title">یک پین انتخاب کنید</string>
   <string name="pin_choose">چهار رقم. پین نمایه اصلی را باز می‌کند.</string>
@@ -662,6 +663,10 @@
   </plurals>
     <string name="settings_kids_downloads">بارگیری‌ها</string>
     <string name="settings_kids_downloads_summary">فایل‌های سایت‌ها و برنامه‌هایی که از آن‌ها نصب می‌شوند. نمایه کودک فقط بارگیری‌های خودش را می‌بیند و نمایه اصلی آن‌ها را هم می‌بیند</string>
+    <string name="settings_kids_ask_who">پرسیدن اینکه چه کسی تماشا می‌کند</string>
+    <string name="settings_kids_ask_who_summary">هنگام شروع برنامه، نمایه را انتخاب کنید. نمایه اصلی تا وقتی قفل است PIN می‌خواهد.</string>
+    <string name="settings_kids_name">نام نمایه</string>
+    <string name="settings_kids_name_summary">آنچه کودک به جای «نمایه کودک» می‌بیند، برای نمونه نام خودش</string>
     <string name="download_of_kids">نمایه کودک</string>
     <string name="site_allow_title">اجازه به %s</string>
     <string name="site_allow_hour">برای یک ساعت</string>

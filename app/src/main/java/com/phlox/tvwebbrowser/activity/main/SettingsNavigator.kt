@@ -61,7 +61,7 @@ class SettingsNavigator(
         LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, NOTICE,
         KIDS_ABOUT, KIDS_ENABLE, KIDS_OPEN, KIDS_LOCK_DELAY, KIDS_DOWNLOADS, KIDS_PIN, KIDS_DISABLE, KIDS_DELETE_DATA,
         KIDS_SITE_CATEGORY, KIDS_SITE_LIST, KIDS_UPDATE_SITE_LISTS, KIDS_SITE_LISTS_SOURCE, KIDS_ALLOWED_SITE,
-        KIDS_NO_ALLOWED_SITES, KIDS_SITES_MODE, KIDS_ADD_SITE
+        KIDS_NO_ALLOWED_SITES, KIDS_SITES_MODE, KIDS_ADD_SITE, KIDS_NAME, KIDS_ASK_WHO
     }
 
     /** The kids profile as the settings change it (see [ProfileLock]) */
@@ -71,6 +71,10 @@ class SettingsNavigator(
         var lockDelay: ProfileLock.LockDelay
         /** The profile may download files and install apps ([ProfileLock.kidsDownloads]) */
         var downloads: Boolean
+        /** The name a parent gave the profile ([ProfileLock.kidsName]); "" for the default */
+        var name: String
+        /** The app starts with the choice of the profile ([ProfileLock.askWhoIsWatching]) */
+        var askWhoIsWatching: Boolean
         /** The categories of sites the profile does not open ([ProfileLock.kidsSiteCategories]) */
         var siteCategories: Set<SiteCategory>
         /** The address of the parent's own list of sites; "" for none */
@@ -654,6 +658,7 @@ class SettingsNavigator(
             Key.JOYSTICK -> store.joystickNavigation = !store.joystickNavigation
             Key.PROXY -> store.proxyEnabled = !store.proxyEnabled
             Key.KIDS_DOWNLOADS -> store.kidsProfile?.let { it.downloads = !it.downloads }
+            Key.KIDS_ASK_WHO -> store.kidsProfile?.let { it.askWhoIsWatching = !it.askWhoIsWatching }
             Key.AUTO_UPDATE -> {
                 store.autoCheckUpdates = !store.autoCheckUpdates
                 if (store.autoCheckUpdates && updates == null) checkUpdates(force = false)
@@ -718,6 +723,11 @@ class SettingsNavigator(
                 kids.siteListUrl = value
             }
             Key.KIDS_ADD_SITE -> if (value != siteToAdd) siteToAdd = value else return
+            Key.KIDS_NAME -> {
+                val kids = store.kidsProfile ?: return
+                if (value.trim() == kids.name) return
+                kids.name = value
+            }
             Key.PROXY_HOST -> if (!setProxyAddress(value)) return
             Key.PROXY_PORT -> {
                 val port = if (value.isEmpty()) 0 else value.toIntOrNull()?.coerceIn(0, 99999) ?: 0
@@ -1238,6 +1248,11 @@ class SettingsNavigator(
                 string(R.string.open)),
             Row.Choice(Key.KIDS_LOCK_DELAY, string(R.string.settings_kids_lock), string(R.string.settings_kids_lock_summary),
                 delays, kids.lockDelay.ordinal, segmented = false),
+            Row.Toggle(Key.KIDS_ASK_WHO, string(R.string.settings_kids_ask_who), string(R.string.settings_kids_ask_who_summary),
+                kids.askWhoIsWatching),
+            //the child sees it, not "Kids profile": the parent finds the feature by that name here
+            Row.Field(Key.KIDS_NAME, string(R.string.settings_kids_name), string(R.string.settings_kids_name_summary),
+                kids.name, string(R.string.profile_kids)),
             Row.Toggle(Key.KIDS_DOWNLOADS, string(R.string.settings_kids_downloads),
                 string(R.string.settings_kids_downloads_summary), kids.downloads),
             Row.Action(Key.KIDS_PIN, string(R.string.settings_kids_pin), string(R.string.settings_kids_pin_summary),

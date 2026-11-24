@@ -20,7 +20,7 @@
     <string name="error_page_generic_title">Can\'t open this page</string>
     <string name="error_page_generic_message">Something went wrong while loading this page</string>
     <string name="site_blocked_title">This site is blocked</string>
-    <string name="site_blocked_message">It is in a list of sites the kids profile does not open.</string>
+    <string name="site_blocked_message">It is in a list of sites this profile does not open.</string>
     <string name="site_blocked_category">Category</string>
     <string name="site_blocked_ask">Ask a parent</string>
     <string name="site_category_adult">Adult content</string>
@@ -29,5 +29,5 @@
     <string name="site_category_bypass">VPNs and proxies</string>
     <string name="site_category_custom">Own list</string>
     <string name="site_not_allowed_title">This site is not allowed</string>
-    <string name="site_not_allowed_message">The kids profile opens only the sites a parent allowed.</string>
+    <string name="site_not_allowed_message">This profile opens only the sites a parent allowed.</string>
 </resources>

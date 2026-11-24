@@ -68,6 +68,12 @@ class AppSettingsStore(
             override var downloads: Boolean
                 get() = lock.kidsDownloads
                 set(value) { lock.kidsDownloads = value }
+            override var name: String
+                get() = lock.kidsName ?: ""
+                set(value) { lock.kidsName = value }
+            override var askWhoIsWatching: Boolean
+                get() = lock.askWhoIsWatching
+                set(value) { lock.askWhoIsWatching = value }
             private val siteFilter get() = TVBro.container.siteFilter
             override var siteCategories: Set<SiteCategory>
                 get() = lock.kidsSiteCategories

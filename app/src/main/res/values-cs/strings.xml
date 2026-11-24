@@ -650,7 +650,8 @@
     <!-- The kids profile and its PIN -->
     <string name="profile_kids">Dětský profil</string>
     <string name="profile_main">Hlavní profil</string>
-    <string name="profile_not_available">V dětském profilu není dostupné</string>
+    <string name="who_is_watching">Kdo se dívá?</string>
+    <string name="profile_not_available">V tomto profilu není dostupné</string>
     <string name="pin_enter">Zadejte PIN</string>
     <string name="pin_choose_title">Zvolte PIN</string>
     <string name="pin_choose">Čtyři číslice. PIN otevírá hlavní profil.</string>
@@ -693,6 +694,10 @@
     </plurals>
     <string name="settings_kids_downloads">Stahování</string>
     <string name="settings_kids_downloads_summary">Soubory z webů a aplikace, které se z nich instalují. Dětský profil vidí jen svá stahování, hlavní profil je vidí také</string>
+    <string name="settings_kids_ask_who">Ptát se, kdo se dívá</string>
+    <string name="settings_kids_ask_who_summary">Při spuštění aplikace vybrat profil. Hlavní profil si vyžádá PIN, pokud je zamčený.</string>
+    <string name="settings_kids_name">Název profilu</string>
+    <string name="settings_kids_name_summary">Co dítě vidí místo „Dětský profil“, například své jméno</string>
     <string name="download_of_kids">Dětský profil</string>
     <string name="site_allow_title">Povolit %s</string>
     <string name="site_allow_hour">Na hodinu</string>

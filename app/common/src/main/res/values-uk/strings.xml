@@ -20,7 +20,7 @@
   <string name="error_page_generic_title">Не вдається відкрити сторінку</string>
   <string name="error_page_generic_message">Під час завантаження сторінки сталася помилка</string>
     <string name="site_blocked_title">Сайт заблоковано</string>
-    <string name="site_blocked_message">Він є у списку сайтів, які дитячий профіль не відкриває.</string>
+    <string name="site_blocked_message">Він є у списку сайтів, які цей профіль не відкриває.</string>
     <string name="site_blocked_category">Категорія</string>
     <string name="site_blocked_ask">Запитати батьків</string>
     <string name="site_category_adult">Вміст для дорослих</string>
@@ -29,5 +29,5 @@
     <string name="site_category_bypass">VPN і проксі</string>
     <string name="site_category_custom">Власний список</string>
     <string name="site_not_allowed_title">Цей сайт не дозволено</string>
-    <string name="site_not_allowed_message">Дитячий профіль відкриває лише сайти, які дозволили батьки.</string>
+    <string name="site_not_allowed_message">Цей профіль відкриває лише сайти, дозволені дорослим.</string>
 </resources>

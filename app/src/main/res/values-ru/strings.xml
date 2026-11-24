@@ -649,7 +649,8 @@
   <!-- The kids profile and its PIN -->
   <string name="profile_kids">Детский профиль</string>
   <string name="profile_main">Основной профиль</string>
-  <string name="profile_not_available">Недоступно в детском профиле</string>
+    <string name="who_is_watching">Кто смотрит?</string>
+  <string name="profile_not_available">Недоступно в этом профиле</string>
   <string name="pin_enter">Введите PIN</string>
   <string name="pin_choose_title">Придумайте PIN</string>
   <string name="pin_choose">Четыре цифры. PIN открывает основной профиль.</string>
@@ -692,6 +693,10 @@
   </plurals>
     <string name="settings_kids_downloads">Загрузки</string>
     <string name="settings_kids_downloads_summary">Файлы с сайтов и приложения, которые из них устанавливаются. Детский профиль видит только свои загрузки, основной видит и их</string>
+    <string name="settings_kids_ask_who">Спрашивать, кто смотрит</string>
+    <string name="settings_kids_ask_who_summary">При запуске приложения выбрать профиль. Основной профиль запросит PIN-код, если он заблокирован.</string>
+    <string name="settings_kids_name">Имя профиля</string>
+    <string name="settings_kids_name_summary">Что видит ребёнок вместо «Детский профиль», например его имя</string>
     <string name="download_of_kids">Детский профиль</string>
     <string name="site_allow_title">Разрешить %s</string>
     <string name="site_allow_hour">На час</string>

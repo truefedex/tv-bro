@@ -607,7 +607,8 @@
     <!-- The kids profile and its PIN -->
     <string name="profile_kids">兒童設定檔</string>
     <string name="profile_main">主要設定檔</string>
-    <string name="profile_not_available">兒童設定檔中無法使用</string>
+    <string name="who_is_watching">誰在觀看？</string>
+    <string name="profile_not_available">此設定檔中無法使用</string>
     <string name="pin_enter">輸入 PIN 碼</string>
     <string name="pin_choose_title">設定 PIN 碼</string>
     <string name="pin_choose">四位數字。PIN 碼可開啟主要設定檔。</string>
@@ -647,6 +648,10 @@
     </plurals>
     <string name="settings_kids_downloads">下載</string>
     <string name="settings_kids_downloads_summary">網站上的檔案以及由此安裝的應用程式。兒童設定檔只能看到自己的下載，主要設定檔也能看到它們</string>
+    <string name="settings_kids_ask_who">詢問誰在觀看</string>
+    <string name="settings_kids_ask_who_summary">應用程式啟動時選擇設定檔。主要設定檔鎖定時需要輸入 PIN。</string>
+    <string name="settings_kids_name">設定檔名稱</string>
+    <string name="settings_kids_name_summary">孩子看到的名稱，取代「兒童設定檔」，例如孩子的名字</string>
     <string name="download_of_kids">兒童設定檔</string>
     <string name="site_allow_title">允許 %s</string>
     <string name="site_allow_hour">一小時</string>

@@ -229,4 +229,27 @@ class ProfileLockTest {
         assertFalse(ProfilePolicy(kids = true, kidsDownloads = true).deviceFiles)
         assertTrue(ProfilePolicy(kids = false).deviceFiles)
     }
+
+    /** The name a child sees: blank is the default, which follows the language; it is trimmed and kept short */
+    @Test
+    fun theNameOfTheKidsProfile() {
+        assertEquals(null, lock.kidsName)
+        lock.kidsName = "  Max  "
+        assertEquals("Max", lock.kidsName)
+        lock.kidsName = "x".repeat(100)
+        assertEquals(ProfileLock.MAX_NAME_LENGTH, lock.kidsName!!.length)
+        lock.kidsName = "   "
+        assertEquals(null, lock.kidsName)
+        assertFalse(store.values.containsKey("kids_name"))
+    }
+
+    @Test
+    fun whoIsWatchingIsAskedUntilTurnedOff() {
+        assertTrue(lock.askWhoIsWatching)
+        lock.askWhoIsWatching = false
+        assertFalse(lock.askWhoIsWatching)
+        lock.askWhoIsWatching = true
+        assertTrue(lock.askWhoIsWatching)
+        assertFalse(store.values.containsKey("ask_who_is_watching"))
+    }
 }

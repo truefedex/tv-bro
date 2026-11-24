@@ -20,7 +20,7 @@
   <string name="error_page_generic_title">باز کردن این صفحه ممکن نیست</string>
   <string name="error_page_generic_message">هنگام بارگیری این صفحه خطایی رخ داد</string>
     <string name="site_blocked_title">این سایت مسدود است</string>
-    <string name="site_blocked_message">در فهرست سایت‌هایی است که نمایه کودک باز نمی‌کند.</string>
+    <string name="site_blocked_message">در فهرست سایت‌هایی است که این نمایه باز نمی‌کند.</string>
     <string name="site_blocked_category">دسته</string>
     <string name="site_blocked_ask">پرسیدن از والدین</string>
     <string name="site_category_adult">محتوای بزرگسالان</string>
@@ -29,5 +29,5 @@
     <string name="site_category_bypass">VPN و پروکسی</string>
     <string name="site_category_custom">فهرست شخصی</string>
     <string name="site_not_allowed_title">این سایت مجاز نیست</string>
-    <string name="site_not_allowed_message">نمایهٔ کودک فقط سایت‌هایی را باز می‌کند که والدین مجاز کرده‌اند.</string>
+    <string name="site_not_allowed_message">این نمایه فقط سایت‌هایی را باز می‌کند که بزرگ‌تر اجازه داده است.</string>
 </resources>

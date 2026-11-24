@@ -78,7 +78,9 @@ import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.pageVideosSupport
 import com.phlox.tvwebbrowser.webengine.PageVideo
 import com.phlox.tvwebbrowser.webengine.PageVideoMatch
+import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.profile.ProfilePolicy
+import com.phlox.tvwebbrowser.profile.kidsTitle
 import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
 import com.phlox.tvwebbrowser.activity.main.view.VideosPanelView
 import com.phlox.tvwebbrowser.widgets.NotificationView
@@ -567,7 +569,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
             items += if (policy.kids) {
                 PopupMenuView.Item(R.drawable.ic_lock, activity.getString(R.string.profile_main)) { switchProfile() }
             } else {
-                PopupMenuView.Item(R.drawable.ic_child, activity.getString(R.string.profile_kids)) { switchProfile() }
+                PopupMenuView.Item(R.drawable.ic_child, ProfileLock.get(activity).kidsTitle(activity)) { switchProfile() }
             }
         }
         vb.vPopupMenu.show(vb.vActionBar.moreButton, items, alignEnd = true, endAlignTo = vb.vActionBar.functionsGroup,

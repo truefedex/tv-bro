@@ -20,7 +20,7 @@
   <string name="error_page_generic_title">לא ניתן לפתוח דף זה</string>
   <string name="error_page_generic_message">אירעה שגיאה בעת טעינת הדף</string>
     <string name="site_blocked_title">האתר חסום</string>
-    <string name="site_blocked_message">הוא ברשימת אתרים שפרופיל הילדים לא פותח.</string>
+    <string name="site_blocked_message">הוא ברשימת אתרים שהפרופיל הזה לא פותח.</string>
     <string name="site_blocked_category">קטגוריה</string>
     <string name="site_blocked_ask">לשאול הורה</string>
     <string name="site_category_adult">תוכן למבוגרים</string>
@@ -29,5 +29,5 @@
     <string name="site_category_bypass">VPN ושרתי פרוקסי</string>
     <string name="site_category_custom">רשימה משלי</string>
     <string name="site_not_allowed_title">האתר הזה אינו מורשה</string>
-    <string name="site_not_allowed_message">פרופיל הילדים פותח רק אתרים שהורה התיר.</string>
+    <string name="site_not_allowed_message">הפרופיל הזה פותח רק אתרים שהורה התיר.</string>
 </resources>

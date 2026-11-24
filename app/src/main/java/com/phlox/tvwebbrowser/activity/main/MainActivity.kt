@@ -42,6 +42,8 @@ import com.phlox.tvwebbrowser.send.LegacySync
 import com.phlox.tvwebbrowser.send.SendSettings
 import com.phlox.tvwebbrowser.channels.HomeChannels
 import com.phlox.tvwebbrowser.profile.PinDialog
+import com.phlox.tvwebbrowser.profile.ProfileChooserDialog
+import com.phlox.tvwebbrowser.profile.kidsTitle
 import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.profile.ProfilePolicy
 import com.phlox.tvwebbrowser.utils.ActivityResults
@@ -179,10 +181,14 @@ class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
         //the kids profile is of the TV interface only
         uiMode = UiModeSelector.select(this, config.interfaceMode)
+        var askWhoIsWatching = false
         if (!coldStartHandled) {
             coldStartHandled = true
             //the device was switched off while the main profile was shown, or the system ended the process
-            if (!isSameSession(intent)) profileLock.onMainColdStart()
+            if (!isSameSession(intent)) {
+                profileLock.onMainColdStart()
+                askWhoIsWatching = kidsProfileEnabled && profileLock.askWhoIsWatching
+            }
         }
         val wanted = wantedSpace()
         //an incognito session that the kids profile ended, or one the engine can not keep apart any more
@@ -258,6 +264,19 @@ class MainActivity : AppCompatActivity(), BrowserShell.Host {
         screenBackDispatcher.addCallback(this, voiceSearchHelper.backCallback)
 
         loadState()
+        if (askWhoIsWatching) askWhoIsWatching()
+    }
+
+    /**
+     * The app starts with the choice of the profile: the one shown stays (the main one asks for the PIN while it is
+     * locked, [switchProfile]); the tabs of the profile shown load meanwhile. A link that came with the start opens
+     * in the profile shown before the choice.
+     */
+    private fun askWhoIsWatching() {
+        ProfileChooserDialog.show(this, profileLock.kidsTitle(this)) { main ->
+            if (isFinishing || switchingSpace) return@show
+            if (main != (space != BrowserSpace.KIDS)) switchProfile()
+        }
     }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {

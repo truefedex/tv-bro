@@ -20,7 +20,7 @@
     <string name="error_page_generic_title">Stránku nelze otevřít</string>
     <string name="error_page_generic_message">Při načítání stránky došlo k chybě</string>
     <string name="site_blocked_title">Stránka je blokována</string>
-    <string name="site_blocked_message">Je v seznamu webů, které dětský profil neotevírá.</string>
+    <string name="site_blocked_message">Je v seznamu webů, které tento profil neotevírá.</string>
     <string name="site_blocked_category">Kategorie</string>
     <string name="site_blocked_ask">Zeptat se rodiče</string>
     <string name="site_category_adult">Obsah pro dospělé</string>
@@ -29,5 +29,5 @@
     <string name="site_category_bypass">VPN a proxy</string>
     <string name="site_category_custom">Vlastní seznam</string>
     <string name="site_not_allowed_title">Tento web není povolen</string>
-    <string name="site_not_allowed_message">Dětský profil otevírá jen weby, které povolil rodič.</string>
+    <string name="site_not_allowed_message">Tento profil otevírá jen weby, které povolil rodič.</string>
 </resources>

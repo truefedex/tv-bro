@@ -708,7 +708,8 @@
     <!-- The kids profile and its PIN -->
     <string name="profile_kids">Kids profile</string>
     <string name="profile_main">Main profile</string>
-    <string name="profile_not_available">Not available in the kids profile</string>
+    <string name="who_is_watching">Who is watching?</string>
+    <string name="profile_not_available">Not available in this profile</string>
     <string name="pin_enter">Enter the PIN</string>
     <string name="pin_choose_title">Choose a PIN</string>
     <string name="pin_choose">Four digits. The PIN opens the main profile.</string>
@@ -749,6 +750,10 @@
     </plurals>
     <string name="settings_kids_downloads">Downloads</string>
     <string name="settings_kids_downloads_summary">Files from sites and the apps they install. The kids profile sees only its own downloads; the main profile sees them too</string>
+    <string name="settings_kids_ask_who">Ask who is watching</string>
+    <string name="settings_kids_ask_who_summary">When the app starts, choose the profile. The main one asks for the PIN while it is locked.</string>
+    <string name="settings_kids_name">Profile name</string>
+    <string name="settings_kids_name_summary">What the child sees in place of “Kids profile”, for example their name</string>
     <string name="download_of_kids">Kids profile</string>
     <string name="site_allow_title">Allow %s</string>
     <string name="site_allow_hour">For an hour</string>

@@ -3,6 +3,7 @@ package com.phlox.tvwebbrowser.profile
 import com.phlox.tvwebbrowser.webengine.SiteCategory
 import android.content.Context
 import android.content.SharedPreferences
+import com.phlox.tvwebbrowser.R
 
 /**
  * Which profile the browser is to show, the main one or the kids one, and what keeps the main one locked.
@@ -56,6 +57,22 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
     var kidsDownloads: Boolean
         get() = store.get(KEY_KIDS_DOWNLOADS) != "0"
         set(value) = store.put(mapOf(KEY_KIDS_DOWNLOADS to if (value) null else "0"))
+
+    /**
+     * When the app starts, the browser asks who is watching (the kids profile or the main one, which needs the PIN
+     * while it is locked); on by default
+     */
+    var askWhoIsWatching: Boolean
+        get() = store.get(KEY_ASK_WHO_IS_WATCHING) != "0"
+        set(value) = store.put(mapOf(KEY_ASK_WHO_IS_WATCHING to if (value) null else "0"))
+
+    /**
+     * The name a parent gave the kids profile (the child's name: some children do not like to be in a "kids"
+     * anything); null for the default, `R.string.profile_kids`, which follows the language of the system
+     */
+    var kidsName: String?
+        get() = store.get(KEY_KIDS_NAME)?.takeIf { it.isNotBlank() }
+        set(value) = store.put(mapOf(KEY_KIDS_NAME to value?.trim()?.take(MAX_NAME_LENGTH)?.ifEmpty { null }))
 
     /** Turns the kids profile on with the [newPin], or changes its PIN; the main profile stays unlocked */
     fun enable(newPin: String) {
@@ -120,6 +137,9 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
         private const val KEY_KIDS_SITE_LIST_URL = "kids_site_list_url"
         private const val KEY_KIDS_ALLOWED_ONLY = "kids_allowed_only"
         private const val KEY_MAIN_LEFT_AT = "main_left_at"
+        private const val KEY_ASK_WHO_IS_WATCHING = "ask_who_is_watching"
+        private const val KEY_KIDS_NAME = "kids_name"
+        const val MAX_NAME_LENGTH = 30
 
         @Volatile
         private var instance: ProfileLock? = null
@@ -144,3 +164,6 @@ class ProfileLock(private val store: ProfilePin.Store, private val now: () -> Lo
         }
     }
 }
+
+/** The name of the kids profile where it is shown: the one a parent gave it, else "Kids profile" */
+fun ProfileLock.kidsTitle(context: Context): String = kidsName ?: context.getString(R.string.profile_kids)

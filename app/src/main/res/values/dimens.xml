@@ -450,4 +450,8 @@
     <dimen name="ds_pin_dot_stroke">2dp</dimen>
     <dimen name="ds_pin_key_size">52dp</dimen>
     <dimen name="ds_pin_key_gap">8dp</dimen>
+
+    <!-- Who is watching: the tiles of the profiles -->
+    <dimen name="ds_profile_tile_width">168dp</dimen>
+    <dimen name="ds_profile_tile_icon">48dp</dimen>
 </resources>

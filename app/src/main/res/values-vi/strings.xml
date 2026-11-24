@@ -607,7 +607,8 @@
   <!-- The kids profile and its PIN -->
   <string name="profile_kids">Hồ sơ trẻ em</string>
   <string name="profile_main">Hồ sơ chính</string>
-  <string name="profile_not_available">Không có trong hồ sơ trẻ em</string>
+    <string name="who_is_watching">Ai đang xem?</string>
+  <string name="profile_not_available">Không có trong hồ sơ này</string>
   <string name="pin_enter">Nhập mã PIN</string>
   <string name="pin_choose_title">Chọn mã PIN</string>
   <string name="pin_choose">Bốn chữ số. Mã PIN mở hồ sơ chính.</string>
@@ -647,6 +648,10 @@
   </plurals>
     <string name="settings_kids_downloads">Tải xuống</string>
     <string name="settings_kids_downloads_summary">Tệp từ các trang web và ứng dụng được cài từ chúng. Hồ sơ trẻ em chỉ thấy các tệp tải xuống của mình; hồ sơ chính cũng thấy chúng</string>
+    <string name="settings_kids_ask_who">Hỏi ai đang xem</string>
+    <string name="settings_kids_ask_who_summary">Khi ứng dụng khởi động, chọn hồ sơ. Hồ sơ chính hỏi mã PIN khi đang bị khóa.</string>
+    <string name="settings_kids_name">Tên hồ sơ</string>
+    <string name="settings_kids_name_summary">Điều trẻ thấy thay cho “Hồ sơ trẻ em”, ví dụ tên của trẻ</string>
     <string name="download_of_kids">Hồ sơ trẻ em</string>
     <string name="site_allow_title">Cho phép %s</string>
     <string name="site_allow_hour">Trong một giờ</string>

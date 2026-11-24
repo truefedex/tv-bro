@@ -622,7 +622,8 @@
     <!-- The kids profile and its PIN -->
     <string name="profile_kids">Παιδικό προφίλ</string>
     <string name="profile_main">Κύριο προφίλ</string>
-    <string name="profile_not_available">Δεν είναι διαθέσιμο στο παιδικό προφίλ</string>
+    <string name="who_is_watching">Ποιος βλέπει;</string>
+    <string name="profile_not_available">Δεν είναι διαθέσιμο σε αυτό το προφίλ</string>
     <string name="pin_enter">Εισαγάγετε το PIN</string>
     <string name="pin_choose_title">Επιλέξτε PIN</string>
     <string name="pin_choose">Τέσσερα ψηφία. Το PIN ανοίγει το κύριο προφίλ.</string>
@@ -663,6 +664,10 @@
     </plurals>
     <string name="settings_kids_downloads">Λήψεις</string>
     <string name="settings_kids_downloads_summary">Αρχεία από ιστότοπους και οι εφαρμογές που εγκαθίστανται από αυτά. Το παιδικό προφίλ βλέπει μόνο τις δικές του λήψεις, το κύριο τις βλέπει κι αυτές</string>
+    <string name="settings_kids_ask_who">Ερώτηση για το ποιος βλέπει</string>
+    <string name="settings_kids_ask_who_summary">Όταν ξεκινά η εφαρμογή, επιλέξτε προφίλ. Το κύριο ζητά το PIN όσο είναι κλειδωμένο.</string>
+    <string name="settings_kids_name">Όνομα προφίλ</string>
+    <string name="settings_kids_name_summary">Τι βλέπει το παιδί αντί για «Παιδικό προφίλ», για παράδειγμα το όνομά του</string>
     <string name="download_of_kids">Παιδικό προφίλ</string>
     <string name="site_allow_title">Να επιτρέπεται το %s</string>
     <string name="site_allow_hour">Για μία ώρα</string>

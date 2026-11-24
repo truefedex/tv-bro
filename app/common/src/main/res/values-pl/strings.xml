@@ -20,7 +20,7 @@
   <string name="error_page_generic_title">Nie można otworzyć tej strony</string>
   <string name="error_page_generic_message">Podczas wczytywania tej strony wystąpił błąd</string>
     <string name="site_blocked_title">Ta strona jest zablokowana</string>
-    <string name="site_blocked_message">Jest na liście stron, których profil dziecka nie otwiera.</string>
+    <string name="site_blocked_message">Jest na liście witryn, których ten profil nie otwiera.</string>
     <string name="site_blocked_category">Kategoria</string>
     <string name="site_blocked_ask">Zapytaj rodzica</string>
     <string name="site_category_adult">Treści dla dorosłych</string>
@@ -29,5 +29,5 @@
     <string name="site_category_bypass">VPN i proxy</string>
     <string name="site_category_custom">Własna lista</string>
     <string name="site_not_allowed_title">Ta witryna nie jest dozwolona</string>
-    <string name="site_not_allowed_message">Profil dziecka otwiera tylko witryny, na które zezwolił rodzic.</string>
+    <string name="site_not_allowed_message">Ten profil otwiera tylko witryny, na które zezwolił rodzic.</string>
 </resources>

@@ -20,7 +20,7 @@
     <string name="error_page_generic_title">No se puede abrir esta página</string>
     <string name="error_page_generic_message">Se ha producido un error al cargar esta página</string>
     <string name="site_blocked_title">Este sitio está bloqueado</string>
-    <string name="site_blocked_message">Está en una lista de sitios que el perfil infantil no abre.</string>
+    <string name="site_blocked_message">Está en una lista de sitios que este perfil no abre.</string>
     <string name="site_blocked_category">Categoría</string>
     <string name="site_blocked_ask">Preguntar a un adulto</string>
     <string name="site_category_adult">Contenido para adultos</string>
@@ -29,5 +29,5 @@
     <string name="site_category_bypass">VPN y proxies</string>
     <string name="site_category_custom">Lista propia</string>
     <string name="site_not_allowed_title">Este sitio no está permitido</string>
-    <string name="site_not_allowed_message">El perfil infantil solo abre los sitios que ha permitido un padre o una madre.</string>
+    <string name="site_not_allowed_message">Este perfil solo abre los sitios que un adulto permitió.</string>
 </resources>

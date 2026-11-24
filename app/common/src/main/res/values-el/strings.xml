@@ -20,7 +20,7 @@
     <string name="error_page_generic_title">Δεν είναι δυνατό το άνοιγμα αυτής της σελίδας</string>
     <string name="error_page_generic_message">Παρουσιάστηκε σφάλμα κατά τη φόρτωση αυτής της σελίδας</string>
     <string name="site_blocked_title">Ο ιστότοπος είναι αποκλεισμένος</string>
-    <string name="site_blocked_message">Βρίσκεται σε λίστα ιστοτόπων που το παιδικό προφίλ δεν ανοίγει.</string>
+    <string name="site_blocked_message">Βρίσκεται σε λίστα ιστότοπων που αυτό το προφίλ δεν ανοίγει.</string>
     <string name="site_blocked_category">Κατηγορία</string>
     <string name="site_blocked_ask">Ρώτησε έναν γονιό</string>
     <string name="site_category_adult">Περιεχόμενο για ενήλικες</string>
@@ -29,5 +29,5 @@
     <string name="site_category_bypass">VPN και διακομιστές μεσολάβησης</string>
     <string name="site_category_custom">Δική μου λίστα</string>
     <string name="site_not_allowed_title">Αυτός ο ιστότοπος δεν επιτρέπεται</string>
-    <string name="site_not_allowed_message">Το παιδικό προφίλ ανοίγει μόνο τους ιστότοπους που επέτρεψε ένας γονέας.</string>
+    <string name="site_not_allowed_message">Αυτό το προφίλ ανοίγει μόνο τους ιστότοπους που επέτρεψε ένας γονέας.</string>
 </resources>

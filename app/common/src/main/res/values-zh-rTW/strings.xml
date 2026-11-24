@@ -20,7 +20,7 @@
     <string name="error_page_generic_title">無法開啟這個網頁</string>
     <string name="error_page_generic_message">載入這個網頁時發生錯誤</string>
     <string name="site_blocked_title">此網站已被封鎖</string>
-    <string name="site_blocked_message">它在兒童設定檔不開啟的網站清單中。</string>
+    <string name="site_blocked_message">它在此設定檔不開啟的網站清單中。</string>
     <string name="site_blocked_category">類別</string>
     <string name="site_blocked_ask">詢問家長</string>
     <string name="site_category_adult">成人內容</string>
@@ -29,5 +29,5 @@
     <string name="site_category_bypass">VPN 和 Proxy</string>
     <string name="site_category_custom">自訂清單</string>
     <string name="site_not_allowed_title">此網站未被允許</string>
-    <string name="site_not_allowed_message">兒童設定檔只開啟家長允許的網站。</string>
+    <string name="site_not_allowed_message">此設定檔只開啟家長允許的網站。</string>
 </resources>

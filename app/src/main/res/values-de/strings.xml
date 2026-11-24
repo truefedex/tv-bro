@@ -620,7 +620,8 @@
   <!-- The kids profile and its PIN -->
   <string name="profile_kids">Kinderprofil</string>
   <string name="profile_main">Hauptprofil</string>
-  <string name="profile_not_available">Im Kinderprofil nicht verfügbar</string>
+    <string name="who_is_watching">Wer schaut zu?</string>
+  <string name="profile_not_available">In diesem Profil nicht verfügbar</string>
   <string name="pin_enter">PIN eingeben</string>
   <string name="pin_choose_title">PIN festlegen</string>
   <string name="pin_choose">Vier Ziffern. Die PIN öffnet das Hauptprofil.</string>
@@ -661,6 +662,10 @@
   </plurals>
     <string name="settings_kids_downloads">Downloads</string>
     <string name="settings_kids_downloads_summary">Dateien von Websites und die Apps, die daraus installiert werden. Das Kinderprofil sieht nur seine eigenen Downloads, das Hauptprofil sieht sie auch</string>
+    <string name="settings_kids_ask_who">Fragen, wer zuschaut</string>
+    <string name="settings_kids_ask_who_summary">Beim Start der App das Profil wählen. Das Hauptprofil fragt nach der PIN, solange es gesperrt ist.</string>
+    <string name="settings_kids_name">Profilname</string>
+    <string name="settings_kids_name_summary">Was das Kind statt „Kinderprofil“ sieht, zum Beispiel seinen Namen</string>
     <string name="download_of_kids">Kinderprofil</string>
     <string name="site_allow_title">%s erlauben</string>
     <string name="site_allow_hour">Für eine Stunde</string>
