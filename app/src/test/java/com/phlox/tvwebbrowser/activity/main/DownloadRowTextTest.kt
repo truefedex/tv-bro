@@ -74,4 +74,14 @@ class DownloadRowTextTest {
         assertEquals("cdn.github.com", DownloadRowText.hostOf(item(Download.Status.DONE, referer = "about:blank")))
         assertNull(DownloadRowText.hostOf(item(Download.Status.DONE, referer = null).copy(url = "blob:null/123")))
     }
+
+    /** The main profile lists the downloads of the kids profile with its own: they say so; the kids profile has only its own */
+    @Test
+    fun downloadsOfTheKidsProfileAreMarkedInTheMainOne() {
+        val kids = item(Download.Status.CANCELLED).copy(kids = true)
+        val caption = text.caption(kids, withHost = false, withDay = false, now = now)
+        assertEquals("Kids profile · ${text.caption(item(Download.Status.CANCELLED), false, false, now)}", caption)
+        assertEquals(text.caption(item(Download.Status.CANCELLED), false, false, now),
+            DownloadRowText(RuntimeEnvironment.getApplication(), markKids = false).caption(kids, withHost = false, withDay = false, now = now))
+    }
 }

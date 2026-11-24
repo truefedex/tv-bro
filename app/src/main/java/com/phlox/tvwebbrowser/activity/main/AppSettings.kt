@@ -1,5 +1,8 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import com.phlox.tvwebbrowser.browser.sitefilter.AppSiteFilter
+import com.phlox.tvwebbrowser.browser.sitefilter.SiteFilterService
+import com.phlox.tvwebbrowser.webengine.SiteCategory
 import android.content.Intent
 import android.media.tv.TvContract
 import android.util.Log
@@ -12,6 +15,9 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.BuildConfig
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.profile.KidsProfileData
+import com.phlox.tvwebbrowser.profile.PinDialog
+import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutKeyDialog
 import com.phlox.tvwebbrowser.browser.BrowserController
@@ -49,8 +55,98 @@ import kotlinx.coroutines.withContext
 class AppSettingsStore(
     private val activity: AppCompatActivity,
     private val settingsModel: SettingsModel,
-    private val controller: BrowserController
+    private val controller: BrowserController,
+    kidsProfileAvailable: Boolean = false
 ) : SettingsNavigator.Store {
+    override val kidsProfile: SettingsNavigator.KidsProfile? = if (!kidsProfileAvailable) null else {
+        object : SettingsNavigator.KidsProfile {
+            private val lock = ProfileLock.get(activity)
+            override val enabled: Boolean get() = lock.enabled
+            override var lockDelay: ProfileLock.LockDelay
+                get() = lock.lockDelay
+                set(value) { lock.lockDelay = value }
+            override var downloads: Boolean
+                get() = lock.kidsDownloads
+                set(value) { lock.kidsDownloads = value }
+            override var name: String
+                get() = lock.kidsName ?: ""
+                set(value) { lock.kidsName = value }
+            override var askWhoIsWatching: Boolean
+                get() = lock.askWhoIsWatching
+                set(value) { lock.askWhoIsWatching = value }
+            private val siteFilter get() = TVBro.container.siteFilter
+            override var siteCategories: Set<SiteCategory>
+                get() = lock.kidsSiteCategories
+                set(value) {
+                    lock.kidsSiteCategories = value
+                    siteFilter.onWantedChanged()
+                }
+            override var siteListUrl: String
+                get() = lock.kidsSiteListUrl
+                set(value) {
+                    lock.kidsSiteListUrl = value
+                    siteFilter.onWantedChanged()
+                }
+            override val siteLists: SiteFilterService.Status get() = siteFilter.status.value
+            override val siteListsChanges: Flow<SiteFilterService.Status> get() = siteFilter.status
+            override suspend fun updateSiteLists(): Boolean = siteFilter.update(force = true)
+            override suspend fun allowedSites(): Map<String, Long> {
+                //never creates the database of a profile that was not used
+                if (!lock.enabled || !withContext(Dispatchers.IO) { KidsProfileData.exists(activity) }) return emptyMap()
+                val hosts = TVBro.container.kidsData.hostConfigs
+                hosts.loadSiteSettings()
+                return hosts.allowedSites(System.currentTimeMillis())
+            }
+            override var allowedOnly: Boolean
+                get() = lock.kidsAllowedOnly
+                set(value) {
+                    lock.kidsAllowedOnly = value
+                    siteFilter.onWantedChanged()
+                }
+            override suspend fun addAllowedSite(text: String): String? {
+                if (!lock.enabled) return null
+                val host = AppSiteFilter.hostOfInput(text) ?: return null
+                val (site, hosts) = withContext(Dispatchers.IO) {
+                    //an explicit change: the database of the kids profile is created if it was not used yet
+                    TVBro.container.publicSuffixList.registrableDomain(host) to TVBro.container.kidsData.hostConfigs
+                }
+                hosts.loadSiteSettings()
+                hosts.setSiteAllowed(site, System.currentTimeMillis(), Long.MAX_VALUE)
+                return site
+            }
+            override suspend fun removeAllowedSite(site: String) =
+                TVBro.container.kidsData.hostConfigs.setSiteAllowed(site, null, null)
+            override fun enable(pin: String) {
+                val wasEnabled = lock.enabled
+                lock.enable(pin)
+                if (!wasEnabled) {
+                    syncChannels()
+                    //the lists of sites are downloaded now
+                    TVBro.container.siteFilter.onWantedChanged()
+                }
+            }
+
+            override fun disable() {
+                lock.disable()
+                syncChannels()
+                TVBro.container.siteFilter.onWantedChanged()
+            }
+
+            override val hasData: Boolean get() = KidsProfileData.exists(activity)
+
+            override suspend fun deleteData() = KidsProfileData.delete(activity)
+
+            /** The channels of the home screen are off while the kids profile is on ([HomeChannels.kidsProfileOn]) */
+            private fun syncChannels() {
+                val context = activity.applicationContext
+                TVBro.container.appScope.launch {
+                    TVBro.container.tabWrites.awaitPending()
+                    HomeChannels.sync(context)
+                }
+            }
+        }
+    }
+
     companion object {
         private const val TAG = "AppSettingsStore"
         private const val BROWSABLE_CHECK_DELAY = 1000L
@@ -365,8 +461,12 @@ class SettingsShellCallback(
     private val activity get() = host.activity
 
     override val store: SettingsNavigator.Store by lazy {
-        AppSettingsStore(activity, host.settingsModel, host.controller)
+        AppSettingsStore(activity, host.settingsModel, host.controller, host.kidsProfileAvailable)
     }
+
+    override fun choosePin(onChosen: (String?) -> Unit) = PinDialog.choose(activity, onChosen)
+
+    override fun openKidsProfile() = host.switchProfile()
 
     override fun showMessage(@DrawableRes icon: Int, message: String) = showMessage.invoke(icon, message)
 

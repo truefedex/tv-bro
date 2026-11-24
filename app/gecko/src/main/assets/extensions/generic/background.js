@@ -6,7 +6,8 @@ const RESOLVE_TIMEOUT_MS = 1500;
 // The requests waiting for the app, by id: { resolve, started, timer }
 const pending = new Map();
 const tvBroPort = browser.runtime.connectNative("tvbro_bg");
-// Main frames are sent to the app only when its filters may block pages ("config" message)
+// Main frames are sent to the app only when its filters may block pages: ad filters of pages, or the site filter of
+// the kids profile ("config" message, sent again when another profile is shown)
 let checkPages = false;
 
 // The answer times of the app, logged every STATS_EVERY answers (shown with the engine debugging on)

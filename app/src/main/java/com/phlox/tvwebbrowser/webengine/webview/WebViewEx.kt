@@ -49,10 +49,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
 import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.Config
+import com.phlox.tvwebbrowser.webengine.SiteBlockPage
+import com.phlox.tvwebbrowser.webengine.SiteBlock
+import com.phlox.tvwebbrowser.webengine.EngineSiteFilter
 import com.phlox.tvwebbrowser.webengine.MediaCommand
 import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -72,7 +76,9 @@ import java.util.UUID
  * Copyright (c) 2016 Fedir Tsapana.
  */
 @SuppressLint("SetJavaScriptEnabled", "ViewConstructor")
-open class WebViewEx(context: Context, val callback: Callback, val jsInterface: AndroidJSInterface) : WebView(context) {
+/** [profile]: the profile of WebView where its pages keep their data ([WebViewProfiles]), null for the default one */
+open class WebViewEx(context: Context, val callback: Callback, val jsInterface: AndroidJSInterface,
+                     val profile: String? = null) : WebView(context) {
     companion object {
         val TAG = WebViewEx::class.java.simpleName
         const val WEB_VIEW_TAG = "TV Bro WebView"
@@ -82,6 +88,9 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         val WIDEVINE_UUID = UUID(-0x121074568629b532L,-0x5c37d8232ae2de13L)
     }
 
+    //the first of all: WebView takes the profile only before anything else is done with the view
+    @Suppress("unused")
+    private val profileSet = profile?.let { WebViewCompat.setProfile(this, it) }
     private var virtualCursorMode: Boolean = true
     private var genericInjects: String? = null
     private var webChromeClient_: WebChromeClient
@@ -115,7 +124,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     private val config = AppContext.provideConfig()
     private val siteViewUserAgent = SiteViewUserAgent(this)
     private val pageZoom = WebViewPageZoom(this)
-    private val mediaControls = WebViewMediaControls(this, { callback.onMediaStateChanged(it) },
+    private val mediaControls = WebViewMediaControls(this, WebViewProfiles.cookieManager(profile), { callback.onMediaStateChanged(it) },
         { callback.onPageVideosChanged(it) }, { callback.onMediaVideoChanged(it) })
     private val elementHiding = WebViewElementHiding(this) { requestPageUrl ?: currentOriginalUrl }
 
@@ -174,6 +183,7 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
         fun onPageCertificateError(url: String?)
         fun isDialogsBlockingEnabled(): Boolean
         fun onBlockedAd(url: Uri)
+        fun onAskToAllowSite(url: String)
         fun onBlockedDialog(newTab: Boolean)
         fun onPopupPageBlocked()
         fun onCreateWindow(dialog: Boolean, userGesture: Boolean): WebViewEx?
@@ -394,6 +404,18 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 Log.d(TAG, "shouldOverrideUrlLoading url: ${request.url}")
                 val url = request.url.toString()
+                //Ask a parent of the block page of the site filter
+                EngineSiteFilter.askedUrl(request.url)?.let { asked ->
+                    callback.onAskToAllowSite(asked)
+                    return true
+                }
+                //a page the site filter blocks shows the block page (shouldInterceptRequest gives it), also after
+                //a redirect, which shouldInterceptRequest does not see
+                if (request.isForMainFrame && request.isRedirect &&
+                    WebEngineFactory.siteFilter?.check(request.url, true, null) != null) {
+                    uiHandler.post { loadUrl(url) }
+                    return true
+                }
                 if (callback.shouldOverrideUrlLoading(url)) return true
                 //the app's own loads do not come here: this is the page (a script, a link, a redirect). The page
                 //is the one that started: view.url is already the address of this navigation
@@ -441,6 +463,20 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
                             Log.w(TAG, "shouldInterceptRequest url: ${request.url} -> not found in assets")
                         }
                         return response ?: super.shouldInterceptRequest(view, request)
+                    }
+                }
+
+                //the site filter first: a page it blocks shows the block page at its address, a request of a
+                //page fails (every tab asks, also one in the background)
+                val siteFilter = WebEngineFactory.siteFilter
+                if (siteFilter != null && siteFilter.active) {
+                    val forMainFrame = request.isForMainFrame
+                    val page = if (forMainFrame) null else requestPageUrl ?: currentPageUrl
+                    val block = siteFilter.check(request.url, forMainFrame, page)
+                    if (block != null) {
+                        if (!forMainFrame) return blockedResponse()
+                        requestPageUrl = request.url
+                        return blockPageResponse(view.context, request.url.toString(), block)
                     }
                 }
 
@@ -643,6 +679,14 @@ open class WebViewEx(context: Context, val callback: Callback, val jsInterface: 
     }
 
     /** The answer to a blocked request: empty, 403 */
+    /** The block page of the site filter, at the address of the page it blocks (history and Back work as for a page) */
+    private fun blockPageResponse(context: Context, url: String, block: SiteBlock): WebResourceResponse {
+        val html = SiteBlockPage.create(context, url, block)
+        return WebResourceResponse("text/html", "utf-8", html.byteInputStream()).apply {
+            responseHeaders = mapOf("Cache-Control" to "no-store")
+        }
+    }
+
     private fun blockedResponse(): WebResourceResponse {
         val response = WebResourceResponse("text/plain", "utf-8", "".byteInputStream())
         response.setStatusCodeAndReasonPhrase(403, "Blocked")

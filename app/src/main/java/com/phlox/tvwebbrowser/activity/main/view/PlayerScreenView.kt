@@ -19,6 +19,7 @@ import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.profile.ProfilePolicy
 import com.phlox.tvwebbrowser.browser.StreamDownloads
 import com.phlox.tvwebbrowser.activity.main.PageVideoRowText
 import com.phlox.tvwebbrowser.activity.main.VideoModeController
@@ -60,6 +61,11 @@ import kotlinx.coroutines.launch
 class PlayerScreenView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
 ) : FrameLayout(context, attrs) {
+    /** What the profile of this process refuses (other apps, downloads, the window over them) is not offered */
+    private val policy = ProfilePolicy.current
+    private val pictureInPictureAvailable: Boolean
+        get() = policy.pictureInPicture && PictureInPictureSupport.isAvailable(context)
+
     interface Callback {
         /** The cookies of the engine for the address */
         fun cookies(url: String): String?
@@ -295,7 +301,7 @@ class PlayerScreenView @JvmOverloads constructor(
      * happens before the window starts, since the activity pauses then, which pauses the player of the screen.
      */
     fun enterPictureInPicture() {
-        if (!isOpen || player.state.value == null || !PictureInPictureSupport.isAvailable(context)) return
+        if (!isOpen || player.state.value == null || !pictureInPictureAvailable) return
         val playing = player
         vb.vPanel.close()
         stateJob?.cancel()
@@ -432,7 +438,7 @@ class PlayerScreenView @JvmOverloads constructor(
             return true
         }
         //the PiP key of remotes; the system keeps it to itself while a picture-in-picture window is shown
-        if (event.keyCode == KeyEvent.KEYCODE_WINDOW && PictureInPictureSupport.isAvailable(context)) {
+        if (event.keyCode == KeyEvent.KEYCODE_WINDOW && pictureInPictureAvailable) {
             if (event.action == KeyEvent.ACTION_UP) enterPictureInPicture()
             return true
         }
@@ -491,7 +497,7 @@ class PlayerScreenView @JvmOverloads constructor(
             choice(R.drawable.ic_repeat, context.getString(R.string.player_repeat), labels[if (looping) 1 else 0],
                 listOf(labels[0] to !looping, labels[1] to looping)) { player.looping = it == 1 }
         }
-        if (PictureInPictureSupport.isAvailable(context)) {
+        if (pictureInPictureAvailable) {
             rows += PlayerPanelView.Row(R.drawable.ic_picture_in_picture, context.getString(R.string.player_picture_in_picture)) {
                 enterPictureInPicture()
             }
@@ -505,13 +511,15 @@ class PlayerScreenView @JvmOverloads constructor(
             rows += PlayerPanelView.Row(R.drawable.ic_globe, context.getString(R.string.player_for_site), value = value,
                 chevron = true, dividerBefore = true) { vb.vPanel.push(sitePlayerPage(site, index)) }
         }
-        rows += PlayerPanelView.Row(R.drawable.ic_open_in_new, context.getString(R.string.player_open_in_other_app),
-            dividerBefore = site == null) {
-            if (callback.openInOtherApp(state.video)) close(Exit.ELSEWHERE)
+        if (policy.externalApps) {
+            rows += PlayerPanelView.Row(R.drawable.ic_open_in_new, context.getString(R.string.player_open_in_other_app),
+                dividerBefore = site == null) {
+                if (callback.openInOtherApp(state.video)) close(Exit.ELSEWHERE)
+            }
         }
         //the player plays on while the file downloads; a live or protected stream has nothing to save
-        if (state.video.kind == PageVideo.Kind.FILE ||
-            (StreamDownloads.isDownloadable(state.video) && !state.media.live && !state.media.drm)) {
+        if (policy.downloads && (state.video.kind == PageVideo.Kind.FILE ||
+            (StreamDownloads.isDownloadable(state.video) && !state.media.live && !state.media.drm))) {
             rows += PlayerPanelView.Row(R.drawable.ic_downloads, context.getString(R.string.download)) {
                 callback.download(state.video)
             }

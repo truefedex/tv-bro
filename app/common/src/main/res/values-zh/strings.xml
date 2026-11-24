@@ -19,4 +19,15 @@
   <string name="error_page_network_message">请检查网络连接，然后重试</string>
   <string name="error_page_generic_title">无法打开此网页</string>
   <string name="error_page_generic_message">加载此网页时出错</string>
+    <string name="site_blocked_title">此网站已被拦截</string>
+    <string name="site_blocked_message">它在此资料不打开的网站列表中。</string>
+    <string name="site_blocked_category">类别</string>
+    <string name="site_blocked_ask">询问家长</string>
+    <string name="site_category_adult">成人内容</string>
+    <string name="site_category_gambling">赌博</string>
+    <string name="site_category_threats">诈骗和恶意软件</string>
+    <string name="site_category_bypass">VPN 和代理</string>
+    <string name="site_category_custom">自定义列表</string>
+    <string name="site_not_allowed_title">此网站未被允许</string>
+    <string name="site_not_allowed_message">此资料只打开家长允许的网站。</string>
 </resources>

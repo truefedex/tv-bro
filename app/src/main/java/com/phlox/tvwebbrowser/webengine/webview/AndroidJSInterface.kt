@@ -30,7 +30,10 @@ class AndroidJSInterface(private val webEngine: WebViewWebEngine) {
     fun setSearchEngine(engine: String, customSearchEngineURL: String) {
         onHomePage {
             val cfg = AppContext.provideConfig()
-            cfg.setSearchEngine(Config.searchEngineUrlOfHomePage(engine, customSearchEngineURL))
+            //a setting of the app: the kids profile changes none, and the page shows the engine again
+            if (!AppContext.kidsProfile) {
+                cfg.setSearchEngine(Config.searchEngineUrlOfHomePage(engine, customSearchEngineURL))
+            }
             //the page searches with the address it keeps: the one of the app has the partner ID of Qwant
             val name = JSONObject.quote(cfg.guessSearchEngineName())
             val url = JSONObject.quote(cfg.searchEngineURL.value)

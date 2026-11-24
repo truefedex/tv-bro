@@ -15,6 +15,7 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.SiteBlock
 import com.phlox.tvwebbrowser.webengine.SiteView
 import com.phlox.tvwebbrowser.webengine.WebEngine
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -85,6 +86,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     MediaPlaybackSupport, PageVideosSupport, FindInPageSupport, CursorDrawerDelegate.Callback {
     companion object {
         const val ENGINE_NAME = "GeckoView"
+        /** The session context (a container) of the pages of the kids profile; never change it: it names their data */
+        private const val KIDS_CONTEXT_ID = "kids"
         /** Changes with the files of the extension: it is installed again then */
         private const val APP_WEB_EXTENSION_VERSION = BuildConfig.WEB_EXTENSION_HASH
         /** The home page is a page of the extension: its files are copied there at build time */
@@ -92,6 +95,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         private val LOCAL_HOME_PAGE_REGEX = Regex("^moz-extension://[^/]+/home/index\\.html([?#].*)?$")
         val TAG: String = GeckoWebEngine::class.java.simpleName
         lateinit var runtime: GeckoRuntime
+        private val isRuntimeInitialized: Boolean get() = this::runtime.isInitialized
         var appWebExtension = ObservableValue<WebExtension?>(null)
         var weakRefToSingleGeckoView: WeakReference<GeckoViewWithVirtualCursor?> = WeakReference(null)
         val uiHandler = Handler(Looper.getMainLooper())
@@ -195,7 +199,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         fun isLocalHomePage(url: String): Boolean = LOCAL_HOME_PAGE_REGEX.matches(url)
 
         /** The url as the app knows it: the local home page is [Config.HOME_PAGE_URL] */
-        fun toAppUrl(url: String): String = if (isLocalHomePage(url)) Config.HOME_PAGE_URL else url
+        fun toAppUrl(url: String): String =
+            if (isLocalHomePage(url)) Config.HOME_PAGE_URL else GeckoSiteBlocks.blockedUrlOf(url) ?: url
 
         fun onThemeSettingUpdated(theme: Config.Theme) {
             runtime.settings.preferredColorScheme = theme.toGeckoPreferredColorScheme()
@@ -205,6 +210,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             WebEngineFactory.registerProvider(WebEngineProvider(ENGINE_NAME, object : WebEngineProviderCallback {
                 override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
                     GeckoWebEngine.initialize(context, webViewContainer)
+                    //a browser activity of another profile: the site filter may block pages now, or no more
+                    AppWebExtensionBackgroundPortDelegate.current?.sendConfig()
                     //before the sessions of the tabs load a page
                     AppProxy.settings?.let { GeckoProxyPrefs.apply(it) }
                 }
@@ -234,6 +241,16 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                 }
 
                 override fun supportsSiteDataClearing(): Boolean = true
+
+                override fun supportsKidsProfile(): Boolean = true
+
+                //private sessions; their data go when the last of them is closed
+                override fun supportsIncognito(): Boolean = true
+
+                //the settings, where it is asked, show only after the runtime started
+                override suspend fun deleteKidsData(context: Context) {
+                    if (isRuntimeInitialized) runtime.storageController.clearDataForSessionContext(KIDS_CONTEXT_ID)
+                }
 
                 override suspend fun clearSiteData(context: Context, host: String, kinds: Set<SiteDataKind>) {
                     //not the permissions (SITE_DATA has them) and not the history
@@ -500,11 +517,14 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     init {
         Log.d(TAG, "init")
         session = GeckoSession(GeckoSessionSettings.Builder()
-            .usePrivateMode(AppContext.provideConfig().incognitoMode)
+            //Gecko deletes the data of private sessions when the last of them is closed
+            .usePrivateMode(tab.incognito)
             //the browser core gives the view of the page's host before it loads
             .viewportMode(GeckoSessionSettings.VIEWPORT_MODE_MOBILE)
             .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
             .useTrackingProtection(AppContext.provideConfig().trackingProtection)
+            //a container of its own: the cookies, the storage and the cache of the kids profile
+            .apply { if (AppContext.kidsProfile) contextId(KIDS_CONTEXT_ID) }
             .build()
         )
         session.navigationDelegate = navigationDelegate
@@ -628,6 +648,13 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         }
         extensionWaiter = waiter
         appWebExtension.subscribe(waiter, notifyOnSubscribe = false)
+    }
+
+    /** Shows the block page of the site filter in place of the page of [url] ([replace]: of a redirect) */
+    fun showSiteBlockPage(url: String, block: SiteBlock, replace: Boolean) {
+        val loader = GeckoSession.Loader().uri(GeckoSiteBlocks.pageUrl(AppContext.get(), url, block))
+        if (replace) loader.flags(GeckoSession.LOAD_FLAGS_REPLACE_HISTORY)
+        session.load(loader)
     }
 
     /**

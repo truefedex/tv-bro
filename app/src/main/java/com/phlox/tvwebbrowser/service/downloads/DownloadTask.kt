@@ -67,7 +67,7 @@ abstract class DownloadTask(val download: Download, private val listener: Listen
         if (stopRequest == Stop.NONE) stopRequest = reason
     }
 
-    protected val repository get() = TVBro.container.data.downloads
+    protected val repository get() = TVBro.container.mainData.downloads
 
     /** Opens the input, filling what the response tells about the file (its size, name, type) */
     protected abstract fun openInput(): InputStream

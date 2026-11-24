@@ -54,7 +54,7 @@ class AppEngineAdBlockerTest {
             service.initialize()
             service.update(force = false)
         }
-        blocker = AppEngineAdBlocker(service, TVBro.container.data.hostConfigs, config)
+        blocker = AppEngineAdBlocker(service, { TVBro.container.data.hostConfigs }, config)
         config.adBlockEnabled = true
     }
 

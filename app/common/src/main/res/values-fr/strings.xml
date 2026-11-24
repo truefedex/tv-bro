@@ -19,4 +19,15 @@
     <string name="error_page_network_message">Vérifiez la connexion réseau et réessayez</string>
     <string name="error_page_generic_title">Impossible d’ouvrir cette page</string>
     <string name="error_page_generic_message">Une erreur s’est produite lors du chargement de cette page</string>
+    <string name="site_blocked_title">Ce site est bloqué</string>
+    <string name="site_blocked_message">Il figure dans une liste de sites que ce profil n\'ouvre pas.</string>
+    <string name="site_blocked_category">Catégorie</string>
+    <string name="site_blocked_ask">Demander à un parent</string>
+    <string name="site_category_adult">Contenu pour adultes</string>
+    <string name="site_category_gambling">Jeux d\'argent</string>
+    <string name="site_category_threats">Arnaques et logiciels malveillants</string>
+    <string name="site_category_bypass">VPN et proxys</string>
+    <string name="site_category_custom">Liste personnelle</string>
+    <string name="site_not_allowed_title">Ce site n\'est pas autorisé</string>
+    <string name="site_not_allowed_message">Ce profil n\'ouvre que les sites autorisés par un parent.</string>
 </resources>

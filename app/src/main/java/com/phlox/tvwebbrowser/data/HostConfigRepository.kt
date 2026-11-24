@@ -27,6 +27,8 @@ class HostConfigRepository(private val dao: HostsDao) {
     private val builtInPlayerSettings = ConcurrentHashMap<String, Boolean>()
     /** The page zoom: the scripts of pages ask for it on the threads of the engines when a page starts */
     private val pageZoomSettings = ConcurrentHashMap<String, Int>()
+    /** The sites the site filter lets in, by their registrable domain: [allowed at, allowed until] */
+    private val allowedSites = ConcurrentHashMap<String, LongArray>()
     @Volatile
     private var siteSettingsLoaded = false
 
@@ -61,6 +63,7 @@ class HostConfigRepository(private val dao: HostsDao) {
         }
         dao.builtInPlayerSettings().forEach { builtInPlayerSettings.putIfAbsent(it.hostName, it.builtInPlayer) }
         dao.pageZoomSettings().forEach { pageZoomSettings.putIfAbsent(it.hostName, it.pageZoom) }
+        dao.allowedSites().forEach { allowedSites.putIfAbsent(it.hostName, longArrayOf(it.allowedAt, it.allowedUntil)) }
         siteSettingsLoaded = true
     }
 
@@ -126,6 +129,29 @@ class HostConfigRepository(private val dao: HostsDao) {
         if (pageZoom == null) pageZoomSettings.remove(host) else pageZoomSettings[host] = pageZoom
         dao.setPageZoom(host, pageZoom)
         reload(host)
+    }
+
+    /**
+     * Whether the site filter lets the [site] (a registrable domain) in at [now]: a parent allowed it before and until
+     * after then. A clock turned back before the time it was allowed ends it. Can be called from any thread.
+     */
+    fun isSiteAllowed(site: String, now: Long): Boolean {
+        val allowed = allowedSites[site] ?: return false
+        return now >= allowed[0] && now < allowed[1]
+    }
+
+    /** The sites the site filter lets in at [now], with when that ends (`Long.MAX_VALUE`: for good) */
+    fun allowedSites(now: Long): Map<String, Long> =
+        allowedSites.filter { (_, allowed) -> now >= allowed[0] && now < allowed[1] }.mapValues { it.value[1] }
+
+    /**
+     * Lets the [site] in from [at] until [until] (`Long.MAX_VALUE`: for good), or no more with nulls. [isSiteAllowed]
+     * gives the new value right away, before the write is done.
+     */
+    suspend fun setSiteAllowed(site: String, at: Long?, until: Long?) {
+        if (at == null || until == null) allowedSites.remove(site) else allowedSites[site] = longArrayOf(at, until)
+        dao.setAllowed(site, at, until)
+        reload(site)
     }
 
     private suspend fun reload(host: String): HostConfig? {

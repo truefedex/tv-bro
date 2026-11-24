@@ -161,9 +161,11 @@ to each button never changes.
         android:nextFocusDown="@+id/vTabs"
         android:contentDescription="@string/bookmarks" />
 
-    <View style="@style/Widget.TVBro.ToolbarSeparator" />
+    <View style="@style/Widget.TVBro.ToolbarSeparator"
+        android:id="@+id/vDownloadsSeparator" />
 
     <FrameLayout
+        android:id="@+id/flDownloads"
         android:layout_width="@dimen/ds_size_toolbar_segment"
         android:layout_height="match_parent">
 
@@ -197,7 +199,8 @@ to each button never changes.
           tools:visibility="visible" />
     </FrameLayout>
 
-    <View style="@style/Widget.TVBro.ToolbarSeparator" />
+    <View style="@style/Widget.TVBro.ToolbarSeparator"
+        android:id="@+id/vIncognitoSeparator" />
 
     <!-- selected (activated) in the incognito mode -->
     <ImageButton

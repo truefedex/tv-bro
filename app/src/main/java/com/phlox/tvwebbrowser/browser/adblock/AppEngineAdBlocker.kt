@@ -11,11 +11,11 @@ import com.phlox.tvwebbrowser.webengine.PageHidingStyles
 /**
  * What the engines ask ([com.phlox.tvwebbrowser.webengine.WebEngineFactory.adBlocker]): the engine of the
  * [service], unless ads are shown on the site of the tab (its own setting, else the global one).
- * The repository is given once: getting it from the container takes a lock, and this runs for every request.
+ * [hostConfigs] gives the site settings of the profile shown (asked for every request: it takes no lock).
  */
 class AppEngineAdBlocker(
     private val service: AdBlockService,
-    private val hostConfigs: HostConfigRepository,
+    private val hostConfigs: () -> HostConfigRepository,
     private val config: Config,
 ) : EngineAdBlocker {
 
@@ -84,6 +84,6 @@ class AppEngineAdBlocker(
         val pageString = page?.toString()
         if (pageString != null && pageString.startsWith(Config.HOME_PAGE_URL)) return false
         val host = page?.host?.takeIf { it.isNotEmpty() } ?: return config.adBlockEnabled
-        return hostConfigs.adBlockSetting(host) ?: config.adBlockEnabled
+        return hostConfigs().adBlockSetting(host) ?: config.adBlockEnabled
     }
 }

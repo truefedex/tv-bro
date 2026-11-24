@@ -19,4 +19,15 @@
   <string name="error_page_network_message">Hãy kiểm tra kết nối mạng và thử lại</string>
   <string name="error_page_generic_title">Không thể mở trang này</string>
   <string name="error_page_generic_message">Đã xảy ra lỗi khi tải trang này</string>
+    <string name="site_blocked_title">Trang web này bị chặn</string>
+    <string name="site_blocked_message">Trang này nằm trong danh sách các trang mà hồ sơ này không mở.</string>
+    <string name="site_blocked_category">Danh mục</string>
+    <string name="site_blocked_ask">Hỏi bố mẹ</string>
+    <string name="site_category_adult">Nội dung người lớn</string>
+    <string name="site_category_gambling">Cờ bạc</string>
+    <string name="site_category_threats">Lừa đảo và phần mềm độc hại</string>
+    <string name="site_category_bypass">VPN và proxy</string>
+    <string name="site_category_custom">Danh sách riêng</string>
+    <string name="site_not_allowed_title">Trang web này không được phép</string>
+    <string name="site_not_allowed_message">Hồ sơ này chỉ mở các trang web mà người lớn đã cho phép.</string>
 </resources>

@@ -17,7 +17,7 @@ import com.phlox.tvwebbrowser.model.util.Converters
     HistoryItem::class, TabEntity::class,
     HostConfig::class
                      ],
-    version = 30, exportSchema = true)
+    version = 32, exportSchema = true)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
@@ -284,6 +284,21 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_30_31 = object : Migration(30, 31) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                //the downloads of the kids profile
+                db.execSQL("ALTER TABLE `downloads` ADD `kids` INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_31_32 = object : Migration(31, 32) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                //the sites a parent lets in through the site filter of the kids profile
+                db.execSQL("ALTER TABLE `hosts` ADD `allowed_at` INTEGER")
+                db.execSQL("ALTER TABLE `hosts` ADD `allowed_until` INTEGER")
+            }
+        }
+
         private fun createHostsTable(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS `hosts` (`host_name` TEXT NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `popup_block_level` INTEGER)")
             db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `hosts_name_idx` ON `hosts` (`host_name`)")
@@ -322,6 +337,8 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         const val DATABASE_NAME = "main.db"
+        /** The database of the kids profile (see `AppContainer`) */
+        const val KIDS_DATABASE_NAME = "kids.db"
 
         internal val MIGRATIONS = arrayOf(
             MIGRATION_1_2, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_8, MIGRATION_8_9,
@@ -329,17 +346,13 @@ abstract class AppDatabase : RoomDatabase() {
             MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19,
             MIGRATION_19_20, MIGRATION_20_21, MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24,
             MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29,
-            MIGRATION_29_30
+            MIGRATION_29_30, MIGRATION_30_31, MIGRATION_31_32
         )
 
-        /**
-         * Queries on the main thread are not allowed: the repositories suspend. The download service
-         * writes the database from its own process, so the other processes are told about changes.
-         */
-        fun create(context: Context): AppDatabase =
-            Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, DATABASE_NAME)
+        /** Queries on the main thread are not allowed: the repositories suspend */
+        fun create(context: Context, name: String = DATABASE_NAME): AppDatabase =
+            Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, name)
                 .addMigrations(*MIGRATIONS)
-                .enableMultiInstanceInvalidation()
                 .build()
 
         @Volatile

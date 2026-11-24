@@ -32,7 +32,8 @@ import org.json.JSONObject
  * can not send commands to the players of other frames. WebViews without these features get the script in the
  * main frame only, after the page loads, and report no state.
  */
-internal class WebViewMediaControls(private val webView: WebView, private val onStateChanged: (MediaState?) -> Unit,
+internal class WebViewMediaControls(private val webView: WebView, private val cookies: CookieManager,
+                                    private val onStateChanged: (MediaState?) -> Unit,
                                     private val onVideosChanged: (List<PageVideo>) -> Unit,
                                     private val onMediaVideoChanged: (PageVideoMatch) -> Unit) {
     private val frames = MediaFrames<JavaScriptReplyProxy>()
@@ -41,7 +42,7 @@ internal class WebViewMediaControls(private val webView: WebView, private val on
     private var mediaVideo = PageVideoMatch.NONE
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     /** The playlists of streams the addresses leave unclear */
-    private val playlists: HlsPlaylists = HlsPlaylists(scope, { HlsPlaylists.download(it, CookieManager.getInstance().getCookie(it.url)) }) {
+    private val playlists: HlsPlaylists = HlsPlaylists(scope, { HlsPlaylists.download(it, cookies.getCookie(it.url)) }) {
         onVideosChanged(videos.videos())
         updateMediaVideo()
     }

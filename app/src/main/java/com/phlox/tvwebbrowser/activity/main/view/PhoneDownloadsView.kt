@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
+import com.phlox.tvwebbrowser.profile.ProfilePolicy
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -63,6 +64,8 @@ class PhoneDownloadsView @JvmOverloads constructor(
         vb.rvItems.adapter = adapter
         vb.ibBack.setOnClickListener { hide() }
         vb.ibFolder.setOnClickListener { navigator.openFolder() }
+        //the folder holds the files of the main profile too
+        vb.ibFolder.isVisible = ProfilePolicy.current.deviceFiles
         vb.ibMenu.setOnClickListener {
             sheet.show(null, null, listOf(PopupMenuView.Item(R.drawable.ic_clear_all, context.getString(R.string.clear_all)) {
                 navigator.clearAll()
@@ -85,7 +88,7 @@ class PhoneDownloadsView @JvmOverloads constructor(
                     callback.confirmClearAll(request, onConfirm)
 
                 override fun showAll(focusId: Long?) = show(focusId)
-            }, DownloadsNavigator.Look.PHONE)
+            }, DownloadsNavigator.Look.PHONE, ProfilePolicy.current.deviceFiles)
     }
 
     fun setInsets(left: Int, top: Int, right: Int, bottom: Int) {

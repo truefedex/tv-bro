@@ -76,4 +76,6 @@ sealed interface BrowserUiEvent {
     data object NoAppToOpenUrl : BrowserUiEvent
     /** The built-in home page in [tab] has loaded; its search bar is at [x], [y] (pixels of the engine view) */
     data class HomePageSearchBarLocated(val tab: BrowserTab, val x: Int, val y: Int) : BrowserUiEvent
+    /** The block page of the site filter in [tab] asks a parent to let the site of [url] in */
+    data class AskToAllowSite(val tab: BrowserTab, val url: String) : BrowserUiEvent
 }

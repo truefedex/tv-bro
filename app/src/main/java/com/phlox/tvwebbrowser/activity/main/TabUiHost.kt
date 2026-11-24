@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.profile.ProfilePolicy
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.dialogs.favorites.FavoriteEditorDialog
 import com.phlox.tvwebbrowser.browser.BrowserController
@@ -95,8 +96,16 @@ class TabUiHost(
 
     override fun getActivity(): Activity = activity
 
+    /** Tells the user that the kids profile does not do it; @return true when it is refused */
+    private fun refusedByProfile(allowed: Boolean): Boolean {
+        if (allowed) return false
+        Utils.showToast(activity, R.string.profile_not_available)
+        return true
+    }
+
     override fun onDownloadRequested(request: DownloadRequest) {
         Log.i(TAG, "onDownloadRequested url: ${request.url}")
+        if (refusedByProfile(ProfilePolicy.current.downloads)) return
         downloadLauncher.download(request)
     }
 
@@ -105,6 +114,8 @@ class TabUiHost(
     }
 
     override fun pickFile(intent: Intent, onResult: (resultCode: Int, data: Intent?) -> Unit): Boolean {
+        //the files of the device are not of the kids profile
+        if (refusedByProfile(ProfilePolicy.current.externalApps)) return false
         val contract = ActivityResultContracts.StartActivityForResult()
         val callback = { result: ActivityResult -> onResult(result.resultCode, result.data) }
         try {
@@ -125,6 +136,7 @@ class TabUiHost(
     override fun onCopyTextToClipboardRequested(url: String) = copyToClipboard(activity, url)
 
     override fun onShareUrlRequested(url: String) {
+        if (refusedByProfile(ProfilePolicy.current.externalApps)) return
         val share = Intent(Intent.ACTION_SEND)
         share.type = "text/plain"
         share.putExtra(Intent.EXTRA_SUBJECT, R.string.share_url)
@@ -137,7 +149,10 @@ class TabUiHost(
         }
     }
 
-    override fun onOpenInExternalAppRequested(url: String) = openInExternalApp(activity, url)
+    override fun onOpenInExternalAppRequested(url: String) {
+        if (refusedByProfile(ProfilePolicy.current.externalApps)) return
+        openInExternalApp(activity, url)
+    }
 
     override fun initiateVoiceSearch() {
         screen.startVoiceSearch()

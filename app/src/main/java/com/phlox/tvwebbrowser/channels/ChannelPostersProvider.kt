@@ -16,8 +16,7 @@ import java.io.FileNotFoundException
 /**
  * Gives the launcher the posters of the home screen channels (see [ChannelPosters]): read only, files of the
  * posters directory only, and to the system apps (the launcher) and the app itself only, since the posters of
- * tabs show the pages the user has open. Runs in the `:downloads` process (see the manifest), so a launcher
- * that loads a poster does not start the browser.
+ * tabs show the pages the user has open.
  */
 class ChannelPostersProvider : ContentProvider() {
     override fun onCreate(): Boolean = true

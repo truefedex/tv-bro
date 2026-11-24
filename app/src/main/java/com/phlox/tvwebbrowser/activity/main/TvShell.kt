@@ -1,5 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import android.net.Uri
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import android.Manifest
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -76,6 +78,9 @@ import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.pageVideosSupport
 import com.phlox.tvwebbrowser.webengine.PageVideo
 import com.phlox.tvwebbrowser.webengine.PageVideoMatch
+import com.phlox.tvwebbrowser.profile.ProfileLock
+import com.phlox.tvwebbrowser.profile.ProfilePolicy
+import com.phlox.tvwebbrowser.profile.kidsTitle
 import com.phlox.tvwebbrowser.utils.ExternalVideoPlayer
 import com.phlox.tvwebbrowser.activity.main.view.VideosPanelView
 import com.phlox.tvwebbrowser.widgets.NotificationView
@@ -333,6 +338,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     /** In a player app chosen in the dialog of Android; @return false if there is none (the user is told) */
     private fun openInOtherApp(video: PageVideo): Boolean {
+        if (!policy.externalApps) return false
         val cookies = controller.currentTab.value?.webEngine?.getCookies(video.url)
         val opened = ExternalVideoPlayer.open(activity, video, cookies)
         if (!opened) NotificationView.show(vb.rlRoot, R.drawable.ic_video, activity.getString(R.string.err_no_video_player))
@@ -354,6 +360,14 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
      * the video shows ([PlayerScreenView.Callback.onFirstFrame]).
      */
     private fun openBuiltInPlayer(video: PageVideo, startPosition: Double, pageMedia: Boolean, auto: Boolean = false) {
+        //the player fetches the video itself: not of a site the site filter blocks
+        val filter = WebEngineFactory.siteFilter
+        if (filter != null && filter.active && filter.check(Uri.parse(video.url), false,
+                controller.currentTab.value?.url?.let(Uri::parse)) != null) {
+            if (!auto) NotificationView.show(vb.rlRoot, R.drawable.ic_video,
+                activity.getString(com.phlox.tvwebbrowser.common.R.string.site_blocked_title))
+            return
+        }
         //one video at a time: it ends the picture-in-picture window
         PictureInPicturePlayback.end()
         coverPageWithPlayer()
@@ -452,15 +466,19 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     /** The Downloads button of the bar */
     override fun showDownloads() {
+        if (!policy.downloads) return
         vb.vDownloadsPanel.show(vb.vActionBar.downloadsButton, vb.vActionBar.functionsGroup)
     }
 
     override fun showAllDownloads(focusId: Long?) {
+        if (!policy.downloads) return
         vb.vDownloadsPanel.hide()
         vb.vDownloadsScreen.show(focusId)
     }
 
     private val downloadsModel = ActiveModelsRepository.get(DownloadsModel::class, activity)
+    /** What the profile of this process refuses is not shown */
+    private val policy = ProfilePolicy.current
 
     private val downloadsCallback = object : DownloadsNavigator.ShellCallback {
         override val downloads get() = downloadsModel.downloads
@@ -536,12 +554,24 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     /** Under the ⋮ button, its end under the end of the group of the button, as the panels of the bar */
     override fun showMoreMenu() {
-        val items = listOf(
+        val items = arrayListOf(
             PopupMenuView.Item(R.drawable.ic_search, activity.getString(R.string.find_in_page)) { showFindInPage() },
-            PopupMenuView.Item(R.drawable.ic_history, activity.getString(R.string.history)) { showHistory() },
-            PopupMenuView.Item(R.drawable.ic_devices, activity.getString(R.string.send_title)) { showSendScreen() },
-            PopupMenuView.Item(R.drawable.ic_settings, activity.getString(R.string.settings)) { showSettings() }
+            PopupMenuView.Item(R.drawable.ic_history, activity.getString(R.string.history)) { showHistory() }
         )
+        if (policy.sendToTv) {
+            items += PopupMenuView.Item(R.drawable.ic_devices, activity.getString(R.string.send_title)) { showSendScreen() }
+        }
+        if (policy.settings) {
+            items += PopupMenuView.Item(R.drawable.ic_settings, activity.getString(R.string.settings)) { showSettings() }
+        }
+        //the other profile: the main one (behind the PIN) in the kids profile, the kids one in the main
+        if (host.kidsProfileEnabled) {
+            items += if (policy.kids) {
+                PopupMenuView.Item(R.drawable.ic_lock, activity.getString(R.string.profile_main)) { switchProfile() }
+            } else {
+                PopupMenuView.Item(R.drawable.ic_child, ProfileLock.get(activity).kidsTitle(activity)) { switchProfile() }
+            }
+        }
         vb.vPopupMenu.show(vb.vActionBar.moreButton, items, alignEnd = true, endAlignTo = vb.vActionBar.functionsGroup,
             gap = activity.resources.getDimensionPixelSize(R.dimen.ds_site_panel_gap),
             width = R.dimen.ds_size_more_menu_width, activateAnchor = true)
@@ -585,7 +615,13 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         override val bookmarkFiles = DeviceBookmarkFiles(activity)
     }
 
+    private fun switchProfile() {
+        vb.vPopupMenu.hide()
+        host.switchProfile()
+    }
+
     override fun showSettings(category: SettingsNavigator.Category?) {
+        if (!policy.settings) return
         vb.vPopupMenu.hide()
         vb.vSettingsScreen.show(category)
     }
@@ -892,6 +928,7 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
 
     /** Android 17 asks the user before the app talks to devices of the local network */
     private fun showSendScreen() {
+        if (!policy.sendToTv) return
         vb.vSendScreen.show()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN && ContextCompat.checkSelfPermission(activity,
                 Manifest.permission.ACCESS_LOCAL_NETWORK) != PackageManager.PERMISSION_GRANTED) {

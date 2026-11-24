@@ -9,6 +9,9 @@ interface DownloadDao {
     @Query("SELECT * FROM downloads ORDER BY time DESC, id DESC")
     fun observeAll(): Flow<List<Download>>
 
+    @Query("SELECT * FROM downloads WHERE kids = 1 ORDER BY time DESC, id DESC")
+    fun observeKids(): Flow<List<Download>>
+
     @Query("SELECT * FROM downloads WHERE id = :id")
     suspend fun get(id: Long): Download?
 
@@ -38,4 +41,9 @@ interface DownloadDao {
 
     @Query("DELETE FROM downloads WHERE id IN (:ids)")
     suspend fun delete(ids: List<Long>)
+
+    /** The rows of the kids profile that ended (the files stay); those in progress or paused go on */
+    @Query("DELETE FROM downloads WHERE kids = 1 AND status NOT IN " +
+            "(${Download.Status.IN_PROGRESS}, ${Download.Status.PAUSED})")
+    suspend fun deleteEndedOfKids()
 }

@@ -128,30 +128,12 @@
                 <data android:scheme="https" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.IncognitoModeMainActivity"
-            android:process=":incognito"
-            android:exported="false"
-            android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name_short"
-            android:launchMode="singleTask"
-            android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize" />
         <!-- the built-in player in a picture-in-picture window (see PictureInPicturePlayback): a task of its own,
-             so the browser stays usable behind it and closing the window leaves the browser alone; one per
-             process of the browser, since the player is handed over in memory -->
+             so the browser stays usable behind it and closing the window leaves the browser alone -->
         <activity android:name=".activity.PictureInPictureActivity"
             android:exported="false"
             android:launchMode="singleTask"
             android:taskAffinity="${applicationId}.pip"
-            android:excludeFromRecents="true"
-            android:resizeableActivity="true"
-            android:supportsPictureInPicture="${pictureInPicture}"
-            android:theme="@style/Theme.TVBro.PictureInPicture"
-            android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize" />
-        <activity android:name=".activity.IncognitoPictureInPictureActivity"
-            android:process=":incognito"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:taskAffinity="${applicationId}.pip.incognito"
             android:excludeFromRecents="true"
             android:resizeableActivity="true"
             android:supportsPictureInPicture="${pictureInPicture}"
@@ -162,10 +144,8 @@
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />
 
-        <!-- its own process: the downloads go on while the browser switches to or from incognito -->
         <service
             android:name=".service.downloads.DownloadService"
-            android:process=":downloads"
             android:foregroundServiceType="dataSync"
             android:exported="false"/>
 
@@ -179,18 +159,15 @@
                 android:resource="@xml/provider_paths"/>
         </provider>
 
-        <!-- the posters of the home screen channels, read by the launcher (see ChannelPostersProvider);
-             in the small process of the downloads, so a launcher loading posters does not start the browser -->
+        <!-- the posters of the home screen channels, read by the launcher (see ChannelPostersProvider) -->
         <provider
             android:name=".channels.ChannelPostersProvider"
             android:authorities="${applicationId}.channelposters"
-            android:process=":downloads"
             android:exported="true"
             tools:ignore="ExportedContentProvider" />
         <!-- a tile of the downloads channel of the home screen opens its file (see ChannelLaunchActivity) -->
         <activity
             android:name=".channels.ChannelLaunchActivity"
-            android:process=":downloads"
             android:exported="true"
             android:excludeFromRecents="true"
             android:noHistory="true"

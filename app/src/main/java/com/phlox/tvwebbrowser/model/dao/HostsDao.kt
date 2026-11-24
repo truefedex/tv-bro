@@ -33,6 +33,13 @@ interface HostsDao {
         @ColumnInfo(name = "page_zoom") val pageZoom: Int
     )
 
+    /** A site the site filter lets in (see [HostConfig.allowedAt]) */
+    data class AllowedSite(
+        @ColumnInfo(name = "host_name") val hostName: String,
+        @ColumnInfo(name = "allowed_at") val allowedAt: Long,
+        @ColumnInfo(name = "allowed_until") val allowedUntil: Long
+    )
+
     @Query("SELECT * FROM hosts WHERE host_name = :name")
     suspend fun findByHostName(name: String): HostConfig?
 
@@ -47,6 +54,18 @@ interface HostsDao {
 
     @Query("SELECT host_name, page_zoom FROM hosts WHERE page_zoom IS NOT NULL")
     suspend fun pageZoomSettings(): List<PageZoomSetting>
+
+    @Query("SELECT host_name, allowed_at, allowed_until FROM hosts WHERE allowed_at IS NOT NULL AND allowed_until IS NOT NULL")
+    suspend fun allowedSites(): List<AllowedSite>
+
+    @Query("UPDATE hosts SET allowed_at = :at, allowed_until = :until WHERE host_name = :host")
+    suspend fun updateAllowed(host: String, at: Long?, until: Long?)
+
+    @Transaction
+    suspend fun setAllowed(host: String, at: Long?, until: Long?) {
+        insertIfAbsent(HostConfig(host))
+        updateAllowed(host, at, until)
+    }
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIfAbsent(item: HostConfig): Long

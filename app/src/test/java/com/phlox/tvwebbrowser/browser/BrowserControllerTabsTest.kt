@@ -449,4 +449,36 @@ class BrowserControllerTabsTest {
         controller.onDetachActivity(host)
         assertNull(controller.viewHost)
     }
+
+    /** Another space takes the screen (or the activity finished): the engines go, the tabs stay saved */
+    @Test
+    fun releasingTheModelDestroysTheEnginesAndKeepsTheTabs() {
+        val tabs = open("https://a.com/", "https://b.com/")
+        awaitWrites()
+        val engines = tabs.map { it.webEngine as FakeWebEngine }
+        controller.clear()
+        for (engine in engines) assertTrue(engine.log.toString(), "detach(completely=true, destroyTab=true)" in engine.log)
+        assertTrue(controller.tabsStates.isEmpty())
+        assertNull(current)
+        assertEquals(listOf("https://a.com/", "https://b.com/"), storedOrder())
+    }
+
+    /** Leaving the incognito mode turns the setting off before the write of the closing runs */
+    @Test
+    fun closingAllTabsDeletesTheRowsOfTheModeTheyWereClosedIn() {
+        val config = AppContext.provideConfig()
+        try {
+            open("https://main.com/")
+            awaitWrites()
+            config.incognitoMode = true
+            open("https://incognito.com/")
+            awaitWrites()
+            val closing = controller.onCloseAllTabs()
+            config.incognitoMode = false
+            awaitWrite(closing)
+            assertEquals(listOf("https://main.com/"), storedOrder())
+        } finally {
+            config.incognitoMode = false
+        }
+    }
 }

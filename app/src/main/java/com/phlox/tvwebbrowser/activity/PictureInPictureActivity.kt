@@ -42,28 +42,21 @@ import kotlinx.coroutines.launch
  * The built-in player in a picture-in-picture window over the browser and other apps: it shows the player the screen
  * of the player handed to [PictureInPicturePlayback] and goes into the window as soon as it is shown. It has a task of
  * its own, so the browser stays usable behind the window and closing the window leaves the browser alone. Expanded,
- * it gives the player back to the browser activity of its process ([browserActivity]), which shows it from where it
- * is; closed, the player is released. The window has one control: play or pause. A media session tells the system
+ * it gives the player back to the browser activity, which shows it from where it is; closed, the player is released. The window has one control: play or pause. A media session tells the system
  * the title and takes the media keys of the remote while the window floats over another app ([PlayerMediaSession]).
  */
-open class PictureInPictureActivity : AppCompatActivity() {
+class PictureInPictureActivity : AppCompatActivity() {
     companion object {
         private val TAG = PictureInPictureActivity::class.java.simpleName
         private const val ACTION_TOGGLE = "com.phlox.tvwebbrowser.action.PIP_TOGGLE_PLAYBACK"
         private const val ACTION_ICON_SIZE_DP = 36
 
-        /** Starts the window of the process of [browser] (normal or incognito) */
         fun start(browser: Activity) {
-            val window = if (browser is IncognitoModeMainActivity) IncognitoPictureInPictureActivity::class.java
-            else PictureInPictureActivity::class.java
-            browser.startActivity(Intent(browser, window), noAnimation(browser))
+            browser.startActivity(Intent(browser, PictureInPictureActivity::class.java), noAnimation(browser))
         }
 
         private fun noAnimation(context: Context) = ActivityOptions.makeCustomAnimation(context, 0, 0).toBundle()
     }
-
-    /** The browser activity of this process */
-    protected open val browserActivity: Class<out MainActivity> get() = MainActivity::class.java
 
     private lateinit var vb: ActivityPictureInPictureBinding
     /** The player this window shows; null when there was none to show */
@@ -191,7 +184,7 @@ open class PictureInPictureActivity : AppCompatActivity() {
         //the media keys go back to the browser, which has the focus
         releaseMediaSession()
         if (PictureInPicturePlayback.player === player) {
-            startActivity(Intent(this, browserActivity).putExtra(MainActivity.KEY_SHOW_PIP_PLAYER, true),
+            startActivity(Intent(this, MainActivity::class.java).putExtra(MainActivity.KEY_SHOW_PIP_PLAYER, true),
                 noAnimation(this))
         }
         finish()

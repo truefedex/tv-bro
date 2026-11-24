@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import com.phlox.tvwebbrowser.AppContext
 import android.content.Context
 import android.net.Uri
 import android.text.format.DateFormat
@@ -13,7 +14,8 @@ import com.phlox.tvwebbrowser.widgets.datedlist.startOfDay
 import java.util.Date
 
 /** The caption under the name of a download in the downloads screens */
-class DownloadRowText(private val context: Context) {
+/** [markKids]: the caption tells the downloads of the kids profile (the main profile lists them with its own) */
+class DownloadRowText(private val context: Context, private val markKids: Boolean = !AppContext.kidsProfile) {
     private val separator = " · "
 
     /**
@@ -21,12 +23,14 @@ class DownloadRowText(private val context: Context) {
      *   its file);
      * - paused: "Paused · 0.7 GB of 6.0 GB" ("Paused: connection lost · ..." when it was not the user);
      * - complete: "601 KB · 15:18 · site.com";
-     * - failed: "Failed: connection lost · 11:02 · site.com", cancelled: "Cancelled · 18:44 · site.com".
+     * - failed: "Failed: connection lost · 11:02 · site.com", cancelled: "Cancelled · 18:44 · site.com";
+     * - of the kids profile, in the main one: "Kids profile · 601 KB · 15:18 · site.com".
      * @param withHost adds the host of the page the download came from (else of its url)
      * @param withDay tells the day of downloads older than today (the lists grouped by days do not need it)
      */
     fun caption(item: DownloadItem, withHost: Boolean, withDay: Boolean, now: Long = System.currentTimeMillis()): String {
         val parts = ArrayList<String>()
+        if (markKids && item.kids) parts += context.getString(R.string.download_of_kids)
         when (item.status) {
             //a stream is packed into its file when all its segments are there
             Download.Status.IN_PROGRESS -> if (item.isStream && item.size > 0 && item.bytesReceived >= item.size) {

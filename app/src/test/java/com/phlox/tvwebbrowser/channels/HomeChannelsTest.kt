@@ -6,6 +6,7 @@ import android.media.tv.TvContract
 import android.media.tv.TvContract.Channels
 import android.media.tv.TvContract.PreviewPrograms
 import com.phlox.tvwebbrowser.AppContext
+import com.phlox.tvwebbrowser.profile.ProfileLock
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -74,6 +75,32 @@ class HomeChannelsTest {
         assertEquals(listOf("a", "b", "c"), titlesOf(ChannelKind.BOOKMARKS))
         assertEquals(1, provider.logoWrites)
         assertTrue(provider.channelsOf("tabs").isEmpty())
+    }
+
+    /** The tiles would show the pages of the main profile and open its files without the PIN */
+    @Test
+    fun theKidsProfileDeletesAllChannels() {
+        config.channelBookmarks = true
+        config.channelTabs = true
+        config.channelDownloads = true
+        programs[ChannelKind.BOOKMARKS] = listOf(program("a"))
+        programs[ChannelKind.TABS] = listOf(program("b"))
+        programs[ChannelKind.DOWNLOADS] = listOf(program("c"))
+        sync()
+        assertEquals(1, provider.channelsOf("tabs").size)
+        val lock = ProfileLock.get(context)
+        lock.enable("2580")
+        try {
+            //also a sync of the downloads process, which only refreshes the channels that are there
+            sync(ChannelKind.DOWNLOADS, mode = HomeChannels.Mode.UPDATE_EXISTING)
+            assertTrue(provider.channelsOf("downloads").isEmpty())
+            sync()
+            for (kind in ChannelKind.entries) assertTrue(kind.id, provider.channelsOf(kind.id).isEmpty())
+        } finally {
+            lock.disable()
+        }
+        sync()
+        assertEquals(1, provider.channelsOf("tabs").size)
     }
 
     @Test

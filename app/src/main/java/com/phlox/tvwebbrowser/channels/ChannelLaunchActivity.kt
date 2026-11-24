@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.MainActivity
 import com.phlox.tvwebbrowser.model.Download
+import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.utils.DownloadFileActions
 import com.phlox.tvwebbrowser.utils.DownloadFiles
 import kotlinx.coroutines.Dispatchers
@@ -21,8 +22,7 @@ import javax.crypto.spec.SecretKeySpec
 
 /**
  * A tile of the downloads channel of the home screen: opens the file as OK on its row does (installs an app),
- * or the downloads screen when the file is gone or no app opens it. Shows nothing itself. Runs in the
- * `:downloads` process (see the manifest), so it does not start the browser. Other apps can start it, so the
+ * or the downloads screen when the file is gone or no app opens it. Shows nothing itself. Other apps can start it, so the
  * link carries a token signed with a secret of the app.
  */
 class ChannelLaunchActivity : ComponentActivity() {
@@ -40,9 +40,16 @@ class ChannelLaunchActivity : ComponentActivity() {
             finish()
             return
         }
+        //a tile left on the home screen while the main profile is locked opens no file of it: the browser
+        //shows the kids profile instead
+        if (ProfileLock.get(this).kidsActive) {
+            startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            finish()
+            return
+        }
         lifecycleScope.launch {
             val opened = withContext(Dispatchers.IO) {
-                val download = TVBro.container.data.downloads.get(id)
+                val download = TVBro.container.mainData.downloads.get(id)
                 download != null && download.status == Download.Status.DONE &&
                     DownloadFiles.exists(this@ChannelLaunchActivity, download.filepath) && open(download)
             }

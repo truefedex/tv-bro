@@ -7,40 +7,27 @@ import java.io.File
 import java.io.IOException
 
 /**
- * The processes the app runs in, told apart by their names. Android creates the [Application] in each of
- * them, also in the processes of libraries: GeckoView runs its content, GPU, socket, media and other
+ * The app runs in one process, but Android creates the [Application] also in the processes of libraries,
+ * told apart by their names: GeckoView runs its content, GPU, socket, media and other
  * processes as services of the app (`:tab_…`, `:gpu_…` and so on), and they need nothing of the app.
  */
 object AppProcesses {
     private const val TAG = "AppProcesses"
-    /** The process of `IncognitoModeMainActivity` (see the manifest) */
-    const val INCOGNITO_SUFFIX = ":incognito"
-    /** The process of `DownloadService` (see the manifest) */
-    const val DOWNLOADS_SUFFIX = ":downloads"
 
     enum class Kind {
-        /** The browser, normal or incognito: everything is initialized */
-        BROWSER,
-        /** The download service: the database and the notification channel */
-        DOWNLOADS,
+        /** The process of the app (the browser, the downloads, the home screen channels): everything is initialized */
+        APP,
         /** A process of a library (GeckoView): the app initializes nothing */
         OTHER
     }
 
     /**
-     * Only a process named after the package with a suffix the app does not know is [Kind.OTHER]. A name
-     * that could not be read (empty) or that is not of the package (unit tests) is taken for the browser,
-     * so that the browser is never left uninitialized.
+     * Only a process named after the package with a suffix is [Kind.OTHER]: the app runs in one process. A name
+     * that could not be read (empty) or that is not of the package (unit tests) is taken for the app, so that
+     * the app is never left uninitialized.
      */
-    fun kindOf(processName: String, packageName: String): Kind {
-        val prefix = "$packageName:"
-        if (!processName.startsWith(prefix)) return Kind.BROWSER
-        return when (":" + processName.substring(prefix.length)) {
-            INCOGNITO_SUFFIX -> Kind.BROWSER
-            DOWNLOADS_SUFFIX -> Kind.DOWNLOADS
-            else -> Kind.OTHER
-        }
-    }
+    fun kindOf(processName: String, packageName: String): Kind =
+        if (processName.startsWith("$packageName:")) Kind.OTHER else Kind.APP
 
     fun currentKind(app: Application): Kind = kindOf(currentName(app), app.packageName)
 

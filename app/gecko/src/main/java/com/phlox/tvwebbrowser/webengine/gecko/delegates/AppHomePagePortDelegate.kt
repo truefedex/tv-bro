@@ -55,7 +55,10 @@ class AppHomePagePortDelegate(val port: WebExtension.Port, val webEngine: GeckoW
                     val engine = data.getString("engine")
                     val customSearchEngineURL = data.getString("customSearchEngineURL")
                     val cfg = AppContext.provideConfig()
-                    cfg.setSearchEngine(Config.searchEngineUrlOfHomePage(engine, customSearchEngineURL))
+                    //a setting of the app: the kids profile changes none, and the page shows the engine again
+                    if (!AppContext.kidsProfile) {
+                        cfg.setSearchEngine(Config.searchEngineUrlOfHomePage(engine, customSearchEngineURL))
+                    }
                     //the page searches with the address it keeps: the one of the app has the partner ID of Qwant
                     port.postMessage(pageCall("applySearchEngine",
                         JSONObject().put("engine", cfg.guessSearchEngineName()).put("url", cfg.searchEngineURL.value)))

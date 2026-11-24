@@ -11,6 +11,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.phlox.tvwebbrowser.browser.ProxySetup
+import com.phlox.tvwebbrowser.browser.sitefilter.AppSiteFilter
+import com.phlox.tvwebbrowser.webengine.webview.WebViewProfiles
 import com.phlox.tvwebbrowser.browser.adblock.AppEngineAdBlocker
 import com.phlox.tvwebbrowser.browser.search.DefaultSearchEngine
 import com.phlox.tvwebbrowser.webengine.EnginePageZooms
@@ -51,6 +53,10 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
             instance.needRestartMainActivityAfterExitingProcess = restartMainActivity
         }
 
+        /** The browser activity finishes to start again in a new process (settings that need a restart) */
+        val restartsMainActivity: Boolean
+            get() = instance.needToExitProcessAfterMainActivityFinish && instance.needRestartMainActivityAfterExitingProcess
+
         const val CHANNEL_ID_DOWNLOADS: String = "downloads"
         const val MAIN_PREFS_NAME = "main.xml"
         val TAG = TVBro::class.simpleName
@@ -75,8 +81,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
 
         instance = this
-        val process = AppProcesses.currentKind(this)
-        if (process == AppProcesses.Kind.OTHER) {
+        if (AppProcesses.currentKind(this) == AppProcesses.Kind.OTHER) {
             //a process of GeckoView: nothing of the app runs there (an isolated one may not even read prefs),
             //and each of them would load its own ad blocker and update its lists
             Log.i(TAG, "onCreate: not a process of the app, nothing to initialize")
@@ -84,17 +89,12 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
         container = AppContainer(this)
 
-        AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_MULTI_PROCESS),
-            getSharedPreferences(Config.CREDENTIALS_PREFS_NAME, MODE_MULTI_PROCESS)))
+        AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_PRIVATE),
+            getSharedPreferences(Config.CREDENTIALS_PREFS_NAME, MODE_PRIVATE)))
 
-        val downloadsProcess = process == AppProcesses.Kind.DOWNLOADS
-        ProxySetup.start(AppContext.provideConfig(), browserProcess = !downloadsProcess)
-
-        if (downloadsProcess) {
-            //the process of DownloadService needs the database and the notification channel only
-            initNotificationChannels()
-            return
-        }
+        ProxySetup.start(AppContext.provideConfig())
+        //before anything can load WebView (only files, also harmless in the GeckoView app)
+        WebViewProfiles.deleteDataDirectoriesOfProcesses(this)
 
         DefaultSearchEngine.applyOnce(AppContext.provideConfig(), this)
 
@@ -103,7 +103,6 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
                 TimeUnit.SECONDS, ArrayBlockingQueue(maxThreadsInOfflineJobsPool))
 
         initWebEngineStuff()
-        initAdBlocking()
         initPageZooms()
 
         clearUpdateFilesAfterAppUpdate()
@@ -131,11 +130,27 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         }
     }
 
-    /** The engines of all tabs ask the ad blocker; the lists are not updated in unit tests (Robolectric) */
-    private fun initAdBlocking() {
+    /**
+     * Starts what only the browser needs, when its activity is created first: the ad blocker (its engine file,
+     * the updates of its lists) and the site filter, which the engines of all tabs ask. Not when the app starts: the launcher reads the
+     * posters of the home screen channels, a download tile opens a file, the download service runs, without the
+     * browser. The lists are not updated in unit tests (Robolectric).
+     */
+    fun startBrowser() {
+        if (WebEngineFactory.adBlocker != null) return
         val config = AppContext.provideConfig()
         container.adBlock.start(scheduleUpdates = Build.FINGERPRINT != "robolectric")
-        WebEngineFactory.adBlocker = AppEngineAdBlocker(container.adBlock, container.data.hostConfigs, config)
+        //the site settings of the profile shown
+        WebEngineFactory.adBlocker = AppEngineAdBlocker(container.adBlock, { container.data.hostConfigs }, config)
+        //the lists of sites of the kids profile, downloaded only while it is on
+        container.siteFilter.start(scheduleUpdates = Build.FINGERPRINT != "robolectric")
+        val lists = container.siteFilter
+        val siteFilter = AppSiteFilter({ lists.filter }, { lists.mask }, { lists.allowedOnly }, { container.data.hostConfigs },
+            { container.publicSuffixList })
+        WebEngineFactory.siteFilter = siteFilter
+        //the app itself does not ask a site of the lists for its icon (one only not allowed yet keeps its icon on the
+        //home page)
+        FaviconsPool.isBlocked = { host -> siteFilter.check(Uri.parse("https://$host/"), true, null)?.category != null }
     }
 
     /**
@@ -203,7 +218,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
                     Log.i(TAG, "onActivityDestroyed: restarting main activity")
                     val intent = Intent(this@TVBro, MainActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    startActivity(intent)
+                    startActivity(MainActivity.markSameSession(intent))
                 }
                 exitProcess(0)
             }

@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.activity.main.view
 
+import com.phlox.tvwebbrowser.profile.ProfilePolicy
 import android.content.Context
 import android.util.AttributeSet
 import android.view.FocusFinder
@@ -68,6 +69,8 @@ class DownloadsScreenView @JvmOverloads constructor(
         vb.llFilters.clipToOutline = true
         vb.ibBack.setOnClickListener { hide() }
         vb.llOpenFolder.setOnClickListener { navigator.openFolder() }
+        //the folder holds the files of the main profile too
+        vb.llOpenFolder.isVisible = ProfilePolicy.current.deviceFiles
         vb.llClearAll.setOnClickListener { navigator.clearAll() }
     }
 
@@ -84,7 +87,7 @@ class DownloadsScreenView @JvmOverloads constructor(
                     callback.confirmClearAll(request, onConfirm)
 
                 override fun showAll(focusId: Long?) = show(focusId)
-            }, DownloadsNavigator.Look.SCREEN)
+            }, DownloadsNavigator.Look.SCREEN, ProfilePolicy.current.deviceFiles)
     }
 
     /** Opens all downloads, the download [focusId] focused (else the first one) */

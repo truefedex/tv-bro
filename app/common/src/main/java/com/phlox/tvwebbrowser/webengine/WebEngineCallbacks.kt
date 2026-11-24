@@ -22,6 +22,11 @@ interface TabEngineEvents {
     fun onPageFinished(url: String?)
     fun onPageCertificateError(url: String?)
     fun onBlockedAd(uri: String)
+    /**
+     * The block page of the site filter asks to let [url] in (its link of [EngineSiteFilter.ASK_SCHEME]): a parent
+     * may, with the PIN
+     */
+    fun onAskToAllowSite(url: String) {}
     fun onBlockedDialog(newTab: Boolean)
     /**
      * The first page of this tab, a window a page opened, was blocked as a popup

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A digit of the PIN: a ring, filled (activated) once the digit is entered -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true">
+        <shape android:shape="oval">
+            <solid android:color="?attr/tbColorDsInk" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <stroke android:width="@dimen/ds_pin_dot_stroke" android:color="?attr/tbColorDsLineStrong" />
+        </shape>
+    </item>
+</selector>

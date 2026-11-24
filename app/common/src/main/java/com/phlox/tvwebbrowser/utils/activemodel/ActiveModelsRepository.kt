@@ -76,6 +76,14 @@ object ActiveModelsRepository {
     }
   }
 
+  /** Clears all the models, whoever uses them: the next [get] makes new ones */
+  @MainThread
+  fun releaseAll() {
+    val holders = ArrayList(holdersMap.values)
+    holdersMap.clear()
+    for (holder in holders) holder.activeModel.clear()
+  }
+
   @MainThread
   fun markAsNeedlessAllModelsUsedBy(user: Any) {
     val iterator = holdersMap.iterator()

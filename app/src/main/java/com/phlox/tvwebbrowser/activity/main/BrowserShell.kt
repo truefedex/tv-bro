@@ -155,6 +155,12 @@ interface BrowserShell {
         /** Leaves the incognito mode if it is on and finishes the activity */
         fun closeWindow()
         fun toggleIncognitoMode()
+        /** There is a kids profile to turn on: the TV interface, and an engine that keeps the data of its pages apart */
+        val kidsProfileAvailable: Boolean
+        /** The kids profile is on: the menu offers the other profile */
+        val kidsProfileEnabled: Boolean
+        /** Goes to the other profile, the kids or the main one; leaving the kids profile asks for its PIN */
+        fun switchProfile()
         /** Turns ad blocking of the current site on or off; the page reloads */
         fun toggleSiteAdBlock()
         /** Lets the user choose the popup blocking level of the current site */

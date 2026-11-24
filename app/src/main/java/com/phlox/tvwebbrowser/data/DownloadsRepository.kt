@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.Flow
  */
 class DownloadsRepository(private val dao: DownloadDao) {
     /** All the downloads, the latest first */
-    fun observeAll(): Flow<List<Download>> = dao.observeAll()
+    /** The downloads of the main profile are all of them; [kids]: only those started in the kids profile */
+    fun observeAll(kids: Boolean = false): Flow<List<Download>> = if (kids) dao.observeKids() else dao.observeAll()
 
     suspend fun get(id: Long): Download? = dao.get(id)
 
@@ -35,4 +36,6 @@ class DownloadsRepository(private val dao: DownloadDao) {
     suspend fun delete(download: Download) = dao.delete(download)
 
     suspend fun delete(ids: List<Long>) = dao.delete(ids)
+
+    suspend fun deleteEndedOfKids() = dao.deleteEndedOfKids()
 }

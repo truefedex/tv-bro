@@ -24,7 +24,9 @@ class DownloadsNavigator(
     private val device: Device,
     private val scope: CoroutineScope,
     private val host: Host,
-    val look: Look
+    val look: Look,
+    /** The folder of downloads and sharing files with other apps ([com.phlox.tvwebbrowser.profile.ProfilePolicy.deviceFiles]) */
+    val deviceFiles: Boolean = true
 ) {
     companion object {
         /** Rows of the panel */
@@ -213,9 +215,9 @@ class DownloadsNavigator(
         when (item.status) {
             Download.Status.DONE -> {
                 actions += if (isApk(item)) Action.INSTALL else Action.OPEN
-                actions += Action.OPEN_FOLDER
+                if (deviceFiles) actions += Action.OPEN_FOLDER
                 if (repeatable) actions += Action.COPY_LINK
-                actions += Action.SHARE
+                if (deviceFiles) actions += Action.SHARE
                 if (look == Look.PANEL) {
                     actions += Action.SHOW_IN_ALL
                 } else {
@@ -280,6 +282,7 @@ class DownloadsNavigator(
     }
 
     fun openFolder() {
+        if (!deviceFiles) return
         if (!device.openFolder()) {
             host.showMessage(R.drawable.ic_error, context.getString(R.string.no_folder_app))
         }

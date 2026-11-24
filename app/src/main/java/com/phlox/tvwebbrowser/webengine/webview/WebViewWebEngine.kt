@@ -83,7 +83,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
     override fun getWebEngineName(): String = "WebView"
 
-    override fun getCookies(url: String): String? = CookieManager.getInstance().getCookie(url)
+    /** Where the pages of the tab keep their data: a profile of WebView of the kids profile or the incognito mode */
+    private val profile = WebViewProfiles.of(tab.incognito)
+
+    override fun getCookies(url: String): String? = WebViewProfiles.cookieManager(profile).getCookie(url)
 
     override fun isSameSession(internalRepresentation: Any): Boolean {
         return internalRepresentation == webView
@@ -234,7 +237,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
     @Throws(Exception::class)
     override fun getOrCreateView(activityContext: Context): View {
         if (webView == null) {
-            val webView = WebViewEx(activityContext, webViewCallback, jsInterface)
+            val webView = WebViewEx(activityContext, webViewCallback, jsInterface, profile)
             if (appliedView != SiteView.MOBILE || appliedUserAgent != null) webView.setSiteView(appliedView, appliedUserAgent)
             cursorLayout = CursorLayout(activityContext).apply {
                 addView(webView)
@@ -563,6 +566,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
             callback?.onBlockedAd(url.toString())
         }
 
+        override fun onAskToAllowSite(url: String) {
+            callback?.onAskToAllowSite(url)
+        }
+
         override fun onBlockedDialog(newTab: Boolean) {
             callback?.onBlockedDialog(newTab)
         }
@@ -645,6 +652,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         init {
             WebEngineFactory.registerProvider(WebEngineProvider("WebView", object : WebEngineProviderCallback {
                 override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
+                    //before any WebView is created
+                    WebViewProfiles.prepare(context)
                     //before any WebView of the tabs loads a page
                     AppProxy.settings?.let { WebViewProxy.apply(it) }
                 }
@@ -670,22 +679,18 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     return (webViewPackage?.packageName ?: "unknown") + ":" + (webViewPackage?.versionName ?: "unknown")
                 }
 
-                override fun prepareIncognitoProcess() {
-                    WebViewIncognitoData.prepareIncognitoProcess()
-                }
+                override fun supportsIncognito(): Boolean = WebViewProfiles.isSupported
 
-                override suspend fun clearIncognitoBrowsingData(context: Context) {
-                    WebViewIncognitoData.clearBrowsingData(context)
-                }
+                override suspend fun clearIncognitoData(context: Context) = WebViewProfiles.wipe(context, WebViewProfiles.INCOGNITO)
 
-                override suspend fun deleteIncognitoData() {
-                    WebViewIncognitoData.deleteData()
-                }
+                override fun supportsKidsProfile(): Boolean = WebViewProfiles.isSupported
+
+                override suspend fun deleteKidsData(context: Context) = WebViewProfiles.wipe(context, WebViewProfiles.KIDS)
 
                 override fun supportsSiteDataClearing(): Boolean = true
 
                 override suspend fun clearSiteData(context: Context, host: String, kinds: Set<SiteDataKind>) {
-                    WebViewSiteData.clear(context, host, kinds)
+                    WebViewSiteData.clear(context, host, kinds, WebViewProfiles.ofShown())
                 }
 
                 override fun onViewCreationFailed(activity: Activity, error: Throwable) {

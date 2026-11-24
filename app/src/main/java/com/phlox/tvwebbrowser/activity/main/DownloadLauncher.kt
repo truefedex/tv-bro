@@ -1,5 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
+import com.phlox.tvwebbrowser.utils.Utils
+import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import com.phlox.tvwebbrowser.net.AppProxy
 import android.Manifest
 import android.content.pm.PackageManager
@@ -29,7 +31,7 @@ import java.io.IOException
 import java.io.InputStream
 
 /**
- * Starts and controls downloads in [DownloadService] (its own process) on behalf of the
+ * Starts and controls downloads in [DownloadService] on behalf of the
  * [activity]: asks for the needed permissions, inserts the database row of a new download and
  * sends the commands. The service is bound while the activity is started and needs it ([DownloadServiceNeed]);
  * commands sent meanwhile bind it until they are delivered. New files go to the folder the user chose
@@ -68,6 +70,13 @@ class DownloadLauncher(
     }
 
     fun download(request: DownloadRequest) {
+        //not of a site the site filter blocks (the kids profile; the page may be one a parent allowed)
+        val filter = WebEngineFactory.siteFilter
+        if (filter != null && filter.active && filter.check(Uri.parse(request.url), false,
+                request.referer.takeIf { it.isNotEmpty() }?.let(Uri::parse)) != null) {
+            Utils.showToast(activity, activity.getString(com.phlox.tvwebbrowser.common.R.string.site_blocked_title))
+            return
+        }
         val download = request.toDownload()
         val (folder, unavailable) = chooseFolder()
         //the toast of the started download would replace the warning at once: the warning shows in its place
@@ -192,6 +201,8 @@ class DownloadLauncher(
         //incognito downloads do not keep the page they came from
         download.referer = if (AppContext.provideConfig().incognitoMode) null else referer
         download.status = Download.Status.IN_PROGRESS
+        //of the profile shown now: the kids profile lists only its own
+        download.kids = AppContext.kidsProfile
         //the row is inserted when the service has checked the rows a dead process left, and it outlives
         //the activity: it is the download now
         service.acquire()
@@ -201,7 +212,7 @@ class DownloadLauncher(
                 try {
                     //later than the start of the service: its check of the rows left does not take it
                     download.time = System.currentTimeMillis()
-                    download.id = TVBro.container.data.downloads.insert(download)
+                    download.id = TVBro.container.mainData.downloads.insert(download)
                     val message = command(DownloadCommands.START, download.id).apply {
                         data.putString(DownloadCommands.KEY_COOKIES, download.cookies)
                         data.putString(DownloadCommands.KEY_REFERER, referer)
@@ -227,8 +238,8 @@ class DownloadLauncher(
     private fun engineInput(download: Download): InputStream? = download.stream
 
     /**
-     * The read end of a pipe the [input] is copied to, for the service process. If this process
-     * dies or the input fails, the service gets an error at the end of the pipe.
+     * The read end of a pipe the [input] is copied to, for the service. If the input fails, the service gets an
+     * error at the end of the pipe.
      */
     private fun pipe(input: InputStream): ParcelFileDescriptor {
         val (readEnd, writeEnd) = ParcelFileDescriptor.createReliablePipe()

@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.browser
 
+import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.model.Download
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
@@ -31,6 +32,8 @@ data class DownloadItem(
     val bytesPerSecond: Long = 0,
     /** A video stream saved as one file ([Download.streamSpec]) */
     val streamSpec: String? = null,
+    /** Started in the kids profile ([Download.kids]) */
+    val kids: Boolean = false,
 ) {
     val isStream: Boolean get() = streamSpec != null
 
@@ -52,13 +55,14 @@ data class DownloadItem(
         it.error = error
         it.resumable = resumable
         it.streamSpec = streamSpec
+        it.kids = kids
     }
 
     companion object {
         fun of(download: Download, bytesPerSecond: Long = 0) = DownloadItem(
             download.id, download.time, download.filename, download.filepath, download.url, download.size,
             download.bytesReceived, download.status, download.mimeType, download.referer, download.error,
-            download.resumable, bytesPerSecond, download.streamSpec)
+            download.resumable, bytesPerSecond, download.streamSpec, download.kids)
     }
 }
 
@@ -122,8 +126,9 @@ class DownloadsTracker {
 }
 
 /**
- * The downloads of the browser processes: the download service (in its own process) writes them
- * to the database, this model observes it.
+ * The downloads: the download service writes them to the database of the main profile, this model observes them,
+ * all of them in the main profile, only its own in the kids profile ([Download.kids]), which learns nothing of those
+ * of the main one.
  */
 class DownloadsModel : ActiveModel() {
     private val tracker = DownloadsTracker()
@@ -141,7 +146,7 @@ class DownloadsModel : ActiveModel() {
 
     init {
         modelScope.launch {
-            TVBro.container.data.downloads.observeAll().collect { rows ->
+            TVBro.container.mainData.downloads.observeAll(kids = AppContext.kidsProfile).collect { rows ->
                 val (items, events) = tracker.track(rows, System.currentTimeMillis())
                 _downloads.value = items
                 _activeCount.value = items.count { it.isActive }

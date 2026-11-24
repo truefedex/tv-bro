@@ -136,7 +136,8 @@ class SettingsScreenView @JvmOverloads constructor(
 
     /**
      * Keys move the focus only inside the screen: right from a category into its card, left from the card
-     * back to the shown category; up and down do not leave the card for the categories
+     * back to the shown category; up and down do not leave the card for the categories (inside it they go
+     * from row to row, [SettingsRowsView.dispatchKeyEvent])
      */
     override fun focusSearch(focused: View?, direction: Int): View? {
         if (!isOpen) return super.focusSearch(focused, direction)
@@ -196,5 +197,12 @@ class SettingsScreenView @JvmOverloads constructor(
         }
 
         override fun restart() = callback.restart()
+
+        override fun choosePin(onChosen: (String?) -> Unit) = callback.choosePin(onChosen)
+
+        override fun openKidsProfile() {
+            hide()
+            callback.openKidsProfile()
+        }
     }
 }

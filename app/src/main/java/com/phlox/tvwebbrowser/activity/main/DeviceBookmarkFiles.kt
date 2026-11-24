@@ -49,7 +49,7 @@ class DeviceBookmarkFiles(private val activity: ComponentActivity) : BookmarksNa
                 } else {
                     saveToDirectory(name, bytes)
                 } ?: return@withContext null
-                TVBro.container.data.downloads.insert(Download().apply {
+                TVBro.container.mainData.downloads.insert(Download().apply {
                     filename = savedName
                     filepath = path
                     time = System.currentTimeMillis()

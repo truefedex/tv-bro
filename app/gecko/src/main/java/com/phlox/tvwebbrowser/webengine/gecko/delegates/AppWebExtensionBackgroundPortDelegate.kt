@@ -1,5 +1,6 @@
 package com.phlox.tvwebbrowser.webengine.gecko.delegates
 
+import com.phlox.tvwebbrowser.webengine.gecko.GeckoSiteBlocks
 import android.net.Uri
 import android.util.Log
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -14,9 +15,14 @@ import org.mozilla.geckoview.WebExtension
  */
 class AppWebExtensionBackgroundPortDelegate(private val port: WebExtension.Port) : WebExtension.PortDelegate {
     init {
-        //main frames are sent only while filters may block pages
-        val blocksPages = WebEngineFactory.adBlocker?.blocksPages ?: false
-        port.postMessage(JSONObject().put("action", "config").put("checkPages", blocksPages))
+        current = this
+        sendConfig()
+    }
+
+    /** Main frames are sent only while filters may block pages: ad filters of pages, or the site filter */
+    fun sendConfig() {
+        val checkPages = WebEngineFactory.adBlocker?.blocksPages == true || WebEngineFactory.siteFilter?.active == true
+        port.postMessage(JSONObject().put("action", "config").put("checkPages", checkPages))
     }
 
     override fun onPortMessage(message: Any, port: WebExtension.Port) {
@@ -31,13 +37,28 @@ class AppWebExtensionBackgroundPortDelegate(private val port: WebExtension.Port)
         val requestId = details.opt("requestId") ?: return
         var block = false
         try {
-            block = isAd(details)
+            block = isBlockedSite(details) || isAd(details)
         } catch (e: Exception) {
             Log.e(TAG, "onBeforeRequest", e)
         } finally {
             val data = JSONObject().put("requestId", requestId).put("block", block)
             port.postMessage(JSONObject().put("action", "onResolveRequest").put("data", data))
         }
+    }
+
+    /**
+     * The site filter first: its requests fail, its pages too (`onLoadRequest` shows the block page of those it sees,
+     * [GeckoSiteBlocks])
+     */
+    private fun isBlockedSite(details: JSONObject): Boolean {
+        val filter = WebEngineFactory.siteFilter ?: return false
+        if (!filter.active) return false
+        val url = details.optString("url").ifEmpty { return false }
+        val mainFrame = details.optString("type") == "main_frame"
+        val top = details.optString("topUrl").ifEmpty { null }
+        val block = filter.check(Uri.parse(url), mainFrame, top?.let(Uri::parse)) ?: return false
+        if (mainFrame) GeckoSiteBlocks.cancelled(url, block)
+        return true
     }
 
     private fun isAd(details: JSONObject): Boolean {
@@ -57,5 +78,10 @@ class AppWebExtensionBackgroundPortDelegate(private val port: WebExtension.Port)
 
     companion object {
         val TAG: String = AppWebExtensionBackgroundPortDelegate::class.java.simpleName
+
+        /** The port of the background script, once it connected (one for the runtime) */
+        @Volatile
+        var current: AppWebExtensionBackgroundPortDelegate? = null
+            private set
     }
 }

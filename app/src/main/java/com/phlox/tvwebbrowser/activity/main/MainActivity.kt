@@ -1,6 +1,7 @@
 package com.phlox.tvwebbrowser.activity.main
 
 import android.Manifest
+import android.app.ActivityOptions
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -12,7 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.Process
+import android.os.SystemClock
 import android.util.Log
 import android.util.TypedValue
 import android.view.KeyEvent
@@ -40,7 +41,13 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.send.LegacySync
 import com.phlox.tvwebbrowser.send.SendSettings
 import com.phlox.tvwebbrowser.channels.HomeChannels
-import com.phlox.tvwebbrowser.activity.IncognitoModeMainActivity
+import com.phlox.tvwebbrowser.profile.PinDialog
+import com.phlox.tvwebbrowser.profile.ProfileChooserDialog
+import com.phlox.tvwebbrowser.profile.kidsTitle
+import com.phlox.tvwebbrowser.profile.ProfileLock
+import com.phlox.tvwebbrowser.profile.ProfilePolicy
+import com.phlox.tvwebbrowser.utils.ActivityResults
+import com.phlox.tvwebbrowser.browser.sitefilter.AppSiteFilter
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
@@ -71,17 +78,35 @@ import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
-import kotlin.system.exitProcess
 
 /**
  * The browser screen. It owns what does not depend on the look of the screen (the browser core,
  * intents, navigation, incognito, downloads, keys and Back) and leaves the look to a [BrowserShell].
  */
-open class MainActivity : AppCompatActivity(), BrowserShell.Host {
+class MainActivity : AppCompatActivity(), BrowserShell.Host {
     companion object {
         private val TAG = MainActivity::class.java.simpleName
-        const val KEY_PROCESS_ID_TO_KILL = "proc_id_to_kill"
+        /**
+         * When the app itself started the activity (it restarts), by [SystemClock.elapsedRealtime]: the user was
+         * just there, so a fresh process does not lock the main profile
+         */
+        private const val KEY_SESSION_TIME = "session_time"
+        private const val SESSION_TIME_VALID_MS = 60_000L
+        /** The start of this process was looked at ([ProfileLock.onMainColdStart]) */
+        private var coldStartHandled = false
+        /** The space the models of the browser activity were made for */
+        private var modelsSpace: BrowserSpace? = null
+
+        /** Marks the [intent] as one the app starts its browser activity with (see [KEY_SESSION_TIME]) */
+        fun markSameSession(intent: Intent): Intent = intent.putExtra(KEY_SESSION_TIME, SystemClock.elapsedRealtime())
+
+        private fun isSameSession(intent: Intent?): Boolean {
+            val time = intent?.getLongExtra(KEY_SESSION_TIME, -1L) ?: -1L
+            //an intent restored after a reboot holds a time of the boot before
+            return time >= 0 && SystemClock.elapsedRealtime() - time in 0..SESSION_TIME_VALID_MS
+        }
         /** Open the downloads (the notification of the download service) */
         const val KEY_SHOW_DOWNLOADS = "show_downloads"
         /** With [KEY_SHOW_DOWNLOADS]: the download to focus */
@@ -107,26 +132,6 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         fun channelTabIntent(context: Context, tabId: Long, url: String): Intent =
             Intent(Intent.ACTION_VIEW, Uri.parse(url), context, MainActivity::class.java).putExtra(EXTRA_TAB_ID, tabId)
 
-        /**
-         * The intent that starts the browser activity of the other process (incognito or not) and makes it
-         * kill this one. [source] (an intent that came to the activity of the wrong process: a link to
-         * open) goes there whole, so it is handled as if it had come there.
-         */
-        internal fun switchProcessIntent(context: Context, incognitoMode: Boolean, source: Intent?, pidToKill: Int): Intent {
-            val activityClass = if (incognitoMode) IncognitoModeMainActivity::class.java
-            else MainActivity::class.java
-            val intent = Intent(context, activityClass)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            if (source != null) {
-                intent.action = source.action
-                //setData and setType clear each other
-                intent.setDataAndType(source.data, source.type)
-                source.extras?.let { intent.putExtras(it) }
-            }
-            //after the extras: an intent restored from the history may hold the pid of a process gone
-            intent.putExtra(KEY_PROCESS_ID_TO_KILL, pidToKill)
-            return intent
-        }
     }
 
     private lateinit var uiMode: UiMode
@@ -149,12 +154,23 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     /** Back of a fullscreen page goes to the back callbacks of the screen, not to the fullscreen view of WebView */
     private var fullscreenOverlayBack: OverlayBackInvokedCallback? = null
     protected val config = AppContext.provideConfig()
+    /**
+     * What this activity shows ([wantedSpace] when it was created). Another space takes the screen in a new
+     * activity ([switchSpace]), so the browser core, the engine views and all the models of this one go with it.
+     */
+    private var space = BrowserSpace.MAIN
+    /** Another activity is taking the screen for another space ([switchSpace]) */
+    private var switchingSpace = false
+    private val profileLock by lazy { ProfileLock.get(this) }
+    private val policy: ProfilePolicy get() = ProfilePolicy.current
     private val voiceSearchHelper = VoiceSearchHelper(this) { icon, message -> shell.showMessage(icon, message) }
     private val downloadLauncher = DownloadLauncher(this,
         onFolderUnavailable = { shell.showMessage(R.drawable.ic_warning, getString(R.string.download_folder_unavailable)) }
     ) { shell.onDownloadStarted(it) }
     var openUrlInExternalAppDialog: AlertDialog? = null
     private var tabsLoaded = false
+    /** The PIN dialog of a block page of the site filter is shown */
+    private var askingToAllowSite = false
     /** Url to open that arrived before the tabs were loaded */
     private var pendingIntent: Intent? = null
 
@@ -163,28 +179,38 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val incognitoMode = config.incognitoMode
-        Log.d(TAG, "onCreate incognitoMode: $incognitoMode")
-        if (incognitoMode xor (this is IncognitoModeMainActivity)) {
-            switchProcess(incognitoMode, intent)
-            finish()
-            return
+        //the kids profile is of the TV interface only
+        uiMode = UiModeSelector.select(this, config.interfaceMode)
+        var askWhoIsWatching = false
+        if (!coldStartHandled) {
+            coldStartHandled = true
+            //the device was switched off while the main profile was shown, or the system ended the process
+            if (!isSameSession(intent)) {
+                profileLock.onMainColdStart()
+                askWhoIsWatching = kidsProfileEnabled && profileLock.askWhoIsWatching
+            }
         }
-        val pidToKill = intent?.getIntExtra(KEY_PROCESS_ID_TO_KILL, -1) ?: -1
-        if (pidToKill != -1) {
-            Process.killProcess(pidToKill)
-        }
+        val wanted = wantedSpace()
+        //an incognito session that the kids profile ended, or one the engine can not keep apart any more
+        if (wanted != BrowserSpace.INCOGNITO && config.incognitoMode) dropIncognitoTabs()
+        space = wanted
+        //before the models: they take the data of the profile shown. Those of another space (the system destroyed
+        //the activity while another space came to be wanted) go
+        if (modelsSpace != null && modelsSpace != wanted) ActiveModelsRepository.releaseAll()
+        modelsSpace = wanted
+        AppContext.kidsProfile = wanted == BrowserSpace.KIDS
+        Log.d(TAG, "onCreate space: $space")
 
-        if (incognitoMode) {
-            WebEngineFactory.prepareIncognitoProcess()
-        }
+        TVBro.instance.startBrowser()
+        //the filter of the kids profile is in memory only while it is shown
+        TVBro.container.siteFilter.setShown(wanted == BrowserSpace.KIDS)
+        ActivityResults.reset()
         AppSettingsStore.rememberStartupValues(config)
         lifecycleScope.launch(Dispatchers.IO) { LegacySync.drop(applicationContext, SendSettings(applicationContext, config.prefs)) }
         settingsModel = ActiveModelsRepository.get(SettingsModel::class, this)
         controller = ActiveModelsRepository.get(BrowserController::class, this)
         autoUpdateModel = ActiveModelsRepository.get(AutoUpdateModel::class, this)
         uiHandler = Handler(Looper.getMainLooper())
-        uiMode = UiModeSelector.select(this, config.interfaceMode)
         shell = when (uiMode) {
             UiMode.TV -> TvShell(this)
             UiMode.PHONE -> PhoneShell(this)
@@ -238,6 +264,19 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         screenBackDispatcher.addCallback(this, voiceSearchHelper.backCallback)
 
         loadState()
+        if (askWhoIsWatching) askWhoIsWatching()
+    }
+
+    /**
+     * The app starts with the choice of the profile: the one shown stays (the main one asks for the PIN while it is
+     * locked, [switchProfile]); the tabs of the profile shown load meanwhile. A link that came with the start opens
+     * in the profile shown before the choice.
+     */
+    private fun askWhoIsWatching() {
+        ProfileChooserDialog.show(this, profileLock.kidsTitle(this)) { main ->
+            if (isFinishing || switchingSpace) return@show
+            if (main != (space != BrowserSpace.KIDS)) switchProfile()
+        }
     }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -267,9 +306,7 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     override fun closeWindow() {
         Log.d(TAG, "closeWindow")
         lifecycleScope.launch {
-            if (config.incognitoMode) {
-                toggleIncognitoMode(false).join()
-            }
+            if (space == BrowserSpace.INCOGNITO) endIncognito()
             finish()
         }
     }
@@ -289,13 +326,119 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
             downloadLauncher.downloadAgain(item, engine?.userAgentString, engine?.getCookies(item.url))
         }
 
-        override suspend fun remove(ids: List<Long>) = TVBro.container.data.downloads.delete(ids)
+        override suspend fun remove(ids: List<Long>) = TVBro.container.mainData.downloads.delete(ids)
 
         override fun onScreenShown(shown: Boolean) = downloadLauncher.onScreenShown(shown)
     }
 
     /** Opens the settings of the shell at the [category] (the update dialog opens About) */
-    fun showSettings(category: SettingsNavigator.Category? = null) = shell.showSettings(category)
+    fun showSettings(category: SettingsNavigator.Category? = null) {
+        if (!policy.settings) return
+        shell.showSettings(category)
+    }
+
+    override val kidsProfileEnabled: Boolean get() = kidsProfileAvailable && profileLock.enabled
+
+    override val kidsProfileAvailable: Boolean
+        get() = uiMode == UiMode.TV && WebEngineFactory.supportsKidsProfile()
+
+    /** Where the browser is to be now: the kids profile unless its PIN was entered, else incognito or not */
+    private fun wantedSpace(): BrowserSpace {
+        if (kidsProfileAvailable && profileLock.kidsActive) return BrowserSpace.KIDS
+        //never on while the kids profile is shown: leaving it goes to the main profile
+        return if (config.incognitoMode && WebEngineFactory.supportsIncognito()) BrowserSpace.INCOGNITO else BrowserSpace.MAIN
+    }
+
+    /**
+     * Deletes the tabs of an incognito session that ended without its activity: the kids profile took the screen
+     * when the process started, or the engine no longer keeps the incognito data apart. The data of its pages
+     * are deleted by the engine too (WebView deletes the profile of the incognito mode when it starts out of it).
+     */
+    private fun dropIncognitoTabs() {
+        config.incognitoMode = false
+        val app = applicationContext
+        val container = TVBro.container
+        container.tabWrites.enqueue {
+            val data = container.mainData
+            val tabs = data.tabs.load(incognito = true)
+            data.tabs.deleteAll(incognito = true)
+            withContext(Dispatchers.IO) {
+                for (tab in tabs) container.mainTabFiles.removeFiles(tab.wvStateFileName, tab.thumbnailHash)
+            }
+            try {
+                WebEngineFactory.clearIncognitoData(app)
+            } catch (e: Exception) {
+                Log.e(TAG, "dropIncognitoTabs", e)
+            }
+        }
+    }
+
+    /**
+     * Leaving the incognito mode in its activity: its tabs are closed (their rows and files deleted, their engines
+     * destroyed) and the engine deletes the data of their pages
+     */
+    private suspend fun endIncognito() {
+        controller.onCloseAllTabs().join()
+        controller.currentTab.value = null
+        try {
+            WebEngineFactory.clearIncognitoData(this)
+        } catch (e: Exception) {
+            Log.e(TAG, "endIncognito", e)
+        }
+        config.incognitoMode = false
+    }
+
+    /** Goes to the space the browser is to be in; @return false if this activity shows it */
+    private fun routeToWantedSpace(forward: Intent? = null): Boolean {
+        if (switchingSpace) return true
+        val wanted = wantedSpace()
+        if (wanted == space) return false
+        switchSpace(wanted, forward)
+        return true
+    }
+
+    /**
+     * Another space takes the screen, in a new activity of this process: the tabs of this one are saved (those of
+     * the incognito mode deleted, [endIncognito]), all the models are released, so the browser core and the engine
+     * views go with them, and the new activity takes the data of its profile ([AppContext.kidsProfile]). [forward]:
+     * an intent that came while another space was wanted (a link of another app), handled there.
+     */
+    private fun switchSpace(target: BrowserSpace, forward: Intent? = null) {
+        if (switchingSpace) return
+        Log.d(TAG, "switchSpace: $space -> $target")
+        switchingSpace = true
+        shell.showBusy(true)
+        //its video is of this space
+        PictureInPicturePlayback.end()
+        controller.onActivityPause()
+        val leavingIncognito = space == BrowserSpace.INCOGNITO && target != BrowserSpace.INCOGNITO
+        val app = applicationContext
+        TVBro.container.appScope.launch {
+            if (leavingIncognito) endIncognito()
+            TVBro.container.tabWrites.awaitPending()
+            ActiveModelsRepository.releaseAll()
+            val intent = if (forward != null) Intent(forward).setClass(app, MainActivity::class.java)
+                else Intent(app, MainActivity::class.java)
+            //a new instance: this one is finishing, so the singleTask activity is not reused
+            finish()
+            startActivity(intent, ActivityOptions.makeCustomAnimation(app, 0, 0).toBundle())
+        }
+    }
+
+    override fun switchProfile() {
+        if (!kidsProfileEnabled) return
+        if (space == BrowserSpace.KIDS) {
+            PinDialog.ask(this, getString(R.string.profile_main)) { right ->
+                if (right) {
+                    profileLock.enterMain()
+                    routeToWantedSpace()
+                }
+            }
+        } else {
+            profileLock.enterKids()
+            routeToWantedSpace()
+        }
+    }
 
     override fun toggleSiteAdBlock() {
         val tab = controller.currentTab.value ?: return
@@ -374,9 +517,20 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         builder.show()
     }
 
-    override fun download(request: DownloadRequest) = downloadLauncher.download(request)
+    override fun download(request: DownloadRequest) {
+        if (refusedByProfile(policy.downloads)) return
+        downloadLauncher.download(request)
+    }
 
-    override suspend fun receiveDownload(request: DownloadRequest) = downloadLauncher.receive(request)
+    override suspend fun receiveDownload(request: DownloadRequest) =
+        if (policy.downloads && policy.sendToTv) downloadLauncher.receive(request) else null
+
+    /** Tells the user that the kids profile does not do it; @return true when it is refused */
+    private fun refusedByProfile(allowed: Boolean): Boolean {
+        if (allowed) return false
+        shell.showMessage(R.drawable.ic_lock, getString(R.string.profile_not_available))
+        return true
+    }
 
     override fun copyToClipboard(url: String) = TabUiHost.copyToClipboard(this, url)
 
@@ -461,10 +615,13 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     @SuppressLint("MissingSuperCall")
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false)) {
+        //the main profile was away from the screen for too long: it is locked, and the link opens in the kids profile
+        if (space != BrowserSpace.KIDS) profileLock.onMainBackOnScreen()
+        if (routeToWantedSpace(intent)) return
+        if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false) && policy.downloads) {
             shell.showAllDownloads(intent.getLongExtra(KEY_DOWNLOAD_ID, 0L).takeIf { it > 0L })
         }
-        if (intent.getBooleanExtra(KEY_SHOW_PIP_PLAYER, false)) showPictureInPicturePlayer()
+        if (intent.getBooleanExtra(KEY_SHOW_PIP_PLAYER, false) && policy.pictureInPicture) showPictureInPicturePlayer()
         if (intent.data != null) {
             if (tabsLoaded) {
                 handleIntent(intent)
@@ -505,12 +662,12 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         }
 
         shell.onTabsLoaded()
-        if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false)) {
+        if (intent.getBooleanExtra(KEY_SHOW_DOWNLOADS, false) && policy.downloads) {
             shell.showAllDownloads(intent.getLongExtra(KEY_DOWNLOAD_ID, 0L).takeIf { it > 0L })
         }
         //the window of the player was expanded after this activity had been destroyed
-        if (intent.getBooleanExtra(KEY_SHOW_PIP_PLAYER, false)) showPictureInPicturePlayer()
-        if (autoUpdateModel.needAutoCheckUpdates &&
+        if (intent.getBooleanExtra(KEY_SHOW_PIP_PLAYER, false) && policy.pictureInPicture) showPictureInPicturePlayer()
+        if (policy.appUpdates && autoUpdateModel.needAutoCheckUpdates &&
             autoUpdateModel.updateChecker.versionCheckResult == null &&
                 !autoUpdateModel.lastUpdateNotificationTime.sameDay(Calendar.getInstance())) {
             autoUpdateModel.checkUpdate(false){
@@ -524,8 +681,9 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     private fun handleIntent(intent: Intent) {
         Log.d(TAG, "handleIntent: " + intent.data?.buildUpon()?.fragment(null)?.build())
         val url = intent.data.toString()
-        //a tile of a home screen channel: the tab that is there already
-        val tabId = intent.getLongExtra(EXTRA_TAB_ID, 0L)
+        //a tile of a home screen channel: the tab that is there already (the tabs of the channel are those
+        //of the main profile, their ids mean nothing in another one)
+        val tabId = if (policy.homeChannels) intent.getLongExtra(EXTRA_TAB_ID, 0L) else 0L
         val reuseUrl = if (intent.getBooleanExtra(EXTRA_REUSE_TAB, false)) url else null
         controller.tabsStates.firstOrNull {
             (tabId != 0L && it.id == tabId) || (reuseUrl != null && it.url.trimEnd('/') == reuseUrl.trimEnd('/'))
@@ -598,11 +756,36 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     private fun onBrowserUiEvent(event: BrowserUiEvent) {
         when (event) {
             BrowserUiEvent.LocalNetworkPermissionNeeded -> requestLocalNetworkPermission()
-            is BrowserUiEvent.OpenInExternalApp -> TabUiHost.openInExternalApp(this, event.url)
-            is BrowserUiEvent.AskToOpenInExternalApp -> askUserAndOpenInExternalApp(event.url, event.intent)
+            is BrowserUiEvent.OpenInExternalApp ->
+                if (!refusedByProfile(policy.externalApps)) TabUiHost.openInExternalApp(this, event.url)
+            is BrowserUiEvent.AskToOpenInExternalApp ->
+                if (!refusedByProfile(policy.externalApps)) askUserAndOpenInExternalApp(event.url, event.intent)
             BrowserUiEvent.NoAppToOpenUrl ->
                 Utils.showToast(applicationContext, getString(R.string.err_no_app_to_handle_url))
+            is BrowserUiEvent.AskToAllowSite -> askToAllowSite(event.tab, event.url)
             else -> shell.onUiEvent(event)
+        }
+    }
+
+    /** The PIN, then for how long the site of [url] is let in through the site filter */
+    private fun askToAllowSite(tab: BrowserTab, url: String) {
+        //one at a time: the button of the page may be pressed again meanwhile
+        if (askingToAllowSite) return
+        val host = Uri.parse(url).host ?: return
+        askingToAllowSite = true
+        //what is let in: the site, with its subdomains
+        val site = (WebEngineFactory.siteFilter as? AppSiteFilter)?.siteOf(host) ?: host
+        PinDialog.ask(this, getString(R.string.site_allow_title, site)) { right ->
+            askingToAllowSite = false
+            if (!right) return@ask
+            val hour = 60 * 60 * 1000L
+            AlertDialog.Builder(this)
+                .setTitle(getString(R.string.site_allow_title, site))
+                .setItems(arrayOf(getString(R.string.site_allow_hour), getString(R.string.site_allow_always))) { _, which ->
+                    controller.allowSite(tab, url, if (which == 0) System.currentTimeMillis() + hour else Long.MAX_VALUE)
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
         }
     }
 
@@ -631,6 +814,10 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
             return null
         }
 
+        //the kids profile is not filled with what the system saved for its owner (addresses, cards)
+        if (!policy.autofill && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            webView.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+        }
         shell.onTabViewCreated(tab)
 
         return webView
@@ -643,12 +830,21 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
 
     override fun onStart() {
         super.onStart()
+        //the main profile was away from the screen for too long: it is locked
+        //(another space takes the screen in onResume, after a link that came is given to onNewIntent)
+        if (space != BrowserSpace.KIDS) profileLock.onMainBackOnScreen()
         downloadLauncher.onActivityStarted()
     }
 
     override fun onStop() {
         super.onStop()
         downloadLauncher.onActivityStopped()
+        //the browser left the screen (not for a picker it waits for, not to come back in another space)
+        if (space != BrowserSpace.KIDS && !switchingSpace && !isChangingConfigurations &&
+            !ActivityResults.awaited && !TVBro.restartsMainActivity) {
+            profileLock.onMainLeftScreen()
+        }
+        if (!policy.homeChannels) return
         //the home screen shows now: its channels get what changed (the tabs once their files are written)
         val container = TVBro.container
         container.appScope.launch {
@@ -662,6 +858,8 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         updateNetworkAvailability()
         cm.registerDefaultNetworkCallback(networkCallback)
+        //the main profile was locked while away (onStart); a link that came meanwhile went with onNewIntent
+        if (routeToWantedSpace()) return
         controller.onActivityResume()
     }
 
@@ -691,41 +889,14 @@ open class MainActivity : AppCompatActivity(), BrowserShell.Host {
     }
 
     override fun toggleIncognitoMode() {
-        toggleIncognitoMode(true)
-    }
-
-    private fun toggleIncognitoMode(andSwitchProcess: Boolean) = lifecycleScope.launch(Dispatchers.Main) {
-        Log.d(TAG, "toggleIncognitoMode andSwitchProcess: $andSwitchProcess")
-        val becomingIncognitoMode = !config.incognitoMode
-        shell.showBusy(true)
-        if (!becomingIncognitoMode) {
-            WebEngineFactory.clearIncognitoBrowsingData(this@MainActivity)
-            controller.onCloseAllTabs().join()
-            controller.currentTab.value = null
-            WebEngineFactory.deleteIncognitoData()
+        if (switchingSpace) return
+        if (space == BrowserSpace.INCOGNITO) {
+            switchSpace(BrowserSpace.MAIN)
+            return
         }
-        shell.showBusy(false)
-        config.incognitoMode = becomingIncognitoMode
-        if (andSwitchProcess) {
-            if (becomingIncognitoMode) {
-                //the process is killed without pausing the activity
-                controller.onActivityPause()
-            }
-            switchProcess(becomingIncognitoMode)
-        }
-    }
-
-    /** [intentToForward]: the intent of this activity, when it came to the wrong process; null on a toggle */
-    private fun switchProcess(incognitoMode: Boolean, intentToForward: Intent? = null) {
-        Log.d(TAG, "switchProcess incognitoMode: $incognitoMode")
-        val app = applicationContext
-        val intent = switchProcessIntent(app, incognitoMode, intentToForward, Process.myPid())
-        TVBro.container.appScope.launch {
-            //tabs state saved on activity pause should not be lost
-            TVBro.container.tabWrites.awaitPending()
-            app.startActivity(intent)
-            exitProcess(0)
-        }
+        if (refusedByProfile(policy.incognito)) return
+        config.incognitoMode = true
+        switchSpace(BrowserSpace.INCOGNITO)
     }
 
     val onBackPressedCallback = object : OnBackPressedCallback(true) {

@@ -120,6 +120,50 @@ class SettingsRowsView @JvmOverloads constructor(
         for (holder in holders.values) (holder as? FieldHolder)?.commit()
     }
 
+    /**
+     * Up and Down go to the row above or below, when the focused view does not take them itself. The scroll
+     * view of the screen would move the focus with the nearest view the platform finds (FocusFinder), not
+     * through focusSearch, so it is done here, before the key reaches it.
+     */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (super.dispatchKeyEvent(event)) return true
+        if (touch || event.action != KeyEvent.ACTION_DOWN) return false
+        val direction = when (event.keyCode) {
+            KeyEvent.KEYCODE_DPAD_UP -> FOCUS_UP
+            KeyEvent.KEYCODE_DPAD_DOWN -> FOCUS_DOWN
+            else -> return false
+        }
+        val focused = findFocus() ?: return false
+        return rowTargetFrom(focused, direction)?.requestFocus() == true
+    }
+
+    /**
+     * The row above or below the one that has the [focused] view, in the order of the rows: the nearest view the
+     * platform finds is not always in it (from a button at the end of a row, the button of the row after the next
+     * one is nearer than the middle of a choice that spans the row between them). Null when the focus is not in
+     * the rows or no row there takes it.
+     */
+    private fun rowTargetFrom(focused: View, direction: Int): View? {
+        if (direction != FOCUS_UP && direction != FOCUS_DOWN) return null
+        val ids = structure.flatMap { it.second }
+        val index = ids.indexOfFirst { id -> holders[id]?.view?.let { isAncestorOf(it, focused) } == true }
+        if (index == -1) return null
+        val others = if (direction == FOCUS_DOWN) index + 1 until ids.size else index - 1 downTo 0
+        for (i in others) {
+            holders[ids[i]]?.focusTarget()?.takeIf { it.isShown }?.let { return it }
+        }
+        return null
+    }
+
+    private fun isAncestorOf(ancestor: View, view: View): Boolean {
+        var v: View? = view
+        while (v != null) {
+            if (v === ancestor) return true
+            v = v.parent as? View
+        }
+        return false
+    }
+
     /** The view the focus goes to when it comes into the rows: the first row that takes it */
     fun firstFocusable(): View? = holders.values.firstNotNullOfOrNull { it.focusTarget() }
 

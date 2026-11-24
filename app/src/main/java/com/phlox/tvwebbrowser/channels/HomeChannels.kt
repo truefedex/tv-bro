@@ -10,6 +10,7 @@ import androidx.annotation.VisibleForTesting
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.TVBro
+import com.phlox.tvwebbrowser.profile.ProfileLock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -23,8 +24,8 @@ import java.io.RandomAccessFile
  *
  * A sync makes the channels of the given kinds what the settings say: an enabled one is created when missing
  * and gets its programs, a disabled one is deleted (also when the app lost its prefs: channels are found by
- * their internal id, nothing is kept about them). Syncs run one at a time, also across the processes of the
- * app (a lock file), so two of them never create a channel twice.
+ * their internal id, nothing is kept about them). Syncs run one at a time (a mutex and a lock file), so two of
+ * them never create a channel twice.
  */
 object HomeChannels {
     private const val TAG = "HomeChannels"
@@ -32,11 +33,11 @@ object HomeChannels {
     private val mutex = Mutex()
 
     enum class Mode {
-        /** Creates and deletes channels as the settings say (the browser processes) */
+        /** Creates and deletes channels as the settings say (the browser, the settings) */
         FULL,
         /**
-         * Only refreshes the programs of channels that exist (the downloads process, whose prefs may be stale:
-         * it never brings back a channel the user turned off)
+         * Only refreshes the programs of channels that exist (the download service after a download: it never
+         * brings back a channel the user turned off)
          */
         UPDATE_EXISTING
     }
@@ -61,6 +62,12 @@ object HomeChannels {
             false
         }
     }
+
+    /**
+     * The kids profile is on: the channels show nothing of the main profile then (its pages, its files, which
+     * a tile opens without the PIN), so all of them are deleted, also by a sync of the download service
+     */
+    fun kidsProfileOn(context: Context): Boolean = ProfileLock.get(context).enabled
 
     fun isEnabled(config: Config, kind: ChannelKind): Boolean = when (kind) {
         ChannelKind.BOOKMARKS -> config.channelBookmarks
@@ -106,9 +113,10 @@ object HomeChannels {
         val config = AppContext.provideConfig()
         val sources by lazy { sourcesFactory(context) }
         val result = HashMap<ChannelKind, Long>()
+        val kidsProfile = kidsProfileOn(context)
         for (kind in kinds) {
             try {
-                if (mode == Mode.FULL && !isEnabled(config, kind)) {
+                if (kidsProfile || (mode == Mode.FULL && !isEnabled(config, kind))) {
                     if (publisher.delete(kind) > 0) Log.i(TAG, "deleted the channel of ${kind.id}")
                     ChannelPosters.cleanup(context, kind, emptyList())
                     continue
@@ -141,7 +149,7 @@ object HomeChannels {
         return result
     }
 
-    /** One sync at a time in all processes of the app (the mutex covers the threads of this one) */
+    /** One sync at a time (the mutex covers the threads, the lock file the processes of older versions during an update) */
     private inline fun <T> withProcessLock(context: Context, block: () -> T): T {
         RandomAccessFile(File(context.noBackupFilesDir, "channels.lock"), "rw").use { file ->
             val lock = file.channel.lock()
@@ -165,12 +173,13 @@ object HomeChannels {
 
     private fun defaultSources(context: Context): Map<ChannelKind, ChannelSource> {
         val container = TVBro.container
-        val data = container.data
+        //the channels show the main profile, also while another one is shown (they are deleted then)
+        val data = container.mainData
         val config = AppContext.provideConfig()
         val favicons = CachedFavicons(data.hostConfigs)
         return mapOf(
             ChannelKind.BOOKMARKS to BookmarksChannelSource(data.favorites, favicons, config),
-            ChannelKind.TABS to TabsChannelSource(data.tabs, container.tabFiles, favicons, config),
+            ChannelKind.TABS to TabsChannelSource(data.tabs, container.mainTabFiles, favicons, config),
             ChannelKind.DOWNLOADS to DownloadsChannelSource(data.downloads)
         )
     }

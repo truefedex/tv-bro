@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.profile.ProfilePolicy
 import com.phlox.tvwebbrowser.model.HistoryItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -154,6 +155,7 @@ class HistoryNavigator(
     private var query = ""
     private var words: List<String> = emptyList()
     private var selection: LinkedHashSet<Long>? = null
+    private val canDelete = ProfilePolicy.current.deleteHistory
 
     val isSelecting: Boolean get() = selection != null
     val currentQuery: String get() = query
@@ -215,10 +217,20 @@ class HistoryNavigator(
 
     /** Starts the selection mode with the [item] chosen, or chooses it in that mode */
     fun onRowLongClick(item: HistoryItem) {
+        if (!canDelete) return
         if (selection == null) startSelection(item) else toggle(item)
     }
 
-    fun actionsOf(@Suppress("UNUSED_PARAMETER") item: HistoryItem): List<Action> = Action.entries
+    /** The kids profile keeps its history: choosing visits is only for deleting them */
+    fun actionsOf(@Suppress("UNUSED_PARAMETER") item: HistoryItem): List<Action> =
+        if (canDelete) Action.entries else listOf(Action.OPEN_IN_NEW_TAB, Action.COPY_LINK)
+
+    /** Tells the user that the profile does not delete visits; @return true when it does not */
+    private fun deletingRefused(): Boolean {
+        if (canDelete) return false
+        host.showMessage(R.drawable.ic_lock, context.getString(R.string.profile_not_available))
+        return true
+    }
 
     fun perform(item: HistoryItem, action: Action) {
         when (action) {
@@ -258,6 +270,7 @@ class HistoryNavigator(
 
     /** Asks to delete the chosen items, and deletes them */
     fun deleteSelected() {
+        if (deletingRefused()) return
         val ids = selection ?: return
         val chosen = all.filter { it.id in ids }
         if (chosen.isEmpty()) {
@@ -272,6 +285,7 @@ class HistoryNavigator(
 
     /** Asks to delete the whole history, and deletes it */
     fun clearAll() {
+        if (deletingRefused()) return
         if (all.isEmpty()) {
             host.showMessage(R.drawable.ic_history, context.getString(R.string.history_is_empty))
             return

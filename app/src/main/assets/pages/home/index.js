@@ -68,8 +68,15 @@ function onIcoLoadError(element) {
             }
         }
     }
-    element.src='ic_not_available.svg';
-    element.style.filter = "invert(1)";
+    setIcon(element, "ic_not_available.svg", "no-icon");
+}
+
+/** The icon of a tile and its kind: "" for the icon of a link, "no-icon" for the picture of none, "add" for an
+ * empty place of a bookmark (the page styles them for its theme) */
+function setIcon(element, src, kind) {
+    element.src = src;
+    element.classList.toggle("no-icon", kind === "no-icon");
+    element.classList.toggle("add", kind === "add");
 }
 
 function onSuggestionClicked(index) {
@@ -80,7 +87,11 @@ function onSuggestionClicked(index) {
         if (index >= recommendationsToDisplay.length) return;
         bookmark = recommendationsToDisplay[index];
     }
-    if (!bookmark) return;
+    if (!bookmark) {
+        //an empty place of a bookmark: a click adds one there
+        if (homePageLinksMode === "BOOKMARKS" && window.hasOwnProperty( "TVBro" )) TVBro.onEditBookmark(index);
+        return;
+    }
     var url = bookmark.dest_url ? bookmark.dest_url : bookmark.url;
     window.location.href = url;
 }
@@ -145,17 +156,17 @@ function renderLinks(mode, linksArray) {
             if (link) {
                 //the icon of the app is the last resort, not tried again
                 icon.dataset.pageUrl = link.favicon && link.favicon.indexOf("favicon://") === 0 ? "" : link.url;
-                icon.src = link.favicon;
-                //color-scheme: only light;
-                icon.style.filter = "";
+                setIcon(icon, link.favicon, "");
                 //titles come from the pages: text, not markup
                 titleElement.textContent = link.title;
                 descriptionElement.textContent = link.description ? link.description : link.url;
             } else {
                 icon.dataset.pageUrl = "";
-                icon.src = "ic_not_available.svg";
-                //color-scheme: default;
-                icon.style.filter = "invert(1)";
+                if (homePageLinksMode == "BOOKMARKS" && window.hasOwnProperty( "TVBro" )) {
+                    setIcon(icon, "ic_add.svg", "add");
+                } else {
+                    setIcon(icon, "ic_not_available.svg", "no-icon");
+                }
                 titleElement.textContent = "\u00a0";
                 descriptionElement.textContent = "\u00a0";
             }
@@ -222,8 +233,7 @@ function onFaviconLoaded(url, data) {
     for (var i = 0; i < icons.length; i++) {
         if (icons[i].dataset.faviconRequest === url) {
             icons[i].dataset.faviconRequest = "";
-            icons[i].src = data;
-            icons[i].style.filter = "";
+            setIcon(icons[i], data, "");
         }
     }
 }

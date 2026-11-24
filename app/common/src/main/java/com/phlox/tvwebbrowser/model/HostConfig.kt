@@ -38,6 +38,14 @@ class HostConfig(
      */
     @ColumnInfo(name = "page_zoom")
     var pageZoom: Int? = null
+    /**
+     * The site filter lets this site in (the row of a registrable domain, with its subdomains): a parent allowed it
+     * with the PIN at [allowedAt] until [allowedUntil] (`Long.MAX_VALUE`: for good); null if it is not allowed
+     */
+    @ColumnInfo(name = "allowed_at")
+    var allowedAt: Long? = null
+    @ColumnInfo(name = "allowed_until")
+    var allowedUntil: Long? = null
 
     companion object {
         const val POPUP_BLOCK_NONE = 0
