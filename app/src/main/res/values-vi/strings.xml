@@ -596,6 +596,15 @@
   <string name="settings_proxy_username">Tên người dùng</string>
   <string name="settings_proxy_login_summary">Để trống nếu proxy không yêu cầu đăng nhập</string>
   <string name="settings_proxy_password">Mật khẩu</string>
+  <string name="settings_dns">Máy chủ DNS</string>
+  <string name="settings_dns_summary">Trang, tệp tải xuống và video tìm trang web qua DNS của thiết bị hoặc mạng</string>
+  <string name="settings_dns_system">Của thiết bị (mặc định)</string>
+  <string name="settings_dns_custom">Máy chủ khác…</string>
+  <string name="settings_dns_in_use_s">Trang, tệp tải xuống và video tìm trang web qua %s bằng kết nối mã hóa, hoặc qua DNS của thiết bị khi máy chủ không trả lời</string>
+  <string name="settings_dns_proxy">Không dùng khi proxy đang bật: proxy tìm trang web</string>
+  <string name="settings_dns_incomplete">Không dùng: hãy nhập địa chỉ của máy chủ DNS over HTTPS</string>
+  <string name="settings_dns_url">Địa chỉ máy chủ</string>
+  <string name="settings_dns_bad_url">Không phải địa chỉ máy chủ DNS over HTTPS: địa chỉ bắt đầu bằng https://</string>
   <string name="settings_version_s">Phiên bản %s</string>
   <string name="settings_version_line">Phiên bản %1$s (%2$s) · %3$s</string>
   <string name="settings_group_updates">Cập nhật</string>

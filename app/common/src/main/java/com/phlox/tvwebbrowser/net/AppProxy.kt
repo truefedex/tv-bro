@@ -15,18 +15,28 @@ import java.net.URLConnection
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * The proxy of the app's own requests (the web engines get it through `WebEngineFactory.applyProxy`).
- * Connections are opened with [open], which gives the proxy to the connection itself: the HTTP client of
- * Android tries a direct connection after the proxies a [ProxySelector] gives fail, but never after a
- * proxy given to the connection. The default selector ([install]) is only for code that opens connections
- * itself (the built-in player).
+ * The proxy of the app's own requests ([current]: the proxy of the user, else the relay of the DNS in use; the
+ * web engines get them through `WebEngineFactory.applyProxy` and `applyDns`). Connections are opened with
+ * [open], which gives the proxy to the connection itself: the HTTP client of Android tries a direct connection
+ * after the proxies a [ProxySelector] gives fail, but never after a proxy given to the connection. The default
+ * selector ([install]) is only for code that opens connections itself (the built-in player).
  */
 object AppProxy {
     private const val TAG = "AppProxy"
 
-    /** The proxy of this process; null connects directly. Browser processes follow the settings. */
+    /** The proxy of the user; null connects directly. Browser processes follow the settings. */
     @Volatile
     var settings: ProxySettings? = null
+
+    /**
+     * The local SOCKS5 relay that finds sites through the DNS server in use ([AppDns]), while no proxy of the user
+     * is set: the HTTP client of Android gives a SOCKS proxy the names of the hosts, so they are found there
+     */
+    @Volatile
+    var dnsRelay: ProxySettings? = null
+
+    /** What the app's requests go through: the proxy of the user, else the relay of the DNS, else nothing */
+    val current: ProxySettings? get() = settings ?: dnsRelay
 
     /** The proxies connections were opened with, by their address: the authenticator answers them */
     private val usedProxies = ConcurrentHashMap<String, ProxySettings>()
@@ -45,10 +55,10 @@ object AppProxy {
      * an http one redirected to https; the [Authenticator] gives it to the proxy alone, when it asks.
      */
     @Throws(IOException::class)
-    fun open(url: URL, proxy: ProxySettings? = settings): URLConnection = url.openConnection(proxyFor(url.host, proxy))
+    fun open(url: URL, proxy: ProxySettings? = current): URLConnection = url.openConnection(proxyFor(url.host, proxy))
 
     /** The proxy of a connection to [host]: [Proxy.NO_PROXY] without [proxy] and for local addresses */
-    fun proxyFor(host: String?, proxy: ProxySettings? = settings): Proxy {
+    fun proxyFor(host: String?, proxy: ProxySettings? = current): Proxy {
         if (proxy == null || host.isNullOrEmpty() || isBypassed(host)) return Proxy.NO_PROXY
         usedProxies[addressKey(proxy.host, proxy.port)] = proxy
         val type = when (proxy.type) {

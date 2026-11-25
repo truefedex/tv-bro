@@ -596,6 +596,15 @@
     <string name="settings_proxy_username">使用者名稱</string>
     <string name="settings_proxy_login_summary">如果 Proxy 不需要登入，請留空</string>
     <string name="settings_proxy_password">密碼</string>
+    <string name="settings_dns">DNS 伺服器</string>
+    <string name="settings_dns_summary">頁面、下載和影片透過裝置或網路的 DNS 尋找網站</string>
+    <string name="settings_dns_system">裝置（預設）</string>
+    <string name="settings_dns_custom">其他伺服器…</string>
+    <string name="settings_dns_in_use_s">頁面、下載和影片透過 %s 經加密連線尋找網站，它無回應時則透過裝置的 DNS</string>
+    <string name="settings_dns_proxy">Proxy 開啟時不使用：由 Proxy 尋找網站</string>
+    <string name="settings_dns_incomplete">未使用：請輸入 DNS over HTTPS 伺服器的位址</string>
+    <string name="settings_dns_url">伺服器位址</string>
+    <string name="settings_dns_bad_url">不是 DNS over HTTPS 伺服器的位址：應以 https:// 開頭</string>
     <string name="settings_version_s">版本 %s</string>
     <string name="settings_version_line">版本 %1$s（%2$s）· %3$s</string>
     <string name="settings_group_updates">更新</string>

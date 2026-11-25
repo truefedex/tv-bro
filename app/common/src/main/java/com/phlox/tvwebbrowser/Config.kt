@@ -2,6 +2,7 @@ package com.phlox.tvwebbrowser
 
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
+import com.phlox.tvwebbrowser.net.DnsSettings
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
@@ -71,6 +72,8 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         const val PROXY_PORT_KEY = "proxy_port"
         const val PROXY_USERNAME_KEY = "proxy_username"
         const val PROXY_PASSWORD_KEY = "proxy_password"
+        const val DNS_PROVIDER_KEY = "dns_provider"
+        const val CUSTOM_DNS_URL_KEY = "custom_dns_url"
         const val DOWNLOAD_FOLDER_URI_KEY = "download_folder_uri"
         const val DOWNLOAD_FOLDER_NAME_KEY = "download_folder_name"
         const val CHANNEL_BOOKMARKS_KEY = "channel_bookmarks"
@@ -523,6 +526,24 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
      */
     val proxy: ProxySettings?
         get() = ProxySettings.of(proxyEnabled, proxyType, proxyHost, proxyPort, proxyUsername, proxyPassword)
+
+    var dnsProvider: DnsSettings.Provider
+        get() = prefs.getString(DNS_PROVIDER_KEY, null)
+            ?.let { name -> DnsSettings.Provider.entries.find { it.name == name } } ?: DnsSettings.Provider.SYSTEM
+        set(value) {
+            prefs.edit().putString(DNS_PROVIDER_KEY, value.name).apply()
+        }
+
+    /** The address of the DNS-over-HTTPS server of [DnsSettings.Provider.CUSTOM] */
+    var customDnsUrl: String
+        get() = prefs.getString(CUSTOM_DNS_URL_KEY, "")!!
+        set(value) {
+            prefs.edit().putString(CUSTOM_DNS_URL_KEY, value).apply()
+        }
+
+    /** The DNS-over-HTTPS server chosen: null for the DNS of the device and while the custom address is not one */
+    val dns: DnsSettings?
+        get() = DnsSettings.of(dnsProvider, customDnsUrl)
 
     /**
      * The folder the user chose for downloads (a tree uri of the Storage Access Framework), null for the public

@@ -7,7 +7,9 @@ import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.net.AppDns
 import com.phlox.tvwebbrowser.net.AppProxy
+import com.phlox.tvwebbrowser.net.DnsSettings
 import com.phlox.tvwebbrowser.net.ProxySettings
 
 /**
@@ -19,14 +21,17 @@ enum class EngineSpecificSetting {
     /** The engine's own blocking of trackers ([Config.trackingProtection]) */
     TRACKING_PROTECTION,
     /** Going through a proxy ([WebEngineProviderCallback.applyProxy]) */
-    PROXY
+    PROXY,
+    /** Finding sites through a DNS-over-HTTPS server ([WebEngineProviderCallback.applyDns]) */
+    DNS
 }
 
 interface WebEngineProviderCallback {
     /**
      * [webViewContainer] is where engines put their views (see [WebEngine.onAttachToWindow]). An engine that
      * supports [EngineSpecificSetting.PROXY] goes through the proxy of [AppProxy.settings] before it returns,
-     * so that nothing loads before.
+     * and one that supports [EngineSpecificSetting.DNS] uses the DNS of [AppDns.settings], so that nothing loads
+     * before.
      */
     suspend fun initialize(context: Context, webViewContainer: ViewGroup)
     fun createWebEngine(tab: BrowserTab): WebEngine
@@ -76,6 +81,12 @@ interface WebEngineProviderCallback {
      * Pages never fall back to a direct connection when the proxy fails.
      */
     suspend fun applyProxy(proxy: ProxySettings?) {}
+
+    /**
+     * Makes the pages of the engine find sites through the DNS-over-HTTPS server of [dns] (the DNS of the device
+     * when null), except the local names of [ProxySettings.BYPASS_DOMAINS]; returns once it is applied.
+     */
+    suspend fun applyDns(dns: DnsSettings?) {}
 }
 
 data class WebEngineProvider(
@@ -170,6 +181,12 @@ object WebEngineFactory {
     suspend fun applyProxy(proxy: ProxySettings?) {
         if (!this::initializedProvider.isInitialized) return
         initializedProvider.callback.applyProxy(proxy)
+    }
+
+    /** See [WebEngineProviderCallback.applyDns]; does nothing before [initialize] (it applies the DNS itself) */
+    suspend fun applyDns(dns: DnsSettings?) {
+        if (!this::initializedProvider.isInitialized) return
+        initializedProvider.callback.applyDns(dns)
     }
 
     fun onThemeSettingUpdated(value: Config.Theme) {

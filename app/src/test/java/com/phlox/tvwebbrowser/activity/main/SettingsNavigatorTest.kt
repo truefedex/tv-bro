@@ -9,6 +9,7 @@ import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Row
 import com.phlox.tvwebbrowser.activity.main.SettingsNavigator.Screen
 import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
 import com.phlox.tvwebbrowser.data.FavoritesRepository
+import com.phlox.tvwebbrowser.net.DnsSettings
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
@@ -129,6 +130,10 @@ class SettingsNavigatorTest {
         override var proxyPassword = ""
         override val proxy get() =
             ProxySettings.of(proxyEnabled, proxyType, proxyHost, proxyPort, proxyUsername, proxyPassword)
+        override var supportsDns = true
+        override var dnsProvider = DnsSettings.Provider.SYSTEM
+        override var customDnsUrl = ""
+        override val dns get() = DnsSettings.of(dnsProvider, customDnsUrl)
         override val versionName = "2.2.0"
         override val buildName = "generic"
         override val engineVersion = "WebView 1.0"
@@ -555,6 +560,63 @@ class SettingsNavigatorTest {
         assertEquals(ProxySettings.Type.SOCKS5, store.proxyType)
         assertFalse(Key.PROXY_USERNAME in keys())
         assertFalse(Key.PROXY_PASSWORD in keys())
+    }
+
+    @Test
+    fun dnsServerIsChosenInAdvanced() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ADVANCED)
+        val row = row<Row.Choice>(Key.DNS)
+        assertEquals(DnsSettings.Provider.entries.size, row.options.size)
+        assertEquals(DnsSettings.Provider.SYSTEM.ordinal, row.selected)
+        assertEquals(context.getString(R.string.settings_dns_summary), row.summary)
+        assertFalse(Key.DNS_URL in keys())
+
+        navigator.choose(Key.DNS, DnsSettings.Provider.CLOUDFLARE.ordinal)
+        assertEquals(DnsSettings.Provider.CLOUDFLARE, store.dnsProvider)
+        assertEquals("Cloudflare", row<Row.Choice>(Key.DNS).options[DnsSettings.Provider.CLOUDFLARE.ordinal])
+        assertEquals(context.getString(R.string.settings_dns_in_use_s, "Cloudflare"), row<Row.Choice>(Key.DNS).summary)
+        assertFalse(Key.DNS_URL in keys())
+        //the DNS comes before the proxy
+        assertTrue(keys().indexOf(Key.DNS) < keys().indexOf(Key.PROXY))
+    }
+
+    @Test
+    fun anotherDnsServerIsUsedOnceItsAddressIsOne() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ADVANCED)
+        navigator.choose(Key.DNS, DnsSettings.Provider.CUSTOM.ordinal)
+        assertEquals(DnsSettings.Provider.CUSTOM, store.dnsProvider)
+        assertEquals(context.getString(R.string.settings_dns_incomplete), row<Row.Choice>(Key.DNS).summary)
+        assertNull(row<Row.Field>(Key.DNS_URL).summary)
+
+        navigator.setText(Key.DNS_URL, "dns.example.com")
+        assertEquals(context.getString(R.string.settings_dns_bad_url), row<Row.Field>(Key.DNS_URL).summary)
+        assertNull(store.dns)
+
+        navigator.setText(Key.DNS_URL, " https://dns.example.com/dns-query ")
+        assertEquals("https://dns.example.com/dns-query", store.customDnsUrl)
+        assertNull(row<Row.Field>(Key.DNS_URL).summary)
+        assertEquals(context.getString(R.string.settings_dns_in_use_s, "dns.example.com"), row<Row.Choice>(Key.DNS).summary)
+    }
+
+    @Test
+    fun theProxyFindsTheSitesWhileItIsInUse() {
+        store.dnsProvider = DnsSettings.Provider.GOOGLE
+        store.proxyEnabled = true
+        store.proxyHost = "proxy.example.com"
+        store.proxyPort = 3128
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ADVANCED)
+        assertEquals(context.getString(R.string.settings_dns_proxy), row<Row.Choice>(Key.DNS).summary)
+    }
+
+    @Test
+    fun dnsIsHiddenWhereTheEngineHasNone() {
+        store.supportsDns = false
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.ADVANCED)
+        assertFalse(Key.DNS in keys())
     }
 
     @Test

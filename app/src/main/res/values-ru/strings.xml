@@ -638,6 +638,15 @@
   <string name="settings_proxy_username">Имя пользователя</string>
   <string name="settings_proxy_login_summary">Оставьте пустым, если прокси не требует входа</string>
   <string name="settings_proxy_password">Пароль</string>
+  <string name="settings_dns">DNS-сервер</string>
+  <string name="settings_dns_summary">Адреса сайтов для страниц, загрузок и видео ищутся через DNS устройства или сети</string>
+  <string name="settings_dns_system">Устройства (по умолчанию)</string>
+  <string name="settings_dns_custom">Другой сервер…</string>
+  <string name="settings_dns_in_use_s">Адреса сайтов для страниц, загрузок и видео ищутся через %s по зашифрованному соединению, а пока он не отвечает — через DNS устройства</string>
+  <string name="settings_dns_proxy">Не используется, пока включён прокси: сайты находит прокси</string>
+  <string name="settings_dns_incomplete">Не используется: введите адрес сервера DNS over HTTPS</string>
+  <string name="settings_dns_url">Адрес сервера</string>
+  <string name="settings_dns_bad_url">Это не адрес сервера DNS over HTTPS: он начинается с https://</string>
   <string name="settings_version_s">Версия %s</string>
   <string name="settings_version_line">Версия %1$s (%2$s) · %3$s</string>
   <string name="settings_group_updates">Обновления</string>

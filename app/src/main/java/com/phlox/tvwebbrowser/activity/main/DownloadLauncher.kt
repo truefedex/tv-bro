@@ -175,7 +175,7 @@ class DownloadLauncher(
         service.send(command(DownloadCommands.RESUME, item.id).apply {
             data.putString(DownloadCommands.KEY_COOKIES, cookies)
             data.putString(DownloadCommands.KEY_REFERER, item.referer)
-            AppProxy.settings?.let { data.putBundle(DownloadCommands.KEY_PROXY, it.toBundle()) }
+            AppProxy.current?.let { data.putBundle(DownloadCommands.KEY_PROXY, it.toBundle()) }
             //a new file, if the old one is gone
             DownloadFolder.usable(activity, AppContext.provideConfig())
                 ?.let { data.putString(DownloadCommands.KEY_FOLDER, it.toString()) }
@@ -216,7 +216,7 @@ class DownloadLauncher(
                     val message = command(DownloadCommands.START, download.id).apply {
                         data.putString(DownloadCommands.KEY_COOKIES, download.cookies)
                         data.putString(DownloadCommands.KEY_REFERER, referer)
-                        AppProxy.settings?.let { data.putBundle(DownloadCommands.KEY_PROXY, it.toBundle()) }
+                        AppProxy.current?.let { data.putBundle(DownloadCommands.KEY_PROXY, it.toBundle()) }
                         folder?.let { data.putString(DownloadCommands.KEY_FOLDER, it.toString()) }
                         data.putBoolean(DownloadCommands.KEY_INSTALL,
                             download.operationAfterDownload == Download.OperationAfterDownload.INSTALL)

@@ -625,6 +625,15 @@
     <string name="settings_proxy_username">Nom d’utilisateur</string>
     <string name="settings_proxy_login_summary">Laissez vide si le proxy ne demande pas d’identification</string>
     <string name="settings_proxy_password">Mot de passe</string>
+    <string name="settings_dns">Serveur DNS</string>
+    <string name="settings_dns_summary">Les pages, les téléchargements et les vidéos trouvent les sites via le DNS de l’appareil ou du réseau</string>
+    <string name="settings_dns_system">Appareil (par défaut)</string>
+    <string name="settings_dns_custom">Autre serveur…</string>
+    <string name="settings_dns_in_use_s">Les pages, les téléchargements et les vidéos trouvent les sites via %s avec une connexion chiffrée, ou via le DNS de l’appareil tant qu’il ne répond pas</string>
+    <string name="settings_dns_proxy">Inactif tant que le proxy est activé : le proxy trouve les sites</string>
+    <string name="settings_dns_incomplete">Inactif : saisissez l’adresse d’un serveur DNS over HTTPS</string>
+    <string name="settings_dns_url">Adresse du serveur</string>
+    <string name="settings_dns_bad_url">Ce n’est pas l’adresse d’un serveur DNS over HTTPS : elle commence par https://</string>
     <string name="settings_version_s">Version %s</string>
     <string name="settings_version_line">Version %1$s (%2$s) · %3$s</string>
     <string name="settings_group_updates">Mises à jour</string>

@@ -611,6 +611,15 @@
     <string name="settings_proxy_username">Όνομα χρήστη</string>
     <string name="settings_proxy_login_summary">Αφήστε το κενό αν ο διακομιστής δεν ζητά σύνδεση</string>
     <string name="settings_proxy_password">Κωδικός πρόσβασης</string>
+    <string name="settings_dns">Διακομιστής DNS</string>
+    <string name="settings_dns_summary">Οι σελίδες, οι λήψεις και τα βίντεο βρίσκουν τους ιστότοπους μέσω του DNS της συσκευής ή του δικτύου</string>
+    <string name="settings_dns_system">Συσκευής (προεπιλογή)</string>
+    <string name="settings_dns_custom">Άλλος διακομιστής…</string>
+    <string name="settings_dns_in_use_s">Οι σελίδες, οι λήψεις και τα βίντεο βρίσκουν τους ιστότοπους μέσω %s με κρυπτογραφημένη σύνδεση ή μέσω του DNS της συσκευής όσο δεν απαντά</string>
+    <string name="settings_dns_proxy">Δεν χρησιμοποιείται όσο ο διακομιστής μεσολάβησης είναι ενεργός: αυτός βρίσκει τους ιστότοπους</string>
+    <string name="settings_dns_incomplete">Δεν χρησιμοποιείται: εισαγάγετε τη διεύθυνση ενός διακομιστή DNS over HTTPS</string>
+    <string name="settings_dns_url">Διεύθυνση διακομιστή</string>
+    <string name="settings_dns_bad_url">Δεν είναι διεύθυνση διακομιστή DNS over HTTPS: ξεκινά με https://</string>
     <string name="settings_version_s">Έκδοση %s</string>
     <string name="settings_version_line">Έκδοση %1$s (%2$s) · %3$s</string>
     <string name="settings_group_updates">Ενημερώσεις</string>

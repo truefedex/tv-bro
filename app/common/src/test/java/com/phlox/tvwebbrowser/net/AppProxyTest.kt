@@ -20,6 +20,7 @@ class AppProxyTest {
     @After
     fun tearDown() {
         AppProxy.settings = null
+        AppProxy.dnsRelay = null
     }
 
     @Test
@@ -50,6 +51,23 @@ class AppProxyTest {
         assertEquals(8080, address.port)
         assertEquals(Proxy.NO_PROXY, AppProxy.proxyFor("192.168.1.1"))
         assertEquals(Proxy.Type.SOCKS, AppProxy.proxyFor("example.com", socks).type())
+    }
+
+    @Test
+    fun theRelayOfTheDnsIsUsedWithoutAProxyOfTheUser() {
+        val relay = ProxySettings(ProxySettings.Type.SOCKS5, "127.0.0.1", 40000)
+        AppProxy.dnsRelay = relay
+        assertEquals(relay, AppProxy.current)
+        val proxy = AppProxy.proxyFor("example.com")
+        assertEquals(Proxy.Type.SOCKS, proxy.type())
+        assertEquals(40000, (proxy.address() as InetSocketAddress).port)
+        //local addresses are found by the device
+        assertEquals(Proxy.NO_PROXY, AppProxy.proxyFor("nas.local"))
+        assertEquals(Proxy.NO_PROXY, AppProxy.proxyFor("192.168.1.1"))
+        //the proxy of the user finds the sites itself
+        AppProxy.settings = http
+        assertEquals(http, AppProxy.current)
+        assertEquals(Proxy.Type.HTTP, AppProxy.proxyFor("example.com").type())
     }
 
     @Test

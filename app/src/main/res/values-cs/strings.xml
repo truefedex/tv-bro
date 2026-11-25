@@ -639,6 +639,15 @@
     <string name="settings_proxy_username">Uživatelské jméno</string>
     <string name="settings_proxy_login_summary">Nechte prázdné, pokud proxy nevyžaduje přihlášení</string>
     <string name="settings_proxy_password">Heslo</string>
+    <string name="settings_dns">Server DNS</string>
+    <string name="settings_dns_summary">Stránky, stahování a videa hledají weby přes DNS zařízení nebo sítě</string>
+    <string name="settings_dns_system">Zařízení (výchozí)</string>
+    <string name="settings_dns_custom">Jiný server…</string>
+    <string name="settings_dns_in_use_s">Stránky, stahování a videa hledají weby přes %s šifrovaným spojením, a dokud neodpovídá, přes DNS zařízení</string>
+    <string name="settings_dns_proxy">Nepoužívá se, dokud je zapnutá proxy: weby hledá proxy</string>
+    <string name="settings_dns_incomplete">Nepoužívá se: zadejte adresu serveru DNS over HTTPS</string>
+    <string name="settings_dns_url">Adresa serveru</string>
+    <string name="settings_dns_bad_url">Není to adresa serveru DNS over HTTPS: začíná https://</string>
     <string name="settings_version_s">Verze %s</string>
     <string name="settings_version_line">Verze %1$s (%2$s) · %3$s</string>
     <string name="settings_group_updates">Aktualizace</string>

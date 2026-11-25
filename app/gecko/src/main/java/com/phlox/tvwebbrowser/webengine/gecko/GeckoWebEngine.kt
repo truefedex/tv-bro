@@ -12,7 +12,9 @@ import androidx.annotation.UiThread
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.net.AppDns
 import com.phlox.tvwebbrowser.net.AppProxy
+import com.phlox.tvwebbrowser.net.DnsSettings
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.SiteBlock
@@ -214,10 +216,15 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                     AppWebExtensionBackgroundPortDelegate.current?.sendConfig()
                     //before the sessions of the tabs load a page
                     AppProxy.settings?.let { GeckoProxyPrefs.apply(it) }
+                    AppDns.settings?.let { GeckoDns.apply(runtime.settings, it) }
                 }
 
                 override suspend fun applyProxy(proxy: ProxySettings?) {
                     GeckoProxyPrefs.apply(proxy)
+                }
+
+                override suspend fun applyDns(dns: DnsSettings?) {
+                    GeckoDns.apply(runtime.settings, dns)
                 }
 
                 override fun createWebEngine(tab: BrowserTab): WebEngine {
@@ -225,7 +232,8 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                 }
 
                 override fun supportsSetting(setting: EngineSpecificSetting): Boolean =
-                    setting == EngineSpecificSetting.TRACKING_PROTECTION || setting == EngineSpecificSetting.PROXY
+                    setting == EngineSpecificSetting.TRACKING_PROTECTION || setting == EngineSpecificSetting.PROXY ||
+                        setting == EngineSpecificSetting.DNS
 
                 override suspend fun clearCache(ctx: Context) {
                     suspendCoroutine { cont ->
