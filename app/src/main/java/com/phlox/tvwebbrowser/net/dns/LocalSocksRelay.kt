@@ -68,8 +68,13 @@ class LocalSocksRelay(
 
     /** Closes the connections made so far (pages connect again, finding the addresses anew) */
     fun dropConnections() {
-        connections.toList().forEach(::closeQuietly)
-        connections.clear()
+        //the iterator of the concurrent set, as connections end meanwhile (toList of a set of one that ended
+        //before it was read threw); each one closed is removed, so one made meanwhile stays known
+        val iterator = connections.iterator()
+        while (iterator.hasNext()) {
+            closeQuietly(iterator.next())
+            iterator.remove()
+        }
     }
 
     private fun accept(server: ServerSocket) {
