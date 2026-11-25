@@ -1080,6 +1080,9 @@ class BrowserController : ActiveModel() {
         override fun closeWindow(internalRepresentation: Any) {
             val tabToClose = findTabBySession(internalRepresentation) ?: return
             Log.d(TAG, "closeWindow: ${tabToClose.url}")
+            //a window the page closes (a popup of a sign-in) gives the screen back to the page that opened it
+            val opener = tabToClose.openerTab?.takeIf { it in tabsStates }
+            if (opener != null && currentTab.value == tabToClose) changeTab(opener)
             closeTab(tabToClose)
             sendUiEvent(BrowserUiEvent.TabClosedByPage)
         }

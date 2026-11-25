@@ -296,6 +296,13 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
      * loads: that address is checked as a popup ([com.phlox.tvwebbrowser.webengine.EngineAdBlocker.shouldBlockPopup])
      */
     var popupOpener: String? = null
+    /**
+     * The content process of the session died while its tab was in the background: attaching opens it again. Only
+     * then: the session of a window the page opened is not open yet when its tab is attached, and GeckoView opens it
+     * itself once [MyNavigationDelegate.onNewSession] gives it back (with the window of the page, so `window.opener`
+     * works; an opened one fails an assertion)
+     */
+    private var sessionLost = false
     val navigationDelegate = MyNavigationDelegate(this)
     val progressDelegate = MyProgressDelegate(this)
     val promptDelegate = MyPromptDelegate(this)
@@ -750,6 +757,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
 
     override fun onResume() {
         if (!session.isOpen) {
+            sessionLost = false
             session.open(runtime)
             progressDelegate.sessionState?.let {
                 session.restoreState(it)
@@ -896,17 +904,22 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             previousSession.setActive(false)
             webView.releaseSession()
         }
-        //a session whose content process died in the background opens again with its page
-        val reopened = !session.isOpen
-        if (reopened) session.open(runtime)
+        //a session whose content process died in the background opens again with its page (not the one of a
+        //new window, which GeckoView opens)
+        val reopened = sessionLost && !session.isOpen
+        if (reopened) {
+            sessionLost = false
+            session.open(runtime)
+        }
         webView.coverUntilFirstPaint(Color.WHITE)
         webView.setSession(session)
         if (reopened) {
             restorePage()
-        } else if (previousSession != null && previousSession != session) {
+        } else if (session.isOpen && previousSession != null && previousSession != session) {
+            //not reloaded: the page keeps what it did in the background (the result of a sign-in its popup
+            //gave it just before it closed, which a reload lost)
             Log.d(TAG, "Activating session")
             session.setActive(true)
-            session.reload()
         }
     }
 
@@ -920,6 +933,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
         val view = webView
         if (lostSession != session || view == null || view.session != session) {
             Log.w(TAG, "Background session lost")
+            if (lostSession == session) sessionLost = true
             return
         }
         Log.w(TAG, "Current session lost, reopening")
