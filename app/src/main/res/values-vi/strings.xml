@@ -552,6 +552,8 @@
   <string name="settings_key_now_s">Hiện tại: %s</string>
   <string name="next_tab">Thẻ tiếp theo</string>
   <string name="previous_tab">Thẻ trước</string>
+  <string name="page_up">Lên một trang</string>
+  <string name="page_down">Xuống một trang</string>
   <string name="settings_keys_default">Mặc định</string>
   <string name="settings_keys_max_d">Mỗi thao tác có tối đa %d phím: phím mới thay phím cũ nhất</string>
   <string name="settings_key_taken_s_s">%1$s đã được gán cho “%2$s”. Nhấn lại để gán vào đây</string>

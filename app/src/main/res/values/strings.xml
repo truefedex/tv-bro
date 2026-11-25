@@ -640,6 +640,8 @@
     <string name="settings_key_now_s">Now: %s</string>
     <string name="next_tab">Next tab</string>
     <string name="previous_tab">Previous tab</string>
+    <string name="page_up">Page up</string>
+    <string name="page_down">Page down</string>
     <string name="settings_keys_default">Default</string>
     <string name="settings_keys_max_d">An action has up to %d keys: a new one replaces the oldest</string>
     <string name="settings_key_taken_s_s">%1$s is set for “%2$s”. Press it again to set it here instead</string>

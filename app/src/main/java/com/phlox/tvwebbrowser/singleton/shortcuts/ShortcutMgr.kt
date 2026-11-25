@@ -111,6 +111,8 @@ class ShortcutMgr @VisibleForTesting internal constructor(private val prefs: Sha
             Shortcut.REFRESH_PAGE -> commands.reload()
             Shortcut.VOICE_SEARCH -> commands.startVoiceSearch()
             Shortcut.FIND_IN_PAGE -> commands.findInPage()
+            Shortcut.PAGE_UP -> commands.scrollPage(up = true)
+            Shortcut.PAGE_DOWN -> commands.scrollPage(up = false)
             Shortcut.NEW_TAB -> commands.newTab()
             Shortcut.CLOSE_TAB -> commands.closeTab()
             Shortcut.NEXT_TAB -> commands.switchTab(1)

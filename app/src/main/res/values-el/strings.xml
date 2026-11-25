@@ -567,6 +567,8 @@
     <string name="settings_key_now_s">Τώρα: %s</string>
     <string name="next_tab">Επόμενη καρτέλα</string>
     <string name="previous_tab">Προηγούμενη καρτέλα</string>
+    <string name="page_up">Σελίδα πάνω</string>
+    <string name="page_down">Σελίδα κάτω</string>
     <string name="settings_keys_default">Προεπιλογή</string>
     <string name="settings_keys_max_d">Μια ενέργεια έχει έως %d πλήκτρα: ένα νέο αντικαθιστά το παλαιότερο</string>
     <string name="settings_key_taken_s_s">Το %1$s έχει οριστεί για «%2$s». Πατήστε το ξανά για να οριστεί εδώ</string>

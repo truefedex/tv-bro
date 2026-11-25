@@ -580,6 +580,8 @@
   <string name="settings_key_now_s">Ora: %s</string>
   <string name="next_tab">Scheda successiva</string>
   <string name="previous_tab">Scheda precedente</string>
+  <string name="page_up">Pagina su</string>
+  <string name="page_down">Pagina giù</string>
   <string name="settings_keys_default">Predefinito</string>
   <string name="settings_keys_max_d">Un\'azione ha fino a %d tasti: uno nuovo sostituisce il più vecchio</string>
   <string name="settings_key_taken_s_s">%1$s è assegnato a «%2$s». Premilo di nuovo per assegnarlo qui</string>

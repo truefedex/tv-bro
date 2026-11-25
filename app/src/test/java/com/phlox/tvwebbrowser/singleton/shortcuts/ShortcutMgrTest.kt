@@ -65,11 +65,19 @@ class ShortcutMgrTest {
         val mgr = ShortcutMgr(prefs)
         assertTrue(mgr.press(KeyEvent.KEYCODE_F5))
         assertTrue(mgr.press(KeyEvent.KEYCODE_R, KeyEvent.META_CTRL_ON))
-        assertTrue(mgr.press(KeyEvent.KEYCODE_CHANNEL_UP))
+        assertTrue(mgr.press(KeyEvent.KEYCODE_TAB, KeyEvent.META_CTRL_ON))
         assertTrue(mgr.press(KeyEvent.KEYCODE_TAB, KeyEvent.META_CTRL_ON or KeyEvent.META_SHIFT_ON))
         assertTrue(mgr.press(KeyEvent.KEYCODE_FORWARD))
         assertTrue(mgr.press(KeyEvent.KEYCODE_W, KeyEvent.META_CTRL_ON))
         assertEquals(listOf("reload", "reload", "switchTab(1)", "switchTab(-1)", "goForward", "closeTab"), commands.log)
+    }
+
+    @Test
+    fun channelKeysPageByDefault() {
+        val mgr = ShortcutMgr(prefs)
+        assertTrue(mgr.press(KeyEvent.KEYCODE_CHANNEL_UP))
+        assertTrue(mgr.press(KeyEvent.KEYCODE_CHANNEL_DOWN))
+        assertEquals(listOf("scrollPage(up)", "scrollPage(down)"), commands.log)
     }
 
     @Test
@@ -250,6 +258,7 @@ class ShortcutMgrTest {
         override fun rewind() { log += "rewind" }
         override fun fastForward() { log += "fastForward" }
         override fun findInPage() { log += "findInPage" }
+        override fun scrollPage(up: Boolean) { log += if (up) "scrollPage(up)" else "scrollPage(down)" }
         override fun newTab() { log += "newTab" }
         override fun closeTab() { log += "closeTab" }
         override fun switchTab(offset: Int) { log += "switchTab($offset)" }

@@ -581,6 +581,8 @@
     <string name="settings_key_now_s">Ahora: %s</string>
     <string name="next_tab">Pestaña siguiente</string>
     <string name="previous_tab">Pestaña anterior</string>
+    <string name="page_up">Página arriba</string>
+    <string name="page_down">Página abajo</string>
     <string name="settings_keys_default">Predeterminado</string>
     <string name="settings_keys_max_d">Una acción tiene hasta %d teclas: una nueva sustituye a la más antigua</string>
     <string name="settings_key_taken_s_s">%1$s está asignada a «%2$s». Púlsela otra vez para asignarla aquí</string>

@@ -594,6 +594,8 @@
   <string name="settings_key_now_s">Зараз: %s</string>
   <string name="next_tab">Наступна вкладка</string>
   <string name="previous_tab">Попередня вкладка</string>
+  <string name="page_up">Сторінка вгору</string>
+  <string name="page_down">Сторінка вниз</string>
   <string name="settings_keys_default">Типово</string>
   <string name="settings_keys_max_d">Дія має до %d клавіш: нова замінює найстарішу</string>
   <string name="settings_key_taken_s_s">%1$s призначено на «%2$s». Натисніть її ще раз, щоб призначити сюди</string>

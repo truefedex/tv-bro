@@ -594,6 +594,8 @@
   <string name="settings_key_now_s">עכשיו: %s</string>
   <string name="next_tab">הכרטיסייה הבאה</string>
   <string name="previous_tab">הכרטיסייה הקודמת</string>
+  <string name="page_up">עמוד למעלה</string>
+  <string name="page_down">עמוד למטה</string>
   <string name="settings_keys_default">ברירת מחדל</string>
   <string name="settings_keys_max_d">לפעולה יש עד %d מקשים: מקש חדש מחליף את הישן ביותר</string>
   <string name="settings_key_taken_s_s">%1$s מוגדר עבור „%2$s”. לחצו עליו שוב כדי להגדיר אותו כאן</string>

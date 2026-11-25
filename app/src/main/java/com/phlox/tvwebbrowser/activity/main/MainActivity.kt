@@ -16,6 +16,8 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.util.TypedValue
+import android.view.InputDevice
+import android.view.KeyCharacterMap
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -573,10 +575,24 @@ class MainActivity : AppCompatActivity(), BrowserShell.Host {
         override fun findInPage() = shell.showFindInPage()
 
         /**
-         * The tabs stay while a video is in fullscreen or in the player: the channel keys of a remote are
-         * pressed by habit while watching
+         * The tabs and the page stay while a video is in fullscreen or in the player: the channel keys of a
+         * remote are pressed by habit while watching
          */
         private fun tabsLocked() = isFullscreen || shell.takesDpad()
+
+        /**
+         * Both engines page on the Page Up and Down keys, so the key goes to the focused view as one of a
+         * keyboard does (past the shortcuts, so a binding of the key itself does not loop)
+         */
+        override fun scrollPage(up: Boolean) {
+            if (tabsLocked()) return
+            val keyCode = if (up) KeyEvent.KEYCODE_PAGE_UP else KeyEvent.KEYCODE_PAGE_DOWN
+            val now = SystemClock.uptimeMillis()
+            for (action in intArrayOf(KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP)) {
+                window.superDispatchKeyEvent(KeyEvent(now, now, action, keyCode, 0, 0,
+                    KeyCharacterMap.VIRTUAL_KEYBOARD, 0, 0, InputDevice.SOURCE_KEYBOARD))
+            }
+        }
 
         override fun newTab() {
             if (tabsLocked()) return

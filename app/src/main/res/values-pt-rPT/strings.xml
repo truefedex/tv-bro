@@ -581,6 +581,8 @@
     <string name="settings_key_now_s">Atual: %s</string>
     <string name="next_tab">Separador seguinte</string>
     <string name="previous_tab">Separador anterior</string>
+    <string name="page_up">Página acima</string>
+    <string name="page_down">Página abaixo</string>
     <string name="settings_keys_default">Predefinição</string>
     <string name="settings_keys_max_d">Uma ação tem até %d teclas: uma nova substitui a mais antiga</string>
     <string name="settings_key_taken_s_s">%1$s está definida para “%2$s”. Prima-a novamente para a definir aqui</string>
