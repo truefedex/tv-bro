@@ -10,7 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
-import com.phlox.tvwebbrowser.browser.ProxySetup
+import com.phlox.tvwebbrowser.browser.NetworkSetup
 import com.phlox.tvwebbrowser.browser.sitefilter.AppSiteFilter
 import com.phlox.tvwebbrowser.webengine.webview.WebViewProfiles
 import com.phlox.tvwebbrowser.browser.adblock.AppEngineAdBlocker
@@ -92,7 +92,7 @@ class TVBro : Application(), Application.ActivityLifecycleCallbacks {
         AppContext.init(this, Config(getSharedPreferences(MAIN_PREFS_NAME, MODE_PRIVATE),
             getSharedPreferences(Config.CREDENTIALS_PREFS_NAME, MODE_PRIVATE)))
 
-        ProxySetup.start(AppContext.provideConfig())
+        NetworkSetup.start(AppContext.provideConfig())
         //before anything can load WebView (only files, also harmless in the GeckoView app)
         WebViewProfiles.deleteDataDirectoriesOfProcesses(this)
 

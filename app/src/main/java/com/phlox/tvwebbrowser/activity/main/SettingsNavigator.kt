@@ -10,6 +10,7 @@ import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
 import com.phlox.tvwebbrowser.data.FavoritesRepository
 import com.phlox.tvwebbrowser.R
+import com.phlox.tvwebbrowser.net.DnsSettings
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
@@ -19,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import java.net.URI
 import java.util.Date
 
 /**
@@ -56,7 +58,7 @@ class SettingsNavigator(
         SITE_VIEW, USER_AGENT, USER_AGENT_STRING, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_PLAYER, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
-        CLEAR_CACHE, ENGINE_DEBUG, HISTORY_RETENTION, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD,
+        CLEAR_CACHE, ENGINE_DEBUG, HISTORY_RETENTION, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD, DNS, DNS_URL,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
         LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, NOTICE,
         KIDS_ABOUT, KIDS_ENABLE, KIDS_OPEN, KIDS_LOCK_DELAY, KIDS_DOWNLOADS, KIDS_PIN, KIDS_DISABLE, KIDS_DELETE_DATA,
@@ -228,6 +230,13 @@ class SettingsNavigator(
         var proxyPassword: String
         /** The proxy the browser goes through: null while it is off or its address is not complete */
         val proxy: ProxySettings?
+        /** The engine can find sites through a DNS-over-HTTPS server */
+        val supportsDns: Boolean
+        /** The setters apply the DNS once the custom address is one (and while no proxy is in use) */
+        var dnsProvider: DnsSettings.Provider
+        var customDnsUrl: String
+        /** The DNS-over-HTTPS server chosen: null for the DNS of the device or while the custom address is not one */
+        val dns: DnsSettings?
 
         val versionName: String
         /** The build (the app store flavor) */
@@ -585,6 +594,11 @@ class SettingsNavigator(
                 if ((index == SITES_ALLOWED_ONLY) == kids.allowedOnly) return
                 kids.allowedOnly = index == SITES_ALLOWED_ONLY
             }
+            Key.DNS -> {
+                val provider = DnsSettings.Provider.entries.getOrNull(index) ?: return
+                if (provider == store.dnsProvider) return
+                store.dnsProvider = provider
+            }
             Key.PROXY_TYPE -> {
                 val type = ProxySettings.Type.entries.getOrNull(index) ?: return
                 if (type == store.proxyType) return
@@ -740,6 +754,7 @@ class SettingsNavigator(
             }
             Key.PROXY_USERNAME -> if (value != store.proxyUsername) store.proxyUsername = value else return
             Key.PROXY_PASSWORD -> if (value != store.proxyPassword) store.proxyPassword = value else return
+            Key.DNS_URL -> if (value != store.customDnsUrl) store.customDnsUrl = value else return
             else -> return
         }
         render()
@@ -1338,6 +1353,7 @@ class SettingsNavigator(
                 if (store.downloadFolderName != null) DOWNLOAD_FOLDER_DEFAULT + 1 else DOWNLOAD_FOLDER_DEFAULT,
                 segmented = false)))
         }
+        if (store.supportsDns) sections += Section(string(R.string.settings_group_dns), dnsRows())
         if (store.supportsProxy) sections += Section(string(R.string.settings_group_proxy), proxyRows())
         return sections
     }
@@ -1348,6 +1364,37 @@ class SettingsNavigator(
         store.downloadFolderName?.let { options += it }
         if (store.downloadFolderPickerAvailable) options += string(R.string.settings_download_folder_choose)
         return options
+    }
+
+    /** The DNS of the device, the servers of [DnsSettings.Provider] and another one: the index is the ordinal */
+    private fun dnsOptions(): List<String> = DnsSettings.Provider.entries.map {
+        when (it) {
+            DnsSettings.Provider.SYSTEM -> string(R.string.settings_dns_system)
+            DnsSettings.Provider.CUSTOM -> string(R.string.settings_dns_custom)
+            else -> it.title!!
+        }
+    }
+
+    private fun dnsRows(): List<Row> {
+        val provider = store.dnsProvider
+        val dns = store.dns
+        val summary = when {
+            provider == DnsSettings.Provider.SYSTEM -> string(R.string.settings_dns_summary)
+            //the proxy finds the sites
+            store.proxy != null -> string(R.string.settings_dns_proxy)
+            dns == null -> string(R.string.settings_dns_incomplete)
+            else -> context.getString(R.string.settings_dns_in_use_s,
+                provider.title ?: runCatching { URI(dns.url).host }.getOrNull() ?: dns.url)
+        }
+        val rows = arrayListOf<Row>(Row.Choice(Key.DNS, string(R.string.settings_dns), summary, dnsOptions(),
+            provider.ordinal, segmented = false))
+        if (provider == DnsSettings.Provider.CUSTOM) {
+            val url = store.customDnsUrl
+            rows += Row.Field(Key.DNS_URL, string(R.string.settings_dns_url),
+                string(R.string.settings_dns_bad_url).takeIf { url.isNotEmpty() && !DnsSettings.isValidUrl(url) },
+                url, string(R.string.settings_dns_url_hint))
+        }
+        return rows
     }
 
     private fun proxyTypeOptions() = listOf(string(R.string.settings_proxy_http), string(R.string.settings_proxy_socks5))

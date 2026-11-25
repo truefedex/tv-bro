@@ -21,7 +21,7 @@ import com.phlox.tvwebbrowser.profile.ProfileLock
 import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.activity.main.dialogs.ShortcutKeyDialog
 import com.phlox.tvwebbrowser.browser.BrowserController
-import com.phlox.tvwebbrowser.browser.ProxySetup
+import com.phlox.tvwebbrowser.browser.NetworkSetup
 import com.phlox.tvwebbrowser.channels.ChannelKind
 import com.phlox.tvwebbrowser.databinding.DialogNoticeBinding
 import com.phlox.tvwebbrowser.channels.HomeChannels
@@ -30,6 +30,7 @@ import com.phlox.tvwebbrowser.browser.adblock.AdBlockService
 import com.phlox.tvwebbrowser.browser.adblock.FilterListCatalog
 import com.phlox.tvwebbrowser.browser.search.OpenSearchDetector
 import com.phlox.tvwebbrowser.browser.search.SearchEngines
+import com.phlox.tvwebbrowser.net.DnsSettings
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.singleton.shortcuts.KeyBinding
 import com.phlox.tvwebbrowser.singleton.shortcuts.Shortcut
@@ -423,12 +424,28 @@ class AppSettingsStore(
         }
     override val proxy: ProxySettings? get() = config.proxy
 
+    override val supportsDns: Boolean
+        get() = WebEngineFactory.supportsSetting(EngineSpecificSetting.DNS)
+    override var dnsProvider: DnsSettings.Provider
+        get() = config.dnsProvider
+        set(value) {
+            config.dnsProvider = value
+            applyProxy()
+        }
+    override var customDnsUrl: String
+        get() = config.customDnsUrl
+        set(value) {
+            config.customDnsUrl = value
+            applyProxy()
+        }
+    override val dns: DnsSettings? get() = config.dns
+
     /**
-     * The app, the engine and the current page go through the proxy at once; after the other settings changed
-     * with it (an address with a port), so that it is applied once
+     * The app, the engine and the current page go through the proxy and the DNS at once; after the other
+     * settings changed with it (an address with a port), so that it is applied once
      */
     private fun applyProxy() {
-        TVBro.container.appScope.launch(Dispatchers.Main) { ProxySetup.apply(config, controller) }
+        TVBro.container.appScope.launch(Dispatchers.Main) { NetworkSetup.apply(config, controller) }
     }
 
     override val versionName: String get() = BuildConfig.VERSION_NAME

@@ -692,6 +692,18 @@
     <string name="settings_proxy_username">User name</string>
     <string name="settings_proxy_login_summary">Leave it empty when the proxy asks for no login</string>
     <string name="settings_proxy_password">Password</string>
+    <string name="settings_group_dns" translatable="false">DNS</string>
+    <string name="settings_dns">DNS server</string>
+    <string name="settings_dns_summary">Pages find sites through the DNS of the device or the network</string>
+    <string name="settings_dns_system">Device (default)</string>
+    <string name="settings_dns_custom">Another server…</string>
+    <!-- %s: the name of the server (Cloudflare) or its host -->
+    <string name="settings_dns_in_use_s">Pages find sites through %s over an encrypted connection (DNS over HTTPS), or through the DNS of the device while it does not answer</string>
+    <string name="settings_dns_proxy">Not in use while the proxy is on: the proxy finds the sites</string>
+    <string name="settings_dns_incomplete">Not in use: enter the address of a DNS-over-HTTPS server</string>
+    <string name="settings_dns_url">Server address</string>
+    <string name="settings_dns_url_hint" translatable="false">https://dns.example.com/dns-query</string>
+    <string name="settings_dns_bad_url">Not the address of a DNS-over-HTTPS server: it starts with https://</string>
     <!-- About; %s: the version name -->
     <string name="settings_version_s">Version %s</string>
     <!-- %1$s: the version name, %2$s: the build (generic, google, foss), %3$s: the web engine and its version -->

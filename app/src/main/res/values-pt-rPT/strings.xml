@@ -625,6 +625,15 @@
     <string name="settings_proxy_username">Nome de utilizador</string>
     <string name="settings_proxy_login_summary">Deixe em branco se o proxy não pedir início de sessão</string>
     <string name="settings_proxy_password">Palavra-passe</string>
+    <string name="settings_dns">Servidor DNS</string>
+    <string name="settings_dns_summary">As páginas encontram os sites através do DNS do dispositivo ou da rede</string>
+    <string name="settings_dns_system">Do dispositivo (predefinição)</string>
+    <string name="settings_dns_custom">Outro servidor…</string>
+    <string name="settings_dns_in_use_s">As páginas encontram os sites através de %s com uma ligação encriptada (DNS over HTTPS), ou através do DNS do dispositivo enquanto este não responder</string>
+    <string name="settings_dns_proxy">Não está em utilização enquanto o proxy está ativo: o proxy encontra os sites</string>
+    <string name="settings_dns_incomplete">Não está em utilização: introduza o endereço de um servidor DNS over HTTPS</string>
+    <string name="settings_dns_url">Endereço do servidor</string>
+    <string name="settings_dns_bad_url">Não é o endereço de um servidor DNS over HTTPS: começa por https://</string>
     <string name="settings_version_s">Versão %s</string>
     <string name="settings_version_line">Versão %1$s (%2$s) · %3$s</string>
     <string name="settings_group_updates">Atualizações</string>

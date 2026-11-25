@@ -638,6 +638,15 @@
   <string name="settings_proxy_username">Ім\'я користувача</string>
   <string name="settings_proxy_login_summary">Залиште порожнім, якщо проксі не вимагає входу</string>
   <string name="settings_proxy_password">Пароль</string>
+  <string name="settings_dns">DNS-сервер</string>
+  <string name="settings_dns_summary">Сторінки знаходять сайти через DNS пристрою або мережі</string>
+  <string name="settings_dns_system">Пристрою (типово)</string>
+  <string name="settings_dns_custom">Інший сервер…</string>
+  <string name="settings_dns_in_use_s">Сторінки знаходять сайти через %s по зашифрованому з\'єднанню (DNS over HTTPS), а поки він не відповідає — через DNS пристрою</string>
+  <string name="settings_dns_proxy">Не використовується, поки ввімкнено проксі: сайти знаходить проксі</string>
+  <string name="settings_dns_incomplete">Не використовується: введіть адресу сервера DNS over HTTPS</string>
+  <string name="settings_dns_url">Адреса сервера</string>
+  <string name="settings_dns_bad_url">Це не адреса сервера DNS over HTTPS: вона починається з https://</string>
   <string name="settings_version_s">Версія %s</string>
   <string name="settings_version_line">Версія %1$s (%2$s) · %3$s</string>
   <string name="settings_group_updates">Оновлення</string>

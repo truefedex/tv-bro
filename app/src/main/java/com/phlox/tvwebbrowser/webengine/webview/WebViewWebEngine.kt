@@ -707,6 +707,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     //WebView has no blocking of trackers of its own
                     EngineSpecificSetting.TRACKING_PROTECTION -> false
                     EngineSpecificSetting.PROXY -> WebViewProxy.isSupported()
+                    //WebView has no setting of its DNS
+                    EngineSpecificSetting.DNS -> false
                 }
             }))
         }
