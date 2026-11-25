@@ -597,10 +597,10 @@
   <string name="settings_proxy_login_summary">如果代理不需要登录，请留空</string>
   <string name="settings_proxy_password">密码</string>
   <string name="settings_dns">DNS 服务器</string>
-  <string name="settings_dns_summary">网页通过设备或网络的 DNS 查找网站</string>
+  <string name="settings_dns_summary">页面、下载和视频通过设备或网络的 DNS 查找网站</string>
   <string name="settings_dns_system">设备（默认）</string>
   <string name="settings_dns_custom">其他服务器…</string>
-  <string name="settings_dns_in_use_s">网页通过 %s 经加密连接查找网站，它无响应时则通过设备的 DNS</string>
+  <string name="settings_dns_in_use_s">页面、下载和视频通过 %s 经加密连接查找网站，它无响应时则通过设备的 DNS</string>
   <string name="settings_dns_proxy">代理开启时不使用：由代理查找网站</string>
   <string name="settings_dns_incomplete">未使用：请输入 DNS over HTTPS 服务器的地址</string>
   <string name="settings_dns_url">服务器地址</string>

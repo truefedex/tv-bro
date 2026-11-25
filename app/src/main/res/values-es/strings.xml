@@ -626,10 +626,10 @@
     <string name="settings_proxy_login_summary">Déjalo vacío si el proxy no pide iniciar sesión</string>
     <string name="settings_proxy_password">Contraseña</string>
     <string name="settings_dns">Servidor DNS</string>
-    <string name="settings_dns_summary">Las páginas encuentran los sitios mediante el DNS del dispositivo o de la red</string>
+    <string name="settings_dns_summary">Las páginas, las descargas y los vídeos encuentran los sitios mediante el DNS del dispositivo o de la red</string>
     <string name="settings_dns_system">Del dispositivo (predeterminado)</string>
     <string name="settings_dns_custom">Otro servidor…</string>
-    <string name="settings_dns_in_use_s">Las páginas encuentran los sitios mediante %s con una conexión cifrada, o mediante el DNS del dispositivo mientras no responda</string>
+    <string name="settings_dns_in_use_s">Las páginas, las descargas y los vídeos encuentran los sitios mediante %s con una conexión cifrada, o mediante el DNS del dispositivo mientras no responda</string>
     <string name="settings_dns_proxy">Sin usar mientras el proxy está activo: el proxy encuentra los sitios</string>
     <string name="settings_dns_incomplete">Sin usar: introduce la dirección de un servidor DNS over HTTPS</string>
     <string name="settings_dns_url">Dirección del servidor</string>

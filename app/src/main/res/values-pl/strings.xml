@@ -639,10 +639,10 @@
   <string name="settings_proxy_login_summary">Pozostaw puste, jeśli proxy nie wymaga logowania</string>
   <string name="settings_proxy_password">Hasło</string>
   <string name="settings_dns">Serwer DNS</string>
-  <string name="settings_dns_summary">Strony znajdują witryny przez DNS urządzenia lub sieci</string>
+  <string name="settings_dns_summary">Strony, pobierane pliki i filmy znajdują witryny przez DNS urządzenia lub sieci</string>
   <string name="settings_dns_system">Urządzenia (domyślnie)</string>
   <string name="settings_dns_custom">Inny serwer…</string>
-  <string name="settings_dns_in_use_s">Strony znajdują witryny przez %s szyfrowanym połączeniem, a dopóki nie odpowiada, przez DNS urządzenia</string>
+  <string name="settings_dns_in_use_s">Strony, pobierane pliki i filmy znajdują witryny przez %s szyfrowanym połączeniem, a dopóki nie odpowiada, przez DNS urządzenia</string>
   <string name="settings_dns_proxy">Nieużywany, dopóki proxy jest włączone: witryny znajduje proxy</string>
   <string name="settings_dns_incomplete">Nieużywany: wpisz adres serwera DNS over HTTPS</string>
   <string name="settings_dns_url">Adres serwera</string>
