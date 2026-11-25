@@ -21,7 +21,6 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.BrowserTab
-import com.phlox.tvwebbrowser.net.AppDns
 import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.net.DnsSettings
 import com.phlox.tvwebbrowser.net.ProxySettings
@@ -657,16 +656,17 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     //before any WebView is created
                     WebViewProfiles.prepare(context)
                     //before any WebView of the tabs loads a page
-                    (AppProxy.settings ?: WebViewDns.relayProxy(AppDns.settings))?.let { WebViewProxy.apply(it) }
+                    //the proxy of the user or the relay of the DNS (DnsRelay)
+                    AppProxy.current?.let { WebViewProxy.apply(it) }
                 }
 
+                //WebView has no setting of its DNS: it goes through the relay of the DNS, as the app does
                 override suspend fun applyProxy(proxy: ProxySettings?) {
-                    WebViewProxy.apply(proxy ?: WebViewDns.relayProxy(AppDns.settings))
+                    WebViewProxy.apply(AppProxy.current)
                 }
 
                 override suspend fun applyDns(dns: DnsSettings?) {
-                    val relay = WebViewDns.relayProxy(dns)
-                    WebViewProxy.apply(AppProxy.settings ?: relay)
+                    WebViewProxy.apply(AppProxy.current)
                 }
 
                 override fun createWebEngine(tab: BrowserTab): WebEngine {
@@ -714,7 +714,7 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     //WebView has no blocking of trackers of its own
                     EngineSpecificSetting.TRACKING_PROTECTION -> false
                     EngineSpecificSetting.PROXY -> WebViewProxy.isSupported()
-                    //through the relay of WebViewDns
+                    //through the relay of the DNS (DnsRelay), as through a proxy
                     EngineSpecificSetting.DNS -> WebViewProxy.isSupported()
                 }
             }))

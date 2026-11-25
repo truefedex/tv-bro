@@ -1,22 +1,20 @@
-package com.phlox.tvwebbrowser.webengine.webview
+package com.phlox.tvwebbrowser.net.dns
 
 import android.util.Log
-import androidx.annotation.UiThread
+import androidx.annotation.MainThread
 import com.phlox.tvwebbrowser.net.DnsSettings
 import com.phlox.tvwebbrowser.net.ProxySettings
-import com.phlox.tvwebbrowser.net.dns.DohResolver
-import com.phlox.tvwebbrowser.net.dns.LocalSocksRelay
 import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * The DNS of WebView, which has no setting of its own: WebView goes through [LocalSocksRelay] as through a
- * SOCKS5 proxy ([WebViewProxy], the local addresses still directly), and the relay finds the sites through the
- * DNS-over-HTTPS server. A proxy of the user takes the place of the relay (it finds the sites itself).
+ * The [LocalSocksRelay] of the process, which finds sites through the DNS server in use: WebView, which has no
+ * setting of its DNS, goes through it as through a SOCKS5 proxy, and so do the app's own requests
+ * (`AppProxy.dnsRelay`) in both apps. A proxy of the user takes its place (it finds the sites itself).
  */
-object WebViewDns {
-    private const val TAG = "WebViewDns"
+object DnsRelay {
+    private const val TAG = "DnsRelay"
 
     private val threadNumber = AtomicInteger()
     private val executor = Executors.newCachedThreadPool { runnable ->
@@ -25,9 +23,9 @@ object WebViewDns {
     private val relay = LocalSocksRelay(executor)
     private var current: DnsSettings? = null
 
-    /** The proxy WebView goes through for [dns]: the relay, started, or null (stopped) without a server */
-    @UiThread
-    fun relayProxy(dns: DnsSettings?): ProxySettings? {
+    /** The proxy that finds sites through [dns]: the relay, started, or null (stopped) without a server */
+    @MainThread
+    fun proxyFor(dns: DnsSettings?): ProxySettings? {
         if (dns == null) {
             relay.stop()
             relay.resolver = null

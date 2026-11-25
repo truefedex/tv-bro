@@ -6,15 +6,17 @@ import com.phlox.tvwebbrowser.net.AppDns
 import com.phlox.tvwebbrowser.net.AppProxy
 import com.phlox.tvwebbrowser.net.DnsSettings
 import com.phlox.tvwebbrowser.net.ProxySettings
+import com.phlox.tvwebbrowser.net.dns.DnsRelay
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
  * Keeps the proxy ([AppProxy]) and the DNS ([AppDns]) of the process and of the engine the same as the settings
- * ([Config.proxy], [Config.dns]). Nothing here touches the engine before it is initialized: the WebView engine
- * must not be loaded before the incognito process gave it its data directory, and the engine applies
- * [AppProxy.settings] and [AppDns.settings] itself in `initialize`.
+ * ([Config.proxy], [Config.dns]). While a DNS server is in use, the app's own requests go through the relay of
+ * [DnsRelay] ([AppProxy.dnsRelay]), and so do the pages of WebView. Nothing here touches the engine before it is
+ * initialized: the WebView engine must not be loaded before the incognito process gave it its data directory,
+ * and the engine applies [AppProxy] and [AppDns.settings] itself in `initialize`.
  */
 object NetworkSetup {
     private val applying = Mutex()
@@ -24,6 +26,7 @@ object NetworkSetup {
         AppProxy.install()
         AppProxy.settings = config.proxy
         AppDns.settings = dnsInUse(config.proxy, config.dns)
+        AppProxy.dnsRelay = DnsRelay.proxyFor(AppDns.settings)
     }
 
     /**
@@ -34,15 +37,15 @@ object NetworkSetup {
     suspend fun apply(config: Config, controller: BrowserController) = applying.withLock {
         val proxy = config.proxy
         val dns = dnsInUse(proxy, config.dns)
-        if (proxy == AppProxy.settings && dns == AppDns.settings) return@withLock
-        if (proxy != AppProxy.settings) {
-            AppProxy.settings = proxy
-            WebEngineFactory.applyProxy(proxy)
-        }
-        if (dns != AppDns.settings) {
-            AppDns.settings = dns
-            WebEngineFactory.applyDns(dns)
-        }
+        val proxyChanged = proxy != AppProxy.settings
+        val dnsChanged = dns != AppDns.settings
+        if (!proxyChanged && !dnsChanged) return@withLock
+        //all of the process first: the engine may read them together
+        AppProxy.settings = proxy
+        AppDns.settings = dns
+        AppProxy.dnsRelay = DnsRelay.proxyFor(dns)
+        if (proxyChanged) WebEngineFactory.applyProxy(proxy)
+        if (dnsChanged) WebEngineFactory.applyDns(dns)
         controller.reload()
     }
 
