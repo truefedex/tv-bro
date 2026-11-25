@@ -38,7 +38,7 @@ class AppContainer(context: Context) {
     /** Engine states and thumbnails of the tabs of the main profile (the home screen channels show them) */
     val mainTabFiles = TabFilesStore(context.filesDir, context.cacheDir)
 
-    private val kidsTabFiles = TabFilesStore(File(context.filesDir, KIDS_DIR), File(context.cacheDir, KIDS_DIR))
+    val kidsTabFiles = TabFilesStore(File(context.filesDir, KIDS_DIR), File(context.cacheDir, KIDS_DIR))
 
     /** Engine states and thumbnails of the tabs of the profile shown ([AppContext.kidsProfile]) */
     val tabFiles: TabFilesStore

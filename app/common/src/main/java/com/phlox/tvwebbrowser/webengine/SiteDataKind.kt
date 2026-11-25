@@ -1,6 +1,9 @@
 package com.phlox.tvwebbrowser.webengine
 
-/** What [WebEngineProviderCallback.clearSiteData] removes of a site */
+/**
+ * What [WebEngineProviderCallback.clearSiteData] removes of a site, and
+ * [WebEngineProviderCallback.clearBrowsingData] of all sites
+ */
 enum class SiteDataKind {
     /** Cookies and sign-ins: the user is signed out of the site */
     COOKIES,

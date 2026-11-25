@@ -67,6 +67,15 @@ class VisitedHistoryLogger(
         }
     }
 
+    /**
+     * The history was cleared: a visit not saved yet is dropped, and the page shown is not saved again (its
+     * title updates go to no row)
+     */
+    fun forget() {
+        lastHistoryItemSaveJob?.cancel()
+        lastHistoryItem?.saved = true
+    }
+
     /** A page got its [title]; [url] is the address the engine shows now */
     fun onTitleUpdated(url: String, title: String) {
         lastTitle = title

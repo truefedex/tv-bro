@@ -257,6 +257,17 @@
   <string name="clear_site_data_cache">המטמון של האתר</string>
   <string name="clear_site_data_keeps">ההגדרות של האתר וההיסטוריה שלו נשארות.</string>
   <string name="clear_site_data_failed">לא ניתן לנקות את נתוני האתר</string>
+  <string name="clear_browsing_data">נקה נתוני גלישה</string>
+  <string name="clear_browsing_data_site_data">קובצי Cookie ונתוני אתרים</string>
+  <string name="clear_browsing_data_site_data_hint">מנתק אותך מהאתרים</string>
+  <string name="clear_browsing_data_downloads_hint">רק הרשימה: הקבצים נשארים</string>
+  <string name="clear_browsing_data_site_settings_hint">תצוגה, זום, חסימת מודעות וחלונות קופצים</string>
+  <string name="clear_browsing_data_cache">תמונות וקבצים במטמון</string>
+  <string name="clear_browsing_data_together">קובצי Cookie, נתוני אתרים ומטמון של הפרופילים האלה נמחקים רק יחד.</string>
+  <string name="clear_browsing_data_incognito">מצב גלישה בסתר לא שומר היסטוריה; הסימניות, ההורדות והגדרות האתרים שלו הם של הפרופיל הראשי, ושאר הנתונים שלו נמחקים כשהוא מסתיים.</string>
+  <string name="clear_browsing_data_done">נתוני הגלישה נוקו</string>
+  <string name="clear_browsing_data_failed">לא ניתן לנקות את נתוני הגלישה</string>
+  <string name="settings_clear_browsing_data_summary">היסטוריה, כרטיסיות, סימניות, נתונים והגדרות של אתרים, מטמון</string>
   <string name="default_site_view">תצוגת ברירת המחדל של אתרים</string>
   <array name="site_views">
     <item>מחשב</item>
@@ -602,9 +613,6 @@
   <string name="settings_keys_default">ברירת מחדל</string>
   <string name="settings_keys_max_d">לפעולה יש עד %d מקשים: מקש חדש מחליף את הישן ביותר</string>
   <string name="settings_key_taken_s_s">%1$s מוגדר עבור „%2$s”. לחצו עליו שוב כדי להגדיר אותו כאן</string>
-  <string name="settings_web_cache">מטמון אינטרנט</string>
-  <string name="settings_web_cache_summary">דפים ייטענו שוב מהרשת</string>
-  <string name="settings_web_cache_cleared">מטמון האינטרנט נוקה</string>
   <string name="settings_engine_debug">ניפוי שגיאות במנוע האינטרנט</string>
   <string name="settings_engine_debug_summary">מחשב שמחובר לניפוי שגיאות יכול לראות דפים וקובצי Cookie</string>
   <string name="settings_history_retention">שמירת היסטוריה</string>

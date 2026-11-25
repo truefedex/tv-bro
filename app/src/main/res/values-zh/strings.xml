@@ -236,6 +236,17 @@
   <string name="clear_site_data_cache">该网站的缓存</string>
   <string name="clear_site_data_keeps">网站设置和浏览历史记录会保留。</string>
   <string name="clear_site_data_failed">无法清除网站数据</string>
+  <string name="clear_browsing_data">清除浏览数据</string>
+  <string name="clear_browsing_data_site_data">Cookie 和网站数据</string>
+  <string name="clear_browsing_data_site_data_hint">会退出各网站的登录</string>
+  <string name="clear_browsing_data_downloads_hint">仅列表：文件会保留</string>
+  <string name="clear_browsing_data_site_settings_hint">视图、缩放、广告和弹出窗口拦截</string>
+  <string name="clear_browsing_data_cache">缓存的图片和文件</string>
+  <string name="clear_browsing_data_together">这些资料的 Cookie、网站数据和缓存只能一起清除。</string>
+  <string name="clear_browsing_data_incognito">隐身模式不保存历史记录；它的书签、下载内容和网站设置属于主资料，结束时会删除它的其他数据。</string>
+  <string name="clear_browsing_data_done">浏览数据已清除</string>
+  <string name="clear_browsing_data_failed">无法清除浏览数据</string>
+  <string name="settings_clear_browsing_data_summary">历史记录、标签页、书签、网站数据和设置、缓存</string>
   <string name="default_site_view">默认网站视图</string>
   <array name="site_views">
     <item>桌面版</item>
@@ -560,9 +571,6 @@
   <string name="settings_keys_default">默认</string>
   <string name="settings_keys_max_d">每个操作最多 %d 个按键：新的按键会替换最早的按键</string>
   <string name="settings_key_taken_s_s">%1$s 已用于“%2$s”。再按一次即可改为用于此处</string>
-  <string name="settings_web_cache">网页缓存</string>
-  <string name="settings_web_cache_summary">页面将重新从网络加载</string>
-  <string name="settings_web_cache_cleared">网页缓存已清除</string>
   <string name="settings_engine_debug">Web 引擎调试</string>
   <string name="settings_engine_debug_summary">连接进行调试的电脑可以看到页面和 Cookie</string>
   <string name="settings_history_retention">保留历史记录</string>

@@ -46,4 +46,9 @@ interface DownloadDao {
     @Query("DELETE FROM downloads WHERE kids = 1 AND status NOT IN " +
             "(${Download.Status.IN_PROGRESS}, ${Download.Status.PAUSED})")
     suspend fun deleteEndedOfKids()
+
+    /** The rows of the main profile that ended (the files stay); those in progress or paused go on */
+    @Query("DELETE FROM downloads WHERE kids = 0 AND status NOT IN " +
+            "(${Download.Status.IN_PROGRESS}, ${Download.Status.PAUSED})")
+    suspend fun deleteEndedOfMain()
 }

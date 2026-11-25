@@ -90,6 +90,15 @@ class ShortcutMgrTest {
     }
 
     @Test
+    fun clearBrowsingDataHasNoDefaultKeysButTakesOne() {
+        val mgr = ShortcutMgr(prefs)
+        assertEquals(emptyList<KeyBinding>(), mgr.bindingsOf(Shortcut.CLEAR_BROWSING_DATA))
+        mgr.add(Shortcut.CLEAR_BROWSING_DATA, KeyBinding(KeyEvent.KEYCODE_PROG_RED))
+        assertTrue(mgr.press(KeyEvent.KEYCODE_PROG_RED))
+        assertEquals(listOf("clearBrowsingData"), commands.log)
+    }
+
+    @Test
     fun defaultKeysAreNotInTwoActions() {
         val keys = Shortcut.entries.flatMap { it.defaultBindings.toList() }
         assertEquals(keys.size, keys.toSet().size)
@@ -272,5 +281,6 @@ class ShortcutMgrTest {
         override fun newTab() { log += "newTab" }
         override fun closeTab() { log += "closeTab" }
         override fun switchTab(offset: Int) { log += "switchTab($offset)" }
+        override fun clearBrowsingData() { log += "clearBrowsingData" }
     }
 }

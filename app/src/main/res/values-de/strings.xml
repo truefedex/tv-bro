@@ -242,6 +242,17 @@
   <string name="clear_site_data_cache">Cache der Website</string>
   <string name="clear_site_data_keeps">Die Einstellungen der Website und ihr Verlauf bleiben erhalten.</string>
   <string name="clear_site_data_failed">Die Websitedaten konnten nicht gelöscht werden</string>
+  <string name="clear_browsing_data">Browserdaten löschen</string>
+  <string name="clear_browsing_data_site_data">Cookies und Websitedaten</string>
+  <string name="clear_browsing_data_site_data_hint">Meldet Sie von Websites ab</string>
+  <string name="clear_browsing_data_downloads_hint">Nur die Liste: die Dateien bleiben</string>
+  <string name="clear_browsing_data_site_settings_hint">Ansicht, Zoom, Werbe- und Pop-up-Blocker</string>
+  <string name="clear_browsing_data_cache">Bilder und Dateien im Cache</string>
+  <string name="clear_browsing_data_together">Cookies, Websitedaten und Cache dieser Profile können nur zusammen gelöscht werden.</string>
+  <string name="clear_browsing_data_incognito">Der Inkognito-Modus speichert keinen Verlauf; seine Lesezeichen, Downloads und Website-Einstellungen sind die des Hauptprofils, und seine übrigen Daten werden gelöscht, wenn er endet.</string>
+  <string name="clear_browsing_data_done">Browserdaten gelöscht</string>
+  <string name="clear_browsing_data_failed">Die Browserdaten konnten nicht gelöscht werden</string>
+  <string name="settings_clear_browsing_data_summary">Verlauf, Tabs, Lesezeichen, Websitedaten und -einstellungen, Cache</string>
   <string name="default_site_view">Standard-Website-Ansicht</string>
   <array name="site_views">
     <item>Desktop</item>
@@ -573,9 +584,6 @@
   <string name="settings_keys_default">Standard</string>
   <string name="settings_keys_max_d">Eine Aktion hat bis zu %d Tasten: eine neue ersetzt die älteste</string>
   <string name="settings_key_taken_s_s">%1$s ist für „%2$s“ festgelegt. Drücken Sie sie erneut, um sie stattdessen hier festzulegen</string>
-  <string name="settings_web_cache">Web-Cache</string>
-  <string name="settings_web_cache_summary">Seiten werden wieder aus dem Netzwerk geladen</string>
-  <string name="settings_web_cache_cleared">Web-Cache geleert</string>
   <string name="settings_engine_debug">Web-Engine-Debugging</string>
   <string name="settings_engine_debug_summary">Ein zum Debuggen verbundener Computer kann Seiten und Cookies sehen</string>
   <string name="settings_history_retention">Verlauf aufbewahren</string>

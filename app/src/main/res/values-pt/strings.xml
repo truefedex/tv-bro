@@ -251,6 +251,17 @@
     <string name="clear_site_data_cache">Cache do site</string>
     <string name="clear_site_data_keeps">As configurações do site e o histórico dele são mantidos.</string>
     <string name="clear_site_data_failed">Não foi possível limpar os dados do site</string>
+    <string name="clear_browsing_data">Limpar dados de navegação</string>
+    <string name="clear_browsing_data_site_data">Cookies e dados de sites</string>
+    <string name="clear_browsing_data_site_data_hint">Desconecta você dos sites</string>
+    <string name="clear_browsing_data_downloads_hint">Só a lista: os arquivos ficam</string>
+    <string name="clear_browsing_data_site_settings_hint">Visualização, zoom, bloqueio de anúncios e pop-ups</string>
+    <string name="clear_browsing_data_cache">Imagens e arquivos em cache</string>
+    <string name="clear_browsing_data_together">Os cookies, os dados de sites e o cache destes perfis só podem ser limpos juntos.</string>
+    <string name="clear_browsing_data_incognito">O modo anônimo não guarda histórico; os favoritos, downloads e configurações de sites dele são os do perfil principal, e os outros dados dele são apagados quando ele termina.</string>
+    <string name="clear_browsing_data_done">Dados de navegação limpos</string>
+    <string name="clear_browsing_data_failed">Não foi possível limpar os dados de navegação</string>
+    <string name="settings_clear_browsing_data_summary">Histórico, guias, favoritos, dados e configurações de sites, cache</string>
     <string name="default_site_view">Visualização padrão dos sites</string>
     <array name="site_views">
         <item>Computador</item>
@@ -589,9 +600,6 @@
     <string name="settings_keys_default">Padrão</string>
     <string name="settings_keys_max_d">Uma ação tem até %d teclas: uma nova substitui a mais antiga</string>
     <string name="settings_key_taken_s_s">%1$s está definida para “%2$s”. Pressione-a de novo para defini-la aqui</string>
-    <string name="settings_web_cache">Cache web</string>
-    <string name="settings_web_cache_summary">As páginas voltam a carregar pela rede</string>
-    <string name="settings_web_cache_cleared">Cache web limpo</string>
     <string name="settings_engine_debug">Depuração do mecanismo web</string>
     <string name="settings_engine_debug_summary">Um computador conectado para depuração pode ver páginas e cookies</string>
     <string name="settings_history_retention">Manter o histórico</string>

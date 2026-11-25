@@ -236,6 +236,17 @@
   <string name="clear_site_data_cache">Bộ nhớ đệm của trang web</string>
   <string name="clear_site_data_keeps">Cài đặt và lịch sử của trang web vẫn được giữ lại.</string>
   <string name="clear_site_data_failed">Không thể xóa dữ liệu trang web</string>
+  <string name="clear_browsing_data">Xóa dữ liệu duyệt web</string>
+  <string name="clear_browsing_data_site_data">Cookie và dữ liệu trang web</string>
+  <string name="clear_browsing_data_site_data_hint">Đăng xuất bạn khỏi các trang web</string>
+  <string name="clear_browsing_data_downloads_hint">Chỉ danh sách: các tệp vẫn được giữ</string>
+  <string name="clear_browsing_data_site_settings_hint">Chế độ xem, thu phóng, chặn quảng cáo và cửa sổ bật lên</string>
+  <string name="clear_browsing_data_cache">Hình ảnh và tệp trong bộ nhớ đệm</string>
+  <string name="clear_browsing_data_together">Cookie, dữ liệu trang web và bộ nhớ đệm của các hồ sơ này chỉ có thể xóa cùng nhau.</string>
+  <string name="clear_browsing_data_incognito">Chế độ ẩn danh không lưu lịch sử; dấu trang, tệp tải xuống và cài đặt trang web của nó là của hồ sơ chính, và các dữ liệu khác của nó sẽ bị xóa khi chế độ này kết thúc.</string>
+  <string name="clear_browsing_data_done">Đã xóa dữ liệu duyệt web</string>
+  <string name="clear_browsing_data_failed">Không thể xóa dữ liệu duyệt web</string>
+  <string name="settings_clear_browsing_data_summary">Lịch sử, thẻ, dấu trang, dữ liệu và cài đặt trang web, bộ nhớ đệm</string>
   <string name="default_site_view">Chế độ xem trang web mặc định</string>
   <array name="site_views">
     <item>Máy tính</item>
@@ -560,9 +571,6 @@
   <string name="settings_keys_default">Mặc định</string>
   <string name="settings_keys_max_d">Mỗi thao tác có tối đa %d phím: phím mới thay phím cũ nhất</string>
   <string name="settings_key_taken_s_s">%1$s đã được gán cho “%2$s”. Nhấn lại để gán vào đây</string>
-  <string name="settings_web_cache">Bộ nhớ đệm web</string>
-  <string name="settings_web_cache_summary">Các trang sẽ được tải lại từ mạng</string>
-  <string name="settings_web_cache_cleared">Đã xóa bộ nhớ đệm web</string>
   <string name="settings_engine_debug">Gỡ lỗi công cụ web</string>
   <string name="settings_engine_debug_summary">Máy tính được kết nối để gỡ lỗi có thể xem trang và cookie</string>
   <string name="settings_history_retention">Lưu lịch sử</string>

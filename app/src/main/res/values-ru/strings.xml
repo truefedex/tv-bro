@@ -257,6 +257,17 @@
   <string name="clear_site_data_cache">Кеш сайта</string>
   <string name="clear_site_data_keeps">Настройки сайта и его история останутся.</string>
   <string name="clear_site_data_failed">Не удалось очистить данные сайта</string>
+  <string name="clear_browsing_data">Очистить данные браузера</string>
+  <string name="clear_browsing_data_site_data">Cookie и данные сайтов</string>
+  <string name="clear_browsing_data_site_data_hint">Выход из аккаунтов на сайтах</string>
+  <string name="clear_browsing_data_downloads_hint">Только список: файлы останутся</string>
+  <string name="clear_browsing_data_site_settings_hint">Вид, масштаб, блокировка рекламы и всплывающих окон</string>
+  <string name="clear_browsing_data_cache">Кэшированные изображения и файлы</string>
+  <string name="clear_browsing_data_together">Cookie, данные сайтов и кэш этих профилей очищаются только вместе.</string>
+  <string name="clear_browsing_data_incognito">Режим инкогнито не хранит историю; его закладки, загрузки и настройки сайтов — это данные основного профиля, а остальные его данные удаляются, когда он завершается.</string>
+  <string name="clear_browsing_data_done">Данные браузера очищены</string>
+  <string name="clear_browsing_data_failed">Не удалось очистить данные браузера</string>
+  <string name="settings_clear_browsing_data_summary">История, вкладки, закладки, данные и настройки сайтов, кэш</string>
   <string name="default_site_view">Вид сайтов по умолчанию</string>
   <array name="site_views">
     <item>Компьютерный</item>
@@ -602,9 +613,6 @@
   <string name="settings_keys_default">По умолчанию</string>
   <string name="settings_keys_max_d">У действия до %d клавиш: новая заменяет самую старую</string>
   <string name="settings_key_taken_s_s">%1$s назначена на «%2$s». Нажмите её ещё раз, чтобы назначить сюда</string>
-  <string name="settings_web_cache">Веб-кеш</string>
-  <string name="settings_web_cache_summary">Страницы снова будут загружаться из сети</string>
-  <string name="settings_web_cache_cleared">Веб-кеш очищен</string>
   <string name="settings_engine_debug">Отладка веб-движка</string>
   <string name="settings_engine_debug_summary">Компьютер, подключённый для отладки, может видеть страницы и cookie</string>
   <string name="settings_history_retention">Хранить историю</string>

@@ -27,4 +27,6 @@ interface BrowserCommands {
     fun closeTab()
     /** Shows the tab [offset] places from the current one, going round the ends */
     fun switchTab(offset: Int)
+    /** Asks which browsing data to clear (as Settings, Advanced does) and clears them */
+    fun clearBrowsingData()
 }

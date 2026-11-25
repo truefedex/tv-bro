@@ -8,10 +8,12 @@ import android.webkit.WebStorage
 import android.webkit.WebView
 import androidx.annotation.MainThread
 import androidx.webkit.ProfileStore
+import androidx.webkit.WebStorageCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.profile.KidsProfileData
+import com.phlox.tvwebbrowser.webengine.SiteDataKind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -82,6 +84,26 @@ internal object WebViewProfiles {
                 }
             }
         }
+    }
+
+    /**
+     * Clears the [kinds] of data of all sites of the [profile] (null for the default one): newer WebViews delete
+     * all of them at once, else cookies, the storage of all origins and the cache apart
+     */
+    @MainThread
+    suspend fun clear(context: Context, profile: String?, kinds: Set<SiteDataKind>) {
+        val storage = webStorage(profile)
+        if (kinds.containsAll(SiteDataKind.ALL) && WebViewFeature.isFeatureSupported(WebViewFeature.DELETE_BROWSING_DATA)) {
+            suspendCoroutine { cont -> WebStorageCompat.deleteBrowsingData(storage) { cont.resume(Unit) } }
+            return
+        }
+        if (SiteDataKind.COOKIES in kinds) {
+            val cookies = cookieManager(profile)
+            suspendCoroutine { cont -> cookies.removeAllCookies { cont.resume(Unit) } }
+            cookies.flush()
+        }
+        if (SiteDataKind.STORAGE in kinds) storage.deleteAllData()
+        if (SiteDataKind.CACHE in kinds) bareView(context, profile).apply { clearCache(true); destroy() }
     }
 
     /** Deletes the data of the pages of the [profile]: the profile itself if it was not used in this process */

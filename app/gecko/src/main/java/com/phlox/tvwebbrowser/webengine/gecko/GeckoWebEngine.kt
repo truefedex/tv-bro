@@ -30,6 +30,8 @@ import com.phlox.tvwebbrowser.webengine.PageZoom
 import com.phlox.tvwebbrowser.webengine.PageZoomSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
+import com.phlox.tvwebbrowser.webengine.DataClearing
+import com.phlox.tvwebbrowser.webengine.DataProfile
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.utils.HardwareCodecs
 import com.phlox.tvwebbrowser.webengine.FindInPageSupport
@@ -208,6 +210,27 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
             runtime.settings.preferredColorScheme = theme.toGeckoPreferredColorScheme()
         }
 
+        /** Not the permissions (SITE_DATA has them) and not the settings of sites */
+        private fun clearFlagsOf(kinds: Set<SiteDataKind>): Long {
+            var flags = 0L
+            if (SiteDataKind.COOKIES in kinds) {
+                flags = flags or StorageController.ClearFlags.COOKIES or StorageController.ClearFlags.AUTH_SESSIONS
+            }
+            if (SiteDataKind.STORAGE in kinds) flags = flags or StorageController.ClearFlags.DOM_STORAGES
+            if (SiteDataKind.CACHE in kinds) flags = flags or StorageController.ClearFlags.ALL_CACHES
+            return flags
+        }
+
+        private suspend fun awaitClearing(result: GeckoResult<Void>) = suspendCoroutine { cont ->
+            result.then({
+                cont.resume(Unit)
+                GeckoResult.fromValue<Void>(null)
+            }, {
+                cont.resumeWithException(it)
+                GeckoResult.fromValue<Void>(null)
+            })
+        }
+
         init {
             WebEngineFactory.registerProvider(WebEngineProvider(ENGINE_NAME, object : WebEngineProviderCallback {
                 override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {
@@ -235,19 +258,6 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                     setting == EngineSpecificSetting.TRACKING_PROTECTION || setting == EngineSpecificSetting.PROXY ||
                         setting == EngineSpecificSetting.DNS
 
-                override suspend fun clearCache(ctx: Context) {
-                    suspendCoroutine { cont ->
-                        runtime.storageController.clearData(StorageController.ClearFlags.ALL_CACHES).then({
-                            cont.resume(null)
-                            GeckoResult.fromValue(null)
-                        }, {
-                            it.printStackTrace()
-                            cont.resumeWithException(it)
-                            GeckoResult.fromValue(null)
-                        })
-                    }
-                }
-
                 override fun supportsSiteDataClearing(): Boolean = true
 
                 override fun supportsKidsProfile(): Boolean = true
@@ -261,23 +271,26 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                 }
 
                 override suspend fun clearSiteData(context: Context, host: String, kinds: Set<SiteDataKind>) {
-                    //not the permissions (SITE_DATA has them) and not the history
-                    var flags = 0L
-                    if (SiteDataKind.COOKIES in kinds) {
-                        flags = flags or StorageController.ClearFlags.COOKIES or StorageController.ClearFlags.AUTH_SESSIONS
-                    }
-                    if (SiteDataKind.STORAGE in kinds) flags = flags or StorageController.ClearFlags.DOM_STORAGES
-                    if (SiteDataKind.CACHE in kinds) flags = flags or StorageController.ClearFlags.ALL_CACHES
+                    val flags = clearFlagsOf(kinds)
                     if (flags == 0L) return
-                    suspendCoroutine { cont ->
-                        runtime.storageController.clearDataFromHost(host, flags).then({
-                            cont.resume(Unit)
-                            GeckoResult.fromValue(null)
-                        }, {
-                            cont.resumeWithException(it)
-                            GeckoResult.fromValue(null)
-                        })
-                    }
+                    awaitClearing(runtime.storageController.clearDataFromHost(host, flags))
+                }
+
+                /**
+                 * The storage controller clears with flags only the data of all session contexts at once (the
+                 * kids container too), and not the cookies of private sessions (Firefox's `CookieService::
+                 * RemoveAll` empties the persistent store only): those of the incognito mode go when it ends
+                 */
+                override fun browsingDataClearing(profile: DataProfile): DataClearing = when (profile) {
+                    DataProfile.MAIN, DataProfile.KIDS -> DataClearing.WITH_OTHERS
+                    DataProfile.INCOGNITO -> DataClearing.NONE
+                }
+
+                override suspend fun clearBrowsingData(context: Context, profile: DataProfile, kinds: Set<SiteDataKind>) {
+                    if (browsingDataClearing(profile) == DataClearing.NONE) return
+                    val flags = clearFlagsOf(kinds)
+                    if (flags == 0L) return
+                    awaitClearing(runtime.storageController.clearData(flags))
                 }
 
                 override fun onThemeSettingUpdated(value: Config.Theme) {

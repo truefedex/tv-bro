@@ -35,7 +35,6 @@ interface WebEngineProviderCallback {
      */
     suspend fun initialize(context: Context, webViewContainer: ViewGroup)
     fun createWebEngine(tab: BrowserTab): WebEngine
-    suspend fun clearCache(ctx: Context)
     fun onThemeSettingUpdated(value: Config.Theme)
     fun getWebEngineVersionString(): String
 
@@ -74,6 +73,16 @@ interface WebEngineProviderCallback {
      * and the history of the site.
      */
     suspend fun clearSiteData(context: Context, host: String, kinds: Set<SiteDataKind>) {}
+
+    /** How [clearBrowsingData] can clear the data of the pages of the [profile] */
+    fun browsingDataClearing(profile: DataProfile): DataClearing = DataClearing.NONE
+
+    /**
+     * Removes the [kinds] of data of all sites of the [profile], as [clearSiteData] does for one site: the
+     * cookies (the user is signed out of all sites), the stored data and the cache. Permissions and the
+     * settings of the browser stay. A profile cleared [DataClearing.WITH_OTHERS] clears those others too.
+     */
+    suspend fun clearBrowsingData(context: Context, profile: DataProfile, kinds: Set<SiteDataKind>) {}
 
     /**
      * Makes all pages of the engine go through [proxy] (directly when null), except the local addresses of
@@ -166,9 +175,13 @@ object WebEngineFactory {
         return initializedProvider.callback.createWebEngine(tab)
     }
 
-    suspend fun clearCache(ctx: Context) {
-        initializedProvider.callback.clearCache(ctx)
+    suspend fun clearBrowsingData(context: Context, profile: DataProfile, kinds: Set<SiteDataKind>) {
+        if (kinds.isEmpty()) return
+        initializedProvider.callback.clearBrowsingData(context, profile, kinds)
     }
+
+    fun browsingDataClearing(profile: DataProfile): DataClearing =
+        selectedProvider()?.callback?.browsingDataClearing(profile) ?: DataClearing.NONE
 
     fun supportsSiteDataClearing(): Boolean = selectedProvider()?.callback?.supportsSiteDataClearing() ?: false
 

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
+import com.phlox.tvwebbrowser.browser.BrowsingDataKind
 import com.phlox.tvwebbrowser.browser.CurrentTabState
 import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.Download
@@ -175,6 +176,11 @@ interface BrowserShell {
         fun chooseSiteView()
         /** Asks whether to clear the cookies, stored data and cache of the current site; the page reloads */
         fun clearSiteData()
+        /**
+         * Asks which browsing data to clear in which profile ([BrowsingDataKind]) and clears them; [onCleared], to
+         * tell it where the user is, is not called when the user cancels, nor when it failed (told by a toast)
+         */
+        fun clearBrowsingData(onCleared: () -> Unit)
         /** Downloads a file (not from the engine: a link the shell offers, as a video of the page) */
         fun download(request: DownloadRequest)
         /** Starts a download whose bytes the shell writes (a file a phone sends), see [DownloadLauncher.receive] */

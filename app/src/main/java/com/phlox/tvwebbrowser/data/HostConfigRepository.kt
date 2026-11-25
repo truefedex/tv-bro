@@ -154,6 +154,19 @@ class HostConfigRepository(private val dao: HostsDao) {
         reload(site)
     }
 
+    /**
+     * Drops what the user set for each site (popup blocking, ad blocking, the view, the player, the zoom); the
+     * favicons and the allowed sites stay
+     */
+    suspend fun resetSiteSettings() {
+        dao.resetSiteSettings()
+        adBlockSettings.clear()
+        siteViewSettings.clear()
+        builtInPlayerSettings.clear()
+        pageZoomSettings.clear()
+        cache.evictAll()
+    }
+
     private suspend fun reload(host: String): HostConfig? {
         val config = dao.findByHostName(host)
         cache.put(host, Entry(config))

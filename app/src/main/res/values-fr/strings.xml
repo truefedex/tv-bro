@@ -251,6 +251,17 @@
     <string name="clear_site_data_cache">Cache du site</string>
     <string name="clear_site_data_keeps">Les paramètres du site et son historique sont conservés.</string>
     <string name="clear_site_data_failed">Impossible d’effacer les données du site</string>
+    <string name="clear_browsing_data">Effacer les données de navigation</string>
+    <string name="clear_browsing_data_site_data">Cookies et données des sites</string>
+    <string name="clear_browsing_data_site_data_hint">Vous déconnecte des sites</string>
+    <string name="clear_browsing_data_downloads_hint">Seulement la liste : les fichiers restent</string>
+    <string name="clear_browsing_data_site_settings_hint">Affichage, zoom, blocage des pubs et des pop-ups</string>
+    <string name="clear_browsing_data_cache">Images et fichiers en cache</string>
+    <string name="clear_browsing_data_together">Les cookies, les données des sites et le cache de ces profils ne peuvent être effacés qu’ensemble.</string>
+    <string name="clear_browsing_data_incognito">La navigation privée ne garde pas d’historique ; ses favoris, téléchargements et paramètres des sites sont ceux du profil principal, et ses autres données sont effacées quand elle se termine.</string>
+    <string name="clear_browsing_data_done">Données de navigation effacées</string>
+    <string name="clear_browsing_data_failed">Impossible d’effacer les données de navigation</string>
+    <string name="settings_clear_browsing_data_summary">Historique, onglets, favoris, données et paramètres des sites, cache</string>
     <string name="default_site_view">Affichage des sites par défaut</string>
     <array name="site_views">
         <item>Ordinateur</item>
@@ -589,9 +600,6 @@
     <string name="settings_keys_default">Par défaut</string>
     <string name="settings_keys_max_d">Une action a jusqu\'à %d touches : une nouvelle remplace la plus ancienne</string>
     <string name="settings_key_taken_s_s">%1$s est attribuée à « %2$s ». Appuyez de nouveau pour l\'attribuer ici</string>
-    <string name="settings_web_cache">Cache web</string>
-    <string name="settings_web_cache_summary">Les pages se rechargent depuis le réseau</string>
-    <string name="settings_web_cache_cleared">Cache web vidé</string>
     <string name="settings_engine_debug">Débogage du moteur web</string>
     <string name="settings_engine_debug_summary">Un ordinateur connecté pour le débogage peut voir les pages et les cookies</string>
     <string name="settings_history_retention">Conserver l\'historique</string>

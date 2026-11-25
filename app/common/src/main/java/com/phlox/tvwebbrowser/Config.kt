@@ -82,6 +82,7 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         const val CHANNEL_TABS_KEY = "channel_tabs"
         const val CHANNEL_DOWNLOADS_KEY = "channel_downloads"
         const val HISTORY_RETENTION_KEY = "history_retention"
+        const val CLEAR_BROWSING_DATA_KEY = "clear_browsing_data"
         /** The prefs of [credentialsPrefs] (the file `credentials.xml`), left out of backups (`backup_rules.xml`) */
         const val CREDENTIALS_PREFS_NAME = "credentials"
 
@@ -591,6 +592,16 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
             ?.let { name -> HistoryRetention.entries.find { it.name == name } } ?: HistoryRetention.YEAR
         set(value) {
             prefs.edit().putString(HISTORY_RETENTION_KEY, value.name).apply()
+        }
+
+    /**
+     * The boxes Clear browsing data had checked the last time, as `PROFILE:KIND` names (`BrowsingDataChoice`);
+     * null before it was used
+     */
+    var clearBrowsingDataKinds: Set<String>?
+        get() = prefs.getStringSet(CLEAR_BROWSING_DATA_KEY, null)
+        set(value) {
+            prefs.edit().putStringSet(CLEAR_BROWSING_DATA_KEY, value).apply()
         }
 
     /** The open tabs are a channel of the Android TV home screen */

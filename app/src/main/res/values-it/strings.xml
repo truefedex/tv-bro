@@ -250,6 +250,17 @@
   <string name="clear_site_data_cache">Cache del sito</string>
   <string name="clear_site_data_keeps">Le impostazioni del sito e la sua cronologia restano.</string>
   <string name="clear_site_data_failed">Impossibile cancellare i dati del sito</string>
+  <string name="clear_browsing_data">Cancella dati di navigazione</string>
+  <string name="clear_browsing_data_site_data">Cookie e dati dei siti</string>
+  <string name="clear_browsing_data_site_data_hint">Ti disconnette dai siti</string>
+  <string name="clear_browsing_data_downloads_hint">Solo l’elenco: i file restano</string>
+  <string name="clear_browsing_data_site_settings_hint">Visualizzazione, zoom, blocco di annunci e popup</string>
+  <string name="clear_browsing_data_cache">Immagini e file nella cache</string>
+  <string name="clear_browsing_data_together">Cookie, dati dei siti e cache di questi profili si possono cancellare solo insieme.</string>
+  <string name="clear_browsing_data_incognito">La modalità Incognito non salva la cronologia; i suoi segnalibri, download e impostazioni dei siti sono quelli del profilo principale, e gli altri suoi dati vengono cancellati quando termina.</string>
+  <string name="clear_browsing_data_done">Dati di navigazione cancellati</string>
+  <string name="clear_browsing_data_failed">Impossibile cancellare i dati di navigazione</string>
+  <string name="settings_clear_browsing_data_summary">Cronologia, schede, segnalibri, dati e impostazioni dei siti, cache</string>
   <string name="default_site_view">Visualizzazione predefinita dei siti</string>
   <array name="site_views">
     <item>Desktop</item>
@@ -588,9 +599,6 @@
   <string name="settings_keys_default">Predefinito</string>
   <string name="settings_keys_max_d">Un\'azione ha fino a %d tasti: uno nuovo sostituisce il più vecchio</string>
   <string name="settings_key_taken_s_s">%1$s è assegnato a «%2$s». Premilo di nuovo per assegnarlo qui</string>
-  <string name="settings_web_cache">Cache web</string>
-  <string name="settings_web_cache_summary">Le pagine vengono ricaricate dalla rete</string>
-  <string name="settings_web_cache_cleared">Cache web cancellata</string>
   <string name="settings_engine_debug">Debug del motore web</string>
   <string name="settings_engine_debug_summary">Un computer collegato per il debug può vedere le pagine e i cookie</string>
   <string name="settings_history_retention">Conserva la cronologia</string>

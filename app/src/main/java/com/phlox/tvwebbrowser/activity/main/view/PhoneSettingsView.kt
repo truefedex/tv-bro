@@ -192,6 +192,8 @@ class PhoneSettingsView @JvmOverloads constructor(
 
         override fun pickDownloadFolder(onDone: () -> Unit) = callback.pickDownloadFolder(onDone)
 
+        override fun clearBrowsingData(onCleared: () -> Unit) = callback.clearBrowsingData(onCleared)
+
         override fun pickFromList(title: String, options: List<String>, checked: Int, onChosen: (Int) -> Unit) =
             callback.pickFromList(title, options, checked, onChosen)
 

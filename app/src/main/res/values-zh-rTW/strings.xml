@@ -236,6 +236,17 @@
     <string name="clear_site_data_cache">該網站的快取</string>
     <string name="clear_site_data_keeps">網站設定和歷史紀錄會保留。</string>
     <string name="clear_site_data_failed">無法清除網站資料</string>
+    <string name="clear_browsing_data">清除瀏覽資料</string>
+    <string name="clear_browsing_data_site_data">Cookie 和網站資料</string>
+    <string name="clear_browsing_data_site_data_hint">會登出各網站</string>
+    <string name="clear_browsing_data_downloads_hint">僅清單：檔案會保留</string>
+    <string name="clear_browsing_data_site_settings_hint">檢視、縮放、廣告和彈出式視窗封鎖</string>
+    <string name="clear_browsing_data_cache">快取的圖片和檔案</string>
+    <string name="clear_browsing_data_together">這些設定檔的 Cookie、網站資料和快取只能一起清除。</string>
+    <string name="clear_browsing_data_incognito">無痕模式不會保存歷史紀錄；它的書籤、下載內容和網站設定屬於主要設定檔，結束時會刪除它的其他資料。</string>
+    <string name="clear_browsing_data_done">瀏覽資料已清除</string>
+    <string name="clear_browsing_data_failed">無法清除瀏覽資料</string>
+    <string name="settings_clear_browsing_data_summary">歷史紀錄、分頁、書籤、網站資料和設定、快取</string>
     <string name="default_site_view">預設網站檢視</string>
     <array name="site_views">
         <item>電腦版</item>
@@ -560,9 +571,6 @@
     <string name="settings_keys_default">預設</string>
     <string name="settings_keys_max_d">每個動作最多 %d 個按鍵：新的按鍵會取代最早的按鍵</string>
     <string name="settings_key_taken_s_s">%1$s 已用於「%2$s」。再按一次即可改為用於此處</string>
-    <string name="settings_web_cache">網頁快取</string>
-    <string name="settings_web_cache_summary">頁面將重新從網路載入</string>
-    <string name="settings_web_cache_cleared">已清除網頁快取</string>
     <string name="settings_engine_debug">Web 引擎偵錯</string>
     <string name="settings_engine_debug_summary">連接進行偵錯的電腦可以看到頁面和 Cookie</string>
     <string name="settings_history_retention">保留歷史記錄</string>

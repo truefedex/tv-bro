@@ -70,6 +70,11 @@ interface HostsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIfAbsent(item: HostConfig): Long
 
+    /** What the user set for each site; the favicons and the sites allowed in the kids profile stay */
+    @Query("UPDATE hosts SET popup_block_level = NULL, adblock = NULL, desktop_view = NULL, built_in_player = NULL, " +
+            "page_zoom = NULL")
+    suspend fun resetSiteSettings()
+
     @Query("UPDATE hosts SET popup_block_level = :level WHERE host_name = :host")
     suspend fun updatePopupBlockLevel(host: String, level: Int?)
 

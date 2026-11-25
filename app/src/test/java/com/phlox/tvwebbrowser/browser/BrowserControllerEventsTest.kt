@@ -11,6 +11,8 @@ import com.phlox.tvwebbrowser.model.BrowserTab
 import com.phlox.tvwebbrowser.model.HostConfig
 import com.phlox.tvwebbrowser.singleton.AppDatabase
 import com.phlox.tvwebbrowser.singleton.FaviconsPool
+import com.phlox.tvwebbrowser.webengine.DataClearing
+import com.phlox.tvwebbrowser.webengine.DataProfile
 import com.phlox.tvwebbrowser.webengine.PageZoom
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
 import com.phlox.tvwebbrowser.webengine.WebEngineFactory
@@ -21,6 +23,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -599,6 +602,107 @@ class BrowserControllerEventsTest {
         runBlocking { controller.clearSiteData(tab, emptySet()) }
         assertEquals(1, FakeWebEngine.clearedKinds.size)
         assertTrue(tab.fakeEngine.log.isEmpty())
+    }
+
+    @Test
+    fun clearingBrowsingDataClearsTheChosenKinds() {
+        FakeWebEngine.clearedBrowsingData.clear()
+        FakeWebEngine.dataClearing.clear()
+        val tab = open("https://www.a.com/page")
+        runBlocking {
+            db.historyDao().insert(com.phlox.tvwebbrowser.model.HistoryItem().apply {
+                url = "https://www.b.com/"
+                title = "B"
+                time = 1000
+            })
+        }
+        tab.fakeEngine.log.clear()
+        //history and cache: the cookies stay, so the page does not reload
+        runBlocking {
+            controller.clearBrowsingData(mapOf(DataProfile.MAIN to setOf(BrowsingDataKind.HISTORY, BrowsingDataKind.CACHE)),
+                DataProfile.MAIN)
+        }
+        assertEquals(0, runBlocking { db.historyDao().count() })
+        assertEquals(listOf(DataProfile.MAIN to setOf(SiteDataKind.CACHE)), FakeWebEngine.clearedBrowsingData)
+        assertTrue(tab.fakeEngine.log.isEmpty())
+
+        //the cookies of another profile: the page shown stays
+        runBlocking { controller.clearBrowsingData(mapOf(DataProfile.KIDS to setOf(BrowsingDataKind.SITE_DATA)), DataProfile.MAIN) }
+        assertEquals(DataProfile.KIDS to setOf(SiteDataKind.COOKIES, SiteDataKind.STORAGE), FakeWebEngine.clearedBrowsingData.last())
+        assertTrue(tab.fakeEngine.log.isEmpty())
+
+        //those of its own profile: the page reloads to show the user signed out
+        runBlocking { controller.clearBrowsingData(mapOf(DataProfile.MAIN to setOf(BrowsingDataKind.SITE_DATA)), DataProfile.MAIN) }
+        assertEquals(listOf("reload"), tab.fakeEngine.log)
+    }
+
+    @Test
+    fun clearingTheAppsOwnDataOfTheProfileShown() {
+        //past the first start, which fills the empty home page with suggestions
+        config.initialBookmarksSuggestionsLoaded = true
+        open("https://www.a.com/page")
+        val tab = open("https://www.b.com/page")
+        runBlocking {
+            db.favoritesDao().insert(com.phlox.tvwebbrowser.model.FavoriteItem().apply {
+                title = "A"
+                url = "https://www.a.com/"
+            })
+            db.hostsDao().setSiteView("www.b.com", SiteView.MOBILE.code)
+            db.hostsDao().setFavicon("www.b.com", "b.png")
+            fun download(status: Int, kids: Boolean) = com.phlox.tvwebbrowser.model.Download().apply {
+                url = "https://www.a.com/file"
+                filename = "file"
+                this.status = status
+                this.kids = kids
+            }
+            db.downloadDao().insert(download(com.phlox.tvwebbrowser.model.Download.Status.DONE, kids = false))
+            db.downloadDao().insert(download(com.phlox.tvwebbrowser.model.Download.Status.PAUSED, kids = false))
+            db.downloadDao().insert(download(com.phlox.tvwebbrowser.model.Download.Status.DONE, kids = true))
+        }
+        tab.fakeEngine.log.clear()
+        runBlocking {
+            controller.clearBrowsingData(mapOf(DataProfile.MAIN to setOf(BrowsingDataKind.BOOKMARKS,
+                BrowsingDataKind.DOWNLOADS, BrowsingDataKind.SITE_SETTINGS)), DataProfile.MAIN)
+        }
+        assertTrue(runBlocking { db.favoritesDao().getBookmarks() }.isEmpty())
+        //the site settings go, the icon stays; the page reloads in the default view
+        val host = runBlocking { db.hostsDao().findByHostName("www.b.com") }!!
+        assertNull(host.siteView)
+        assertEquals("b.png", host.favicon)
+        assertEquals(listOf("reload"), tab.fakeEngine.log)
+        //only the ended downloads of the main profile go
+        val downloads = runBlocking { db.downloadDao().observeAll().first() }
+        assertEquals(2, downloads.size)
+        assertTrue(downloads.any { it.kids } && downloads.any { it.status == com.phlox.tvwebbrowser.model.Download.Status.PAUSED })
+
+        //the tabs shown: closed, and a new one with the home page
+        runBlocking { controller.clearBrowsingData(mapOf(DataProfile.MAIN to setOf(BrowsingDataKind.TABS)), DataProfile.MAIN) }
+        assertEquals(1, controller.tabsStates.size)
+        assertEquals(config.homePage, controller.tabsStates[0].url)
+        assertSame(controller.tabsStates[0], controller.currentTab.value)
+    }
+
+    @Test
+    fun profilesClearedTogetherAreClearedOnce() {
+        FakeWebEngine.clearedBrowsingData.clear()
+        FakeWebEngine.dataClearing.clear()
+        FakeWebEngine.dataClearing[DataProfile.MAIN] = DataClearing.WITH_OTHERS
+        FakeWebEngine.dataClearing[DataProfile.KIDS] = DataClearing.WITH_OTHERS
+        FakeWebEngine.dataClearing[DataProfile.INCOGNITO] = DataClearing.NONE
+        try {
+            val tab = open("https://www.a.com/page")
+            tab.fakeEngine.log.clear()
+            val site = setOf(BrowsingDataKind.SITE_DATA)
+            //the kids column clears the main profile too, so the page shown reloads
+            runBlocking {
+                controller.clearBrowsingData(mapOf(DataProfile.KIDS to site, DataProfile.MAIN to site,
+                    DataProfile.INCOGNITO to site), DataProfile.MAIN)
+            }
+            assertEquals(1, FakeWebEngine.clearedBrowsingData.size)
+            assertEquals(listOf("reload"), tab.fakeEngine.log)
+        } finally {
+            FakeWebEngine.dataClearing.clear()
+        }
     }
 
     @Test

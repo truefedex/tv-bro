@@ -38,4 +38,6 @@ class DownloadsRepository(private val dao: DownloadDao) {
     suspend fun delete(ids: List<Long>) = dao.delete(ids)
 
     suspend fun deleteEndedOfKids() = dao.deleteEndedOfKids()
+
+    suspend fun deleteEndedOfMain() = dao.deleteEndedOfMain()
 }

@@ -174,6 +174,17 @@
     <string name="clear_site_data_cache">The cache of the site</string>
     <string name="clear_site_data_keeps">The settings of the site and its history stay.</string>
     <string name="clear_site_data_failed">Could not clear the site data</string>
+    <string name="clear_browsing_data">Clear browsing data</string>
+    <string name="clear_browsing_data_site_data">Cookies and site data</string>
+    <string name="clear_browsing_data_site_data_hint">Signs you out of sites</string>
+    <string name="clear_browsing_data_downloads_hint">Only the list: the files stay</string>
+    <string name="clear_browsing_data_site_settings_hint">View, zoom, ad and popup blocking</string>
+    <string name="clear_browsing_data_cache">Cached images and files</string>
+    <string name="clear_browsing_data_together">Cookies, site data and cache of these profiles can only be cleared together.</string>
+    <string name="clear_browsing_data_incognito">Incognito mode keeps no history; its bookmarks, downloads and site settings are those of the main profile, and its other data go when it ends.</string>
+    <string name="clear_browsing_data_done">Browsing data cleared</string>
+    <string name="clear_browsing_data_failed">Could not clear the browsing data</string>
+    <string name="settings_clear_browsing_data_summary">History, tabs, bookmarks, site data and settings, cache</string>
     <!-- the setting of the site view of sites without their own -->
     <string name="default_site_view">Default site view</string>
     <!-- how sites are shown: as on a desktop computer or as on a phone (the order is used by the app) -->
@@ -649,9 +660,6 @@
     <string name="settings_keys_max_d">An action has up to %d keys: a new one replaces the oldest</string>
     <string name="settings_key_taken_s_s">%1$s is set for “%2$s”. Press it again to set it here instead</string>
     <!-- Advanced -->
-    <string name="settings_web_cache">Web cache</string>
-    <string name="settings_web_cache_summary">Pages load again from the network</string>
-    <string name="settings_web_cache_cleared">Web cache cleared</string>
     <string name="settings_engine_debug">Web engine debugging</string>
     <string name="settings_engine_debug_summary">A computer connected for debugging can see pages and cookies</string>
     <!-- the time visits stay in the history -->

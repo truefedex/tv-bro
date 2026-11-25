@@ -43,6 +43,7 @@ import com.phlox.tvwebbrowser.TVBro
 import com.phlox.tvwebbrowser.send.LegacySync
 import com.phlox.tvwebbrowser.send.SendSettings
 import com.phlox.tvwebbrowser.channels.HomeChannels
+import com.phlox.tvwebbrowser.profile.KidsProfileData
 import com.phlox.tvwebbrowser.profile.PinDialog
 import com.phlox.tvwebbrowser.profile.ProfileChooserDialog
 import com.phlox.tvwebbrowser.profile.kidsTitle
@@ -53,6 +54,9 @@ import com.phlox.tvwebbrowser.browser.sitefilter.AppSiteFilter
 import com.phlox.tvwebbrowser.browser.BrowserCommands
 import com.phlox.tvwebbrowser.browser.BrowserController
 import com.phlox.tvwebbrowser.browser.BrowserUiEvent
+import com.phlox.tvwebbrowser.browser.BrowsingDataChoice
+import com.phlox.tvwebbrowser.activity.main.view.ClearBrowsingDataDialog
+import com.phlox.tvwebbrowser.webengine.DataProfile
 import com.phlox.tvwebbrowser.browser.DownloadItem
 import com.phlox.tvwebbrowser.browser.DownloadsModel
 import com.phlox.tvwebbrowser.browser.UrlInputResolver
@@ -483,40 +487,80 @@ class MainActivity : AppCompatActivity(), BrowserShell.Host {
         val host = controller.currentTabState.value.host
         if (host.isEmpty()) return
         val kinds = listOf(SiteDataKind.COOKIES, SiteDataKind.STORAGE, SiteDataKind.CACHE)
-        val labels = arrayOf<CharSequence>(getString(R.string.clear_site_data_cookies),
+        val labels = listOf(getString(R.string.clear_site_data_cookies),
             getString(R.string.clear_site_data_storage), getString(R.string.clear_site_data_cache))
         val checked = BooleanArray(kinds.size) { true }
+        showClearDialog(getString(R.string.clear_site_data_title, host), labels, checked,
+            getString(R.string.clear_site_data_keeps)) {
+            val chosen = kinds.filterIndexed { i, _ -> checked[i] }.toSet()
+            lifecycleScope.launch {
+                try {
+                    controller.clearSiteData(tab, chosen)
+                } catch (e: Exception) {
+                    Log.e(TAG, "clearSiteData", e)
+                    Utils.showToast(this@MainActivity, R.string.clear_site_data_failed)
+                }
+            }
+        }
+    }
+
+    override fun clearBrowsingData(onCleared: () -> Unit) {
+        //the kids profile deletes no history and reaches no data of the other profiles
+        if (refusedByProfile(policy.deleteHistory)) return
+        lifecycleScope.launch {
+            //the kids profile while it has data (its database would be created by asking it)
+            val kids = kidsProfileAvailable && withContext(Dispatchers.IO) { KidsProfileData.exists(applicationContext) }
+            val shown = if (space == BrowserSpace.INCOGNITO) DataProfile.INCOGNITO else DataProfile.MAIN
+            val profiles = listOfNotNull(DataProfile.MAIN, DataProfile.KIDS.takeIf { kids },
+                DataProfile.INCOGNITO.takeIf { shown == DataProfile.INCOGNITO })
+            val choice = BrowsingDataChoice(profiles, WebEngineFactory::browsingDataClearing, config.clearBrowsingDataKinds)
+            val notes = ArrayList<String>()
+            if (choice.hasLinks) notes += getString(R.string.clear_browsing_data_together)
+            if (DataProfile.INCOGNITO in profiles) notes += getString(R.string.clear_browsing_data_incognito)
+            ClearBrowsingDataDialog.show(this@MainActivity, choice, notes) {
+                config.clearBrowsingDataKinds = choice.remembered()
+                val chosen = choice.chosen()
+                lifecycleScope.launch {
+                    try {
+                        controller.clearBrowsingData(chosen, shown)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "clearBrowsingData", e)
+                        Utils.showToast(this@MainActivity, R.string.clear_browsing_data_failed)
+                        return@launch
+                    }
+                    onCleared()
+                }
+            }
+        }
+    }
+
+    /**
+     * Asks which of the [labels] to clear, [checked] at first, with the [note] (what stays) under the list;
+     * [onClear] runs on Clear, which is enabled while something is checked. The dialog keeps [checked] up to date.
+     */
+    private fun showClearDialog(title: String, labels: List<String>, checked: BooleanArray, note: String,
+                                onClear: () -> Unit) {
         val builder = AlertDialog.Builder(this)
         //a dialog with a list has no message: what stays goes under the list
         val padding = TypedValue().let {
             builder.context.theme.resolveAttribute(androidx.appcompat.R.attr.dialogPreferredPadding, it, true)
             TypedValue.complexToDimensionPixelSize(it.data, resources.displayMetrics)
         }
-        val keeps = TextView(builder.context, null, 0, R.style.Widget_TVBro_Text_Body).apply {
-            setText(R.string.clear_site_data_keeps)
+        val noteView = TextView(builder.context, null, 0, R.style.Widget_TVBro_Text_Body).apply {
+            text = note
             setTextColor(context.themeColor(R.attr.tbColorDsInk))
             setPaddingRelative(padding, padding / 3, padding, 0)
         }
-        builder
-            .setTitle(getString(R.string.clear_site_data_title, host))
-            .setMultiChoiceItems(labels, checked) { d, _, _ ->
-                //the dialog keeps [checked] up to date
+        val dialog = builder
+            .setTitle(title)
+            .setMultiChoiceItems(labels.toTypedArray<CharSequence>(), checked) { d, _, _ ->
                 (d as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = checked.any { it }
             }
-            .setView(keeps)
-            .setPositiveButton(R.string.clear) { _, _ ->
-                val chosen = kinds.filterIndexed { i, _ -> checked[i] }.toSet()
-                lifecycleScope.launch {
-                    try {
-                        controller.clearSiteData(tab, chosen)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "clearSiteData", e)
-                        Utils.showToast(this@MainActivity, R.string.clear_site_data_failed)
-                    }
-                }
-            }
+            .setView(noteView)
+            .setPositiveButton(R.string.clear) { _, _ -> onClear() }
             .setNegativeButton(R.string.cancel, null)
-        builder.show()
+            .show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = checked.any { it }
     }
 
     override fun download(request: DownloadRequest) {
@@ -597,6 +641,14 @@ class MainActivity : AppCompatActivity(), BrowserShell.Host {
         override fun toggleDirectNavigation() {
             if (tabsLocked()) return
             shell.toggleDirectNavigation()
+        }
+
+        //no dialog over the video
+        override fun clearBrowsingData() {
+            if (tabsLocked()) return
+            this@MainActivity.clearBrowsingData {
+                shell.showMessage(R.drawable.ic_check, getString(R.string.clear_browsing_data_done))
+            }
         }
 
         override fun newTab() {

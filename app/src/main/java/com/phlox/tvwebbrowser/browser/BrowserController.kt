@@ -27,6 +27,8 @@ import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.activemodel.ActiveModel
 import com.phlox.tvwebbrowser.utils.observable.ObservableList
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
+import com.phlox.tvwebbrowser.webengine.DataClearing
+import com.phlox.tvwebbrowser.webengine.DataProfile
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
 import com.phlox.tvwebbrowser.webengine.EngineUiHost
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
@@ -722,6 +724,91 @@ class BrowserController : ActiveModel() {
         WebEngineFactory.clearSiteData(AppContext.get(), host, kinds)
         if (tab == currentTab.value && tab.isWebEngineCreated) {
             tab.webEngine.reload()
+        }
+    }
+
+    /**
+     * Clears the kinds of browsing data [chosen] for each profile ([BrowsingDataChoice]; [shown] is the profile of
+     * the tabs shown): the history, the bookmarks, the site settings and the tabs of the main and of the kids
+     * profile in their databases (the tabs shown are closed and a new one opens), the rows of the downloads that
+     * ended, and the data of all sites in the engine ([WebEngineFactory.clearBrowsingData]; once for the profiles it
+     * clears together). The current tab reloads when the cookies or the site settings of its pages went.
+     */
+    suspend fun clearBrowsingData(chosen: Map<DataProfile, Set<BrowsingDataKind>>, shown: DataProfile) {
+        val container = TVBro.container
+        var reload = false
+        for ((profile, kinds) in chosen) {
+            //the incognito mode keeps its bookmarks, downloads and site settings in the main profile
+            val stored = when (profile) {
+                DataProfile.MAIN -> container.mainData
+                DataProfile.KIDS -> container.kidsData
+                DataProfile.INCOGNITO -> null
+            } ?: continue
+            if (BrowsingDataKind.HISTORY in kinds) {
+                if (profile == DataProfile.MAIN) historyLogger.forget()
+                stored.history.deleteAll()
+            }
+            if (BrowsingDataKind.BOOKMARKS in kinds) {
+                stored.favorites.deleteAll()
+                if (stored === data) homePageLinks.load()
+            }
+            //the rows of the downloads of both profiles are in the database of the main one
+            if (BrowsingDataKind.DOWNLOADS in kinds) {
+                if (profile == DataProfile.KIDS) container.mainData.downloads.deleteEndedOfKids()
+                else container.mainData.downloads.deleteEndedOfMain()
+            }
+            if (BrowsingDataKind.SITE_SETTINGS in kinds) {
+                stored.hostConfigs.resetSiteSettings()
+                if (stored === data) reload = true
+            }
+        }
+        var together = false
+        for ((profile, kinds) in chosen) {
+            val siteData = kinds.flatMapTo(HashSet()) { it.siteData }
+            if (siteData.isEmpty()) continue
+            val clearing = WebEngineFactory.browsingDataClearing(profile)
+            if (clearing == DataClearing.NONE || (clearing == DataClearing.WITH_OTHERS && together)) continue
+            together = together || clearing == DataClearing.WITH_OTHERS
+            WebEngineFactory.clearBrowsingData(AppContext.get(), profile, siteData)
+            val clearsShown = profile == shown ||
+                (clearing == DataClearing.WITH_OTHERS && WebEngineFactory.browsingDataClearing(shown) == clearing)
+            if (clearsShown && BrowsingDataKind.SITE_DATA in kinds) reload = true
+        }
+        for ((profile, kinds) in chosen) {
+            if (BrowsingDataKind.TABS !in kinds) continue
+            if (profile == shown) {
+                closeAllTabs()
+                reload = false
+            } else {
+                deleteStoredTabs(profile)
+            }
+        }
+        if (reload) currentTab.value?.takeIf { it.isWebEngineCreated }?.webEngine?.reload()
+    }
+
+    /**
+     * Closes all the tabs shown and opens a new one with the home page; its save is queued after the deletion
+     * ([writes] runs on the main thread: waiting for it there would never end)
+     */
+    private fun closeAllTabs() {
+        currentTab.value = null
+        onCloseAllTabs()
+        openInNewTab(config.homePage, 0, navigateImmediately = true)
+    }
+
+    /** Deletes the saved tabs of a profile not shown, with their files */
+    private fun deleteStoredTabs(profile: DataProfile) {
+        val container = TVBro.container
+        val kids = profile == DataProfile.KIDS
+        val stored = if (kids) container.kidsData else container.mainData
+        val files = if (kids) container.kidsTabFiles else container.mainTabFiles
+        val incognito = profile == DataProfile.INCOGNITO
+        writes.enqueue {
+            val tabs = stored.tabs.load(incognito)
+            stored.tabs.deleteAll(incognito)
+            withContext(Dispatchers.IO) {
+                for (tab in tabs) files.removeFiles(tab.wvStateFileName, tab.thumbnailHash)
+            }
         }
     }
 

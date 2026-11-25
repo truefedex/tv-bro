@@ -243,6 +243,17 @@
   <string name="clear_site_data_cache">حافظه پنهان سایت</string>
   <string name="clear_site_data_keeps">تنظیمات سایت و تاریخچه آن می‌مانند.</string>
   <string name="clear_site_data_failed">پاک کردن داده‌های سایت ممکن نشد</string>
+  <string name="clear_browsing_data">پاک کردن داده‌های مرور</string>
+  <string name="clear_browsing_data_site_data">کوکی‌ها و داده‌های سایت‌ها</string>
+  <string name="clear_browsing_data_site_data_hint">از حساب‌هایتان در سایت‌ها خارج می‌شوید</string>
+  <string name="clear_browsing_data_downloads_hint">فقط فهرست: فایل‌ها می‌مانند</string>
+  <string name="clear_browsing_data_site_settings_hint">نما، بزرگ‌نمایی، مسدودسازی تبلیغات و پنجره‌های بازشو</string>
+  <string name="clear_browsing_data_cache">تصاویر و فایل‌های حافظه پنهان</string>
+  <string name="clear_browsing_data_together">کوکی‌ها، داده‌های سایت‌ها و حافظه پنهان این نمایه‌ها فقط با هم پاک می‌شوند.</string>
+  <string name="clear_browsing_data_incognito">حالت ناشناس تاریخچه نگه نمی‌دارد؛ نشانک‌ها، بارگیری‌ها و تنظیمات سایت‌های آن همان‌های نمایه اصلی است و دیگر داده‌هایش وقتی تمام شود پاک می‌شوند.</string>
+  <string name="clear_browsing_data_done">داده‌های مرور پاک شدند</string>
+  <string name="clear_browsing_data_failed">پاک کردن داده‌های مرور ممکن نشد</string>
+  <string name="settings_clear_browsing_data_summary">تاریخچه، زبانه‌ها، نشانک‌ها، داده‌ها و تنظیمات سایت‌ها، حافظه پنهان</string>
   <string name="default_site_view">نمای پیش‌فرض سایت‌ها</string>
   <array name="site_views">
     <item>رایانه</item>
@@ -574,9 +585,6 @@
   <string name="settings_keys_default">پیش‌فرض</string>
   <string name="settings_keys_max_d">هر عمل حداکثر %d کلید دارد: کلید جدید جایگزین قدیمی‌ترین می‌شود</string>
   <string name="settings_key_taken_s_s">%1$s برای «%2$s» تنظیم شده است. برای تنظیم آن در اینجا دوباره فشار دهید</string>
-  <string name="settings_web_cache">حافظه پنهان وب</string>
-  <string name="settings_web_cache_summary">صفحه‌ها دوباره از شبکه بارگذاری می‌شوند</string>
-  <string name="settings_web_cache_cleared">حافظه پنهان وب پاک شد</string>
   <string name="settings_engine_debug">اشکال‌زدایی موتور وب</string>
   <string name="settings_engine_debug_summary">رایانه‌ای که برای اشکال‌زدایی وصل است می‌تواند صفحه‌ها و کوکی‌ها را ببیند</string>
   <string name="settings_history_retention">نگه‌داشتن تاریخچه</string>

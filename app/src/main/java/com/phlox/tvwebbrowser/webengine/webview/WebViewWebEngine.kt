@@ -38,6 +38,8 @@ import com.phlox.tvwebbrowser.webengine.VirtualCursorSupport
 import com.phlox.tvwebbrowser.webengine.PageZoomSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
+import com.phlox.tvwebbrowser.webengine.DataClearing
+import com.phlox.tvwebbrowser.webengine.DataProfile
 import com.phlox.tvwebbrowser.webengine.CursorModes
 import com.phlox.tvwebbrowser.webengine.FindInPageSupport
 import com.phlox.tvwebbrowser.webengine.FindResult
@@ -673,10 +675,6 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     return WebViewWebEngine(tab)
                 }
 
-                override suspend fun clearCache(ctx: Context) {
-                    WebView(ctx).clearCache(true)
-                }
-
                 override fun onThemeSettingUpdated(value: Config.Theme) {
                     //nop
                 }
@@ -698,6 +696,21 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
 
                 override suspend fun clearSiteData(context: Context, host: String, kinds: Set<SiteDataKind>) {
                     WebViewSiteData.clear(context, host, kinds, WebViewProfiles.ofShown())
+                }
+
+                //each profile of the browser has a profile of WebView of its own (the main one the default)
+                override fun browsingDataClearing(profile: DataProfile): DataClearing =
+                    if (profile == DataProfile.MAIN || WebViewProfiles.isSupported) DataClearing.SEPARATE
+                    else DataClearing.NONE
+
+                override suspend fun clearBrowsingData(context: Context, profile: DataProfile, kinds: Set<SiteDataKind>) {
+                    if (browsingDataClearing(profile) == DataClearing.NONE) return
+                    val webViewProfile = when (profile) {
+                        DataProfile.MAIN -> null
+                        DataProfile.KIDS -> WebViewProfiles.KIDS
+                        DataProfile.INCOGNITO -> WebViewProfiles.INCOGNITO
+                    }
+                    WebViewProfiles.clear(context, webViewProfile, kinds)
                 }
 
                 override fun onViewCreationFailed(activity: Activity, error: Throwable) {

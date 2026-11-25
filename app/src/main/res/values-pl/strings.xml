@@ -257,6 +257,17 @@
   <string name="clear_site_data_cache">Pamięć podręczna witryny</string>
   <string name="clear_site_data_keeps">Ustawienia witryny i jej historia pozostaną.</string>
   <string name="clear_site_data_failed">Nie udało się wyczyścić danych witryny</string>
+  <string name="clear_browsing_data">Wyczyść dane przeglądania</string>
+  <string name="clear_browsing_data_site_data">Pliki cookie i dane witryn</string>
+  <string name="clear_browsing_data_site_data_hint">Wylogowuje z witryn</string>
+  <string name="clear_browsing_data_downloads_hint">Tylko lista: pliki zostają</string>
+  <string name="clear_browsing_data_site_settings_hint">Widok, powiększenie, blokowanie reklam i wyskakujących okien</string>
+  <string name="clear_browsing_data_cache">Obrazy i pliki w pamięci podręcznej</string>
+  <string name="clear_browsing_data_together">Pliki cookie, dane witryn i pamięć podręczną tych profili można wyczyścić tylko razem.</string>
+  <string name="clear_browsing_data_incognito">Tryb incognito nie zapisuje historii; jego zakładki, pobrane pliki i ustawienia witryn należą do profilu głównego, a pozostałe jego dane znikają, gdy się kończy.</string>
+  <string name="clear_browsing_data_done">Dane przeglądania zostały wyczyszczone</string>
+  <string name="clear_browsing_data_failed">Nie udało się wyczyścić danych przeglądania</string>
+  <string name="settings_clear_browsing_data_summary">Historia, karty, zakładki, dane i ustawienia witryn, pamięć podręczna</string>
   <string name="default_site_view">Domyślny widok witryn</string>
   <array name="site_views">
     <item>Komputerowy</item>
@@ -602,9 +613,6 @@
   <string name="settings_keys_default">Domyślne</string>
   <string name="settings_keys_max_d">Akcja ma do %d klawiszy: nowy zastępuje najstarszy</string>
   <string name="settings_key_taken_s_s">%1$s jest przypisany do „%2$s”. Naciśnij go ponownie, aby przypisać go tutaj</string>
-  <string name="settings_web_cache">Pamięć podręczna</string>
-  <string name="settings_web_cache_summary">Strony zostaną ponownie wczytane z sieci</string>
-  <string name="settings_web_cache_cleared">Wyczyszczono pamięć podręczną</string>
   <string name="settings_engine_debug">Debugowanie silnika webowego</string>
   <string name="settings_engine_debug_summary">Komputer podłączony do debugowania może widzieć strony i pliki cookie</string>
   <string name="settings_history_retention">Przechowuj historię</string>

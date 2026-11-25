@@ -257,6 +257,17 @@
   <string name="clear_site_data_cache">Кеш сайту</string>
   <string name="clear_site_data_keeps">Налаштування сайту та його історія залишаться.</string>
   <string name="clear_site_data_failed">Не вдалося очистити дані сайту</string>
+  <string name="clear_browsing_data">Очистити дані браузера</string>
+  <string name="clear_browsing_data_site_data">Cookie та дані сайтів</string>
+  <string name="clear_browsing_data_site_data_hint">Вихід з акаунтів на сайтах</string>
+  <string name="clear_browsing_data_downloads_hint">Лише список: файли залишаться</string>
+  <string name="clear_browsing_data_site_settings_hint">Вигляд, масштаб, блокування реклами та спливних вікон</string>
+  <string name="clear_browsing_data_cache">Кешовані зображення та файли</string>
+  <string name="clear_browsing_data_together">Cookie, дані сайтів і кеш цих профілів очищаються лише разом.</string>
+  <string name="clear_browsing_data_incognito">Режим анонімного перегляду не зберігає історію; його закладки, завантаження й налаштування сайтів — це дані основного профілю, а решта його даних видаляється, коли він завершується.</string>
+  <string name="clear_browsing_data_done">Дані браузера очищено</string>
+  <string name="clear_browsing_data_failed">Не вдалося очистити дані браузера</string>
+  <string name="settings_clear_browsing_data_summary">Історія, вкладки, закладки, дані й налаштування сайтів, кеш</string>
   <string name="default_site_view">Типовий вигляд сайтів</string>
   <array name="site_views">
     <item>Настільний</item>
@@ -602,9 +613,6 @@
   <string name="settings_keys_default">Типово</string>
   <string name="settings_keys_max_d">Дія має до %d клавіш: нова замінює найстарішу</string>
   <string name="settings_key_taken_s_s">%1$s призначено на «%2$s». Натисніть її ще раз, щоб призначити сюди</string>
-  <string name="settings_web_cache">Вебкеш</string>
-  <string name="settings_web_cache_summary">Сторінки знову завантажуватимуться з мережі</string>
-  <string name="settings_web_cache_cleared">Вебкеш очищено</string>
   <string name="settings_engine_debug">Налагодження вебрушія</string>
   <string name="settings_engine_debug_summary">Комп\'ютер, підключений для налагодження, може бачити сторінки й cookie</string>
   <string name="settings_history_retention">Зберігати історію</string>

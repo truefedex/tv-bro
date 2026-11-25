@@ -14,6 +14,8 @@ import com.phlox.tvwebbrowser.webengine.WebEngineCallbacks
 import com.phlox.tvwebbrowser.webengine.PageZoomSupport
 import com.phlox.tvwebbrowser.webengine.SiteViewSupport
 import com.phlox.tvwebbrowser.webengine.SiteDataKind
+import com.phlox.tvwebbrowser.webengine.DataClearing
+import com.phlox.tvwebbrowser.webengine.DataProfile
 
 /**
  * Web engine that only records what is done with it.
@@ -23,7 +25,6 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport, PageZoomS
         val provider = WebEngineProvider("Fake", object : WebEngineProviderCallback {
             override suspend fun initialize(context: Context, webViewContainer: ViewGroup) {}
             override fun createWebEngine(tab: BrowserTab): WebEngine = FakeWebEngine(tab)
-            override suspend fun clearCache(ctx: Context) {}
             override fun onThemeSettingUpdated(value: Config.Theme) {}
             override fun getWebEngineVersionString(): String = "fake"
             override fun supportsSiteDataClearing(): Boolean = true
@@ -31,11 +32,19 @@ class FakeWebEngine(val tab: BrowserTab) : WebEngine, SiteViewSupport, PageZoomS
                 clearedSites += host
                 clearedKinds += kinds
             }
+            override fun browsingDataClearing(profile: DataProfile) = dataClearing[profile] ?: DataClearing.SEPARATE
+            override suspend fun clearBrowsingData(context: Context, profile: DataProfile, kinds: Set<SiteDataKind>) {
+                clearedBrowsingData += profile to kinds
+            }
         })
+        /** How each profile is cleared; [DataClearing.SEPARATE] when not given */
+        val dataClearing = HashMap<DataProfile, DataClearing>()
         /** The hosts whose data was cleared */
         val clearedSites = ArrayList<String>()
         /** What was cleared of each of [clearedSites] */
         val clearedKinds = ArrayList<Set<SiteDataKind>>()
+        /** What was cleared of all sites of a profile, each time */
+        val clearedBrowsingData = ArrayList<Pair<DataProfile, Set<SiteDataKind>>>()
     }
 
     val log = ArrayList<String>()

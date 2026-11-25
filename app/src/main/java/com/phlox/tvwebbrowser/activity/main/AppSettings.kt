@@ -367,7 +367,6 @@ class AppSettingsStore(
     override var cursorAcceleration: Int by config::cursorAccelerationPercent
     override fun bindingsOf(shortcut: Shortcut): List<KeyBinding> = shortcuts.bindingsOf(shortcut)
 
-    override suspend fun clearCache() = WebEngineFactory.clearCache(AppContext.get())
     override var historyRetention: Config.HistoryRetention
         get() = config.historyRetention
         set(value) {
@@ -521,6 +520,8 @@ class SettingsShellCallback(
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
+
+    override fun clearBrowsingData(onCleared: () -> Unit) = host.clearBrowsingData(onCleared)
 
     override fun pickDownloadFolder(onDone: () -> Unit) {
         val config = AppContext.provideConfig()

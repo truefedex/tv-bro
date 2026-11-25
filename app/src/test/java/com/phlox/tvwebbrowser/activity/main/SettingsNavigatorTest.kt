@@ -114,8 +114,6 @@ class SettingsNavigatorTest {
         override var cursorSpeed = 100
         override var cursorAcceleration = 100
         override fun bindingsOf(shortcut: Shortcut) = shortcut.defaultBindings.toList()
-        var cacheCleared = false
-        override suspend fun clearCache() { cacheCleared = true }
         override var webEngineDebug = false
         override var historyRetention = Config.HistoryRetention.YEAR
         override var downloadFolderPickerAvailable = true
@@ -179,6 +177,10 @@ class SettingsNavigatorTest {
             log += "pick folder"
             store.downloadFolderName = pickedFolder
             onDone()
+        }
+        override fun clearBrowsingData(onCleared: () -> Unit) {
+            log += "clear browsing data"
+            onCleared()
         }
         override fun pickFromList(title: String, options: List<String>, checked: Int, onChosen: (Int) -> Unit) {
             log += "pick from list"
@@ -679,12 +681,12 @@ class SettingsNavigatorTest {
     }
 
     @Test
-    fun clearCacheTellsWhenDone() {
+    fun clearBrowsingDataTellsWhenDone() {
         val navigator = navigator(tvUi = true)
         navigator.show(Category.ADVANCED)
-        navigator.act(row<Row.Action>(Key.CLEAR_CACHE))
-        assertTrue(store.cacheCleared)
-        assertTrue(log.last().startsWith("message"))
+        navigator.act(row<Row.Action>(Key.CLEAR_DATA))
+        assertEquals(listOf("clear browsing data",
+            "message " + context.getString(com.phlox.tvwebbrowser.R.string.clear_browsing_data_done)), log.takeLast(2))
     }
 
     @Test

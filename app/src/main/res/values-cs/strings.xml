@@ -258,6 +258,17 @@
     <string name="clear_site_data_cache">Mezipaměť webu</string>
     <string name="clear_site_data_keeps">Nastavení webu a jeho historie zůstanou.</string>
     <string name="clear_site_data_failed">Data webu se nepodařilo vymazat</string>
+    <string name="clear_browsing_data">Vymazat data prohlížení</string>
+    <string name="clear_browsing_data_site_data">Soubory cookie a data webů</string>
+    <string name="clear_browsing_data_site_data_hint">Odhlásí vás z webů</string>
+    <string name="clear_browsing_data_downloads_hint">Jen seznam: soubory zůstanou</string>
+    <string name="clear_browsing_data_site_settings_hint">Zobrazení, přiblížení, blokování reklam a vyskakovacích oken</string>
+    <string name="clear_browsing_data_cache">Obrázky a soubory v mezipaměti</string>
+    <string name="clear_browsing_data_together">Soubory cookie, data webů a mezipaměť těchto profilů lze vymazat jen společně.</string>
+    <string name="clear_browsing_data_incognito">Anonymní režim neukládá historii; jeho záložky, stažené soubory a nastavení webů patří hlavnímu profilu a ostatní jeho data zmizí, když skončí.</string>
+    <string name="clear_browsing_data_done">Data prohlížení byla vymazána</string>
+    <string name="clear_browsing_data_failed">Data prohlížení se nepodařilo vymazat</string>
+    <string name="settings_clear_browsing_data_summary">Historie, karty, záložky, data a nastavení webů, mezipaměť</string>
     <string name="default_site_view">Výchozí zobrazení webů</string>
     <array name="site_views">
         <item>Počítačové</item>
@@ -603,9 +614,6 @@
     <string name="settings_keys_default">Výchozí</string>
     <string name="settings_keys_max_d">Akce může mít nejvýše %d klávesy: nová nahradí nejstarší</string>
     <string name="settings_key_taken_s_s">%1$s je nastavena pro „%2$s“. Stiskněte ji znovu a nastaví se zde</string>
-    <string name="settings_web_cache">Webová mezipaměť</string>
-    <string name="settings_web_cache_summary">Stránky se znovu načtou ze sítě</string>
-    <string name="settings_web_cache_cleared">Webová mezipaměť vymazána</string>
     <string name="settings_engine_debug">Ladění webového jádra</string>
     <string name="settings_engine_debug_summary">Počítač připojený k ladění může vidět stránky a soubory cookie</string>
     <string name="settings_history_retention">Uchovávat historii</string>

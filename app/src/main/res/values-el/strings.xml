@@ -244,6 +244,17 @@
     <string name="clear_site_data_cache">Κρυφή μνήμη του ιστοτόπου</string>
     <string name="clear_site_data_keeps">Οι ρυθμίσεις του ιστοτόπου και το ιστορικό του παραμένουν.</string>
     <string name="clear_site_data_failed">Δεν ήταν δυνατή η διαγραφή των δεδομένων του ιστοτόπου</string>
+    <string name="clear_browsing_data">Διαγραφή δεδομένων περιήγησης</string>
+    <string name="clear_browsing_data_site_data">Cookies και δεδομένα ιστοτόπων</string>
+    <string name="clear_browsing_data_site_data_hint">Αποσυνδέεστε από τους ιστοτόπους</string>
+    <string name="clear_browsing_data_downloads_hint">Μόνο η λίστα: τα αρχεία μένουν</string>
+    <string name="clear_browsing_data_site_settings_hint">Προβολή, ζουμ, αποκλεισμός διαφημίσεων και αναδυόμενων</string>
+    <string name="clear_browsing_data_cache">Εικόνες και αρχεία στην κρυφή μνήμη</string>
+    <string name="clear_browsing_data_together">Τα cookies, τα δεδομένα ιστοτόπων και η κρυφή μνήμη αυτών των προφίλ διαγράφονται μόνο μαζί.</string>
+    <string name="clear_browsing_data_incognito">Η λειτουργία ανώνυμης περιήγησης δεν κρατά ιστορικό· οι σελιδοδείκτες, οι λήψεις και οι ρυθμίσεις ιστοτόπων της είναι του κύριου προφίλ, και τα άλλα δεδομένα της διαγράφονται όταν τελειώσει.</string>
+    <string name="clear_browsing_data_done">Τα δεδομένα περιήγησης διαγράφηκαν</string>
+    <string name="clear_browsing_data_failed">Δεν ήταν δυνατή η διαγραφή των δεδομένων περιήγησης</string>
+    <string name="settings_clear_browsing_data_summary">Ιστορικό, καρτέλες, σελιδοδείκτες, δεδομένα και ρυθμίσεις ιστοτόπων, κρυφή μνήμη</string>
     <string name="default_site_view">Προεπιλεγμένη προβολή ιστοτόπων</string>
     <array name="site_views">
         <item>Υπολογιστή</item>
@@ -575,9 +586,6 @@
     <string name="settings_keys_default">Προεπιλογή</string>
     <string name="settings_keys_max_d">Μια ενέργεια έχει έως %d πλήκτρα: ένα νέο αντικαθιστά το παλαιότερο</string>
     <string name="settings_key_taken_s_s">Το %1$s έχει οριστεί για «%2$s». Πατήστε το ξανά για να οριστεί εδώ</string>
-    <string name="settings_web_cache">Κρυφή μνήμη ιστού</string>
-    <string name="settings_web_cache_summary">Οι σελίδες θα φορτωθούν ξανά από το δίκτυο</string>
-    <string name="settings_web_cache_cleared">Η κρυφή μνήμη ιστού διαγράφηκε</string>
     <string name="settings_engine_debug">Εντοπισμός σφαλμάτων μηχανής ιστού</string>
     <string name="settings_engine_debug_summary">Ένας υπολογιστής συνδεδεμένος για εντοπισμό σφαλμάτων μπορεί να δει σελίδες και cookies</string>
     <string name="settings_history_retention">Διατήρηση ιστορικού</string>

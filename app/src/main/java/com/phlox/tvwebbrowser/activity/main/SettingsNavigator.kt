@@ -58,7 +58,7 @@ class SettingsNavigator(
         SITE_VIEW, USER_AGENT, USER_AGENT_STRING, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_PLAYER, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
         CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
-        CLEAR_CACHE, ENGINE_DEBUG, HISTORY_RETENTION, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD, DNS, DNS_URL,
+        CLEAR_DATA, ENGINE_DEBUG, HISTORY_RETENTION, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD, DNS, DNS_URL,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
         LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, NOTICE,
         KIDS_ABOUT, KIDS_ENABLE, KIDS_OPEN, KIDS_LOCK_DELAY, KIDS_DOWNLOADS, KIDS_PIN, KIDS_DISABLE, KIDS_DELETE_DATA,
@@ -208,7 +208,6 @@ class SettingsNavigator(
         var cursorAcceleration: Int
         fun bindingsOf(shortcut: Shortcut): List<KeyBinding>
 
-        suspend fun clearCache()
         var webEngineDebug: Boolean
         /** Visits older than this are deleted from the history; the setter deletes them at once */
         var historyRetention: Config.HistoryRetention
@@ -261,6 +260,8 @@ class SettingsNavigator(
         fun captureKey(shortcut: Shortcut, onDone: () -> Unit)
         /** Lets the user choose the folder of downloads in the picker of the system; [onDone] when it closes */
         fun pickDownloadFolder(onDone: () -> Unit)
+        /** Asks which browsing data to clear and clears them; [onCleared] once they are cleared */
+        fun clearBrowsingData(onCleared: () -> Unit)
         /**
          * Lets the user choose one of the [options] in a list that scrolls (there may be many); [checked] is the
          * chosen one, -1 for none. [onChosen] is not called when the user cancels.
@@ -287,6 +288,7 @@ class SettingsNavigator(
         fun confirm(title: String?, message: String, positive: String, onResult: (Boolean) -> Unit)
         fun captureKey(shortcut: Shortcut, onDone: () -> Unit)
         fun pickDownloadFolder(onDone: () -> Unit)
+        fun clearBrowsingData(onCleared: () -> Unit)
         fun pickFromList(title: String, options: List<String>, checked: Int, onChosen: (Int) -> Unit)
         fun open(url: String)
         /** [open] opens the address of the notice the way the screen opens links */
@@ -838,9 +840,8 @@ class SettingsNavigator(
                         render()
                     }
                 }
-                Key.CLEAR_CACHE -> scope.launch {
-                    store.clearCache()
-                    host.showMessage(R.drawable.ic_check, context.getString(R.string.settings_web_cache_cleared))
+                Key.CLEAR_DATA -> host.clearBrowsingData {
+                    host.showMessage(R.drawable.ic_check, context.getString(R.string.clear_browsing_data_done))
                 }
                 Key.UPDATE -> if (updates?.newVersion != null) host.startUpdate()
                 Key.KIDS_ENABLE, Key.KIDS_PIN -> {
@@ -1336,8 +1337,8 @@ class SettingsNavigator(
 
     private fun advancedSections(): List<Section> {
         val sections = arrayListOf(Section(null, listOf(
-            Row.Action(Key.CLEAR_CACHE, string(R.string.settings_web_cache), string(R.string.settings_web_cache_summary),
-                string(R.string.clear)),
+            Row.Action(Key.CLEAR_DATA, string(R.string.clear_browsing_data),
+                string(R.string.settings_clear_browsing_data_summary), string(R.string.clear)),
             Row.Toggle(Key.ENGINE_DEBUG, string(R.string.settings_engine_debug), string(R.string.settings_engine_debug_summary),
                 store.webEngineDebug, restart = true)
         )))
