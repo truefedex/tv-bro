@@ -15,6 +15,11 @@ interface VirtualCursorSupport {
     fun getCursorDrawerDelegate(): CursorDrawerDelegate?
     /** The modes of the cursor of this engine, the same flow for the engine's whole life */
     val cursorModes: StateFlow<CursorModes>
+    /**
+     * Gives the cursor the pointer mode of the page's site view and of [com.phlox.tvwebbrowser.Config.cursorPointer]
+     * ([CursorDrawerDelegate.pointerMode]); called again when that setting changes
+     */
+    fun applyPointerMode()
     /** Hides the cursor while the UI covers the page, see [CursorDrawerDelegate.hidden] */
     fun setCursorHidden(hidden: Boolean) {
         getCursorDrawerDelegate()?.hidden = hidden

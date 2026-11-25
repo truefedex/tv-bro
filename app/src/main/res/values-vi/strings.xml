@@ -558,6 +558,10 @@
   <string name="settings_percent">%d%%</string>
   <string name="settings_joystick">Di chuyển con trỏ bằng cần điều khiển</string>
   <string name="settings_joystick_summary">Cần trái của tay cầm chơi game di chuyển con trỏ mượt mà. Tắt đi nếu con trỏ tự trôi</string>
+  <string name="settings_cursor_pointer">Con trỏ hoạt động như</string>
+  <string name="settings_cursor_pointer_summary">Tự động: chuột cho trang ở chế độ xem máy tính hoặc máy tính bảng, ngón tay ở chế độ di động. Chuột di qua phần tử và cuộn bằng bánh xe, ngón tay kéo trang</string>
+  <string name="settings_cursor_pointer_mouse">Chuột</string>
+  <string name="settings_cursor_pointer_touch">Ngón tay</string>
   <string name="settings_group_keys">Phím điều khiển</string>
   <string name="settings_press_key">Nhấn một phím trên điều khiển để thêm vào thao tác này. Giữ phím để thêm thao tác nhấn giữ</string>
   <string name="settings_key_now_s">Hiện tại: %s</string>

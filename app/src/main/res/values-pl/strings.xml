@@ -600,6 +600,10 @@
   <string name="settings_percent">%d%%</string>
   <string name="settings_joystick">Ruch kursora gałkami</string>
   <string name="settings_joystick_summary">Lewa gałka pada płynnie przesuwa kursor. Wyłącz, jeśli kursor sam się przesuwa</string>
+  <string name="settings_cursor_pointer">Kursor działa jak</string>
+  <string name="settings_cursor_pointer_summary">Auto: mysz dla stron w widoku komputerowym lub tabletowym, palec w widoku mobilnym. Mysz najeżdża na elementy i przewija kółkiem, palec przeciąga stronę</string>
+  <string name="settings_cursor_pointer_mouse">Mysz</string>
+  <string name="settings_cursor_pointer_touch">Palec</string>
   <string name="settings_group_keys">Przyciski pilota</string>
   <string name="settings_press_key">Naciśnij przycisk na pilocie, aby dodać go do tej akcji. Przytrzymaj go, aby dodać długie naciśnięcie</string>
   <string name="settings_key_now_s">Teraz: %s</string>

@@ -600,6 +600,10 @@
   <string name="settings_percent">%d%%</string>
   <string name="settings_joystick">Курсор стиками</string>
   <string name="settings_joystick_summary">Левый стик геймпада плавно двигает курсор. Выключите, если курсор уплывает сам</string>
+  <string name="settings_cursor_pointer">Курсор работает как</string>
+  <string name="settings_cursor_pointer_summary">Авто: мышь для сайтов в компьютерном и планшетном виде, палец в мобильном. Мышь наводится на элементы и крутит колесо, палец тянет страницу</string>
+  <string name="settings_cursor_pointer_mouse">Мышь</string>
+  <string name="settings_cursor_pointer_touch">Палец</string>
   <string name="settings_group_keys">Клавиши пульта</string>
   <string name="settings_press_key">Нажмите клавишу на пульте, чтобы добавить её к этому действию. Удерживайте её, чтобы добавить долгое нажатие</string>
   <string name="settings_key_now_s">Сейчас: %s</string>

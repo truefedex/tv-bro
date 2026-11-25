@@ -600,6 +600,10 @@
   <string name="settings_percent">%d%%</string>
   <string name="settings_joystick">הזזת הסמן בג׳ויסטיקים</string>
   <string name="settings_joystick_summary">הג׳ויסטיק השמאלי של בקר המשחק מזיז את הסמן בצורה חלקה. יש לכבות אם הסמן זז מעצמו</string>
+  <string name="settings_cursor_pointer">התנהגות הסמן</string>
+  <string name="settings_cursor_pointer_summary">אוטומטי: עכבר לאתרים בתצוגת מחשב או טאבלט, אצבע בתצוגת נייד. העכבר מרחף מעל רכיבים וגולל בגלגלת, האצבע גוררת את הדף</string>
+  <string name="settings_cursor_pointer_mouse">עכבר</string>
+  <string name="settings_cursor_pointer_touch">אצבע</string>
   <string name="settings_group_keys">מקשי השלט</string>
   <string name="settings_press_key">לחץ על מקש בשלט כדי להוסיף אותו לפעולה זו. החזק אותו כדי להוסיף לחיצה ארוכה</string>
   <string name="settings_key_now_s">עכשיו: %s</string>

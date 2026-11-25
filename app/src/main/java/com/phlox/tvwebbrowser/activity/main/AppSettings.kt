@@ -363,6 +363,12 @@ class AppSettingsStore(
         set(value) {
             config.disableMotionAxesDpadNavigation = !value
         }
+    override var cursorPointer: Config.CursorPointer
+        get() = config.cursorPointer
+        set(value) {
+            config.cursorPointer = value
+            controller.onCursorPointerChanged()
+        }
     override var cursorSpeed: Int by config::cursorMaxSpeedPercent
     override var cursorAcceleration: Int by config::cursorAccelerationPercent
     override fun bindingsOf(shortcut: Shortcut): List<KeyBinding> = shortcuts.bindingsOf(shortcut)

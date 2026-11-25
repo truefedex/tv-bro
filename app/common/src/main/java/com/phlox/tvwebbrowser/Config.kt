@@ -7,6 +7,7 @@ import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.utils.observable.ObservableValue
 import com.phlox.tvwebbrowser.webengine.SiteView
+import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 
 /**
  * The settings of the app. [credentialsPrefs] keeps the secrets (the login of the proxy): its file is left out
@@ -43,6 +44,7 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         const val CURSOR_ACCELERATION_PERCENT_KEY = "cursor_acceleration_percent"
         const val CURSOR_PHYSICS_PERCENT_MIN = 25
         const val CURSOR_PHYSICS_PERCENT_MAX = 200
+        const val CURSOR_POINTER_KEY = "cursor_pointer"
         const val INCOGNITO_MODE_KEY = "incognito_mode"
         const val INCOGNITO_MODE_HINT_SUPPRESS_KEY = "incognito_mode_hint_suppress"
         /** "Don't show again" of the dialog that told about the built-in player before its toast ([builtInPlayerIntroShown]) */
@@ -196,6 +198,18 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
         WEEK(7), MONTH(30), THREE_MONTHS(90), SIX_MONTHS(180), YEAR(365)
     }
 
+    /** What the virtual cursor is to the page: a mouse or a finger, or (Auto) the one of the site view */
+    enum class CursorPointer {
+        AUTO, MOUSE, TOUCH;
+
+        /** A mouse for pages in a wide view (desktop, tablet) and a finger in the mobile one, unless chosen */
+        fun pointerModeOf(view: SiteView): PointerMode = when (this) {
+            AUTO -> if (view.wide) PointerMode.MOUSE else PointerMode.TOUCH
+            MOUSE -> PointerMode.MOUSE
+            TOUCH -> PointerMode.TOUCH
+        }
+    }
+
     /** The bookmarks the channel of the TV home screen shows */
     enum class ChannelBookmarksSource {
         /** The bookmarks of the built-in home page */
@@ -296,6 +310,14 @@ class Config(val prefs: SharedPreferences, private val credentialsPrefs: SharedP
                 CURSOR_ACCELERATION_PERCENT_KEY,
                 value.coerceIn(CURSOR_PHYSICS_PERCENT_MIN, CURSOR_PHYSICS_PERCENT_MAX)
             ).apply()
+        }
+
+    /** What the virtual cursor is to the page ([CursorPointer.AUTO] by default: it follows the site view) */
+    var cursorPointer: CursorPointer
+        get() = prefs.getString(CURSOR_POINTER_KEY, null)
+            ?.let { name -> CursorPointer.entries.find { it.name == name } } ?: CursorPointer.AUTO
+        set(value) {
+            prefs.edit().putString(CURSOR_POINTER_KEY, value.name).apply()
         }
 
     var theme = object : ObservableValue<Theme>(Theme.SYSTEM) {

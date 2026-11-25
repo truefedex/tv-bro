@@ -587,6 +587,10 @@
     <string name="settings_percent">%d%%</string>
     <string name="settings_joystick">Mover o cursor com os analógicos</string>
     <string name="settings_joystick_summary">O analógico esquerdo do controle de jogo move o cursor suavemente. Desative se o cursor se mover sozinho</string>
+    <string name="settings_cursor_pointer">O cursor age como</string>
+    <string name="settings_cursor_pointer_summary">Automática: mouse para sites na visualização de computador ou tablet, dedo na de celular. O mouse passa sobre os elementos e rola com a roda, o dedo arrasta a página</string>
+    <string name="settings_cursor_pointer_mouse">Mouse</string>
+    <string name="settings_cursor_pointer_touch">Dedo</string>
     <string name="settings_group_keys">Teclas do controle remoto</string>
     <string name="settings_press_key">Pressione uma tecla do controle remoto para adicioná-la a esta ação. Mantenha pressionada para adicionar um toque longo</string>
     <string name="settings_key_now_s">Atual: %s</string>

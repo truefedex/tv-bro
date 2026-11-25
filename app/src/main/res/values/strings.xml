@@ -645,6 +645,10 @@
     <string name="settings_percent">%d%%</string>
     <string name="settings_joystick">Move the cursor with sticks</string>
     <string name="settings_joystick_summary">The left stick of a game controller moves the cursor smoothly. Turn off if the cursor drifts on its own</string>
+    <string name="settings_cursor_pointer">Cursor acts as</string>
+    <string name="settings_cursor_pointer_summary">Auto: a mouse for sites in the desktop or tablet view, a finger in the mobile view. A mouse hovers and scrolls with the wheel, a finger drags pages</string>
+    <string name="settings_cursor_pointer_mouse">Mouse</string>
+    <string name="settings_cursor_pointer_touch">Finger</string>
     <string name="settings_group_keys">Keys of the remote</string>
     <string name="settings_press_key">Press a key on the remote to add it to this action. Hold it to add a long press</string>
     <!-- %s: the key of the shortcut now -->

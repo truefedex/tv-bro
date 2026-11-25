@@ -587,6 +587,10 @@
     <string name="settings_percent">%d %%</string>
     <string name="settings_joystick">Déplacer le curseur avec les joysticks</string>
     <string name="settings_joystick_summary">Le joystick gauche de la manette de jeu déplace le curseur en douceur. Désactivez si le curseur dérive tout seul</string>
+    <string name="settings_cursor_pointer">Le curseur agit comme</string>
+    <string name="settings_cursor_pointer_summary">Auto : souris pour les sites en vue ordinateur ou tablette, doigt en vue mobile. La souris survole les éléments et défile avec la molette, le doigt fait glisser la page</string>
+    <string name="settings_cursor_pointer_mouse">Souris</string>
+    <string name="settings_cursor_pointer_touch">Doigt</string>
     <string name="settings_group_keys">Touches de la télécommande</string>
     <string name="settings_press_key">Appuyez sur une touche de la télécommande pour l\'ajouter à cette action. Maintenez-la pour ajouter un appui long</string>
     <string name="settings_key_now_s">Actuellement : %s</string>

@@ -571,6 +571,10 @@
   <string name="settings_percent">%d %%</string>
   <string name="settings_joystick">Cursor mit den Sticks bewegen</string>
   <string name="settings_joystick_summary">Der linke Stick eines Gamecontrollers bewegt den Cursor stufenlos. Ausschalten, wenn der Cursor von selbst wandert</string>
+  <string name="settings_cursor_pointer">Cursor wirkt als</string>
+  <string name="settings_cursor_pointer_summary">Auto: Maus für Websites in der Desktop- oder Tablet-Ansicht, Finger in der mobilen Ansicht. Die Maus zeigt auf Elemente und scrollt mit dem Mausrad, der Finger zieht die Seite</string>
+  <string name="settings_cursor_pointer_mouse">Maus</string>
+  <string name="settings_cursor_pointer_touch">Finger</string>
   <string name="settings_group_keys">Tasten der Fernbedienung</string>
   <string name="settings_press_key">Drücken Sie eine Taste auf der Fernbedienung, um sie dieser Aktion hinzuzufügen. Halten Sie sie gedrückt, um ein langes Drücken hinzuzufügen</string>
   <string name="settings_key_now_s">Aktuell: %s</string>

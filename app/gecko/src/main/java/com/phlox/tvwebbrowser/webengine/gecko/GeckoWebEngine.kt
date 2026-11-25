@@ -67,7 +67,6 @@ import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyPromptDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MySelectionActionDelegate
 import com.phlox.tvwebbrowser.webengine.gecko.delegates.MyTextInputDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
-import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
@@ -500,8 +499,7 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
                 else GeckoSessionSettings.USER_AGENT_MODE_MOBILE
             applyUserAgentOverride()
             applyViewportMode()
-            //the view is shared by all tabs: only the attached one sets its cursor
-            if (callback != null) applyPointerMode()
+            applyPointerMode()
         }
 
     /** The User-Agent of the user, else that of the tablet view in it */
@@ -537,9 +535,13 @@ class GeckoWebEngine(val tab: BrowserTab): WebEngine, VirtualCursorSupport, Site
     fun pageZoomSettings(zoom: Int): JSONObject = JSONObject().put("zoom", zoom).put("desktopWidth",
         if (view.wide && session.settings.viewportMode == GeckoSessionSettings.VIEWPORT_MODE_MOBILE) DESKTOP_WIDTH else 0)
 
-    /** The cursor is a mouse for pages in a wide view (desktop, tablet), a finger in the mobile one */
-    private fun applyPointerMode() {
-        webView?.cursorDrawerDelegate?.pointerMode = if (view.wide) PointerMode.MOUSE else PointerMode.TOUCH
+    /**
+     * The cursor is a mouse for pages in a wide view (desktop, tablet), a finger in the mobile one, unless chosen.
+     * The view is shared by all tabs: only the attached one sets its cursor.
+     */
+    override fun applyPointerMode() {
+        if (callback == null) return
+        webView?.cursorDrawerDelegate?.pointerMode = AppContext.provideConfig().cursorPointer.pointerModeOf(view)
     }
 
     init {

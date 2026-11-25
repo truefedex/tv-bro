@@ -111,6 +111,7 @@ class SettingsNavigatorTest {
         override var keepScreenOn = false
         override var matchFrameRate = false
         override var joystickNavigation = true
+        override var cursorPointer = Config.CursorPointer.AUTO
         override var cursorSpeed = 100
         override var cursorAcceleration = 100
         override fun bindingsOf(shortcut: Shortcut) = shortcut.defaultBindings.toList()
@@ -700,6 +701,18 @@ class SettingsNavigatorTest {
         assertEquals(Shortcut.entries.size, rows().count { it is Row.ShortcutKey })
         navigator.act(rows().first { it is Row.ShortcutKey })
         assertEquals("capture ${Shortcut.entries.first()}", log.last())
+    }
+
+    @Test
+    fun cursorPointerIsChosen() {
+        val navigator = navigator(tvUi = true)
+        navigator.show(Category.REMOTE)
+        assertEquals(Config.CursorPointer.AUTO.ordinal, row<Row.Choice>(Key.CURSOR_POINTER).selected)
+        navigator.choose(Key.CURSOR_POINTER, Config.CursorPointer.MOUSE.ordinal)
+        assertEquals(Config.CursorPointer.MOUSE, store.cursorPointer)
+        assertEquals(Config.CursorPointer.MOUSE.ordinal, row<Row.Choice>(Key.CURSOR_POINTER).selected)
+        navigator.choose(Key.CURSOR_POINTER, Config.CursorPointer.TOUCH.ordinal)
+        assertEquals(Config.CursorPointer.TOUCH, store.cursorPointer)
     }
 
     @Test

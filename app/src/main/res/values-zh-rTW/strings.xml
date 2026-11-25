@@ -558,6 +558,10 @@
     <string name="settings_percent">%d%%</string>
     <string name="settings_joystick">用搖桿移動游標</string>
     <string name="settings_joystick_summary">遊戲手把的左搖桿可平順地移動游標。若游標自行飄移，請關閉此項</string>
+    <string name="settings_cursor_pointer">游標模擬</string>
+    <string name="settings_cursor_pointer_summary">自動：電腦版或平板版網站用滑鼠，行動版用手指。滑鼠可懸停並以滾輪捲動，手指拖曳頁面</string>
+    <string name="settings_cursor_pointer_mouse">滑鼠</string>
+    <string name="settings_cursor_pointer_touch">手指</string>
     <string name="settings_group_keys">遙控器按鍵</string>
     <string name="settings_press_key">按下遙控器上的按鍵即可加入此動作。按住即可加入長按</string>
     <string name="settings_key_now_s">目前：%s</string>

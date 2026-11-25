@@ -573,6 +573,10 @@
     <string name="settings_percent">%d%%</string>
     <string name="settings_joystick">Μετακίνηση δρομέα με τους μοχλούς</string>
     <string name="settings_joystick_summary">Ο αριστερός μοχλός του χειριστηρίου παιχνιδιών μετακινεί ομαλά τον δρομέα. Απενεργοποιήστε το αν ο δρομέας κινείται μόνος του</string>
+    <string name="settings_cursor_pointer">Ο δρομέας λειτουργεί ως</string>
+    <string name="settings_cursor_pointer_summary">Αυτόματα: ποντίκι για ιστότοπους σε προβολή υπολογιστή ή τάμπλετ, δάχτυλο σε προβολή κινητού. Το ποντίκι δείχνει τα στοιχεία και κυλά με τη ροδέλα, το δάχτυλο σύρει τη σελίδα</string>
+    <string name="settings_cursor_pointer_mouse">Ποντίκι</string>
+    <string name="settings_cursor_pointer_touch">Δάχτυλο</string>
     <string name="settings_group_keys">Πλήκτρα τηλεχειριστηρίου</string>
     <string name="settings_press_key">Πατήστε ένα πλήκτρο στο τηλεχειριστήριο για να το προσθέσετε σε αυτή την ενέργεια. Κρατήστε το πατημένο για να προσθέσετε παρατεταμένο πάτημα</string>
     <string name="settings_key_now_s">Τώρα: %s</string>

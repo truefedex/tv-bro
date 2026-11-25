@@ -56,7 +56,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeoutOrNull
 import com.phlox.tvwebbrowser.widgets.cursor.CursorDrawerDelegate
 import com.phlox.tvwebbrowser.widgets.cursor.CursorLayout
-import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 
 
 class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, SiteViewSupport, PageZoomSupport,
@@ -150,9 +149,10 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
         return view != appliedView || userAgent != appliedUserAgent
     }
 
-    /** The cursor is a mouse for pages in a wide view (desktop, tablet), a finger in the mobile one */
-    private fun applyPointerMode() {
-        cursorLayout?.cursorDrawerDelegate?.pointerMode = if (appliedView.wide) PointerMode.MOUSE else PointerMode.TOUCH
+    /** The cursor is a mouse for pages in a wide view (desktop, tablet), a finger in the mobile one, unless chosen */
+    override fun applyPointerMode() {
+        cursorLayout?.cursorDrawerDelegate?.pointerMode =
+            AppContext.provideConfig().cursorPointer.pointerModeOf(appliedView)
     }
 
     override fun saveState(): Any {

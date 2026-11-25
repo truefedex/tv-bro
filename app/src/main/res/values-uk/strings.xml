@@ -600,6 +600,10 @@
   <string name="settings_percent">%d%%</string>
   <string name="settings_joystick">Курсор стіками</string>
   <string name="settings_joystick_summary">Лівий стік геймпада плавно рухає курсор. Вимкніть, якщо курсор сам зсувається</string>
+  <string name="settings_cursor_pointer">Курсор працює як</string>
+  <string name="settings_cursor_pointer_summary">Авто: миша для сайтів у настільному та планшетному вигляді, палець у мобільному. Миша наводиться на елементи й крутить коліщатко, палець тягне сторінку</string>
+  <string name="settings_cursor_pointer_mouse">Миша</string>
+  <string name="settings_cursor_pointer_touch">Палець</string>
   <string name="settings_group_keys">Клавіші пульта</string>
   <string name="settings_press_key">Натисніть клавішу на пульті, щоб додати її до цієї дії. Утримуйте її, щоб додати довге натискання</string>
   <string name="settings_key_now_s">Зараз: %s</string>

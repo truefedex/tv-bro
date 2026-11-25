@@ -587,6 +587,10 @@
     <string name="settings_percent">%d%%</string>
     <string name="settings_joystick">Mover o cursor com os manípulos</string>
     <string name="settings_joystick_summary">O manípulo esquerdo do comando de jogos move o cursor de forma suave. Desative se o cursor se mover sozinho</string>
+    <string name="settings_cursor_pointer">O cursor age como</string>
+    <string name="settings_cursor_pointer_summary">Automática: rato para sites na vista de computador ou tablet, dedo na vista móvel. O rato passa sobre os elementos e desloca com a roda, o dedo arrasta a página</string>
+    <string name="settings_cursor_pointer_mouse">Rato</string>
+    <string name="settings_cursor_pointer_touch">Dedo</string>
     <string name="settings_group_keys">Teclas do comando</string>
     <string name="settings_press_key">Prima uma tecla do comando para a adicionar a esta ação. Mantenha-a premida para adicionar uma pressão longa</string>
     <string name="settings_key_now_s">Atual: %s</string>

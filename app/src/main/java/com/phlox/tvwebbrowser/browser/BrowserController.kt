@@ -41,6 +41,7 @@ import com.phlox.tvwebbrowser.webengine.PageZoom
 import com.phlox.tvwebbrowser.webengine.PageZoomSupport
 import com.phlox.tvwebbrowser.webengine.pageZoom
 import com.phlox.tvwebbrowser.webengine.siteView
+import com.phlox.tvwebbrowser.webengine.virtualCursor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -613,6 +614,13 @@ class BrowserController : ActiveModel() {
             }
         }
         publishState()
+    }
+
+    /** [com.phlox.tvwebbrowser.Config.cursorPointer] changed: the cursors of the tabs get their pointer mode again */
+    fun onCursorPointerChanged() {
+        for (tab in tabsStates) {
+            if (tab.isWebEngineCreated) tab.webEngine.virtualCursor?.applyPointerMode()
+        }
     }
 
     /**

@@ -587,6 +587,10 @@
     <string name="settings_percent">%d %%</string>
     <string name="settings_joystick">Mover el cursor con los joysticks</string>
     <string name="settings_joystick_summary">El joystick izquierdo del mando de juegos mueve el cursor con suavidad. Desactivar si el cursor se mueve solo</string>
+    <string name="settings_cursor_pointer">El cursor actúa como</string>
+    <string name="settings_cursor_pointer_summary">Automática: ratón para sitios en la vista de ordenador o tableta, dedo en la vista móvil. El ratón señala los elementos y desplaza con la rueda, el dedo arrastra la página</string>
+    <string name="settings_cursor_pointer_mouse">Ratón</string>
+    <string name="settings_cursor_pointer_touch">Dedo</string>
     <string name="settings_group_keys">Teclas del mando</string>
     <string name="settings_press_key">Pulsa una tecla del mando para añadirla a esta acción. Mantenla pulsada para añadir una pulsación larga</string>
     <string name="settings_key_now_s">Ahora: %s</string>

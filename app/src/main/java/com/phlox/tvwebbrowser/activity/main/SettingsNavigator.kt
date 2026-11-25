@@ -57,7 +57,7 @@ class SettingsNavigator(
         CHANNEL_BOOKMARKS, CHANNEL_BOOKMARKS_SOURCE, CHANNEL_TABS, CHANNEL_DOWNLOADS,
         SITE_VIEW, USER_AGENT, USER_AGENT_STRING, AUTOPLAY, AD_BLOCK, TRACKING_PROTECTION, FILTER_LIST, REGIONAL_LIST, CUSTOM_LIST, UPDATE_LISTS, VIDEO_PLAYER, VIDEO_HINT,
         INTERFACE, THEME, DARKENING, KEEP_SCREEN_ON, MATCH_FRAME_RATE,
-        CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
+        CURSOR_POINTER, CURSOR_SPEED, CURSOR_ACCELERATION, JOYSTICK, SHORTCUT,
         CLEAR_DATA, ENGINE_DEBUG, HISTORY_RETENTION, DOWNLOAD_FOLDER, PROXY, PROXY_TYPE, PROXY_HOST, PROXY_PORT, PROXY_USERNAME, PROXY_PASSWORD, DNS, DNS_URL,
         INFO, UPDATE, AUTO_UPDATE, UPDATE_CHANNEL,
         LINK_SOURCE, LINK_SUPPORT, LINK_ICON, LINK_LICENSE, LINK_PRIVACY, NOTICE,
@@ -204,6 +204,8 @@ class SettingsNavigator(
         var matchFrameRate: Boolean
 
         var joystickNavigation: Boolean
+        /** The setter gives the cursors of the tabs the new pointer mode at once */
+        var cursorPointer: Config.CursorPointer
         var cursorSpeed: Int
         var cursorAcceleration: Int
         fun bindingsOf(shortcut: Shortcut): List<KeyBinding>
@@ -589,6 +591,7 @@ class SettingsNavigator(
             }
             Key.INTERFACE -> store.interfaceMode = Config.InterfaceMode.entries[index]
             Key.THEME -> store.theme = Config.Theme.entries[index]
+            Key.CURSOR_POINTER -> store.cursorPointer = Config.CursorPointer.entries.getOrNull(index) ?: return
             Key.HISTORY_RETENTION -> store.historyRetention = Config.HistoryRetention.entries[index]
             Key.KIDS_LOCK_DELAY -> store.kidsProfile?.lockDelay = ProfileLock.LockDelay.entries.getOrNull(index) ?: return
             Key.KIDS_SITES_MODE -> {
@@ -1232,6 +1235,10 @@ class SettingsNavigator(
         val min = Config.CURSOR_PHYSICS_PERCENT_MIN
         val max = Config.CURSOR_PHYSICS_PERCENT_MAX
         val cursor = listOf(
+            //in the order of Config.CursorPointer
+            Row.Choice(Key.CURSOR_POINTER, string(R.string.settings_cursor_pointer), string(R.string.settings_cursor_pointer_summary),
+                listOf(string(R.string.settings_auto), string(R.string.settings_cursor_pointer_mouse),
+                    string(R.string.settings_cursor_pointer_touch)), store.cursorPointer.ordinal, segmented = true),
             Row.Slider(Key.CURSOR_SPEED, string(R.string.settings_cursor_speed), string(R.string.settings_cursor_speed_summary),
                 store.cursorSpeed, min, max, context.getString(R.string.settings_percent, store.cursorSpeed)),
             Row.Slider(Key.CURSOR_ACCELERATION, string(R.string.settings_cursor_acceleration),

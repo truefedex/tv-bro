@@ -558,6 +558,10 @@
   <string name="settings_percent">%d%%</string>
   <string name="settings_joystick">用摇杆移动光标</string>
   <string name="settings_joystick_summary">游戏手柄的左摇杆可平滑地移动光标。若光标自行漂移，请关闭此项</string>
+  <string name="settings_cursor_pointer">光标模拟</string>
+  <string name="settings_cursor_pointer_summary">自动：桌面版或平板版网站用鼠标，移动版用手指。鼠标可悬停并用滚轮滚动，手指拖动页面</string>
+  <string name="settings_cursor_pointer_mouse">鼠标</string>
+  <string name="settings_cursor_pointer_touch">手指</string>
   <string name="settings_group_keys">遥控器按键</string>
   <string name="settings_press_key">按下遥控器上的按键即可添加到此操作。按住可添加长按</string>
   <string name="settings_key_now_s">当前：%s</string>

@@ -601,6 +601,10 @@
     <string name="settings_percent">%d %%</string>
     <string name="settings_joystick">Pohyb kurzoru páčkami</string>
     <string name="settings_joystick_summary">Levá páčka herního ovladače plynule posouvá kurzor. Vypněte, pokud se kurzor posouvá sám</string>
+    <string name="settings_cursor_pointer">Kurzor funguje jako</string>
+    <string name="settings_cursor_pointer_summary">Auto: myš pro weby v počítačovém nebo tabletovém zobrazení, prst v mobilním. Myš najíždí na prvky a posouvá kolečkem, prst táhne stránku</string>
+    <string name="settings_cursor_pointer_mouse">Myš</string>
+    <string name="settings_cursor_pointer_touch">Prst</string>
     <string name="settings_group_keys">Tlačítka ovladače</string>
     <string name="settings_press_key">Stiskněte tlačítko na ovladači a přidá se k této akci. Podržením přidáte dlouhé stisknutí</string>
     <string name="settings_key_now_s">Nyní: %s</string>

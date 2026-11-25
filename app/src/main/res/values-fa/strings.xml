@@ -572,6 +572,10 @@
   <string name="settings_percent">%d%%</string>
   <string name="settings_joystick">جابه‌جایی مکان‌نما با اهرم‌ها</string>
   <string name="settings_joystick_summary">اهرم چپ دسته بازی مکان‌نما را نرم جابه‌جا می‌کند. اگر مکان‌نما خودبه‌خود جابه‌جا می‌شود، آن را خاموش کنید</string>
+  <string name="settings_cursor_pointer">رفتار مکان‌نما</string>
+  <string name="settings_cursor_pointer_summary">خودکار: ماوس برای سایت‌ها در نمای رایانه یا تبلت، انگشت در نمای موبایل. ماوس روی عناصر می‌رود و با چرخ پیمایش می‌کند، انگشت صفحه را می‌کشد</string>
+  <string name="settings_cursor_pointer_mouse">ماوس</string>
+  <string name="settings_cursor_pointer_touch">انگشت</string>
   <string name="settings_group_keys">کلیدهای ریموت</string>
   <string name="settings_press_key">یک کلید ریموت را فشار دهید تا به این عمل افزوده شود. برای افزودن فشار طولانی آن را نگه دارید</string>
   <string name="settings_key_now_s">اکنون: %s</string>

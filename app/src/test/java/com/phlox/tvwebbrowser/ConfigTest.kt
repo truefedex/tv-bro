@@ -1,6 +1,8 @@
 package com.phlox.tvwebbrowser
 
 import com.phlox.tvwebbrowser.net.ProxySettings
+import com.phlox.tvwebbrowser.webengine.SiteView
+import com.phlox.tvwebbrowser.widgets.cursor.PointerMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -26,6 +28,24 @@ class ConfigTest {
         //a value this version does not know
         config.prefs.edit().putString(Config.HISTORY_RETENTION_KEY, "FOREVER").commit()
         assertEquals(Config.HistoryRetention.YEAR, config.historyRetention)
+    }
+
+    @Test
+    fun cursorPointerFollowsTheSiteViewUnlessChosen() {
+        assertEquals(Config.CursorPointer.AUTO, config.cursorPointer)
+        val auto = Config.CursorPointer.AUTO
+        assertEquals(PointerMode.TOUCH, auto.pointerModeOf(SiteView.MOBILE))
+        assertEquals(PointerMode.MOUSE, auto.pointerModeOf(SiteView.TABLET))
+        assertEquals(PointerMode.MOUSE, auto.pointerModeOf(SiteView.DESKTOP))
+        for (view in SiteView.entries) {
+            assertEquals(PointerMode.MOUSE, Config.CursorPointer.MOUSE.pointerModeOf(view))
+            assertEquals(PointerMode.TOUCH, Config.CursorPointer.TOUCH.pointerModeOf(view))
+        }
+        config.cursorPointer = Config.CursorPointer.TOUCH
+        assertEquals(Config.CursorPointer.TOUCH, config.cursorPointer)
+        //a value this version does not know
+        config.prefs.edit().putString(Config.CURSOR_POINTER_KEY, "PEN").commit()
+        assertEquals(Config.CursorPointer.AUTO, config.cursorPointer)
     }
 
     @Test
