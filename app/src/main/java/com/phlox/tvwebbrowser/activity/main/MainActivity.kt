@@ -594,6 +594,11 @@ class MainActivity : AppCompatActivity(), BrowserShell.Host {
             }
         }
 
+        override fun toggleDirectNavigation() {
+            if (tabsLocked()) return
+            shell.toggleDirectNavigation()
+        }
+
         override fun newTab() {
             if (tabsLocked()) return
             shell.openNewTab()

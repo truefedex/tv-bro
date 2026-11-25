@@ -25,6 +25,8 @@ enum class Shortcut(val titleResId: Int, val prefsKey: String, vararg val defaul
     //the channel keys page in WebView by themselves (Chromium takes them for Page Up and Down), GeckoView ignores them
     PAGE_UP(R.string.page_up, "shortcut_page_up", KeyBinding(KeyEvent.KEYCODE_CHANNEL_UP)),
     PAGE_DOWN(R.string.page_down, "shortcut_page_down", KeyBinding(KeyEvent.KEYCODE_CHANNEL_DOWN)),
+    //for remotes that give no long press of OK, which opens the cursor menu with the mode in it
+    DIRECT_NAVIGATION(R.string.toggle_direct_navigation, "shortcut_direct_navigation"),
     NEW_TAB(R.string.new_tab, "shortcut_new_tab", KeyBinding(KeyEvent.KEYCODE_T, KeyEvent.META_CTRL_ON)),
     CLOSE_TAB(R.string.close_tab, "shortcut_close_tab", KeyBinding(KeyEvent.KEYCODE_W, KeyEvent.META_CTRL_ON)),
     NEXT_TAB(R.string.next_tab, "shortcut_next_tab", KeyBinding(KeyEvent.KEYCODE_TAB, KeyEvent.META_CTRL_ON)),

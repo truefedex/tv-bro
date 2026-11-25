@@ -1091,6 +1091,19 @@ class TvShell(private val host: BrowserShell.Host) : BrowserShell, ActionBar.Cal
         if (vb.rlActionBar.isVisible) hideMenuOverlay() else vb.vFindBar.focusField()
     }
 
+    override fun toggleDirectNavigation() {
+        //not over the screens, the player or a fullscreen video
+        if (fullscreen || listOf(vb.vDownloadsScreen, vb.vHistoryScreen, vb.vSendScreen, vb.vSettingsScreen,
+                vb.vPlayerScreen).any { it.isVisible }) return
+        val cursor = controller.currentTab.value?.webEngine?.virtualCursor ?: return
+        val direct = cursor.isVirtualCursorMode()
+        //the bar closes, so the page has the focus and the keys
+        showPage()
+        cursor.setVirtualCursorMode(!direct)
+        showMessage(R.drawable.ic_dpad_mode,
+            activity.getString(if (direct) R.string.direct_navigation_on else R.string.direct_navigation_off))
+    }
+
     //after the listeners: properties are initialized in their order
     init {
         vb.ivMiniatures.visibility = View.INVISIBLE

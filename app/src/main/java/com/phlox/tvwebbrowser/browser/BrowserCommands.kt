@@ -19,6 +19,8 @@ interface BrowserCommands {
     fun findInPage()
     /** Scrolls a page up or down, as the Page Up and Page Down keys do where the focus is */
     fun scrollPage(up: Boolean)
+    /** Turns the direct navigation mode of the virtual cursor on or off (the D-pad keys go to the page) */
+    fun toggleDirectNavigation()
     /** Opens a tab with the home page at the end */
     fun newTab()
     /** Closes the current tab (closing the only tab leaves one with the home page) */

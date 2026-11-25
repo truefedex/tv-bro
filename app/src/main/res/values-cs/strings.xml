@@ -597,6 +597,9 @@
     <string name="previous_tab">Předchozí karta</string>
     <string name="page_up">O stránku nahoru</string>
     <string name="page_down">O stránku dolů</string>
+    <string name="toggle_direct_navigation">Zapnout/vypnout přímou navigaci</string>
+    <string name="direct_navigation_on">Přímá navigace zapnuta</string>
+    <string name="direct_navigation_off">Přímá navigace vypnuta</string>
     <string name="settings_keys_default">Výchozí</string>
     <string name="settings_keys_max_d">Akce může mít nejvýše %d klávesy: nová nahradí nejstarší</string>
     <string name="settings_key_taken_s_s">%1$s je nastavena pro „%2$s“. Stiskněte ji znovu a nastaví se zde</string>

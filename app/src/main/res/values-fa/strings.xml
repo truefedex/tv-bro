@@ -568,6 +568,9 @@
   <string name="previous_tab">زبانه قبلی</string>
   <string name="page_up">صفحه بالا</string>
   <string name="page_down">صفحه پایین</string>
+  <string name="toggle_direct_navigation">روشن/خاموش کردن پیمایش مستقیم</string>
+  <string name="direct_navigation_on">پیمایش مستقیم روشن شد</string>
+  <string name="direct_navigation_off">پیمایش مستقیم خاموش شد</string>
   <string name="settings_keys_default">پیش‌فرض</string>
   <string name="settings_keys_max_d">هر عمل حداکثر %d کلید دارد: کلید جدید جایگزین قدیمی‌ترین می‌شود</string>
   <string name="settings_key_taken_s_s">%1$s برای «%2$s» تنظیم شده است. برای تنظیم آن در اینجا دوباره فشار دهید</string>

@@ -554,6 +554,9 @@
   <string name="previous_tab">上一个标签页</string>
   <string name="page_up">向上翻页</string>
   <string name="page_down">向下翻页</string>
+  <string name="toggle_direct_navigation">开关直接导航</string>
+  <string name="direct_navigation_on">已开启直接导航</string>
+  <string name="direct_navigation_off">已关闭直接导航</string>
   <string name="settings_keys_default">默认</string>
   <string name="settings_keys_max_d">每个操作最多 %d 个按键：新的按键会替换最早的按键</string>
   <string name="settings_key_taken_s_s">%1$s 已用于“%2$s”。再按一次即可改为用于此处</string>

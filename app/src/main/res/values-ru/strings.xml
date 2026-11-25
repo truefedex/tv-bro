@@ -596,6 +596,9 @@
   <string name="previous_tab">Предыдущая вкладка</string>
   <string name="page_up">Страница вверх</string>
   <string name="page_down">Страница вниз</string>
+  <string name="toggle_direct_navigation">Прямая навигация вкл./выкл.</string>
+  <string name="direct_navigation_on">Прямая навигация включена</string>
+  <string name="direct_navigation_off">Прямая навигация выключена</string>
   <string name="settings_keys_default">По умолчанию</string>
   <string name="settings_keys_max_d">У действия до %d клавиш: новая заменяет самую старую</string>
   <string name="settings_key_taken_s_s">%1$s назначена на «%2$s». Нажмите её ещё раз, чтобы назначить сюда</string>

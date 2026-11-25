@@ -583,6 +583,9 @@
     <string name="previous_tab">Onglet précédent</string>
     <string name="page_up">Page vers le haut</string>
     <string name="page_down">Page vers le bas</string>
+    <string name="toggle_direct_navigation">Activer/désactiver la navigation directe</string>
+    <string name="direct_navigation_on">Navigation directe activée</string>
+    <string name="direct_navigation_off">Navigation directe désactivée</string>
     <string name="settings_keys_default">Par défaut</string>
     <string name="settings_keys_max_d">Une action a jusqu\'à %d touches : une nouvelle remplace la plus ancienne</string>
     <string name="settings_key_taken_s_s">%1$s est attribuée à « %2$s ». Appuyez de nouveau pour l\'attribuer ici</string>

@@ -81,6 +81,15 @@ class ShortcutMgrTest {
     }
 
     @Test
+    fun directNavigationHasNoDefaultKeysButTakesOne() {
+        val mgr = ShortcutMgr(prefs)
+        assertEquals(emptyList<KeyBinding>(), mgr.bindingsOf(Shortcut.DIRECT_NAVIGATION))
+        mgr.add(Shortcut.DIRECT_NAVIGATION, KeyBinding(KeyEvent.KEYCODE_PROG_BLUE))
+        assertTrue(mgr.press(KeyEvent.KEYCODE_PROG_BLUE))
+        assertEquals(listOf("toggleDirectNavigation"), commands.log)
+    }
+
+    @Test
     fun defaultKeysAreNotInTwoActions() {
         val keys = Shortcut.entries.flatMap { it.defaultBindings.toList() }
         assertEquals(keys.size, keys.toSet().size)
@@ -259,6 +268,7 @@ class ShortcutMgrTest {
         override fun fastForward() { log += "fastForward" }
         override fun findInPage() { log += "findInPage" }
         override fun scrollPage(up: Boolean) { log += if (up) "scrollPage(up)" else "scrollPage(down)" }
+        override fun toggleDirectNavigation() { log += "toggleDirectNavigation" }
         override fun newTab() { log += "newTab" }
         override fun closeTab() { log += "closeTab" }
         override fun switchTab(offset: Int) { log += "switchTab($offset)" }

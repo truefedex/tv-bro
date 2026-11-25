@@ -567,6 +567,9 @@
   <string name="previous_tab">Vorheriger Tab</string>
   <string name="page_up">Seite nach oben</string>
   <string name="page_down">Seite nach unten</string>
+  <string name="toggle_direct_navigation">Direkte Navigation ein/aus</string>
+  <string name="direct_navigation_on">Direkte Navigation an</string>
+  <string name="direct_navigation_off">Direkte Navigation aus</string>
   <string name="settings_keys_default">Standard</string>
   <string name="settings_keys_max_d">Eine Aktion hat bis zu %d Tasten: eine neue ersetzt die älteste</string>
   <string name="settings_key_taken_s_s">%1$s ist für „%2$s“ festgelegt. Drücken Sie sie erneut, um sie stattdessen hier festzulegen</string>

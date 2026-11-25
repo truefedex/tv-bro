@@ -123,6 +123,12 @@ interface BrowserShell {
     /** Opens the find bar of the current page (Find in page), its field focused with the keyboard */
     fun showFindInPage()
 
+    /**
+     * Turns the direct navigation mode of the current tab on or off and tells which it is now (the hotkey;
+     * a shell without the virtual cursor does nothing)
+     */
+    fun toggleDirectNavigation() {}
+
     /** Opens all downloads, the download [focusId] focused (else the first one) */
     fun showAllDownloads(focusId: Long? = null)
 
