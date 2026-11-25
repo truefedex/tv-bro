@@ -600,7 +600,7 @@
   <string name="settings_dns_summary">Trang tìm trang web qua DNS của thiết bị hoặc mạng</string>
   <string name="settings_dns_system">Của thiết bị (mặc định)</string>
   <string name="settings_dns_custom">Máy chủ khác…</string>
-  <string name="settings_dns_in_use_s">Trang tìm trang web qua %s bằng kết nối mã hóa (DNS over HTTPS), hoặc qua DNS của thiết bị khi máy chủ không trả lời</string>
+  <string name="settings_dns_in_use_s">Trang tìm trang web qua %s bằng kết nối mã hóa, hoặc qua DNS của thiết bị khi máy chủ không trả lời</string>
   <string name="settings_dns_proxy">Không dùng khi proxy đang bật: proxy tìm trang web</string>
   <string name="settings_dns_incomplete">Không dùng: hãy nhập địa chỉ của máy chủ DNS over HTTPS</string>
   <string name="settings_dns_url">Địa chỉ máy chủ</string>

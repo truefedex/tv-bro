@@ -615,7 +615,7 @@
     <string name="settings_dns_summary">Οι σελίδες βρίσκουν τους ιστότοπους μέσω του DNS της συσκευής ή του δικτύου</string>
     <string name="settings_dns_system">Συσκευής (προεπιλογή)</string>
     <string name="settings_dns_custom">Άλλος διακομιστής…</string>
-    <string name="settings_dns_in_use_s">Οι σελίδες βρίσκουν τους ιστότοπους μέσω %s με κρυπτογραφημένη σύνδεση (DNS over HTTPS) ή μέσω του DNS της συσκευής όσο δεν απαντά</string>
+    <string name="settings_dns_in_use_s">Οι σελίδες βρίσκουν τους ιστότοπους μέσω %s με κρυπτογραφημένη σύνδεση ή μέσω του DNS της συσκευής όσο δεν απαντά</string>
     <string name="settings_dns_proxy">Δεν χρησιμοποιείται όσο ο διακομιστής μεσολάβησης είναι ενεργός: αυτός βρίσκει τους ιστότοπους</string>
     <string name="settings_dns_incomplete">Δεν χρησιμοποιείται: εισαγάγετε τη διεύθυνση ενός διακομιστή DNS over HTTPS</string>
     <string name="settings_dns_url">Διεύθυνση διακομιστή</string>

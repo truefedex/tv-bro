@@ -613,7 +613,7 @@
   <string name="settings_dns_summary">Seiten finden Websites über das DNS des Geräts oder des Netzwerks</string>
   <string name="settings_dns_system">Gerät (Standard)</string>
   <string name="settings_dns_custom">Anderer Server…</string>
-  <string name="settings_dns_in_use_s">Seiten finden Websites über %s mit einer verschlüsselten Verbindung (DNS over HTTPS) oder über das DNS des Geräts, solange er nicht antwortet</string>
+  <string name="settings_dns_in_use_s">Seiten finden Websites über %s mit einer verschlüsselten Verbindung oder über das DNS des Geräts, solange er nicht antwortet</string>
   <string name="settings_dns_proxy">Nicht aktiv, solange der Proxy an ist: Der Proxy findet die Websites</string>
   <string name="settings_dns_incomplete">Nicht aktiv: Geben Sie die Adresse eines DNS-over-HTTPS-Servers ein</string>
   <string name="settings_dns_url">Serveradresse</string>

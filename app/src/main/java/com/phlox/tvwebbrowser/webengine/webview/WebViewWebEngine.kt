@@ -21,7 +21,9 @@ import com.phlox.tvwebbrowser.AppContext
 import com.phlox.tvwebbrowser.Config
 import com.phlox.tvwebbrowser.R
 import com.phlox.tvwebbrowser.model.BrowserTab
+import com.phlox.tvwebbrowser.net.AppDns
 import com.phlox.tvwebbrowser.net.AppProxy
+import com.phlox.tvwebbrowser.net.DnsSettings
 import com.phlox.tvwebbrowser.net.ProxySettings
 import com.phlox.tvwebbrowser.utils.Utils
 import com.phlox.tvwebbrowser.webengine.DownloadRequest
@@ -655,11 +657,16 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     //before any WebView is created
                     WebViewProfiles.prepare(context)
                     //before any WebView of the tabs loads a page
-                    AppProxy.settings?.let { WebViewProxy.apply(it) }
+                    (AppProxy.settings ?: WebViewDns.relayProxy(AppDns.settings))?.let { WebViewProxy.apply(it) }
                 }
 
                 override suspend fun applyProxy(proxy: ProxySettings?) {
-                    WebViewProxy.apply(proxy)
+                    WebViewProxy.apply(proxy ?: WebViewDns.relayProxy(AppDns.settings))
+                }
+
+                override suspend fun applyDns(dns: DnsSettings?) {
+                    val relay = WebViewDns.relayProxy(dns)
+                    WebViewProxy.apply(AppProxy.settings ?: relay)
                 }
 
                 override fun createWebEngine(tab: BrowserTab): WebEngine {
@@ -707,8 +714,8 @@ class WebViewWebEngine(val tab: BrowserTab) : WebEngine, VirtualCursorSupport, S
                     //WebView has no blocking of trackers of its own
                     EngineSpecificSetting.TRACKING_PROTECTION -> false
                     EngineSpecificSetting.PROXY -> WebViewProxy.isSupported()
-                    //WebView has no setting of its DNS
-                    EngineSpecificSetting.DNS -> false
+                    //through the relay of WebViewDns
+                    EngineSpecificSetting.DNS -> WebViewProxy.isSupported()
                 }
             }))
         }

@@ -642,7 +642,7 @@
   <string name="settings_dns_summary">הדפים מוצאים אתרים דרך ה-DNS של המכשיר או הרשת</string>
   <string name="settings_dns_system">המכשיר (ברירת מחדל)</string>
   <string name="settings_dns_custom">שרת אחר…</string>
-  <string name="settings_dns_in_use_s">הדפים מוצאים אתרים דרך %s בחיבור מוצפן (DNS over HTTPS), ודרך ה-DNS של המכשיר כל עוד הוא לא עונה</string>
+  <string name="settings_dns_in_use_s">הדפים מוצאים אתרים דרך %s בחיבור מוצפן, ודרך ה-DNS של המכשיר כל עוד הוא לא עונה</string>
   <string name="settings_dns_proxy">לא בשימוש כל עוד שרת ה-proxy פעיל: הוא מוצא את האתרים</string>
   <string name="settings_dns_incomplete">לא בשימוש: הזן כתובת של שרת DNS over HTTPS</string>
   <string name="settings_dns_url">כתובת השרת</string>

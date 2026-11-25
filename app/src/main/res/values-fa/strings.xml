@@ -614,7 +614,7 @@
   <string name="settings_dns_summary">صفحه‌ها سایت‌ها را از طریق DNS دستگاه یا شبکه پیدا می‌کنند</string>
   <string name="settings_dns_system">دستگاه (پیش‌فرض)</string>
   <string name="settings_dns_custom">سرور دیگر…</string>
-  <string name="settings_dns_in_use_s">صفحه‌ها سایت‌ها را از طریق %s با اتصال رمزگذاری‌شده (DNS over HTTPS) پیدا می‌کنند، و تا وقتی پاسخ ندهد از طریق DNS دستگاه</string>
+  <string name="settings_dns_in_use_s">صفحه‌ها سایت‌ها را از طریق %s با اتصال رمزگذاری‌شده پیدا می‌کنند، و تا وقتی پاسخ ندهد از طریق DNS دستگاه</string>
   <string name="settings_dns_proxy">تا وقتی پروکسی روشن است استفاده نمی‌شود: پروکسی سایت‌ها را پیدا می‌کند</string>
   <string name="settings_dns_incomplete">استفاده نمی‌شود: نشانی یک سرور DNS over HTTPS را وارد کنید</string>
   <string name="settings_dns_url">نشانی سرور</string>

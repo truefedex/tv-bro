@@ -698,7 +698,7 @@
     <string name="settings_dns_system">Device (default)</string>
     <string name="settings_dns_custom">Another server…</string>
     <!-- %s: the name of the server (Cloudflare) or its host -->
-    <string name="settings_dns_in_use_s">Pages find sites through %s over an encrypted connection (DNS over HTTPS), or through the DNS of the device while it does not answer</string>
+    <string name="settings_dns_in_use_s">Pages find sites through %s over an encrypted connection, or through the DNS of the device while it does not answer</string>
     <string name="settings_dns_proxy">Not in use while the proxy is on: the proxy finds the sites</string>
     <string name="settings_dns_incomplete">Not in use: enter the address of a DNS-over-HTTPS server</string>
     <string name="settings_dns_url">Server address</string>

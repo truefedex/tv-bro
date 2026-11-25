@@ -628,7 +628,7 @@
   <string name="settings_dns_summary">Le pagine trovano i siti tramite il DNS del dispositivo o della rete</string>
   <string name="settings_dns_system">Dispositivo (predefinito)</string>
   <string name="settings_dns_custom">Altro server…</string>
-  <string name="settings_dns_in_use_s">Le pagine trovano i siti tramite %s con una connessione cifrata (DNS over HTTPS), o tramite il DNS del dispositivo finché non risponde</string>
+  <string name="settings_dns_in_use_s">Le pagine trovano i siti tramite %s con una connessione cifrata, o tramite il DNS del dispositivo finché non risponde</string>
   <string name="settings_dns_proxy">Non in uso mentre il proxy è attivo: è il proxy a trovare i siti</string>
   <string name="settings_dns_incomplete">Non in uso: inserisci l\'indirizzo di un server DNS over HTTPS</string>
   <string name="settings_dns_url">Indirizzo del server</string>

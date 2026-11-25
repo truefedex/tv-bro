@@ -642,7 +642,7 @@
   <string name="settings_dns_summary">Сторінки знаходять сайти через DNS пристрою або мережі</string>
   <string name="settings_dns_system">Пристрою (типово)</string>
   <string name="settings_dns_custom">Інший сервер…</string>
-  <string name="settings_dns_in_use_s">Сторінки знаходять сайти через %s по зашифрованому з\'єднанню (DNS over HTTPS), а поки він не відповідає — через DNS пристрою</string>
+  <string name="settings_dns_in_use_s">Сторінки знаходять сайти через %s по зашифрованому з\'єднанню, а поки він не відповідає — через DNS пристрою</string>
   <string name="settings_dns_proxy">Не використовується, поки ввімкнено проксі: сайти знаходить проксі</string>
   <string name="settings_dns_incomplete">Не використовується: введіть адресу сервера DNS over HTTPS</string>
   <string name="settings_dns_url">Адреса сервера</string>
