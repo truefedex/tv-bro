@@ -19,6 +19,12 @@ open class GeckoViewEx @JvmOverloads constructor(context: Context, attrs: Attrib
 
     private var geckoDisplay: GeckoDisplay? = null
 
+    init {
+        //Android leaves a view of AUTO importance without a resource id or hints out of the structure it gives the
+        //autofill service, so the fields of the page (virtual children of the view) never reached it
+        importantForAutofill = IMPORTANT_FOR_AUTOFILL_YES
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         screenshotBuilderAccessHack()
