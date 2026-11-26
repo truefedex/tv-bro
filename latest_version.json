@@ -2,34 +2,34 @@
   "channels": [
     {
       "name": "release",
-      "latestVersionName": "v3.0.7",
-      "latestVersionCode": 84,
+      "latestVersionName": "v3.1.0",
+      "latestVersionCode": 86,
       "minAPI": 24,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoExcluded.apk",
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v3.1.0/tvbro-3.1.0-generic-geckoExcluded.apk",
       "variants": {
         "geckoIncluded": {
           "minAPI": 26,
-          "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-armeabi-v7a.apk",
+          "url": "https://github.com/truefedex/tv-bro/releases/download/v3.1.0/tvbro-3.1.0-generic-geckoIncluded-armeabi-v7a.apk",
           "urls": [
-            "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-arm64-v8a.apk",
-            "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-x86_64.apk"
+            "https://github.com/truefedex/tv-bro/releases/download/v3.1.0/tvbro-3.1.0-generic-geckoIncluded-arm64-v8a.apk",
+            "https://github.com/truefedex/tv-bro/releases/download/v3.1.0/tvbro-3.1.0-generic-geckoIncluded-x86_64.apk"
           ]
         }
       }
     },
     {
       "name": "beta",
-      "latestVersionName": "v3.0.7",
-      "latestVersionCode": 84,
+      "latestVersionName": "v3.1.0",
+      "latestVersionCode": 86,
       "minAPI": 24,
-      "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoExcluded.apk",
+      "url": "https://github.com/truefedex/tv-bro/releases/download/v3.1.0/tvbro-3.1.0-generic-geckoExcluded.apk",
       "variants": {
         "geckoIncluded": {
           "minAPI": 26,
-          "url": "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-armeabi-v7a.apk",
+          "url": "https://github.com/truefedex/tv-bro/releases/download/v3.1.0/tvbro-3.1.0-generic-geckoIncluded-armeabi-v7a.apk",
           "urls": [
-            "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-arm64-v8a.apk",
-            "https://github.com/truefedex/tv-bro/releases/download/v3.0.7/tvbro-3.0.7-generic-geckoIncluded-x86_64.apk"
+            "https://github.com/truefedex/tv-bro/releases/download/v3.1.0/tvbro-3.1.0-generic-geckoIncluded-arm64-v8a.apk",
+            "https://github.com/truefedex/tv-bro/releases/download/v3.1.0/tvbro-3.1.0-generic-geckoIncluded-x86_64.apk"
           ]
         }
       }
@@ -37,6 +37,11 @@
   ],
 
   "changelog": [
+    {
+      "versionCode": 86,
+      "versionName": "v3.1.0",
+      "changes": "* Kids profile behind a PIN (TV interface): own tabs, bookmarks, history and sign-ins, site filters\n* Custom DNS: DNS-over-HTTPS servers (Cloudflare, Google, AdGuard, Quad9, DNS.SB or your own)\n* Clear browsing data of each profile from the settings or a hotkey\n* New cursor setting: act as a mouse or a finger\n* Channel +/- keys of remotes page up and down; new hotkey to toggle direct navigation\n* \"+\" in the empty places of home page bookmarks adds a bookmark\n* The whole app runs in one process: faster switching to incognito mode, less memory used\n* WebView version: incognito mode and the kids profile need WebView 119 or newer\n* Bugfixes and minor UI improvements"
+    },
     {
       "versionCode": 85,
       "versionName": "v3.0.7",
@@ -56,11 +61,6 @@
       "versionCode": 69,
       "versionName": "v2.1.6",
       "changes": "* Several bugfixes (handling physical keyboards, page preview rendering)"
-    },
-    {
-      "versionCode": 68,
-      "versionName": "v2.1.5",
-      "changes": "* Various bugfixes (anonymous mode crash, clear cache crash, broken mouse etc...)"
     }
   ]
 }
